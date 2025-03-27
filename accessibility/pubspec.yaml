@@ -1,0 +1,26 @@
+name: accessibility
+description: "Accessibility Handler"
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: ^3.7.0
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+dev_dependencies:
+  pigeon: ^25.2.0
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: de.jonasbark.accessibility
+        pluginClass: AccessibilityPlugin

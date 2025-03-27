@@ -1,0 +1,39 @@
+name: swift_control
+description: "SwiftControl - Control your virtual riding"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_local_notifications: ^19.0.0
+  flutter_blue_plus: ^1.35.3
+  protobuf: ^3.1.0
+  dartx: any
+  pointycastle: any
+  keypress_simulator: ^0.2.0
+  flex_color_scheme: ^8.2.0
+  flutter_blue_plus_windows:
+    path: flutter_blue_plus_windows
+  accessibility:
+    path: accessibility
+
+dependency_overrides:
+  flutter_blue_plus_web:
+    git:
+      url: https://github.com/chipweinberger/flutter_blue_plus.git
+      path: packages/flutter_blue_plus_web
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_launcher_icons: "^0.14.3"
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
