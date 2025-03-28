@@ -7,8 +7,8 @@ on:
 
 jobs:
   build:
-    if: false
     name: Build & Release
+    if: false
     runs-on: macos-latest
 
     permissions:
@@ -136,7 +136,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   windows:
-    #needs: build
+    needs: build
     name: Build & Release on Windows
     runs-on: windows-latest
 
@@ -165,6 +165,11 @@ jobs:
       - name: Build App
         run: flutter build windows
 
+      - name: Zip directory (Windows)
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build/windows/x64/runner/Release/" -DestinationPath "build/windows/x64/runner/Release/SwiftControl.windows.zip"
+
       #9 Upload Artifacts
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -172,7 +177,7 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            build/windows/x64/runner/Release/swift_control.exe
+            build/windows/x64/runner/Release/SwiftControl.windows.zip
 
       #10 Extract Version
       - name: Extract version from pubspec.yaml (Windows)
@@ -189,6 +194,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/swift_control.exe"
+          artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip"
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
