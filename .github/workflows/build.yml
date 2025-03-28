@@ -72,11 +72,6 @@ jobs:
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
-      - name: Compress Archives and IPAs
-        run: |
-          cd build/macos/Build/Products/Release/
-          zip -r SwiftControl.macos.zip SwiftControl.app/
-
         #6 Building APK
       - name: Build APK
         run: flutter build apk --release
@@ -84,13 +79,19 @@ jobs:
       - name: Build Web
         run: flutter build web --release --base-href "/swiftcontrol/"
 
+      - name: Handle archives
+        run: |
+          cd build/macos/Build/Products/Release/
+          zip -r SwiftControl.macos.zip SwiftControl.app/
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
+
         #9 Upload Artifacts
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Releases
           path: |
-            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/SwiftControl.android.apk
             build/macos/Build/Products/Release/SwiftControl.macos.zip
 
         #10 Extract Version
@@ -122,7 +123,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-release.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
+          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
 
