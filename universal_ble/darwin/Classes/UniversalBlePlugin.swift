@@ -208,8 +208,8 @@ private class BleCentralDarwin: NSObject, UniversalBlePlatformChannel, CBCentral
     }
 
     if bleInputProperty == BleInputProperty.indication.rawValue && !gattCharacteristic.properties.contains(.indicate) {
-      completion(Result.failure(PigeonError(code: "InvalidAction", message: "Characteristic does not support indicate", details: nil)))
-      return
+      /*completion(Result.failure(PigeonError(code: "InvalidAction", message: "Characteristic does not support indicate", details: nil)))
+      return*/
     }
 
     let shouldNotify = bleInputProperty != BleInputProperty.disabled.rawValue
