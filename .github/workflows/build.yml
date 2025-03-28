@@ -10,6 +10,10 @@ jobs:
     name: Build & Release
     runs-on: macos-latest
 
+    permissions:
+      id-token: write
+      pages: write
+
     steps:
       #1 Checkout Repository
       - name: Checkout Repository
@@ -86,7 +90,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-release.apk,build/macos/Build/Products/Release/SwiftControl.app"
+          artifacts: "build/app/outputs/flutter-apk/app-release.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
 
@@ -98,3 +102,58 @@ jobs:
 
       - name: Web Deploy
         uses: actions/deploy-pages@v4
+
+  windows:
+    needs: build
+    name: Build & Release on Windows
+    runs-on: windows-latest
+
+    steps:
+      #1 Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+        #2 Setup Java
+      - name: Set Up Java
+        uses: actions/setup-java@v3.12.0
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+        #3 Setup Flutter
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+        #4 Install Dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build App
+        run: flutter build windows
+
+      #9 Upload Artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Releases
+          path: |
+            build/windows/x64/runner/Release/swift_control.exe
+
+      #10 Extract Version
+      - name: Extract version from pubspec.yaml
+        id: extract_version
+        run: |
+          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      # add artifact to release
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "build/windows/x64/runner/Release/swift_control.exe"
+          tag: v${{ env.VERSION }}
+          token: ${{ secrets.TOKEN }}

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "de.jonasbark" "\0"
-            VALUE "FileDescription", "swift_play" "\0"
+            VALUE "FileDescription", "swift_control" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "swift_play" "\0"
+            VALUE "InternalName", "swift_control" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 de.jonasbark. All rights reserved." "\0"
-            VALUE "OriginalFilename", "swift_play.exe" "\0"
-            VALUE "ProductName", "swift_play" "\0"
+            VALUE "OriginalFilename", "swift_control.exe" "\0"
+            VALUE "ProductName", "swift_control" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
