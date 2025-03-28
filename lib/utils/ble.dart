@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 
 class BleUuid {
   static final ZWIFT_CUSTOM_SERVICE_UUID = Guid("00000001-19CA-4651-86E5-FA29DCDD09D1");

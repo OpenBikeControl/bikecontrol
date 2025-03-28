@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 import 'package:swift_control/utils/ble.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/devices/zwift_click.dart';
@@ -12,19 +12,19 @@ import 'package:swift_control/utils/devices/zwift_ride.dart';
 import '../crypto/zap_crypto.dart';
 import '../messages/notification.dart';
 
-abstract class BleDevice {
+abstract class BaseDevice {
   final ScanResult scanResult;
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 
   bool supportsEncryption = true;
 
-  BleDevice(this.scanResult);
+  BaseDevice(this.scanResult);
 
-  static BleDevice? fromScanResult(ScanResult scanResult) {
+  static BaseDevice? fromScanResult(ScanResult scanResult) {
     if (scanResult.device.platformName == 'Zwift Ride') {
       return ZwiftRide(scanResult);
     }
-    if (kIsWeb || Platform.isWindows) {
+    if (kIsWeb) {
       // manufacturer data is not available on web
       if (scanResult.device.platformName == 'Zwift Play') {
         return ZwiftPlay(scanResult);
@@ -49,7 +49,7 @@ abstract class BleDevice {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is BleDevice && runtimeType == other.runtimeType && scanResult == other.scanResult;
+      other is BaseDevice && runtimeType == other.runtimeType && scanResult == other.scanResult;
 
   @override
   int get hashCode => scanResult.hashCode;

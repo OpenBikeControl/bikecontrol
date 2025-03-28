@@ -3,24 +3,24 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/devices/ble_device.dart';
+import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 
 import 'messages/notification.dart';
 
 class Connection {
-  final devices = <BleDevice>[];
+  final devices = <BaseDevice>[];
   var androidNotificationsSetup = false;
 
-  final Map<BleDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
+  final Map<BaseDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
 
-  final Map<BleDevice, StreamSubscription<BluetoothConnectionState>> _connectionSubscriptions = {};
-  final StreamController<BleDevice> _connectionStreams = StreamController<BleDevice>.broadcast();
-  Stream<BleDevice> get connectionStream => _connectionStreams.stream;
+  final Map<BaseDevice, StreamSubscription<BluetoothConnectionState>> _connectionSubscriptions = {};
+  final StreamController<BaseDevice> _connectionStreams = StreamController<BaseDevice>.broadcast();
+  Stream<BaseDevice> get connectionStream => _connectionStreams.stream;
 
   var _lastScanResult = <ScanResult>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
@@ -40,7 +40,7 @@ class Connection {
             _actionStreams.add(LogNotification('Found new devices: $diff'));
           }
         }
-        final scanResults = results.mapNotNull(BleDevice.fromScanResult).toList();
+        final scanResults = results.mapNotNull(BaseDevice.fromScanResult).toList();
         _addDevices(scanResults);
       },
       onError: (e) {
@@ -49,7 +49,7 @@ class Connection {
     );
   }
 
-  void _addDevices(List<BleDevice> dev) {
+  void _addDevices(List<BaseDevice> dev) {
     final newDevices = dev.where((device) => !devices.contains(device)).toList();
     devices.addAll(newDevices);
 
@@ -66,7 +66,7 @@ class Connection {
     }
   }
 
-  Future<void> _connect(BleDevice bleDevice) async {
+  Future<void> _connect(BaseDevice bleDevice) async {
     try {
       await bleDevice.connect();
 

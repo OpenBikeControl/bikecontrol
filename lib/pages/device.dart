@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/devices/ble_device.dart';
+import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 
 import '../widgets/menu.dart';
@@ -16,7 +16,7 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
-  late StreamSubscription<BleDevice> _connectionStateSubscription;
+  late StreamSubscription<BaseDevice> _connectionStateSubscription;
 
   @override
   void initState() {
