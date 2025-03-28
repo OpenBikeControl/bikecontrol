@@ -37,10 +37,6 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-        #8 Build app ( macos Build )
-      - name: Build App
-        run: flutter build macos --release
-
       - name: Install certificates
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
@@ -64,6 +60,10 @@ jobs:
           security import $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+        #8 Build app ( macos Build )
+      - name: Build App
+        run: flutter build macos --release
 
       - name: Code Signing
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --options runtime SwiftControl.app -v
@@ -135,6 +135,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   windows:
+    if: false
     needs: build
     name: Build & Release on Windows
     runs-on: windows-latest
