@@ -168,7 +168,7 @@ jobs:
       - name: Zip directory (Windows)
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/x64/runner/Release/" -DestinationPath "build/windows/x64/runner/Release/SwiftControl.windows.zip"
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/SwiftControl.windows.zip"
 
       #9 Upload Artifacts
       - name: Upload Artifacts
