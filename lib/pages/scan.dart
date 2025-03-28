@@ -7,6 +7,8 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/ble.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
+import '../widgets/logviewer.dart';
+
 class ScanWidget extends StatefulWidget {
   const ScanWidget({super.key});
 
@@ -89,7 +91,7 @@ class _ScanWidgetState extends State<ScanWidget> {
       child: ListView(
         padding: EdgeInsets.all(16),
         shrinkWrap: true,
-        children: [if (_isScanning) SmallProgressIndicator() else buildScanButton(context)],
+        children: [if (_isScanning) SmallProgressIndicator() else buildScanButton(context), LogViewer()],
       ),
     );
   }

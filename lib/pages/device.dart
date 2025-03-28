@@ -4,8 +4,8 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/devices/ble_device.dart';
+import 'package:swift_control/widgets/logviewer.dart';
 
-import '../utils/messages/notification.dart';
 import '../widgets/menu.dart';
 
 class DevicePage extends StatefulWidget {
@@ -16,24 +16,12 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
-  List<String> _actions = [];
-
   late StreamSubscription<BleDevice> _connectionStateSubscription;
-
-  late StreamSubscription<BaseNotification> _actionSubscription;
 
   @override
   void initState() {
     super.initState();
 
-    _actionSubscription = connection.actionStream.listen((data) {
-      if (mounted) {
-        setState(() {
-          _actions.add('${DateTime.now().toString().split(" ").last}: $data');
-          _actions = _actions.takeLast(30).toList();
-        });
-      }
-    });
     _connectionStateSubscription = connection.connectionStream.listen((state) async {
       setState(() {});
     });
@@ -42,7 +30,6 @@ class _DevicePageState extends State<DevicePage> {
   @override
   void dispose() {
     _connectionStateSubscription.cancel();
-    _actionSubscription.cancel();
     super.dispose();
   }
 
@@ -59,16 +46,7 @@ class _DevicePageState extends State<DevicePage> {
         child: Scaffold(
           appBar: AppBar(
             title: Text('SwiftControl'),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  _actions.clear();
-                  setState(() {});
-                },
-                icon: Icon(Icons.clear),
-              ),
-              MenuButton(),
-            ],
+            actions: [MenuButton()],
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           ),
           body: Padding(
@@ -82,19 +60,7 @@ class _DevicePageState extends State<DevicePage> {
                   })}',
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
-                Expanded(
-                  child: ListView(
-                    children:
-                        _actions
-                            .map(
-                              (action) => Text(
-                                action,
-                                style: TextStyle(fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
+                Expanded(child: LogViewer()),
               ],
             ),
           ),

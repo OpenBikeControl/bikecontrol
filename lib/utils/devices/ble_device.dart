@@ -24,7 +24,7 @@ abstract class BleDevice {
     if (scanResult.device.platformName == 'Zwift Ride') {
       return ZwiftRide(scanResult);
     }
-    if (kIsWeb) {
+    if (kIsWeb || Platform.isWindows) {
       // manufacturer data is not available on web
       if (scanResult.device.platformName == 'Zwift Play') {
         return ZwiftPlay(scanResult);

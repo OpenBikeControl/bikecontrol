@@ -22,12 +22,24 @@ class Connection {
   final StreamController<BleDevice> _connectionStreams = StreamController<BleDevice>.broadcast();
   Stream<BleDevice> get connectionStream => _connectionStreams.stream;
 
+  var _lastScanResult = <ScanResult>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
   late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
 
   void startScanning() {
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen(
       (results) {
+        if (!results.contentEquals(_lastScanResult)) {
+          final diff = results
+              .where((result) => !_lastScanResult.contains(result))
+              .joinToString(
+                transform: (result) => "${result.device.platformName} (${result.advertisementData.manufacturerData})",
+              );
+          _lastScanResult = results;
+          if (diff.isNotEmpty) {
+            _actionStreams.add(LogNotification('Found new devices: $diff'));
+          }
+        }
         final scanResults = results.mapNotNull(BleDevice.fromScanResult).toList();
         _addDevices(scanResults);
       },
