@@ -1,0 +1,29 @@
+PODS:
+  - device_info_plus (0.0.1):
+    - FlutterMacOS
+  - FlutterMacOS (1.0.0)
+  - universal_ble (0.0.1):
+    - Flutter
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - universal_ble (from `Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin`)
+
+EXTERNAL SOURCES:
+  device_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  universal_ble:
+    :path: Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin
+
+SPEC CHECKSUMS:
+  device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  universal_ble: cf52a7b3fd2e7c14d6d7262e9fdadb72ab6b88a6
+
+PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
+
+COCOAPODS: 1.16.2

@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/utils/requirements/android.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import 'messages/notification.dart';
 
@@ -18,35 +18,25 @@ class Connection {
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
 
-  final Map<BaseDevice, StreamSubscription<BluetoothConnectionState>> _connectionSubscriptions = {};
+  final Map<BaseDevice, StreamSubscription<BleConnectionUpdate>> _connectionSubscriptions = {};
   final StreamController<BaseDevice> _connectionStreams = StreamController<BaseDevice>.broadcast();
   Stream<BaseDevice> get connectionStream => _connectionStreams.stream;
 
-  var _lastScanResult = <ScanResult>[];
+  var _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
-  late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
+  late StreamSubscription<List<BleDevice>> _scanResultsSubscription;
 
   void startScanning() {
-    _scanResultsSubscription = FlutterBluePlus.scanResults.listen(
-      (results) {
-        if (!results.contentEquals(_lastScanResult)) {
-          final diff = results
-              .where((result) => !_lastScanResult.contains(result))
-              .joinToString(
-                transform: (result) => "${result.device.platformName} (${result.advertisementData.manufacturerData})",
-              );
-          _lastScanResult = results;
-          if (diff.isNotEmpty) {
-            _actionStreams.add(LogNotification('Found new devices: $diff'));
-          }
+    UniversalBle.onScanResult = (result) {
+      if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
+        _lastScanResult.add(result);
+        _actionStreams.add(LogNotification('Found new devices: ${result.name}'));
+        final scanResult = BaseDevice.fromScanResult(result);
+        if (scanResult != null) {
+          _addDevices([scanResult]);
         }
-        final scanResults = results.mapNotNull(BaseDevice.fromScanResult).toList();
-        _addDevices(scanResults);
-      },
-      onError: (e) {
-        _actionStreams.add(LogNotification(e.toString()));
-      },
-    );
+      }
+    };
   }
 
   void _addDevices(List<BaseDevice> dev) {
@@ -56,6 +46,7 @@ class Connection {
     for (final device in newDevices) {
       _connect(device).then((_) {});
     }
+
     hasDevices.value = devices.isNotEmpty;
     if (devices.isNotEmpty && !androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
       androidNotificationsSetup = true;
@@ -75,27 +66,26 @@ class Connection {
       });
       _streamSubscriptions[bleDevice] = actionSubscription;
 
-      final connectionStateSubscription = bleDevice.device.connectionState.listen((state) async {
+      final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((
+        state,
+      ) async {
+        bleDevice.isConnected = state.isConnected;
         _connectionStreams.add(bleDevice);
       });
       _connectionSubscriptions[bleDevice] = connectionStateSubscription;
     } catch (e, backtrace) {
-      if (e is FlutterBluePlusException && e.code == FbpErrorCode.connectionCanceled.index) {
-        // ignore connections canceled by the user
-      } else {
-        _actionStreams.add(LogNotification(e.toString()));
-        if (kDebugMode) {
-          print(e);
-          print("backtrace: $backtrace");
-        }
+      _actionStreams.add(LogNotification(e.toString()));
+      if (kDebugMode) {
+        print(e);
+        print("backtrace: $backtrace");
       }
     }
   }
 
   void reset() {
-    FlutterBluePlus.stopScan();
+    UniversalBle.stopScan();
     for (var device in devices) {
-      device.device.disconnect();
+      UniversalBle.disconnect(device.device.deviceId);
     }
     devices.clear();
   }

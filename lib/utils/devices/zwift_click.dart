@@ -1,11 +1,9 @@
-import 'dart:io';
-
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/utils/messages/notification.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import '../ble.dart';
 import '../crypto/encryption_utils.dart';
@@ -15,10 +13,10 @@ class ZwiftClick extends BaseDevice {
   ZwiftClick(super.scanResult);
 
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
-  Guid get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
+  String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
   @override
-  Future<void> handleServices(List<BluetoothService> services) async {
+  Future<void> handleServices(List<BleService> services) async {
     final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId);
 
     if (customService == null) {
@@ -39,34 +37,51 @@ class ZwiftClick extends BaseDevice {
       throw Exception('Characteristics not found');
     }
 
-    if (!asyncCharacteristic.isNotifying) {
-      await asyncCharacteristic.setNotifyValue(true);
-    }
-    final asyncSubscription = asyncCharacteristic.lastValueStream.listen((onData) {
-      _processCharacteristic('async', Uint8List.fromList(onData));
-    });
-    device.cancelWhenDisconnected(asyncSubscription);
+    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) {
+      if (characteristicUuid == asyncCharacteristic.uuid) {
+        _processCharacteristic('async', value);
+      } else if (characteristicUuid == syncTxCharacteristic.uuid) {
+        _processCharacteristic('sync', value);
+      }
+    };
 
-    if (!syncTxCharacteristic.isNotifying) {
-      await syncTxCharacteristic.setNotifyValue(true, forceIndications: !kIsWeb && Platform.isAndroid);
-    }
-    final syncSubscription = syncTxCharacteristic.lastValueStream.listen((onData) {
-      _processCharacteristic('sync', Uint8List.fromList(onData));
-    });
-    device.cancelWhenDisconnected(syncSubscription);
+    await UniversalBle.setNotifiable(
+      device.deviceId,
+      customService.uuid,
+      asyncCharacteristic.uuid,
+      BleInputProperty.indication,
+    );
+    await UniversalBle.setNotifiable(
+      device.deviceId,
+      customService.uuid,
+      syncTxCharacteristic.uuid,
+      BleInputProperty.indication,
+    );
 
     await _setupHandshake(syncRxCharacteristic);
   }
 
-  Future<void> _setupHandshake(BluetoothCharacteristic syncRxCharacteristic) async {
+  Future<void> _setupHandshake(BleCharacteristic syncRxCharacteristic) async {
     if (supportsEncryption) {
-      await syncRxCharacteristic.write([
-        ...Constants.RIDE_ON,
-        ...Constants.REQUEST_START,
-        ...zapEncryption.localKeyProvider.getPublicKeyBytes(),
-      ], withoutResponse: true);
+      UniversalBle.writeValue(
+        device.deviceId,
+        customServiceId,
+        syncRxCharacteristic.uuid,
+        Uint8List.fromList([
+          ...Constants.RIDE_ON,
+          ...Constants.REQUEST_START,
+          ...zapEncryption.localKeyProvider.getPublicKeyBytes(),
+        ]),
+        BleOutputProperty.withoutResponse,
+      );
     } else {
-      await syncRxCharacteristic.write(Constants.RIDE_ON, withoutResponse: true);
+      UniversalBle.writeValue(
+        device.deviceId,
+        customServiceId,
+        syncRxCharacteristic.uuid,
+        Constants.RIDE_ON,
+        BleOutputProperty.withoutResponse,
+      );
     }
   }
 

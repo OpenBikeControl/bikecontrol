@@ -1,0 +1,36 @@
+name: BleUuidParser Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+    
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Analyze project source
+      run: flutter analyze
+    
+    - name: Run Flutter tests
+      run: flutter test
+    
+    - name: Install Chrome
+      uses: browser-actions/setup-chrome@latest
+    
+    - name: Run Flutter tests on Chrome
+      uses: coactions/setup-xvfb@v1
+      with:
+        run: flutter test --platform chrome

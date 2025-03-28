@@ -1,46 +1,39 @@
 PODS:
-  - flutter_blue_plus_darwin (0.0.2):
-    - Flutter
-    - FlutterMacOS
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - keypress_simulator_macos (0.0.1):
     - FlutterMacOS
-  - path_provider_foundation (0.0.1):
+  - universal_ble (0.0.1):
     - Flutter
     - FlutterMacOS
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
 
 DEPENDENCIES:
-  - flutter_blue_plus_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - keypress_simulator_macos (from `Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos`)
-  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
+  - universal_ble (from `Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
 
 EXTERNAL SOURCES:
-  flutter_blue_plus_darwin:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus_darwin/darwin
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   keypress_simulator_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos
-  path_provider_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
+  universal_ble:
+    :path: Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  flutter_blue_plus_darwin: 3ea4ec9133b377febcc8a70b28cd2d2dc9242bd9
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   keypress_simulator_macos: f8556f9101f9f2f175652e0bceddf0fe82a4c6b2
-  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  universal_ble: cf52a7b3fd2e7c14d6d7262e9fdadb72ab6b88a6
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
 
 PODFILE CHECKSUM: 7eb978b976557c8c1cd717d8185ec483fd090a82
