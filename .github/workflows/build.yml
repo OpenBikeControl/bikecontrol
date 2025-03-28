@@ -91,5 +91,5 @@ jobs:
         with:
           path: build/web
 
-      - id: web deployment
+      - name: Web Deploy
         uses: actions/deploy-pages@v4
