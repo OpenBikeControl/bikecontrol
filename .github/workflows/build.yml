@@ -71,32 +71,6 @@ jobs:
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
-      - name: Notarize app
-        run: |
-          # We can't notarize an app bundle directly, but we need to compress it as an archive.
-          # Therefore, we create a zip file containing our app bundle, so that we can send it to the
-          # notarization service
-          echo "Creating temp notarization archive"
-          ditto -c -k --keepParent "SwiftControl.app" "SwiftControl.zip"
-
-          # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
-          # This typically takes a few seconds inside a CI environment, but it might take more depending on the App
-          # characteristics. Visit the Notarization docs for more information and strategies on how to optimize it if
-          # you're curious
-          echo "Notarize app"
-          xcrun notarytool submit "SwiftControl.zip" --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_PASSWORD" --wait
-
-          # Finally, we need to "attach the staple" to our executable, which will allow our app to be
-          # validated by macOS even when an internet connection is not available.
-          echo "Attach staple"
-          xcrun stapler staple "SwiftControl.app"
-        working-directory: build/macos/Build/Products/Release
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-
       - name: Compress Archives and IPAs
         run: |
           cd build/macos/Build/Products/Release/
