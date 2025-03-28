@@ -8,7 +8,6 @@ on:
 jobs:
   build:
     name: Build & Release
-    if: false
     runs-on: macos-latest
 
     permissions:
@@ -137,7 +136,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   windows:
-    #needs: build
+    needs: build
     name: Build & Release on Windows
     runs-on: windows-latest
 
