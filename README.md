@@ -12,6 +12,9 @@ https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
 
 
+## Downloads
+Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
+
 ## Supported Apps
 - MyWhoosh
 - indieVelo / Training Peaks
