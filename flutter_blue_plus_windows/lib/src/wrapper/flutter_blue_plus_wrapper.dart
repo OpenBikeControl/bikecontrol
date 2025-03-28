@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as FBP;
 import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 
@@ -22,7 +23,7 @@ class FlutterBluePlus {
     bool androidUsesFineLocation = false,
     List<Guid> webOptionalServices = const [],
   }) async {
-    if (Platform.isWindows) {
+    if (!kIsWeb && Platform.isWindows) {
       return await FlutterBluePlusWindows.startScan(
         withServices: withServices,
         withRemoteIds: withRemoteIds,
@@ -61,32 +62,32 @@ class FlutterBluePlus {
   }
 
   static Stream<BluetoothAdapterState> get adapterState {
-    if (Platform.isWindows) return FlutterBluePlusWindows.adapterState;
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.adapterState;
     return FBP.FlutterBluePlus.adapterState;
   }
 
   static Stream<List<ScanResult>> get scanResults {
-    if (Platform.isWindows) return FlutterBluePlusWindows.scanResults;
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.scanResults;
     return FBP.FlutterBluePlus.scanResults;
   }
 
   static bool get isScanningNow {
-    if (Platform.isWindows) return FlutterBluePlusWindows.isScanningNow;
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.isScanningNow;
     return FBP.FlutterBluePlus.isScanningNow;
   }
 
   static Stream<bool> get isScanning {
-    if (Platform.isWindows) return FlutterBluePlusWindows.isScanning;
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.isScanning;
     return FBP.FlutterBluePlus.isScanning;
   }
 
   static Future<void> stopScan() async {
-    if (Platform.isWindows) return await FlutterBluePlusWindows.stopScan();
+    if (!kIsWeb && Platform.isWindows) return await FlutterBluePlusWindows.stopScan();
     return await FBP.FlutterBluePlus.stopScan();
   }
 
   static Future<void> setLogLevel(LogLevel level, {color = true}) async {
-    if (Platform.isWindows) return FlutterBluePlusWindows.setLogLevel(level, color: color);
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.setLogLevel(level, color: color);
     return FBP.FlutterBluePlus.setLogLevel(level, color: color);
   }
 
@@ -94,33 +95,33 @@ class FlutterBluePlus {
   static LogLevel get logLevel => FBP.FlutterBluePlus.logLevel;
 
   static Future<void> setOptions({bool restoreState = false, bool showPowerAlert = true}) async {
-    if (Platform.isWindows) return;
+    if (!kIsWeb && Platform.isWindows) return;
     FBP.FlutterBluePlus.setOptions(restoreState: restoreState, showPowerAlert: showPowerAlert);
   }
 
   static Future<bool> get isSupported async {
-    if (Platform.isWindows) return await FlutterBluePlusWindows.isSupported;
+    if (!kIsWeb && Platform.isWindows) return await FlutterBluePlusWindows.isSupported;
     return await FBP.FlutterBluePlus.isSupported;
   }
 
   static Future<String> get adapterName async {
-    if (Platform.isWindows) return await FlutterBluePlusWindows.adapterName;
+    if (!kIsWeb && Platform.isWindows) return await FlutterBluePlusWindows.adapterName;
     return await FBP.FlutterBluePlus.adapterName;
   }
 
   static Future<void> turnOn({int timeout = 60}) async {
-    if (Platform.isWindows) return await FlutterBluePlusWindows.turnOn(timeout: timeout);
+    if (!kIsWeb && Platform.isWindows) return await FlutterBluePlusWindows.turnOn(timeout: timeout);
     return await FBP.FlutterBluePlus.turnOn(timeout: timeout);
   }
 
   static List<FBP.BluetoothDevice> get connectedDevices {
-    if (Platform.isWindows) return FlutterBluePlusWindows.connectedDevices;
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.connectedDevices;
     return FBP.FlutterBluePlus.connectedDevices;
   }
 
   static Future<List<FBP.BluetoothDevice>> systemDevices(List<Guid> withServices) async {
     //TODO: connected devices => system devices
-    if (Platform.isWindows) return FlutterBluePlusWindows.connectedDevices;
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.connectedDevices;
     return await FBP.FlutterBluePlus.systemDevices(withServices);
   }
 
@@ -129,12 +130,12 @@ class FlutterBluePlus {
   }
 
   static Future<List<FBP.BluetoothDevice>> get bondedDevices async {
-    if (Platform.isWindows) return FlutterBluePlusWindows.connectedDevices;
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.connectedDevices;
     return await FBP.FlutterBluePlus.bondedDevices;
   }
 
   static void cancelWhenScanComplete(StreamSubscription subscription) {
-    if (Platform.isWindows) return FlutterBluePlusWindows.cancelWhenScanComplete(subscription);
+    if (!kIsWeb && Platform.isWindows) return FlutterBluePlusWindows.cancelWhenScanComplete(subscription);
     return FBP.FlutterBluePlus.cancelWhenScanComplete(subscription);
   }
 }

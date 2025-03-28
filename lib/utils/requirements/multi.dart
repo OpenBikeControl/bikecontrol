@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -15,7 +13,7 @@ class KeyboardRequirement extends PlatformRequirement {
 
   @override
   Future<void> call() async {
-    return keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
+    await keyPressSimulator.requestAccess();
   }
 
   @override

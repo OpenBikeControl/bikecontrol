@@ -24,6 +24,14 @@ abstract class BleDevice {
     if (scanResult.device.platformName == 'Zwift Ride') {
       return ZwiftRide(scanResult);
     }
+    if (kIsWeb) {
+      // manufacturer data is not available on web
+      if (scanResult.device.platformName == 'Zwift Play') {
+        return ZwiftPlay(scanResult);
+      } else if (scanResult.device.platformName == 'Zwift Click') {
+        return ZwiftClick(scanResult);
+      }
+    }
     final manufacturerData = scanResult.advertisementData.manufacturerData;
     final data = manufacturerData[Constants.ZWIFT_MANUFACTURER_ID];
     if (data == null || data.isEmpty) {
