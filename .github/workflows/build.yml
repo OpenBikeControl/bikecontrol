@@ -51,7 +51,7 @@ jobs:
           zip -r SwiftControl.macos.zip SwiftControl.app/
 
       - name: Build Web
-        run: flutter build web --release
+        run: flutter build web --release --base-href "/swiftcontrol/"
 
         #9 Upload Artifacts
       - name: Upload Artifacts
@@ -144,11 +144,13 @@ jobs:
             build/windows/x64/runner/Release/swift_control.exe
 
       #10 Extract Version
-      - name: Extract version from pubspec.yaml
-        id: extract_version
+      - name: Extract version from pubspec.yaml (Windows)
+        shell: pwsh
         run: |
-          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
-          echo "VERSION=$version" >> $GITHUB_ENV
+          $version = Select-String '^version: ' pubspec.yaml | ForEach-Object {
+            ($_ -split ' ')[1].Trim()
+          }
+          echo "VERSION=$version" >> $env:GITHUB_ENV
 
       # add artifact to release
 

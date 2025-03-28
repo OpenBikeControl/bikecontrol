@@ -1,3 +1,4 @@
+import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/utils/devices/zwift_click.dart';
 import 'package:swift_control/utils/messages/controller_notification.dart';
@@ -24,6 +25,17 @@ class ZwiftPlay extends ZwiftClick {
         actionHandler.increaseGear();
       } else if (!clickNotification.rightPad && clickNotification.analogLR.abs() == 100) {
         actionHandler.decreaseGear();
+      }
+      if (clickNotification.rightPad) {
+        if (clickNotification.buttonA) {
+          actionHandler.controlMedia(MediaAction.next);
+        } else if (clickNotification.buttonY) {
+          actionHandler.controlMedia(MediaAction.volumeUp);
+        } else if (clickNotification.buttonB) {
+          actionHandler.controlMedia(MediaAction.volumeDown);
+        } else if (clickNotification.buttonZ) {
+          actionHandler.controlMedia(MediaAction.playPause);
+        }
       }
     }
   }

@@ -47,4 +47,9 @@ class AndroidActions extends BaseActions {
       accessibilityHandler.performTouch(point.dx, point.dy);
     }
   }
+
+  @override
+  void controlMedia(MediaAction action) {
+    accessibilityHandler.controlMedia(action);
+  }
 }

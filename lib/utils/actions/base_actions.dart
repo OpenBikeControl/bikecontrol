@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
 
 import '../keymap/keymap.dart';
@@ -12,6 +13,10 @@ abstract class BaseActions {
   void init(Keymap? keymap) {}
   void increaseGear();
   void decreaseGear();
+
+  void controlMedia(MediaAction action) {
+    throw UnimplementedError();
+  }
 }
 
 class StubActions extends BaseActions {
@@ -51,5 +56,9 @@ class ActionHandler {
 
   void decreaseGear() {
     actions.decreaseGear();
+  }
+
+  void controlMedia(MediaAction action) {
+    actions.controlMedia(action);
   }
 }

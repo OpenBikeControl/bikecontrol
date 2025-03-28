@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  url_launcher: ^6.3.1
   flutter_local_notifications: ^19.0.0
   flutter_blue_plus: ^1.35.3
   protobuf: ^3.1.0

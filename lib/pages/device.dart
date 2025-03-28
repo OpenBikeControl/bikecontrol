@@ -6,6 +6,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/devices/ble_device.dart';
 
 import '../utils/messages/notification.dart';
+import '../widgets/menu.dart';
 
 class DevicePage extends StatefulWidget {
   const DevicePage({super.key});
@@ -66,6 +67,7 @@ class _DevicePageState extends State<DevicePage> {
                 },
                 icon: Icon(Icons.clear),
               ),
+              MenuButton(),
             ],
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           ),

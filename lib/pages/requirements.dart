@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/widgets/menu.dart';
 
 import 'device.dart';
 
@@ -60,7 +61,11 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('SwiftControl'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
+      appBar: AppBar(
+        title: Text('SwiftControl'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [MenuButton()],
+      ),
       body:
           _requirements.isEmpty
               ? Center(child: CircularProgressIndicator())

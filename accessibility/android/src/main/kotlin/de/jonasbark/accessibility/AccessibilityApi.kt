@@ -45,6 +45,19 @@ class FlutterError (
   val details: Any? = null
 ) : Throwable()
 
+enum class MediaAction(val raw: Int) {
+  PLAY_PAUSE(0),
+  NEXT(1),
+  VOLUME_UP(2),
+  VOLUME_DOWN(3);
+
+  companion object {
+    fun ofRaw(raw: Int): MediaAction? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class WindowEvent (
   val packageName: String,
@@ -85,6 +98,11 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
+        return (readValue(buffer) as Long?)?.let {
+          MediaAction.ofRaw(it.toInt())
+        }
+      }
+      130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           WindowEvent.fromList(it)
         }
@@ -94,8 +112,12 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is WindowEvent -> {
+      is MediaAction -> {
         stream.write(129)
+        writeValue(stream, value.raw)
+      }
+      is WindowEvent -> {
+        stream.write(130)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -110,6 +132,7 @@ interface Accessibility {
   fun hasPermission(): Boolean
   fun openPermissions()
   fun performTouch(x: Double, y: Double)
+  fun controlMedia(action: MediaAction)
 
   companion object {
     /** The codec used by Accessibility. */
@@ -160,6 +183,24 @@ interface Accessibility {
             val yArg = args[1] as Double
             val wrapped: List<Any?> = try {
               api.performTouch(xArg, yArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.accessibility.Accessibility.controlMedia$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val actionArg = args[0] as MediaAction
+            val wrapped: List<Any?> = try {
+              api.controlMedia(actionArg)
               listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)

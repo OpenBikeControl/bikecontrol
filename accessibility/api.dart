@@ -7,7 +7,11 @@ abstract class Accessibility {
   void openPermissions();
 
   void performTouch(double x, double y);
+
+  void controlMedia(MediaAction action);
 }
+
+enum MediaAction { playPause, next, volumeUp, volumeDown }
 
 class WindowEvent {
   final String packageName;
