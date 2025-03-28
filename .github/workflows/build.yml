@@ -37,8 +37,13 @@ jobs:
         run: flutter build apk --release
 
         #8 Build app ( macos Build )
-      - name: Build IPA
+      - name: Build App
         run: flutter build macos --release
+
+      - name: Compress Archives and IPAs
+        run: |
+          cd build/macos/Build/Products/Release/
+          zip SwiftControl.macos.zip SwiftControl.app
 
       - name: Build Web
         run: flutter build web --release
@@ -50,7 +55,7 @@ jobs:
           name: Releases
           path: |
             build/app/outputs/flutter-apk/app-release.apk
-            build/macos/Build/Products/Release/SwiftControl.app
+            build/macos/Build/Products/Release/SwiftControl.macos.zip
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
