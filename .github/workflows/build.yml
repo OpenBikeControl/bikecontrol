@@ -13,6 +13,7 @@ jobs:
     permissions:
       id-token: write
       pages: write
+      contents: write
 
     steps:
       #1 Checkout Repository
