@@ -27,7 +27,12 @@ The app connects to your Zwift device automatically.
 - When using Android a "click" on a certain part of the screen is simulated to trigger the action.
 - When using macOS or Windows a keyboard click is used to trigger the action. Typically + and - keys are used to shift gears, while MyWhoosh uses K and I keys.
 
+### Donate
+Please consider donating to support the development of this app. 
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/boni)
+
 ### TODO
 - test Zwift Ride
+- confirm that Windows release works
 - implement more actions for Play + Ride
-- shorebird?
