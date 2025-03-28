@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    if: false
     name: Build & Release
     runs-on: macos-latest
 
@@ -135,8 +136,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   windows:
-    if: false
-    needs: build
+    #needs: build
     name: Build & Release on Windows
     runs-on: windows-latest
 
