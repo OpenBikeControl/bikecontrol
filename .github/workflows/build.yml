@@ -43,7 +43,7 @@ jobs:
       - name: Compress Archives and IPAs
         run: |
           cd build/macos/Build/Products/Release/
-          zip SwiftControl.macos.zip SwiftControl.app
+          zip -r SwiftControl.macos.zip SwiftControl.app/
 
       - name: Build Web
         run: flutter build web --release
