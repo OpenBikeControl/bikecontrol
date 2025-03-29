@@ -59,11 +59,12 @@ class Connection {
 
   Future<void> _connect(BaseDevice bleDevice) async {
     try {
-      await bleDevice.connect();
-
       final actionSubscription = bleDevice.actionStream.listen((data) {
         _actionStreams.add(data);
       });
+
+      await bleDevice.connect();
+
       _streamSubscriptions[bleDevice] = actionSubscription;
 
       final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((
