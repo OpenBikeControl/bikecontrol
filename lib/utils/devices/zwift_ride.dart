@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:accessibility/accessibility.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/devices/zwift_click.dart';
 import 'package:swift_control/utils/messages/ride_notification.dart';
@@ -33,7 +32,7 @@ class ZwiftRide extends ZwiftClick {
         // TODO remove buttonZ once the assignment is fixed for real
         actionHandler.increaseGear();
       }
-      if (clickNotification.buttonA) {
+      /*if (clickNotification.buttonA) {
         actionHandler.controlMedia(MediaAction.next);
       } else if (clickNotification.buttonY) {
         actionHandler.controlMedia(MediaAction.volumeUp);
@@ -41,7 +40,7 @@ class ZwiftRide extends ZwiftClick {
         actionHandler.controlMedia(MediaAction.volumeDown);
       } else if (clickNotification.buttonZ) {
         actionHandler.controlMedia(MediaAction.playPause);
-      }
+      }*/
     }
   }
 }
