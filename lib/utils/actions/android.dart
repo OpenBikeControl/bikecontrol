@@ -8,13 +8,16 @@ import 'package:swift_control/utils/keymap/keymap.dart';
 class AndroidActions extends BaseActions {
   static const MYWHOOSH_APP_PACKAGE = "com.mywhoosh.whooshgame";
   static const TRAININGPEAKS_APP_PACKAGE = "com.indieVelo.client";
+  static const validPackageNames = [MYWHOOSH_APP_PACKAGE, TRAININGPEAKS_APP_PACKAGE];
 
   WindowEvent? windowInfo;
 
   @override
   void init(Keymap? keymap) {
     streamEvents().listen((windowEvent) {
-      windowInfo = windowEvent;
+      if (validPackageNames.contains(windowEvent.packageName)) {
+        windowInfo = windowEvent;
+      }
     });
   }
 
