@@ -15,6 +15,10 @@ class Constants {
   static const RC1_LEFT_SIDE = 0x03;
   static const RC1_RIGHT_SIDE = 0x02;
 
+  // Zwift Ride
+  static const RIDE_RIGHT_SIDE = 0x07;
+  static const RIDE_LEFT_SIDE = 0x08;
+
   // Zwift Click = BC1
   static const BC1 = 0x09;
 
@@ -33,7 +37,7 @@ class Constants {
   // not figured out the protobuf type this really is, the content is just two varints.
   static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55;
   static const int PLAY_NOTIFICATION_MESSAGE_TYPE = 7;
-  static const int RIDE_NOTIFICATION_MESSAGE_TYPE = 35;
+  static const int RIDE_NOTIFICATION_MESSAGE_TYPE = 35; // 0x23
 
   // see this if connected to Core then Zwift connects to it. just one byte
   static const DISCONNECT_MESSAGE_TYPE = 0xFE;

@@ -4,13 +4,13 @@ import 'package:swift_control/utils/messages/notification.dart';
 
 import '../../protocol/zwift.pb.dart';
 
-class ControllerNotification extends BaseNotification {
+class PlayNotification extends BaseNotification {
   static const int BTN_PRESSED = 0;
 
   late bool rightPad, buttonY, buttonZ, buttonA, buttonB, buttonOn, buttonShift;
   late int analogLR, analogUD;
 
-  ControllerNotification(Uint8List message) {
+  PlayNotification(Uint8List message) {
     final status = PlayKeyPadStatus.fromBuffer(message);
 
     rightPad = status.rightPad.value == BTN_PRESSED;
@@ -41,7 +41,7 @@ class ControllerNotification extends BaseNotification {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ControllerNotification &&
+      other is PlayNotification &&
           runtimeType == other.runtimeType &&
           rightPad == other.rightPad &&
           buttonY == other.buttonY &&
