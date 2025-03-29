@@ -29,7 +29,14 @@ Future<List<PlatformRequirement>> getRequirements() async {
   } else if (Platform.isWindows) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), KeymapRequirement(), BluetoothScanning()];
   } else if (Platform.isAndroid) {
-    list = [BluetoothTurnedOn(), AccessibilityRequirement(), NotificationRequirement(), BluetoothScanning()];
+    list = [
+      BluetoothTurnedOn(),
+      AccessibilityRequirement(),
+      NotificationRequirement(),
+      BluetoothScanRequirement(),
+      BluetoothConnectRequirement(),
+      BluetoothScanning(),
+    ];
   } else {
     list = [UnsupportedPlatform()];
   }

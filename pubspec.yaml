@@ -14,6 +14,7 @@ dependencies:
   flutter_local_notifications: ^19.0.0
   universal_ble: any
   protobuf: ^3.1.0
+  permission_handler: ^11.4.0
   dartx: any
   pointycastle: any
   keypress_simulator: ^0.2.0

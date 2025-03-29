@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 
@@ -15,6 +16,36 @@ class AccessibilityRequirement extends PlatformRequirement {
   @override
   Future<void> getStatus() async {
     status = await accessibilityHandler.hasPermission();
+  }
+}
+
+class BluetoothScanRequirement extends PlatformRequirement {
+  BluetoothScanRequirement() : super('Allow Bluetooth Scan');
+
+  @override
+  Future<void> call() async {
+    await Permission.bluetoothScan.request();
+  }
+
+  @override
+  Future<void> getStatus() async {
+    final state = await Permission.bluetoothScan.status;
+    status = state.isGranted || state.isLimited;
+  }
+}
+
+class BluetoothConnectRequirement extends PlatformRequirement {
+  BluetoothConnectRequirement() : super('Allow Bluetooth Connections');
+
+  @override
+  Future<void> call() async {
+    await Permission.bluetoothConnect.request();
+  }
+
+  @override
+  Future<void> getStatus() async {
+    final state = await Permission.bluetoothConnect.status;
+    status = state.isGranted || state.isLimited;
   }
 }
 

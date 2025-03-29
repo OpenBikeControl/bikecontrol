@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   keypress_simulator_windows
+  permission_handler_windows
   universal_ble
   url_launcher_windows
 )

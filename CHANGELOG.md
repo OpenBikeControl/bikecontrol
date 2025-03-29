@@ -1,5 +1,6 @@
 ### 1.0.0+4 (2025-03-29)
 - Zwift Ride: attempt to fix button parsing
+- Android: fix missing permissions
 
 ### 1.0.0+3 (2025-03-29)
 
