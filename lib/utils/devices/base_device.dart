@@ -83,7 +83,7 @@ abstract class BaseDevice {
     );*/
 
     if (!kIsWeb && Platform.isAndroid) {
-      await UniversalBle.requestMtu(device.deviceId, 256);
+      //await UniversalBle.requestMtu(device.deviceId, 256);
     }
 
     final services = await UniversalBle.discoverServices(device.deviceId);

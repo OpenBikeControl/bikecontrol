@@ -49,7 +49,7 @@ class ZwiftClick extends BaseDevice {
       device.deviceId,
       customService.uuid,
       asyncCharacteristic.uuid,
-      BleInputProperty.indication,
+      BleInputProperty.notification,
     );
     await UniversalBle.setNotifiable(
       device.deviceId,
@@ -63,7 +63,7 @@ class ZwiftClick extends BaseDevice {
 
   Future<void> _setupHandshake(BleCharacteristic syncRxCharacteristic) async {
     if (supportsEncryption) {
-      UniversalBle.writeValue(
+      await UniversalBle.writeValue(
         device.deviceId,
         customServiceId,
         syncRxCharacteristic.uuid,
@@ -75,7 +75,7 @@ class ZwiftClick extends BaseDevice {
         BleOutputProperty.withoutResponse,
       );
     } else {
-      UniversalBle.writeValue(
+      await UniversalBle.writeValue(
         device.deviceId,
         customServiceId,
         syncRxCharacteristic.uuid,
@@ -86,7 +86,7 @@ class ZwiftClick extends BaseDevice {
   }
 
   void _processCharacteristic(String tag, Uint8List bytes) {
-    if (kDebugMode && false) {
+    if (kDebugMode) {
       print('Received $tag: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
       print('Received $tag: ${String.fromCharCodes(bytes)}');
     }
