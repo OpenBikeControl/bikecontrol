@@ -1,10 +1,7 @@
-import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/ble.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
-import 'package:universal_ble/universal_ble.dart';
 
 import '../widgets/logviewer.dart';
 
@@ -16,14 +13,11 @@ class ScanWidget extends StatefulWidget {
 }
 
 class _ScanWidgetState extends State<ScanWidget> {
-  bool _isScanning = false;
-  late StreamSubscription<bool> _isScanningSubscription;
-
   @override
   void initState() {
     super.initState();
 
-    connection.startScanning();
+    connection.initialize();
 
     /*_isScanningSubscription = FlutterBluePlus.isScanning.listen((state) {
       _isScanning = state;
@@ -34,56 +28,11 @@ class _ScanWidgetState extends State<ScanWidget> {
 
     // after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      onScanPressed();
+      // must be called from a button
+      if (!kIsWeb) {
+        connection.performScanning();
+      }
     });
-  }
-
-  @override
-  void dispose() {
-    _isScanningSubscription.cancel();
-    super.dispose();
-  }
-
-  Future onScanPressed() async {
-    try {
-      await UniversalBle.startScan(
-        //timeout: const Duration(seconds: 30),
-        scanFilter: ScanFilter(
-          withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID],
-        ),
-        platformConfig: PlatformConfig(web: WebOptions(optionalServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID])),
-      );
-    } catch (e, backtrace) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 5)));
-      print(e);
-      print("backtrace: $backtrace");
-    }
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future onStopPressed() async {
-    try {
-      UniversalBle.stopScan();
-    } catch (e, backtrace) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 5)));
-      print(e);
-      print("backtrace: $backtrace");
-    }
-  }
-
-  Widget buildScanButton(BuildContext context) {
-    if (false) {
-      //FlutterBluePlus.isScanningNow) {
-      return ElevatedButton(onPressed: onStopPressed, child: const Icon(Icons.stop));
-    } else {
-      return ElevatedButton(onPressed: onScanPressed, child: const Text("SCAN"));
-    }
   }
 
   @override
@@ -93,7 +42,32 @@ class _ScanWidgetState extends State<ScanWidget> {
       child: ListView(
         padding: EdgeInsets.all(16),
         shrinkWrap: true,
-        children: [if (_isScanning) SmallProgressIndicator() else buildScanButton(context), LogViewer()],
+        children: [
+          ValueListenableBuilder(
+            valueListenable: connection.isScanning,
+            builder: (context, isScanning, widget) {
+              if (isScanning) {
+                return Column(
+                  spacing: 12,
+                  children: [
+                    Text(
+                      'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
+                    ),
+                    SmallProgressIndicator(),
+                  ],
+                );
+              } else {
+                return ElevatedButton(
+                  onPressed: () {
+                    connection.performScanning();
+                  },
+                  child: const Text("SCAN"),
+                );
+              }
+            },
+          ),
+          if (kDebugMode) LogViewer(),
+        ],
       ),
     );
   }

@@ -37,14 +37,6 @@ class ZwiftClick extends BaseDevice {
       throw Exception('Characteristics not found');
     }
 
-    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) {
-      if (characteristicUuid == asyncCharacteristic.uuid) {
-        _processCharacteristic('async', value);
-      } else if (characteristicUuid == syncTxCharacteristic.uuid) {
-        _processCharacteristic('sync', value);
-      }
-    };
-
     await UniversalBle.setNotifiable(
       device.deviceId,
       customService.uuid,
@@ -85,10 +77,11 @@ class ZwiftClick extends BaseDevice {
     }
   }
 
-  void _processCharacteristic(String tag, Uint8List bytes) {
+  @override
+  void processCharacteristic(String characteristic, Uint8List bytes) {
     if (kDebugMode) {
-      print('Received $tag: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
-      print('Received $tag: ${String.fromCharCodes(bytes)}');
+      print('Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
+      print('Received $characteristic: ${String.fromCharCodes(bytes)}');
     }
 
     if (bytes.isEmpty) {

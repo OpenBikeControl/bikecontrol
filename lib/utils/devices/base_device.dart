@@ -69,19 +69,6 @@ abstract class BaseDevice {
   Future<void> connect() async {
     await UniversalBle.connect(device.deviceId, connectionTimeout: const Duration(seconds: 3));
 
-    /*var filteredStateStream = await device.connectionState;
-
-    // Start listening now, before invokeMethod, to ensure we don't miss the response
-    Future<BluetoothConnectionState> futureState = filteredStateStream.first;
-
-    // wait for connection
-    await futureState.timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        throw TimeoutException('Failed to connect in time.');
-      },
-    );*/
-
     if (!kIsWeb && Platform.isAndroid) {
       //await UniversalBle.requestMtu(device.deviceId, 256);
     }
@@ -91,4 +78,6 @@ abstract class BaseDevice {
   }
 
   Future<void> handleServices(List<BleService> services);
+
+  void processCharacteristic(String tag, Uint8List bytes);
 }

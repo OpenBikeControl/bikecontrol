@@ -8,6 +8,7 @@ import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import 'ble.dart';
 import 'messages/notification.dart';
 
 class Connection {
@@ -24,9 +25,9 @@ class Connection {
 
   var _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
-  late StreamSubscription<List<BleDevice>> _scanResultsSubscription;
+  final ValueNotifier<bool> isScanning = ValueNotifier(false);
 
-  void startScanning() {
+  void initialize() {
     UniversalBle.onScanResult = (result) {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
         _lastScanResult.add(result);
@@ -37,6 +38,31 @@ class Connection {
         }
       }
     };
+
+    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) {
+      final device = devices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      if (device == null) {
+        _actionStreams.add(LogNotification('Device not found: $deviceId'));
+        return;
+      } else {
+        device.processCharacteristic(characteristicUuid, value);
+      }
+    };
+  }
+
+  Future<void> performScanning() async {
+    isScanning.value = true;
+
+    await UniversalBle.startScan(
+      scanFilter: ScanFilter(withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID]),
+      platformConfig: PlatformConfig(web: WebOptions(optionalServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID])),
+    );
+    Future.delayed(Duration(seconds: 30)).then((_) {
+      if (isScanning.value) {
+        UniversalBle.stopScan();
+        isScanning.value = false;
+      }
+    });
   }
 
   void _addDevices(List<BaseDevice> dev) {
@@ -62,11 +88,6 @@ class Connection {
       final actionSubscription = bleDevice.actionStream.listen((data) {
         _actionStreams.add(data);
       });
-
-      await bleDevice.connect();
-
-      _streamSubscriptions[bleDevice] = actionSubscription;
-
       final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((
         state,
       ) async {
@@ -74,6 +95,10 @@ class Connection {
         _connectionStreams.add(bleDevice);
       });
       _connectionSubscriptions[bleDevice] = connectionStateSubscription;
+
+      await bleDevice.connect();
+
+      _streamSubscriptions[bleDevice] = actionSubscription;
     } catch (e, backtrace) {
       _actionStreams.add(LogNotification(e.toString()));
       if (kDebugMode) {
@@ -85,9 +110,16 @@ class Connection {
 
   void reset() {
     UniversalBle.stopScan();
+    isScanning.value = false;
     for (var device in devices) {
+      _streamSubscriptions[device]?.cancel();
+      _streamSubscriptions.remove(device);
+      _connectionSubscriptions[device]?.cancel();
+      _connectionSubscriptions.remove(device);
       UniversalBle.disconnect(device.device.deviceId);
     }
+    _lastScanResult.clear();
+    hasDevices.value = false;
     devices.clear();
   }
 }
