@@ -1,3 +1,7 @@
+### 1.0.6 (2025-03-29)
+- Another potential keyboard fix for Windows
+- Zwift Play: actually also use the dedicated shift buttons 
+
 ### 1.0.5 (2025-03-29)
 - Zwift Ride: remap the shifter buttons to the correct values
 

@@ -15,20 +15,20 @@ class DesktopActions extends BaseActions {
   }
 
   @override
-  void decreaseGear() {
+  Future<void> decreaseGear() async {
     if (keymap == null) {
       throw Exception('Keymap is not set');
     }
-    keyPressSimulator.simulateKeyDown(_keymap!.decrease);
-    //keyPressSimulator.simulateKeyUp(_keymap!.decrease);
+    await keyPressSimulator.simulateKeyDown(_keymap!.decrease);
+    await keyPressSimulator.simulateKeyUp(_keymap!.decrease);
   }
 
   @override
-  void increaseGear() {
+  Future<void> increaseGear() async {
     if (keymap == null) {
       throw Exception('Keymap is not set');
     }
-    keyPressSimulator.simulateKeyDown(_keymap!.increase);
-    //keyPressSimulator.simulateKeyUp(_keymap!.increase);
+    await keyPressSimulator.simulateKeyDown(_keymap!.increase);
+    await keyPressSimulator.simulateKeyUp(_keymap!.increase);
   }
 }

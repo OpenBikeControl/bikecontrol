@@ -21,9 +21,11 @@ class ZwiftPlay extends ZwiftClick {
       _lastControllerNotification = clickNotification;
       actionStreamInternal.add(clickNotification);
 
-      if (clickNotification.rightPad && clickNotification.analogLR.abs() == 100) {
+      if ((clickNotification.rightPad && clickNotification.buttonShift) ||
+          (clickNotification.rightPad && clickNotification.analogLR.abs() == 100)) {
         actionHandler.increaseGear();
-      } else if (!clickNotification.rightPad && clickNotification.analogLR.abs() == 100) {
+      } else if ((!clickNotification.rightPad && clickNotification.buttonShift) ||
+          (!clickNotification.rightPad && clickNotification.analogLR.abs() == 100)) {
         actionHandler.decreaseGear();
       }
       if (clickNotification.rightPad) {
