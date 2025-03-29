@@ -79,7 +79,7 @@ class ZwiftClick extends BaseDevice {
 
   @override
   void processCharacteristic(String characteristic, Uint8List bytes) {
-    if (kDebugMode) {
+    if (kDebugMode && false) {
       print('Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
       print('Received $characteristic: ${String.fromCharCodes(bytes)}');
     }
