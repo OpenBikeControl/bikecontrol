@@ -495,10 +495,11 @@ packages:
   universal_ble:
     dependency: "direct main"
     description:
-      path: universal_ble
-      relative: true
-    source: path
-    version: "0.18.0"
+      name: universal_ble
+      sha256: "35d210e93a5938c6a6d1fd3c710cf4ac90b1bdd1b11c8eb2beeb32600672e6e6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.17.0"
   url_launcher:
     dependency: "direct main"
     description:

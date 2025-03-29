@@ -12,8 +12,7 @@ dependencies:
 
   url_launcher: ^6.3.1
   flutter_local_notifications: ^19.0.0
-  universal_ble:
-    path: universal_ble
+  universal_ble: any
   protobuf: ^3.1.0
   dartx: any
   pointycastle: any
