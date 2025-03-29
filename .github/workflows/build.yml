@@ -73,8 +73,8 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore
-          echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/android.properties
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
+          echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
         #6 Building APK
       - name: Build APK
