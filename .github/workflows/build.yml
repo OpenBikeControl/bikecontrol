@@ -71,6 +71,11 @@ jobs:
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore
+          echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/android.properties
+
         #6 Building APK
       - name: Build APK
         run: flutter build apk --release
