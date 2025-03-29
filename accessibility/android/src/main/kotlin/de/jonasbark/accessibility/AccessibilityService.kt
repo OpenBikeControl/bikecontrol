@@ -9,8 +9,6 @@ import android.os.Build
 import android.util.Log
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_DISAPPEARED
-import android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_UNDEFINED
 import android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
 
 
@@ -30,7 +28,6 @@ class AccessibilityService : AccessibilityService(), Listener {
     private val ignorePackages = listOf("com.android.systemui", "com.android.launcher", "com.android.settings")
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        Log.w("Acc", "onAccessibilityEvent: ${event.packageName} ${event.eventType} ${event.contentChangeTypes}")
         if (event.packageName == null || rootInActiveWindow == null) {
             return
         }

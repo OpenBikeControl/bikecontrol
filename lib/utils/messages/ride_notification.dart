@@ -39,7 +39,7 @@ class RideNotification extends BaseNotification {
   late bool buttonPowerUpLeft, buttonPowerDownLeft;
   late bool buttonOnOffLeft, buttonOnOffRight;
 
-  late int analogLR, analogUD;
+  int analogLR = 0, analogUD = 0;
 
   RideNotification(Uint8List message) {
     final status = RideKeyPadStatus.fromBuffer(message);
@@ -62,9 +62,9 @@ class RideNotification extends BaseNotification {
     buttonOnOffRight = status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == BTN_PRESSED;
 
     for (final analogue in status.analogButtons.groupStatus) {
-      if (analogue.location == RideAnalogLocation.LEFT) {
+      if (analogue.location == RideAnalogLocation.LEFT || analogue.location == RideAnalogLocation.RIGHT) {
         analogLR = analogue.analogValue;
-      } else if (analogue.location == RideAnalogLocation.DOWN) {
+      } else if (analogue.location == RideAnalogLocation.DOWN || analogue.location == RideAnalogLocation.UP) {
         analogUD = analogue.analogValue;
       }
     }
