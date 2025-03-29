@@ -1,9 +1,9 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/pages/scan.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import '../../main.dart';
 import '../keymap/keymap.dart';
@@ -56,13 +56,13 @@ class BluetoothTurnedOn extends PlatformRequirement {
 
   @override
   Future<void> call() async {
-    return FlutterBluePlus.turnOn();
+    await UniversalBle.enableBluetooth();
   }
 
   @override
   Future<void> getStatus() async {
-    final currentState = await FlutterBluePlus.adapterState.first;
-    status = currentState != BluetoothAdapterState.off;
+    final currentState = await UniversalBle.getBluetoothAvailabilityState();
+    status = currentState == AvailabilityState.poweredOn;
   }
 }
 

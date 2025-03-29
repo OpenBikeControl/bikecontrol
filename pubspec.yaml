@@ -12,22 +12,14 @@ dependencies:
 
   url_launcher: ^6.3.1
   flutter_local_notifications: ^19.0.0
-  flutter_blue_plus: ^1.35.3
+  universal_ble: any
   protobuf: ^3.1.0
   dartx: any
   pointycastle: any
   keypress_simulator: ^0.2.0
   flex_color_scheme: ^8.2.0
-  flutter_blue_plus_windows:
-    path: flutter_blue_plus_windows
   accessibility:
     path: accessibility
-
-dependency_overrides:
-  flutter_blue_plus_web:
-    git:
-      url: https://github.com/chipweinberger/flutter_blue_plus.git
-      path: packages/flutter_blue_plus_web
 
 dev_dependencies:
   flutter_test:
