@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Zwift Ride Scanner (Protocol Buffers)</title>
+    </head>
+    <body>
+        <!-- thanks to https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/ and https://www.makinolo.com/blog/2023/10/08/connecting-to-zwift-play-controllers/ -->
+        <h1>Zwift Ride Scanner</h1>
+        <button onclick="scanForDevices()">Scan for Devices</button>
+        <div id="status">Status: Disconnected</div>
+        <pre id="log" style="white-space: pre-wrap"></pre>
+
+        <script>
+            const statusDiv = document.getElementById("status");
+            const logDiv = document.getElementById("log");
+            let controlCharacteristic = null;
+
+            const BUTTON_MASKS = {
+                LEFT_BTN: 0x1,
+                UP_BTN: 0x2,
+                RIGHT_BTN: 0x4,
+                DOWN_BTN: 0x8,
+                A_BTN: 0x10,
+                B_BTN: 0x20,
+                Y_BTN: 0x40,
+                Z_BTN: 0x100,
+                SHFT_UP_L_BTN: 0x200,
+                SHFT_DN_L_BTN: 0x400,
+                POWERUP_L_BTN: 0x800,
+                ONOFF_L_BTN: 0x1000,
+                SHFT_UP_R_BTN: 0x2000,
+                SHFT_DN_R_BTN: 0x4000,
+                POWERUP_R_BTN: 0x10000,
+                ONOFF_R_BTN: 0x20000,
+            };
+
+            function log(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                logDiv.textContent += `[${timestamp}] ${message}\n`;
+                console.log(message);
+            }
+
+            function parseKeyPress(buffer) {
+                let location = null;
+                let analogValue = null;
+
+                let offset = 0;
+                while (offset < buffer.length) {
+                    const tag = buffer[offset];
+                    const fieldNum = tag >> 3;
+                    const wireType = tag & 0x7;
+                    offset++;
+
+                    switch (fieldNum) {
+                        case 1: // Location
+                            if (wireType === 0) {
+                                let value = 0;
+                                let shift = 0;
+                                while (true) {
+                                    const byte = buffer[offset++];
+                                    value |= (byte & 0x7f) << shift;
+                                    if ((byte & 0x80) === 0) break;
+                                    shift += 7;
+                                }
+                                location = value;
+                            }
+                            break;
+
+                        case 2: // AnalogValue
+                            if (wireType === 0) {
+                                let value = 0;
+                                let shift = 0;
+                                while (true) {
+                                    const byte = buffer[offset++];
+                                    value |= (byte & 0x7f) << shift;
+                                    if ((byte & 0x80) === 0) break;
+                                    shift += 7;
+                                }
+                                // ZigZag decode for sint32
+                                analogValue = (value >>> 1) ^ -(value & 1);
+                            }
+                            break;
+
+                        default:
+                            // Skip unknown fields
+                            if (wireType === 0) {
+                                while (buffer[offset++] & 0x80);
+                            } else if (wireType === 2) {
+                                const length = buffer[offset++];
+                                offset += length;
+                            }
+                    }
+                }
+                return { location: location, value: analogValue };
+            }
+
+            function parseKeyGroup(buffer) {
+                let groupStatus = {};
+
+                let offset = 0;
+                while (offset < buffer.length) {
+                    const tag = buffer[offset];
+                    const fieldNum = tag >> 3;
+                    const wireType = tag & 0x7;
+                    offset++;
+
+                    if (fieldNum === 3 && wireType === 2) {
+                        const length = buffer[offset++];
+                        const messageBuffer = buffer.slice(
+                            offset,
+                            offset + length,
+                        );
+                        let res = parseKeyPress(messageBuffer);
+                        groupStatus[res.location] = res.value;
+                        offset += length;
+                    } else {
+                        // Skip unknown fields
+                        if (wireType === 0) {
+                            while (buffer[offset++] & 0x80);
+                        } else if (wireType === 2) {
+                            const length = buffer[offset++];
+                            offset += length;
+                        }
+                    }
+                }
+                return groupStatus;
+            }
+
+            function parseButtonState(buttonMap) {
+                const pressedButtons = [];
+                for (const [button, mask] of Object.entries(BUTTON_MASKS)) {
+                    if ((buttonMap & mask) === 0) {
+                        pressedButtons.push(button);
+                    }
+                }
+                return pressedButtons;
+            }
+
+            function parseAnalogMessage(data) {
+                // Each analog group starts with 0x1a
+                if (data[0] !== 0x1a) return null;
+
+                let res = parseKeyGroup(data);
+                return {
+                    left: "0" in res ? res["0"] : 0,
+                    right: "1" in res ? res["1"] : 0,
+                };
+            }
+
+            function handleMessage(value) {
+                const data = new Uint8Array(value.buffer);
+                const msgType = data[0];
+
+                switch (msgType) {
+                    case 0x23: {
+                        // Button status
+                        const buttonMap =
+                            data[2] |
+                            (data[3] << 8) |
+                            (data[4] << 16) |
+                            (data[5] << 24);
+                        const pressedButtons = parseButtonState(buttonMap);
+
+                        if (pressedButtons.length > 0) {
+                            log(
+                                `Buttons pressed! ${pressedButtons.join(", ")}`,
+                            );
+                        }
+                        // Find analog values section (after button map)
+                        let startIndex = 7; // Skip message type, field number, and button map
+                        while (startIndex < data.length) {
+                            const analogData = parseAnalogMessage(
+                                data.slice(startIndex),
+                            );
+                            if (!analogData) break;
+
+                            log(
+                                `Analog left:${analogData.left} right:${analogData.right}`,
+                            );
+                            startIndex = analogData.nextIndex;
+                        }
+                        break;
+                    }
+
+                    case 0x2a: // Initial status
+                        log("Initial status received");
+                        break;
+
+                    case 0x15: // Idle
+                        break;
+
+                    case 0x19: // Status update
+                        break;
+
+                    default:
+                        log(
+                            `Unknown message: ${Array.from(data)
+                                .map((b) => b.toString(16).padStart(2, "0"))
+                                .join(" ")}`,
+                        );
+                }
+            }
+
+            async function scanForDevices() {
+                if (!navigator.bluetooth) {
+                    statusDiv.textContent =
+                        "Status: Web Bluetooth API is not supported";
+                    return;
+                }
+
+                try {
+                    statusDiv.textContent = "Status: Scanning...";
+                    logDiv.textContent = "";
+
+                    const device = await navigator.bluetooth.requestDevice({
+                        filters: [
+                            {
+                                name: "Zwift Ride",
+                            },
+                        ],
+                        optionalServices: [
+                            "0000180f-0000-1000-8000-00805f9b34fb", // Battery Service
+                            "0000180a-0000-1000-8000-00805f9b34fb", // Device Information
+                            "0000fc82-0000-1000-8000-00805f9b34fb", // Custom Service
+                        ],
+                    });
+
+                    log(`Device name: ${device.name}`);
+                    log(`Device ID: ${device.id}`);
+
+                    statusDiv.textContent = "Status: Connecting...";
+                    const server = await device.gatt.connect();
+                    log("Connected to GATT server");
+
+                    const service = await server.getPrimaryService(
+                        "0000fc82-0000-1000-8000-00805f9b34fb",
+                    );
+                    log("Found custom service");
+
+                    const measurementChar = await service.getCharacteristic(
+                        "00000002-19ca-4651-86e5-fa29dcdd09d1",
+                    );
+                    controlCharacteristic = await service.getCharacteristic(
+                        "00000003-19ca-4651-86e5-fa29dcdd09d1",
+                    );
+                    const responseChar = await service.getCharacteristic(
+                        "00000004-19ca-4651-86e5-fa29dcdd09d1",
+                    );
+
+                    log("Got service characteristics");
+
+                    // Initial handshake
+                    const handshake = new TextEncoder().encode("RideOn");
+                    await controlCharacteristic.writeValue(handshake);
+                    log("Sent RideOn handshake");
+
+                    // Set up notifications
+                    await measurementChar.startNotifications();
+                    measurementChar.addEventListener(
+                        "characteristicvaluechanged",
+                        (event) => {
+                            handleMessage(event.target.value);
+                        },
+                    );
+
+                    await responseChar.startNotifications();
+                    responseChar.addEventListener(
+                        "characteristicvaluechanged",
+                        (event) => {
+                            const value = new TextDecoder().decode(
+                                event.target.value,
+                            );
+                            log(`Response: ${value}`);
+                        },
+                    );
+
+                    device.addEventListener("gattserverdisconnected", () => {
+                        statusDiv.textContent = "Status: Device disconnected";
+                        log("Device disconnected");
+                    });
+
+                    statusDiv.textContent =
+                        "Status: Connected and watching for input";
+                } catch (error) {
+                    statusDiv.textContent = `Status: Error - ${error}`;
+                    log(`Error: ${error.message}`);
+                    console.error("Error:", error);
+                }
+            }
+        </script>
+    </body>
+</html>

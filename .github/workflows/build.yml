@@ -80,9 +80,9 @@ jobs:
 
       - name: Handle archives
         run: |
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
           cd build/macos/Build/Products/Release/
           zip -r SwiftControl.macos.zip SwiftControl.app/
-          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
 
         #9 Upload Artifacts
       - name: Upload Artifacts
