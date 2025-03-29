@@ -25,10 +25,13 @@ class ZwiftRide extends ZwiftClick {
       _lastControllerNotification = clickNotification;
       actionStreamInternal.add(clickNotification);
 
-      if (clickNotification.analogLR.abs() == 100) {
-        actionHandler.increaseGear();
-      } else if (clickNotification.analogUD.abs() == 100) {
+      if (clickNotification.buttonShiftDownLeft || clickNotification.buttonShiftUpLeft || clickNotification.buttonZ) {
         actionHandler.decreaseGear();
+      } else if (clickNotification.buttonShiftUpRight ||
+          clickNotification.buttonShiftDownRight ||
+          clickNotification.buttonOnOffLeft) {
+        // TODO remove buttonZ once the assignment is fixed for real
+        actionHandler.increaseGear();
       }
       if (clickNotification.buttonA) {
         actionHandler.controlMedia(MediaAction.next);

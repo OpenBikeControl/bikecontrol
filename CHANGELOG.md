@@ -1,3 +1,6 @@
+### 1.0.5 (2025-03-29)
+- Zwift Ride: remap the shifter buttons to the correct values
+
 ### 1.0.0+4 (2025-03-29)
 - Zwift Ride: attempt to fix button parsing
 - Android: fix missing permissions
