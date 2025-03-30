@@ -1,5 +1,7 @@
-### 1.0.7 (2025-03-30)
+### 1.1.0 (2025-03-30)
 - Windows & macOS: allow setting custom keymap and store the setting
+- Android: allow customizing the touch area, so it can work with any device without guesswork where the buttons are (#4)
+- Zwift Ride: update Zwift Ride decoding based on Feedback from @JayyajGH (#3)
 
 ### 1.0.6 (2025-03-29)
 - Another potential keyboard fix for Windows
