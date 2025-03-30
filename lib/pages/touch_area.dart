@@ -17,8 +17,8 @@ class TouchAreaSetupPage extends StatefulWidget {
 
 class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   File? _backgroundImage;
-  Offset _gearUpPos = const Offset(100, 300);
-  Offset _gearDownPos = const Offset(200, 300);
+  Offset _gearUpPos = const Offset(200, 300);
+  Offset _gearDownPos = const Offset(100, 300);
 
   Future<void> _pickScreenshot() async {
     final picker = ImagePicker();
@@ -126,8 +126,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             right: 170,
             child: ElevatedButton.icon(
               onPressed: () {
-                _gearDownPos = Offset(200, 300);
-                _gearUpPos = Offset(100, 300);
+                _gearDownPos = Offset(100, 300);
+                _gearUpPos = Offset(200, 300);
                 setState(() {});
               },
               label: const Icon(Icons.lock_reset),
