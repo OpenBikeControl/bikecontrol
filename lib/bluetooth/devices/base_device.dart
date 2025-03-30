@@ -84,7 +84,7 @@ abstract class BaseDevice {
     final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId);
 
     if (customService == null) {
-      throw Exception('Custom service not found');
+      throw Exception('Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}');
     }
 
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(

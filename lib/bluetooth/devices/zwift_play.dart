@@ -1,12 +1,12 @@
 import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/play_notification.dart';
 
 import '../../main.dart';
 import '../ble.dart';
-import 'zwift_click.dart';
 
-class ZwiftPlay extends ZwiftClick {
+class ZwiftPlay extends BaseDevice {
   ZwiftPlay(super.scanResult);
 
   PlayNotification? _lastControllerNotification;

@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:swift_control/bluetooth/devices/zwift_click.dart';
+import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
 
 import '../ble.dart';
 
-class ZwiftRide extends ZwiftClick {
+class ZwiftRide extends BaseDevice {
   ZwiftRide(super.scanResult);
 
   @override
