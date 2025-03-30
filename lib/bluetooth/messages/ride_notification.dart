@@ -20,9 +20,9 @@ enum _RideButtonMask {
   SHFT_DN_R_BTN(0x02000),
 
   POWERUP_L_BTN(0x00400),
-  ONOFF_L_BTN(0x01000),
   POWERUP_R_BTN(0x04000),
-  ONOFF_R_BTN(0x20000);
+  ONOFF_L_BTN(0x00800),
+  ONOFF_R_BTN(0x08000);
 
   final int mask;
 
