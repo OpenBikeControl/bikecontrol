@@ -1,4 +1,9 @@
 ### 1.1.0 (2025-03-30)
+- Windows: fix custom keyboard profile recreation after restart, also warn when choosing MyWhoosh profile (may fix #7)
+- Zwift Ride: button map adjustments to prevent double shifting
+- potential fix for #6 
+
+### 1.1.1 (2025-03-30)
 - potential fix for Bluetooth device detection
 
 ### 1.1.0 (2025-03-30)

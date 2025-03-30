@@ -28,18 +28,23 @@ abstract class BaseDevice {
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
-    final manufacturerData = scanResult.manufacturerDataList;
-    final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+    // Use the name first, probably safest method on all platforms
+    final device = switch (scanResult.name) {
+      'Zwift Ride' => ZwiftRide(scanResult),
+      'Zwift Play' => ZwiftPlay(scanResult),
+      'Zwift Click' => ZwiftClick(scanResult),
+      _ => null,
+    };
 
-    // Web does not support manufacturer data, also the "system devices" don't return any, so use name fallback
-    if (data == null || data.isEmpty) {
-      return switch (scanResult.name) {
-        'Zwift Ride' => ZwiftRide(scanResult),
-        'Zwift Play' => ZwiftPlay(scanResult),
-        'Zwift Click' => ZwiftClick(scanResult),
-        _ => null,
-      };
-    } else {
+    // otherwise use the manufacturer data, which doesn't exist on Web and "System Devices"
+    if (device == null) {
+      final manufacturerData = scanResult.manufacturerDataList;
+      final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+
+      if (data == null || data.isEmpty) {
+        return null;
+      }
+
       final type = DeviceType.fromManufacturerData(data.first);
       return switch (type) {
         DeviceType.click => ZwiftClick(scanResult),
