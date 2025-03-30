@@ -19,21 +19,6 @@ class AccessibilityRequirement extends PlatformRequirement {
   }
 }
 
-class LocationRequirement extends PlatformRequirement {
-  LocationRequirement() : super('Allow Location Permission (req. by Samsung devices');
-
-  @override
-  Future<void> call() async {
-    await Permission.locationWhenInUse.request();
-  }
-
-  @override
-  Future<void> getStatus() async {
-    final state = await Permission.locationWhenInUse.status;
-    status = state.isGranted;
-  }
-}
-
 class BluetoothScanRequirement extends PlatformRequirement {
   BluetoothScanRequirement() : super('Allow Bluetooth Scan');
 
