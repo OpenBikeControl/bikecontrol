@@ -36,14 +36,18 @@ class Keymap {
     ];
   }
 
-  static Keymap decode(List<String> data) {
+  static Keymap? decode(List<String> data) {
     // decode from preferences
 
     if (data.length < 4) {
-      return custom;
+      return null;
     }
     final name = data[0];
-    final keymap = values.firstWhere((element) => element.name == name, orElse: () => custom);
+    final keymap = values.firstOrNullWhere((element) => element.name == name);
+
+    if (keymap == null) {
+      return null;
+    }
 
     if (keymap.name != custom.name) {
       return keymap;
@@ -58,8 +62,10 @@ class Keymap {
         physicalKey: PhysicalKeyboardKey(int.parse(data[4])),
         logicalKey: LogicalKeyboardKey(int.parse(data[3])),
       );
+      return keymap;
+    } else {
+      return null;
     }
-    return keymap;
   }
 }
 
