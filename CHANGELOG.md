@@ -1,3 +1,6 @@
+### 1.0.7 (2025-03-30)
+- Windows & macOS: allow setting custom keymap and store the setting
+
 ### 1.0.6 (2025-03-29)
 - Another potential keyboard fix for Windows
 - Zwift Play: actually also use the dedicated shift buttons 

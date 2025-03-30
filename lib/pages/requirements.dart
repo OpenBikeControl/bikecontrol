@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/menu.dart';
 
@@ -28,14 +29,16 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
 
     // call after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!kIsWeb && Platform.isMacOS) {
-        // add more delay due tu CBManagerStateUnknown
-        Future.delayed(const Duration(seconds: 2), () {
+      settings.init().then((_) {
+        if (!kIsWeb && Platform.isMacOS) {
+          // add more delay due tu CBManagerStateUnknown
+          Future.delayed(const Duration(seconds: 2), () {
+            _reloadRequirements();
+          });
+        } else {
           _reloadRequirements();
-        });
-      } else {
-        _reloadRequirements();
-      }
+        }
+      });
     });
 
     connection.hasDevices.addListener(() {
@@ -64,7 +67,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
       appBar: AppBar(
         title: Text('SwiftControl'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [MenuButton()],
+        actions: buildMenuButtons(),
       ),
       body:
           _requirements.isEmpty
@@ -83,7 +86,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                         }
                         : null,
                 onStepTapped: (step) {
-                  if (_requirements[step].status) {
+                  if (_requirements[step].status && _requirements[step] is! KeymapRequirement) {
                     return;
                   }
                   final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
@@ -100,16 +103,20 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                         .mapIndexed(
                           (index, req) => Step(
                             title: Text(req.name),
-                            content:
-                                (index == _currentStep
-                                    ? req.build(context, () {
-                                      _reloadRequirements();
-                                    })
-                                    : null) ??
-                                ElevatedButton(
-                                  onPressed: req.status ? null : () => _callRequirement(req),
-                                  child: Text(req.name),
-                                ),
+                            content: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16.0),
+                              alignment: Alignment.centerLeft,
+                              child:
+                                  (index == _currentStep
+                                      ? req.build(context, () {
+                                        _reloadRequirements();
+                                      })
+                                      : null) ??
+                                  ElevatedButton(
+                                    onPressed: req.status ? null : () => _callRequirement(req),
+                                    child: Text(req.name),
+                                  ),
+                            ),
                             state: req.status ? StepState.complete : StepState.indexed,
                           ),
                         )

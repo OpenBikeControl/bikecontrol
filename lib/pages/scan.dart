@@ -57,11 +57,15 @@ class _ScanWidgetState extends State<ScanWidget> {
                   ],
                 );
               } else {
-                return ElevatedButton(
-                  onPressed: () {
-                    connection.performScanning();
-                  },
-                  child: const Text("SCAN"),
+                return Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        connection.performScanning();
+                      },
+                      child: const Text("SCAN"),
+                    ),
+                  ],
                 );
               }
             },

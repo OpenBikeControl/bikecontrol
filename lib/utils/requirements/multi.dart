@@ -1,8 +1,8 @@
-import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/pages/scan.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/widgets/custom_keymap_selector.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../main.dart';
@@ -35,18 +35,19 @@ class KeymapRequirement extends PlatformRequirement {
 
   @override
   Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: DropdownMenu<Keymap>(
-        dropdownMenuEntries:
-            Keymap.values.map((key) => DropdownMenuEntry<Keymap>(value: key, label: key.name.capitalize())).toList(),
-        onSelected: (keymap) {
-          actionHandler.init(keymap);
-          onUpdate();
-        },
-        initialSelection: null,
-        hintText: 'Keymap',
-      ),
+    return DropdownMenu<Keymap>(
+      dropdownMenuEntries:
+          Keymap.values.map((key) => DropdownMenuEntry<Keymap>(value: key, label: key.toString())).toList(),
+      onSelected: (keymap) async {
+        if (keymap!.name == Keymap.custom.name) {
+          keymap = await showCustomKeymapDialog(context, keymap: keymap);
+        }
+        actionHandler.init(keymap);
+        settings.setKeymap(keymap!);
+        onUpdate();
+      },
+      initialSelection: actionHandler.keymap,
+      hintText: 'Keymap',
     );
   }
 }

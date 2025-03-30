@@ -46,7 +46,7 @@ class _DevicePageState extends State<DevicePage> {
         child: Scaffold(
           appBar: AppBar(
             title: Text('SwiftControl'),
-            actions: [MenuButton()],
+            actions: buildMenuButtons(),
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           ),
           body: Padding(

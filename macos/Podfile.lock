@@ -4,6 +4,9 @@ PODS:
   - FlutterMacOS (1.0.0)
   - keypress_simulator_macos (0.0.1):
     - FlutterMacOS
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - universal_ble (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -14,6 +17,7 @@ DEPENDENCIES:
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - keypress_simulator_macos (from `Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos`)
+  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - universal_ble (from `Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
 
@@ -24,6 +28,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   keypress_simulator_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos
+  shared_preferences_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   universal_ble:
     :path: Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin
   url_launcher_macos:
@@ -33,6 +39,7 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   keypress_simulator_macos: f8556f9101f9f2f175652e0bceddf0fe82a4c6b2
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   universal_ble: cf52a7b3fd2e7c14d6d7262e9fdadb72ab6b88a6
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
 
