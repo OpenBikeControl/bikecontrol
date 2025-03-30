@@ -28,8 +28,11 @@ abstract class BaseDevice {
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
-    // Web does not support manufacturer data, also the "system devices" don't
-    if (scanResult.manufacturerDataList.isEmpty) {
+    final manufacturerData = scanResult.manufacturerDataList;
+    final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+
+    // Web does not support manufacturer data, also the "system devices" don't return any, so use name fallback
+    if (data == null || data.isEmpty) {
       return switch (scanResult.name) {
         'Zwift Ride' => ZwiftRide(scanResult),
         'Zwift Play' => ZwiftPlay(scanResult),
@@ -37,16 +40,13 @@ abstract class BaseDevice {
         _ => null,
       };
     } else {
-      final manufacturerData = scanResult.manufacturerDataList;
-      final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
-      if (data == null || data.isEmpty) {
-        return null;
-      }
       final type = DeviceType.fromManufacturerData(data.first);
       return switch (type) {
         DeviceType.click => ZwiftClick(scanResult),
         DeviceType.playRight => ZwiftPlay(scanResult),
         DeviceType.playLeft => ZwiftPlay(scanResult),
+        DeviceType.rideRight => ZwiftRide(scanResult),
+        DeviceType.rideLeft => ZwiftRide(scanResult),
         _ => null,
       };
     }

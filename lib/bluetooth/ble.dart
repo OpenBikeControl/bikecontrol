@@ -45,9 +45,10 @@ class Constants {
 
 enum DeviceType {
   click,
-  ride,
   playLeft,
-  playRight;
+  playRight,
+  rideRight,
+  rideLeft;
 
   @override
   String toString() {
@@ -63,6 +64,10 @@ enum DeviceType {
         return DeviceType.playLeft;
       case Constants.RC1_RIGHT_SIDE:
         return DeviceType.playRight;
+      case Constants.RIDE_RIGHT_SIDE:
+        return DeviceType.rideRight;
+      case Constants.RIDE_LEFT_SIDE:
+        return DeviceType.rideLeft;
     }
     return null;
   }

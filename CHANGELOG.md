@@ -1,4 +1,7 @@
 ### 1.1.0 (2025-03-30)
+- potential fix for Bluetooth device detection
+
+### 1.1.0 (2025-03-30)
 - Windows & macOS: allow setting custom keymap and store the setting
 - Android: allow customizing the touch area, so it can work with any device without guesswork where the buttons are (#4)
 - Zwift Ride: update Zwift Ride decoding based on Feedback from @JayyajGH (#3)
