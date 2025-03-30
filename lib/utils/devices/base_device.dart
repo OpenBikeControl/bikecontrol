@@ -24,29 +24,28 @@ abstract class BaseDevice {
   BaseDevice(this.scanResult);
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
-    if (scanResult.name == 'Zwift Ride') {
-      return ZwiftRide(scanResult);
-    }
-    if (kIsWeb) {
-      // manufacturer data is not available on web
-      if (scanResult.name == 'Zwift Play') {
-        return ZwiftPlay(scanResult);
-      } else if (scanResult.name == 'Zwift Click') {
-        return ZwiftClick(scanResult);
+    // Web does not support manufacturer data, also the "system devices" don't
+    if (scanResult.manufacturerDataList.isEmpty) {
+      return switch (scanResult.name) {
+        'Zwift Ride' => ZwiftRide(scanResult),
+        'Zwift Play' => ZwiftPlay(scanResult),
+        'Zwift Click' => ZwiftClick(scanResult),
+        _ => null,
+      };
+    } else {
+      final manufacturerData = scanResult.manufacturerDataList;
+      final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+      if (data == null || data.isEmpty) {
+        return null;
       }
+      final type = DeviceType.fromManufacturerData(data.first);
+      return switch (type) {
+        DeviceType.click => ZwiftClick(scanResult),
+        DeviceType.playRight => ZwiftPlay(scanResult),
+        DeviceType.playLeft => ZwiftPlay(scanResult),
+        _ => null,
+      };
     }
-    final manufacturerData = scanResult.manufacturerDataList;
-    final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
-    if (data == null || data.isEmpty) {
-      return null;
-    }
-    final type = DeviceType.fromManufacturerData(data.first);
-    return switch (type) {
-      DeviceType.click => ZwiftClick(scanResult),
-      DeviceType.playRight => ZwiftPlay(scanResult),
-      DeviceType.playLeft => ZwiftPlay(scanResult),
-      _ => null,
-    };
   }
 
   @override

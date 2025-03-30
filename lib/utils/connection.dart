@@ -53,6 +53,15 @@ class Connection {
   Future<void> performScanning() async {
     isScanning.value = true;
 
+    UniversalBle.getSystemDevices(
+      withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID],
+    ).then((devices) {
+      final baseDevices = devices.map((device) => BaseDevice.fromScanResult(device)).whereNotNull().toList();
+      if (baseDevices.isNotEmpty) {
+        _addDevices(baseDevices);
+      }
+    });
+
     await UniversalBle.startScan(
       scanFilter: ScanFilter(withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID]),
       platformConfig: PlatformConfig(web: WebOptions(optionalServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID])),
