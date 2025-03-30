@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:swift_control/main.dart';
 
-class TouchAreaSetupPage extends StatefulWidget {
-  final void Function(Offset gearUp, Offset gearDown)? onSave;
+final touchAreaSize = 32.0;
 
-  const TouchAreaSetupPage({this.onSave, super.key});
+class TouchAreaSetupPage extends StatefulWidget {
+  final void Function(Offset gearUp, Offset gearDown) onSave;
+
+  const TouchAreaSetupPage({required this.onSave, super.key});
 
   @override
   State<TouchAreaSetupPage> createState() => _TouchAreaSetupPageState();
@@ -15,8 +17,8 @@ class TouchAreaSetupPage extends StatefulWidget {
 
 class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   File? _backgroundImage;
-  late Offset _gearUpPos;
-  late Offset _gearDownPos;
+  Offset _gearUpPos = const Offset(100, 300);
+  Offset _gearDownPos = const Offset(200, 300);
 
   Future<void> _pickScreenshot() async {
     final picker = ImagePicker();
@@ -29,17 +31,34 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   }
 
   void _saveAndClose() {
-    if (widget.onSave != null) {
-      widget.onSave!(_gearUpPos, _gearDownPos);
-    }
+    widget.onSave(_gearUpPos, _gearDownPos);
     Navigator.of(context).pop();
   }
 
   @override
   void initState() {
     super.initState();
-    _gearUpPos = actionHandler.gearUpTouchPosition ?? const Offset(100, 300);
-    _gearDownPos = actionHandler.gearDownTouchPosition ?? const Offset(200, 300);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+
+      if (actionHandler.gearUpTouchPosition != null) {
+        _gearUpPos = actionHandler.gearUpTouchPosition!;
+        _gearUpPos = Offset(
+          _gearUpPos.dx / devicePixelRatio - touchAreaSize / 2,
+          _gearUpPos.dy / devicePixelRatio - touchAreaSize / 2,
+        );
+      }
+
+      if (actionHandler.gearDownTouchPosition != null) {
+        _gearDownPos = actionHandler.gearDownTouchPosition!;
+        _gearDownPos = Offset(
+          _gearDownPos.dx / devicePixelRatio - touchAreaSize / 2,
+          _gearDownPos.dy / devicePixelRatio - touchAreaSize / 2,
+        );
+      }
+      setState(() {});
+    });
   }
 
   Widget _buildDraggableArea({
@@ -77,8 +96,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 children: [
                   Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh)
 2. Load the screenshot with the button below
-3. Drag the touch areas to the correct position where the gear up / down buttons are located
-4. Save and close this screen'''),
+3. Make sure the app is in the correct orientation (portrait or landscape)
+4. Drag the touch areas to the correct position where the gear up / down buttons are located
+5. Save and close this screen'''),
                   ElevatedButton(
                     onPressed: () {
                       _pickScreenshot();
@@ -101,7 +121,18 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             color: Colors.red,
             label: "Gear ↓",
           ),
-          // Save/Close Button
+          Positioned(
+            top: 40,
+            right: 170,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                _gearDownPos = Offset(200, 300);
+                _gearUpPos = Offset(100, 300);
+                setState(() {});
+              },
+              label: const Icon(Icons.lock_reset),
+            ),
+          ),
           Positioned(
             top: 40,
             right: 20,
@@ -128,8 +159,8 @@ class _TouchDot extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: touchAreaSize,
+          height: touchAreaSize,
           decoration: BoxDecoration(
             color: color.withOpacity(0.6),
             shape: BoxShape.circle,

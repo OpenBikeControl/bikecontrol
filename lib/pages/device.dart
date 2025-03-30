@@ -72,10 +72,19 @@ class _DevicePageState extends State<DevicePage> {
                           builder:
                               (_) => TouchAreaSetupPage(
                                 onSave: (gearUp, gearDown) {
-                                  print("Gear Up Position: $gearUp");
-                                  print("Gear Down Position: $gearDown");
-                                  actionHandler.updateTouchPositions(gearUp, gearDown);
-                                  settings.updateTouchPositions(gearUp, gearDown);
+                                  final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+
+                                  final convertedGearUp =
+                                      gearUp.translate(touchAreaSize / 2, touchAreaSize / 2) * devicePixelRatio;
+
+                                  final convertedGearDown =
+                                      gearDown.translate(touchAreaSize / 2, touchAreaSize / 2) * devicePixelRatio;
+
+                                  print("Gear Up Position: $gearUp - converted: $convertedGearUp");
+                                  print("Gear Down Position: $gearDown - converted: $convertedGearDown");
+
+                                  actionHandler.updateTouchPositions(convertedGearUp, convertedGearDown);
+                                  settings.updateTouchPositions(convertedGearUp, convertedGearDown);
                                 },
                               ),
                         ),
