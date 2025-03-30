@@ -32,6 +32,7 @@ Future<List<PlatformRequirement>> getRequirements() async {
     list = [
       BluetoothTurnedOn(),
       AccessibilityRequirement(),
+      LocationRequirement(),
       NotificationRequirement(),
       BluetoothScanRequirement(),
       BluetoothConnectRequirement(),
