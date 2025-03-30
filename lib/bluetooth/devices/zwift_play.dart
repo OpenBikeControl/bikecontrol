@@ -1,10 +1,10 @@
 import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/utils/devices/zwift_click.dart';
-import 'package:swift_control/utils/messages/play_notification.dart';
+import 'package:swift_control/bluetooth/messages/play_notification.dart';
 
 import '../../main.dart';
 import '../ble.dart';
+import 'zwift_click.dart';
 
 class ZwiftPlay extends ZwiftClick {
   ZwiftPlay(super.scanResult);

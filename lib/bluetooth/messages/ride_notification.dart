@@ -1,8 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:swift_control/utils/messages/notification.dart';
-
-import '../../protocol/zwift.pb.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 
 enum _RideButtonMask {
   LEFT_BTN(0x00001),

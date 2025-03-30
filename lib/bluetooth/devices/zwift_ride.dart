@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:swift_control/bluetooth/devices/zwift_click.dart';
+import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/devices/zwift_click.dart';
-import 'package:swift_control/utils/messages/ride_notification.dart';
 
 import '../ble.dart';
 

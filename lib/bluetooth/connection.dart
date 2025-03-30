@@ -4,11 +4,11 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-import 'ble.dart';
+import '../bluetooth/ble.dart';
+import 'devices/base_device.dart';
 import 'messages/notification.dart';
 
 class Connection {
@@ -23,7 +23,7 @@ class Connection {
   final StreamController<BaseDevice> _connectionStreams = StreamController<BaseDevice>.broadcast();
   Stream<BaseDevice> get connectionStream => _connectionStreams.stream;
 
-  var _lastScanResult = <BleDevice>[];
+  final _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
 

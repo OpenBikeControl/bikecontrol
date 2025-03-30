@@ -1,8 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:swift_control/utils/messages/notification.dart';
-
-import '../../protocol/zwift.pb.dart';
+import '../protocol/zwift.pb.dart';
+import 'notification.dart';
 
 class ClickNotification extends BaseNotification {
   static const int BTN_PRESSED = 0;

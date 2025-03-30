@@ -6,9 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
-import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 
+import '../bluetooth/devices/base_device.dart';
 import '../widgets/menu.dart';
 
 class DevicePage extends StatefulWidget {

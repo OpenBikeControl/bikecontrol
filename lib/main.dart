@@ -8,9 +8,9 @@ import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/connection.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 
+import 'bluetooth/connection.dart';
 import 'utils/actions/base_actions.dart';
 
 final connection = Connection();

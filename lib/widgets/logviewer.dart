@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 
+import '../bluetooth/messages/notification.dart';
 import '../main.dart';
-import '../utils/messages/notification.dart';
 
 class LogViewer extends StatefulWidget {
   const LogViewer({super.key});

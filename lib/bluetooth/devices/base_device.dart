@@ -1,22 +1,86 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/devices/base_device.dart';
-import 'package:swift_control/utils/messages/notification.dart';
+import 'package:swift_control/bluetooth/ble.dart';
+import 'package:swift_control/bluetooth/devices/zwift_click.dart';
+import 'package:swift_control/bluetooth/devices/zwift_play.dart';
+import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
+import 'package:swift_control/utils/crypto/local_key_provider.dart';
+import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-import '../ble.dart';
-import '../crypto/encryption_utils.dart';
-import '../messages/click_notification.dart';
+import '../../utils/crypto/encryption_utils.dart';
+import '../messages/notification.dart';
 
-class ZwiftClick extends BaseDevice {
-  ZwiftClick(super.scanResult);
+abstract class BaseDevice {
+  final BleDevice scanResult;
+  BaseDevice(this.scanResult);
+
+  final zapEncryption = ZapCrypto(LocalKeyProvider());
+
+  bool isConnected = false;
+
+  bool supportsEncryption = true;
 
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
+  static BaseDevice? fromScanResult(BleDevice scanResult) {
+    // Web does not support manufacturer data, also the "system devices" don't
+    if (scanResult.manufacturerDataList.isEmpty) {
+      return switch (scanResult.name) {
+        'Zwift Ride' => ZwiftRide(scanResult),
+        'Zwift Play' => ZwiftPlay(scanResult),
+        'Zwift Click' => ZwiftClick(scanResult),
+        _ => null,
+      };
+    } else {
+      final manufacturerData = scanResult.manufacturerDataList;
+      final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+      if (data == null || data.isEmpty) {
+        return null;
+      }
+      final type = DeviceType.fromManufacturerData(data.first);
+      return switch (type) {
+        DeviceType.click => ZwiftClick(scanResult),
+        DeviceType.playRight => ZwiftPlay(scanResult),
+        DeviceType.playLeft => ZwiftPlay(scanResult),
+        _ => null,
+      };
+    }
+  }
+
   @override
-  Future<void> handleServices(List<BleService> services) async {
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BaseDevice && runtimeType == other.runtimeType && scanResult == other.scanResult;
+
+  @override
+  int get hashCode => scanResult.hashCode;
+
+  @override
+  String toString() {
+    return runtimeType.toString();
+  }
+
+  BleDevice get device => scanResult;
+  final StreamController<BaseNotification> actionStreamInternal = StreamController<BaseNotification>.broadcast();
+  Stream<BaseNotification> get actionStream => actionStreamInternal.stream;
+
+  Future<void> connect() async {
+    await UniversalBle.connect(device.deviceId, connectionTimeout: const Duration(seconds: 3));
+
+    if (!kIsWeb && Platform.isAndroid) {
+      //await UniversalBle.requestMtu(device.deviceId, 256);
+    }
+
+    final services = await UniversalBle.discoverServices(device.deviceId);
+    await _handleServices(services);
+  }
+
+  Future<void> _handleServices(List<BleService> services) async {
     final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId);
 
     if (customService == null) {
@@ -77,7 +141,6 @@ class ZwiftClick extends BaseDevice {
     }
   }
 
-  @override
   void processCharacteristic(String characteristic, Uint8List bytes) {
     if (kDebugMode && false) {
       print('Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
@@ -107,7 +170,13 @@ class ZwiftClick extends BaseDevice {
     }
   }
 
-  ClickNotification? _lastClickNotification;
+  void _processDevicePublicKeyResponse(Uint8List bytes) {
+    final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START_CLICK.length);
+    zapEncryption.initialise(devicePublicKeyBytes);
+    if (kDebugMode) {
+      print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
+    }
+  }
 
   void _processData(Uint8List bytes) {
     int type;
@@ -140,25 +209,5 @@ class ZwiftClick extends BaseDevice {
     }
   }
 
-  void _processDevicePublicKeyResponse(Uint8List bytes) {
-    final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START_CLICK.length);
-    zapEncryption.initialise(devicePublicKeyBytes);
-    if (kDebugMode) {
-      print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
-    }
-  }
-
-  void processClickNotification(Uint8List message) {
-    final ClickNotification clickNotification = ClickNotification(message);
-    if (_lastClickNotification == null || _lastClickNotification != clickNotification) {
-      _lastClickNotification = clickNotification;
-      actionStreamInternal.add(clickNotification);
-
-      if (clickNotification.buttonUp) {
-        actionHandler.increaseGear();
-      } else if (clickNotification.buttonDown) {
-        actionHandler.decreaseGear();
-      }
-    }
-  }
+  void processClickNotification(Uint8List message);
 }
