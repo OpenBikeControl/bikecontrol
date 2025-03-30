@@ -28,7 +28,7 @@ abstract class BaseDevice {
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
-    // Use the name first, probably safest method on all platforms
+    // Use the name first as the "System Devices" and Web (android sometimes Windows) don't have manufacturer data
     final device = switch (scanResult.name) {
       'Zwift Ride' => ZwiftRide(scanResult),
       'Zwift Play' => ZwiftPlay(scanResult),
@@ -39,8 +39,7 @@ abstract class BaseDevice {
     if (device != null) {
       return device;
     } else {
-      // otherwise use the manufacturer data, which doesn't exist on Web and "System Devices"
-
+      // otherwise use the manufacturer data to identify the device
       final manufacturerData = scanResult.manufacturerDataList;
       final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
 
