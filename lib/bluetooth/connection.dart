@@ -53,7 +53,8 @@ class Connection {
   Future<void> performScanning() async {
     isScanning.value = true;
 
-    if (!kIsWeb) {
+    // does not work on web, may not work on Windows
+    if (!kIsWeb && !Platform.isWindows) {
       UniversalBle.getSystemDevices(
         withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID],
       ).then((devices) {
