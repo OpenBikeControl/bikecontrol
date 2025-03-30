@@ -38,7 +38,9 @@ class KeymapRequirement extends PlatformRequirement {
 
   @override
   Widget? build(BuildContext context, VoidCallback onUpdate) {
+    final controller = TextEditingController(text: actionHandler.keymap?.name);
     return DropdownMenu<Keymap>(
+      controller: controller,
       dropdownMenuEntries:
           Keymap.values.map((key) => DropdownMenuEntry<Keymap>(value: key, label: key.toString())).toList(),
       onSelected: (keymap) async {
@@ -49,8 +51,12 @@ class KeymapRequirement extends PlatformRequirement {
             context,
           ).showSnackBar(SnackBar(content: Text('Use a Custom Keymap if you experience any issues on Windows')));
         }
+        controller.text = keymap?.name ?? '';
+        if (keymap == null) {
+          return;
+        }
         actionHandler.init(keymap);
-        settings.setKeymap(keymap!);
+        settings.setKeymap(keymap);
         onUpdate();
       },
       initialSelection: actionHandler.keymap,

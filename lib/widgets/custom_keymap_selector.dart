@@ -21,9 +21,9 @@ class GearHotkeyDialog extends StatefulWidget {
 
 class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
   final FocusNode _focusNode = FocusNode();
-  final Set<KeyDownEvent> _pressedKeys = {};
-  Set<KeyDownEvent>? _gearUpHotkey;
-  Set<KeyDownEvent>? _gearDownHotkey;
+  KeyDownEvent? _pressedKey;
+  KeyDownEvent? _gearUpHotkey;
+  KeyDownEvent? _gearDownHotkey;
 
   String _mode = 'up'; // 'up' or 'down'
 
@@ -36,33 +36,32 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
   void _onKey(KeyEvent event) {
     setState(() {
       if (event is KeyDownEvent) {
-        _pressedKeys.add(event);
+        _pressedKey = event;
       } else if (event is KeyUpEvent) {
-        if (_pressedKeys.isNotEmpty) {
+        if (_pressedKey != null) {
           if (_mode == 'up') {
-            _gearUpHotkey = {..._pressedKeys};
+            _gearUpHotkey = _pressedKey;
             _mode = 'down';
           } else {
-            _gearDownHotkey = {..._pressedKeys};
+            _gearDownHotkey = _pressedKey;
             widget.keymap.increase = KeyPair(
-              physicalKey: _gearUpHotkey!.first.physicalKey,
-              logicalKey: _gearUpHotkey!.first.logicalKey,
+              physicalKey: _gearUpHotkey!.physicalKey,
+              logicalKey: _gearUpHotkey!.logicalKey,
             );
             widget.keymap.decrease = KeyPair(
-              physicalKey: _gearDownHotkey!.first.physicalKey,
-              logicalKey: _gearDownHotkey!.first.logicalKey,
+              physicalKey: _gearDownHotkey!.physicalKey,
+              logicalKey: _gearDownHotkey!.logicalKey,
             );
             Navigator.of(context).pop(widget.keymap);
           }
-          _pressedKeys.clear();
+          _pressedKey = null;
         }
       }
     });
   }
 
-  String _formatKeys(Set<KeyDownEvent>? keys) {
-    if (keys == null || keys.isEmpty) return 'Not set';
-    return keys.map((k) => k.logicalKey.keyLabel).join(' + ');
+  String _formatKey(KeyDownEvent? key) {
+    return key?.logicalKey.keyLabel ?? 'Not set';
   }
 
   @override
@@ -75,7 +74,6 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
         onKeyEvent: _onKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Step 1: Press a hotkey for **Gear Up**."),
             Text("Step 2: Press a hotkey for **Gear Down**."),
@@ -83,18 +81,13 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
             ListTile(
               leading: Icon(Icons.arrow_upward),
               title: Text("Gear Up Hotkey"),
-              subtitle: Text(_formatKeys(_gearUpHotkey)),
+              subtitle: Text(_formatKey(_gearUpHotkey)),
             ),
             ListTile(
               leading: Icon(Icons.arrow_downward),
               title: Text("Gear Down Hotkey"),
-              subtitle: Text(_formatKeys(_gearDownHotkey)),
+              subtitle: Text(_formatKey(_gearDownHotkey)),
             ),
-            if (_pressedKeys.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text("Recording: ${_formatKeys(_pressedKeys)}", style: TextStyle(color: Colors.blue)),
-              ),
           ],
         ),
       ),
