@@ -11,6 +11,14 @@ class AndroidActions extends BaseActions {
   static const validPackageNames = [MYWHOOSH_APP_PACKAGE, TRAININGPEAKS_APP_PACKAGE];
 
   WindowEvent? windowInfo;
+  Offset? _gearUpTouchPosition;
+  Offset? _gearDownTouchPosition;
+
+  @override
+  Offset? get gearUpTouchPosition => _gearUpTouchPosition;
+
+  @override
+  Offset? get gearDownTouchPosition => _gearDownTouchPosition;
 
   @override
   void init(Keymap? keymap) {
@@ -23,9 +31,10 @@ class AndroidActions extends BaseActions {
 
   @override
   void decreaseGear() {
-    if (windowInfo == null) {
-      throw Exception("Decrease gear: No window info");
-    } else {
+    if (_gearDownTouchPosition == null) {
+      if (windowInfo == null) {
+        throw Exception("Increasing gear: No window info");
+      }
       final point = switch (windowInfo!.packageName) {
         MYWHOOSH_APP_PACKAGE => Offset(windowInfo!.windowWidth * 0.80, windowInfo!.windowHeight * 0.94),
         TRAININGPEAKS_APP_PACKAGE => Offset(windowInfo!.windowWidth / 2 * 1.15, windowInfo!.windowHeight * 0.74),
@@ -33,14 +42,17 @@ class AndroidActions extends BaseActions {
       };
 
       accessibilityHandler.performTouch(point.dx, point.dy);
+    } else {
+      accessibilityHandler.performTouch(_gearDownTouchPosition!.dx, _gearDownTouchPosition!.dy);
     }
   }
 
   @override
   void increaseGear() {
-    if (windowInfo == null) {
-      throw Exception("Increasing gear: No window info");
-    } else {
+    if (_gearUpTouchPosition == null) {
+      if (windowInfo == null) {
+        throw Exception("Increasing gear: No window info");
+      }
       final point = switch (windowInfo!.packageName) {
         MYWHOOSH_APP_PACKAGE => Offset(windowInfo!.windowWidth * 0.98, windowInfo!.windowHeight * 0.94),
         TRAININGPEAKS_APP_PACKAGE => Offset(windowInfo!.windowWidth / 2 * 1.32, windowInfo!.windowHeight * 0.74),
@@ -48,11 +60,19 @@ class AndroidActions extends BaseActions {
       };
 
       accessibilityHandler.performTouch(point.dx, point.dy);
+    } else {
+      accessibilityHandler.performTouch(_gearUpTouchPosition!.dx, _gearUpTouchPosition!.dy);
     }
   }
 
   @override
   void controlMedia(MediaAction action) {
     accessibilityHandler.controlMedia(action);
+  }
+
+  @override
+  void updateTouchPositions(Offset gearUp, Offset gearDown) {
+    _gearUpTouchPosition = gearUp;
+    _gearDownTouchPosition = gearDown;
   }
 }

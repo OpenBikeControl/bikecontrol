@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/utils/devices/base_device.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 
@@ -53,6 +56,7 @@ class _DevicePageState extends State<DevicePage> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 10,
               children: [
                 Text(
                   'Devices:\n${connection.devices.joinToString(separator: '\n', transform: (it) {
@@ -60,6 +64,26 @@ class _DevicePageState extends State<DevicePage> {
                   })}',
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
+                if (!kIsWeb && (Platform.isAndroid || kDebugMode)) ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (_) => TouchAreaSetupPage(
+                                onSave: (gearUp, gearDown) {
+                                  print("Gear Up Position: $gearUp");
+                                  print("Gear Down Position: $gearDown");
+                                  actionHandler.updateTouchPositions(gearUp, gearDown);
+                                  settings.updateTouchPositions(gearUp, gearDown);
+                                },
+                              ),
+                        ),
+                      );
+                    },
+                    child: Text('Customize touch areas (optional)'),
+                  ),
+                ],
                 Expanded(child: LogViewer()),
               ],
             ),

@@ -1,14 +1,13 @@
-import 'dart:io';
+import 'dart:ui';
 
 import 'package:accessibility/accessibility.dart';
-import 'package:flutter/foundation.dart';
 
 import '../keymap/keymap.dart';
-import 'android.dart';
-import 'desktop.dart';
 
 abstract class BaseActions {
   Keymap? get keymap => null;
+  Offset? get gearUpTouchPosition => null;
+  Offset? get gearDownTouchPosition => null;
 
   void init(Keymap? keymap) {}
   void increaseGear();
@@ -17,6 +16,8 @@ abstract class BaseActions {
   void controlMedia(MediaAction action) {
     throw UnimplementedError();
   }
+
+  void updateTouchPositions(Offset gearUp, Offset gearDown) {}
 }
 
 class StubActions extends BaseActions {
@@ -28,37 +29,5 @@ class StubActions extends BaseActions {
   @override
   void increaseGear() {
     print('Increase gear');
-  }
-}
-
-class ActionHandler {
-  late BaseActions actions;
-
-  ActionHandler() {
-    if (kIsWeb) {
-      actions = StubActions();
-    } else if (Platform.isAndroid) {
-      actions = AndroidActions();
-    } else {
-      actions = DesktopActions();
-    }
-  }
-
-  Keymap? get keymap => actions.keymap;
-
-  void init(Keymap? keymap) {
-    actions.init(keymap);
-  }
-
-  void increaseGear() {
-    actions.increaseGear();
-  }
-
-  void decreaseGear() {
-    actions.decreaseGear();
-  }
-
-  void controlMedia(MediaAction action) {
-    actions.controlMedia(action);
   }
 }
