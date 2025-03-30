@@ -21,9 +21,9 @@ class GearHotkeyDialog extends StatefulWidget {
 
 class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
   final FocusNode _focusNode = FocusNode();
-  final Set<PhysicalKeyboardKey> _pressedKeys = {};
-  Set<PhysicalKeyboardKey>? _gearUpHotkey;
-  Set<PhysicalKeyboardKey>? _gearDownHotkey;
+  final Set<KeyDownEvent> _pressedKeys = {};
+  Set<KeyDownEvent>? _gearUpHotkey;
+  Set<KeyDownEvent>? _gearDownHotkey;
 
   String _mode = 'up'; // 'up' or 'down'
 
@@ -36,7 +36,7 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
   void _onKey(KeyEvent event) {
     setState(() {
       if (event is KeyDownEvent) {
-        _pressedKeys.add(event.physicalKey);
+        _pressedKeys.add(event);
       } else if (event is KeyUpEvent) {
         if (_pressedKeys.isNotEmpty) {
           if (_mode == 'up') {
@@ -44,8 +44,14 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
             _mode = 'down';
           } else {
             _gearDownHotkey = {..._pressedKeys};
-            widget.keymap.increase = _gearUpHotkey!.first;
-            widget.keymap.decrease = _gearDownHotkey!.first;
+            widget.keymap.increase = KeyPair(
+              physicalKey: _gearUpHotkey!.first.physicalKey,
+              logicalKey: _gearUpHotkey!.first.logicalKey,
+            );
+            widget.keymap.decrease = KeyPair(
+              physicalKey: _gearDownHotkey!.first.physicalKey,
+              logicalKey: _gearDownHotkey!.first.logicalKey,
+            );
             Navigator.of(context).pop(widget.keymap);
           }
           _pressedKeys.clear();
@@ -54,9 +60,9 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
     });
   }
 
-  String _formatKeys(Set<PhysicalKeyboardKey>? keys) {
+  String _formatKeys(Set<KeyDownEvent>? keys) {
     if (keys == null || keys.isEmpty) return 'Not set';
-    return keys.map((k) => k.debugName ?? k).join(' + ');
+    return keys.map((k) => k.logicalKey.keyLabel).join(' + ');
   }
 
   @override
@@ -69,6 +75,7 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
         onKeyEvent: _onKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Step 1: Press a hotkey for **Gear Up**."),
             Text("Step 2: Press a hotkey for **Gear Down**."),

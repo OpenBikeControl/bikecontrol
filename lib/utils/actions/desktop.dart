@@ -19,8 +19,8 @@ class DesktopActions extends BaseActions {
     if (keymap == null) {
       throw Exception('Keymap is not set');
     }
-    await keyPressSimulator.simulateKeyDown(_keymap!.decrease);
-    await keyPressSimulator.simulateKeyUp(_keymap!.decrease);
+    await keyPressSimulator.simulateKeyDown(_keymap!.decrease?.physicalKey);
+    await keyPressSimulator.simulateKeyUp(_keymap!.decrease?.physicalKey);
   }
 
   @override
@@ -28,7 +28,7 @@ class DesktopActions extends BaseActions {
     if (keymap == null) {
       throw Exception('Keymap is not set');
     }
-    await keyPressSimulator.simulateKeyDown(_keymap!.increase);
-    await keyPressSimulator.simulateKeyUp(_keymap!.increase);
+    await keyPressSimulator.simulateKeyDown(_keymap!.increase?.physicalKey);
+    await keyPressSimulator.simulateKeyUp(_keymap!.increase?.physicalKey);
   }
 }

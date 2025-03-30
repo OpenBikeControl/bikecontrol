@@ -58,7 +58,7 @@ class Connection {
       UniversalBle.getSystemDevices(
         withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID],
       ).then((devices) {
-        final baseDevices = devices.map((device) => BaseDevice.fromScanResult(device)).whereNotNull().toList();
+        final baseDevices = devices.mapNotNull(BaseDevice.fromScanResult).toList();
         if (baseDevices.isNotEmpty) {
           _addDevices(baseDevices);
         }

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/pages/scan.dart';
@@ -41,6 +44,10 @@ class KeymapRequirement extends PlatformRequirement {
       onSelected: (keymap) async {
         if (keymap!.name == Keymap.custom.name) {
           keymap = await showCustomKeymapDialog(context, keymap: keymap);
+        } else if (keymap.name == Keymap.myWhoosh.name && (!kIsWeb && Platform.isWindows)) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Use a Custom Keymap if you experience any issues on Windows')));
         }
         actionHandler.init(keymap);
         settings.setKeymap(keymap!);
