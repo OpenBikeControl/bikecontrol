@@ -36,8 +36,11 @@ abstract class BaseDevice {
       _ => null,
     };
 
-    // otherwise use the manufacturer data, which doesn't exist on Web and "System Devices"
-    if (device == null) {
+    if (device != null) {
+      return device;
+    } else {
+      // otherwise use the manufacturer data, which doesn't exist on Web and "System Devices"
+
       final manufacturerData = scanResult.manufacturerDataList;
       final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
 

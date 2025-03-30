@@ -1,5 +1,5 @@
-### 1.1.4 (2025-03-30)
-- another potential fix for #6
+### 1.1.5 (2025-03-30)
+- fix bluetooth connection #6, also add missing entitlement on macOS
 
 ### 1.1.3 (2025-03-30)
 - Windows: fix custom keyboard profile recreation after restart, also warn when choosing MyWhoosh profile (may fix #7)
