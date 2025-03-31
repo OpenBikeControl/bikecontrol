@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/widgets/logviewer.dart';
+import 'package:swift_control/widgets/title.dart';
 
 import '../bluetooth/devices/base_device.dart';
 import '../widgets/menu.dart';
@@ -48,7 +49,7 @@ class _DevicePageState extends State<DevicePage> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: Text('SwiftControl'),
+            title: AppTitle(),
             actions: buildMenuButtons(),
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           ),

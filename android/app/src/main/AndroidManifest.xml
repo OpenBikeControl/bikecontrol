@@ -19,6 +19,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!-- to check if you have the latest version -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="SwiftControl"
         android:name="${applicationName}"
