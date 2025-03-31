@@ -11,14 +11,11 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.core.content.ContextCompat.startActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
 
 
 /** AccessibilityPlugin */
-class AccessibilityPlugin: FlutterPlugin, MethodCallHandler, Accessibility {
+class AccessibilityPlugin: FlutterPlugin, Accessibility {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -36,14 +33,6 @@ class AccessibilityPlugin: FlutterPlugin, MethodCallHandler, Accessibility {
     Accessibility.setUp(flutterPluginBinding.binaryMessenger, this)
     StreamEventsStreamHandler.register(flutterPluginBinding.binaryMessenger, eventHandler)
     Observable.fromService = eventHandler
-  }
-
-  override fun onMethodCall(call: MethodCall, result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else {
-      result.notImplemented()
-    }
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -72,7 +61,10 @@ class AccessibilityPlugin: FlutterPlugin, MethodCallHandler, Accessibility {
         audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
         audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
       }
-      MediaAction.NEXT -> audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
+      MediaAction.NEXT -> {
+        audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
+        audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
+      }
       MediaAction.VOLUME_DOWN -> audioService.adjustVolume(android.media.AudioManager.ADJUST_LOWER, android.media.AudioManager.FLAG_SHOW_UI)
       MediaAction.VOLUME_UP -> audioService.adjustVolume(android.media.AudioManager.ADJUST_RAISE, android.media.AudioManager.FLAG_SHOW_UI)
     }

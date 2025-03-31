@@ -16,8 +16,8 @@ message PlayKeyPadStatus {
   optional PlayButtonStatus Button_Z_Left = 3;
   optional PlayButtonStatus Button_A_Right = 4;
   optional PlayButtonStatus Button_B_Down = 5;
-  optional PlayButtonStatus Button_On = 6;
-  optional PlayButtonStatus Button_Shift = 7;
+  optional PlayButtonStatus Button_Shift = 6;
+  optional PlayButtonStatus Button_On = 7;
   optional sint32 Analog_LR = 8;
   optional sint32 Analog_UD = 9;
 }

@@ -82,8 +82,8 @@ const PlayKeyPadStatus$json = {
     {'1': 'Button_Z_Left', '3': 3, '4': 1, '5': 14, '6': '.de.jonasbark.PlayButtonStatus', '10': 'ButtonZLeft'},
     {'1': 'Button_A_Right', '3': 4, '4': 1, '5': 14, '6': '.de.jonasbark.PlayButtonStatus', '10': 'ButtonARight'},
     {'1': 'Button_B_Down', '3': 5, '4': 1, '5': 14, '6': '.de.jonasbark.PlayButtonStatus', '10': 'ButtonBDown'},
-    {'1': 'Button_On', '3': 6, '4': 1, '5': 14, '6': '.de.jonasbark.PlayButtonStatus', '10': 'ButtonOn'},
-    {'1': 'Button_Shift', '3': 7, '4': 1, '5': 14, '6': '.de.jonasbark.PlayButtonStatus', '10': 'ButtonShift'},
+    {'1': 'Button_Shift', '3': 6, '4': 1, '5': 14, '6': '.de.jonasbark.PlayButtonStatus', '10': 'ButtonShift'},
+    {'1': 'Button_On', '3': 7, '4': 1, '5': 14, '6': '.de.jonasbark.PlayButtonStatus', '10': 'ButtonOn'},
     {'1': 'Analog_LR', '3': 8, '4': 1, '5': 17, '10': 'AnalogLR'},
     {'1': 'Analog_UD', '3': 9, '4': 1, '5': 17, '10': 'AnalogUD'},
   ],
@@ -97,9 +97,9 @@ final $typed_data.Uint8List playKeyPadStatusDescriptor = $convert.base64Decode(
     '4uZGUuam9uYXNiYXJrLlBsYXlCdXR0b25TdGF0dXNSC0J1dHRvblpMZWZ0EkQKDkJ1dHRvbl9B'
     'X1JpZ2h0GAQgASgOMh4uZGUuam9uYXNiYXJrLlBsYXlCdXR0b25TdGF0dXNSDEJ1dHRvbkFSaW'
     'dodBJCCg1CdXR0b25fQl9Eb3duGAUgASgOMh4uZGUuam9uYXNiYXJrLlBsYXlCdXR0b25TdGF0'
-    'dXNSC0J1dHRvbkJEb3duEjsKCUJ1dHRvbl9PbhgGIAEoDjIeLmRlLmpvbmFzYmFyay5QbGF5Qn'
-    'V0dG9uU3RhdHVzUghCdXR0b25PbhJBCgxCdXR0b25fU2hpZnQYByABKA4yHi5kZS5qb25hc2Jh'
-    'cmsuUGxheUJ1dHRvblN0YXR1c1ILQnV0dG9uU2hpZnQSGwoJQW5hbG9nX0xSGAggASgRUghBbm'
+    'dXNSC0J1dHRvbkJEb3duEkEKDEJ1dHRvbl9TaGlmdBgGIAEoDjIeLmRlLmpvbmFzYmFyay5QbG'
+    'F5QnV0dG9uU3RhdHVzUgtCdXR0b25TaGlmdBI7CglCdXR0b25fT24YByABKA4yHi5kZS5qb25h'
+    'c2JhcmsuUGxheUJ1dHRvblN0YXR1c1IIQnV0dG9uT24SGwoJQW5hbG9nX0xSGAggASgRUghBbm'
     'Fsb2dMUhIbCglBbmFsb2dfVUQYCSABKBFSCEFuYWxvZ1VE');
 
 @$core.Deprecated('Use playCommandParametersDescriptor instead')

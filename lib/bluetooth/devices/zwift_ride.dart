@@ -24,12 +24,15 @@ class ZwiftRide extends BaseDevice {
       _lastControllerNotification = clickNotification;
       actionStreamInternal.add(clickNotification);
 
-      if (clickNotification.buttonShiftDownLeft || clickNotification.buttonShiftUpLeft || clickNotification.buttonZ) {
+      if (clickNotification.buttonShiftDownLeft ||
+          clickNotification.buttonShiftUpLeft ||
+          clickNotification.buttonOnOffLeft ||
+          clickNotification.buttonPowerDownLeft) {
         actionHandler.decreaseGear();
       } else if (clickNotification.buttonShiftUpRight ||
           clickNotification.buttonShiftDownRight ||
-          clickNotification.buttonOnOffLeft) {
-        // TODO remove buttonZ once the assignment is fixed for real
+          clickNotification.buttonOnOffRight ||
+          clickNotification.buttonPowerUpLeft) {
         actionHandler.increaseGear();
       }
       /*if (clickNotification.buttonA) {

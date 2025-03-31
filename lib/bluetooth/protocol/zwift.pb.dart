@@ -25,8 +25,8 @@ class PlayKeyPadStatus extends $pb.GeneratedMessage {
     PlayButtonStatus? buttonZLeft,
     PlayButtonStatus? buttonARight,
     PlayButtonStatus? buttonBDown,
-    PlayButtonStatus? buttonOn,
     PlayButtonStatus? buttonShift,
+    PlayButtonStatus? buttonOn,
     $core.int? analogLR,
     $core.int? analogUD,
   }) {
@@ -46,11 +46,11 @@ class PlayKeyPadStatus extends $pb.GeneratedMessage {
     if (buttonBDown != null) {
       $result.buttonBDown = buttonBDown;
     }
-    if (buttonOn != null) {
-      $result.buttonOn = buttonOn;
-    }
     if (buttonShift != null) {
       $result.buttonShift = buttonShift;
+    }
+    if (buttonOn != null) {
+      $result.buttonOn = buttonOn;
     }
     if (analogLR != null) {
       $result.analogLR = analogLR;
@@ -70,8 +70,8 @@ class PlayKeyPadStatus extends $pb.GeneratedMessage {
     ..e<PlayButtonStatus>(3, _omitFieldNames ? '' : 'ButtonZLeft', $pb.PbFieldType.OE, protoName: 'Button_Z_Left', defaultOrMaker: PlayButtonStatus.ON, valueOf: PlayButtonStatus.valueOf, enumValues: PlayButtonStatus.values)
     ..e<PlayButtonStatus>(4, _omitFieldNames ? '' : 'ButtonARight', $pb.PbFieldType.OE, protoName: 'Button_A_Right', defaultOrMaker: PlayButtonStatus.ON, valueOf: PlayButtonStatus.valueOf, enumValues: PlayButtonStatus.values)
     ..e<PlayButtonStatus>(5, _omitFieldNames ? '' : 'ButtonBDown', $pb.PbFieldType.OE, protoName: 'Button_B_Down', defaultOrMaker: PlayButtonStatus.ON, valueOf: PlayButtonStatus.valueOf, enumValues: PlayButtonStatus.values)
-    ..e<PlayButtonStatus>(6, _omitFieldNames ? '' : 'ButtonOn', $pb.PbFieldType.OE, protoName: 'Button_On', defaultOrMaker: PlayButtonStatus.ON, valueOf: PlayButtonStatus.valueOf, enumValues: PlayButtonStatus.values)
-    ..e<PlayButtonStatus>(7, _omitFieldNames ? '' : 'ButtonShift', $pb.PbFieldType.OE, protoName: 'Button_Shift', defaultOrMaker: PlayButtonStatus.ON, valueOf: PlayButtonStatus.valueOf, enumValues: PlayButtonStatus.values)
+    ..e<PlayButtonStatus>(6, _omitFieldNames ? '' : 'ButtonShift', $pb.PbFieldType.OE, protoName: 'Button_Shift', defaultOrMaker: PlayButtonStatus.ON, valueOf: PlayButtonStatus.valueOf, enumValues: PlayButtonStatus.values)
+    ..e<PlayButtonStatus>(7, _omitFieldNames ? '' : 'ButtonOn', $pb.PbFieldType.OE, protoName: 'Button_On', defaultOrMaker: PlayButtonStatus.ON, valueOf: PlayButtonStatus.valueOf, enumValues: PlayButtonStatus.values)
     ..a<$core.int>(8, _omitFieldNames ? '' : 'AnalogLR', $pb.PbFieldType.OS3, protoName: 'Analog_LR')
     ..a<$core.int>(9, _omitFieldNames ? '' : 'AnalogUD', $pb.PbFieldType.OS3, protoName: 'Analog_UD')
     ..hasRequiredFields = false
@@ -144,22 +144,22 @@ class PlayKeyPadStatus extends $pb.GeneratedMessage {
   void clearButtonBDown() => clearField(5);
 
   @$pb.TagNumber(6)
-  PlayButtonStatus get buttonOn => $_getN(5);
+  PlayButtonStatus get buttonShift => $_getN(5);
   @$pb.TagNumber(6)
-  set buttonOn(PlayButtonStatus v) { setField(6, v); }
+  set buttonShift(PlayButtonStatus v) { setField(6, v); }
   @$pb.TagNumber(6)
-  $core.bool hasButtonOn() => $_has(5);
+  $core.bool hasButtonShift() => $_has(5);
   @$pb.TagNumber(6)
-  void clearButtonOn() => clearField(6);
+  void clearButtonShift() => clearField(6);
 
   @$pb.TagNumber(7)
-  PlayButtonStatus get buttonShift => $_getN(6);
+  PlayButtonStatus get buttonOn => $_getN(6);
   @$pb.TagNumber(7)
-  set buttonShift(PlayButtonStatus v) { setField(7, v); }
+  set buttonOn(PlayButtonStatus v) { setField(7, v); }
   @$pb.TagNumber(7)
-  $core.bool hasButtonShift() => $_has(6);
+  $core.bool hasButtonOn() => $_has(6);
   @$pb.TagNumber(7)
-  void clearButtonShift() => clearField(7);
+  void clearButtonOn() => clearField(7);
 
   @$pb.TagNumber(8)
   $core.int get analogLR => $_getIZ(7);

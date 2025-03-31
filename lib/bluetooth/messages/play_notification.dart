@@ -4,21 +4,19 @@ import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 
 class PlayNotification extends BaseNotification {
-  static const int BTN_PRESSED = 0;
-
   late bool rightPad, buttonY, buttonZ, buttonA, buttonB, buttonOn, buttonShift;
   late int analogLR, analogUD;
 
   PlayNotification(Uint8List message) {
     final status = PlayKeyPadStatus.fromBuffer(message);
 
-    rightPad = status.rightPad.value == BTN_PRESSED;
-    buttonY = status.buttonYUp.value == BTN_PRESSED;
-    buttonZ = status.buttonZLeft.value == BTN_PRESSED;
-    buttonA = status.buttonARight.value == BTN_PRESSED;
-    buttonB = status.buttonBDown.value == BTN_PRESSED;
-    buttonOn = status.buttonOn.value == BTN_PRESSED;
-    buttonShift = status.buttonShift.value == BTN_PRESSED;
+    rightPad = status.rightPad == PlayButtonStatus.ON;
+    buttonY = status.buttonYUp == PlayButtonStatus.ON;
+    buttonZ = status.buttonZLeft == PlayButtonStatus.ON;
+    buttonA = status.buttonARight == PlayButtonStatus.ON;
+    buttonB = status.buttonBDown == PlayButtonStatus.ON;
+    buttonOn = status.buttonOn == PlayButtonStatus.ON;
+    buttonShift = status.buttonShift == PlayButtonStatus.ON;
     analogLR = status.analogLR;
     analogUD = status.analogUD;
   }
