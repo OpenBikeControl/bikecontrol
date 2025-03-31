@@ -30,14 +30,15 @@ class _AppTitleState extends State<AppTitle> {
       if (latestVersion != null && latestVersion != currentVersion) {
         final assets = data['assets'] as List;
         if (Platform.isAndroid) {
-          final apkUrl = assets.firstWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];
+          final apkUrl = assets.firstOrNullWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];
           return apkUrl;
         } else if (Platform.isMacOS) {
-          final dmgUrl = assets.firstWhere((asset) => asset['name'].endsWith('.macos.zip'))['browser_download_url'];
+          final dmgUrl =
+              assets.firstOrNullWhere((asset) => asset['name'].endsWith('.macos.zip'))['browser_download_url'];
           return dmgUrl;
         } else if (Platform.isWindows) {
           final appImageUrl =
-              assets.firstWhere((asset) => asset['name'].endsWith('.windows.zip'))['browser_download_url'];
+              assets.firstOrNullWhere((asset) => asset['name'].endsWith('.windows.zip'))['browser_download_url'];
           return appImageUrl;
         }
       }

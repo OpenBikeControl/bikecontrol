@@ -1,3 +1,9 @@
+### 1.1.6 (2025-03-31)
+- Zwift Ride: add buttonPowerDown to shift gears
+- Zwift Play: Fix buttonShift assignment
+- Android: fix action to go to next song
+- App now checks if you run the latest available version
+
 ### 1.1.5 (2025-03-30)
 - fix bluetooth connection #6, also add missing entitlement on macOS
 
