@@ -61,7 +61,7 @@ class _DevicePageState extends State<DevicePage> {
               children: [
                 Text(
                   'Devices:\n${connection.devices.joinToString(separator: '\n', transform: (it) {
-                    return "${it.device.name}: ${it.isConnected ? 'Connected' : 'Not connected'}";
+                    return "${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}";
                   })}',
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
