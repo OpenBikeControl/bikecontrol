@@ -16,7 +16,8 @@ dependencies:
     sdk: flutter
   keypress_simulator_macos: ^0.2.0
   keypress_simulator_platform_interface: ^0.2.0
-  keypress_simulator_windows: ^0.2.0
+  keypress_simulator_windows:
+    path: ../keypress_simulator_windows
 
 dev_dependencies:
   flutter_test:
