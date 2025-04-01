@@ -79,7 +79,7 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
   // Send key sequence to system
   //SendInput(static_cast<UINT>(std::size(input)), input, sizeof(INPUT));
 
-  keybd_event(0x4B, 0x45, 0x0, 0);
+  //keybd_event(0x4B, 0x45, 0x0, 0);
   keybd_event(0x4B, 0x45, KEYEVENTF_KEYUP, 0);
 
   result->Success(flutter::EncodableValue(true));

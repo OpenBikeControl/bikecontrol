@@ -30,7 +30,8 @@ abstract class BaseDevice {
   static BaseDevice? fromScanResult(BleDevice scanResult) {
     // Use the name first as the "System Devices" and Web (android sometimes Windows) don't have manufacturer data
     final device = switch (scanResult.name) {
-      'Zwift Ride' => ZwiftRide(scanResult),
+      //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
+      // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
       'Zwift Play' => ZwiftPlay(scanResult),
       'Zwift Click' => ZwiftClick(scanResult),
       _ => null,
@@ -52,7 +53,7 @@ abstract class BaseDevice {
         DeviceType.click => ZwiftClick(scanResult),
         DeviceType.playRight => ZwiftPlay(scanResult),
         DeviceType.playLeft => ZwiftPlay(scanResult),
-        DeviceType.rideRight => ZwiftRide(scanResult),
+        //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
         DeviceType.rideLeft => ZwiftRide(scanResult),
         _ => null,
       };
