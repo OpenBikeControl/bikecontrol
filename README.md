@@ -30,7 +30,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 ## Supported Platforms
 - Android
 - macOS
-- Windows
+- Windows (make sure you have installed the "[Microsoft Visual C++ Runtime libraries](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)")
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
 
 ## How does it work?
