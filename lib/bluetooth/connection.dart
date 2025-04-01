@@ -15,6 +15,9 @@ class Connection {
   final devices = <BaseDevice>[];
   var androidNotificationsSetup = false;
 
+  final _connectionQueue = <BaseDevice>[];
+  var _handlingConnectionQueue = false;
+
   final Map<BaseDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
@@ -31,7 +34,7 @@ class Connection {
     UniversalBle.onScanResult = (result) {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
         _lastScanResult.add(result);
-        _actionStreams.add(LogNotification('Found new devices: ${result.name}'));
+        _actionStreams.add(LogNotification('Found new device: ${result.name}'));
         final scanResult = BaseDevice.fromScanResult(result);
         if (scanResult != null) {
           _addDevices([scanResult]);
@@ -57,7 +60,7 @@ class Connection {
     if (!kIsWeb && !Platform.isWindows) {
       UniversalBle.getSystemDevices(
         withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID],
-      ).then((devices) {
+      ).then((devices) async {
         final baseDevices = devices.mapNotNull(BaseDevice.fromScanResult).toList();
         if (baseDevices.isNotEmpty) {
           _addDevices(baseDevices);
@@ -81,9 +84,8 @@ class Connection {
     final newDevices = dev.where((device) => !devices.contains(device)).toList();
     devices.addAll(newDevices);
 
-    for (final device in newDevices) {
-      _connect(device).then((_) {});
-    }
+    _connectionQueue.addAll(newDevices);
+    _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
     if (devices.isNotEmpty && !androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
@@ -92,6 +94,30 @@ class Connection {
       NotificationRequirement.setup().catchError((e) {
         _actionStreams.add(LogNotification(e.toString()));
       });
+    }
+  }
+
+  void _handleConnectionQueue() {
+    // windows apparently has issues when connecting to multiple devices at once, so don't
+    if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue) {
+      _handlingConnectionQueue = true;
+      final device = _connectionQueue.removeAt(0);
+      _actionStreams.add(LogNotification('Connecting to: ${device.device.name ?? device.runtimeType}'));
+      _connect(device)
+          .then((_) {
+            _handlingConnectionQueue = false;
+            _actionStreams.add(LogNotification('Connection finished: ${device.device.name ?? device.runtimeType}'));
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          })
+          .catchError((e) {
+            _handlingConnectionQueue = false;
+            _actionStreams.add(LogNotification('Connection failed: ${device.device.name ?? device.runtimeType} - $e'));
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          });
     }
   }
 

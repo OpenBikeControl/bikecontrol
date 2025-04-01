@@ -408,12 +408,11 @@ packages:
     source: hosted
     version: "0.2.0"
   keypress_simulator_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: keypress_simulator_windows
-      sha256: b4ff055131a2e5ea920eb3b6a185e1889fe00749b027df3b83aa726ed590a9b5
-      url: "https://pub.dev"
-    source: hosted
+      path: "keypress_simulator/packages/keypress_simulator_windows"
+      relative: true
+    source: path
     version: "0.2.0"
   leak_tracker:
     dependency: transitive

@@ -27,12 +27,12 @@ class ZwiftRide extends BaseDevice {
       if (clickNotification.buttonShiftDownLeft ||
           clickNotification.buttonShiftUpLeft ||
           clickNotification.buttonOnOffLeft ||
-          clickNotification.buttonPowerDownLeft) {
+          clickNotification.buttonPowerUpLeft) {
         actionHandler.decreaseGear();
       } else if (clickNotification.buttonShiftUpRight ||
           clickNotification.buttonShiftDownRight ||
           clickNotification.buttonOnOffRight ||
-          clickNotification.buttonPowerUpLeft) {
+          clickNotification.buttonPowerUpRight) {
         actionHandler.increaseGear();
       }
       /*if (clickNotification.buttonA) {

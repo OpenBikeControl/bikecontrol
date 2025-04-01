@@ -36,7 +36,7 @@ class RideNotification extends BaseNotification {
   late bool buttonA, buttonB, buttonY, buttonZ;
   late bool buttonShiftUpLeft, buttonShiftDownLeft;
   late bool buttonShiftUpRight, buttonShiftDownRight;
-  late bool buttonPowerUpLeft, buttonPowerDownLeft;
+  late bool buttonPowerUpLeft, buttonPowerUpRight;
   late bool buttonOnOffLeft, buttonOnOffRight;
 
   int analogLR = 0, analogUD = 0;
@@ -57,7 +57,7 @@ class RideNotification extends BaseNotification {
     buttonShiftUpRight = status.buttonMap & _RideButtonMask.SHFT_UP_R_BTN.mask == BTN_PRESSED;
     buttonShiftDownRight = status.buttonMap & _RideButtonMask.SHFT_DN_R_BTN.mask == BTN_PRESSED;
     buttonPowerUpLeft = status.buttonMap & _RideButtonMask.POWERUP_L_BTN.mask == BTN_PRESSED;
-    buttonPowerDownLeft = status.buttonMap & _RideButtonMask.POWERUP_R_BTN.mask == BTN_PRESSED;
+    buttonPowerUpRight = status.buttonMap & _RideButtonMask.POWERUP_R_BTN.mask == BTN_PRESSED;
     buttonOnOffLeft = status.buttonMap & _RideButtonMask.ONOFF_L_BTN.mask == BTN_PRESSED;
     buttonOnOffRight = status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == BTN_PRESSED;
 
@@ -86,7 +86,7 @@ class RideNotification extends BaseNotification {
       if (buttonShiftUpRight) 'buttonShiftUpRight',
       if (buttonShiftDownRight) 'buttonShiftDownRight',
       if (buttonPowerUpLeft) 'buttonPowerUpLeft',
-      if (buttonPowerDownLeft) 'buttonPowerDownLeft',
+      if (buttonPowerUpRight) 'buttonPowerUpRight',
       if (buttonOnOffLeft) 'buttonOnOffLeft',
       if (buttonOnOffRight) 'buttonOnOffRight',
     ];
@@ -111,7 +111,7 @@ class RideNotification extends BaseNotification {
           buttonShiftUpRight == other.buttonShiftUpRight &&
           buttonShiftDownRight == other.buttonShiftDownRight &&
           buttonPowerUpLeft == other.buttonPowerUpLeft &&
-          buttonPowerDownLeft == other.buttonPowerDownLeft &&
+          buttonPowerUpRight == other.buttonPowerUpRight &&
           buttonOnOffLeft == other.buttonOnOffLeft &&
           buttonOnOffRight == other.buttonOnOffRight &&
           analogLR == other.analogLR &&
@@ -132,7 +132,7 @@ class RideNotification extends BaseNotification {
       buttonShiftUpRight.hashCode ^
       buttonShiftDownRight.hashCode ^
       buttonPowerUpLeft.hashCode ^
-      buttonPowerDownLeft.hashCode ^
+      buttonPowerUpRight.hashCode ^
       buttonOnOffLeft.hashCode ^
       buttonOnOffRight.hashCode ^
       analogLR.hashCode ^
