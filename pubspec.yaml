@@ -18,14 +18,17 @@ dependencies:
   dartx: any
   image_picker: ^1.1.2
   pointycastle: any
-  keypress_simulator:
-    path: keypress_simulator/packages/keypress_simulator
+  keypress_simulator: any
   shared_preferences: ^2.5.3
   flex_color_scheme: ^8.2.0
   package_info_plus: ^8.3.0
   accessibility:
     path: accessibility
   http: ^1.3.0
+
+dependency_overrides:
+  keypress_simulator_windows:
+    path: keypress_simulator/packages/keypress_simulator_windows
 
 dev_dependencies:
   flutter_test:
