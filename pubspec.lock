@@ -386,10 +386,9 @@ packages:
   keypress_simulator:
     dependency: "direct main"
     description:
-      name: keypress_simulator
-      sha256: d5aa5ed472b6b396f41fd6dcee99f4afb2c7ac6202af622b4cec7955de6ed7f6
-      url: "https://pub.dev"
-    source: hosted
+      path: "keypress_simulator/packages/keypress_simulator"
+      relative: true
+    source: path
     version: "0.2.0"
   keypress_simulator_macos:
     dependency: transitive
