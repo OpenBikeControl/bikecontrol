@@ -71,16 +71,16 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
     input[i].type = INPUT_KEYBOARD;
   }
 
-  int keyIndex = static_cast<int>(modifiers.size());
+  /*int keyIndex = static_cast<int>(modifiers.size());
   input[keyIndex].ki.wVk = static_cast<WORD>(keyCode);
   input[keyIndex].ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
-  input[keyIndex].type = INPUT_KEYBOARD;
+  input[keyIndex].type = INPUT_KEYBOARD;*/
 
   // Send key sequence to system
   //SendInput(static_cast<UINT>(std::size(input)), input, sizeof(INPUT));
 
-  //keybd_event(0x4B, 0x45, 0x0, 0);
-  keybd_event(0x4B, 0x45, KEYEVENTF_KEYUP, 0);
+  BYTE byteValue = static_cast<BYTE>(keyCode);
+  keybd_event(byteValue, 0x45, keyDown ? 0 : KEYEVENTF_KEYUP, 0);
 
   result->Success(flutter::EncodableValue(true));
 }
