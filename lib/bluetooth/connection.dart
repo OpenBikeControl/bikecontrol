@@ -102,18 +102,18 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      _actionStreams.add(LogNotification('Connecting to: ${device.device.name}'));
+      _actionStreams.add(LogNotification('Connecting to: ${device.device.name ?? device.runtimeType}'));
       _connect(device)
           .then((_) {
             _handlingConnectionQueue = false;
-            _actionStreams.add(LogNotification('Connection finished: ${device.device.name}'));
+            _actionStreams.add(LogNotification('Connection finished: ${device.device.name ?? device.runtimeType}'));
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }
           })
           .catchError((e) {
             _handlingConnectionQueue = false;
-            _actionStreams.add(LogNotification('Connection failed: ${device.device.name} - $e'));
+            _actionStreams.add(LogNotification('Connection failed: ${device.device.name ?? device.runtimeType} - $e'));
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }
