@@ -34,8 +34,10 @@ class Connection {
     UniversalBle.onScanResult = (result) {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
         _lastScanResult.add(result);
-        _actionStreams.add(LogNotification('Found new device: ${result.name}'));
         final scanResult = BaseDevice.fromScanResult(result);
+        _actionStreams.add(
+          LogNotification('Found new device: ${result.name ?? scanResult?.runtimeType ?? result.deviceId}'),
+        );
         if (scanResult != null) {
           _addDevices([scanResult]);
         }
@@ -143,7 +145,7 @@ class Connection {
         print(e);
         print("backtrace: $backtrace");
       }
-      throw e;
+      rethrow;
     }
   }
 
