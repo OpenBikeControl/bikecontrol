@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:swift_control/main.dart';
 
@@ -36,9 +37,17 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    // Exit full screen
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+  }
+
+  @override
   void initState() {
     super.initState();
 
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
 
@@ -90,35 +99,38 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             Positioned.fill(child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.cover)))
           else
             Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 8,
-                children: [
-                  Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh)
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8,
+                  children: [
+                    Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh)
 2. Load the screenshot with the button below
 3. Make sure the app is in the correct orientation (portrait or landscape)
 4. Drag the touch areas to the correct position where the gear up / down buttons are located
 5. Save and close this screen'''),
-                  ElevatedButton(
-                    onPressed: () {
-                      _pickScreenshot();
-                    },
-                    child: Text('Load in-game screenshot for placement'),
-                  ),
-                ],
+                    ElevatedButton(
+                      onPressed: () {
+                        _pickScreenshot();
+                      },
+                      child: Text('Load in-game screenshot for placement'),
+                    ),
+                  ],
+                ),
               ),
             ),
           // Touch Areas
           _buildDraggableArea(
             position: _gearUpPos,
             onPositionChanged: (newPos) => _gearUpPos = newPos,
-            color: Colors.green,
+            color: Colors.red,
             label: "Gear ↑",
           ),
           _buildDraggableArea(
             position: _gearDownPos,
             onPositionChanged: (newPos) => _gearDownPos = newPos,
-            color: Colors.red,
+            color: Colors.green,
             label: "Gear ↓",
           ),
           Positioned(

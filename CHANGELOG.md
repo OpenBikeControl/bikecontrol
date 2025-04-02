@@ -1,3 +1,6 @@
+### 1.1.8 (2025-04-02)
+- Android: make sure the touch reassignment page is fullscreen
+
 ### 1.1.7 (2025-04-01)
 - Zwift Ride: fix connection issues by connecting only to the left controller
 - Windows: connect sequentially to fix (finally?) fix connection issues
