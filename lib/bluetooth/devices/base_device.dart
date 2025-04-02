@@ -93,7 +93,7 @@ abstract class BaseDevice {
 
     if (customService == null) {
       throw Exception(
-        'Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}. We found: ${services.joinToString(transform: (s) => s.uuid)}',
+        'Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
       );
     }
 

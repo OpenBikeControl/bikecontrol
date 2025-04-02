@@ -33,6 +33,9 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 - Windows (make sure you have installed the "[Microsoft Visual C++ Runtime libraries](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)")
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
 
+## Troubleshooting
+Your Zwift device is found but connection does not work properly? You may need to update the firmware in Zwift Companion app.
+
 ## How does it work?
 The app connects to your Zwift device automatically. 
 
