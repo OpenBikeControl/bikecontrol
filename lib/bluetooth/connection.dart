@@ -140,7 +140,7 @@ class Connection {
 
       _streamSubscriptions[bleDevice] = actionSubscription;
     } catch (e, backtrace) {
-      _actionStreams.add(LogNotification(e.toString()));
+      _actionStreams.add(LogNotification("$e\n$backtrace"));
       if (kDebugMode) {
         print(e);
         print("backtrace: $backtrace");

@@ -1,4 +1,4 @@
-### 1.1.9 (2025-04-03)
+### 1.1.10 (2025-04-03)
 - Add more troubleshooting during connection
 
 ### 1.1.8 (2025-04-02)

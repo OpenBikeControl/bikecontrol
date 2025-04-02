@@ -176,7 +176,7 @@ abstract class BaseDevice {
     } catch (e, stackTrace) {
       print("Error processing data: $e");
       print("Stack Trace: $stackTrace");
-      actionStreamInternal.add(LogNotification(e.toString()));
+      actionStreamInternal.add(LogNotification("$e\n$stackTrace"));
     }
   }
 
