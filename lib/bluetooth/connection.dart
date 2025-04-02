@@ -143,6 +143,7 @@ class Connection {
         print(e);
         print("backtrace: $backtrace");
       }
+      throw e;
     }
   }
 

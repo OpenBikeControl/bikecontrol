@@ -78,7 +78,7 @@ abstract class BaseDevice {
   Stream<BaseNotification> get actionStream => actionStreamInternal.stream;
 
   Future<void> connect() async {
-    await UniversalBle.connect(device.deviceId, connectionTimeout: const Duration(seconds: 3));
+    await UniversalBle.connect(device.deviceId);
 
     if (!kIsWeb && Platform.isAndroid) {
       //await UniversalBle.requestMtu(device.deviceId, 256);
@@ -92,7 +92,9 @@ abstract class BaseDevice {
     final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId);
 
     if (customService == null) {
-      throw Exception('Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}');
+      throw Exception(
+        'Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}. We found: ${services.joinToString(transform: (s) => s.uuid)}',
+      );
     }
 
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(
