@@ -96,7 +96,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       body: Stack(
         children: [
           if (_backgroundImage != null)
-            Positioned.fill(child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.cover)))
+            Positioned.fill(child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)))
           else
             Center(
               child: Padding(

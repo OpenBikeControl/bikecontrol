@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:dartx/dartx.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 
 enum _RideButtonMask {
   LEFT_BTN(0x00001),
@@ -30,67 +32,47 @@ enum _RideButtonMask {
 }
 
 class RideNotification extends BaseNotification {
-  static const int BTN_PRESSED = 0;
-
-  late bool buttonLeft, buttonRight, buttonUp, buttonDown;
-  late bool buttonA, buttonB, buttonY, buttonZ;
-  late bool buttonShiftUpLeft, buttonShiftDownLeft;
-  late bool buttonShiftUpRight, buttonShiftDownRight;
-  late bool buttonPowerUpLeft, buttonPowerUpRight;
-  late bool buttonOnOffLeft, buttonOnOffRight;
-
-  int analogLR = 0, analogUD = 0;
+  late List<ZwiftButton> buttonsClicked;
 
   RideNotification(Uint8List message) {
     final status = RideKeyPadStatus.fromBuffer(message);
 
-    buttonLeft = status.buttonMap & _RideButtonMask.LEFT_BTN.mask == BTN_PRESSED;
-    buttonRight = status.buttonMap & _RideButtonMask.RIGHT_BTN.mask == BTN_PRESSED;
-    buttonUp = status.buttonMap & _RideButtonMask.UP_BTN.mask == BTN_PRESSED;
-    buttonDown = status.buttonMap & _RideButtonMask.DOWN_BTN.mask == BTN_PRESSED;
-    buttonA = status.buttonMap & _RideButtonMask.A_BTN.mask == BTN_PRESSED;
-    buttonB = status.buttonMap & _RideButtonMask.B_BTN.mask == BTN_PRESSED;
-    buttonY = status.buttonMap & _RideButtonMask.Y_BTN.mask == BTN_PRESSED;
-    buttonZ = status.buttonMap & _RideButtonMask.Z_BTN.mask == BTN_PRESSED;
-    buttonShiftUpLeft = status.buttonMap & _RideButtonMask.SHFT_UP_L_BTN.mask == BTN_PRESSED;
-    buttonShiftDownLeft = status.buttonMap & _RideButtonMask.SHFT_DN_L_BTN.mask == BTN_PRESSED;
-    buttonShiftUpRight = status.buttonMap & _RideButtonMask.SHFT_UP_R_BTN.mask == BTN_PRESSED;
-    buttonShiftDownRight = status.buttonMap & _RideButtonMask.SHFT_DN_R_BTN.mask == BTN_PRESSED;
-    buttonPowerUpLeft = status.buttonMap & _RideButtonMask.POWERUP_L_BTN.mask == BTN_PRESSED;
-    buttonPowerUpRight = status.buttonMap & _RideButtonMask.POWERUP_R_BTN.mask == BTN_PRESSED;
-    buttonOnOffLeft = status.buttonMap & _RideButtonMask.ONOFF_L_BTN.mask == BTN_PRESSED;
-    buttonOnOffRight = status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == BTN_PRESSED;
+    buttonsClicked = [
+      if (status.buttonMap & _RideButtonMask.LEFT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationLeft,
+      if (status.buttonMap & _RideButtonMask.RIGHT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationRight,
+      if (status.buttonMap & _RideButtonMask.UP_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationUp,
+      if (status.buttonMap & _RideButtonMask.DOWN_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationDown,
+      if (status.buttonMap & _RideButtonMask.A_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.a,
+      if (status.buttonMap & _RideButtonMask.B_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.b,
+      if (status.buttonMap & _RideButtonMask.Y_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.y,
+      if (status.buttonMap & _RideButtonMask.Z_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.z,
+      if (status.buttonMap & _RideButtonMask.SHFT_UP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.shiftUpLeft,
+      if (status.buttonMap & _RideButtonMask.SHFT_DN_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.shiftDownLeft,
+      if (status.buttonMap & _RideButtonMask.SHFT_UP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.shiftUpRight,
+      if (status.buttonMap & _RideButtonMask.SHFT_DN_R_BTN.mask == PlayButtonStatus.ON.value)
+        ZwiftButton.shiftDownRight,
+      if (status.buttonMap & _RideButtonMask.POWERUP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.powerUpLeft,
+      if (status.buttonMap & _RideButtonMask.POWERUP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.powerUpRight,
+      if (status.buttonMap & _RideButtonMask.ONOFF_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.onOffLeft,
+      if (status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.onOffRight,
+    ];
 
     for (final analogue in status.analogButtons.groupStatus) {
-      if (analogue.location == RideAnalogLocation.LEFT || analogue.location == RideAnalogLocation.RIGHT) {
-        analogLR = analogue.analogValue;
-      } else if (analogue.location == RideAnalogLocation.DOWN || analogue.location == RideAnalogLocation.UP) {
-        analogUD = analogue.analogValue;
+      if (analogue.analogValue.abs() == 100) {
+        if (analogue.location == RideAnalogLocation.LEFT) {
+          buttonsClicked.add(ZwiftButton.paddleLeft);
+        } else if (analogue.location == RideAnalogLocation.RIGHT) {
+          buttonsClicked.add(ZwiftButton.paddleRight);
+        } else if (analogue.location == RideAnalogLocation.DOWN || analogue.location == RideAnalogLocation.UP) {
+          // TODO what is this even?
+        }
       }
     }
   }
 
   @override
   String toString() {
-    final allTrueParameters = [
-      if (buttonLeft) 'buttonLeft',
-      if (buttonRight) 'buttonRight',
-      if (buttonUp) 'buttonUp',
-      if (buttonDown) 'buttonDown',
-      if (buttonA) 'buttonA',
-      if (buttonB) 'buttonB',
-      if (buttonY) 'buttonY',
-      if (buttonZ) 'buttonZ',
-      if (buttonShiftUpLeft) 'buttonShiftUpLeft',
-      if (buttonShiftDownLeft) 'buttonShiftDownLeft',
-      if (buttonShiftUpRight) 'buttonShiftUpRight',
-      if (buttonShiftDownRight) 'buttonShiftDownRight',
-      if (buttonPowerUpLeft) 'buttonPowerUpLeft',
-      if (buttonPowerUpRight) 'buttonPowerUpRight',
-      if (buttonOnOffLeft) 'buttonOnOffLeft',
-      if (buttonOnOffRight) 'buttonOnOffRight',
-    ];
-    return '{$allTrueParameters, analogLR: $analogLR, analogUD: $analogUD}';
+    return 'Buttons: ${buttonsClicked.joinToString(transform: (e) => e.name)}';
   }
 
   @override
@@ -98,43 +80,8 @@ class RideNotification extends BaseNotification {
       identical(this, other) ||
       other is RideNotification &&
           runtimeType == other.runtimeType &&
-          buttonLeft == other.buttonLeft &&
-          buttonRight == other.buttonRight &&
-          buttonUp == other.buttonUp &&
-          buttonDown == other.buttonDown &&
-          buttonA == other.buttonA &&
-          buttonB == other.buttonB &&
-          buttonY == other.buttonY &&
-          buttonZ == other.buttonZ &&
-          buttonShiftUpLeft == other.buttonShiftUpLeft &&
-          buttonShiftDownLeft == other.buttonShiftDownLeft &&
-          buttonShiftUpRight == other.buttonShiftUpRight &&
-          buttonShiftDownRight == other.buttonShiftDownRight &&
-          buttonPowerUpLeft == other.buttonPowerUpLeft &&
-          buttonPowerUpRight == other.buttonPowerUpRight &&
-          buttonOnOffLeft == other.buttonOnOffLeft &&
-          buttonOnOffRight == other.buttonOnOffRight &&
-          analogLR == other.analogLR &&
-          analogUD == other.analogUD;
+          buttonsClicked.contentEquals(other.buttonsClicked);
 
   @override
-  int get hashCode =>
-      buttonLeft.hashCode ^
-      buttonRight.hashCode ^
-      buttonUp.hashCode ^
-      buttonDown.hashCode ^
-      buttonA.hashCode ^
-      buttonB.hashCode ^
-      buttonY.hashCode ^
-      buttonZ.hashCode ^
-      buttonShiftUpLeft.hashCode ^
-      buttonShiftDownLeft.hashCode ^
-      buttonShiftUpRight.hashCode ^
-      buttonShiftDownRight.hashCode ^
-      buttonPowerUpLeft.hashCode ^
-      buttonPowerUpRight.hashCode ^
-      buttonOnOffLeft.hashCode ^
-      buttonOnOffRight.hashCode ^
-      analogLR.hashCode ^
-      analogUD.hashCode;
+  int get hashCode => buttonsClicked.hashCode;
 }

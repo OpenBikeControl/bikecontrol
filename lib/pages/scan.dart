@@ -72,7 +72,7 @@ class _ScanWidgetState extends State<ScanWidget> {
               }
             },
           ),
-          if (kDebugMode) LogViewer(),
+          if (kDebugMode) SizedBox(height: 500, child: LogViewer()),
         ],
       ),
     );

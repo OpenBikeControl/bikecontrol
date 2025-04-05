@@ -50,7 +50,7 @@ class BluetoothConnectRequirement extends PlatformRequirement {
 }
 
 class NotificationRequirement extends PlatformRequirement {
-  NotificationRequirement() : super('Allow adding persistent Notification');
+  NotificationRequirement() : super('Allow adding persistent Notification (keeps app alive)');
 
   @override
   Future<void> call() async {

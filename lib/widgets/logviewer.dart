@@ -14,9 +14,10 @@ class LogViewer extends StatefulWidget {
 }
 
 class _LogviewerState extends State<LogViewer> {
-  List<String> _actions = [];
+  List<({DateTime date, String entry})> _actions = [];
 
   late StreamSubscription<BaseNotification> _actionSubscription;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -25,9 +26,15 @@ class _LogviewerState extends State<LogViewer> {
     _actionSubscription = connection.actionStream.listen((data) {
       if (mounted) {
         setState(() {
-          _actions.add('${DateTime.now().toString().split(" ").last}: $data');
-          _actions = _actions.takeLast(30).toList();
+          _actions.add((date: DateTime.now(), entry: data.toString()));
+          _actions = _actions.takeLast(60).toList();
         });
+        // scroll to the bottom
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 60),
+          curve: Curves.easeInOut,
+        );
       }
     });
   }
@@ -35,6 +42,7 @@ class _LogviewerState extends State<LogViewer> {
   @override
   void dispose() {
     _actionSubscription.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -43,12 +51,27 @@ class _LogviewerState extends State<LogViewer> {
     return Stack(
       children: [
         ListView(
-          shrinkWrap: true,
+          controller: _scrollController,
           children:
               _actions
                   .map(
-                    (action) =>
-                        Text(action, style: TextStyle(fontSize: 12, fontFeatures: [FontFeature.tabularFigures()])),
+                    (action) => Row(
+                      spacing: 8,
+                      children: [
+                        Text(
+                          action.date.toString().split(" ").last,
+                          style: TextStyle(fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
+                        ),
+                        Text(
+                          action.entry,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   )
                   .toList(),
         ),

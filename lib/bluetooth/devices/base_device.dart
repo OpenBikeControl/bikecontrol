@@ -196,6 +196,11 @@ abstract class BaseDevice {
       final counter = bytes.sublist(0, 4); // Int.SIZE_BYTES is 4
       final payload = bytes.sublist(4);
 
+      if (zapEncryption.encryptionKeyBytes == null) {
+        actionStreamInternal.add(LogNotification('Encryption not initialized, yet.'));
+        return;
+      }
+
       final data = zapEncryption.decrypt(counter, payload);
       type = data[0];
       message = data.sublist(1);
