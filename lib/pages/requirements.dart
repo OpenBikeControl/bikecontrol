@@ -4,7 +4,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
@@ -87,7 +86,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                         }
                         : null,
                 onStepTapped: (step) {
-                  if (_requirements[step].status && _requirements[step] is! KeymapRequirement) {
+                  if (_requirements[step].status) {
                     return;
                   }
                   final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;

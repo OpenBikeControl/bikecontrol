@@ -50,30 +50,33 @@ class _LogviewerState extends State<LogViewer> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ListView(
-          controller: _scrollController,
-          children:
-              _actions
-                  .map(
-                    (action) => Row(
-                      spacing: 8,
-                      children: [
-                        Text(
-                          action.date.toString().split(" ").last,
-                          style: TextStyle(fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
+        SelectionArea(
+          child: ListView(
+            controller: _scrollController,
+            children:
+                _actions
+                    .map(
+                      (action) => Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: action.date.toString().split(" ").last,
+                              style: TextStyle(fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
+                            ),
+                            TextSpan(
+                              text: "  ${action.entry}",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFeatures: [FontFeature.tabularFigures()],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          action.entry,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                  .toList(),
+                      ),
+                    )
+                    .toList(),
+          ),
         ),
         Align(
           alignment: Alignment.topRight,

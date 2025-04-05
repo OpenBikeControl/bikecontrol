@@ -1,36 +1,116 @@
+import 'dart:async';
+
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:swift_control/bluetooth/messages/click_notification.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/bluetooth/messages/play_notification.dart';
+import 'package:swift_control/bluetooth/messages/ride_notification.dart';
+import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 
-Future<Keymap?> showCustomKeymapDialog(BuildContext context, {required Keymap keymap}) {
-  return showDialog<Keymap>(
+Future<CustomApp?> showCustomKeymapDialog(BuildContext context, {required CustomApp customApp}) {
+  return showDialog<CustomApp>(
     context: context,
     builder: (context) {
-      return GearHotkeyDialog(keymap: keymap);
+      return GearHotkeyDialog(customApp: customApp);
     },
   );
 }
 
 class GearHotkeyDialog extends StatefulWidget {
-  final Keymap keymap;
-  const GearHotkeyDialog({super.key, required this.keymap});
+  final CustomApp customApp;
+  const GearHotkeyDialog({super.key, required this.customApp});
 
   @override
   State<GearHotkeyDialog> createState() => _GearHotkeyDialogState();
 }
 
 class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Set Hotkeys'),
+      content: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          TextButton(
+            onPressed: () async {
+              await showDialog<void>(
+                context: context,
+                builder: (c) => HotKeyListenerDialog(customApp: widget.customApp),
+              );
+              setState(() {});
+            },
+            child: Text('Add Key'),
+          ),
+          ...widget.customApp.keymap.keyPairs.map(
+            (e) => ListTile(
+              title: Text(e.buttons.joinToString(transform: (e) => e.name)),
+              subtitle: Text('Currently: ${e.logicalKey.keyLabel}'),
+              onTap: () async {
+                await showDialog<void>(
+                  context: context,
+                  builder: (c) => HotKeyListenerDialog(customApp: widget.customApp),
+                );
+                setState(() {});
+              },
+            ),
+          ),
+        ],
+      ),
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(widget.customApp), child: Text("OK"))],
+    );
+  }
+}
+
+class HotKeyListenerDialog extends StatefulWidget {
+  final CustomApp customApp;
+  const HotKeyListenerDialog({super.key, required this.customApp});
+
+  @override
+  State<HotKeyListenerDialog> createState() => _HotKeyListenerState();
+}
+
+class _HotKeyListenerState extends State<HotKeyListenerDialog> {
+  late StreamSubscription<BaseNotification> _actionSubscription;
+
   final FocusNode _focusNode = FocusNode();
   KeyDownEvent? _pressedKey;
-  KeyDownEvent? _gearUpHotkey;
-  KeyDownEvent? _gearDownHotkey;
-
-  String _mode = 'up'; // 'up' or 'down'
+  ZwiftButton? _pressedButton;
 
   @override
   void initState() {
     super.initState();
+    _actionSubscription = connection.actionStream.listen((data) {
+      if (!mounted) {
+        return;
+      }
+      if (data is ClickNotification) {
+        setState(() {
+          _pressedButton = data.buttonsClicked.singleOrNull;
+        });
+      }
+      if (data is PlayNotification) {
+        setState(() {
+          _pressedButton = data.buttonsClicked.singleOrNull;
+        });
+      }
+      if (data is RideNotification) {
+        setState(() {
+          _pressedButton = data.buttonsClicked.singleOrNull;
+        });
+      }
+    });
     _focusNode.requestFocus();
+  }
+
+  @override
+  void dispose() {
+    _actionSubscription.cancel();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   void _onKey(KeyEvent event) {
@@ -38,24 +118,7 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
       if (event is KeyDownEvent) {
         _pressedKey = event;
       } else if (event is KeyUpEvent) {
-        if (_pressedKey != null) {
-          if (_mode == 'up') {
-            _gearUpHotkey = _pressedKey;
-            _mode = 'down';
-          } else {
-            _gearDownHotkey = _pressedKey;
-            widget.keymap.increase = KeyPair(
-              physicalKey: _gearUpHotkey!.physicalKey,
-              logicalKey: _gearUpHotkey!.logicalKey,
-            );
-            widget.keymap.decrease = KeyPair(
-              physicalKey: _gearDownHotkey!.physicalKey,
-              logicalKey: _gearDownHotkey!.logicalKey,
-            );
-            Navigator.of(context).pop(widget.keymap);
-          }
-          _pressedKey = null;
-        }
+        widget.customApp.setKey(_pressedButton!, _pressedKey!);
       }
     });
   }
@@ -67,31 +130,26 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Set Gear Hotkeys'),
-      content: KeyboardListener(
-        focusNode: _focusNode,
-        autofocus: true,
-        onKeyEvent: _onKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Step 1: Press a hotkey for **Gear Up**."),
-            Text("Step 2: Press a hotkey for **Gear Down**."),
-            SizedBox(height: 20),
-            ListTile(
-              leading: Icon(Icons.arrow_upward),
-              title: Text("Gear Up Hotkey"),
-              subtitle: Text(_formatKey(_gearUpHotkey)),
-            ),
-            ListTile(
-              leading: Icon(Icons.arrow_downward),
-              title: Text("Gear Down Hotkey"),
-              subtitle: Text(_formatKey(_gearDownHotkey)),
-            ),
-          ],
-        ),
-      ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(null), child: Text("Cancel"))],
+      content:
+          _pressedButton == null
+              ? Text('Press a button on your Zwift device')
+              : KeyboardListener(
+                focusNode: _focusNode,
+                autofocus: true,
+                onKeyEvent: _onKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Press a hotkey for ${_pressedButton.toString()}"),
+                    SizedBox(height: 20),
+                    Text(_formatKey(_pressedKey)),
+                  ],
+                ),
+              ),
+
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(_pressedKey), child: Text("OK"))],
     );
   }
 }

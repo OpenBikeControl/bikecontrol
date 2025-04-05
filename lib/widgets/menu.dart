@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 List<Widget> buildMenuButtons() {
@@ -25,21 +26,15 @@ class MenuButton extends StatelessWidget {
       itemBuilder:
           (c) => [
             if (kDebugMode) ...[
-              PopupMenuItem(
-                child: Text('Gear up'),
-                onTap: () {
-                  Future.delayed(Duration(seconds: 2)).then((_) {
-                    actionHandler.increaseGear();
-                  });
-                },
-              ),
-              PopupMenuItem(
-                child: Text('Gear down'),
-                onTap: () {
-                  Future.delayed(Duration(seconds: 2)).then((_) {
-                    actionHandler.decreaseGear();
-                  });
-                },
+              ...ZwiftButton.values.map(
+                (e) => PopupMenuItem(
+                  child: Text(e.name),
+                  onTap: () {
+                    Future.delayed(Duration(seconds: 2)).then((_) {
+                      actionHandler.performAction(e);
+                    });
+                  },
+                ),
               ),
               PopupMenuItem(child: PopupMenuDivider()),
             ],

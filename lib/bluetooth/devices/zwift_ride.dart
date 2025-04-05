@@ -1,10 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:dartx/dartx.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../ble.dart';
 
@@ -28,31 +26,11 @@ class ZwiftRide extends BaseDevice {
         actionStreamInternal.add(clickNotification);
       }
 
-      if (clickNotification.buttonsClicked.containsAny([
-        ZwiftButton.shiftDownLeft,
-        ZwiftButton.shiftUpLeft,
-        ZwiftButton.onOffLeft,
-        ZwiftButton.powerUpLeft,
-      ])) {
-        actionHandler.decreaseGear();
-      } else if (clickNotification.buttonsClicked.containsAny([
-        ZwiftButton.shiftUpRight,
-        ZwiftButton.shiftDownRight,
-        ZwiftButton.onOffRight,
-        ZwiftButton.powerUpRight,
-      ])) {
-        actionHandler.increaseGear();
-      }
+      final buttons = clickNotification.buttonsClicked;
 
-      /*if (clickNotification.buttonA) {
-        actionHandler.controlMedia(MediaAction.next);
-      } else if (clickNotification.buttonY) {
-        actionHandler.controlMedia(MediaAction.volumeUp);
-      } else if (clickNotification.buttonB) {
-        actionHandler.controlMedia(MediaAction.volumeDown);
-      } else if (clickNotification.buttonZ) {
-        actionHandler.controlMedia(MediaAction.playPause);
-      }*/
+      for (final action in buttons) {
+        actionHandler.performAction(action);
+      }
     }
   }
 }

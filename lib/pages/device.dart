@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/widgets/custom_keymap_selector.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/title.dart';
 
@@ -21,6 +23,7 @@ class DevicePage extends StatefulWidget {
 
 class _DevicePageState extends State<DevicePage> {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
+  final controller = TextEditingController(text: actionHandler.supportedApp?.name);
 
   @override
   void initState() {
@@ -34,6 +37,7 @@ class _DevicePageState extends State<DevicePage> {
   @override
   void dispose() {
     _connectionStateSubscription.cancel();
+    controller.dispose();
     super.dispose();
   }
 
@@ -65,7 +69,7 @@ class _DevicePageState extends State<DevicePage> {
                   })}',
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
-                if (!kIsWeb && (Platform.isAndroid || kDebugMode)) ...[
+                if (!kIsWeb && (Platform.isAndroid || kDebugMode))
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).push(
@@ -93,7 +97,34 @@ class _DevicePageState extends State<DevicePage> {
                     },
                     child: Text('Customize touch areas (optional)'),
                   ),
-                ],
+                if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || kDebugMode))
+                  DropdownMenu<SupportedApp>(
+                    controller: controller,
+                    dropdownMenuEntries:
+                        SupportedApp.supportedApps
+                            .map((app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name))
+                            .toList(),
+                    onSelected: (app) async {
+                      if (app is CustomApp) {
+                        app = await showCustomKeymapDialog(context, customApp: app);
+                      } else if (app is! CustomApp && (!kIsWeb && Platform.isWindows)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Use a Custom Keymap if you experience any issues on Windows')),
+                        );
+                      }
+                      if (app == null) {
+                        return;
+                      }
+                      controller.text = app.name ?? '';
+                      actionHandler.init(app);
+                      if (app is CustomApp) {
+                        settings.setCustomApp(app);
+                      }
+                      setState(() {});
+                    },
+                    initialSelection: actionHandler.supportedApp,
+                    hintText: 'Keymap',
+                  ),
                 Expanded(child: LogViewer()),
               ],
             ),

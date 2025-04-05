@@ -1,16 +1,16 @@
 import 'dart:ui';
 
 import 'package:accessibility/accessibility.dart';
+import 'package:dartx/dartx.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
+
+import '../single_line_exception.dart';
 
 class AndroidActions extends BaseActions {
-  static const MYWHOOSH_APP_PACKAGE = "com.mywhoosh.whooshgame";
-  static const TRAININGPEAKS_APP_PACKAGE = "com.indieVelo.client";
-  static const validPackageNames = [MYWHOOSH_APP_PACKAGE, TRAININGPEAKS_APP_PACKAGE];
-
   WindowEvent? windowInfo;
+  SupportedApp? supportedApp;
   Offset? _gearUpTouchPosition;
   Offset? _gearDownTouchPosition;
 
@@ -21,53 +21,30 @@ class AndroidActions extends BaseActions {
   Offset? get gearDownTouchPosition => _gearDownTouchPosition;
 
   @override
-  void init(Keymap? keymap) {
+  void init(SupportedApp? supportedApp) {
     streamEvents().listen((windowEvent) {
-      if (validPackageNames.contains(windowEvent.packageName)) {
+      supportedApp = SupportedApp.supportedApps.firstOrNullWhere((e) => e.packageName == windowEvent.packageName);
+      if (supportedApp != null) {
         windowInfo = windowEvent;
       }
     });
   }
 
   @override
-  void decreaseGear() {
+  Future<void> performAction(ZwiftButton button) async {
     if (_gearDownTouchPosition == null) {
       if (windowInfo == null) {
-        throw Exception("Increasing gear: No window info");
+        throw SingleLineException("Could not perform ${button.name}: No window info");
       }
-      final point = switch (windowInfo!.packageName) {
-        MYWHOOSH_APP_PACKAGE => Offset(windowInfo!.windowWidth * 0.80, windowInfo!.windowHeight * 0.94),
-        TRAININGPEAKS_APP_PACKAGE => Offset(windowInfo!.windowWidth / 2 * 1.15, windowInfo!.windowHeight * 0.74),
-        _ => throw UnimplementedError("Decreasing gear not supported for ${windowInfo!.packageName}"),
-      };
+      if (supportedApp == null) {
+        throw SingleLineException("Could not perform ${button.name}: No supported app detected");
+      }
+      final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo!);
 
       accessibilityHandler.performTouch(point.dx, point.dy);
     } else {
       accessibilityHandler.performTouch(_gearDownTouchPosition!.dx, _gearDownTouchPosition!.dy);
     }
-  }
-
-  @override
-  void increaseGear() {
-    if (_gearUpTouchPosition == null) {
-      if (windowInfo == null) {
-        throw Exception("Increasing gear: No window info");
-      }
-      final point = switch (windowInfo!.packageName) {
-        MYWHOOSH_APP_PACKAGE => Offset(windowInfo!.windowWidth * 0.98, windowInfo!.windowHeight * 0.94),
-        TRAININGPEAKS_APP_PACKAGE => Offset(windowInfo!.windowWidth / 2 * 1.32, windowInfo!.windowHeight * 0.74),
-        _ => throw UnimplementedError("Increasing gear not supported for ${windowInfo!.packageName}"),
-      };
-
-      accessibilityHandler.performTouch(point.dx, point.dy);
-    } else {
-      accessibilityHandler.performTouch(_gearUpTouchPosition!.dx, _gearUpTouchPosition!.dy);
-    }
-  }
-
-  @override
-  void controlMedia(MediaAction action) {
-    accessibilityHandler.controlMedia(action);
   }
 
   @override

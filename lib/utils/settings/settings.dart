@@ -1,9 +1,9 @@
 import 'dart:ui';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../../main.dart';
-import '../keymap/keymap.dart';
 
 class Settings {
   late final SharedPreferences _prefs;
@@ -12,9 +12,11 @@ class Settings {
     _prefs = await SharedPreferences.getInstance();
 
     try {
-      final keymapSetting = _prefs.getStringList("keymap");
-      if (keymapSetting != null) {
-        actionHandler.init(Keymap.decode(keymapSetting));
+      final appSetting = _prefs.getStringList("customapp");
+      if (appSetting != null) {
+        final customApp = CustomApp();
+        customApp.decode(appSetting);
+        actionHandler.init(customApp);
       }
 
       final gearUpX = _prefs.getDouble("gearUpX");
@@ -30,8 +32,8 @@ class Settings {
     }
   }
 
-  void setKeymap(Keymap keymap) {
-    _prefs.setStringList("keymap", keymap.encode());
+  void setCustomApp(CustomApp app) {
+    _prefs.setStringList("customapp", app.encode());
   }
 
   void updateTouchPositions(Offset gearUp, Offset gearDown) {

@@ -9,6 +9,7 @@ import 'package:swift_control/bluetooth/devices/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/crypto/zap_crypto.dart';
+import 'package:swift_control/utils/single_line_exception.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../utils/crypto/encryption_utils.dart';
@@ -176,7 +177,11 @@ abstract class BaseDevice {
     } catch (e, stackTrace) {
       print("Error processing data: $e");
       print("Stack Trace: $stackTrace");
-      actionStreamInternal.add(LogNotification("$e\n$stackTrace"));
+      if (e is SingleLineException) {
+        actionStreamInternal.add(LogNotification(e.message));
+      } else {
+        actionStreamInternal.add(LogNotification("$e\n$stackTrace"));
+      }
     }
   }
 

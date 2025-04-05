@@ -1,9 +1,6 @@
-import 'package:accessibility/accessibility.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/play_notification.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../../main.dart';
 import '../ble.dart';
@@ -26,19 +23,10 @@ class ZwiftPlay extends BaseDevice {
         actionStreamInternal.add(clickNotification);
       }
 
-      if (clickNotification.buttonsClicked.containsAny([ZwiftButton.sideButtonRight, ZwiftButton.paddleRight])) {
-        actionHandler.increaseGear();
-      } else if (clickNotification.buttonsClicked.containsAny([ZwiftButton.sideButtonLeft, ZwiftButton.paddleLeft])) {
-        actionHandler.decreaseGear();
-      }
-      if (clickNotification.buttonsClicked.contains(ZwiftButton.navigationLeft)) {
-        actionHandler.controlMedia(MediaAction.next);
-      } else if (clickNotification.buttonsClicked.contains(ZwiftButton.navigationUp)) {
-        actionHandler.controlMedia(MediaAction.volumeUp);
-      } else if (clickNotification.buttonsClicked.contains(ZwiftButton.navigationDown)) {
-        actionHandler.controlMedia(MediaAction.volumeDown);
-      } else if (clickNotification.buttonsClicked.contains(ZwiftButton.navigationRight)) {
-        actionHandler.controlMedia(MediaAction.playPause);
+      final buttons = clickNotification.buttonsClicked;
+
+      for (final action in buttons) {
+        actionHandler.performAction(action);
       }
     }
   }
