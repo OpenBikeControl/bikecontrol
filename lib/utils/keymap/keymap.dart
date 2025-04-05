@@ -30,16 +30,23 @@ class Keymap {
 
 class KeyPair {
   final List<ZwiftButton> buttons;
-  PhysicalKeyboardKey physicalKey;
-  LogicalKeyboardKey logicalKey;
+  PhysicalKeyboardKey? physicalKey;
+  LogicalKeyboardKey? logicalKey;
+  Offset touchPosition;
 
-  KeyPair({required this.buttons, required this.physicalKey, required this.logicalKey});
+  KeyPair({
+    required this.buttons,
+    required this.physicalKey,
+    required this.logicalKey,
+    this.touchPosition = Offset.zero,
+  });
   String encode() {
     // encode to save in preferences
     return jsonEncode({
       'actions': buttons.map((e) => e.name).toList(),
-      'logicalKey': logicalKey.keyId.toString() ?? '',
-      'physicalKey': physicalKey.usbHidUsage.toString() ?? '',
+      'logicalKey': logicalKey?.keyId.toString() ?? '0',
+      'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
+      'touchPosition': {'x': touchPosition.dx, 'y': touchPosition.dy},
     });
   }
 
@@ -54,8 +61,10 @@ class KeyPair {
           decoded['actions']
               .map<ZwiftButton>((e) => ZwiftButton.values.firstWhere((element) => element.name == e))
               .toList(),
-      logicalKey: LogicalKeyboardKey(int.parse(decoded['logicalKey'])),
-      physicalKey: PhysicalKeyboardKey(int.parse(decoded['physicalKey'])),
+      logicalKey: int.parse(decoded['logicalKey']) != 0 ? LogicalKeyboardKey(int.parse(decoded['logicalKey'])) : null,
+      physicalKey:
+          int.parse(decoded['physicalKey']) != 0 ? PhysicalKeyboardKey(int.parse(decoded['physicalKey'])) : null,
+      touchPosition: Offset(decoded['touchPosition']['x'], decoded['touchPosition']['y']),
     );
   }
 }

@@ -123,19 +123,19 @@ class CustomApp extends SupportedApp {
 
   @override
   Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent windowInfo}) {
-    return switch (action.action) {
-      InGameAction.shiftUp => Offset(windowInfo.windowWidth / 2 * 1.32, windowInfo.windowHeight * 0.74),
-      InGameAction.shiftDown => Offset(windowInfo.windowWidth / 2 * 1.15, windowInfo.windowHeight * 0.74),
-      _ => throw SingleLineException("Unsupported action for IndieVelo: $action"),
-    };
+    final keyPair = keymap.getKeyPair(action);
+    if (keyPair == null || keyPair.touchPosition == Offset.zero) {
+      throw SingleLineException("No key pair found for action: $action");
+    }
+    return keyPair.touchPosition;
   }
 
-  List<String> encode() {
+  List<String> encodeKeymap() {
     // encode to save in preferences
     return keymap.keyPairs.map((e) => e.encode()).toList();
   }
 
-  void decode(List<String> data) {
+  void decodeKeymap(List<String> data) {
     // decode from preferences
 
     if (data.isEmpty) {

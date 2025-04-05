@@ -1,16 +1,23 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:swift_control/main.dart';
 
+import '../bluetooth/messages/click_notification.dart';
+import '../bluetooth/messages/notification.dart';
+import '../bluetooth/messages/play_notification.dart';
+import '../bluetooth/messages/ride_notification.dart';
+import '../utils/keymap/buttons.dart';
+import '../utils/keymap/keymap.dart';
+
 final touchAreaSize = 32.0;
 
 class TouchAreaSetupPage extends StatefulWidget {
-  final void Function(Offset gearUp, Offset gearDown) onSave;
-
-  const TouchAreaSetupPage({required this.onSave, super.key});
+  const TouchAreaSetupPage({super.key});
 
   @override
   State<TouchAreaSetupPage> createState() => _TouchAreaSetupPageState();
@@ -18,8 +25,8 @@ class TouchAreaSetupPage extends StatefulWidget {
 
 class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   File? _backgroundImage;
-  Offset _gearUpPos = const Offset(200, 300);
-  Offset _gearDownPos = const Offset(100, 300);
+  late StreamSubscription<BaseNotification> _actionSubscription;
+  ZwiftButton? _pressedButton;
 
   Future<void> _pickScreenshot() async {
     final picker = ImagePicker();
@@ -32,13 +39,13 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   }
 
   void _saveAndClose() {
-    widget.onSave(_gearUpPos, _gearDownPos);
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
   }
 
   @override
   void dispose() {
     super.dispose();
+    _actionSubscription.cancel();
     // Exit full screen
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
   }
@@ -48,25 +55,33 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     super.initState();
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-
-      if (actionHandler.gearUpTouchPosition != null) {
-        _gearUpPos = actionHandler.gearUpTouchPosition!;
-        _gearUpPos = Offset(
-          _gearUpPos.dx / devicePixelRatio - touchAreaSize / 2,
-          _gearUpPos.dy / devicePixelRatio - touchAreaSize / 2,
-        );
+    _actionSubscription = connection.actionStream.listen((data) {
+      if (!mounted) {
+        return;
+      }
+      if (data is ClickNotification) {
+        _pressedButton = data.buttonsClicked.singleOrNull;
+      }
+      if (data is PlayNotification) {
+        _pressedButton = data.buttonsClicked.singleOrNull;
+      }
+      if (data is RideNotification) {
+        _pressedButton = data.buttonsClicked.singleOrNull;
       }
 
-      if (actionHandler.gearDownTouchPosition != null) {
-        _gearDownPos = actionHandler.gearDownTouchPosition!;
-        _gearDownPos = Offset(
-          _gearDownPos.dx / devicePixelRatio - touchAreaSize / 2,
-          _gearDownPos.dy / devicePixelRatio - touchAreaSize / 2,
-        );
+      if (_pressedButton != null) {
+        if (actionHandler.supportedApp!.keymap.getKeyPair(_pressedButton!) == null) {
+          actionHandler.supportedApp!.keymap.keyPairs.add(
+            KeyPair(
+              touchPosition: context.size!.center(Offset.zero),
+              buttons: [_pressedButton!],
+              physicalKey: null,
+              logicalKey: null,
+            ),
+          );
+          setState(() {});
+        }
       }
-      setState(() {});
     });
   }
 
@@ -92,6 +107,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -108,7 +124,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                     Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh)
 2. Load the screenshot with the button below
 3. Make sure the app is in the correct orientation (portrait or landscape)
-4. Drag the touch areas to the correct position where the gear up / down buttons are located
+4. Press a button on your Zwift device to create a touch area
+5. Drag the touch areas to the desired position on the screenshot
 5. Save and close this screen'''),
                     ElevatedButton(
                       onPressed: () {
@@ -121,37 +138,39 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               ),
             ),
           // Touch Areas
-          _buildDraggableArea(
-            position: _gearUpPos,
-            onPositionChanged: (newPos) => _gearUpPos = newPos,
-            color: Colors.red,
-            label: "Gear ↑",
-          ),
-          _buildDraggableArea(
-            position: _gearDownPos,
-            onPositionChanged: (newPos) => _gearDownPos = newPos,
-            color: Colors.green,
-            label: "Gear ↓",
-          ),
-          Positioned(
-            top: 40,
-            right: 170,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                _gearDownPos = Offset(100, 300);
-                _gearUpPos = Offset(200, 300);
-                setState(() {});
+          ...?actionHandler.supportedApp?.keymap.keyPairs.map(
+            (keyPair) => _buildDraggableArea(
+              position: Offset(
+                keyPair.touchPosition.dx / devicePixelRatio - touchAreaSize / 2,
+                keyPair.touchPosition.dy / devicePixelRatio - touchAreaSize / 2,
+              ),
+              onPositionChanged: (newPos) {
+                final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+                final converted = newPos.translate(touchAreaSize / 2, touchAreaSize / 2) * devicePixelRatio;
+                keyPair.touchPosition = converted;
               },
-              label: const Icon(Icons.lock_reset),
+              color: Colors.red,
+              label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n'),
             ),
           ),
+
           Positioned(
             top: 40,
             right: 20,
-            child: ElevatedButton.icon(
-              onPressed: _saveAndClose,
-              icon: const Icon(Icons.save),
-              label: const Text("Save & Close"),
+            child: Row(
+              spacing: 8,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    /*_gearDownPos = Offset(100, 300);
+                _gearUpPos = Offset(200, 300);*/
+
+                    setState(() {});
+                  },
+                  label: const Icon(Icons.lock_reset),
+                ),
+                ElevatedButton.icon(onPressed: _saveAndClose, icon: const Icon(Icons.save), label: const Text("Save")),
+              ],
             ),
           ),
         ],

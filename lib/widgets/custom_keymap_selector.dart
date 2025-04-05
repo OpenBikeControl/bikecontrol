@@ -39,7 +39,7 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
             onPressed: () async {
               await showDialog<void>(
                 context: context,
-                builder: (c) => HotKeyListenerDialog(customApp: widget.customApp),
+                builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, button: null),
               );
               setState(() {});
             },
@@ -48,11 +48,11 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
           ...widget.customApp.keymap.keyPairs.map(
             (e) => ListTile(
               title: Text(e.buttons.joinToString(transform: (e) => e.name)),
-              subtitle: Text('Currently: ${e.logicalKey.keyLabel}'),
+              subtitle: Text('Currently: ${e.logicalKey?.keyLabel ?? 'Not set'}'),
               onTap: () async {
                 await showDialog<void>(
                   context: context,
-                  builder: (c) => HotKeyListenerDialog(customApp: widget.customApp),
+                  builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, button: e.buttons.singleOrNull),
                 );
                 setState(() {});
               },
@@ -67,7 +67,8 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
 
 class HotKeyListenerDialog extends StatefulWidget {
   final CustomApp customApp;
-  const HotKeyListenerDialog({super.key, required this.customApp});
+  final ZwiftButton? button;
+  const HotKeyListenerDialog({super.key, required this.customApp, required this.button});
 
   @override
   State<HotKeyListenerDialog> createState() => _HotKeyListenerState();
@@ -83,6 +84,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   @override
   void initState() {
     super.initState();
+    _pressedButton = widget.button;
     _actionSubscription = connection.actionStream.listen((data) {
       if (!mounted) {
         return;

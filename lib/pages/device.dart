@@ -69,35 +69,7 @@ class _DevicePageState extends State<DevicePage> {
                   })}',
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
-                if (!kIsWeb && (Platform.isAndroid || kDebugMode))
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder:
-                              (_) => TouchAreaSetupPage(
-                                onSave: (gearUp, gearDown) {
-                                  final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-
-                                  final convertedGearUp =
-                                      gearUp.translate(touchAreaSize / 2, touchAreaSize / 2) * devicePixelRatio;
-
-                                  final convertedGearDown =
-                                      gearDown.translate(touchAreaSize / 2, touchAreaSize / 2) * devicePixelRatio;
-
-                                  print("Gear Up Position: $gearUp - converted: $convertedGearUp");
-                                  print("Gear Down Position: $gearDown - converted: $convertedGearDown");
-
-                                  actionHandler.updateTouchPositions(convertedGearUp, convertedGearDown);
-                                  settings.updateTouchPositions(convertedGearUp, convertedGearDown);
-                                },
-                              ),
-                        ),
-                      );
-                    },
-                    child: Text('Customize touch areas (optional)'),
-                  ),
-                if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || kDebugMode))
+                if (!kIsWeb)
                   DropdownMenu<SupportedApp>(
                     controller: controller,
                     dropdownMenuEntries:
@@ -105,18 +77,10 @@ class _DevicePageState extends State<DevicePage> {
                             .map((app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name))
                             .toList(),
                     onSelected: (app) async {
-                      if (app is CustomApp) {
-                        app = await showCustomKeymapDialog(context, customApp: app);
-                      } else if (app is! CustomApp && (!kIsWeb && Platform.isWindows)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Use a Custom Keymap if you experience any issues on Windows')),
-                        );
-                      }
                       if (app == null) {
                         return;
                       }
                       controller.text = app.name ?? '';
-                      actionHandler.init(app);
                       if (app is CustomApp) {
                         settings.setCustomApp(app);
                       }
@@ -124,6 +88,36 @@ class _DevicePageState extends State<DevicePage> {
                     },
                     initialSelection: actionHandler.supportedApp,
                     hintText: 'Keymap',
+                  ),
+
+                if (!kIsWeb &&
+                    (Platform.isMacOS || Platform.isWindows || kDebugMode) &&
+                    actionHandler.supportedApp is CustomApp)
+                  ElevatedButton(
+                    onPressed: () async {
+                      final app = await showCustomKeymapDialog(
+                        context,
+                        customApp: actionHandler.supportedApp as CustomApp,
+                      );
+                      if (app != null) {
+                        settings.setCustomApp(app);
+                      }
+                      setState(() {});
+                    },
+                    child: Text('Customize key map'),
+                  ),
+                if (!kIsWeb && (Platform.isAndroid || kDebugMode) && actionHandler.supportedApp is CustomApp)
+                  ElevatedButton(
+                    onPressed: () async {
+                      final result = await Navigator.of(
+                        context,
+                      ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
+                      if (result == true && actionHandler.supportedApp is CustomApp) {
+                        settings.setCustomApp(actionHandler.supportedApp as CustomApp);
+                      }
+                      setState(() {});
+                    },
+                    child: Text('Customize touch areas (optional)'),
                   ),
                 Expanded(child: LogViewer()),
               ],

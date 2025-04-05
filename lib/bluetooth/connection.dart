@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -92,7 +91,6 @@ class Connection {
     hasDevices.value = devices.isNotEmpty;
     if (devices.isNotEmpty && !androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
       androidNotificationsSetup = true;
-      actionHandler.init(null);
       NotificationRequirement.setup().catchError((e) {
         _actionStreams.add(LogNotification(e.toString()));
       });
