@@ -2,10 +2,9 @@ import 'dart:typed_data';
 
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../ble.dart';
-import '../messages/notification.dart';
 
 class ZwiftRide extends BaseDevice {
   ZwiftRide(super.scanResult);
@@ -19,19 +18,17 @@ class ZwiftRide extends BaseDevice {
   RideNotification? _lastControllerNotification;
 
   @override
-  Future<void> processClickNotification(Uint8List message) async {
+  Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
     final RideNotification clickNotification = RideNotification(message);
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
       _lastControllerNotification = clickNotification;
+
       if (clickNotification.buttonsClicked.isNotEmpty) {
         actionStreamInternal.add(clickNotification);
       }
-
-      final buttons = clickNotification.buttonsClicked;
-
-      for (final action in buttons) {
-        actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
-      }
+      return clickNotification.buttonsClicked;
+    } else {
+      return null;
     }
   }
 }

@@ -1,3 +1,6 @@
+#### 2.0.1 (2025-04-06)
+- long pressing a button will trigger the action again every 250ms
+
 #### 2.0.0 (2025-04-06)
 - You can now customize the actions (touches, mouse clicks or keyboard keys) for all buttons on all supported Zwift devices
 - now shows the battery level of the connected devices

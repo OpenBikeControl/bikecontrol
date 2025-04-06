@@ -14,6 +14,7 @@ import 'package:swift_control/utils/single_line_exception.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../utils/crypto/encryption_utils.dart';
+import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
 
 abstract class BaseDevice {
@@ -25,6 +26,8 @@ abstract class BaseDevice {
   bool isConnected = false;
 
   bool supportsEncryption = true;
+
+  Timer? _longPressTimer;
 
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
@@ -230,12 +233,31 @@ abstract class BaseDevice {
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
       case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
       case Constants.RIDE_NOTIFICATION_MESSAGE_TYPE: // untested
-        processClickNotification(message).then((_) {}).catchError((e) {
-          actionStreamInternal.add(LogNotification(e.toString()));
-        });
+        processClickNotification(message)
+            .then((buttonsClicked) async {
+              if (buttonsClicked == null) {
+                // ignore, no changes
+              } else if (buttonsClicked.isEmpty) {
+                actionStreamInternal.add(LogNotification('Buttons released'));
+                _longPressTimer?.cancel();
+              } else {
+                _longPressTimer?.cancel();
+                _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
+                  for (final action in buttonsClicked) {
+                    actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
+                  }
+                });
+                for (final action in buttonsClicked) {
+                  actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
+                }
+              }
+            })
+            .catchError((e) {
+              actionStreamInternal.add(LogNotification(e.toString()));
+            });
         break;
     }
   }
 
-  Future<void> processClickNotification(Uint8List message);
+  Future<List<ZwiftButton>?> processClickNotification(Uint8List message);
 }
