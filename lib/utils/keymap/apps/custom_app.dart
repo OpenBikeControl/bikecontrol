@@ -38,16 +38,18 @@ class CustomApp extends SupportedApp {
     keymap.keyPairs = keyPairs;
   }
 
-  void setKey(ZwiftButton zwiftButton, KeyDownEvent keyDownEvent) {
+  void setKey(
+    ZwiftButton zwiftButton, {
+    required PhysicalKeyboardKey physicalKey,
+    required LogicalKeyboardKey? logicalKey,
+  }) {
     // set the key for the zwift button
     final keyPair = keymap.getKeyPair(zwiftButton);
     if (keyPair != null) {
-      keyPair.physicalKey = keyDownEvent.physicalKey;
-      keyPair.logicalKey = keyDownEvent.logicalKey;
+      keyPair.physicalKey = physicalKey;
+      keyPair.logicalKey = logicalKey;
     } else {
-      keymap.keyPairs.add(
-        KeyPair(buttons: [zwiftButton], physicalKey: keyDownEvent.physicalKey, logicalKey: keyDownEvent.logicalKey),
-      );
+      keymap.keyPairs.add(KeyPair(buttons: [zwiftButton], physicalKey: physicalKey, logicalKey: logicalKey));
     }
   }
 }

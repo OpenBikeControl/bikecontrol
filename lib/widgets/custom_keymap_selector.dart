@@ -9,6 +9,7 @@ import 'package:swift_control/bluetooth/messages/play_notification.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 
 import '../utils/keymap/apps/custom_app.dart';
 
@@ -43,7 +44,7 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
             onPressed: () async {
               await showDialog<void>(
                 context: context,
-                builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, button: null),
+                builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, keyPair: null),
               );
               setState(() {});
             },
@@ -52,11 +53,11 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
           ...widget.customApp.keymap.keyPairs.map(
             (e) => ListTile(
               title: Text(e.buttons.joinToString(transform: (e) => e.name)),
-              subtitle: Text('Currently: ${e.logicalKey?.keyLabel ?? 'Not set'}'),
+              subtitle: Text('Currently: ${e.toString()}'),
               onTap: () async {
                 await showDialog<void>(
                   context: context,
-                  builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, button: e.buttons.singleOrNull),
+                  builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, keyPair: e),
                 );
                 setState(() {});
               },
@@ -71,8 +72,8 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
 
 class HotKeyListenerDialog extends StatefulWidget {
   final CustomApp customApp;
-  final ZwiftButton? button;
-  const HotKeyListenerDialog({super.key, required this.customApp, required this.button});
+  final KeyPair? keyPair;
+  const HotKeyListenerDialog({super.key, required this.customApp, required this.keyPair});
 
   @override
   State<HotKeyListenerDialog> createState() => _HotKeyListenerState();
@@ -88,9 +89,9 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   @override
   void initState() {
     super.initState();
-    _pressedButton = widget.button;
+    _pressedButton = widget.keyPair?.buttons.firstOrNull;
     _actionSubscription = connection.actionStream.listen((data) {
-      if (!mounted || widget.button != null) {
+      if (!mounted || widget.keyPair != null) {
         return;
       }
       if (data is ClickNotification) {
@@ -124,7 +125,11 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
       if (event is KeyDownEvent) {
         _pressedKey = event;
       } else if (event is KeyUpEvent) {
-        widget.customApp.setKey(_pressedButton!, _pressedKey!);
+        widget.customApp.setKey(
+          _pressedButton!,
+          physicalKey: _pressedKey!.physicalKey,
+          logicalKey: _pressedKey!.logicalKey,
+        );
       }
     });
   }
@@ -147,10 +152,47 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
+                  spacing: 20,
                   children: [
                     Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
-                    SizedBox(height: 20),
                     Text(_formatKey(_pressedKey)),
+                    PopupMenuButton<PhysicalKeyboardKey>(
+                      tooltip: 'Drag or click for special keys',
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaPlayPause,
+                              child: const Text('Media: Play/Pause'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaStop,
+                              child: const Text('Media: Stop'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaTrackPrevious,
+                              child: const Text('Media: Previous'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaTrackNext,
+                              child: const Text('Media: Next'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.audioVolumeUp,
+                              child: const Text('Media: Volume Up'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.audioVolumeDown,
+                              child: const Text('Media: Volume Down'),
+                            ),
+                          ],
+                      onSelected: (key) {
+                        widget.customApp.setKey(_pressedButton!, physicalKey: key, logicalKey: null);
+                        Navigator.pop(context, key);
+                      },
+                      child: IgnorePointer(
+                        child: ElevatedButton(onPressed: () {}, child: Text('Or choose special key')),
+                      ),
+                    ),
                   ],
                 ),
               ),

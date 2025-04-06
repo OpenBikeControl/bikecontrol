@@ -48,6 +48,21 @@ class KeyPair {
     required this.logicalKey,
     this.touchPosition = Offset.zero,
   });
+
+  @override
+  String toString() {
+    return logicalKey?.keyLabel ??
+        switch (physicalKey) {
+          PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
+          PhysicalKeyboardKey.mediaTrackNext => 'Next Track',
+          PhysicalKeyboardKey.mediaTrackPrevious => 'Previous Track',
+          PhysicalKeyboardKey.mediaStop => 'Stop',
+          PhysicalKeyboardKey.audioVolumeUp => 'Volume Up',
+          PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
+          _ => 'Not assigned',
+        };
+  }
+
   String encode() {
     // encode to save in preferences
     return jsonEncode({

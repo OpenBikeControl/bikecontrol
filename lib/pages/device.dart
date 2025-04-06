@@ -66,7 +66,7 @@ class _DevicePageState extends State<DevicePage> {
               children: [
                 Text(
                   'Devices:\n${connection.devices.joinToString(separator: '\n', transform: (it) {
-                    return "${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'} - Battery Level: ${it.batteryLevel ?? 'Unknown'}%";
+                    return "${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}";
                   })}',
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
