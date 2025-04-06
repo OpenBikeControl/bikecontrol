@@ -73,6 +73,7 @@ class _DevicePageState extends State<DevicePage> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       DropdownMenu<SupportedApp>(
                         controller: controller,

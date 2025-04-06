@@ -20,7 +20,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 - indieVelo / Training Peaks
 - any other: 
   - Android: you can customize simulated touch points of all your buttons in the app
-  - Desktop: you can customize the keyboard shortcuts in the app
+  - Desktop: you can customize keyboard shortcuts and mouse clicks in the app
 
 ## Supported Devices
 - Zwift Click
@@ -40,7 +40,10 @@ Your Zwift device is found but connection does not work properly? You may need t
 The app connects to your Zwift device automatically. 
 
 - When using Android a "click" on a certain part of the screen is simulated to trigger the action.
-- When using macOS or Windows a keyboard click is used to trigger the action. Typically + and - keys are used to shift gears, while MyWhoosh uses K and I keys.
+- When using macOS or Windows a keyboard or mouse click is used to trigger the action. 
+  - there are predefined Keymaps for MyWhoosh and indieVelo / Training Peaks
+  - you can also create your own Keymaps for any other app
+  - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
 
 ## Donate
 Please consider donating to support the development of this app. 
