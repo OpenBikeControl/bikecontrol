@@ -10,6 +10,8 @@ import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
+import '../utils/keymap/apps/custom_app.dart';
+
 Future<CustomApp?> showCustomKeymapDialog(BuildContext context, {required CustomApp customApp}) {
   return showDialog<CustomApp>(
     context: context,
@@ -31,11 +33,13 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Set Hotkeys'),
+      title: Text('Customize key map'),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          TextButton(
+          TextButton.icon(
+            icon: Icon(Icons.add),
             onPressed: () async {
               await showDialog<void>(
                 context: context,
@@ -43,7 +47,7 @@ class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
               );
               setState(() {});
             },
-            child: Text('Add Key'),
+            label: Text('Add Key'),
           ),
           ...widget.customApp.keymap.keyPairs.map(
             (e) => ListTile(
@@ -86,7 +90,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     super.initState();
     _pressedButton = widget.button;
     _actionSubscription = connection.actionStream.listen((data) {
-      if (!mounted) {
+      if (!mounted || widget.button != null) {
         return;
       }
       if (data is ClickNotification) {
@@ -126,7 +130,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   }
 
   String _formatKey(KeyDownEvent? key) {
-    return key?.logicalKey.keyLabel ?? 'Not set';
+    return key?.logicalKey.keyLabel ?? 'Waiting...';
   }
 
   @override
@@ -144,7 +148,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text("Press a hotkey for ${_pressedButton.toString()}"),
+                    Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
                     SizedBox(height: 20),
                     Text(_formatKey(_pressedKey)),
                   ],

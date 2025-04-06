@@ -13,7 +13,7 @@ class ClickNotification extends BaseNotification {
     final status = ClickKeyPadStatus.fromBuffer(message);
     buttonsClicked = [
       if (status.buttonPlus == PlayButtonStatus.ON) ZwiftButton.shiftUpLeft,
-      if (status.buttonMinus == PlayButtonStatus.ON) ZwiftButton.shiftDownLeft,
+      if (status.buttonMinus == PlayButtonStatus.ON) ZwiftButton.shiftDownRight,
     ];
   }
 

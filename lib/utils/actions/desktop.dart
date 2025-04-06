@@ -5,17 +5,18 @@ import 'package:swift_control/utils/single_line_exception.dart';
 
 class DesktopActions extends BaseActions {
   @override
-  Future<void> performAction(ZwiftButton action) async {
+  Future<String> performAction(ZwiftButton action) async {
     if (supportedApp == null) {
       throw SingleLineException('Supported app is not set');
     }
 
-    final key = supportedApp!.keymap.getPhysicalKey(action);
-    if (key == null) {
+    final keyPair = supportedApp!.keymap.getKeyPair(action);
+    if (keyPair == null) {
       throw SingleLineException('Keymap entry not found for action: $action');
     }
 
-    await keyPressSimulator.simulateKeyDown(key);
-    await keyPressSimulator.simulateKeyUp(key);
+    await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
+    await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+    return 'Key pressed: ${keyPair.logicalKey?.keyLabel}';
   }
 }

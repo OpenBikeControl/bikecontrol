@@ -6,12 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/title.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../utils/keymap/apps/custom_app.dart';
+import '../utils/keymap/apps/supported_app.dart';
 import '../widgets/menu.dart';
 
 class DevicePage extends StatefulWidget {
@@ -74,20 +75,53 @@ class _DevicePageState extends State<DevicePage> {
                     controller: controller,
                     dropdownMenuEntries:
                         SupportedApp.supportedApps
-                            .map((app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name))
+                            .map(
+                              (app) => DropdownMenuEntry<SupportedApp>(
+                                value: app,
+                                label: app.name,
+                                trailingIcon: IconButton(
+                                  icon: Icon(Icons.info_outline),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: Text(app.name),
+                                            content: SelectableText(app.keymap.toString()),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.of(context).pop(),
+                                                child: Text('OK'),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            )
                             .toList(),
+                    label: Text('Keymap'),
                     onSelected: (app) async {
                       if (app == null) {
                         return;
                       }
                       controller.text = app.name ?? '';
-                      if (app is CustomApp) {
-                        settings.setCustomApp(app);
-                      }
+                      actionHandler.supportedApp = app;
+                      settings.setApp(app);
                       setState(() {});
+                      if (app is! CustomApp && !kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+                        _snackBarMessengerKey.currentState!.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Use Custom keymap if you experience any issues (e.g. wrong keyboard output)',
+                            ),
+                          ),
+                        );
+                      }
                     },
                     initialSelection: actionHandler.supportedApp,
-                    hintText: 'Keymap',
+                    hintText: 'Select your Keymap',
                   ),
 
                 if (!kIsWeb &&
@@ -100,7 +134,7 @@ class _DevicePageState extends State<DevicePage> {
                         customApp: actionHandler.supportedApp as CustomApp,
                       );
                       if (app != null) {
-                        settings.setCustomApp(app);
+                        settings.setApp(app);
                       }
                       setState(() {});
                     },
@@ -113,11 +147,11 @@ class _DevicePageState extends State<DevicePage> {
                         context,
                       ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
                       if (result == true && actionHandler.supportedApp is CustomApp) {
-                        settings.setCustomApp(actionHandler.supportedApp as CustomApp);
+                        settings.setApp(actionHandler.supportedApp!);
                       }
                       setState(() {});
                     },
-                    child: Text('Customize touch areas (optional)'),
+                    child: Text('Customize touch areas'),
                   ),
                 Expanded(child: LogViewer()),
               ],

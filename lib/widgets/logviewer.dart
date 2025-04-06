@@ -61,7 +61,12 @@ class _LogviewerState extends State<LogViewer> {
                           children: [
                             TextSpan(
                               text: action.date.toString().split(" ").last,
-                              style: TextStyle(fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFeatures: [FontFeature.tabularFigures()],
+                                fontFamily: "monospace",
+                                fontFamilyFallback: <String>["Courier"],
+                              ),
                             ),
                             TextSpan(
                               text: "  ${action.entry}",

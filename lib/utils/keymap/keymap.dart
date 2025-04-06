@@ -13,18 +13,26 @@ class Keymap {
 
   @override
   String toString() {
-    return keyPairs.toString();
+    return keyPairs.joinToString(
+      separator: ('\n---------\n'),
+      transform:
+          (k) =>
+              '''Button: ${k.buttons.joinToString(transform: (e) => e.name)}\nKeyboard key: ${k.logicalKey?.keyLabel ?? 'Not assigned'}\nAction: ${k.buttons.firstOrNull?.action}${k.touchPosition != Offset.zero ? '\nTouch Position: ${k.touchPosition.toString()}' : ''}''',
+    );
   }
 
   PhysicalKeyboardKey? getPhysicalKey(ZwiftButton action) {
     // get the key pair by in game action
-    return keyPairs.firstOrNullWhere((element) => element.buttons.contains(action))?.physicalKey ??
-        action.action?.defaultPhysicalKey;
+    return keyPairs.firstOrNullWhere((element) => element.buttons.contains(action))?.physicalKey;
   }
 
   KeyPair? getKeyPair(ZwiftButton action) {
     // get the key pair by in game action
     return keyPairs.firstOrNullWhere((element) => element.buttons.contains(action));
+  }
+
+  void reset() {
+    keyPairs = [];
   }
 }
 

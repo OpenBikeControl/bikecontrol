@@ -83,11 +83,17 @@ class _AppTitleState extends State<AppTitle> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      spacing: 8,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('SwiftControl'),
-        if (_packageInfoValue != null) Text('v${_packageInfoValue!.version}') else SmallProgressIndicator(),
+        if (_packageInfoValue != null)
+          Text(
+            'v${_packageInfoValue!.version}',
+            style: TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
+          )
+        else
+          SmallProgressIndicator(),
       ],
     );
   }

@@ -5,6 +5,7 @@ import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
 
 import '../ble.dart';
+import '../messages/notification.dart';
 
 class ZwiftRide extends BaseDevice {
   ZwiftRide(super.scanResult);
@@ -18,7 +19,7 @@ class ZwiftRide extends BaseDevice {
   RideNotification? _lastControllerNotification;
 
   @override
-  void processClickNotification(Uint8List message) {
+  Future<void> processClickNotification(Uint8List message) async {
     final RideNotification clickNotification = RideNotification(message);
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
       _lastControllerNotification = clickNotification;
@@ -29,7 +30,7 @@ class ZwiftRide extends BaseDevice {
       final buttons = clickNotification.buttonsClicked;
 
       for (final action in buttons) {
-        actionHandler.performAction(action);
+        actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
       }
     }
   }

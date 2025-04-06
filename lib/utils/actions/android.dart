@@ -3,6 +3,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
+import '../keymap/apps/supported_app.dart';
 import '../single_line_exception.dart';
 
 class AndroidActions extends BaseActions {
@@ -18,7 +19,7 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<void> performAction(ZwiftButton button) async {
+  Future<String> performAction(ZwiftButton button) async {
     if (windowInfo == null) {
       throw SingleLineException("Could not perform ${button.name}: No window info");
     }
@@ -28,5 +29,6 @@ class AndroidActions extends BaseActions {
     final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo!);
 
     accessibilityHandler.performTouch(point.dx, point.dy);
+    return "Touch performed at: ${point.dx}, ${point.dy}";
   }
 }

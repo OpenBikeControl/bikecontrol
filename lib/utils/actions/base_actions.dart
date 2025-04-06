@@ -1,5 +1,7 @@
 import 'package:swift_control/utils/keymap/buttons.dart';
 
+import '../keymap/apps/supported_app.dart';
+
 abstract class BaseActions {
   SupportedApp? supportedApp;
 
@@ -7,12 +9,12 @@ abstract class BaseActions {
     this.supportedApp = supportedApp;
   }
 
-  void performAction(ZwiftButton action);
+  Future<String> performAction(ZwiftButton action);
 }
 
 class StubActions extends BaseActions {
   @override
-  void performAction(ZwiftButton action) {
-    print('Decrease gear');
+  Future<String> performAction(ZwiftButton action) {
+    return Future.value(action.name);
   }
 }
