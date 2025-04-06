@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +15,7 @@ import '../bluetooth/messages/ride_notification.dart';
 import '../utils/keymap/buttons.dart';
 import '../utils/keymap/keymap.dart';
 
-final touchAreaSize = 32.0;
+final touchAreaSize = 42.0;
 
 class TouchAreaSetupPage extends StatefulWidget {
   const TouchAreaSetupPage({super.key});
@@ -123,31 +124,49 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 value: PhysicalKeyboardKey.audioVolumeDown,
                 child: const Text('Media: Volume Down'),
               ),
+              if (keyPair.physicalKey != null)
+                PopupMenuItem<PhysicalKeyboardKey>(
+                  value: null,
+                  child: const Text('Unset'),
+                  onTap: () {
+                    keyPair.physicalKey = null;
+                    keyPair.logicalKey = null;
+                    setState(() {});
+                  },
+                ),
             ],
         onSelected: (key) {
           keyPair.physicalKey = key;
           keyPair.logicalKey = null;
           setState(() {});
         },
-        child: Draggable(
-          feedback: Material(
-            color: Colors.transparent,
-            child: _TouchDot(
-              color: Colors.yellow,
-              label: label,
-              specialKey: keyPair.physicalKey,
-              icon: keyPair.physicalKey != null ? Icons.music_note_outlined : Icons.add,
-            ),
-          ),
-          childWhenDragging: const SizedBox.shrink(),
-          onDraggableCanceled: (_, offset) {
-            setState(() => onPositionChanged(offset));
-          },
-          child: _TouchDot(
-            color: color,
-            label: label,
-            specialKey: keyPair.physicalKey,
-            icon: keyPair.physicalKey != null ? Icons.music_note_outlined : Icons.add,
+        child: Container(
+          color: kDebugMode && false ? Colors.yellow : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Draggable(
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: _TouchDot(
+                    color: Colors.yellow,
+                    icon: keyPair.physicalKey != null ? Icons.music_note_outlined : Icons.add,
+                    label: label,
+                    keyPair: keyPair,
+                  ),
+                ),
+                childWhenDragging: const SizedBox.shrink(),
+                onDraggableCanceled: (_, offset) {
+                  setState(() => onPositionChanged(offset));
+                },
+                child: _TouchDot(
+                  color: color,
+                  icon: keyPair.physicalKey != null ? Icons.music_note_outlined : Icons.add,
+                  label: label,
+                  keyPair: keyPair,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -198,6 +217,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
                 final converted = newPos.translate(touchAreaSize / 2, touchAreaSize / 2) * devicePixelRatio;
                 keyPair.touchPosition = converted;
+                setState(() {});
               },
               color: Colors.red,
               label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n'),
@@ -229,26 +249,17 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
 class _TouchDot extends StatelessWidget {
   final Color color;
-  final String label;
   final IconData icon;
-  final PhysicalKeyboardKey? specialKey;
+  final String label;
+  final KeyPair keyPair;
 
-  const _TouchDot({required this.color, required this.icon, required this.label, this.specialKey});
+  const _TouchDot({required this.color, required this.label, required this.keyPair, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (specialKey != null)
-          Text(switch (specialKey) {
-            PhysicalKeyboardKey.mediaPlayPause => 'Media: Play/Pause',
-            PhysicalKeyboardKey.mediaStop => 'Media: Stop',
-            PhysicalKeyboardKey.mediaTrackPrevious => 'Media: Previous',
-            PhysicalKeyboardKey.mediaTrackNext => 'Media: Next',
-            PhysicalKeyboardKey.audioVolumeUp => 'Media: Volume Up',
-            PhysicalKeyboardKey.audioVolumeDown => 'Media: Volume Down',
-            _ => '?',
-          }, style: TextStyle(color: Colors.black, fontSize: 12)),
         Container(
           width: touchAreaSize,
           height: touchAreaSize,
@@ -259,7 +270,18 @@ class _TouchDot extends StatelessWidget {
           ),
           child: Icon(icon),
         ),
+
         Text(label, style: TextStyle(color: Colors.black, fontSize: 12)),
+        if (keyPair.physicalKey != null)
+          Text(switch (keyPair.physicalKey) {
+            PhysicalKeyboardKey.mediaPlayPause => 'Media: Play/Pause',
+            PhysicalKeyboardKey.mediaStop => 'Media: Stop',
+            PhysicalKeyboardKey.mediaTrackPrevious => 'Media: Previous',
+            PhysicalKeyboardKey.mediaTrackNext => 'Media: Next',
+            PhysicalKeyboardKey.audioVolumeUp => 'Media: Volume Up',
+            PhysicalKeyboardKey.audioVolumeDown => 'Media: Volume Down',
+            _ => '?',
+          }, style: TextStyle(color: Colors.grey, fontSize: 12)),
       ],
     );
   }
