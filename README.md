@@ -19,7 +19,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 - MyWhoosh
 - indieVelo / Training Peaks
 - any other: 
-  - Android: you can customize the gear shifting touch points in the app
+  - Android: you can customize simulated touch points of all your buttons in the app
   - Desktop: you can customize the keyboard shortcuts in the app
 
 ## Supported Devices
@@ -47,5 +47,3 @@ Please consider donating to support the development of this app.
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/boni)
 
-## TODO
-- implement more actions for Play + Ride

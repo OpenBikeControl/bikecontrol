@@ -1,3 +1,8 @@
+#### 1.2.0 (2025-04-06)
+- You can now customize the actions (touches or keyboard keys) for all buttons on all supported Zwift devices
+- now shows the battery level of the connected devices
+- add more troubleshooting information
+
 ### 1.1.10 (2025-04-03)
 - Add more troubleshooting during connection
 
