@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
-import 'package:swift_control/widgets/custom_keymap_selector.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/title.dart';
 
@@ -128,22 +127,7 @@ class _DevicePageState extends State<DevicePage> {
                         hintText: 'Select your Keymap',
                       ),
 
-                      if ((Platform.isMacOS || Platform.isWindows || kDebugMode) &&
-                          actionHandler.supportedApp is CustomApp)
-                        ElevatedButton(
-                          onPressed: () async {
-                            final app = await showCustomKeymapDialog(
-                              context,
-                              customApp: actionHandler.supportedApp as CustomApp,
-                            );
-                            if (app != null) {
-                              settings.setApp(app);
-                            }
-                            setState(() {});
-                          },
-                          child: Text('Customize key map'),
-                        ),
-                      if ((Platform.isAndroid || kDebugMode) && actionHandler.supportedApp is CustomApp)
+                      if (actionHandler.supportedApp is CustomApp)
                         ElevatedButton(
                           onPressed: () async {
                             final result = await Navigator.of(
@@ -154,7 +138,7 @@ class _DevicePageState extends State<DevicePage> {
                             }
                             setState(() {});
                           },
-                          child: Text('Customize touch areas'),
+                          child: Text('Customize Keymap'),
                         ),
                     ],
                   ),

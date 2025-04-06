@@ -13,63 +13,6 @@ import 'package:swift_control/utils/keymap/keymap.dart';
 
 import '../utils/keymap/apps/custom_app.dart';
 
-Future<CustomApp?> showCustomKeymapDialog(BuildContext context, {required CustomApp customApp}) {
-  return showDialog<CustomApp>(
-    context: context,
-    builder: (context) {
-      return GearHotkeyDialog(customApp: customApp);
-    },
-  );
-}
-
-class GearHotkeyDialog extends StatefulWidget {
-  final CustomApp customApp;
-  const GearHotkeyDialog({super.key, required this.customApp});
-
-  @override
-  State<GearHotkeyDialog> createState() => _GearHotkeyDialogState();
-}
-
-class _GearHotkeyDialogState extends State<GearHotkeyDialog> {
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Customize key map'),
-      content: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton.icon(
-            icon: Icon(Icons.add),
-            onPressed: () async {
-              await showDialog<void>(
-                context: context,
-                builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, keyPair: null),
-              );
-              setState(() {});
-            },
-            label: Text('Add Key'),
-          ),
-          ...widget.customApp.keymap.keyPairs.map(
-            (e) => ListTile(
-              title: Text(e.buttons.joinToString(transform: (e) => e.name)),
-              subtitle: Text('Currently: ${e.toString()}'),
-              onTap: () async {
-                await showDialog<void>(
-                  context: context,
-                  builder: (c) => HotKeyListenerDialog(customApp: widget.customApp, keyPair: e),
-                );
-                setState(() {});
-              },
-            ),
-          ),
-        ],
-      ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(widget.customApp), child: Text("OK"))],
-    );
-  }
-}
-
 class HotKeyListenerDialog extends StatefulWidget {
   final CustomApp customApp;
   final KeyPair? keyPair;

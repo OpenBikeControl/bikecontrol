@@ -85,11 +85,39 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
   result->Success(flutter::EncodableValue(true));
 }
 
+void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
+    const flutter::MethodCall<flutter::EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
+
+  UINT x = std::get<int>(args.at(EncodableValue("x")));
+  UINT y = std::get<int>(args.at(EncodableValue("y")));
+
+  // Move the mouse to the specified coordinates
+  SetCursorPos(x, y);
+
+  // Prepare input for mouse down and up
+  INPUT input = {0};
+  input.type = INPUT_MOUSE;
+
+  // Mouse left button down
+  input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+  SendInput(1, &input, sizeof(INPUT));
+
+  // Mouse left button up
+  input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+  SendInput(1, &input, sizeof(INPUT));
+
+  result->Success(flutter::EncodableValue(true));
+}
+
 void KeypressSimulatorWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   if (method_call.method_name().compare("simulateKeyPress") == 0) {
     SimulateKeyPress(method_call, std::move(result));
+  } else if (method_call.method_name().compare("simulateMouseClick") == 0) {
+    SimulateMouseClick(method_call, std::move(result));
   } else {
     result->NotImplemented();
   }

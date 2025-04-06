@@ -1,7 +1,7 @@
-name: keypress_simulator_windows
-description: Windows implementation of the keypress_simulator plugin.
+name: keypress_simulator_macos
+description: macOS implementation of the keypress_simulator plugin.
 version: 0.2.0
-repository: https://github.com/leanflutter/keypress_simulator/tree/main/packages/keypress_simulator_windows
+repository: https://github.com/leanflutter/keypress_simulator/tree/main/packages/keypress_simulator_macos
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -22,5 +22,6 @@ flutter:
   plugin:
     implements: keypress_simulator
     platforms:
-      windows:
-        pluginClass: KeypressSimulatorWindowsPluginCApi
+      macos:
+        pluginClass: KeypressSimulatorMacosPlugin
+

@@ -14,8 +14,14 @@ class DesktopActions extends BaseActions {
       return ('Keymap entry not found for action: $action');
     }
 
-    await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
-    await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
-    return 'Key pressed: ${keyPair.logicalKey?.keyLabel}';
+    if (keyPair.physicalKey != null) {
+      await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
+      await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+      return 'Key pressed: ${keyPair.logicalKey?.keyLabel}';
+    } else {
+      final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
+      await keyPressSimulator.simulateMouseClick(point);
+      return 'Mouse clicked at: $point';
+    }
   }
 }

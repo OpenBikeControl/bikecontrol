@@ -9,6 +9,7 @@ import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/settings/settings.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'bluetooth/connection.dart';
 import 'utils/actions/base_actions.dart';
@@ -19,13 +20,16 @@ final accessibilityHandler = Accessibility();
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final settings = Settings();
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     actionHandler = StubActions();
   } else if (Platform.isAndroid) {
     actionHandler = AndroidActions();
   } else {
     actionHandler = DesktopActions();
+    // Must add this line.
+    await windowManager.ensureInitialized();
   }
 
   runApp(const SwiftPlayApp());

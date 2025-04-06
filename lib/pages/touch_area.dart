@@ -7,13 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:swift_control/main.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../bluetooth/messages/click_notification.dart';
 import '../bluetooth/messages/notification.dart';
 import '../bluetooth/messages/play_notification.dart';
 import '../bluetooth/messages/ride_notification.dart';
+import '../utils/keymap/apps/custom_app.dart';
 import '../utils/keymap/buttons.dart';
 import '../utils/keymap/keymap.dart';
+import '../widgets/custom_keymap_selector.dart';
 
 final touchAreaSize = 42.0;
 
@@ -49,6 +52,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     _actionSubscription.cancel();
     // Exit full screen
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      windowManager.setFullScreen(false);
+    }
   }
 
   @override
@@ -56,6 +62,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     super.initState();
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      windowManager.setFullScreen(true);
+    }
     _actionSubscription = connection.actionStream.listen((data) {
       if (!mounted) {
         return;
@@ -101,33 +110,22 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
         itemBuilder:
             (context) => [
               PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaPlayPause,
-                child: const Text('Media: Play/Pause'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaStop,
-                child: const Text('Media: Stop'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaTrackPrevious,
-                child: const Text('Media: Previous'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaTrackNext,
-                child: const Text('Media: Next'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.audioVolumeUp,
-                child: const Text('Media: Volume Up'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.audioVolumeDown,
-                child: const Text('Media: Volume Down'),
+                value: null,
+                child: const Text('Set Keyboard shortcut'),
+                onTap: () async {
+                  await showDialog<void>(
+                    context: context,
+                    builder:
+                        (c) =>
+                            HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
+                  );
+                  setState(() {});
+                },
               ),
               if (keyPair.physicalKey != null)
                 PopupMenuItem<PhysicalKeyboardKey>(
                   value: null,
-                  child: const Text('Unset'),
+                  child: const Text('Use as touch button'),
                   onTap: () {
                     keyPair.physicalKey = null;
                     keyPair.logicalKey = null;
@@ -148,23 +146,17 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               Draggable(
                 feedback: Material(
                   color: Colors.transparent,
-                  child: _TouchDot(
-                    color: Colors.yellow,
-                    icon: keyPair.physicalKey != null ? Icons.music_note_outlined : Icons.add,
-                    label: label,
-                    keyPair: keyPair,
-                  ),
+                  child: _TouchDot(color: Colors.yellow, label: label, keyPair: keyPair),
                 ),
+                onDragUpdate: (details) {
+                  print('Dragging: ${details.localPosition}');
+                },
                 childWhenDragging: const SizedBox.shrink(),
                 onDraggableCanceled: (_, offset) {
+                  print('Drag canceled: ${offset}');
                   setState(() => onPositionChanged(offset));
                 },
-                child: _TouchDot(
-                  color: color,
-                  icon: keyPair.physicalKey != null ? Icons.music_note_outlined : Icons.add,
-                  label: label,
-                  keyPair: keyPair,
-                ),
+                child: _TouchDot(color: color, label: label, keyPair: keyPair),
               ),
             ],
           ),
@@ -175,7 +167,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    final devicePixelRatio = isDesktop ? 1.0 : MediaQuery.devicePixelRatioOf(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -210,12 +203,13 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             (keyPair) => _buildDraggableArea(
               position: Offset(
                 keyPair.touchPosition.dx / devicePixelRatio - touchAreaSize / 2,
-                keyPair.touchPosition.dy / devicePixelRatio - touchAreaSize / 2,
+                keyPair.touchPosition.dy / devicePixelRatio - touchAreaSize / 2 - (isDesktop ? touchAreaSize * 1.5 : 0),
               ),
               keyPair: keyPair,
               onPositionChanged: (newPos) {
-                final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-                final converted = newPos.translate(touchAreaSize / 2, touchAreaSize / 2) * devicePixelRatio;
+                final converted =
+                    newPos.translate(touchAreaSize / 2, touchAreaSize / 2 + (isDesktop ? touchAreaSize * 1.5 : 0)) *
+                    devicePixelRatio;
                 keyPair.touchPosition = converted;
                 setState(() {});
               },
@@ -235,7 +229,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                     actionHandler.supportedApp?.keymap.reset();
                     setState(() {});
                   },
-                  label: const Icon(Icons.lock_reset),
+                  icon: const Icon(Icons.lock_reset),
+                  label: Text('Reset'),
                 ),
                 ElevatedButton.icon(onPressed: _saveAndClose, icon: const Icon(Icons.save), label: const Text("Save")),
               ],
@@ -249,11 +244,10 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
 class _TouchDot extends StatelessWidget {
   final Color color;
-  final IconData icon;
   final String label;
   final KeyPair keyPair;
 
-  const _TouchDot({required this.color, required this.label, required this.keyPair, required this.icon});
+  const _TouchDot({required this.color, required this.label, required this.keyPair});
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +262,13 @@ class _TouchDot extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.black, width: 2),
           ),
-          child: Icon(icon),
+          child: Icon(
+            keyPair.isSpecialKey
+                ? Icons.music_note_outlined
+                : keyPair.physicalKey != null
+                ? Icons.keyboard_alt_outlined
+                : Icons.add,
+          ),
         ),
 
         Text(label, style: TextStyle(color: Colors.black, fontSize: 12)),
@@ -280,7 +280,7 @@ class _TouchDot extends StatelessWidget {
             PhysicalKeyboardKey.mediaTrackNext => 'Media: Next',
             PhysicalKeyboardKey.audioVolumeUp => 'Media: Volume Up',
             PhysicalKeyboardKey.audioVolumeDown => 'Media: Volume Down',
-            _ => '?',
+            _ => keyPair.logicalKey?.keyLabel ?? 'Unknown',
           }, style: TextStyle(color: Colors.grey, fontSize: 12)),
       ],
     );

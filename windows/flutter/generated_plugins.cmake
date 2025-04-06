@@ -6,8 +6,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
   keypress_simulator_windows
   permission_handler_windows
+  screen_retriever_windows
   universal_ble
   url_launcher_windows
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
