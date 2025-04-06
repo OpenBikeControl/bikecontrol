@@ -4,7 +4,12 @@
 
 ## Description
 
-With SwiftControl you can control your favorite trainer app using your Zwift Click, Zwift Ride or Zwift Play devices. Primarily useful to perform virtual gear shifting.
+With SwiftControl you can control your favorite trainer app using your Zwift Click, Zwift Ride or Zwift Play devices. Here's what you can do with it, depending on your configuration:
+- Virtual Gear shifting
+- Steering / turning
+- adjust workout intensity
+- control music on your device
+- more? If you can do it via keyboard, mouse or touch, you can do it with SwiftControl
 
 
 https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
@@ -46,7 +51,7 @@ The app connects to your Zwift device automatically.
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
 
 ## Donate
-Please consider donating to support the development of this app. 
+Please consider donating to support the development of this app :)
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/boni)
 
