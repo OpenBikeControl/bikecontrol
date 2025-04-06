@@ -88,13 +88,23 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
 void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
 
-  UINT x = std::get<int>(args.at(EncodableValue("x")));
-  UINT y = std::get<int>(args.at(EncodableValue("y")));
+  const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
+  double x = 0;
+  double y = 0;
+
+  auto it_x = args.find(EncodableValue("x"));
+  if (it_x != args.end() && std::holds_alternative<double>(it_x->second)) {
+      x = std::get<double>(it_x->second);
+  }
+
+  auto it_y = args.find(EncodableValue("y"));
+  if (it_y != args.end() && std::holds_alternative<double>(it_y->second)) {
+      y = std::get<double>(it_y->second);
+  }
 
   // Move the mouse to the specified coordinates
-  SetCursorPos(x, y);
+  SetCursorPos(static_cast<int>(x), static_cast<int>(y));
 
   // Prepare input for mouse down and up
   INPUT input = {0};
