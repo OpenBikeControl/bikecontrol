@@ -76,6 +76,8 @@ abstract class BaseDevice {
 
   BleDevice get device => scanResult;
   final StreamController<BaseNotification> actionStreamInternal = StreamController<BaseNotification>.broadcast();
+
+  int? batteryLevel;
   Stream<BaseNotification> get actionStream => actionStreamInternal.stream;
 
   Future<void> connect() async {
@@ -169,10 +171,6 @@ abstract class BaseDevice {
         //print("Empty RideOn response - unencrypted mode");
       } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
         _processData(bytes);
-      } else if (bytes[0] == Constants.DISCONNECT_MESSAGE_TYPE) {
-        //print("Disconnect message");
-      } else {
-        //print("Unprocessed - Data Type: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
       }
     } catch (e, stackTrace) {
       print("Error processing data: $e");
@@ -219,7 +217,7 @@ abstract class BaseDevice {
         //print("Empty Message"); // expected when nothing happening
         break;
       case Constants.BATTERY_LEVEL_TYPE:
-        //print("Battery level update: $message");
+        batteryLevel = message[1];
         break;
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
       case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
