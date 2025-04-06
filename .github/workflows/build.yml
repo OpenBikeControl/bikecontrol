@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/**'
+      - 'lib/**'
+      - 'accessibility/**'
+      - 'keypress_simulator/**'
+      - 'pubspec.yaml'
 
 jobs:
   build:
