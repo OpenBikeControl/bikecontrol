@@ -14,7 +14,7 @@ abstract class SupportedApp {
   final String name;
   final Keymap keymap;
 
-  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent windowInfo}) {
+  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
     if (this is CustomApp) {
       final keyPair = keymap.getKeyPair(action);
       if (keyPair == null || keyPair.touchPosition == Offset.zero) {

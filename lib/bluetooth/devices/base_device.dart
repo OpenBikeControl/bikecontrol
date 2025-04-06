@@ -7,6 +7,7 @@ import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift_click.dart';
 import 'package:swift_control/bluetooth/devices/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
@@ -81,6 +82,10 @@ abstract class BaseDevice {
   Stream<BaseNotification> get actionStream => actionStreamInternal.stream;
 
   Future<void> connect() async {
+    actionStream.listen((message) {
+      print("Received message: $message");
+    });
+
     await UniversalBle.connect(device.deviceId);
 
     if (!kIsWeb && Platform.isAndroid) {
@@ -217,15 +222,20 @@ abstract class BaseDevice {
         //print("Empty Message"); // expected when nothing happening
         break;
       case Constants.BATTERY_LEVEL_TYPE:
-        batteryLevel = message[1];
+        if (batteryLevel != message[1]) {
+          batteryLevel = message[1];
+          connection.signalChange(this);
+        }
         break;
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
       case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
       case Constants.RIDE_NOTIFICATION_MESSAGE_TYPE: // untested
-        processClickNotification(message);
+        processClickNotification(message).then((_) {}).catchError((e) {
+          actionStreamInternal.add(LogNotification(e.toString()));
+        });
         break;
     }
   }
 
-  void processClickNotification(Uint8List message);
+  Future<void> processClickNotification(Uint8List message);
 }

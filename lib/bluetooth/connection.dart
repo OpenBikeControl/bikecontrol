@@ -161,4 +161,8 @@ class Connection {
     hasDevices.value = false;
     devices.clear();
   }
+
+  void signalChange(BaseDevice baseDevice) {
+    _connectionStreams.add(baseDevice);
+  }
 }

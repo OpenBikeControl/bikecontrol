@@ -49,6 +49,14 @@ class KeyPair {
     this.touchPosition = Offset.zero,
   });
 
+  bool get isSpecialKey =>
+      physicalKey == PhysicalKeyboardKey.mediaPlayPause ||
+      physicalKey == PhysicalKeyboardKey.mediaTrackNext ||
+      physicalKey == PhysicalKeyboardKey.mediaTrackPrevious ||
+      physicalKey == PhysicalKeyboardKey.mediaStop ||
+      physicalKey == PhysicalKeyboardKey.audioVolumeUp ||
+      physicalKey == PhysicalKeyboardKey.audioVolumeDown;
+
   @override
   String toString() {
     return logicalKey?.keyLabel ??

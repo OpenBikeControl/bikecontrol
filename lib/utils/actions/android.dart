@@ -1,6 +1,8 @@
 import 'package:accessibility/accessibility.dart';
+import 'package:flutter/services.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../keymap/apps/supported_app.dart';
@@ -11,6 +13,7 @@ class AndroidActions extends BaseActions {
 
   @override
   void init(SupportedApp? supportedApp) {
+    super.init(supportedApp);
     streamEvents().listen((windowEvent) {
       if (supportedApp != null) {
         windowInfo = windowEvent;
@@ -20,15 +23,25 @@ class AndroidActions extends BaseActions {
 
   @override
   Future<String> performAction(ZwiftButton button) async {
-    if (windowInfo == null) {
-      throw SingleLineException("Could not perform ${button.name}: No window info");
-    }
     if (supportedApp == null) {
-      throw SingleLineException("Could not perform ${button.name}: No supported app detected");
+      return ("Could not perform ${button.name}: No keymap set");
     }
-    final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo!);
 
+    if (supportedApp is CustomApp) {
+      final keyPair = supportedApp!.keymap.getKeyPair(button);
+      if (keyPair != null && keyPair.isSpecialKey) {
+        await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
+          PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,
+          PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,
+          PhysicalKeyboardKey.audioVolumeUp => MediaAction.volumeUp,
+          PhysicalKeyboardKey.audioVolumeDown => MediaAction.volumeDown,
+          _ => throw SingleLineException("No action for key: ${keyPair.physicalKey}"),
+        });
+        return "Key pressed: ${keyPair.toString()}";
+      }
+    }
+    final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo);
     accessibilityHandler.performTouch(point.dx, point.dy);
-    return "Touch performed at: ${point.dx}, ${point.dy}";
+    return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()}";
   }
 }

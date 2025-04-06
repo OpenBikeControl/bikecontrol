@@ -44,10 +44,13 @@ class MyWhoosh extends SupportedApp {
       );
 
   @override
-  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent windowInfo}) {
+  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
     final superPosition = super.resolveTouchPosition(action: action, windowInfo: windowInfo);
     if (superPosition != Offset.zero) {
       return superPosition;
+    }
+    if (windowInfo == null) {
+      throw SingleLineException("Window size not known - open $this first");
     }
     return switch (action.action) {
       InGameAction.shiftUp => Offset(windowInfo.windowWidth * 0.98, windowInfo.windowHeight * 0.94),
