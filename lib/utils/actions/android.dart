@@ -41,7 +41,9 @@ class AndroidActions extends BaseActions {
       }
     }
     final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo);
-    accessibilityHandler.performTouch(point.dx, point.dy);
+    if (point != Offset.zero) {
+      accessibilityHandler.performTouch(point.dx, point.dy);
+    }
     return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()}";
   }
 }

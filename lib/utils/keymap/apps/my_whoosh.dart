@@ -1,6 +1,7 @@
 import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 
 import '../../single_line_exception.dart';
@@ -52,6 +53,24 @@ class MyWhoosh extends SupportedApp {
     if (windowInfo == null) {
       throw SingleLineException("Window size not known - open $this first");
     }
+
+    // just my personal preference
+    switch (action) {
+      case ZwiftButton.y:
+        accessibilityHandler.controlMedia(MediaAction.volumeUp);
+        return Offset.zero;
+      case ZwiftButton.b:
+        accessibilityHandler.controlMedia(MediaAction.volumeUp);
+      case ZwiftButton.a:
+        accessibilityHandler.controlMedia(MediaAction.next);
+        return Offset.zero;
+      case ZwiftButton.z:
+        accessibilityHandler.controlMedia(MediaAction.playPause);
+        return Offset.zero;
+      default:
+        break;
+    }
+
     return switch (action.action) {
       InGameAction.shiftUp => Offset(
         windowInfo.right - windowInfo.width * 0.02,
@@ -60,6 +79,10 @@ class MyWhoosh extends SupportedApp {
       InGameAction.shiftDown => Offset(
         windowInfo.right - windowInfo.width * 0.20,
         windowInfo.bottom - windowInfo.height * 0.06,
+      ),
+      InGameAction.navigateRight => Offset(
+        windowInfo.right - windowInfo.width * 0.02,
+        windowInfo.bottom - windowInfo.height * 0.20,
       ),
       _ => throw SingleLineException("Unsupported action for MyWhoosh: $action"),
     };
