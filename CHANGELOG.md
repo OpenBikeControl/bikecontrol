@@ -1,3 +1,6 @@
+#### 2.0.2 (2025-04-07)
+- fix bluetooth scan issues on older Android devices by asking for location permission
+
 #### 2.0.1 (2025-04-06)
 - long pressing a button will trigger the action again every 250ms
 

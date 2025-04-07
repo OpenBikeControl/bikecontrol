@@ -34,6 +34,21 @@ class BluetoothScanRequirement extends PlatformRequirement {
   }
 }
 
+class LocationRequirement extends PlatformRequirement {
+  LocationRequirement() : super('Allow Location so Bluetooth scan works');
+
+  @override
+  Future<void> call() async {
+    await Permission.locationWhenInUse.request();
+  }
+
+  @override
+  Future<void> getStatus() async {
+    final state = await Permission.locationWhenInUse.status;
+    status = state.isGranted || state.isLimited;
+  }
+}
+
 class BluetoothConnectRequirement extends PlatformRequirement {
   BluetoothConnectRequirement() : super('Allow Bluetooth Connections');
 

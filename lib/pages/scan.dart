@@ -30,9 +30,13 @@ class _ScanWidgetState extends State<ScanWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // must be called from a button
       if (!kIsWeb) {
-        Future.delayed(Duration(seconds: 1)).then((_) {
-          connection.performScanning();
-        });
+        Future.delayed(Duration(seconds: 1))
+            .then((_) {
+              return connection.performScanning();
+            })
+            .catchError((e) {
+              print(e);
+            });
       }
     });
   }
