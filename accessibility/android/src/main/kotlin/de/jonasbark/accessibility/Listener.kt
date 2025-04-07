@@ -1,5 +1,7 @@
 package de.jonasbark.accessibility
 
+import android.graphics.Rect
+
 object Observable {
     var toService: Listener? = null
     var fromService: Receiver? = null
@@ -10,5 +12,5 @@ interface Listener {
 }
 
 interface Receiver {
-    fun onChange(packageName: String, windowWidth: Int, windowHeight: Int)
+    fun onChange(packageName: String, window: Rect)
 }

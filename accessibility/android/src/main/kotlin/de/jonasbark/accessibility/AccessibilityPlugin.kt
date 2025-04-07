@@ -7,6 +7,7 @@ import StreamEventsStreamHandler
 import WindowEvent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.provider.Settings
 import androidx.core.content.ContextCompat.startActivity
@@ -84,8 +85,8 @@ class EventListener : StreamEventsStreamHandler(), Receiver {
     eventSink = null
   }
 
-  override fun onChange(packageName: String, windowWidth: Int, windowHeight: Int) {
-    eventSink?.success(WindowEvent(packageName = packageName, windowWidth = windowWidth.toLong(), windowHeight = windowHeight.toLong()))
+  override fun onChange(packageName: String, window: Rect) {
+    eventSink?.success(WindowEvent(packageName = packageName, right = window.right.toLong(), left = window.left.toLong(), bottom = window.bottom.toLong(), top = window.top.toLong()))
   }
 
 }

@@ -53,9 +53,20 @@ class MyWhoosh extends SupportedApp {
       throw SingleLineException("Window size not known - open $this first");
     }
     return switch (action.action) {
-      InGameAction.shiftUp => Offset(windowInfo.windowWidth * 0.98, windowInfo.windowHeight * 0.94),
-      InGameAction.shiftDown => Offset(windowInfo.windowWidth * 0.80, windowInfo.windowHeight * 0.94),
+      InGameAction.shiftUp => Offset(
+        windowInfo.right - windowInfo.width * 0.02,
+        windowInfo.bottom - windowInfo.height * 0.06,
+      ),
+      InGameAction.shiftDown => Offset(
+        windowInfo.right - windowInfo.width * 0.20,
+        windowInfo.bottom - windowInfo.height * 0.06,
+      ),
       _ => throw SingleLineException("Unsupported action for MyWhoosh: $action"),
     };
   }
+}
+
+extension WindowSize on WindowEvent {
+  int get width => right - left;
+  int get height => bottom - top;
 }

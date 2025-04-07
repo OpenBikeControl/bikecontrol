@@ -1,6 +1,7 @@
 import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
@@ -64,8 +65,8 @@ class TrainingPeaks extends SupportedApp {
       throw SingleLineException("Window size not known - open $this first");
     }
     return switch (action.action) {
-      InGameAction.shiftUp => Offset(windowInfo.windowWidth / 2 * 1.32, windowInfo.windowHeight * 0.74),
-      InGameAction.shiftDown => Offset(windowInfo.windowWidth / 2 * 1.15, windowInfo.windowHeight * 0.74),
+      InGameAction.shiftUp => Offset(windowInfo.width / 2 * 1.32, windowInfo.height * 0.74),
+      InGameAction.shiftDown => Offset(windowInfo.width / 2 * 1.15, windowInfo.height * 0.74),
       _ => throw SingleLineException("Unsupported action for IndieVelo: $action"),
     };
   }

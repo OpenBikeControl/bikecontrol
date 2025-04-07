@@ -15,10 +15,18 @@ enum MediaAction { playPause, next, volumeUp, volumeDown }
 
 class WindowEvent {
   final String packageName;
-  final int windowHeight;
-  final int windowWidth;
+  final int top;
+  final int bottom;
+  final int right;
+  final int left;
 
-  WindowEvent({required this.packageName, required this.windowHeight, required this.windowWidth});
+  WindowEvent({
+    required this.packageName,
+    required this.left,
+    required this.right,
+    required this.top,
+    required this.bottom,
+  });
 }
 
 @EventChannelApi()

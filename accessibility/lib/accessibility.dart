@@ -25,21 +25,29 @@ enum MediaAction {
 class WindowEvent {
   WindowEvent({
     required this.packageName,
-    required this.windowHeight,
-    required this.windowWidth,
+    required this.top,
+    required this.bottom,
+    required this.right,
+    required this.left,
   });
 
   String packageName;
 
-  int windowHeight;
+  int top;
 
-  int windowWidth;
+  int bottom;
+
+  int right;
+
+  int left;
 
   List<Object?> _toList() {
     return <Object?>[
       packageName,
-      windowHeight,
-      windowWidth,
+      top,
+      bottom,
+      right,
+      left,
     ];
   }
 
@@ -50,8 +58,10 @@ class WindowEvent {
     result as List<Object?>;
     return WindowEvent(
       packageName: result[0]! as String,
-      windowHeight: result[1]! as int,
-      windowWidth: result[2]! as int,
+      top: result[1]! as int,
+      bottom: result[2]! as int,
+      right: result[3]! as int,
+      left: result[4]! as int,
     );
   }
 
@@ -66,8 +76,10 @@ class WindowEvent {
     }
     return 
       packageName == other.packageName
-      && windowHeight == other.windowHeight
-      && windowWidth == other.windowWidth;
+      && top == other.top
+      && bottom == other.bottom
+      && right == other.right
+      && left == other.left;
   }
 
   @override

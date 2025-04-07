@@ -4,12 +4,7 @@
 
 
 import android.util.Log
-import io.flutter.plugin.common.BasicMessageChannel
-import io.flutter.plugin.common.BinaryMessenger
-import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.MessageCodec
-import io.flutter.plugin.common.StandardMethodCodec
-import io.flutter.plugin.common.StandardMessageCodec
+import io.flutter.plugin.common.*
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -61,23 +56,29 @@ enum class MediaAction(val raw: Int) {
 /** Generated class from Pigeon that represents data sent in messages. */
 data class WindowEvent (
   val packageName: String,
-  val windowHeight: Long,
-  val windowWidth: Long
+  val top: Long,
+  val bottom: Long,
+  val right: Long,
+  val left: Long
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): WindowEvent {
       val packageName = pigeonVar_list[0] as String
-      val windowHeight = pigeonVar_list[1] as Long
-      val windowWidth = pigeonVar_list[2] as Long
-      return WindowEvent(packageName, windowHeight, windowWidth)
+      val top = pigeonVar_list[1] as Long
+      val bottom = pigeonVar_list[2] as Long
+      val right = pigeonVar_list[3] as Long
+      val left = pigeonVar_list[4] as Long
+      return WindowEvent(packageName, top, bottom, right, left)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       packageName,
-      windowHeight,
-      windowWidth,
+      top,
+      bottom,
+      right,
+      left,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -88,8 +89,10 @@ data class WindowEvent (
       return true
     }
     return packageName == other.packageName
-    && windowHeight == other.windowHeight
-    && windowWidth == other.windowWidth
+    && top == other.top
+    && bottom == other.bottom
+    && right == other.right
+    && left == other.left
   }
 
   override fun hashCode(): Int = toList().hashCode()
@@ -232,9 +235,9 @@ private class AccessibilityApiPigeonStreamHandler<T>(
 }
 
 interface AccessibilityApiPigeonEventChannelWrapper<T> {
-  open fun onListen(p0: Any?, sink: PigeonEventSink<T>) {}
+  fun onListen(p0: Any?, sink: PigeonEventSink<T>) {}
 
-  open fun onCancel(p0: Any?) {}
+  fun onCancel(p0: Any?) {}
 }
 
 class PigeonEventSink<T>(private val sink: EventChannel.EventSink) {
@@ -250,7 +253,7 @@ class PigeonEventSink<T>(private val sink: EventChannel.EventSink) {
     sink.endOfStream()
   }
 }
-      
+
 abstract class StreamEventsStreamHandler : AccessibilityApiPigeonEventChannelWrapper<WindowEvent> {
   companion object {
     fun register(messenger: BinaryMessenger, streamHandler: StreamEventsStreamHandler, instanceName: String = "") {
@@ -263,4 +266,4 @@ abstract class StreamEventsStreamHandler : AccessibilityApiPigeonEventChannelWra
     }
   }
 }
-      
+
