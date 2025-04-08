@@ -18,13 +18,13 @@ class TrainingPeaks extends SupportedApp {
             // https://help.trainingpeaks.com/hc/en-us/articles/31340399556877-TrainingPeaks-Virtual-Controls-and-Keyboard-Shortcuts
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
-              physicalKey: PhysicalKeyboardKey.minus,
-              logicalKey: LogicalKeyboardKey.minus,
+              physicalKey: PhysicalKeyboardKey.numpadSubtract,
+              logicalKey: LogicalKeyboardKey.numpadSubtract,
             ),
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
-              physicalKey: PhysicalKeyboardKey.equal,
-              logicalKey: LogicalKeyboardKey.equal,
+              physicalKey: PhysicalKeyboardKey.numpadAdd,
+              logicalKey: LogicalKeyboardKey.numpadAdd,
             ),
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
