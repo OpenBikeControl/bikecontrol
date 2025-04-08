@@ -241,12 +241,17 @@ abstract class BaseDevice {
                 actionStreamInternal.add(LogNotification('Buttons released'));
                 _longPressTimer?.cancel();
               } else {
-                _longPressTimer?.cancel();
-                _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
-                  for (final action in buttonsClicked) {
-                    actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
-                  }
-                });
+                if (!(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
+                    buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
+                  // we don't want to trigger the long press timer for the on/off buttons
+                  _longPressTimer?.cancel();
+                  _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
+                    for (final action in buttonsClicked) {
+                      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
+                    }
+                  });
+                }
+
                 for (final action in buttonsClicked) {
                   actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
                 }

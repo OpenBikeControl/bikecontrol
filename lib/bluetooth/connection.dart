@@ -56,6 +56,7 @@ class Connection {
 
   Future<void> performScanning() async {
     isScanning.value = true;
+    _actionStreams.add(LogNotification('Scanning for devices...'));
 
     // does not work on web, may not work on Windows
     if (!kIsWeb && !Platform.isWindows) {
@@ -126,11 +127,21 @@ class Connection {
       final actionSubscription = bleDevice.actionStream.listen((data) {
         _actionStreams.add(data);
       });
-      final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((
-        state,
-      ) async {
+      final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((state) {
         bleDevice.isConnected = state.isConnected;
         _connectionStreams.add(bleDevice);
+        if (!bleDevice.isConnected) {
+          devices.remove(bleDevice);
+          _streamSubscriptions[bleDevice]?.cancel();
+          _streamSubscriptions.remove(bleDevice);
+          _connectionSubscriptions[bleDevice]?.cancel();
+          _connectionSubscriptions.remove(bleDevice);
+          _lastScanResult.clear();
+          // try reconnect
+          if (!isScanning.value) {
+            performScanning();
+          }
+        }
       });
       _connectionSubscriptions[bleDevice] = connectionStateSubscription;
 
