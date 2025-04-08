@@ -1,3 +1,6 @@
+#### 2.0.3 (2025-04-08)
+- adjust TrainingPeaks Virtual key mapping (#12)
+
 #### 2.0.2 (2025-04-07)
 - fix bluetooth scan issues on older Android devices by asking for location permission
 

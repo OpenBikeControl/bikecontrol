@@ -60,7 +60,8 @@ class MyWhoosh extends SupportedApp {
         accessibilityHandler.controlMedia(MediaAction.volumeUp);
         return Offset.zero;
       case ZwiftButton.b:
-        accessibilityHandler.controlMedia(MediaAction.volumeUp);
+        accessibilityHandler.controlMedia(MediaAction.volumeDown);
+        return Offset.zero;
       case ZwiftButton.a:
         accessibilityHandler.controlMedia(MediaAction.next);
         return Offset.zero;
