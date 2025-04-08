@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -65,7 +66,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);
     }
-    _actionSubscription = connection.actionStream.listen((data) {
+    _actionSubscription = connection.actionStream.listen((data) async {
       if (!mounted) {
         return;
       }
@@ -81,8 +82,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
       if (_pressedButton != null) {
         if (actionHandler.supportedApp!.keymap.getKeyPair(_pressedButton!) == null) {
+          final KeyPair keyPair;
           actionHandler.supportedApp!.keymap.keyPairs.add(
-            KeyPair(
+            keyPair = KeyPair(
               touchPosition: context.size!.center(Offset.zero),
               buttons: [_pressedButton!],
               physicalKey: null,
@@ -90,6 +92,12 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             ),
           );
           setState(() {});
+
+          // open menu
+          if (Platform.isMacOS || Platform.isWindows) {
+            await Future.delayed(Duration(milliseconds: 300));
+            await keyPressSimulator.simulateMouseClick(keyPair.touchPosition);
+          }
         }
       }
     });
@@ -122,16 +130,23 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   setState(() {});
                 },
               ),
-              if (keyPair.physicalKey != null)
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: null,
-                  child: const Text('Use as touch button'),
-                  onTap: () {
-                    keyPair.physicalKey = null;
-                    keyPair.logicalKey = null;
-                    setState(() {});
-                  },
-                ),
+              PopupMenuItem<PhysicalKeyboardKey>(
+                value: null,
+                child: const Text('Use as touch button'),
+                onTap: () {
+                  keyPair.physicalKey = null;
+                  keyPair.logicalKey = null;
+                  setState(() {});
+                },
+              ),
+              PopupMenuItem<PhysicalKeyboardKey>(
+                value: null,
+                child: const Text('Remove'),
+                onTap: () {
+                  actionHandler.supportedApp!.keymap.keyPairs.remove(keyPair);
+                  setState(() {});
+                },
+              ),
             ],
         onSelected: (key) {
           keyPair.physicalKey = key;
@@ -148,12 +163,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   color: Colors.transparent,
                   child: _TouchDot(color: Colors.yellow, label: label, keyPair: keyPair),
                 ),
-                onDragUpdate: (details) {
-                  print('Dragging: ${details.localPosition}');
-                },
                 childWhenDragging: const SizedBox.shrink(),
                 onDraggableCanceled: (_, offset) {
-                  print('Drag canceled: ${offset}');
                   setState(() => onPositionChanged(offset));
                 },
                 child: _TouchDot(color: color, label: label, keyPair: keyPair),
