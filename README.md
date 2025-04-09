@@ -35,7 +35,9 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 ## Supported Platforms
 - Android
 - macOS
-- Windows (make sure you have installed the "[Microsoft Visual C++ Runtime libraries](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)")
+- Windows 
+  - make sure you have installed the "[Microsoft Visual C++ Runtime libraries](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)"
+  - Windows may flag the app as virus. I think it does so because the app does control the mouse and keyboard.
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
 
 ## Troubleshooting
