@@ -23,6 +23,7 @@ class Constants {
   static const BC1 = 0x09;
 
   static final RIDE_ON = Uint8List.fromList([0x52, 0x69, 0x64, 0x65, 0x4f, 0x6e]);
+  static final VIBRATE_PATTERN = Uint8List.fromList([0x12, 0x12, 0x08, 0x0A, 0x06, 0x08, 0x02, 0x10, 0x00, 0x18]);
 
   // these don't actually seem to matter, its just the header has to be 7 bytes RIDEON + 2
   static final REQUEST_START = Uint8List.fromList([0, 9]); //byteArrayOf(1, 2)

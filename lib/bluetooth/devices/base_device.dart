@@ -27,6 +27,7 @@ abstract class BaseDevice {
 
   bool supportsEncryption = true;
 
+  BleCharacteristic? syncRxCharacteristic;
   Timer? _longPressTimer;
 
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
@@ -114,7 +115,7 @@ abstract class BaseDevice {
     final syncTxCharacteristic = customService.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == BleUuid.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID,
     );
-    final syncRxCharacteristic = customService.characteristics.firstOrNullWhere(
+    syncRxCharacteristic = customService.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == BleUuid.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID,
     );
 
@@ -135,15 +136,15 @@ abstract class BaseDevice {
       BleInputProperty.indication,
     );
 
-    await _setupHandshake(syncRxCharacteristic);
+    await _setupHandshake();
   }
 
-  Future<void> _setupHandshake(BleCharacteristic syncRxCharacteristic) async {
+  Future<void> _setupHandshake() async {
     if (supportsEncryption) {
       await UniversalBle.writeValue(
         device.deviceId,
         customServiceId,
-        syncRxCharacteristic.uuid,
+        syncRxCharacteristic!.uuid,
         Uint8List.fromList([
           ...Constants.RIDE_ON,
           ...Constants.REQUEST_START,
@@ -155,7 +156,7 @@ abstract class BaseDevice {
       await UniversalBle.writeValue(
         device.deviceId,
         customServiceId,
-        syncRxCharacteristic.uuid,
+        syncRxCharacteristic!.uuid,
         Constants.RIDE_ON,
         BleOutputProperty.withoutResponse,
       );
@@ -246,15 +247,11 @@ abstract class BaseDevice {
                   // we don't want to trigger the long press timer for the on/off buttons
                   _longPressTimer?.cancel();
                   _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
-                    for (final action in buttonsClicked) {
-                      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
-                    }
+                    _performActions(buttonsClicked, true);
                   });
                 }
 
-                for (final action in buttonsClicked) {
-                  actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
-                }
+                _performActions(buttonsClicked, false);
               }
             })
             .catchError((e) {
@@ -265,4 +262,25 @@ abstract class BaseDevice {
   }
 
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message);
+
+  Future<void> _performActions(List<ZwiftButton> buttonsClicked, bool repeated) async {
+    if (!repeated &&
+        buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp))) {
+      await _vibrate();
+    }
+    for (final action in buttonsClicked) {
+      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
+    }
+  }
+
+  Future<void> _vibrate() async {
+    final vibrateCommand = Uint8List.fromList([...Constants.VIBRATE_PATTERN, 0x20]);
+    await UniversalBle.writeValue(
+      device.deviceId,
+      customServiceId,
+      syncRxCharacteristic!.uuid,
+      supportsEncryption ? zapEncryption.encrypt(vibrateCommand) : vibrateCommand,
+      BleOutputProperty.withoutResponse,
+    );
+  }
 }

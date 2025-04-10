@@ -1,3 +1,6 @@
+#### 2.0.4 (2025-04-10)
+- vibrate Zwift Play / Zwift Ride controller on gear shift (thanks @cagnulein, closes #16)
+
 #### 2.0.3 (2025-04-08)
 - adjust TrainingPeaks Virtual key mapping (#12)
 - attempt to reconnect device if connection is lost 
