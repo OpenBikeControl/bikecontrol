@@ -1,18 +1,21 @@
-#### 2.0.4 (2025-04-10)
+### 2.0.5 (2025-04-13)
+- fix Zwift Click button assignment (#12)
+
+### 2.0.4 (2025-04-10)
 - vibrate Zwift Play / Zwift Ride controller on gear shift (thanks @cagnulein, closes #16)
 
-#### 2.0.3 (2025-04-08)
+### 2.0.3 (2025-04-08)
 - adjust TrainingPeaks Virtual key mapping (#12)
 - attempt to reconnect device if connection is lost 
 - Android: detect freeform windows for MyWhoosh + TrainingPeaks Virtual keymaps 
 
-#### 2.0.2 (2025-04-07)
+### 2.0.2 (2025-04-07)
 - fix bluetooth scan issues on older Android devices by asking for location permission
 
-#### 2.0.1 (2025-04-06)
+### 2.0.1 (2025-04-06)
 - long pressing a button will trigger the action again every 250ms
 
-#### 2.0.0 (2025-04-06)
+### 2.0.0 (2025-04-06)
 - You can now customize the actions (touches, mouse clicks or keyboard keys) for all buttons on all supported Zwift devices
 - now shows the battery level of the connected devices
 - add more troubleshooting information
