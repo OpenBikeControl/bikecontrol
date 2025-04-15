@@ -17,13 +17,13 @@ class MyWhoosh extends SupportedApp {
           keyPairs: [
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
-              physicalKey: PhysicalKeyboardKey.keyK,
-              logicalKey: LogicalKeyboardKey.keyK,
+              physicalKey: PhysicalKeyboardKey.keyI,
+              logicalKey: LogicalKeyboardKey.keyI,
             ),
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
-              physicalKey: PhysicalKeyboardKey.keyI,
-              logicalKey: LogicalKeyboardKey.keyI,
+              physicalKey: PhysicalKeyboardKey.keyK,
+              logicalKey: LogicalKeyboardKey.keyK,
             ),
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),

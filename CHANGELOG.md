@@ -1,3 +1,6 @@
+### 2.0.6 (2025-04-15)
+- fix MyWhoosh up / downshift button assignment (I key vs K key)
+
 ### 2.0.5 (2025-04-13)
 - fix Zwift Click button assignment (#12)
 
