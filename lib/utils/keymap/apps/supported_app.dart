@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:accessibility/accessibility.dart';
+import 'package:swift_control/utils/keymap/apps/biketerra.dart';
 import 'package:swift_control/utils/keymap/apps/training_peaks.dart';
 
 import '../../single_line_exception.dart';
@@ -27,7 +28,7 @@ abstract class SupportedApp {
 
   const SupportedApp({required this.name, required this.packageName, required this.keymap});
 
-  static final List<SupportedApp> supportedApps = [MyWhoosh(), TrainingPeaks(), CustomApp()];
+  static final List<SupportedApp> supportedApps = [MyWhoosh(), TrainingPeaks(), Biketerra(), CustomApp()];
 
   @override
   String toString() {
