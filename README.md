@@ -23,6 +23,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 ## Supported Apps
 - MyWhoosh
 - indieVelo / Training Peaks
+- Biketerra.com
 - any other: 
   - Android: you can customize simulated touch points of all your buttons in the app
   - Desktop: you can customize keyboard shortcuts and mouse clicks in the app
