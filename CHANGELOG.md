@@ -1,5 +1,6 @@
 ### 2.0.7 (2025-04-18)
 - add Biketerra.com keymap
+- some UX improvements
 
 ### 2.0.6 (2025-04-15)
 - fix MyWhoosh up / downshift button assignment (I key vs K key)

@@ -99,43 +99,6 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
                   children: [
                     Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
                     Text(_formatKey(_pressedKey)),
-                    PopupMenuButton<PhysicalKeyboardKey>(
-                      tooltip: 'Drag or click for special keys',
-                      itemBuilder:
-                          (context) => [
-                            PopupMenuItem<PhysicalKeyboardKey>(
-                              value: PhysicalKeyboardKey.mediaPlayPause,
-                              child: const Text('Media: Play/Pause'),
-                            ),
-                            PopupMenuItem<PhysicalKeyboardKey>(
-                              value: PhysicalKeyboardKey.mediaStop,
-                              child: const Text('Media: Stop'),
-                            ),
-                            PopupMenuItem<PhysicalKeyboardKey>(
-                              value: PhysicalKeyboardKey.mediaTrackPrevious,
-                              child: const Text('Media: Previous'),
-                            ),
-                            PopupMenuItem<PhysicalKeyboardKey>(
-                              value: PhysicalKeyboardKey.mediaTrackNext,
-                              child: const Text('Media: Next'),
-                            ),
-                            PopupMenuItem<PhysicalKeyboardKey>(
-                              value: PhysicalKeyboardKey.audioVolumeUp,
-                              child: const Text('Media: Volume Up'),
-                            ),
-                            PopupMenuItem<PhysicalKeyboardKey>(
-                              value: PhysicalKeyboardKey.audioVolumeDown,
-                              child: const Text('Media: Volume Down'),
-                            ),
-                          ],
-                      onSelected: (key) {
-                        widget.customApp.setKey(_pressedButton!, physicalKey: key, logicalKey: null);
-                        Navigator.pop(context, key);
-                      },
-                      child: IgnorePointer(
-                        child: ElevatedButton(onPressed: () {}, child: Text('Or choose special key')),
-                      ),
-                    ),
                   ],
                 ),
               ),

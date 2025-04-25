@@ -85,7 +85,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
           final KeyPair keyPair;
           actionHandler.supportedApp!.keymap.keyPairs.add(
             keyPair = KeyPair(
-              touchPosition: context.size!.center(Offset.zero),
+              touchPosition: context.size!
+                  .center(Offset.zero)
+                  .translate(actionHandler.supportedApp!.keymap.keyPairs.length * 40, 0),
               buttons: [_pressedButton!],
               physicalKey: null,
               logicalKey: null,
@@ -129,6 +131,49 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   );
                   setState(() {});
                 },
+              ),
+              PopupMenuItem(
+                child: PopupMenuButton<PhysicalKeyboardKey>(
+                  padding: EdgeInsets.zero,
+                  itemBuilder:
+                      (context) => [
+                        PopupMenuItem<PhysicalKeyboardKey>(
+                          value: PhysicalKeyboardKey.mediaPlayPause,
+                          child: const Text('Media: Play/Pause'),
+                        ),
+                        PopupMenuItem<PhysicalKeyboardKey>(
+                          value: PhysicalKeyboardKey.mediaStop,
+                          child: const Text('Media: Stop'),
+                        ),
+                        PopupMenuItem<PhysicalKeyboardKey>(
+                          value: PhysicalKeyboardKey.mediaTrackPrevious,
+                          child: const Text('Media: Previous'),
+                        ),
+                        PopupMenuItem<PhysicalKeyboardKey>(
+                          value: PhysicalKeyboardKey.mediaTrackNext,
+                          child: const Text('Media: Next'),
+                        ),
+                        PopupMenuItem<PhysicalKeyboardKey>(
+                          value: PhysicalKeyboardKey.audioVolumeUp,
+                          child: const Text('Media: Volume Up'),
+                        ),
+                        PopupMenuItem<PhysicalKeyboardKey>(
+                          value: PhysicalKeyboardKey.audioVolumeDown,
+                          child: const Text('Media: Volume Down'),
+                        ),
+                      ],
+                  onSelected: (key) {
+                    keyPair.physicalKey = key;
+                    keyPair.logicalKey = null;
+
+                    setState(() {});
+                  },
+                  child: SizedBox(
+                    height: 50,
+                    width: 180,
+                    child: Align(alignment: Alignment.centerLeft, child: Text('Set Media key')),
+                  ),
+                ),
               ),
               PopupMenuItem<PhysicalKeyboardKey>(
                 value: null,
@@ -282,17 +327,25 @@ class _TouchDot extends StatelessWidget {
           ),
         ),
 
-        Text(label, style: TextStyle(color: Colors.black, fontSize: 12)),
-        if (keyPair.physicalKey != null)
-          Text(switch (keyPair.physicalKey) {
-            PhysicalKeyboardKey.mediaPlayPause => 'Media: Play/Pause',
-            PhysicalKeyboardKey.mediaStop => 'Media: Stop',
-            PhysicalKeyboardKey.mediaTrackPrevious => 'Media: Previous',
-            PhysicalKeyboardKey.mediaTrackNext => 'Media: Next',
-            PhysicalKeyboardKey.audioVolumeUp => 'Media: Volume Up',
-            PhysicalKeyboardKey.audioVolumeDown => 'Media: Volume Down',
-            _ => keyPair.logicalKey?.keyLabel ?? 'Unknown',
-          }, style: TextStyle(color: Colors.grey, fontSize: 12)),
+        Container(
+          color: Colors.white.withAlpha(180),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(color: Colors.black, fontSize: 12)),
+              if (keyPair.physicalKey != null)
+                Text(switch (keyPair.physicalKey) {
+                  PhysicalKeyboardKey.mediaPlayPause => 'Media: Play/Pause',
+                  PhysicalKeyboardKey.mediaStop => 'Media: Stop',
+                  PhysicalKeyboardKey.mediaTrackPrevious => 'Media: Previous',
+                  PhysicalKeyboardKey.mediaTrackNext => 'Media: Next',
+                  PhysicalKeyboardKey.audioVolumeUp => 'Media: Volume Up',
+                  PhysicalKeyboardKey.audioVolumeDown => 'Media: Volume Down',
+                  _ => keyPair.logicalKey?.keyLabel ?? 'Unknown',
+                }, style: TextStyle(color: Colors.black87, fontSize: 12)),
+            ],
+          ),
+        ),
       ],
     );
   }
