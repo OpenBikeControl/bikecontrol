@@ -1,3 +1,7 @@
+### 2.0.8 (2025-05-02)
+- only use the light theme for the app
+- more troubleshooting information
+
 ### 2.0.7 (2025-04-18)
 - add Biketerra.com keymap
 - some UX improvements

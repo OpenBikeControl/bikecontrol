@@ -209,7 +209,11 @@ abstract class BaseDevice {
       final payload = bytes.sublist(4);
 
       if (zapEncryption.encryptionKeyBytes == null) {
-        actionStreamInternal.add(LogNotification('Encryption not initialized, yet.'));
+        actionStreamInternal.add(
+          LogNotification(
+            'Encryption not initialized, yet. You may need to update the firmware of your device with the Zwift Companion app.',
+          ),
+        );
         return;
       }
 

@@ -42,7 +42,8 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
 
 ## Troubleshooting
-Your Zwift device is found but connection does not work properly? You may need to update the firmware in Zwift Companion app.
+- Your Zwift device is found but connection does not work properly? You may need to update the firmware in Zwift Companion app.
+- The Android app is losing connection over time? Read about how to [keep the app alive](https://dontkillmyapp.com/).
 
 ## How does it work?
 The app connects to your Zwift device automatically. 
