@@ -1,3 +1,6 @@
+### 2.0.9 (2025-05-04)
+- you can now assign Escape and arrow down key to your custom keymap (#18)
+
 ### 2.0.8 (2025-05-02)
 - only use the light theme for the app
 - more troubleshooting information

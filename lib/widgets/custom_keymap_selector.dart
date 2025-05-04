@@ -67,7 +67,6 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     setState(() {
       if (event is KeyDownEvent) {
         _pressedKey = event;
-      } else if (event is KeyUpEvent) {
         widget.customApp.setKey(
           _pressedButton!,
           physicalKey: _pressedKey!.physicalKey,

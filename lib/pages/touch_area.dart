@@ -125,6 +125,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 onTap: () async {
                   await showDialog<void>(
                     context: context,
+                    barrierDismissible: false, // enable Escape key
                     builder:
                         (c) =>
                             HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
