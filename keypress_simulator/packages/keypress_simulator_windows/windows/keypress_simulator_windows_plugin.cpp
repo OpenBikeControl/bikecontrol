@@ -68,9 +68,11 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
   for (const std::string& processName : compatibleApps) {
     targetWindow = FindTargetWindow(processName, "");
     if (targetWindow != NULL) {
-      // Focus the window before sending the key
-      SetForegroundWindow(targetWindow);
-      Sleep(50); // Brief delay to ensure window is focused
+      // Only focus the window if it's not already in the foreground
+      if (GetForegroundWindow() != targetWindow) {
+        SetForegroundWindow(targetWindow);
+        Sleep(50); // Brief delay to ensure window is focused
+      }
       break;
     }
   }
