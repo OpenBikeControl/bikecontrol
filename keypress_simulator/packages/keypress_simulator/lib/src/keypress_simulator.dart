@@ -34,38 +34,6 @@ class KeyPressSimulator {
     return _platform.simulateKeyPress(key: key, modifiers: modifiers, keyDown: false);
   }
 
-  /// Simulate key down to a specific window (Windows only).
-  Future<void> simulateKeyDownToWindow(
-    PhysicalKeyboardKey? key, {
-    List<ModifierKey> modifiers = const [],
-    String? processName,
-    String? windowTitle,
-  }) {
-    return _platform.simulateKeyPressToWindow(
-      key: key,
-      modifiers: modifiers,
-      keyDown: true,
-      processName: processName,
-      windowTitle: windowTitle,
-    );
-  }
-
-  /// Simulate key up to a specific window (Windows only).
-  Future<void> simulateKeyUpToWindow(
-    PhysicalKeyboardKey? key, {
-    List<ModifierKey> modifiers = const [],
-    String? processName,
-    String? windowTitle,
-  }) {
-    return _platform.simulateKeyPressToWindow(
-      key: key,
-      modifiers: modifiers,
-      keyDown: false,
-      processName: processName,
-      windowTitle: windowTitle,
-    );
-  }
-
   @Deprecated('Please use simulateKeyDown & simulateKeyUp methods.')
   Future<void> simulateCtrlCKeyPress() async {
     const key = PhysicalKeyboardKey.keyC;

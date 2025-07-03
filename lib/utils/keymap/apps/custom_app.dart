@@ -8,13 +8,7 @@ import '../buttons.dart';
 import '../keymap.dart';
 
 class CustomApp extends SupportedApp {
-  CustomApp() : super(
-    name: 'Custom', 
-    packageName: "custom", 
-    keymap: Keymap.custom,
-    windowsProcessName: null,
-    windowsWindowTitle: null,
-  );
+  CustomApp() : super(name: 'Custom', packageName: "custom", keymap: Keymap.custom);
 
   @override
   Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {

@@ -13,8 +13,6 @@ class MyWhoosh extends SupportedApp {
     : super(
         name: 'MyWhoosh',
         packageName: "com.mywhoosh.whooshgame",
-        windowsProcessName: "MyWhooshHD.exe",
-        windowsWindowTitle: "MyWhooshHD",
         keymap: Keymap(
           keyPairs: [
             KeyPair(

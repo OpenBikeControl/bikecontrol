@@ -14,10 +14,6 @@ abstract class SupportedApp {
   final String packageName;
   final String name;
   final Keymap keymap;
-  
-  // For Windows desktop applications - process name or window title
-  final String? windowsProcessName;
-  final String? windowsWindowTitle;
 
   Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
     if (this is CustomApp) {
@@ -30,13 +26,7 @@ abstract class SupportedApp {
     return Offset.zero;
   }
 
-  const SupportedApp({
-    required this.name, 
-    required this.packageName, 
-    required this.keymap,
-    this.windowsProcessName,
-    this.windowsWindowTitle,
-  });
+  const SupportedApp({required this.name, required this.packageName, required this.keymap});
 
   static final List<SupportedApp> supportedApps = [MyWhoosh(), TrainingPeaks(), Biketerra(), CustomApp()];
 

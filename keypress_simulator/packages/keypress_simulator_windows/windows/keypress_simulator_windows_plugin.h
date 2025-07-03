@@ -30,9 +30,7 @@ class KeypressSimulatorWindowsPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
-  void KeypressSimulatorWindowsPlugin::SimulateKeyPressToWindow(
-      const flutter::MethodCall<flutter::EncodableValue>& method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
 
   // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(

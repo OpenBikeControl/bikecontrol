@@ -13,8 +13,6 @@ class TrainingPeaks extends SupportedApp {
     : super(
         name: 'IndieVelo / TrainingPeaks',
         packageName: "com.indieVelo.client",
-        windowsProcessName: "indieVelo.exe",
-        windowsWindowTitle: "indieVelo",
         keymap: Keymap(
           keyPairs: [
             // https://help.trainingpeaks.com/hc/en-us/articles/31340399556877-TrainingPeaks-Virtual-Controls-and-Keyboard-Shortcuts
