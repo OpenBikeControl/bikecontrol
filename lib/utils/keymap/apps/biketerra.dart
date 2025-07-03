@@ -11,6 +11,8 @@ class Biketerra extends SupportedApp {
     : super(
         name: 'Biketerra',
         packageName: "biketerra",
+        windowsProcessName: "biketerra.exe",
+        windowsWindowTitle: "Biketerra",
         keymap: Keymap(
           keyPairs: [
             KeyPair(

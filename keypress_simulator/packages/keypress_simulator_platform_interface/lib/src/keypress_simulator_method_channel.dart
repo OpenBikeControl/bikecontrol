@@ -53,6 +53,31 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
   }
 
   @override
+  Future<void> simulateKeyPressToWindow({
+    KeyboardKey? key,
+    List<ModifierKey> modifiers = const [],
+    bool keyDown = true,
+    String? processName,
+    String? windowTitle,
+  }) async {
+    PhysicalKeyboardKey? physicalKey = key is PhysicalKeyboardKey ? key : null;
+    if (key is LogicalKeyboardKey) {
+      physicalKey = key.physicalKey;
+    }
+    if (key != null && physicalKey == null) {
+      throw UnsupportedError('Unsupported key: $key.');
+    }
+    final Map<Object?, Object?> arguments = {
+      'keyCode': physicalKey?.keyCode,
+      'modifiers': modifiers.map((e) => e.name).toList(),
+      'keyDown': keyDown,
+      'processName': processName,
+      'windowTitle': windowTitle,
+    }..removeWhere((key, value) => value == null);
+    await methodChannel.invokeMethod('simulateKeyPressToWindow', arguments);
+  }
+
+  @override
   Future<void> simulateMouseClick(Offset position) async {
     final Map<String, double> arguments = {
       'x': position.dx,

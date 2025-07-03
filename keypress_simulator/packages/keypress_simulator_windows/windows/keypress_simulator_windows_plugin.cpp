@@ -2,6 +2,7 @@
 
 // This must be included before many other Windows headers.
 #include <windows.h>
+#include <psapi.h>
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -121,6 +122,125 @@ void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
   result->Success(flutter::EncodableValue(true));
 }
 
+// Helper function to find window by process name or window title
+struct FindWindowData {
+  std::string targetProcessName;
+  std::string targetWindowTitle;
+  HWND foundWindow;
+};
+
+BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam) {
+  FindWindowData* data = reinterpret_cast<FindWindowData*>(lParam);
+  
+  // Check if window is visible and not minimized
+  if (!IsWindowVisible(hwnd) || IsIconic(hwnd)) {
+    return TRUE; // Continue enumeration
+  }
+  
+  // Get window title
+  char windowTitle[256];
+  GetWindowTextA(hwnd, windowTitle, sizeof(windowTitle));
+  
+  // Get process name
+  DWORD processId;
+  GetWindowThreadProcessId(hwnd, &processId);
+  HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+  char processName[MAX_PATH];
+  if (hProcess) {
+    DWORD size = sizeof(processName);
+    if (QueryFullProcessImageNameA(hProcess, 0, processName, &size)) {
+      // Extract just the filename from the full path
+      char* filename = strrchr(processName, '\\');
+      if (filename) {
+        filename++; // Skip the backslash
+      } else {
+        filename = processName;
+      }
+      
+      // Check if this matches our target
+      if (!data->targetProcessName.empty() && 
+          _stricmp(filename, data->targetProcessName.c_str()) == 0) {
+        data->foundWindow = hwnd;
+        return FALSE; // Stop enumeration
+      }
+    }
+    CloseHandle(hProcess);
+  }
+  
+  // Check window title if process name didn't match
+  if (!data->targetWindowTitle.empty() && 
+      _stricmp(windowTitle, data->targetWindowTitle.c_str()) == 0) {
+    data->foundWindow = hwnd;
+    return FALSE; // Stop enumeration
+  }
+  
+  return TRUE; // Continue enumeration
+}
+
+HWND FindTargetWindow(const std::string& processName, const std::string& windowTitle) {
+  FindWindowData data;
+  data.targetProcessName = processName;
+  data.targetWindowTitle = windowTitle;
+  data.foundWindow = NULL;
+  
+  EnumWindows(EnumWindowsCallback, reinterpret_cast<LPARAM>(&data));
+  return data.foundWindow;
+}
+
+void KeypressSimulatorWindowsPlugin::SimulateKeyPressToWindow(
+    const flutter::MethodCall<flutter::EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
+
+  UINT keyCode = std::get<int>(args.at(EncodableValue("keyCode")));
+  bool keyDown = std::get<bool>(args.at(EncodableValue("keyDown")));
+  
+  std::string processName;
+  std::string windowTitle;
+  
+  // Get optional process name and window title for targeting
+  auto it_process = args.find(EncodableValue("processName"));
+  if (it_process != args.end() && std::holds_alternative<std::string>(it_process->second)) {
+    processName = std::get<std::string>(it_process->second);
+  }
+  
+  auto it_title = args.find(EncodableValue("windowTitle"));
+  if (it_title != args.end() && std::holds_alternative<std::string>(it_title->second)) {
+    windowTitle = std::get<std::string>(it_title->second);
+  }
+  
+  // Find the target window
+  HWND targetWindow = FindTargetWindow(processName, windowTitle);
+  
+  if (targetWindow == NULL) {
+    // Fallback to global key simulation if window not found
+    BYTE byteValue = static_cast<BYTE>(keyCode);
+    keybd_event(byteValue, 0x45, keyDown ? 0 : KEYEVENTF_KEYUP, 0);
+    result->Success(flutter::EncodableValue(true));
+    return;
+  }
+  
+  // Send key directly to the target window
+  WPARAM wParam = keyCode;
+  LPARAM lParam = 0;
+  
+  // Set up lParam with scan code and other flags
+  UINT scanCode = MapVirtualKey(keyCode, MAPVK_VK_TO_VSC);
+  lParam = (scanCode << 16);
+  if (!keyDown) {
+    lParam |= (1 << 30) | (1 << 31); // Previous key state and transition state
+  }
+  
+  // Send the message to the specific window
+  if (keyDown) {
+    PostMessage(targetWindow, WM_KEYDOWN, wParam, lParam);
+  } else {
+    PostMessage(targetWindow, WM_KEYUP, wParam, lParam);
+  }
+  
+  result->Success(flutter::EncodableValue(true));
+}
+
 void KeypressSimulatorWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
@@ -128,6 +248,8 @@ void KeypressSimulatorWindowsPlugin::HandleMethodCall(
     SimulateKeyPress(method_call, std::move(result));
   } else if (method_call.method_name().compare("simulateMouseClick") == 0) {
     SimulateMouseClick(method_call, std::move(result));
+  } else if (method_call.method_name().compare("simulateKeyPressToWindow") == 0) {
+    SimulateKeyPressToWindow(method_call, std::move(result));
   } else {
     result->NotImplemented();
   }
