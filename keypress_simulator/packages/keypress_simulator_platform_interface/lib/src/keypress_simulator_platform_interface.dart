@@ -48,7 +48,8 @@ abstract class KeyPressSimulatorPlatform extends PlatformInterface {
     String? processName,
     String? windowTitle,
   }) {
-    throw UnimplementedError('simulateKeyPressToWindow() has not been implemented.');
+    // Default implementation falls back to regular key simulation
+    return simulateKeyPress(key: key, modifiers: modifiers, keyDown: keyDown);
   }
 
   Future<void> simulateMouseClick(Offset position) {

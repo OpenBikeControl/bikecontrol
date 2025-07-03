@@ -3,6 +3,7 @@
 // This must be included before many other Windows headers.
 #include <windows.h>
 #include <psapi.h>
+#include <string.h>
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -192,8 +193,17 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPressToWindow(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
 
-  UINT keyCode = std::get<int>(args.at(EncodableValue("keyCode")));
-  bool keyDown = std::get<bool>(args.at(EncodableValue("keyDown")));
+  // Validate required parameters
+  auto it_keyCode = args.find(EncodableValue("keyCode"));
+  auto it_keyDown = args.find(EncodableValue("keyDown"));
+  
+  if (it_keyCode == args.end() || it_keyDown == args.end()) {
+    result->Error("INVALID_ARGUMENTS", "Missing required keyCode or keyDown parameter");
+    return;
+  }
+
+  UINT keyCode = std::get<int>(it_keyCode->second);
+  bool keyDown = std::get<bool>(it_keyDown->second);
   
   std::string processName;
   std::string windowTitle;
@@ -209,13 +219,29 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPressToWindow(
     windowTitle = std::get<std::string>(it_title->second);
   }
   
+  // If neither process name nor window title is provided, fall back to global simulation
+  if (processName.empty() && windowTitle.empty()) {
+    // Use SendInput instead of keybd_event to avoid glitches (see issue #7)
+    INPUT input = {0};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = static_cast<WORD>(keyCode);
+    input.ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
+    SendInput(1, &input, sizeof(INPUT));
+    result->Success(flutter::EncodableValue(true));
+    return;
+  }
+  
   // Find the target window
   HWND targetWindow = FindTargetWindow(processName, windowTitle);
   
   if (targetWindow == NULL) {
     // Fallback to global key simulation if window not found
-    BYTE byteValue = static_cast<BYTE>(keyCode);
-    keybd_event(byteValue, 0x45, keyDown ? 0 : KEYEVENTF_KEYUP, 0);
+    // Use SendInput instead of keybd_event to avoid glitches (see issue #7)
+    INPUT input = {0};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = static_cast<WORD>(keyCode);
+    input.ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
+    SendInput(1, &input, sizeof(INPUT));
     result->Success(flutter::EncodableValue(true));
     return;
   }
@@ -232,10 +258,21 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPressToWindow(
   }
   
   // Send the message to the specific window
+  BOOL messageResult;
   if (keyDown) {
-    PostMessage(targetWindow, WM_KEYDOWN, wParam, lParam);
+    messageResult = PostMessage(targetWindow, WM_KEYDOWN, wParam, lParam);
   } else {
-    PostMessage(targetWindow, WM_KEYUP, wParam, lParam);
+    messageResult = PostMessage(targetWindow, WM_KEYUP, wParam, lParam);
+  }
+  
+  if (!messageResult) {
+    // If PostMessage failed, fall back to global simulation
+    // Use SendInput instead of keybd_event to avoid glitches (see issue #7)
+    INPUT input = {0};
+    input.type = INPUT_KEYBOARD;
+    input.ki.wVk = static_cast<WORD>(keyCode);
+    input.ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
+    SendInput(1, &input, sizeof(INPUT));
   }
   
   result->Success(flutter::EncodableValue(true));

@@ -60,6 +60,11 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
     String? processName,
     String? windowTitle,
   }) async {
+    // For non-Windows platforms, fall back to regular key simulation
+    if (!UniPlatform.isWindows) {
+      return simulateKeyPress(key: key, modifiers: modifiers, keyDown: keyDown);
+    }
+    
     PhysicalKeyboardKey? physicalKey = key is PhysicalKeyboardKey ? key : null;
     if (key is LogicalKeyboardKey) {
       physicalKey = key.physicalKey;
