@@ -54,19 +54,6 @@ The app connects to your Zwift device automatically.
   - you can also create your own Keymaps for any other app
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
 
-### New: Window Focus Feature (Windows)
-On Windows, SwiftControl can now send key presses directly to training applications even when they're not in focus! This means you can:
-- Keep your browser focused on YouTube while training
-- Control gear shifts in MyWhoosh without clicking on the window
-- Use multiple applications simultaneously without interruption
-
-Supported applications with automatic window targeting:
-- MyWhoosh (MyWhooshHD)
-- IndieVelo / Training Peaks
-- Biketerra
-
-The feature automatically falls back to global key simulation if the target window is not found.
-
 ## Donate
 Please consider donating to support the development of this app :)
 
