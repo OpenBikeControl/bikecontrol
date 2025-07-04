@@ -18,6 +18,16 @@ using flutter::EncodableValue;
 
 namespace keypress_simulator_windows {
 
+// Forward declarations
+struct FindWindowData {
+  std::string targetProcessName;
+  std::string targetWindowTitle;
+  HWND foundWindow;
+};
+
+BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam);
+HWND FindTargetWindow(const std::string& processName, const std::string& windowTitle);
+
 // static
 void KeypressSimulatorWindowsPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows* registrar) {
@@ -143,13 +153,6 @@ void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
 
   result->Success(flutter::EncodableValue(true));
 }
-
-// Helper function to find window by process name or window title
-struct FindWindowData {
-  std::string targetProcessName;
-  std::string targetWindowTitle;
-  HWND foundWindow;
-};
 
 BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam) {
   FindWindowData* data = reinterpret_cast<FindWindowData*>(lParam);
