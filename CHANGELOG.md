@@ -1,3 +1,6 @@
+### 2.1.0 (2025-07-03)
+- Windows: automatically focus compatible training apps (MyWhoosh, IndieVelo, Biketerra) when sending keystrokes, enabling seamless multi-window usage
+
 ### 2.0.9 (2025-05-04)
 - you can now assign Escape and arrow down key to your custom keymap (#18)
 

@@ -2,6 +2,8 @@
 
 // This must be included before many other Windows headers.
 #include <windows.h>
+#include <psapi.h>
+#include <string.h>
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -52,6 +54,27 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
   for (flutter::EncodableValue key_modifier_value : key_modifier_list) {
     std::string key_modifier = std::get<std::string>(key_modifier_value);
     modifiers.push_back(key_modifier);
+  }
+
+  // List of compatible training apps to look for
+  std::vector<std::string> compatibleApps = {
+    "MyWhooshHD.exe",
+    "indieVelo.exe", 
+    "biketerra.exe"
+  };
+
+  // Try to find and focus a compatible app
+  HWND targetWindow = NULL;
+  for (const std::string& processName : compatibleApps) {
+    targetWindow = FindTargetWindow(processName, "");
+    if (targetWindow != NULL) {
+      // Only focus the window if it's not already in the foreground
+      if (GetForegroundWindow() != targetWindow) {
+        SetForegroundWindow(targetWindow);
+        Sleep(50); // Brief delay to ensure window is focused
+      }
+      break;
+    }
   }
 
   INPUT input[6];
@@ -120,6 +143,73 @@ void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
 
   result->Success(flutter::EncodableValue(true));
 }
+
+// Helper function to find window by process name or window title
+struct FindWindowData {
+  std::string targetProcessName;
+  std::string targetWindowTitle;
+  HWND foundWindow;
+};
+
+BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam) {
+  FindWindowData* data = reinterpret_cast<FindWindowData*>(lParam);
+  
+  // Check if window is visible and not minimized
+  if (!IsWindowVisible(hwnd) || IsIconic(hwnd)) {
+    return TRUE; // Continue enumeration
+  }
+  
+  // Get window title
+  char windowTitle[256];
+  GetWindowTextA(hwnd, windowTitle, sizeof(windowTitle));
+  
+  // Get process name
+  DWORD processId;
+  GetWindowThreadProcessId(hwnd, &processId);
+  HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+  char processName[MAX_PATH];
+  if (hProcess) {
+    DWORD size = sizeof(processName);
+    if (QueryFullProcessImageNameA(hProcess, 0, processName, &size)) {
+      // Extract just the filename from the full path
+      char* filename = strrchr(processName, '\\');
+      if (filename) {
+        filename++; // Skip the backslash
+      } else {
+        filename = processName;
+      }
+      
+      // Check if this matches our target
+      if (!data->targetProcessName.empty() && 
+          _stricmp(filename, data->targetProcessName.c_str()) == 0) {
+        data->foundWindow = hwnd;
+        return FALSE; // Stop enumeration
+      }
+    }
+    CloseHandle(hProcess);
+  }
+  
+  // Check window title if process name didn't match
+  if (!data->targetWindowTitle.empty() && 
+      _stricmp(windowTitle, data->targetWindowTitle.c_str()) == 0) {
+    data->foundWindow = hwnd;
+    return FALSE; // Stop enumeration
+  }
+  
+  return TRUE; // Continue enumeration
+}
+
+HWND FindTargetWindow(const std::string& processName, const std::string& windowTitle) {
+  FindWindowData data;
+  data.targetProcessName = processName;
+  data.targetWindowTitle = windowTitle;
+  data.foundWindow = NULL;
+  
+  EnumWindows(EnumWindowsCallback, reinterpret_cast<LPARAM>(&data));
+  return data.foundWindow;
+}
+
+
 
 void KeypressSimulatorWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
