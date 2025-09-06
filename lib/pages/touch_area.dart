@@ -91,6 +91,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               buttons: [_pressedButton!],
               physicalKey: null,
               logicalKey: null,
+              isLongPress: false,
             ),
           );
           setState(() {});
@@ -132,6 +133,22 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   );
                   setState(() {});
                 },
+              ),
+              PopupMenuItem<void>(
+                value: null,
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: keyPair.isLongPress,
+                      onChanged: (value) {
+                        keyPair.isLongPress = value ?? false;
+                        setState(() {});
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    const Text('Long Press Mode'),
+                  ],
+                ),
               ),
               PopupMenuItem(
                 child: PopupMenuButton<PhysicalKeyboardKey>(
@@ -317,13 +334,13 @@ class _TouchDot extends StatelessWidget {
           decoration: BoxDecoration(
             color: color.withOpacity(0.6),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.black, width: 2),
+            border: Border.all(color: keyPair.isLongPress ? Colors.green : Colors.black, width: keyPair.isLongPress ? 3 : 2),
           ),
           child: Icon(
             keyPair.isSpecialKey
                 ? Icons.music_note_outlined
                 : keyPair.physicalKey != null
-                ? Icons.keyboard_alt_outlined
+                ? (keyPair.isLongPress ? Icons.keyboard_double_arrow_down : Icons.keyboard_alt_outlined)
                 : Icons.add,
           ),
         ),
@@ -344,6 +361,8 @@ class _TouchDot extends StatelessWidget {
                   PhysicalKeyboardKey.audioVolumeDown => 'Media: Volume Down',
                   _ => keyPair.logicalKey?.keyLabel ?? 'Unknown',
                 }, style: TextStyle(color: Colors.black87, fontSize: 12)),
+              if (keyPair.isLongPress && keyPair.physicalKey != null)
+                Text('Long Press', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
         ),

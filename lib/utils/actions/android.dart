@@ -22,7 +22,7 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<String> performAction(ZwiftButton button) async {
+  Future<String> performAction(ZwiftButton button, {bool isPressed = true, bool isRepeated = false}) async {
     if (supportedApp == null) {
       return ("Could not perform ${button.name}: No keymap set");
     }
