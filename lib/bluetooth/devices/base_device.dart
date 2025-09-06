@@ -11,6 +11,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
+import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../utils/crypto/encryption_utils.dart';
@@ -309,5 +310,16 @@ abstract class BaseDevice {
       supportsEncryption ? zapEncryption.encrypt(vibrateCommand) : vibrateCommand,
       BleOutputProperty.withoutResponse,
     );
+  }
+
+  Future<void> disconnect() async {
+    _longPressTimer?.cancel();
+    _previouslyPressedButtons.clear();
+    // Release any held keys in long press mode
+    if (actionHandler is DesktopActions) {
+      await (actionHandler as DesktopActions).releaseAllHeldKeys();
+    }
+    await UniversalBle.disconnect(device.deviceId);
+    isConnected = false;
   }
 }
