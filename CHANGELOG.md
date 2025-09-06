@@ -1,4 +1,4 @@
-### 2.1.1 (2025-01-03)
+### 2.2.0 (2025-01-03)
 - Add Long Press Mode option for custom keymaps - buttons can now send sustained key presses instead of repeated taps, perfect for movement controls in games
 
 ### 2.1.0 (2025-07-03)
