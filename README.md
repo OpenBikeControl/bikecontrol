@@ -11,20 +11,6 @@ With SwiftControl you can control your favorite trainer app using your Zwift Cli
 - control music on your device
 - more? If you can do it via keyboard, mouse or touch, you can do it with SwiftControl
 
-### New: Long Press Mode for Custom Keymaps
-
-You can now configure individual buttons in custom keymaps to use "Long Press Mode" instead of repeated key presses:
-
-- **Regular Mode** (default): Button press and hold sends repeated key presses every 250ms
-- **Long Press Mode**: Button press simulates key down, button release simulates key up - perfect for games that need sustained key presses for movement
-
-To enable Long Press Mode:
-1. Select "Custom" keymap
-2. Click "Customize Keymap"
-3. Right-click on any key mapping
-4. Check "Long Press Mode" in the popup menu
-5. Keys with Long Press Mode enabled will show a green border and different icon
-
 
 https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
