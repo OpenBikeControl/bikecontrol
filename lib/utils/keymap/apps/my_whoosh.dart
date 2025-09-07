@@ -57,16 +57,16 @@ class MyWhoosh extends SupportedApp {
     // just my personal preference
     switch (action) {
       case ZwiftButton.y:
-        accessibilityHandler.controlMedia(MediaAction.volumeUp);
+        accessibilityHandler.controlMedia(MediaAction.volumeUp, isKeyDown: true, isKeyUp: true);
         return Offset.zero;
       case ZwiftButton.b:
-        accessibilityHandler.controlMedia(MediaAction.volumeDown);
+        accessibilityHandler.controlMedia(MediaAction.volumeDown, isKeyDown: true, isKeyUp: true);
         return Offset.zero;
       case ZwiftButton.a:
-        accessibilityHandler.controlMedia(MediaAction.next);
+        accessibilityHandler.controlMedia(MediaAction.next, isKeyDown: true, isKeyUp: true);
         return Offset.zero;
       case ZwiftButton.z:
-        accessibilityHandler.controlMedia(MediaAction.playPause);
+        accessibilityHandler.controlMedia(MediaAction.playPause, isKeyDown: true, isKeyUp: true);
         return Offset.zero;
       default:
         break;

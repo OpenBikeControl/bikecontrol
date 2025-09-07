@@ -135,7 +135,7 @@ interface Accessibility {
   fun hasPermission(): Boolean
   fun openPermissions()
   fun performTouch(x: Double, y: Double)
-  fun controlMedia(action: MediaAction)
+  fun controlMedia(action: MediaAction, isKeyDown: Boolean = true, isKeyUp: Boolean = false)
 
   companion object {
     /** The codec used by Accessibility. */
@@ -202,8 +202,10 @@ interface Accessibility {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val actionArg = args[0] as MediaAction
+            val isKeyDownArg = if (args.size > 1) args[1] as Boolean else true
+            val isKeyUpArg = if (args.size > 2) args[2] as Boolean else false
             val wrapped: List<Any?> = try {
-              api.controlMedia(actionArg)
+              api.controlMedia(actionArg, isKeyDownArg, isKeyUpArg)
               listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)

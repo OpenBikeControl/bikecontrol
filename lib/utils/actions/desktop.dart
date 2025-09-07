@@ -7,7 +7,7 @@ class DesktopActions extends BaseActions {
   final Set<ZwiftButton> _heldKeys = <ZwiftButton>{};
 
   @override
-  Future<String> performAction(ZwiftButton action, {bool isPressed = true, bool isRepeated = false}) async {
+  Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
       return ('Supported app is not set');
     }
@@ -19,14 +19,14 @@ class DesktopActions extends BaseActions {
 
     // Handle long press mode
     if (keyPair.isLongPress && keyPair.physicalKey != null) {
-      if (isPressed && !isRepeated) {
+      if (isKeyDown && !isKeyUp) {
         // Key press: start long press
         if (!_heldKeys.contains(action)) {
           _heldKeys.add(action);
           await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
           return 'Long press started: ${keyPair.logicalKey?.keyLabel}';
         }
-      } else if (!isPressed) {
+      } else if (isKeyUp && !isKeyDown) {
         // Key release: end long press
         if (_heldKeys.contains(action)) {
           _heldKeys.remove(action);
@@ -34,7 +34,7 @@ class DesktopActions extends BaseActions {
           return 'Long press ended: ${keyPair.logicalKey?.keyLabel}';
         }
       }
-      // Ignore repeated presses in long press mode
+      // Ignore other combinations in long press mode
       return 'Long press active: ${keyPair.logicalKey?.keyLabel}';
     }
 

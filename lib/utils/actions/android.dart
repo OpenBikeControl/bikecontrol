@@ -22,7 +22,7 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<String> performAction(ZwiftButton button, {bool isPressed = true, bool isRepeated = false}) async {
+  Future<String> performAction(ZwiftButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
       return ("Could not perform ${button.name}: No keymap set");
     }
@@ -36,7 +36,7 @@ class AndroidActions extends BaseActions {
           PhysicalKeyboardKey.audioVolumeUp => MediaAction.volumeUp,
           PhysicalKeyboardKey.audioVolumeDown => MediaAction.volumeDown,
           _ => throw SingleLineException("No action for key: ${keyPair.physicalKey}"),
-        });
+        }, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
         return "Key pressed: ${keyPair.toString()}";
       }
     }

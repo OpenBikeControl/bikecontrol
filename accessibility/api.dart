@@ -8,7 +8,7 @@ abstract class Accessibility {
 
   void performTouch(double x, double y);
 
-  void controlMedia(MediaAction action);
+  void controlMedia(MediaAction action, {bool isKeyDown = true, bool isKeyUp = false});
 }
 
 enum MediaAction { playPause, next, volumeUp, volumeDown }

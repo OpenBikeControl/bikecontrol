@@ -210,14 +210,14 @@ class Accessibility {
     }
   }
 
-  Future<void> controlMedia(MediaAction action) async {
+  Future<void> controlMedia(MediaAction action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.accessibility.Accessibility.controlMedia$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[action]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[action, isKeyDown, isKeyUp]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {

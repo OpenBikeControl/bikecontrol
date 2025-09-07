@@ -291,13 +291,15 @@ abstract class BaseDevice {
       await _vibrate();
     }
     for (final action in buttonsClicked) {
-      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action, isPressed: true, isRepeated: repeated)));
+      // For repeated actions, don't trigger key down/up events (useful for long press)
+      final isKeyDown = !repeated;
+      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action, isKeyDown: isKeyDown, isKeyUp: false)));
     }
   }
 
   Future<void> _performRelease(List<ZwiftButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
-      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action, isPressed: false, isRepeated: false)));
+      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true)));
     }
   }
 

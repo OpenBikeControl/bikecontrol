@@ -55,19 +55,35 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
     Observable.toService?.performTouch(x = x, y = y) ?: error("Service not running")
   }
 
-  override fun controlMedia(action: MediaAction) {
+  override fun controlMedia(action: MediaAction, isKeyDown: Boolean, isKeyUp: Boolean) {
     val audioService = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
     when (action) {
       MediaAction.PLAY_PAUSE -> {
-        audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
-        audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+        if (isKeyDown) {
+          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+        }
+        if (isKeyUp) {
+          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+        }
       }
       MediaAction.NEXT -> {
-        audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
-        audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
+        if (isKeyDown) {
+          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
+        }
+        if (isKeyUp) {
+          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
+        }
       }
-      MediaAction.VOLUME_DOWN -> audioService.adjustVolume(android.media.AudioManager.ADJUST_LOWER, android.media.AudioManager.FLAG_SHOW_UI)
-      MediaAction.VOLUME_UP -> audioService.adjustVolume(android.media.AudioManager.ADJUST_RAISE, android.media.AudioManager.FLAG_SHOW_UI)
+      MediaAction.VOLUME_DOWN -> {
+        if (isKeyDown) {
+          audioService.adjustVolume(android.media.AudioManager.ADJUST_LOWER, android.media.AudioManager.FLAG_SHOW_UI)
+        }
+      }
+      MediaAction.VOLUME_UP -> {
+        if (isKeyDown) {
+          audioService.adjustVolume(android.media.AudioManager.ADJUST_RAISE, android.media.AudioManager.FLAG_SHOW_UI)
+        }
+      }
     }
   }
 
