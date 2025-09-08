@@ -6,12 +6,26 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 List<Widget> buildMenuButtons() {
   return [
-    TextButton(
-      onPressed: () {
-        launchUrlString('https://paypal.me/boni');
+    PopupMenuButton(
+      itemBuilder: (BuildContext context) {
+        return [
+          PopupMenuItem(
+            child: Text('PayPal'),
+            onTap: () {
+              launchUrlString('https://paypal.me/boni');
+            },
+          ),
+          PopupMenuItem(
+            child: Text('Other'),
+            onTap: () {
+              launchUrlString('https://github.com/sponsors/jonasbark?frequency=one-time');
+            },
+          ),
+        ];
       },
-      child: Text('Donate ♥'),
+      icon: Text('Donate ♥', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
     ),
+    SizedBox(width: 8),
     const MenuButton(),
     SizedBox(width: 8),
   ];

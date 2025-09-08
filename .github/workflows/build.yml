@@ -13,7 +13,6 @@ on:
 
 jobs:
   build:
-    if: false
     name: Build & Release
     runs-on: macos-latest
 
