@@ -4,7 +4,7 @@
 
 ## Description
 
-With SwiftControl you can control your favorite trainer app using your Zwift Click, Zwift Ride or Zwift Play devices. Here's what you can do with it, depending on your configuration:
+With SwiftControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride or Zwift Play devices. Here's what you can do with it, depending on your configuration:
 - Virtual Gear shifting
 - Steering / turning
 - adjust workout intensity
@@ -35,23 +35,22 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 
 ## Supported Platforms
 - Android
+  - App is losing connection over time? Read about how to [keep the app alive](https://dontkillmyapp.com/).
 - macOS
 - Windows 
-  - make sure you have installed the "[Microsoft Visual C++ Runtime libraries](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)"
   - Windows may flag the app as virus. I think it does so because the app does control the mouse and keyboard.
+  - Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
 
 ## Troubleshooting
 - Your Zwift device is found but connection does not work properly? You may need to update the firmware in Zwift Companion app.
-- The **Android** app is losing connection over time? Read about how to [keep the app alive](https://dontkillmyapp.com/).
-- **Windows** bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
 
 ## How does it work?
-The app connects to your Zwift device automatically. 
+The app connects to your Zwift device automatically. It does not connect to your trainer itself.
 
-- When using Android a "click" on a certain part of the screen is simulated to trigger the action.
+- When using Android a touch on a certain part of the screen is simulated to trigger the action.
 - When using macOS or Windows a keyboard or mouse click is used to trigger the action. 
-  - there are predefined Keymaps for MyWhoosh and indieVelo / Training Peaks
+  - there are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - you can also create your own Keymaps for any other app
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
 
