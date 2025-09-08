@@ -21,7 +21,7 @@ class Connection {
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
 
-  final Map<BaseDevice, StreamSubscription<BleConnectionUpdate>> _connectionSubscriptions = {};
+  final Map<BaseDevice, StreamSubscription<bool>> _connectionSubscriptions = {};
   final StreamController<BaseDevice> _connectionStreams = StreamController<BaseDevice>.broadcast();
   Stream<BaseDevice> get connectionStream => _connectionStreams.stream;
 
@@ -128,7 +128,7 @@ class Connection {
         _actionStreams.add(data);
       });
       final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((state) {
-        bleDevice.isConnected = state.isConnected;
+        bleDevice.isConnected = state;
         _connectionStreams.add(bleDevice);
         if (!bleDevice.isConnected) {
           devices.remove(bleDevice);

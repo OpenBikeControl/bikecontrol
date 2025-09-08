@@ -12,7 +12,7 @@ dependencies:
 
   url_launcher: ^6.3.1
   flutter_local_notifications: ^19.0.0
-  universal_ble: any
+  universal_ble: ^0.21.1
   protobuf: ^3.1.0
   permission_handler: ^11.4.0
   dartx: any
@@ -23,7 +23,7 @@ dependencies:
   keypress_simulator:
     path: keypress_simulator/packages/keypress_simulator
   shared_preferences: ^2.5.3
-  flex_color_scheme: ^8.2.0
+  flex_color_scheme: ^8.3.0
   package_info_plus: ^8.3.0
   accessibility:
     path: accessibility
