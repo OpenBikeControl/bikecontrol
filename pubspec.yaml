@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
 
   url_launcher: ^6.3.1
-  flutter_local_notifications: ^19.0.0
+  flutter_local_notifications: ^19.4.1
   universal_ble: ^0.21.1
   protobuf: ^3.1.0
   permission_handler: ^11.4.0
