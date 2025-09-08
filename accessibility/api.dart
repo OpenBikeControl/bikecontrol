@@ -6,9 +6,9 @@ abstract class Accessibility {
 
   void openPermissions();
 
-  void performTouch(double x, double y);
+  void performTouch(double x, double y, {bool isKeyDown = true, bool isKeyUp = false});
 
-  void controlMedia(MediaAction action, {bool isKeyDown = true, bool isKeyUp = false});
+  void controlMedia(MediaAction action);
 }
 
 enum MediaAction { playPause, next, volumeUp, volumeDown }

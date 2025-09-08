@@ -18,35 +18,48 @@ class DesktopActions extends BaseActions {
     }
 
     // Handle long press mode
-    if (keyPair.isLongPress && keyPair.physicalKey != null) {
+    if (keyPair.isLongPress) {
       if (isKeyDown && !isKeyUp) {
         // Key press: start long press
         if (!_heldKeys.contains(action)) {
           _heldKeys.add(action);
-          await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
-          return 'Long press started: ${keyPair.logicalKey?.keyLabel}';
+          if (keyPair.physicalKey != null) {
+            await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
+            return 'Long press started: ${keyPair.logicalKey?.keyLabel}';
+          } else {
+            final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
+            await keyPressSimulator.simulateMouseClickDown(point);
+            return 'Long Mouse click started at: $point';
+          }
         }
       } else if (isKeyUp && !isKeyDown) {
         // Key release: end long press
         if (_heldKeys.contains(action)) {
           _heldKeys.remove(action);
-          await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
-          return 'Long press ended: ${keyPair.logicalKey?.keyLabel}';
+          if (keyPair.physicalKey != null) {
+            await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+            return 'Long press ended: ${keyPair.logicalKey?.keyLabel}';
+          } else {
+            final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
+            await keyPressSimulator.simulateMouseClickUp(point);
+            return 'Long Mouse click ended at: $point';
+          }
         }
       }
       // Ignore other combinations in long press mode
-      return 'Long press active: ${keyPair.logicalKey?.keyLabel}';
-    }
-
-    // Handle regular key press mode (existing behavior)
-    if (keyPair.physicalKey != null) {
-      await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
-      await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
-      return 'Key pressed: ${keyPair.logicalKey?.keyLabel}';
+      return 'Long press active';
     } else {
-      final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
-      await keyPressSimulator.simulateMouseClick(point);
-      return 'Mouse clicked at: $point';
+      // Handle regular key press mode (existing behavior)
+      if (keyPair.physicalKey != null) {
+        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
+        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+        return 'Key pressed: ${keyPair.logicalKey?.keyLabel}';
+      } else {
+        final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
+        await keyPressSimulator.simulateMouseClickDown(point);
+        await keyPressSimulator.simulateMouseClickUp(point);
+        return 'Mouse clicked at: $point';
+      }
     }
   }
 

@@ -8,7 +8,7 @@ object Observable {
 }
 
 interface Listener {
-    fun performTouch(x: Double, y: Double)
+    fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean)
 }
 
 interface Receiver {

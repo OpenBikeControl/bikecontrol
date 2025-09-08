@@ -8,10 +8,10 @@ import 'package:swift_control/bluetooth/devices/zwift_click.dart';
 import 'package:swift_control/bluetooth/devices/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
-import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../utils/crypto/encryption_utils.dart';
@@ -247,7 +247,7 @@ abstract class BaseDevice {
               } else if (buttonsClicked.isEmpty) {
                 actionStreamInternal.add(LogNotification('Buttons released'));
                 _longPressTimer?.cancel();
-                
+
                 // Handle release events for long press keys
                 final buttonsReleased = _previouslyPressedButtons.toList();
                 if (buttonsReleased.isNotEmpty) {
@@ -260,17 +260,22 @@ abstract class BaseDevice {
                 if (buttonsReleased.isNotEmpty) {
                   await _performRelease(buttonsReleased);
                 }
-                
-                // Update currently pressed buttons
-                _previouslyPressedButtons = buttonsClicked.toSet();
-                
-                if (!(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
-                    buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
-                  // we don't want to trigger the long press timer for the on/off buttons
+
+                final isLongPress =
+                    buttonsClicked.singleOrNull != null &&
+                    actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
+
+                if (!isLongPress &&
+                    !(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
+                        buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
+                  // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
                   _longPressTimer?.cancel();
                   _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
                     _performActions(buttonsClicked, true);
                   });
+                } else if (isLongPress) {
+                  // Update currently pressed buttons
+                  _previouslyPressedButtons = buttonsClicked.toSet();
                 }
 
                 _performActions(buttonsClicked, false);
@@ -293,13 +298,17 @@ abstract class BaseDevice {
     for (final action in buttonsClicked) {
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final isKeyDown = !repeated;
-      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action, isKeyDown: isKeyDown, isKeyUp: false)));
+      actionStreamInternal.add(
+        LogNotification(await actionHandler.performAction(action, isKeyDown: isKeyDown, isKeyUp: false)),
+      );
     }
   }
 
   Future<void> _performRelease(List<ZwiftButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
-      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true)));
+      actionStreamInternal.add(
+        LogNotification(await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true)),
+      );
     }
   }
 

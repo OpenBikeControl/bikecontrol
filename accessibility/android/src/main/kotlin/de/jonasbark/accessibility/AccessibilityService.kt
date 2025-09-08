@@ -45,23 +45,20 @@ class AccessibilityService : AccessibilityService(), Listener {
         return outBounds
     }
 
-    private fun simulateTap(x: Double, y: Double) {
-        val gestureBuilder = GestureDescription.Builder()
-        val path = Path()
-        path.moveTo(x.toFloat(), y.toFloat())
-        path.lineTo(x.toFloat()+1, y.toFloat())
-
-        val stroke = StrokeDescription(path, 0, ViewConfiguration.getTapTimeout().toLong())
-        gestureBuilder.addStroke(stroke)
-
-        dispatchGesture(gestureBuilder.build(), null, null)
-    }
 
     override fun onInterrupt() {
         Log.d("AccessibilityService", "Service Interrupted")
     }
 
-    override fun performTouch(x: Double, y: Double) {
-        simulateTap(x, y)
+    override fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean) {
+        val gestureBuilder = GestureDescription.Builder()
+        val path = Path()
+        path.moveTo(x.toFloat(), y.toFloat())
+        path.lineTo(x.toFloat()+1, y.toFloat())
+
+        val stroke = StrokeDescription(path, 0, ViewConfiguration.getTapTimeout().toLong(), isKeyDown)
+        gestureBuilder.addStroke(stroke)
+
+        dispatchGesture(gestureBuilder.build(), null, null)
     }
 }

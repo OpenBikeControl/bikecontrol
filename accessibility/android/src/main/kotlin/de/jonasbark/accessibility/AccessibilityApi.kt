@@ -4,7 +4,12 @@
 
 
 import android.util.Log
-import io.flutter.plugin.common.*
+import io.flutter.plugin.common.BasicMessageChannel
+import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MessageCodec
+import io.flutter.plugin.common.StandardMethodCodec
+import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -134,8 +139,8 @@ val AccessibilityApiPigeonMethodCodec = StandardMethodCodec(AccessibilityApiPige
 interface Accessibility {
   fun hasPermission(): Boolean
   fun openPermissions()
-  fun performTouch(x: Double, y: Double)
-  fun controlMedia(action: MediaAction, isKeyDown: Boolean = true, isKeyUp: Boolean = false)
+  fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean)
+  fun controlMedia(action: MediaAction)
 
   companion object {
     /** The codec used by Accessibility. */
@@ -184,8 +189,10 @@ interface Accessibility {
             val args = message as List<Any?>
             val xArg = args[0] as Double
             val yArg = args[1] as Double
+            val isKeyDownArg = args[2] as Boolean
+            val isKeyUpArg = args[3] as Boolean
             val wrapped: List<Any?> = try {
-              api.performTouch(xArg, yArg)
+              api.performTouch(xArg, yArg, isKeyDownArg, isKeyUpArg)
               listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)
@@ -202,10 +209,8 @@ interface Accessibility {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val actionArg = args[0] as MediaAction
-            val isKeyDownArg = if (args.size > 1) args[1] as Boolean else true
-            val isKeyUpArg = if (args.size > 2) args[2] as Boolean else false
             val wrapped: List<Any?> = try {
-              api.controlMedia(actionArg, isKeyDownArg, isKeyUpArg)
+              api.controlMedia(actionArg)
               listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)
@@ -237,9 +242,9 @@ private class AccessibilityApiPigeonStreamHandler<T>(
 }
 
 interface AccessibilityApiPigeonEventChannelWrapper<T> {
-  fun onListen(p0: Any?, sink: PigeonEventSink<T>) {}
+  open fun onListen(p0: Any?, sink: PigeonEventSink<T>) {}
 
-  fun onCancel(p0: Any?) {}
+  open fun onCancel(p0: Any?) {}
 }
 
 class PigeonEventSink<T>(private val sink: EventChannel.EventSink) {
@@ -255,7 +260,7 @@ class PigeonEventSink<T>(private val sink: EventChannel.EventSink) {
     sink.endOfStream()
   }
 }
-
+      
 abstract class StreamEventsStreamHandler : AccessibilityApiPigeonEventChannelWrapper<WindowEvent> {
   companion object {
     fun register(messenger: BinaryMessenger, streamHandler: StreamEventsStreamHandler, instanceName: String = "") {
@@ -268,4 +273,4 @@ abstract class StreamEventsStreamHandler : AccessibilityApiPigeonEventChannelWra
     }
   }
 }
-
+      

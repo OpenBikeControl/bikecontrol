@@ -41,7 +41,7 @@ abstract class KeyPressSimulatorPlatform extends PlatformInterface {
     throw UnimplementedError('simulateKeyPress() has not been implemented.');
   }
 
-  Future<void> simulateMouseClick(Offset position) {
+  Future<void> simulateMouseClick(Offset position, {required bool keyDown}) {
     throw UnimplementedError('simulateKeyPress() has not been implemented.');
   }
 }

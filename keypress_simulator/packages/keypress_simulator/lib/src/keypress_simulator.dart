@@ -20,8 +20,12 @@ class KeyPressSimulator {
     return _platform.requestAccess(onlyOpenPrefPane: onlyOpenPrefPane);
   }
 
-  Future<void> simulateMouseClick(Offset position) {
-    return _platform.simulateMouseClick(position);
+  Future<void> simulateMouseClickDown(Offset position) {
+    return _platform.simulateMouseClick(position, keyDown: true);
+  }
+
+  Future<void> simulateMouseClickUp(Offset position) {
+    return _platform.simulateMouseClick(position, keyDown: false);
   }
 
   /// Simulate key down.

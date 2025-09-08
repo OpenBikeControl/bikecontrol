@@ -105,7 +105,7 @@ class _DevicePageState extends State<DevicePage> {
                                   ),
                                 )
                                 .toList(),
-                        label: Text('Keymap'),
+                        label: Text('Select Keymap'),
                         onSelected: (app) async {
                           if (app == null) {
                             return;
