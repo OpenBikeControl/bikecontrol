@@ -87,33 +87,22 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
     }
   }
 
-  INPUT input[6];
+  WORD sc = (WORD)MapVirtualKey(keyCode, MAPVK_VK_TO_VSC);
 
-  for (int32_t i = 0; i < modifiers.size(); i++) {
-    if (modifiers[i].compare("shiftModifier") == 0) {
-      input[i].ki.wVk = VK_SHIFT;
-    } else if (modifiers[i].compare("controlModifier") == 0) {
-      input[i].ki.wVk = VK_CONTROL;
-    } else if (modifiers[i].compare("altModifier") == 0) {
-      input[i].ki.wVk = VK_MENU;
-    } else if (modifiers[i].compare("metaModifier") == 0) {
-      input[i].ki.wVk = VK_LWIN;
-    }
-
-    input[i].ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
-    input[i].type = INPUT_KEYBOARD;
+  INPUT in = {0};
+  in.type = INPUT_KEYBOARD;
+  in.ki.wVk = 0;                 // when using SCANCODE, set VK=0
+  in.ki.wScan = sc;
+  in.ki.dwFlags = KEYEVENTF_SCANCODE | (keyDown ? 0 : KEYEVENTF_KEYUP);
+  if (keyCode == VK_LEFT || keyCode == VK_RIGHT || keyCode == VK_UP || keyCode == VK_DOWN ||
+    keyCode == VK_INSERT || keyCode == VK_DELETE || keyCode == VK_HOME || keyCode == VK_END ||
+    keyCode == VK_PRIOR || keyCode == VK_NEXT) {
+    in.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
   }
+  SendInput(1, &in, sizeof(INPUT));
 
-  /*int keyIndex = static_cast<int>(modifiers.size());
-  input[keyIndex].ki.wVk = static_cast<WORD>(keyCode);
-  input[keyIndex].ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
-  input[keyIndex].type = INPUT_KEYBOARD;*/
-
-  // Send key sequence to system
-  //SendInput(static_cast<UINT>(std::size(input)), input, sizeof(INPUT));
-
-  BYTE byteValue = static_cast<BYTE>(keyCode);
-  keybd_event(byteValue, 0x45, keyDown ? 0 : KEYEVENTF_KEYUP, 0);
+  /*BYTE byteValue = static_cast<BYTE>(keyCode);
+  keybd_event(byteValue, 0x45, keyDown ? 0 : KEYEVENTF_KEYUP, 0);*/
 
   result->Success(flutter::EncodableValue(true));
 }

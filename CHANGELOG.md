@@ -1,5 +1,6 @@
 ### 2.2.0 (2025-01-03)
-- Add Long Press Mode option for custom keymaps - buttons can now send sustained key presses instead of repeated taps, perfect for movement controls in games
+- Add Long Press Mode option for custom keymaps - buttons can now send sustained key presses instead of repeated taps, perfect for movement controls in games (fixes #61)
+- Windows: adjust key sending method to improve compatibility with more apps (fixes #62)
 
 ### 2.1.0 (2025-07-03)
 - Windows: automatically focus compatible training apps (MyWhoosh, IndieVelo, Biketerra) when sending keystrokes, enabling seamless multi-window usage
