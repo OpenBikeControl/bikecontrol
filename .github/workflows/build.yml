@@ -179,6 +179,25 @@ jobs:
       - name: Zip directory (Windows)
         shell: pwsh
         run: |
+  
+          $source = "C:\Windows\System32"
+          $destination = "build\windows\x64\runner\Release"
+          
+          # List of required DLLs
+          $dlls = @("msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll")
+          
+          # Copy each file
+          foreach ($dll in $dlls) {
+            $srcPath = Join-Path $source $dll
+            $destPath = Join-Path $destination $dll
+              
+            if (Test-Path $srcPath) {
+              Copy-Item -Path $srcPath -Destination $destPath -Force
+              Write-Output "Copied $dll to $destination"
+            } else {
+              Write-Warning "$dll not found in $source"
+            }
+          }
           Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/SwiftControl.windows.zip"
 
       #9 Upload Artifacts
