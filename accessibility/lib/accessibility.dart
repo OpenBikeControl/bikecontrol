@@ -187,14 +187,14 @@ class Accessibility {
     }
   }
 
-  Future<void> performTouch(double x, double y) async {
+  Future<void> performTouch(double x, double y, {bool isKeyDown = true, bool isKeyUp = false, }) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.accessibility.Accessibility.performTouch$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[x, y]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[x, y, isKeyDown, isKeyUp]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {

@@ -69,7 +69,7 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
   // List of compatible training apps to look for
   std::vector<std::string> compatibleApps = {
     "MyWhooshHD.exe",
-    "indieVelo.exe", 
+    "indieVelo.exe",
     "biketerra.exe"
   };
 
@@ -126,6 +126,7 @@ void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
   double x = 0;
   double y = 0;
 
+  bool keyDown = std::get<bool>(args.at(EncodableValue("keyDown")));
   auto it_x = args.find(EncodableValue("x"));
   if (it_x != args.end() && std::holds_alternative<double>(it_x->second)) {
       x = std::get<double>(it_x->second);
@@ -143,29 +144,32 @@ void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
   INPUT input = {0};
   input.type = INPUT_MOUSE;
 
-  // Mouse left button down
-  input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-  SendInput(1, &input, sizeof(INPUT));
+  if (keyDown) {
+      // Mouse left button down
+      input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+      SendInput(1, &input, sizeof(INPUT));
 
-  // Mouse left button up
-  input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-  SendInput(1, &input, sizeof(INPUT));
+  } else {
+      // Mouse left button up
+      input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+      SendInput(1, &input, sizeof(INPUT));
+  }
 
   result->Success(flutter::EncodableValue(true));
 }
 
 BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam) {
   FindWindowData* data = reinterpret_cast<FindWindowData*>(lParam);
-  
+
   // Check if window is visible and not minimized
   if (!IsWindowVisible(hwnd) || IsIconic(hwnd)) {
     return TRUE; // Continue enumeration
   }
-  
+
   // Get window title
   char windowTitle[256];
   GetWindowTextA(hwnd, windowTitle, sizeof(windowTitle));
-  
+
   // Get process name
   DWORD processId;
   GetWindowThreadProcessId(hwnd, &processId);
@@ -181,9 +185,9 @@ BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam) {
       } else {
         filename = processName;
       }
-      
+
       // Check if this matches our target
-      if (!data->targetProcessName.empty() && 
+      if (!data->targetProcessName.empty() &&
           _stricmp(filename, data->targetProcessName.c_str()) == 0) {
         data->foundWindow = hwnd;
         return FALSE; // Stop enumeration
@@ -191,14 +195,14 @@ BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam) {
     }
     CloseHandle(hProcess);
   }
-  
+
   // Check window title if process name didn't match
-  if (!data->targetWindowTitle.empty() && 
+  if (!data->targetWindowTitle.empty() &&
       _stricmp(windowTitle, data->targetWindowTitle.c_str()) == 0) {
     data->foundWindow = hwnd;
     return FALSE; // Stop enumeration
   }
-  
+
   return TRUE; // Continue enumeration
 }
 
@@ -207,7 +211,7 @@ HWND FindTargetWindow(const std::string& processName, const std::string& windowT
   data.targetProcessName = processName;
   data.targetWindowTitle = windowTitle;
   data.foundWindow = NULL;
-  
+
   EnumWindows(EnumWindowsCallback, reinterpret_cast<LPARAM>(&data));
   return data.foundWindow;
 }

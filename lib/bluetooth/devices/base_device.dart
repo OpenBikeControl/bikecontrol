@@ -8,6 +8,7 @@ import 'package:swift_control/bluetooth/devices/zwift_click.dart';
 import 'package:swift_control/bluetooth/devices/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
@@ -29,6 +30,7 @@ abstract class BaseDevice {
 
   BleCharacteristic? syncRxCharacteristic;
   Timer? _longPressTimer;
+  Set<ZwiftButton> _previouslyPressedButtons = <ZwiftButton>{};
 
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
@@ -245,14 +247,35 @@ abstract class BaseDevice {
               } else if (buttonsClicked.isEmpty) {
                 actionStreamInternal.add(LogNotification('Buttons released'));
                 _longPressTimer?.cancel();
+
+                // Handle release events for long press keys
+                final buttonsReleased = _previouslyPressedButtons.toList();
+                if (buttonsReleased.isNotEmpty) {
+                  await _performRelease(buttonsReleased);
+                }
+                _previouslyPressedButtons.clear();
               } else {
-                if (!(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
-                    buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
-                  // we don't want to trigger the long press timer for the on/off buttons
+                // Handle release events for buttons that are no longer pressed
+                final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
+                if (buttonsReleased.isNotEmpty) {
+                  await _performRelease(buttonsReleased);
+                }
+
+                final isLongPress =
+                    buttonsClicked.singleOrNull != null &&
+                    actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
+
+                if (!isLongPress &&
+                    !(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
+                        buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
+                  // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
                   _longPressTimer?.cancel();
                   _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
                     _performActions(buttonsClicked, true);
                   });
+                } else if (isLongPress) {
+                  // Update currently pressed buttons
+                  _previouslyPressedButtons = buttonsClicked.toSet();
                 }
 
                 _performActions(buttonsClicked, false);
@@ -273,7 +296,19 @@ abstract class BaseDevice {
       await _vibrate();
     }
     for (final action in buttonsClicked) {
-      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
+      // For repeated actions, don't trigger key down/up events (useful for long press)
+      final isKeyDown = !repeated;
+      actionStreamInternal.add(
+        LogNotification(await actionHandler.performAction(action, isKeyDown: isKeyDown, isKeyUp: false)),
+      );
+    }
+  }
+
+  Future<void> _performRelease(List<ZwiftButton> buttonsReleased) async {
+    for (final action in buttonsReleased) {
+      actionStreamInternal.add(
+        LogNotification(await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true)),
+      );
     }
   }
 
@@ -286,5 +321,16 @@ abstract class BaseDevice {
       supportsEncryption ? zapEncryption.encrypt(vibrateCommand) : vibrateCommand,
       BleOutputProperty.withoutResponse,
     );
+  }
+
+  Future<void> disconnect() async {
+    _longPressTimer?.cancel();
+    _previouslyPressedButtons.clear();
+    // Release any held keys in long press mode
+    if (actionHandler is DesktopActions) {
+      await (actionHandler as DesktopActions).releaseAllHeldKeys();
+    }
+    await UniversalBle.disconnect(device.deviceId);
+    isConnected = false;
   }
 }

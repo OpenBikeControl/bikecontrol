@@ -62,6 +62,7 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
 
         let x: Double = args["x"] as! Double
         let y: Double = args["y"] as! Double
+        let keyDown: Bool = args["keyDown"] as! Bool
 
         let point = CGPoint(x: x, y: y)
 
@@ -72,19 +73,21 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
                            mouseButton: .left)
         move?.post(tap: .cghidEventTap)*/
 
-        // Mouse down
-        let mouseDown = CGEvent(mouseEventSource: nil,
-                                mouseType: .leftMouseDown,
-                                mouseCursorPosition: point,
-                                mouseButton: .left)
-        mouseDown?.post(tap: .cghidEventTap)
-
-        // Mouse up
-        let mouseUp = CGEvent(mouseEventSource: nil,
-                              mouseType: .leftMouseUp,
-                              mouseCursorPosition: point,
-                              mouseButton: .left)
-        mouseUp?.post(tap: .cghidEventTap)
+        if (keyDown) {
+            // Mouse down
+            let mouseDown = CGEvent(mouseEventSource: nil,
+                                    mouseType: .leftMouseDown,
+                                    mouseCursorPosition: point,
+                                    mouseButton: .left)
+            mouseDown?.post(tap: .cghidEventTap)
+        } else {
+            // Mouse up
+            let mouseUp = CGEvent(mouseEventSource: nil,
+                                  mouseType: .leftMouseUp,
+                                  mouseCursorPosition: point,
+                                  mouseButton: .left)
+            mouseUp?.post(tap: .cghidEventTap)
+        }
         result(true)
     }
 

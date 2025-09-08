@@ -24,10 +24,12 @@ class _AppTitleState extends State<AppTitle> {
     final response = await http.get(Uri.parse('https://api.github.com/repos/jonasbark/swiftcontrol/releases/latest'));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final latestVersion = data['tag_name'].split('+').first;
+      final tagName = data['tag_name'] as String;
+      final latestVersion = tagName.split('+').first;
       final currentVersion = 'v${_packageInfoValue!.version}';
 
-      if (latestVersion != null && latestVersion != currentVersion) {
+      // we anything but +0 is considered beta
+      if (latestVersion != currentVersion && tagName.endsWith("+0")) {
         final assets = data['assets'] as List;
         if (Platform.isAndroid) {
           final apkUrl = assets.firstOrNullWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];

@@ -22,7 +22,7 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<String> performAction(ZwiftButton button) async {
+  Future<String> performAction(ZwiftButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
       return ("Could not perform ${button.name}: No keymap set");
     }
@@ -42,9 +42,9 @@ class AndroidActions extends BaseActions {
     }
     final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo);
     if (point != Offset.zero) {
-      accessibilityHandler.performTouch(point.dx, point.dy);
-      return "No touch performed";
+      accessibilityHandler.performTouch(point.dx, point.dy, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+      return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()}";
     }
-    return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()}";
+    return "No touch performed";
   }
 }

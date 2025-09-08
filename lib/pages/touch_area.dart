@@ -91,6 +91,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               buttons: [_pressedButton!],
               physicalKey: null,
               logicalKey: null,
+              isLongPress: false,
             ),
           );
           setState(() {});
@@ -98,7 +99,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
           // open menu
           if (Platform.isMacOS || Platform.isWindows) {
             await Future.delayed(Duration(milliseconds: 300));
-            await keyPressSimulator.simulateMouseClick(keyPair.touchPosition);
+            await keyPressSimulator.simulateMouseClickDown(keyPair.touchPosition);
+            await keyPressSimulator.simulateMouseClickUp(keyPair.touchPosition);
           }
         }
       }
@@ -121,7 +123,10 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             (context) => [
               PopupMenuItem<PhysicalKeyboardKey>(
                 value: null,
-                child: const Text('Set Keyboard shortcut'),
+                child: ListTile(
+                  leading: Icon(Icons.keyboard_alt_outlined),
+                  title: const Text('Simulate Keyboard shortcut'),
+                ),
                 onTap: () async {
                   await showDialog<void>(
                     context: context,
@@ -133,6 +138,32 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   setState(() {});
                 },
               ),
+              PopupMenuItem<PhysicalKeyboardKey>(
+                value: null,
+                child: ListTile(title: const Text('Simulate Touch'), leading: Icon(Icons.touch_app_outlined)),
+                onTap: () {
+                  keyPair.physicalKey = null;
+                  keyPair.logicalKey = null;
+                  setState(() {});
+                },
+              ),
+              PopupMenuItem<PhysicalKeyboardKey>(
+                value: null,
+                onTap: () {
+                  keyPair.isLongPress = !keyPair.isLongPress;
+                  setState(() {});
+                },
+                child: CheckboxListTile(
+                  value: keyPair.isLongPress,
+                  onChanged: (value) {
+                    keyPair.isLongPress = value ?? false;
+                    setState(() {});
+                    Navigator.of(context).pop();
+                  },
+                  title: const Text('Long Press Mode (vs. repeating)'),
+                ),
+              ),
+              PopupMenuDivider(),
               PopupMenuItem(
                 child: PopupMenuButton<PhysicalKeyboardKey>(
                   padding: EdgeInsets.zero,
@@ -169,25 +200,17 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
                     setState(() {});
                   },
-                  child: SizedBox(
-                    height: 50,
-                    width: 180,
-                    child: Align(alignment: Alignment.centerLeft, child: Text('Set Media key')),
+                  child: ListTile(
+                    leading: Icon(Icons.music_note_outlined),
+                    trailing: Icon(Icons.arrow_right),
+                    title: Text('Simulate Media key'),
                   ),
                 ),
               ),
+              PopupMenuDivider(),
               PopupMenuItem<PhysicalKeyboardKey>(
                 value: null,
-                child: const Text('Use as touch button'),
-                onTap: () {
-                  keyPair.physicalKey = null;
-                  keyPair.logicalKey = null;
-                  setState(() {});
-                },
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: null,
-                child: const Text('Remove'),
+                child: ListTile(title: const Text('Delete Keymap'), leading: Icon(Icons.delete, color: Colors.red)),
                 onTap: () {
                   actionHandler.supportedApp!.keymap.keyPairs.remove(keyPair);
                   setState(() {});
@@ -317,7 +340,10 @@ class _TouchDot extends StatelessWidget {
           decoration: BoxDecoration(
             color: color.withOpacity(0.6),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.black, width: 2),
+            border: Border.all(
+              color: keyPair.isLongPress ? Colors.green : Colors.black,
+              width: keyPair.isLongPress ? 3 : 2,
+            ),
           ),
           child: Icon(
             keyPair.isSpecialKey
@@ -344,6 +370,8 @@ class _TouchDot extends StatelessWidget {
                   PhysicalKeyboardKey.audioVolumeDown => 'Media: Volume Down',
                   _ => keyPair.logicalKey?.keyLabel ?? 'Unknown',
                 }, style: TextStyle(color: Colors.black87, fontSize: 12)),
+              if (keyPair.isLongPress)
+                Text('Long Press', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
         ),

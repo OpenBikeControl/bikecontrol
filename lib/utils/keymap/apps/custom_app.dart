@@ -42,14 +42,21 @@ class CustomApp extends SupportedApp {
     ZwiftButton zwiftButton, {
     required PhysicalKeyboardKey physicalKey,
     required LogicalKeyboardKey? logicalKey,
+    bool isLongPress = false,
   }) {
     // set the key for the zwift button
     final keyPair = keymap.getKeyPair(zwiftButton);
     if (keyPair != null) {
       keyPair.physicalKey = physicalKey;
       keyPair.logicalKey = logicalKey;
+      keyPair.isLongPress = isLongPress;
     } else {
-      keymap.keyPairs.add(KeyPair(buttons: [zwiftButton], physicalKey: physicalKey, logicalKey: logicalKey));
+      keymap.keyPairs.add(KeyPair(
+        buttons: [zwiftButton], 
+        physicalKey: physicalKey, 
+        logicalKey: logicalKey,
+        isLongPress: isLongPress,
+      ));
     }
   }
 }

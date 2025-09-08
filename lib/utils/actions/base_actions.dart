@@ -9,12 +9,12 @@ abstract class BaseActions {
     this.supportedApp = supportedApp;
   }
 
-  Future<String> performAction(ZwiftButton action);
+  Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false});
 }
 
 class StubActions extends BaseActions {
   @override
-  Future<String> performAction(ZwiftButton action) {
+  Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
     return Future.value(action.name);
   }
 }

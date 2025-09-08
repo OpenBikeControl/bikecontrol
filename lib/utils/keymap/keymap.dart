@@ -17,7 +17,7 @@ class Keymap {
       separator: ('\n---------\n'),
       transform:
           (k) =>
-              '''Button: ${k.buttons.joinToString(transform: (e) => e.name)}\nKeyboard key: ${k.logicalKey?.keyLabel ?? 'Not assigned'}\nAction: ${k.buttons.firstOrNull?.action}${k.touchPosition != Offset.zero ? '\nTouch Position: ${k.touchPosition.toString()}' : ''}''',
+              '''Button: ${k.buttons.joinToString(transform: (e) => e.name)}\nKeyboard key: ${k.logicalKey?.keyLabel ?? 'Not assigned'}\nAction: ${k.buttons.firstOrNull?.action}${k.touchPosition != Offset.zero ? '\nTouch Position: ${k.touchPosition.toString()}' : ''}${k.isLongPress ? '\nLong Press: Enabled' : ''}''',
     );
   }
 
@@ -41,12 +41,14 @@ class KeyPair {
   PhysicalKeyboardKey? physicalKey;
   LogicalKeyboardKey? logicalKey;
   Offset touchPosition;
+  bool isLongPress;
 
   KeyPair({
     required this.buttons,
     required this.physicalKey,
     required this.logicalKey,
     this.touchPosition = Offset.zero,
+    this.isLongPress = false,
   });
 
   bool get isSpecialKey =>
@@ -78,6 +80,7 @@ class KeyPair {
       'logicalKey': logicalKey?.keyId.toString() ?? '0',
       'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
       'touchPosition': {'x': touchPosition.dx, 'y': touchPosition.dy},
+      'isLongPress': isLongPress,
     });
   }
 
@@ -96,6 +99,7 @@ class KeyPair {
       physicalKey:
           int.parse(decoded['physicalKey']) != 0 ? PhysicalKeyboardKey(int.parse(decoded['physicalKey'])) : null,
       touchPosition: Offset(decoded['touchPosition']['x'], decoded['touchPosition']['y']),
+      isLongPress: decoded['isLongPress'] ?? false,
     );
   }
 }

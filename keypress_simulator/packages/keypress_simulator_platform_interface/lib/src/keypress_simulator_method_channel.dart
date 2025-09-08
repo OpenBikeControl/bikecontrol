@@ -53,10 +53,11 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
   }
 
   @override
-  Future<void> simulateMouseClick(Offset position) async {
-    final Map<String, double> arguments = {
+  Future<void> simulateMouseClick(Offset position, {required bool keyDown}) async {
+    final Map<String, Object?> arguments = {
       'x': position.dx,
       'y': position.dy,
+      'keyDown': keyDown,
     };
     await methodChannel.invokeMethod('simulateMouseClick', arguments);
   }
