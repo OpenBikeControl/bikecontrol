@@ -5,6 +5,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift_click.dart';
+import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
 import 'package:swift_control/main.dart';
@@ -41,7 +42,7 @@ abstract class BaseDevice {
       //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
       // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
       'Zwift Play' => ZwiftPlay(scanResult),
-      'Zwift Click' => ZwiftClick(scanResult),
+      //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the right controller
       _ => null,
     };
 
@@ -63,6 +64,7 @@ abstract class BaseDevice {
         DeviceType.playLeft => ZwiftPlay(scanResult),
         //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
         DeviceType.rideLeft => ZwiftRide(scanResult),
+        DeviceType.clickV2Right => ZwiftClickV2(scanResult),
         _ => null,
       };
     }
@@ -125,25 +127,15 @@ abstract class BaseDevice {
       throw Exception('Characteristics not found');
     }
 
-    await UniversalBle.setNotifiable(
-      device.deviceId,
-      customService.uuid,
-      asyncCharacteristic.uuid,
-      BleInputProperty.notification,
-    );
-    await UniversalBle.setNotifiable(
-      device.deviceId,
-      customService.uuid,
-      syncTxCharacteristic.uuid,
-      BleInputProperty.indication,
-    );
+    await UniversalBle.subscribeNotifications(device.deviceId, customService.uuid, asyncCharacteristic.uuid);
+    await UniversalBle.subscribeIndications(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
 
     await _setupHandshake();
   }
 
   Future<void> _setupHandshake() async {
     if (supportsEncryption) {
-      await UniversalBle.writeValue(
+      await UniversalBle.write(
         device.deviceId,
         customServiceId,
         syncRxCharacteristic!.uuid,
@@ -152,15 +144,15 @@ abstract class BaseDevice {
           ...Constants.REQUEST_START,
           ...zapEncryption.localKeyProvider.getPublicKeyBytes(),
         ]),
-        BleOutputProperty.withoutResponse,
+        withoutResponse: true,
       );
     } else {
-      await UniversalBle.writeValue(
+      await UniversalBle.write(
         device.deviceId,
         customServiceId,
         syncRxCharacteristic!.uuid,
         Constants.RIDE_ON,
-        BleOutputProperty.withoutResponse,
+        withoutResponse: true,
       );
     }
   }

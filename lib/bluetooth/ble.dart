@@ -9,7 +9,7 @@ class BleUuid {
 }
 
 class Constants {
-  static const ZWIFT_MANUFACTURER_ID = 2378; // Zwift, Inc
+  static const ZWIFT_MANUFACTURER_ID = 2378; // Zwift, Inc => 0x094A
 
   // Zwift Play = RC1
   static const RC1_LEFT_SIDE = 0x03;
@@ -21,6 +21,9 @@ class Constants {
 
   // Zwift Click = BC1
   static const BC1 = 0x09;
+
+  // Zwift Click v2 Right (unconfirmed)
+  static const CLICK_RIGHT_SIDE = 0x0A;
 
   static final RIDE_ON = Uint8List.fromList([0x52, 0x69, 0x64, 0x65, 0x4f, 0x6e]);
   static final VIBRATE_PATTERN = Uint8List.fromList([0x12, 0x12, 0x08, 0x0A, 0x06, 0x08, 0x02, 0x10, 0x00, 0x18]);
@@ -46,6 +49,7 @@ class Constants {
 
 enum DeviceType {
   click,
+  clickV2Right,
   playLeft,
   playRight,
   rideRight,
@@ -61,6 +65,8 @@ enum DeviceType {
     switch (data) {
       case Constants.BC1:
         return DeviceType.click;
+      case Constants.CLICK_RIGHT_SIDE:
+        return DeviceType.clickV2Right;
       case Constants.RC1_LEFT_SIDE:
         return DeviceType.playLeft;
       case Constants.RC1_RIGHT_SIDE:

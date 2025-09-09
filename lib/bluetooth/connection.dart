@@ -34,11 +34,15 @@ class Connection {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
         _lastScanResult.add(result);
         final scanResult = BaseDevice.fromScanResult(result);
-        _actionStreams.add(
-          LogNotification('Found new device: ${result.name ?? scanResult?.runtimeType ?? result.deviceId}'),
-        );
+
         if (scanResult != null) {
+          _actionStreams.add(LogNotification('Found new device: ${scanResult.runtimeType}'));
           _addDevices([scanResult]);
+        } else {
+          final manufacturerData = result.manufacturerDataList;
+          final data =
+              manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+          _actionStreams.add(LogNotification('Found unknown device with identifier: ${data?.firstOrNull}'));
         }
       }
     };
