@@ -42,7 +42,7 @@ abstract class BaseDevice {
       //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
       // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
       'Zwift Play' => ZwiftPlay(scanResult),
-      //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the right controller
+      //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the left controller
       _ => null,
     };
 
@@ -62,9 +62,10 @@ abstract class BaseDevice {
         DeviceType.click => ZwiftClick(scanResult),
         DeviceType.playRight => ZwiftPlay(scanResult),
         DeviceType.playLeft => ZwiftPlay(scanResult),
-        //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
         DeviceType.rideLeft => ZwiftRide(scanResult),
-        DeviceType.clickV2Right => ZwiftClickV2(scanResult),
+        //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
+        DeviceType.clickV2Left => ZwiftClickV2(scanResult),
+        //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
         _ => null,
       };
     }
