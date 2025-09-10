@@ -91,7 +91,7 @@ class _AppTitleState extends State<AppTitle> {
         Text('SwiftControl'),
         if (_packageInfoValue != null)
           Text(
-            'v${_packageInfoValue!.version}',
+            'v${_packageInfoValue!.version}+${_packageInfoValue!.buildNumber}',
             style: TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
           )
         else
