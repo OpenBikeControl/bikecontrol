@@ -1,5 +1,5 @@
-### 2.2.1 (2025-09-09) BETA
-- Attempt to add support for latest Zwift Click v2
+### 2.3.0 (2025-09-11)
+- Add support for latest Zwift Click v2
 
 ### 2.2.0 (2025-09-08)
 - Add Long Press Mode option for custom keymaps - buttons can now send sustained key presses instead of repeated taps, perfect for movement controls in games (fixes #61)
