@@ -30,6 +30,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 
 ## Supported Devices
 - Zwift Click
+- Zwift Click v2
 - Zwift Ride
 - Zwift Play
 
