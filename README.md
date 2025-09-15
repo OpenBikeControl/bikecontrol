@@ -42,6 +42,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
   - Windows may flag the app as virus. I think it does so because the app does control the mouse and keyboard.
   - Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
+- NOT SUPPORTED: iOS (iPhone, iPad) as Apple does not provide any way to simulate touches or keyboard events
 
 ## Troubleshooting
 - Your Zwift device is found but connection does not work properly? You may need to update the firmware in Zwift Companion app.
