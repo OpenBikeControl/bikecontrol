@@ -307,12 +307,12 @@ abstract class BaseDevice {
 
   Future<void> _vibrate() async {
     final vibrateCommand = Uint8List.fromList([...Constants.VIBRATE_PATTERN, 0x20]);
-    await UniversalBle.writeValue(
+    await UniversalBle.write(
       device.deviceId,
       customServiceId,
       syncRxCharacteristic!.uuid,
       supportsEncryption ? zapEncryption.encrypt(vibrateCommand) : vibrateCommand,
-      BleOutputProperty.withoutResponse,
+      withoutResponse: true,
     );
   }
 

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -10,15 +13,20 @@ List<Widget> buildMenuButtons() {
       itemBuilder: (BuildContext context) {
         return [
           PopupMenuItem(
-            child: Text('PayPal'),
+            child: Text('via Credit Card, Google Pay, Apple Pay and others'),
             onTap: () {
-              launchUrlString('https://paypal.me/boni');
+              final currency = NumberFormat.simpleCurrency(locale: Platform.localeName);
+              final link = switch (currency.currencyName) {
+                'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
+                _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
+              };
+              launchUrlString(link);
             },
           ),
           PopupMenuItem(
-            child: Text('Other'),
+            child: Text('via PayPal'),
             onTap: () {
-              launchUrlString('https://github.com/sponsors/jonasbark?frequency=one-time');
+              launchUrlString('https://paypal.me/boni');
             },
           ),
         ];
