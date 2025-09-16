@@ -17,7 +17,7 @@ List<Widget> buildMenuButtons() {
           PopupMenuItem(
             child: Text('via Credit Card, Google Pay, Apple Pay and others'),
             onTap: () {
-              final currency = NumberFormat.simpleCurrency(locale: Platform.localeName);
+              final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
               final link = switch (currency.currencyName) {
                 'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
                 _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
