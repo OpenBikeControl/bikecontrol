@@ -71,6 +71,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
           _pressedButton!,
           physicalKey: _pressedKey!.physicalKey,
           logicalKey: _pressedKey!.logicalKey,
+          touchPosition: widget.keyPair?.touchPosition,
         );
       }
     });

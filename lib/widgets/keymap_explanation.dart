@@ -1,0 +1,148 @@
+import 'package:dartx/dartx.dart';
+import 'package:flutter/material.dart';
+import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
+
+class KeymapExplanation extends StatelessWidget {
+  final Keymap keymap;
+  final VoidCallback onUpdate;
+  const KeymapExplanation({super.key, required this.keymap, required this.onUpdate});
+
+  @override
+  Widget build(BuildContext context) {
+    final keyboardGroups = keymap.keyPairs
+        .filter((e) => e.physicalKey != null)
+        .groupBy((element) => '${element.physicalKey}-${element.isLongPress}');
+    final touchGroups = keymap.keyPairs
+        .filter((e) => e.physicalKey == null && e.touchPosition != Offset.zero)
+        .groupBy((element) => '${element.touchPosition}-${element.isLongPress}');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      spacing: 8,
+      children: [
+        if (keymap.keyPairs.isEmpty)
+          Text('No key mappings found. Please customize the keymap.')
+        else
+          Table(
+            border: TableBorder.all(color: Theme.of(context).colorScheme.primaryContainer),
+            children: [
+              TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Text(
+                      'Button on your ${connection.devices.firstOrNull?.device.name ?? connection.devices.firstOrNull?.runtimeType}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Text(
+                      'Action',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              for (final pair in keyboardGroups.entries) ...[
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final keyPair in pair.value)
+                            for (final button in keyPair.buttons)
+                              IntrinsicWidth(child: _KeyWidget(label: button.name.splitByUpperCase())),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Row(
+                        spacing: 8,
+                        children: [
+                          Icon(Icons.keyboard, size: 16),
+                          _KeyWidget(label: pair.value.first.logicalKey?.keyLabel ?? ''),
+                          if (pair.value.first.isLongPress) Text('using long press'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              for (final pair in touchGroups.entries) ...[
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Row(
+                        spacing: 8,
+                        children: [
+                          for (final keyPair in pair.value)
+                            for (final button in keyPair.buttons) _KeyWidget(label: button.name.splitByUpperCase()),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Row(
+                        spacing: 8,
+                        children: [
+                          Icon(Icons.touch_app, size: 16),
+                          _KeyWidget(
+                            label:
+                                'x: ${pair.value.first.touchPosition.dx.toInt()}, y: ${pair.value.first.touchPosition.dy.toInt()}',
+                          ),
+
+                          if (pair.value.first.isLongPress) Text('using long press'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _KeyWidget extends StatelessWidget {
+  final String label;
+  const _KeyWidget({super.key, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      constraints: BoxConstraints(minWidth: 30),
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).colorScheme.primary),
+        borderRadius: BorderRadius.circular(4),
+        color: Theme.of(context).colorScheme.primaryContainer,
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+extension on String {
+  String splitByUpperCase() {
+    return replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (match) => '${match.group(1)} ${match.group(2)}').capitalize();
+  }
+}

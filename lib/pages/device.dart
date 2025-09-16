@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
+import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/title.dart';
 
@@ -57,7 +58,7 @@ class _DevicePageState extends State<DevicePage> {
             actions: buildMenuButtons(),
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           ),
-          body: Padding(
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,80 +71,92 @@ class _DevicePageState extends State<DevicePage> {
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
                 if (!kIsWeb)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  Column(
+                    spacing: 12,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      DropdownMenu<SupportedApp>(
-                        controller: controller,
-                        dropdownMenuEntries:
-                            SupportedApp.supportedApps
-                                .map(
-                                  (app) => DropdownMenuEntry<SupportedApp>(
-                                    value: app,
-                                    label: app.name,
-                                    trailingIcon: IconButton(
-                                      icon: Icon(Icons.info_outline),
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder:
-                                              (context) => AlertDialog(
-                                                title: Text(app.name),
-                                                content: SelectableText(app.keymap.toString()),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => Navigator.of(context).pop(),
-                                                    child: Text('OK'),
-                                                  ),
-                                                ],
-                                              ),
-                                        );
-                                      },
+                      Flex(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        direction: MediaQuery.sizeOf(context).width > 600 ? Axis.horizontal : Axis.vertical,
+                        spacing: 8,
+                        children: [
+                          DropdownMenu<SupportedApp>(
+                            controller: controller,
+                            dropdownMenuEntries:
+                                SupportedApp.supportedApps
+                                    .map((app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name))
+                                    .toList(),
+                            label: Text('Select Keymap'),
+                            onSelected: (app) async {
+                              if (app == null) {
+                                return;
+                              }
+                              controller.text = app.name ?? '';
+                              actionHandler.supportedApp = app;
+                              settings.setApp(app);
+                              setState(() {});
+                              if (app is! CustomApp && !kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+                                _snackBarMessengerKey.currentState!.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Customize the keymap if you experience any issues (e.g. wrong keyboard output)',
                                     ),
                                   ),
-                                )
-                                .toList(),
-                        label: Text('Select Keymap'),
-                        onSelected: (app) async {
-                          if (app == null) {
-                            return;
-                          }
-                          controller.text = app.name ?? '';
-                          actionHandler.supportedApp = app;
-                          settings.setApp(app);
-                          setState(() {});
-                          if (app is! CustomApp && !kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
-                            _snackBarMessengerKey.currentState!.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Use Custom keymap if you experience any issues (e.g. wrong keyboard output)',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        initialSelection: actionHandler.supportedApp,
-                        hintText: 'Select your Keymap',
-                      ),
+                                );
+                              }
+                            },
+                            initialSelection: actionHandler.supportedApp,
+                            hintText: 'Select your Keymap',
+                          ),
 
-                      if (actionHandler.supportedApp is CustomApp)
-                        ElevatedButton(
-                          onPressed: () async {
-                            final result = await Navigator.of(
-                              context,
-                            ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
-                            if (result == true && actionHandler.supportedApp is CustomApp) {
-                              settings.setApp(actionHandler.supportedApp!);
-                            }
+                          ElevatedButton(
+                            onPressed: () async {
+                              if (actionHandler.supportedApp! is! CustomApp) {
+                                final customApp = CustomApp();
+
+                                actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
+                                  pair.buttons.forEachIndexed((button, indexB) {
+                                    customApp.setKey(
+                                      button,
+                                      physicalKey: pair.physicalKey!,
+                                      logicalKey: pair.logicalKey,
+                                      isLongPress: pair.isLongPress,
+                                      touchPosition:
+                                          pair.touchPosition != Offset.zero
+                                              ? pair.touchPosition
+                                              : Offset(((indexB + 1)) * 100, 200 + (index * 100)),
+                                    );
+                                  });
+                                });
+
+                                actionHandler.supportedApp = customApp;
+                                settings.setApp(customApp);
+                              }
+                              final result = await Navigator.of(
+                                context,
+                              ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
+                              if (result == true && actionHandler.supportedApp is CustomApp) {
+                                settings.setApp(actionHandler.supportedApp!);
+                              }
+                              setState(() {});
+                            },
+                            child: Text('Customize Keymap'),
+                          ),
+                        ],
+                      ),
+                      if (actionHandler.supportedApp != null)
+                        KeymapExplanation(
+                          key: Key(actionHandler.supportedApp!.keymap.runtimeType.toString()),
+                          keymap: actionHandler.supportedApp!.keymap,
+                          onUpdate: () {
                             setState(() {});
+                            controller.text = actionHandler.supportedApp?.name ?? '';
                           },
-                          child: Text('Customize Keymap'),
                         ),
                     ],
                   ),
-                Expanded(child: LogViewer()),
+                SizedBox(height: 800, child: LogViewer()),
               ],
             ),
           ),

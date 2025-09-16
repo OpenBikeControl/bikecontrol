@@ -7,6 +7,8 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../pages/device.dart';
+
 List<Widget> buildMenuButtons() {
   return [
     PopupMenuButton(
@@ -57,6 +59,13 @@ class MenuButton extends StatelessWidget {
                     });
                   },
                 ),
+              ),
+              PopupMenuItem(child: PopupMenuDivider()),
+              PopupMenuItem(
+                child: Text('Continue'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
+                },
               ),
               PopupMenuItem(child: PopupMenuDivider()),
             ],

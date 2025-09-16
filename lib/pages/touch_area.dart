@@ -350,7 +350,7 @@ class _TouchDot extends StatelessWidget {
                 ? Icons.music_note_outlined
                 : keyPair.physicalKey != null
                 ? Icons.keyboard_alt_outlined
-                : Icons.add,
+                : Icons.touch_app_outlined,
           ),
         ),
 

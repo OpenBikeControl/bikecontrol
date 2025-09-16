@@ -1,3 +1,8 @@
+### 2.4.0 (2025-09-16)
+- Show an overview of the keymap bindings
+- Allow customizing an existing keymap
+- Add more donation options
+
 ### 2.3.0 (2025-09-11)
 - Add support for latest Zwift Click v2
 
