@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <psapi.h>
 #include <string.h>
+#include <flutter_windows.h>
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -126,8 +127,18 @@ void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
       y = std::get<double>(it_y->second);
   }
 
+  // Get the monitor containing the target point and its DPI
+  const POINT target_point = {static_cast<LONG>(x), static_cast<LONG>(y)};
+  HMONITOR monitor = MonitorFromPoint(target_point, MONITOR_DEFAULTTONEAREST);
+  UINT dpi = FlutterDesktopGetDpiForMonitor(monitor);
+  double scale_factor = dpi / 96.0;
+  
+  // Scale the coordinates according to the DPI scaling
+  int scaled_x = static_cast<int>(x * scale_factor);
+  int scaled_y = static_cast<int>(y * scale_factor);
+
   // Move the mouse to the specified coordinates
-  SetCursorPos(static_cast<int>(x), static_cast<int>(y));
+  SetCursorPos(scaled_x, scaled_y);
 
   // Prepare input for mouse down and up
   INPUT input = {0};
