@@ -1,3 +1,6 @@
+### 2.4.0+1 (2025-12-17)
+- Windows: fix mouse clicks at wrong location due to display scaling (fixes #64)
+
 ### 2.4.0 (2025-09-16)
 - Show an overview of the keymap bindings
 - Allow customizing an existing keymap
