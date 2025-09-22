@@ -82,9 +82,11 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
-        #6 Building APK
       - name: Build APK
         run: flutter build apk --release
+
+      - name: Build Bundle
+        run: flutter build appbundle --release
 
       - name: Build Web
         run: flutter build web --release --base-href "/swiftcontrol/"
@@ -92,6 +94,7 @@ jobs:
       - name: Handle archives
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
+          cp build/app/outputs/bundle/app-release.aab build/app/outputs/bundle/SwiftControl.android.aab
           cd build/macos/Build/Products/Release/
           zip -r SwiftControl.macos.zip SwiftControl.app/
 
@@ -102,6 +105,7 @@ jobs:
           name: Releases
           path: |
             build/app/outputs/flutter-apk/SwiftControl.android.apk
+            build/app/outputs/bundle/SwiftControl.android.aab
             build/macos/Build/Products/Release/SwiftControl.macos.zip
 
         #10 Extract Version
@@ -133,7 +137,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
+          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/app/outputs/bundle/SwiftControl.android.aab,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
 
