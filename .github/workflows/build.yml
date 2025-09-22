@@ -150,6 +150,14 @@ jobs:
       - name: Web Deploy
         uses: actions/deploy-pages@v4
 
+      - name: Upload to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: de.jonasbark.swift_play
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: production
+
   windows:
     needs: build
     name: Build & Release on Windows
