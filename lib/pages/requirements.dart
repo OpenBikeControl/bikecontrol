@@ -31,7 +31,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
     WidgetsBinding.instance.addPostFrameCallback((_) {
       settings.init().then((_) {
         if (!kIsWeb && Platform.isMacOS) {
-          // add more delay due tu CBManagerStateUnknown
+          // add more delay due to CBManagerStateUnknown
           Future.delayed(const Duration(seconds: 2), () {
             _reloadRequirements();
           });

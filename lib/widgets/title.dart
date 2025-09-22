@@ -5,6 +5,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -20,7 +21,7 @@ class AppTitle extends StatefulWidget {
 }
 
 class _AppTitleState extends State<AppTitle> {
-  Future<String?> getLatestVersionUrlIfNewer() async {
+  Future<String?> _getLatestVersionUrlIfNewer() async {
     final response = await http.get(Uri.parse('https://api.github.com/repos/jonasbark/swiftcontrol/releases/latest'));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -56,16 +57,38 @@ class _AppTitleState extends State<AppTitle> {
         setState(() {
           _packageInfoValue = value;
         });
-        _loadLatestVersionUrl();
+        _checkForUpdate();
       });
     } else {
-      _loadLatestVersionUrl();
+      _checkForUpdate();
     }
   }
 
-  void _loadLatestVersionUrl() async {
+  void _checkForUpdate() async {
+    if (Platform.isAndroid) {
+      try {
+        final appUpdateInfo = await InAppUpdate.checkForUpdate();
+        if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('New version available'),
+              duration: Duration(seconds: 1337),
+              action: SnackBarAction(
+                label: 'Update',
+                onPressed: () {
+                  InAppUpdate.performImmediateUpdate();
+                },
+              ),
+            ),
+          );
+        }
+        return null;
+      } on Exception catch (e) {
+        print('Failed to check for update: $e');
+      }
+    }
     if (_latestVersionUrlValue == null && !kIsWeb) {
-      final url = await getLatestVersionUrlIfNewer();
+      final url = await _getLatestVersionUrlIfNewer();
       if (url != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
