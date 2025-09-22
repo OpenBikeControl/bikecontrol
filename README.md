@@ -41,6 +41,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 - Windows 
   - Windows may flag the app as virus. I think it does so because the app does control the mouse and keyboard.
   - Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
+  - Make sure your Zwift device is not paired with Windows Bluetooth settings: [more information](https://github.com/jonasbark/swiftcontrol/issues/70).
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
 - NOT SUPPORTED: iOS (iPhone, iPad) as Apple does not provide any way to simulate touches or keyboard events
 
@@ -55,6 +56,9 @@ The app connects to your Zwift device automatically. It does not connect to your
   - there are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - you can also create your own Keymaps for any other app
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
+
+## Alternatives
+- [qdomyos-zwift](https://www.qzfitness.com/) directly controls the trainer (as opposed to controlling the trainer app)
 
 ## Donate
 Please consider donating to support the development of this app :)
