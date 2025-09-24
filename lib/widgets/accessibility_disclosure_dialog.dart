@@ -13,50 +13,65 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Accessibility Service Permission Required'),
-      content: const SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'SwiftControl needs to use Android\'s AccessibilityService API to function properly.',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            Text('Why is this permission needed?'),
-            SizedBox(height: 8),
-            Text('• To simulate touch gestures on your screen for controlling trainer apps'),
-            Text('• To detect which training app window is currently active'),
-            Text('• To enable you to control apps like MyWhoosh, IndieVelo, and others using your Zwift devices'),
-            SizedBox(height: 16),
-            Text(
-              'How does SwiftControl use this permission?',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 8),
-            Text('• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, SwiftControl simulates touch gestures at specific screen locations'),
-            Text('• The app monitors which training app window is active to ensure gestures are sent to the correct app'),
-            Text('• No personal data is accessed or collected through this service'),
-            SizedBox(height: 16),
-            Text(
-              'SwiftControl will only access your screen to perform the gestures you configure. No other accessibility features or personal information will be accessed.',
-              style: TextStyle(fontStyle: FontStyle.italic),
-            ),
-          ],
+    return PopScope(
+      canPop: false, // Prevent back navigation from dismissing dialog
+      child: AlertDialog(
+        title: const Text('Accessibility Service Permission Required'),
+        content: const SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'SwiftControl needs to use Android\'s AccessibilityService API to function properly.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              Text('Why is this permission needed?'),
+              SizedBox(height: 8),
+              Text('• To simulate touch gestures on your screen for controlling trainer apps'),
+              Text('• To detect which training app window is currently active'),
+              Text('• To enable you to control apps like MyWhoosh, IndieVelo, and others using your Zwift devices'),
+              SizedBox(height: 16),
+              Text(
+                'How does SwiftControl use this permission?',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 8),
+              Text('• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, SwiftControl simulates touch gestures at specific screen locations'),
+              Text('• The app monitors which training app window is active to ensure gestures are sent to the correct app'),
+              Text('• No personal data is accessed or collected through this service'),
+              SizedBox(height: 16),
+              Text(
+                'SwiftControl will only access your screen to perform the gestures you configure. No other accessibility features or personal information will be accessed.',
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'You must choose to either Allow or Deny this permission to continue.',
+                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.deepOrange),
+              ),
+            ],
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: onDeny,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Deny'),
+          ),
+          ElevatedButton(
+            onPressed: onAccept,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Allow'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: onDeny,
-          child: const Text('Deny'),
-        ),
-        ElevatedButton(
-          onPressed: onAccept,
-          child: const Text('Allow'),
-        ),
-      ],
     );
   }
 }

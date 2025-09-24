@@ -60,6 +60,27 @@ void main() {
       expect(find.textContaining('How does SwiftControl use this permission?'), findsOneWidget);
       expect(find.textContaining('Zwift Click, Zwift Ride, or Zwift Play'), findsOneWidget);
       expect(find.textContaining('training app window is active'), findsOneWidget);
+      expect(find.textContaining('You must choose to either Allow or Deny'), findsOneWidget);
+    });
+
+    testWidgets('prevents dismissal via back navigation', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AccessibilityDisclosureDialog(
+              onAccept: () {},
+              onDeny: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Verify PopScope is present to prevent back navigation
+      expect(find.byType(PopScope), findsOneWidget);
+      
+      // Get the PopScope widget and verify canPop is false
+      final popScope = tester.widget<PopScope>(find.byType(PopScope));
+      expect(popScope.canPop, isFalse);
     });
   });
 }
