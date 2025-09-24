@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/widgets/accessibility_disclosure_dialog.dart';
 
 class AccessibilityRequirement extends PlatformRequirement {
   AccessibilityRequirement() : super('Allow Accessibility Service');
@@ -16,6 +18,53 @@ class AccessibilityRequirement extends PlatformRequirement {
   @override
   Future<void> getStatus() async {
     status = await accessibilityHandler.hasPermission();
+  }
+
+  @override
+  Widget? build(BuildContext context, VoidCallback onUpdate) {
+    if (status) {
+      return null; // Already granted, no need for disclosure
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'SwiftControl needs accessibility permission to control your training apps.',
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => _showDisclosureDialog(context, onUpdate),
+            child: const Text('Show Permission Details'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showDisclosureDialog(BuildContext context, VoidCallback onUpdate) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        return AccessibilityDisclosureDialog(
+          onAccept: () {
+            Navigator.of(context).pop();
+            // Open accessibility settings after user consents
+            accessibilityHandler.openPermissions().then((_) {
+              onUpdate();
+            });
+          },
+          onDeny: () {
+            Navigator.of(context).pop();
+            // User denied, no action taken
+          },
+        );
+      },
+    );
   }
 }
 

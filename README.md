@@ -11,6 +11,8 @@ With SwiftControl you can **control your favorite trainer app** using your Zwift
 - control music on your device
 - more? If you can do it via keyboard, mouse or touch, you can do it with SwiftControl
 
+**Android AccessibilityService Usage**: On Android, SwiftControl uses the AccessibilityService API to simulate touch gestures on your screen, allowing your Zwift devices to control training apps. This service only monitors which app window is active and performs touch gestures at the locations you configure. No personal data is accessed or collected.
+
 
 https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
@@ -51,7 +53,7 @@ Get the latest version here: https://github.com/jonasbark/swiftcontrol/releases
 ## How does it work?
 The app connects to your Zwift device automatically. It does not connect to your trainer itself.
 
-- When using Android a touch on a certain part of the screen is simulated to trigger the action.
+- When using Android: SwiftControl uses the AccessibilityService API to simulate touch gestures on specific parts of your screen to trigger actions in training apps. The service monitors which training app window is currently active to ensure gestures are sent to the correct app.
 - When using macOS or Windows a keyboard or mouse click is used to trigger the action. 
   - there are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - you can also create your own Keymaps for any other app
