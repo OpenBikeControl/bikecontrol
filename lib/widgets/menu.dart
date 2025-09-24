@@ -30,7 +30,7 @@ List<Widget> buildMenuButtons() {
             PopupMenuItem(
               child: Text('by buying the app from Play Store'),
               onTap: () {
-                launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swift_play');
+                launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
               },
             ),
           PopupMenuItem(

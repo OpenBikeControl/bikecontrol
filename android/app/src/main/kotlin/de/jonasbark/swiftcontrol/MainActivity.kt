@@ -1,4 +1,4 @@
-package de.jonasbark.swift_play
+package de.jonasbark.swiftcontrol
 
 import io.flutter.embedding.android.FlutterActivity
 
