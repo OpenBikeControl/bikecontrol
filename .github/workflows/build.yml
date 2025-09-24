@@ -156,7 +156,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: de.jonasbark.swift_play
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: production
+          track: alpha
 
   windows:
     needs: build
