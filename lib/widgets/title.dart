@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 String? _latestVersionUrlValue;
 PackageInfo? _packageInfoValue;
+bool isFromPlayStore = true;
 
 class AppTitle extends StatefulWidget {
   const AppTitle({super.key});
@@ -84,6 +85,7 @@ class _AppTitleState extends State<AppTitle> {
         }
         return null;
       } on Exception catch (e) {
+        isFromPlayStore = false;
         print('Failed to check for update: $e');
       }
     }

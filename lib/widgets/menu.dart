@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/widgets/title.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../pages/device.dart';
@@ -25,6 +26,13 @@ List<Widget> buildMenuButtons() {
               launchUrlString(link);
             },
           ),
+          if (!kIsWeb && Platform.isAndroid && !isFromPlayStore && false)
+            PopupMenuItem(
+              child: Text('by buying the app from Play Store'),
+              onTap: () {
+                launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swift_play');
+              },
+            ),
           PopupMenuItem(
             child: Text('via PayPal'),
             onTap: () {
