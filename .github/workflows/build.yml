@@ -27,6 +27,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install certificates
+        if: false
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
@@ -69,9 +70,11 @@ jobs:
 
         #8 Build app ( macos Build )
       - name: Build App
+        if: false
         run: flutter build macos --release
 
       - name: Code Signing
+        if: false
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --options runtime SwiftControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
@@ -83,29 +86,31 @@ jobs:
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
       - name: Build APK
+        if: false
         run: flutter build apk --release
 
       - name: Build Bundle
         run: flutter build appbundle --release
 
       - name: Build Web
+        if: false
         run: flutter build web --release --base-href "/swiftcontrol/"
 
       - name: Handle archives
+        if: false
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
-          cp build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/SwiftControl.android.aab
           cd build/macos/Build/Products/Release/
           zip -r SwiftControl.macos.zip SwiftControl.app/
 
         #9 Upload Artifacts
       - name: Upload Artifacts
+        if: false
         uses: actions/upload-artifact@v4
         with:
           name: Releases
           path: |
             build/app/outputs/flutter-apk/SwiftControl.android.apk
-            build/app/outputs/bundle/release/SwiftControl.android.aab
             build/macos/Build/Products/Release/SwiftControl.macos.zip
 
         #10 Extract Version
@@ -117,6 +122,7 @@ jobs:
 
         #11 Check if Tag Exists
       - name: Check if Tag Exists
+        if: false
         id: check_tag
         run: |
           if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
@@ -135,6 +141,7 @@ jobs:
 
         #13 Create Release
       - name: Create Release
+        if: false
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
@@ -144,12 +151,14 @@ jobs:
           token: ${{ secrets.TOKEN }}
 
       - name: Upload static files as artifact
+        if: false
         id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
       - name: Web Deploy
+        if: false
         uses: actions/deploy-pages@v4
 
       - name: Upload to Play Store
@@ -162,6 +171,7 @@ jobs:
 
   windows:
     needs: build
+    if: false
     name: Build & Release on Windows
     runs-on: windows-latest
 
