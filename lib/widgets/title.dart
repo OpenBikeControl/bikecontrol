@@ -30,8 +30,8 @@ class _AppTitleState extends State<AppTitle> {
       final latestVersion = tagName.split('+').first;
       final currentVersion = 'v${_packageInfoValue!.version}';
 
-      // we anything but +0 is considered beta
-      if (latestVersion != currentVersion && tagName.endsWith("+0")) {
+      // +1337 releases are considered beta
+      if (latestVersion != currentVersion && !tagName.endsWith("+1337")) {
         final assets = data['assets'] as List;
         if (Platform.isAndroid) {
           final apkUrl = assets.firstOrNullWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];
