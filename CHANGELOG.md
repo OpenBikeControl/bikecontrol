@@ -1,3 +1,8 @@
+### 2.5.0 (2025-09-25)
+- Improve usability
+- SwiftControl is now available via the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol
+  - SwiftControl will continue to be available to download for free on GitHub
+
 ### 2.4.0+1 (2025-09-17)
 - Windows: fix mouse clicks at wrong location due to display scaling (fixes #64)
 
