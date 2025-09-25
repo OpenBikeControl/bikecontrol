@@ -137,6 +137,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           allowUpdates: true
+          prerelease: ${{ endsWith(env.VERSION, '1337') }}
           body: "You can also download the Android version from the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}

@@ -27,11 +27,12 @@ class _AppTitleState extends State<AppTitle> {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final tagName = data['tag_name'] as String;
+      final prerelase = data['prerelease'] as bool;
       final latestVersion = tagName.split('+').first;
       final currentVersion = 'v${_packageInfoValue!.version}';
 
       // +1337 releases are considered beta
-      if (latestVersion != currentVersion && !tagName.endsWith("+1337")) {
+      if (latestVersion != currentVersion && !prerelase) {
         final assets = data['assets'] as List;
         if (Platform.isAndroid) {
           final apkUrl = assets.firstOrNullWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];
