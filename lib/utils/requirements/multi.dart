@@ -46,7 +46,7 @@ class UnsupportedPlatform extends PlatformRequirement {
 }
 
 class BluetoothScanning extends PlatformRequirement {
-  BluetoothScanning() : super('Bluetooth Scanning') {
+  BluetoothScanning() : super('Finding your Zwift® controller...') {
     status = false;
   }
 

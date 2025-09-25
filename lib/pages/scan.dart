@@ -45,9 +45,7 @@ class _ScanWidgetState extends State<ScanWidget> {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(minHeight: 200),
-      child: ListView(
-        padding: EdgeInsets.all(16),
-        shrinkWrap: true,
+      child: Column(
         children: [
           ValueListenableBuilder(
             valueListenable: connection.isScanning,

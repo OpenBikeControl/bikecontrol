@@ -7,7 +7,29 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import '../ble.dart';
 
 class ZwiftRide extends BaseDevice {
-  ZwiftRide(super.scanResult);
+  ZwiftRide(super.scanResult)
+    : super(
+        availableButtons: [
+          ZwiftButton.navigationLeft,
+          ZwiftButton.navigationRight,
+          ZwiftButton.navigationUp,
+          ZwiftButton.navigationDown,
+          ZwiftButton.a,
+          ZwiftButton.b,
+          ZwiftButton.y,
+          ZwiftButton.z,
+          ZwiftButton.shiftUpLeft,
+          ZwiftButton.shiftDownLeft,
+          ZwiftButton.shiftUpRight,
+          ZwiftButton.shiftDownRight,
+          ZwiftButton.powerUpLeft,
+          ZwiftButton.powerUpRight,
+          ZwiftButton.onOffLeft,
+          ZwiftButton.onOffRight,
+          ZwiftButton.paddleLeft,
+          ZwiftButton.paddleRight,
+        ],
+      );
 
   @override
   String get customServiceId => BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID;

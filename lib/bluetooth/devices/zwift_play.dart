@@ -8,7 +8,25 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import '../ble.dart';
 
 class ZwiftPlay extends BaseDevice {
-  ZwiftPlay(super.scanResult);
+  ZwiftPlay(super.scanResult)
+    : super(
+        availableButtons: [
+          ZwiftButton.y,
+          ZwiftButton.z,
+          ZwiftButton.a,
+          ZwiftButton.b,
+          ZwiftButton.onOffRight,
+          ZwiftButton.sideButtonRight,
+          ZwiftButton.paddleRight,
+          ZwiftButton.navigationUp,
+          ZwiftButton.navigationLeft,
+          ZwiftButton.navigationRight,
+          ZwiftButton.navigationDown,
+          ZwiftButton.onOffLeft,
+          ZwiftButton.sideButtonLeft,
+          ZwiftButton.paddleLeft,
+        ],
+      );
 
   PlayNotification? _lastControllerNotification;
 

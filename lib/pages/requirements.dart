@@ -72,55 +72,68 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
       body:
           _requirements.isEmpty
               ? Center(child: CircularProgressIndicator())
-              : Stepper(
-                currentStep: _currentStep,
-                connectorColor: WidgetStateProperty.resolveWith<Color>(
-                  (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
-                ),
-                onStepContinue:
-                    _currentStep < _requirements.length
-                        ? () {
-                          setState(() {
-                            _currentStep += 1;
-                          });
+              : Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
+                    child: Text(
+                      'Please complete the following requirements to make the app work correctly:',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  Expanded(
+                    child: Stepper(
+                      currentStep: _currentStep,
+                      connectorColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
+                      ),
+                      onStepContinue:
+                          _currentStep < _requirements.length
+                              ? () {
+                                setState(() {
+                                  _currentStep += 1;
+                                });
+                              }
+                              : null,
+                      onStepTapped: (step) {
+                        if (_requirements[step].status) {
+                          return;
                         }
-                        : null,
-                onStepTapped: (step) {
-                  if (_requirements[step].status) {
-                    return;
-                  }
-                  final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
-                  if (hasEarlierIncomplete) {
-                    return;
-                  }
-                  setState(() {
-                    _currentStep = step;
-                  });
-                },
-                controlsBuilder: (context, details) => Container(),
-                steps:
-                    _requirements
-                        .mapIndexed(
-                          (index, req) => Step(
-                            title: Text(req.name),
-                            content: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16.0),
-                              alignment: Alignment.centerLeft,
-                              child:
-                                  (index == _currentStep
-                                      ? req.build(context, () {
-                                        _reloadRequirements();
-                                      })
-                                      : null) ??
-                                  ElevatedButton(
-                                    onPressed: req.status ? null : () => _callRequirement(req),
-                                    child: Text(req.name),
+                        final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
+                        if (hasEarlierIncomplete) {
+                          return;
+                        }
+                        setState(() {
+                          _currentStep = step;
+                        });
+                      },
+                      controlsBuilder: (context, details) => Container(),
+                      steps:
+                          _requirements
+                              .mapIndexed(
+                                (index, req) => Step(
+                                  title: Text(req.name),
+                                  content: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                    alignment: Alignment.centerLeft,
+                                    child:
+                                        (index == _currentStep
+                                            ? req.build(context, () {
+                                              _reloadRequirements();
+                                            })
+                                            : null) ??
+                                        ElevatedButton(
+                                          onPressed: req.status ? null : () => _callRequirement(req),
+                                          child: Text(req.name),
+                                        ),
                                   ),
-                            ),
-                            state: req.status ? StepState.complete : StepState.indexed,
-                          ),
-                        )
-                        .toList(),
+                                  state: req.status ? StepState.complete : StepState.indexed,
+                                ),
+                              )
+                              .toList(),
+                    ),
+                  ),
+                ],
               ),
     );
   }

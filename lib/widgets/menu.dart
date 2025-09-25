@@ -26,7 +26,7 @@ List<Widget> buildMenuButtons() {
               launchUrlString(link);
             },
           ),
-          if (!kIsWeb && Platform.isAndroid && !isFromPlayStore && false)
+          if (!kIsWeb && Platform.isAndroid && !isFromPlayStore)
             PopupMenuItem(
               child: Text('by buying the app from Play Store'),
               onTap: () {

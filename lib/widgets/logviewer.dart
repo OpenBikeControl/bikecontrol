@@ -48,52 +48,45 @@ class _LogviewerState extends State<LogViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SelectionArea(
-          child: ListView(
-            controller: _scrollController,
-            children:
-                _actions
-                    .map(
-                      (action) => Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: action.date.toString().split(" ").last,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFeatures: [FontFeature.tabularFigures()],
-                                fontFamily: "monospace",
-                                fontFamilyFallback: <String>["Courier"],
-                              ),
-                            ),
-                            TextSpan(
-                              text: "  ${action.entry}",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFeatures: [FontFeature.tabularFigures()],
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
+    return SelectionArea(
+      child: ListView(
+        controller: _scrollController,
+        children: [
+          ..._actions.map(
+            (action) => Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: action.date.toString().split(" ").last,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                      fontFamily: "monospace",
+                      fontFamilyFallback: <String>["Courier"],
+                    ),
+                  ),
+                  TextSpan(
+                    text: "  ${action.entry}",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        Align(
-          alignment: Alignment.topRight,
-          child: IconButton(
+
+          TextButton(
             onPressed: () {
               _actions.clear();
               setState(() {});
             },
-            icon: Icon(Icons.clear),
+            child: Text('Clear Log'),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -10,10 +10,16 @@ class KeymapExplanation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardGroups = keymap.keyPairs
+    final connectedDevice = connection.devices.firstOrNull;
+
+    final availableKeypairs = keymap.keyPairs.filter(
+      (e) => connectedDevice?.availableButtons.containsAny(e.buttons) == true,
+    );
+
+    final keyboardGroups = availableKeypairs
         .filter((e) => e.physicalKey != null)
         .groupBy((element) => '${element.physicalKey}-${element.isLongPress}');
-    final touchGroups = keymap.keyPairs
+    final touchGroups = availableKeypairs
         .filter((e) => e.physicalKey == null && e.touchPosition != Offset.zero)
         .groupBy((element) => '${element.touchPosition}-${element.isLongPress}');
 
@@ -33,7 +39,7 @@ class KeymapExplanation extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(6),
                     child: Text(
-                      'Button on your ${connection.devices.firstOrNull?.device.name ?? connection.devices.firstOrNull?.runtimeType}',
+                      'Button on your ${connectedDevice?.device.name ?? connectedDevice?.runtimeType}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -57,7 +63,8 @@ class KeymapExplanation extends StatelessWidget {
                         children: [
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
-                              IntrinsicWidth(child: _KeyWidget(label: button.name.splitByUpperCase())),
+                              if (connectedDevice?.availableButtons.contains(button) == true)
+                                IntrinsicWidth(child: _KeyWidget(label: button.name.splitByUpperCase())),
                         ],
                       ),
                     ),
@@ -84,7 +91,9 @@ class KeymapExplanation extends StatelessWidget {
                         spacing: 8,
                         children: [
                           for (final keyPair in pair.value)
-                            for (final button in keyPair.buttons) _KeyWidget(label: button.name.splitByUpperCase()),
+                            for (final button in keyPair.buttons)
+                              if (connectedDevice?.availableButtons.contains(button) == true)
+                                _KeyWidget(label: button.name.splitByUpperCase()),
                         ],
                       ),
                     ),

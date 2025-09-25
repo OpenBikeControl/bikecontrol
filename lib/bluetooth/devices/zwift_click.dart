@@ -5,7 +5,7 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import '../messages/click_notification.dart';
 
 class ZwiftClick extends BaseDevice {
-  ZwiftClick(super.scanResult);
+  ZwiftClick(super.scanResult) : super(availableButtons: [ZwiftButton.shiftUpRight, ZwiftButton.shiftDownLeft]);
 
   ClickNotification? _lastClickNotification;
 

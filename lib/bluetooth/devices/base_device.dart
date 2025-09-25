@@ -21,7 +21,9 @@ import '../messages/notification.dart';
 
 abstract class BaseDevice {
   final BleDevice scanResult;
-  BaseDevice(this.scanResult);
+  final List<ZwiftButton> availableButtons;
+
+  BaseDevice(this.scanResult, {required this.availableButtons});
 
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 

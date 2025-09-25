@@ -163,6 +163,7 @@ class Connection {
   }
 
   void reset() {
+    _actionStreams.add(LogNotification('Disconnecting all devices'));
     UniversalBle.stopScan();
     isScanning.value = false;
     for (var device in devices) {
