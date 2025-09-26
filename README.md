@@ -68,5 +68,5 @@ The app connects to your Zwift device automatically. It does not connect to your
 Please consider donating to support the development of this app :)
 
 - [via PayPal](https://paypal.me/boni)
-- [via CreditCard (USD)](https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201)
-- [via CreditCard (EUR)](https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200)
+- [via Credit Card, Google Pay, Apple Pay, etc (USD)](https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201)
+- [via Credit Card, Google Pay, Apple Pay, etc (EUR)](https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200)
