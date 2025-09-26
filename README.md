@@ -34,7 +34,7 @@ Get the latest version for free for Windows, macOS and Android here: https://git
 
 ## Supported Devices
 - Zwift Click
-- Zwift Click v2
+- Zwift Click v2 (mostly, see #68)
 - Zwift Ride
 - Zwift Play
 
