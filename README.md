@@ -20,7 +20,7 @@ https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
 
 ## Downloads
-<a href="https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"><img src="https://storage.googleapis.com/pe-portal-consumer-prod-wagtail-static/images/googleplay-badge-01-getit.max-1920x1070.format-webp.webp?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=wagtail%40pe-portal-consumer-prod.iam.gserviceaccount.com%2F20250925%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250925T084315Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&X-Goog-Signature=6eab941e460ae5973f162ce5740adf1e71cf8dd47fd5a9ba60ec673d31f807b0bea359f123a5f5151eb2315fac9c2aa641886e9fda8c545837274a04ca2e8c3217f54495f3b225ecf55a1ba1a34fe52836562583f387c62a4e140c64d1a13094d455a157df514bf7ea088ec2a2aa294ec5e594aea873ab3b63fc9f6d586ac15c04a0d05a4ec557bcb9cb9de48087508219ebf4bc5686dd8051c9949024baba1933cecdc6035b3766ff9fb9a9dd0c3418b225c155173d3b6911043244966a9df1f06ede2c5128fa7625d168c0c4bebf4e9b4c47439b4056c9fe9056e07399e85f3d875ac3478224e226d778fe8d9e7a8d54cae1a7dceb36494aa0326477ca7ffd" width="220"></a>
+<a href="https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"><img width="270" height="80" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/a059d5a1-2efb-4f65-8117-ef6a99823b21" /></a>
 
 Get the latest version for free for Windows, macOS and Android here: https://github.com/jonasbark/swiftcontrol/releases
 
@@ -34,7 +34,7 @@ Get the latest version for free for Windows, macOS and Android here: https://git
 
 ## Supported Devices
 - Zwift Click
-- Zwift Click v2
+- Zwift Click v2 (mostly, see #68)
 - Zwift Ride
 - Zwift Play
 
@@ -68,5 +68,5 @@ The app connects to your Zwift device automatically. It does not connect to your
 Please consider donating to support the development of this app :)
 
 - [via PayPal](https://paypal.me/boni)
-- [via CreditCard (USD)](https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201)
-- [via CreditCard (EUR)](https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200)
+- [via Credit Card, Google Pay, Apple Pay, etc (USD)](https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201)
+- [via Credit Card, Google Pay, Apple Pay, etc (EUR)](https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200)
