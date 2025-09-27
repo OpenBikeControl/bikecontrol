@@ -130,6 +130,7 @@ abstract class BaseDevice {
         firmwareCharacteristic.uuid,
       );
       firmwareVersion = String.fromCharCodes(firmwareData);
+      connection.signalChange(this);
     }
 
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(
@@ -289,7 +290,7 @@ abstract class BaseDevice {
                   _previouslyPressedButtons = buttonsClicked.toSet();
                 }
 
-                _performActions(buttonsClicked, false);
+                return _performActions(buttonsClicked, false);
               }
             })
             .catchError((e) {

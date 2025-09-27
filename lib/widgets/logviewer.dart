@@ -52,6 +52,7 @@ class _LogviewerState extends State<LogViewer> {
       child: ListView(
         physics: const NeverScrollableScrollPhysics(),
         controller: _scrollController,
+        shrinkWrap: true,
         reverse: true,
         children:
             _actions

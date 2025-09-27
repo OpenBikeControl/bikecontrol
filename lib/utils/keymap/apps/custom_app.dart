@@ -14,7 +14,7 @@ class CustomApp extends SupportedApp {
   Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
     final keyPair = keymap.getKeyPair(action);
     if (keyPair == null || keyPair.touchPosition == Offset.zero) {
-      throw SingleLineException("No key pair found for action: $action");
+      throw SingleLineException("No key pair found for action: $action. You may want to adjust the keymap.");
     }
     return keyPair.touchPosition;
   }

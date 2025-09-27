@@ -74,7 +74,7 @@ class _DevicePageState extends State<DevicePage> {
                         transform: (it) {
                           return """${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
 ${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}
-${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}""";
+${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}""".trim();
                         },
                       ),
                     ),
@@ -173,7 +173,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                             ),
                         ],
                       ),
-                    SizedBox(height: 800, child: LogViewer()),
+                    LogViewer(),
                   ],
                 ),
               ),
