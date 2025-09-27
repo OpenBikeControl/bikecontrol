@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
+import '../pages/touch_area.dart';
+
 class KeymapExplanation extends StatelessWidget {
   final Keymap keymap;
   final VoidCallback onUpdate;
@@ -64,21 +66,11 @@ class KeymapExplanation extends StatelessWidget {
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
                               if (connectedDevice?.availableButtons.contains(button) == true)
-                                IntrinsicWidth(child: _KeyWidget(label: button.name.splitByUpperCase())),
+                                IntrinsicWidth(child: KeyWidget(label: button.name)),
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Row(
-                        spacing: 8,
-                        children: [
-                          Icon(Icons.keyboard, size: 16),
-                          _KeyWidget(label: pair.value.first.logicalKey?.keyLabel ?? ''),
-                          if (pair.value.first.isLongPress) Text('using long press'),
-                        ],
-                      ),
-                    ),
+                    Padding(padding: const EdgeInsets.all(6), child: KeypairExplanation(keyPair: pair.value.first)),
                   ],
                 ),
               ],
@@ -93,25 +85,11 @@ class KeymapExplanation extends StatelessWidget {
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
                               if (connectedDevice?.availableButtons.contains(button) == true)
-                                _KeyWidget(label: button.name.splitByUpperCase()),
+                                KeyWidget(label: button.name),
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Row(
-                        spacing: 8,
-                        children: [
-                          Icon(Icons.touch_app, size: 16),
-                          _KeyWidget(
-                            label:
-                                'x: ${pair.value.first.touchPosition.dx.toInt()}, y: ${pair.value.first.touchPosition.dy.toInt()}',
-                          ),
-
-                          if (pair.value.first.isLongPress) Text('using long press'),
-                        ],
-                      ),
-                    ),
+                    Padding(padding: const EdgeInsets.all(6), child: KeypairExplanation(keyPair: pair.value.first)),
                   ],
                 ),
               ],
@@ -122,9 +100,9 @@ class KeymapExplanation extends StatelessWidget {
   }
 }
 
-class _KeyWidget extends StatelessWidget {
+class KeyWidget extends StatelessWidget {
   final String label;
-  const _KeyWidget({super.key, required this.label});
+  const KeyWidget({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +116,7 @@ class _KeyWidget extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          label,
+          label.splitByUpperCase(),
           style: TextStyle(
             fontFamily: 'monospace',
             fontSize: 12,
@@ -150,7 +128,7 @@ class _KeyWidget extends StatelessWidget {
   }
 }
 
-extension on String {
+extension SplitByUppercase on String {
   String splitByUpperCase() {
     return replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (match) => '${match.group(1)} ${match.group(2)}').capitalize();
   }

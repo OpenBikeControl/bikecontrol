@@ -50,42 +50,37 @@ class _LogviewerState extends State<LogViewer> {
   Widget build(BuildContext context) {
     return SelectionArea(
       child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
         controller: _scrollController,
-        children: [
-          ..._actions.map(
-            (action) => Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: action.date.toString().split(" ").last,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                      fontFamily: "monospace",
-                      fontFamilyFallback: <String>["Courier"],
+        reverse: true,
+        children:
+            _actions
+                .map(
+                  (action) => Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: action.date.toString().split(" ").last,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                            fontFamily: "monospace",
+                            fontFamilyFallback: <String>["Courier"],
+                          ),
+                        ),
+                        TextSpan(
+                          text: "  ${action.entry}",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  TextSpan(
-                    text: "  ${action.entry}",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          TextButton(
-            onPressed: () {
-              _actions.clear();
-              setState(() {});
-            },
-            child: Text('Clear Log'),
-          ),
-        ],
+                )
+                .toList(),
       ),
     );
   }

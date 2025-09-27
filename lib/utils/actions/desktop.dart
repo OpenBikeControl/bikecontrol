@@ -53,7 +53,7 @@ class DesktopActions extends BaseActions {
       if (keyPair.physicalKey != null) {
         await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
         await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
-        return 'Key pressed: ${keyPair.logicalKey?.keyLabel}';
+        return 'Key pressed: $keyPair';
       } else {
         final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
         await keyPressSimulator.simulateMouseClickDown(point);

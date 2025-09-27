@@ -32,6 +32,11 @@ class Settings {
     }
   }
 
+  Future<void> reset() async {
+    await _prefs.clear();
+    actionHandler.init(null);
+  }
+
   void setApp(SupportedApp app) {
     if (app is CustomApp) {
       _prefs.setStringList("customapp", app.encodeKeymap());

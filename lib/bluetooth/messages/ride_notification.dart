@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/widgets/keymap_explanation.dart';
 
 enum _RideButtonMask {
   LEFT_BTN(0x00001),
@@ -72,7 +73,7 @@ class RideNotification extends BaseNotification {
 
   @override
   String toString() {
-    return 'Buttons: ${buttonsClicked.joinToString(transform: (e) => e.name)}';
+    return 'Buttons: ${buttonsClicked.joinToString(transform: (e) => e.name.splitByUpperCase())}';
   }
 
   @override

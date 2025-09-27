@@ -58,21 +58,35 @@ class MenuButton extends StatelessWidget {
       itemBuilder:
           (c) => [
             if (kDebugMode) ...[
-              ...ZwiftButton.values.map(
-                (e) => PopupMenuItem(
-                  child: Text(e.name),
-                  onTap: () {
-                    Future.delayed(Duration(seconds: 2)).then((_) {
-                      actionHandler.performAction(e);
-                    });
+              PopupMenuItem(
+                child: PopupMenuButton(
+                  child: Text("Simulate buttons"),
+                  itemBuilder: (_) {
+                    return ZwiftButton.values
+                        .map(
+                          (e) => PopupMenuItem(
+                            child: Text(e.name),
+                            onTap: () {
+                              Future.delayed(Duration(seconds: 2)).then((_) {
+                                actionHandler.performAction(e);
+                              });
+                            },
+                          ),
+                        )
+                        .toList();
                   },
                 ),
               ),
-              PopupMenuItem(child: PopupMenuDivider()),
               PopupMenuItem(
                 child: Text('Continue'),
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
+                },
+              ),
+              PopupMenuItem(
+                child: Text('Reset'),
+                onTap: () async {
+                  await settings.reset();
                 },
               ),
               PopupMenuItem(child: PopupMenuDivider()),
