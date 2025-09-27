@@ -1,3 +1,6 @@
+### 2.5.1 (2025-09-27)
+- Fix crashes on some Android devices
+
 ### 2.5.0 (2025-09-25)
 - Improve usability
 - SwiftControl is now available via the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol

@@ -143,10 +143,7 @@ class NotificationRequirement extends PlatformRequirement {
       InitializationSettings(android: initializationSettingsAndroid),
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       onDidReceiveNotificationResponse: (n) {
-        if (n.actionId != null) {
-          connection.reset();
-          exit(0);
-        }
+        notificationTapBackground(n);
       },
     );
 
@@ -188,6 +185,8 @@ class NotificationRequirement extends PlatformRequirement {
 void notificationTapBackground(NotificationResponse notificationResponse) {
   if (notificationResponse.actionId != null) {
     connection.reset();
-    exit(0);
+    AndroidFlutterLocalNotificationsPlugin().stopForegroundService().then((_) {
+      exit(0);
+    });
   }
 }

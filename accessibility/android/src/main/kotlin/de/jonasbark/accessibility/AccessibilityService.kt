@@ -41,7 +41,7 @@ class AccessibilityService : AccessibilityService(), Listener {
 
     private fun getWindowSize(): Rect {
         val outBounds = Rect()
-        rootInActiveWindow.getBoundsInScreen(outBounds)
+        rootInActiveWindow?.getBoundsInScreen(outBounds)
         return outBounds
     }
 
