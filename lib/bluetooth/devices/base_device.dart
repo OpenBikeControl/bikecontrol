@@ -28,6 +28,8 @@ abstract class BaseDevice {
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 
   bool isConnected = false;
+  int? batteryLevel;
+  String? firmwareVersion;
 
   bool supportsEncryption = true;
 
@@ -89,7 +91,6 @@ abstract class BaseDevice {
   BleDevice get device => scanResult;
   final StreamController<BaseNotification> actionStreamInternal = StreamController<BaseNotification>.broadcast();
 
-  int? batteryLevel;
   Stream<BaseNotification> get actionStream => actionStreamInternal.stream;
 
   Future<void> connect() async {
@@ -114,6 +115,21 @@ abstract class BaseDevice {
       throw Exception(
         'Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
       );
+    }
+
+    final deviceInformationService = services.firstOrNullWhere(
+      (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID,
+    );
+    final firmwareCharacteristic = deviceInformationService?.characteristics.firstOrNullWhere(
+      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION,
+    );
+    if (firmwareCharacteristic != null) {
+      final firmwareData = await UniversalBle.read(
+        device.deviceId,
+        deviceInformationService!.uuid,
+        firmwareCharacteristic.uuid,
+      );
+      firmwareVersion = String.fromCharCodes(firmwareData);
     }
 
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(

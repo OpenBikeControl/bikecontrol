@@ -72,7 +72,9 @@ class _DevicePageState extends State<DevicePage> {
                       connection.devices.joinToString(
                         separator: '\n',
                         transform: (it) {
-                          return "${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}";
+                          return """${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
+${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}
+${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}""";
                         },
                       ),
                     ),

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../widgets/logviewer.dart';
 
@@ -56,6 +57,14 @@ class _ScanWidgetState extends State<ScanWidget> {
                   children: [
                     Text(
                       'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        launchUrlString(
+                          'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-platforms',
+                        );
+                      },
+                      child: const Text("Show Troubleshooting Guide"),
                     ),
                     SmallProgressIndicator(),
                   ],
