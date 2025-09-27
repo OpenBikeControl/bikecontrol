@@ -92,7 +92,7 @@ class _AppTitleState extends State<AppTitle> {
     }
     if (_latestVersionUrlValue == null && !kIsWeb) {
       final url = await _getLatestVersionUrlIfNewer();
-      if (url != null && mounted) {
+      if (url != null && mounted && !kDebugMode) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('New version available: ${url.split("/").takeLast(2).first.split('%').first}'),

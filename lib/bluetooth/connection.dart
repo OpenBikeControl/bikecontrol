@@ -51,6 +51,7 @@ class Connection {
       final device = devices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
       if (device == null) {
         _actionStreams.add(LogNotification('Device not found: $deviceId'));
+        UniversalBle.disconnect(deviceId);
         return;
       } else {
         device.processCharacteristic(characteristicUuid, value);
