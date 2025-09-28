@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -73,7 +74,11 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   }
 
   void _onPointerDown(PointerDownEvent e) {
-    if (!widget.enabled || !widget.showTouches) return;
+    if (!widget.enabled ||
+        !widget.showTouches ||
+        (e.kind != PointerDeviceKind.unknown && e.kind != PointerDeviceKind.mouse)) {
+      return;
+    }
     final sample = _TouchSample(
       pointer: e.pointer,
       position: e.position,
