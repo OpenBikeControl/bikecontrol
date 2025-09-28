@@ -1,4 +1,4 @@
-### 2.5.1 (2025-09-27)
+### 2.6.0 (2025-09-28)
 - Fix crashes on some Android devices
 - refactor touch placements: show touches on screen, fix misplaced coordinates - should fix #64
 - show firmware version of connected device
