@@ -53,6 +53,13 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     _actionSubscription.cancel();
     // Exit full screen
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+    // Reset orientation preferences to allow all orientations
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(false);
     }
@@ -62,6 +69,12 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   void initState() {
     super.initState();
 
+    // Force landscape orientation during keymap editing
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);
