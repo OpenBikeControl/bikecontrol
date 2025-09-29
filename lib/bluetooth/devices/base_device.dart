@@ -28,6 +28,7 @@ abstract class BaseDevice {
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 
   bool isConnected = false;
+  bool _isInited = false;
   int? batteryLevel;
   String? firmwareVersion;
 
@@ -148,8 +149,6 @@ abstract class BaseDevice {
     }
 
     await UniversalBle.subscribeNotifications(device.deviceId, customService.uuid, asyncCharacteristic.uuid);
-    final read = await UniversalBle.read(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
-    print("Initial read from syncTxCharacteristic: ${read.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     await UniversalBle.subscribeIndications(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
 
     await _setupHandshake();
@@ -179,10 +178,10 @@ abstract class BaseDevice {
     }
   }
 
-  void processCharacteristic(String characteristic, Uint8List bytes) {
+  Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     if (kDebugMode) {
       print(
-        'Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
+        '${DateTime.now().toString().split(" ").last} Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
       );
     }
 
@@ -195,6 +194,23 @@ abstract class BaseDevice {
         _processDevicePublicKeyResponse(bytes);
       } else if (bytes.startsWith(Constants.RIDE_ON)) {
         //print("Empty RideOn response - unencrypted mode");
+        if (this is ZwiftClickV2) {
+          // TODO figure out if this is the key to make V2 work
+          await UniversalBle.write(
+            device.deviceId,
+            customServiceId,
+            syncRxCharacteristic!.uuid,
+            Uint8List.fromList([0x00, 0x08, 0x00]),
+            withoutResponse: true,
+          );
+          await UniversalBle.write(
+            device.deviceId,
+            customServiceId,
+            syncRxCharacteristic!.uuid,
+            Uint8List.fromList([0x41, 0x05, 0x05]),
+            withoutResponse: true,
+          );
+        }
       } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
         _processData(bytes);
       }
@@ -217,7 +233,7 @@ abstract class BaseDevice {
     zapEncryption.initialise(devicePublicKeyBytes);
   }
 
-  void _processData(Uint8List bytes) {
+  Future<void> _processData(Uint8List bytes) async {
     int type;
     Uint8List message;
 
@@ -242,7 +258,59 @@ abstract class BaseDevice {
       message = bytes.sublist(1);
     }
 
+    if (bytes.startsWith(Constants.RESPONSE_STOPPED_CLICK_V2)) {
+      print('no more events');
+      //connect();
+    }
+
     switch (type) {
+      case Constants.UNKNOWN_CLICKV2_TYPE:
+        if (!_isInited) {
+          _isInited = true;
+          final commands = [
+            [0x00, 0x08, 0x80, 0x08],
+            [0x00, 0x08, 0x83, 0x06],
+            [
+              0xFF,
+              0x04,
+              0x00,
+              0x0A,
+              0x15,
+              0x40,
+              0xE9,
+              0xD9,
+              0xC9,
+              0x6B,
+              0x74,
+              0x63,
+              0xC2,
+              0x7F,
+              0x1B,
+              0x4E,
+              0x4D,
+              0x9F,
+              0x1C,
+              0xB1,
+              0x20,
+              0x5D,
+              0x88,
+              0x2E,
+              0xD7,
+              0xCE,
+            ],
+          ];
+          for (final command in commands) {
+            await UniversalBle.write(
+              device.deviceId,
+              customServiceId,
+              syncRxCharacteristic!.uuid,
+              Uint8List.fromList(command),
+              withoutResponse: true,
+            );
+            await Future.delayed(const Duration(milliseconds: 50));
+          }
+        }
+        break;
       case Constants.EMPTY_MESSAGE_TYPE:
         //print("Empty Message"); // expected when nothing happening
         break;
@@ -339,6 +407,7 @@ abstract class BaseDevice {
   }
 
   Future<void> disconnect() async {
+    _isInited = false;
     _longPressTimer?.cancel();
     _previouslyPressedButtons.clear();
     // Release any held keys in long press mode

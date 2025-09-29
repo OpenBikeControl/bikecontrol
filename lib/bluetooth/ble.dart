@@ -38,11 +38,44 @@ class Constants {
   static final RESPONSE_START_CLICK = Uint8List.fromList([1, 3]); // from device
   static final RESPONSE_START_PLAY = Uint8List.fromList([1, 4]); // from device
   static final RESPONSE_START_CLICK_V2 = Uint8List.fromList([0x02, 0x03]); // from device
+  static final RESPONSE_STOPPED_CLICK_V2 = Uint8List.fromList([
+    0xff,
+    0x05,
+    0x00,
+    0xea,
+    0x05,
+    0x19,
+    0x0a,
+    0x0c,
+    0x35,
+    0x38,
+    0x44,
+    0x31,
+    0x35,
+    0x41,
+    0x42,
+    0x42,
+    0x34,
+    0x33,
+    0x36,
+    0x33,
+    0x10,
+    0x01,
+    0x18,
+    0x84,
+    0x07,
+    0x20,
+    0x08,
+    0x28,
+    0x09,
+    0x30,
+  ]); // from device
 
   // Message types received from device
   static const CONTROLLER_NOTIFICATION_MESSAGE_TYPE = 07;
   static const EMPTY_MESSAGE_TYPE = 21;
   static const BATTERY_LEVEL_TYPE = 25;
+  static const UNKNOWN_CLICKV2_TYPE = 0x3C;
 
   // not figured out the protobuf type this really is, the content is just two varints.
   static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55;
