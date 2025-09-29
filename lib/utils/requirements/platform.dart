@@ -25,7 +25,7 @@ Future<List<PlatformRequirement>> getRequirements() async {
   List<PlatformRequirement> list;
   if (kIsWeb) {
     list = [BluetoothTurnedOn(), BluetoothScanning()];
-  } else if (Platform.isMacOS) {
+  } else if (Platform.isMacOS || Platform.isIOS) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
   } else if (Platform.isWindows) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];

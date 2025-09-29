@@ -24,7 +24,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     actionHandler = StubActions();
-  } else if (Platform.isAndroid) {
+  } else if (Platform.isAndroid || Platform.isIOS) {
     actionHandler = AndroidActions();
   } else {
     actionHandler = DesktopActions();

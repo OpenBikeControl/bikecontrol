@@ -88,6 +88,9 @@ class Connection {
   }
 
   void _addDevices(List<BaseDevice> dev) {
+    if (dev.firstOrNull?.device.deviceId == "F4:86:62:2F:FD:82") {
+      return;
+    }
     final newDevices = dev.where((device) => !devices.contains(device)).toList();
     devices.addAll(newDevices);
 

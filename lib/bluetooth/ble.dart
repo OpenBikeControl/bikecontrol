@@ -37,6 +37,7 @@ class Constants {
   static final REQUEST_START = Uint8List.fromList([0, 9]); //byteArrayOf(1, 2)
   static final RESPONSE_START_CLICK = Uint8List.fromList([1, 3]); // from device
   static final RESPONSE_START_PLAY = Uint8List.fromList([1, 4]); // from device
+  static final RESPONSE_START_CLICK_V2 = Uint8List.fromList([0x02, 0x03]); // from device
 
   // Message types received from device
   static const CONTROLLER_NOTIFICATION_MESSAGE_TYPE = 07;

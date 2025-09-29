@@ -101,7 +101,7 @@ abstract class BaseDevice {
     await UniversalBle.connect(device.deviceId);
 
     if (!kIsWeb && Platform.isAndroid) {
-      //await UniversalBle.requestMtu(device.deviceId, 256);
+      await UniversalBle.requestMtu(device.deviceId, 517);
     }
 
     final services = await UniversalBle.discoverServices(device.deviceId);
@@ -148,6 +148,8 @@ abstract class BaseDevice {
     }
 
     await UniversalBle.subscribeNotifications(device.deviceId, customService.uuid, asyncCharacteristic.uuid);
+    final read = await UniversalBle.read(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
+    print("Initial read from syncTxCharacteristic: ${read.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     await UniversalBle.subscribeIndications(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
 
     await _setupHandshake();
@@ -178,9 +180,10 @@ abstract class BaseDevice {
   }
 
   void processCharacteristic(String characteristic, Uint8List bytes) {
-    if (kDebugMode && false) {
-      print('Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
-      print('Received $characteristic: ${String.fromCharCodes(bytes)}');
+    if (kDebugMode) {
+      print(
+        'Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
+      );
     }
 
     if (bytes.isEmpty) {
@@ -208,10 +211,10 @@ abstract class BaseDevice {
 
   void _processDevicePublicKeyResponse(Uint8List bytes) {
     final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START_CLICK.length);
-    zapEncryption.initialise(devicePublicKeyBytes);
     if (kDebugMode) {
       print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
+    zapEncryption.initialise(devicePublicKeyBytes);
   }
 
   void _processData(Uint8List bytes) {
