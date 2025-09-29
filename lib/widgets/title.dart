@@ -67,7 +67,7 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _checkForUpdate() async {
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       try {
         final appUpdateInfo = await InAppUpdate.checkForUpdate();
         if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
