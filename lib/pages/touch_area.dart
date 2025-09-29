@@ -55,6 +55,13 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     _actionSubscription.cancel();
     // Exit full screen
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+    // Reset orientation preferences to allow all orientations
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(false);
     }
@@ -64,6 +71,12 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   void initState() {
     super.initState();
 
+    // Force landscape orientation during keymap editing
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);
@@ -286,12 +299,12 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   mainAxisSize: MainAxisSize.min,
                   spacing: 8,
                   children: [
-                    Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh)
+                    Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
 2. Load the screenshot with the button below
-3. Make sure the app is in the correct orientation (portrait or landscape)
+3. The app is automatically set to landscape orientation for accurate mapping
 4. Press a button on your Zwift device to create a touch area
 5. Drag the touch areas to the desired position on the screenshot
-5. Save and close this screen'''),
+6. Save and close this screen'''),
                     ElevatedButton(
                       onPressed: () {
                         _pickScreenshot();
