@@ -104,7 +104,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                   }
                                   controller.text = app.name ?? '';
                                   actionHandler.supportedApp = app;
-                                  settings.setApp(app);
+                                  await settings.setApp(app);
                                   setState(() {});
                                   if (app is! CustomApp && !kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
                                     _snackBarMessengerKey.currentState!.showSnackBar(
@@ -147,14 +147,14 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                       });
 
                                       actionHandler.supportedApp = customApp;
-                                      settings.setApp(customApp);
+                                      await settings.setApp(customApp);
                                     }
                                     final result = await Navigator.of(
                                       context,
                                     ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
 
                                     if (result == true && actionHandler.supportedApp is CustomApp) {
-                                      settings.setApp(actionHandler.supportedApp!);
+                                      await settings.setApp(actionHandler.supportedApp!);
                                     }
                                     setState(() {});
                                   },
