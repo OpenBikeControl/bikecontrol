@@ -37,10 +37,18 @@ class Settings {
     actionHandler.init(null);
   }
 
-  void setApp(SupportedApp app) {
+  Future<void> setApp(SupportedApp app) async {
     if (app is CustomApp) {
-      _prefs.setStringList("customapp", app.encodeKeymap());
+      await _prefs.setStringList("customapp", app.encodeKeymap());
     }
-    _prefs.setString('app', app.name);
+    await _prefs.setString('app', app.name);
+  }
+
+  String? getLastSeenVersion() {
+    return _prefs.getString('last_seen_version');
+  }
+
+  Future<void> setLastSeenVersion(String version) async {
+    await _prefs.setString('last_seen_version', version);
   }
 }
