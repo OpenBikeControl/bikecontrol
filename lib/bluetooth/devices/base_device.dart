@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -109,7 +108,7 @@ abstract class BaseDevice {
 
     await UniversalBle.connect(device.deviceId);
 
-    if (!kIsWeb && Platform.isAndroid) {
+    if (!kIsWeb) {
       await UniversalBle.requestMtu(device.deviceId, 517);
     }
 
@@ -159,10 +158,10 @@ abstract class BaseDevice {
     await UniversalBle.subscribeNotifications(device.deviceId, customService.uuid, asyncCharacteristic.uuid);
     await UniversalBle.subscribeIndications(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
 
-    await _setupHandshake();
+    await setupHandshake();
   }
 
-  Future<void> _setupHandshake() async {
+  Future<void> setupHandshake() async {
     if (supportsEncryption) {
       await UniversalBle.write(
         device.deviceId,
@@ -187,6 +186,11 @@ abstract class BaseDevice {
   }
 
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
+    if (kDebugMode) {
+      print(
+        "${DateTime.now().toString().split(" ").last} Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
+      );
+    }
     if (bytes.isEmpty) {
       return;
     }

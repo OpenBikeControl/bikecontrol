@@ -70,70 +70,48 @@ class ZwiftRide extends BaseDevice {
       message = bytes.sublist(1);
     }
 
-    if (kDebugMode) {
-      print(
-        '${DateTime.now().toString().split(" ").last} Received $opcode: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
-      );
-    }
-
     if (bytes.startsWith(Constants.RESPONSE_STOPPED_CLICK_V2)) {
-      print('no more events');
-      //connect();
+      actionStreamInternal.add(
+        LogNotification('Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day.'),
+      );
     }
 
     switch (opcode) {
       case Opcode.RIDE_ON:
         //print("Empty RideOn response - unencrypted mode");
-        //_sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_DEV_INFO.value)); // 0008 00
 
-        //_sendCommand(Opcode.LOG_LEVEL_SET, LogLevelSet(logLevel: LogLevel.LOGLEVEL_TRACE)); // 4108 05
-
-        //await _sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_CLIENT_SERVER_CONFIGURATION.value)); // 0008 10
-
-        /*
-          final buffer = Uint8List.fromList([Opcode.GET.value, ...[0x80, 0x08]]); // 0008 8008
-          if (kDebugMode) {
-            print("Sending ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
-          }
-          await UniversalBle.write(
-            device.deviceId,
-            customServiceId,
-            syncRxCharacteristic!.uuid,
-            buffer,
-            withoutResponse: true,
-          );*/
-
-        /*
-          final buffer = Uint8List.fromList([Opcode.GET.value, ...[0x83, 0x06]]); // 0008 8306
-          if (kDebugMode) {
-            print("Sending ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
-          }
-          await UniversalBle.write(
-            device.deviceId,
-            customServiceId,
-            syncRxCharacteristic!.uuid,
-            buffer,
-            withoutResponse: true,
-          );
-           */
         break;
       case Opcode.STATUS_RESPONSE:
         final status = StatusResponse.fromBuffer(message);
-        print('StatusResponse: ${status.command} status: ${Status.valueOf(status.status)}');
+        if (kDebugMode) {
+          print('StatusResponse: ${status.command} status: ${Status.valueOf(status.status)}');
+        }
         break;
       case Opcode.GET_RESPONSE:
         final response = GetResponse.fromBuffer(message);
         final dataObjectType = DO.valueOf(response.dataObjectId);
-        print('GetResponse: $dataObjectType');
+        if (kDebugMode) {
+          print('GetResponse: ${dataObjectType?.value.toRadixString(16).padLeft(4, '0')} $dataObjectType');
+        }
 
         switch (dataObjectType) {
           case DO.PAGE_DEV_INFO:
             final pageDevInfo = DevInfoPage.fromBuffer(response.dataObjectData);
-            print('PageDevInfo: $pageDevInfo');
+            if (kDebugMode) {
+              print('PageDevInfo: $pageDevInfo');
+            }
             break;
           case DO.PAGE_DATE_TIME:
             final pageDateTime = DateTimePage.fromBuffer(response.dataObjectData);
-            print('PageDateTime: $pageDateTime');
+            if (kDebugMode) {
+              print('PageDateTime: $pageDateTime');
+            }
+            break;
+          case DO.PAGE_CONTROLLER_INPUT_CONFIG:
+            final pageDateTime = ControllerInputConfigPage.fromBuffer(response.dataObjectData);
+            if (kDebugMode) {
+              print('PageDateTime: $pageDateTime');
+            }
             break;
           default:
             break;
@@ -143,7 +121,9 @@ class ZwiftRide extends BaseDevice {
         break;
       case Opcode.LOG_DATA:
         final logMessage = LogDataNotification.fromBuffer(message);
-        actionStreamInternal.add(LogNotification(logMessage.toString()));
+        if (kDebugMode) {
+          actionStreamInternal.add(LogNotification(logMessage.toString()));
+        }
         break;
       case Opcode.BATTERY_NOTIF:
         final notification = BatteryNotification.fromBuffer(message);
@@ -152,7 +132,6 @@ class ZwiftRide extends BaseDevice {
           connection.signalChange(this);
         }
         break;
-      case null: // the old Zwift Click acts differently
       case Opcode.CONTROLLER_NOTIFICATION:
         processClickNotification(message)
             .then((buttonsClicked) async {
@@ -162,8 +141,15 @@ class ZwiftRide extends BaseDevice {
               actionStreamInternal.add(LogNotification(e.toString()));
             });
         break;
+      case null:
+        if (bytes[0] == 0x1A) {
+          final batteryStatus = BatteryStatus.fromBuffer(message);
+          if (kDebugMode) {
+            print('BatteryStatus: $batteryStatus');
+          }
+        }
+        break;
     }
-    return super.processData(bytes);
   }
 
   @override
@@ -181,10 +167,24 @@ class ZwiftRide extends BaseDevice {
     }
   }
 
-  Future<void> _sendCommand(Opcode opCode, $pb.GeneratedMessage message) async {
+  Future<void> sendCommand(Opcode opCode, $pb.GeneratedMessage message) async {
     final buffer = Uint8List.fromList([opCode.value, ...message.writeToBuffer()]);
     if (kDebugMode) {
       print("Sending $opCode: ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
+    }
+    await UniversalBle.write(
+      device.deviceId,
+      customServiceId,
+      syncRxCharacteristic!.uuid,
+      buffer,
+      withoutResponse: true,
+    );
+    await Future.delayed(Duration(milliseconds: 500));
+  }
+
+  Future<void> sendCommandBuffer(Uint8List buffer) async {
+    if (kDebugMode) {
+      print("Sending ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
     await UniversalBle.write(
       device.deviceId,

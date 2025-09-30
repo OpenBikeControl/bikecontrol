@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -68,6 +69,21 @@ class _DevicePageState extends State<DevicePage> {
                   spacing: 10,
                   children: [
                     Text('Connected Devices:', style: Theme.of(context).textTheme.titleMedium),
+
+                    if (connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.errorContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          '''To make your Zwift Click V2 work properly you need to connect it to with in the Zwift app once each day:
+1. Open Zwift app
+2. After logging in (subscription not required) find it in the device connection screen and connect it
+3. Close the Zwift app again and connect again in SwiftControl''',
+                        ),
+                      ),
                     Text(
                       connection.devices.joinToString(
                         separator: '\n',
@@ -184,6 +200,14 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                 await settings.setVibrationEnabled(value);
                                 setState(() {});
                               },
+                            ),
+                          if (kDebugMode &&
+                              connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
+                            ElevatedButton(
+                              onPressed: () {
+                                (connection.devices.first as ZwiftClickV2).test();
+                              },
+                              child: Text('Test'),
                             ),
                         ],
                       ),
