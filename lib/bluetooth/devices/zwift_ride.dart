@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
+import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -70,6 +71,12 @@ class ZwiftRide extends BaseDevice {
       message = bytes.sublist(1);
     }
 
+    if (kDebugMode) {
+      print(
+        '${DateTime.now().toString().split(" ").last} Received $opcode: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
+      );
+    }
+
     if (bytes.startsWith(Constants.RESPONSE_STOPPED_CLICK_V2)) {
       actionStreamInternal.add(
         LogNotification('Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day.'),
@@ -91,7 +98,9 @@ class ZwiftRide extends BaseDevice {
         final response = GetResponse.fromBuffer(message);
         final dataObjectType = DO.valueOf(response.dataObjectId);
         if (kDebugMode) {
-          print('GetResponse: ${dataObjectType?.value.toRadixString(16).padLeft(4, '0')} $dataObjectType');
+          print(
+            'GetResponse: ${dataObjectType?.value.toRadixString(16).padLeft(4, '0') ?? response.dataObjectId} $dataObjectType',
+          );
         }
 
         switch (dataObjectType) {
@@ -113,11 +122,42 @@ class ZwiftRide extends BaseDevice {
               print('PageDateTime: $pageDateTime');
             }
             break;
+          case null:
+            final vendorDO = VendorDO.valueOf(response.dataObjectId);
+            if (kDebugMode) {
+              print('VendorDO: $vendorDO');
+            }
+            switch (vendorDO) {
+              case VendorDO.DEVICE_COUNT:
+                // TODO: Handle this case.
+                break;
+              case VendorDO.NO_CLUE:
+                // TODO: Handle this case.
+                break;
+              case VendorDO.PAGE_DEVICE_PAIRING:
+                final page = DevicePairingDataPage.fromBuffer(response.dataObjectData);
+                if (kDebugMode) {
+                  // this should show the right click device
+                  // pairingStatus = 1 => connected and paired, otherwise it can be paired but not connected
+                  print(
+                    'PageDevicePairing: $page => ${page.pairingDevList.map((e) => e.device.reversed.map((d) => d.toRadixString(16).padLeft(2, '0'))).join(', ')}',
+                  );
+                }
+                break;
+              case VendorDO.PAIRED_DEVICE:
+                // TODO: Handle this case.
+                break;
+              case VendorDO.PAIRING_STATUS:
+                break;
+            }
+            break;
           default:
             break;
         }
         break;
       case Opcode.VENDOR_MESSAGE:
+        final vendorOpCode = VendorOpcode.valueOf(message.second);
+        print('VendorOpcode: $vendorOpCode');
         break;
       case Opcode.LOG_DATA:
         final logMessage = LogDataNotification.fromBuffer(message);
@@ -167,8 +207,8 @@ class ZwiftRide extends BaseDevice {
     }
   }
 
-  Future<void> sendCommand(Opcode opCode, $pb.GeneratedMessage message) async {
-    final buffer = Uint8List.fromList([opCode.value, ...message.writeToBuffer()]);
+  Future<void> sendCommand(Opcode opCode, $pb.GeneratedMessage? message) async {
+    final buffer = Uint8List.fromList([opCode.value, ...message?.writeToBuffer() ?? []]);
     if (kDebugMode) {
       print("Sending $opCode: ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
