@@ -1,0 +1,49 @@
+name: "Build"
+
+on:
+  push:
+    branches:
+      - web
+    paths:
+      - '.github/workflows/**'
+      - 'lib/**'
+      - 'accessibility/**'
+      - 'keypress_simulator/**'
+      - 'pubspec.yaml'
+
+jobs:
+  build:
+    name: Build & Release
+    runs-on: macos-latest
+
+    permissions:
+      id-token: write
+      pages: write
+      contents: write
+
+    steps:
+      #1 Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+        #3 Setup Flutter
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+        #4 Install Dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --release --base-href "/swiftcontrol/"
+
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - name: Web Deploy
+        uses: actions/deploy-pages@v4

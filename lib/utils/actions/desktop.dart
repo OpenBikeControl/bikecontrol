@@ -1,6 +1,7 @@
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/widgets/keymap_explanation.dart';
 
 class DesktopActions extends BaseActions {
   // Track keys that are currently held down in long press mode
@@ -14,7 +15,7 @@ class DesktopActions extends BaseActions {
 
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair == null) {
-      return ('Keymap entry not found for action: $action');
+      return ('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     }
 
     // Handle long press mode

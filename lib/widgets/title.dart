@@ -67,7 +67,7 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _checkForUpdate() async {
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       try {
         final appUpdateInfo = await InAppUpdate.checkForUpdate();
         if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
@@ -117,7 +117,7 @@ class _AppTitleState extends State<AppTitle> {
         Text('SwiftControl'),
         if (_packageInfoValue != null)
           Text(
-            'v${_packageInfoValue!.version}+${_packageInfoValue!.buildNumber}',
+            'v${_packageInfoValue!.version}',
             style: TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
           )
         else

@@ -308,13 +308,15 @@ class _KeyboardToast extends StatelessWidget {
     final t = (age.inMilliseconds / duration.inMilliseconds.clamp(1, 1 << 30)).clamp(0.0, 1.0);
     final fade = 1.0 - t;
 
-    return Opacity(
-      opacity: fade,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
-        child: Text(text, style: textStyle),
+    return Material(
+      child: Opacity(
+        opacity: fade,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
+          child: Text(text, style: textStyle),
+        ),
       ),
     );
   }

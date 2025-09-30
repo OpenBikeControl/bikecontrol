@@ -8,6 +8,7 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../pages/changelog.dart';
 import '../pages/device.dart';
 
 List<Widget> buildMenuButtons() {
@@ -91,6 +92,12 @@ class MenuButton extends StatelessWidget {
               ),
               PopupMenuItem(child: PopupMenuDivider()),
             ],
+            PopupMenuItem(
+              child: Text('Changelog'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (c) => ChangelogPage()));
+              },
+            ),
             PopupMenuItem(
               child: Text('Feedback'),
               onTap: () {
