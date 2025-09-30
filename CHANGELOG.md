@@ -2,6 +2,7 @@
 - refactor touch placements: show touches on screen, fix misplaced coordinates - should fix #64
 - show firmware version of connected device
 - Fix crashes on some Android devices
+- warn the user how to make Zwift Click V2 work properly
 - many UI improvements
 - add setting to enable or disable vibration on button press for Zwift Ride and Zwift Play controllers
 
