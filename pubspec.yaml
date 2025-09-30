@@ -14,18 +14,18 @@ dependencies:
   flutter_local_notifications: ^19.4.1
   universal_ble: ^0.21.1
   intl: any
-  protobuf: ^3.1.0
-  permission_handler: ^11.4.0
+  protobuf: ^4.2.0
+  permission_handler: ^12.0.1
   dartx: any
   image_picker: ^1.1.2
   pointycastle: any
-  window_manager: ^0.4.3
-  device_info_plus: ^11.3.3
+  window_manager: ^0.5.1
+  device_info_plus: ^12.1.0
   keypress_simulator:
     path: keypress_simulator/packages/keypress_simulator
   shared_preferences: ^2.5.3
   flex_color_scheme: ^8.3.0
-  package_info_plus: ^8.3.0
+  package_info_plus: ^9.0.0
   in_app_update: ^4.2.5
   accessibility:
     path: accessibility
@@ -36,7 +36,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_launcher_icons: "^0.14.3"
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

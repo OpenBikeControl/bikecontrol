@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -12,7 +15,7 @@ import 'messages/notification.dart';
 
 class Connection {
   final devices = <BaseDevice>[];
-  var androidNotificationsSetup = false;
+  var _androidNotificationsSetup = false;
 
   final _connectionQueue = <BaseDevice>[];
   var _handlingConnectionQueue = false;
@@ -95,8 +98,8 @@ class Connection {
     _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
-    if (devices.isNotEmpty && !androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
-      androidNotificationsSetup = true;
+    if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
+      _androidNotificationsSetup = true;
       NotificationRequirement.setup().catchError((e) {
         _actionStreams.add(LogNotification(e.toString()));
       });
@@ -165,6 +168,10 @@ class Connection {
 
   void reset() {
     _actionStreams.add(LogNotification('Disconnecting all devices'));
+    if (actionHandler is AndroidActions) {
+      AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
+      _androidNotificationsSetup = false;
+    }
     UniversalBle.stopScan();
     isScanning.value = false;
     for (var device in devices) {
