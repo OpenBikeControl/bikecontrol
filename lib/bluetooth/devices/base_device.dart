@@ -202,7 +202,7 @@ abstract class BaseDevice {
         _processDevicePublicKeyResponse(bytes);
       } else if (bytes.startsWith(Constants.RIDE_ON)) {
         //print("Empty RideOn response - unencrypted mode");
-        if (this is ZwiftClickV2) {
+        /*if (this is ZwiftClickV2) {
           // TODO figure out if this is the key to make V2 work
           await UniversalBle.write(
             device.deviceId,
@@ -218,7 +218,7 @@ abstract class BaseDevice {
             Uint8List.fromList([0x41, 0x05, 0x05]),
             withoutResponse: true,
           );
-        }
+        }*/
       } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
         _processData(bytes);
       }
@@ -273,7 +273,7 @@ abstract class BaseDevice {
 
     switch (type) {
       case Constants.UNKNOWN_CLICKV2_TYPE:
-        if (!_isInited) {
+        if (!_isInited && false) {
           _isInited = true;
           final commands = [
             [0x00, 0x08, 0x80, 0x08],
