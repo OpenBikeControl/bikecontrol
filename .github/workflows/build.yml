@@ -151,6 +151,13 @@ jobs:
       - name: Web Deploy
         uses: actions/deploy-pages@v4
 
+      - name: Extract latest changelog
+        id: changelog
+        run: |
+          chmod +x scripts/get_latest_changelog.sh
+          mkdir -p whatsnew
+          ./scripts/get_latest_changelog.sh > whatsnew/whatsnew-en-US
+
       - name: Upload to Play Store
         # only upload when env.VERSION does not end with 1337, which is our indicator for beta releases
         if: "!endsWith(env.VERSION, '1337')"
@@ -160,6 +167,7 @@ jobs:
           packageName: de.jonasbark.swiftcontrol
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: production
+          whatsNewDirectory: whatsnew
 
   windows:
     needs: build
