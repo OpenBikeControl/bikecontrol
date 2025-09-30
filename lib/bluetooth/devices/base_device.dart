@@ -187,12 +187,6 @@ abstract class BaseDevice {
   }
 
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    if (kDebugMode) {
-      print(
-        '${DateTime.now().toString().split(" ").last} Received $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
-      );
-    }
-
     if (bytes.isEmpty) {
       return;
     }
@@ -200,27 +194,8 @@ abstract class BaseDevice {
     try {
       if (bytes.startsWith(startCommand)) {
         _processDevicePublicKeyResponse(bytes);
-      } else if (bytes.startsWith(Constants.RIDE_ON)) {
-        //print("Empty RideOn response - unencrypted mode");
-        /*if (this is ZwiftClickV2) {
-          // TODO figure out if this is the key to make V2 work
-          await UniversalBle.write(
-            device.deviceId,
-            customServiceId,
-            syncRxCharacteristic!.uuid,
-            Uint8List.fromList([0x00, 0x08, 0x00]),
-            withoutResponse: true,
-          );
-          await UniversalBle.write(
-            device.deviceId,
-            customServiceId,
-            syncRxCharacteristic!.uuid,
-            Uint8List.fromList([0x41, 0x05, 0x05]),
-            withoutResponse: true,
-          );
-        }*/
       } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
-        _processData(bytes);
+        processData(bytes);
       }
     } catch (e, stackTrace) {
       print("Error processing data: $e");
@@ -241,7 +216,7 @@ abstract class BaseDevice {
     zapEncryption.initialise(devicePublicKeyBytes);
   }
 
-  Future<void> _processData(Uint8List bytes) async {
+  Future<void> processData(Uint8List bytes) async {
     int type;
     Uint8List message;
 
@@ -266,59 +241,7 @@ abstract class BaseDevice {
       message = bytes.sublist(1);
     }
 
-    if (bytes.startsWith(Constants.RESPONSE_STOPPED_CLICK_V2)) {
-      print('no more events');
-      //connect();
-    }
-
     switch (type) {
-      case Constants.UNKNOWN_CLICKV2_TYPE:
-        if (!_isInited && false) {
-          _isInited = true;
-          final commands = [
-            [0x00, 0x08, 0x80, 0x08],
-            [0x00, 0x08, 0x83, 0x06],
-            [
-              0xFF,
-              0x04,
-              0x00,
-              0x0A,
-              0x15,
-              0x40,
-              0xE9,
-              0xD9,
-              0xC9,
-              0x6B,
-              0x74,
-              0x63,
-              0xC2,
-              0x7F,
-              0x1B,
-              0x4E,
-              0x4D,
-              0x9F,
-              0x1C,
-              0xB1,
-              0x20,
-              0x5D,
-              0x88,
-              0x2E,
-              0xD7,
-              0xCE,
-            ],
-          ];
-          for (final command in commands) {
-            await UniversalBle.write(
-              device.deviceId,
-              customServiceId,
-              syncRxCharacteristic!.uuid,
-              Uint8List.fromList(command),
-              withoutResponse: true,
-            );
-            await Future.delayed(const Duration(milliseconds: 50));
-          }
-        }
-        break;
       case Constants.EMPTY_MESSAGE_TYPE:
         //print("Empty Message"); // expected when nothing happening
         break;
@@ -330,47 +253,10 @@ abstract class BaseDevice {
         break;
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
       case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
-      case Constants.RIDE_NOTIFICATION_MESSAGE_TYPE: // untested
+      case Constants.RIDE_NOTIFICATION_MESSAGE_TYPE:
         processClickNotification(message)
             .then((buttonsClicked) async {
-              if (buttonsClicked == null) {
-                // ignore, no changes
-              } else if (buttonsClicked.isEmpty) {
-                actionStreamInternal.add(LogNotification('Buttons released'));
-                _longPressTimer?.cancel();
-
-                // Handle release events for long press keys
-                final buttonsReleased = _previouslyPressedButtons.toList();
-                if (buttonsReleased.isNotEmpty) {
-                  await _performRelease(buttonsReleased);
-                }
-                _previouslyPressedButtons.clear();
-              } else {
-                // Handle release events for buttons that are no longer pressed
-                final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
-                if (buttonsReleased.isNotEmpty) {
-                  await _performRelease(buttonsReleased);
-                }
-
-                final isLongPress =
-                    buttonsClicked.singleOrNull != null &&
-                    actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
-
-                if (!isLongPress &&
-                    !(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
-                        buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
-                  // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
-                  _longPressTimer?.cancel();
-                  _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
-                    _performActions(buttonsClicked, true);
-                  });
-                } else if (isLongPress) {
-                  // Update currently pressed buttons
-                  _previouslyPressedButtons = buttonsClicked.toSet();
-                }
-
-                return _performActions(buttonsClicked, false);
-              }
+              return handleButtonsClicked(buttonsClicked);
             })
             .catchError((e) {
               actionStreamInternal.add(LogNotification(e.toString()));
@@ -380,6 +266,47 @@ abstract class BaseDevice {
   }
 
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message);
+
+  Future<void> handleButtonsClicked(List<ZwiftButton>? buttonsClicked) async {
+    if (buttonsClicked == null) {
+      // ignore, no changes
+    } else if (buttonsClicked.isEmpty) {
+      actionStreamInternal.add(LogNotification('Buttons released'));
+      _longPressTimer?.cancel();
+
+      // Handle release events for long press keys
+      final buttonsReleased = _previouslyPressedButtons.toList();
+      if (buttonsReleased.isNotEmpty) {
+        await _performRelease(buttonsReleased);
+      }
+      _previouslyPressedButtons.clear();
+    } else {
+      // Handle release events for buttons that are no longer pressed
+      final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
+      if (buttonsReleased.isNotEmpty) {
+        await _performRelease(buttonsReleased);
+      }
+
+      final isLongPress =
+          buttonsClicked.singleOrNull != null &&
+          actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
+
+      if (!isLongPress &&
+          !(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
+              buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
+        // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
+        _longPressTimer?.cancel();
+        _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
+          _performActions(buttonsClicked, true);
+        });
+      } else if (isLongPress) {
+        // Update currently pressed buttons
+        _previouslyPressedButtons = buttonsClicked.toSet();
+      }
+
+      return _performActions(buttonsClicked, false);
+    }
+  }
 
   Future<void> _performActions(List<ZwiftButton> buttonsClicked, bool repeated) async {
     if (!repeated &&
