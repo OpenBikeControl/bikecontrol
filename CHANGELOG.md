@@ -2,6 +2,7 @@
 - Fix crashes on some Android devices
 - refactor touch placements: show touches on screen, fix misplaced coordinates - should fix #64
 - show firmware version of connected device
+- many UI improvements
 
 ### 2.5.0 (2025-09-25)
 - Improve usability
