@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/devices/zwift_play.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -80,7 +81,9 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                       ),
                     ),
                     Divider(color: Theme.of(context).colorScheme.primary, height: 30),
-                    if (connection.devices.any((device) => device is ZwiftRide && device.isConnected))
+                    if (connection.devices.any(
+                      (device) => (device is ZwiftRide || device is ZwiftPlay) && device.isConnected,
+                    ))
                       SwitchListTile(
                         title: Text('Vibration on Shift'),
                         subtitle: Text('Enable vibration feedback when shifting gears'),

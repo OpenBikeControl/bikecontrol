@@ -3,6 +3,7 @@
 - refactor touch placements: show touches on screen, fix misplaced coordinates - should fix #64
 - show firmware version of connected device
 - many UI improvements
+- add setting to enable or disable vibration on button press for Zwift Ride and Zwift Play controllers
 
 ### 2.5.0 (2025-09-25)
 - Improve usability
