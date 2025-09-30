@@ -51,4 +51,12 @@ class Settings {
   Future<void> setLastSeenVersion(String version) async {
     await _prefs.setString('last_seen_version', version);
   }
+
+  bool getVibrationEnabled() {
+    return _prefs.getBool('vibration_enabled') ?? true;
+  }
+
+  Future<void> setVibrationEnabled(bool enabled) async {
+    await _prefs.setBool('vibration_enabled', enabled);
+  }
 }

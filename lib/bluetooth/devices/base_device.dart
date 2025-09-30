@@ -383,7 +383,8 @@ abstract class BaseDevice {
 
   Future<void> _performActions(List<ZwiftButton> buttonsClicked, bool repeated) async {
     if (!repeated &&
-        buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp))) {
+        buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
+        settings.getVibrationEnabled()) {
       await _vibrate();
     }
     for (final action in buttonsClicked) {

@@ -12,6 +12,7 @@ import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../bluetooth/devices/zwift_ride.dart';
 import '../utils/keymap/apps/custom_app.dart';
 import '../utils/keymap/apps/supported_app.dart';
 import '../widgets/menu.dart';
@@ -79,6 +80,16 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                       ),
                     ),
                     Divider(color: Theme.of(context).colorScheme.primary, height: 30),
+                    if (connection.devices.any((device) => device is ZwiftRide && device.isConnected))
+                      SwitchListTile(
+                        title: Text('Vibration on Shift'),
+                        subtitle: Text('Enable vibration feedback when shifting gears'),
+                        value: settings.getVibrationEnabled(),
+                        onChanged: (value) async {
+                          await settings.setVibrationEnabled(value);
+                          setState(() {});
+                        },
+                      ),
                     if (!kIsWeb)
                       Column(
                         spacing: 12,
