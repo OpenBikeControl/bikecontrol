@@ -72,11 +72,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     super.initState();
 
     // Force landscape orientation during keymap editing
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-    
+    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);

@@ -1,7 +1,7 @@
 ### 2.6.0 (2025-09-28)
-- Fix crashes on some Android devices
 - refactor touch placements: show touches on screen, fix misplaced coordinates - should fix #64
 - show firmware version of connected device
+- Fix crashes on some Android devices
 - many UI improvements
 - add setting to enable or disable vibration on button press for Zwift Ride and Zwift Play controllers
 

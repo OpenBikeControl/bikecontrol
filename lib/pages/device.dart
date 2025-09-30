@@ -81,18 +81,6 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                       ),
                     ),
                     Divider(color: Theme.of(context).colorScheme.primary, height: 30),
-                    if (connection.devices.any(
-                      (device) => (device is ZwiftRide || device is ZwiftPlay) && device.isConnected,
-                    ))
-                      SwitchListTile(
-                        title: Text('Vibration on Shift'),
-                        subtitle: Text('Enable vibration feedback when shifting gears'),
-                        value: settings.getVibrationEnabled(),
-                        onChanged: (value) async {
-                          await settings.setVibrationEnabled(value);
-                          setState(() {});
-                        },
-                      ),
                     if (!kIsWeb)
                       Column(
                         spacing: 12,
@@ -183,6 +171,18 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                               onUpdate: () {
                                 setState(() {});
                                 controller.text = actionHandler.supportedApp?.name ?? '';
+                              },
+                            ),
+                          if (connection.devices.any(
+                            (device) => (device is ZwiftRide || device is ZwiftPlay || true) && device.isConnected,
+                          ))
+                            SwitchListTile(
+                              title: Text('Vibration on Shift'),
+                              subtitle: Text('Enable vibration feedback when shifting gears'),
+                              value: settings.getVibrationEnabled(),
+                              onChanged: (value) async {
+                                await settings.setVibrationEnabled(value);
+                                setState(() {});
                               },
                             ),
                         ],
