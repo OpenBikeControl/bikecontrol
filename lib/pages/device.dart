@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_control/bluetooth/devices/zwift_play.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -13,7 +12,6 @@ import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
 
 import '../bluetooth/devices/base_device.dart';
-import '../bluetooth/devices/zwift_ride.dart';
 import '../utils/keymap/apps/custom_app.dart';
 import '../utils/keymap/apps/supported_app.dart';
 import '../widgets/menu.dart';
@@ -174,7 +172,9 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                               },
                             ),
                           if (connection.devices.any(
-                            (device) => (device is ZwiftRide || device is ZwiftPlay || true) && device.isConnected,
+                            (device) =>
+                                (device.device.name == 'Zwift Ride' || device.device.name == 'Zwift Play') &&
+                                device.isConnected,
                           ))
                             SwitchListTile(
                               title: Text('Vibration on Shift'),
