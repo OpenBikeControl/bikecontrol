@@ -78,10 +78,12 @@ class _DevicePageState extends State<DevicePage> {
                         ),
                         padding: const EdgeInsets.all(8),
                         child: Text(
-                          '''To make your Zwift Click V2 work properly you need to connect it to with in the Zwift app once each day:
+                          '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
+
 1. Open Zwift app
-2. After logging in (subscription not required) find it in the device connection screen and connect it
-3. Close the Zwift app again and connect again in SwiftControl''',
+2. Log in (subscription not required) and open the device connection screen
+3. Connect your Trainer, then connect the Zwift Click V2
+4. Close the Zwift app again and connect again in SwiftControl''',
                         ),
                       ),
                     Text(
@@ -207,7 +209,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                               onPressed: () {
                                 (connection.devices.first as ZwiftClickV2).test();
                               },
-                              child: Text('Reset'),
+                              child: Text('Test'),
                             ),
                         ],
                       ),

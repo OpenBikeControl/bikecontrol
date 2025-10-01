@@ -160,8 +160,7 @@ jobs:
 
       - name: Upload to Play Store
         # only upload when env.VERSION does not end with 1337, which is our indicator for beta releases
-        #if: "!endsWith(env.VERSION, '1337')"
-        if: false
+        if: "!endsWith(env.VERSION, '1337')"
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}

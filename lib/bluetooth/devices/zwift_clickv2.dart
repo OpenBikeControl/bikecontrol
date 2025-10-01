@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
-import 'package:swift_control/bluetooth/protocol/zp.pb.dart';
 
 import '../ble.dart';
+import '../protocol/zp.pbenum.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult);
@@ -44,27 +44,27 @@ class ZwiftClickV2 extends ZwiftRide {
         0x00,
         0x0A,
         0x15,
-        0x40,
-        0xE9,
-        0xD9,
-        0xC9,
-        0x6B,
-        0x74,
-        0x63,
         0xC2,
-        0x7F,
-        0x1B,
-        0x4E,
-        0x4D,
-        0x9F,
-        0x1C,
-        0xB1,
-        0x20,
-        0x5D,
-        0x88,
-        0x2E,
-        0xD7,
-        0xCE,
+        0x63,
+        0x24,
+        0x0A,
+        0x31,
+        0xD6,
+        0xC6,
+        0xB8,
+        0x1F,
+        0xC1,
+        0x29,
+        0xD6,
+        0xA4,
+        0xE9,
+        0x9D,
+        0xFF,
+        0xFC,
+        0xB9,
+        0xFC,
+        0x41,
+        0x8D,
       ]),
     );*/
   }

@@ -2,6 +2,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -77,10 +78,15 @@ class ZwiftRide extends BaseDevice {
       );
     }
 
-    if (bytes.startsWith(Constants.RESPONSE_STOPPED_CLICK_V2)) {
+    if (bytes.startsWith(Constants.RESPONSE_STOPPED_CLICK_V2) && this is ZwiftClickV2) {
       actionStreamInternal.add(
-        LogNotification('Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day.'),
+        LogNotification(
+          'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day. Resetting the device now.',
+        ),
       );
+      if (!kDebugMode) {
+        sendCommand(Opcode.RESET, null);
+      }
     }
 
     switch (opcode) {
