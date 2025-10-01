@@ -303,10 +303,9 @@ abstract class BaseDevice {
         _longPressTimer = Timer.periodic(const Duration(milliseconds: 350), (timer) async {
           _performActions(buttonsClicked, true);
         });
-      } else if (isLongPress) {
-        // Update currently pressed buttons
-        _previouslyPressedButtons = buttonsClicked.toSet();
       }
+      // Update currently pressed buttons
+      _previouslyPressedButtons = buttonsClicked.toSet();
 
       return _performActions(buttonsClicked, false);
     }
