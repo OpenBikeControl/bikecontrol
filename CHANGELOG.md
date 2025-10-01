@@ -1,3 +1,6 @@
+### 2.6.1 (2025-10-01)
+- fix a few issues with the new touch placement feature
+
 ### 2.6.0 (2025-09-30)
 - refactor touch placements: show touches on screen, fix misplaced coordinates - should fix #64
 - show firmware version of connected device

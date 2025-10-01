@@ -74,7 +74,10 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     // Force landscape orientation during keymap editing
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []).then((_) {
+      // this will make sure the buttons are placed correctly after the transition
+      setState(() {});
+    });
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);
     }
@@ -128,9 +131,11 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   }) {
     final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
 
-    // figure out notch height for e.g. macOS
+    // figure out notch height for e.g. macOS. On Windows the display size is not available (0,0).
     final differenceInHeight =
-        (flutterView.display.size.height - flutterView.physicalSize.height) / flutterView.devicePixelRatio;
+        (flutterView.display.size.height > 0)
+            ? (flutterView.display.size.height - flutterView.physicalSize.height) / flutterView.devicePixelRatio
+            : 0.0;
 
     if (kDebugMode) {
       print('Display Size: ${flutterView.display.size}');
