@@ -20,10 +20,10 @@ class KeymapExplanation extends StatelessWidget {
 
     final keyboardGroups = availableKeypairs
         .filter((e) => e.physicalKey != null)
-        .groupBy((element) => '${element.physicalKey}-${element.isLongPress}');
+        .groupBy((element) => '${element.physicalKey?.usbHidUsage}-${element.isLongPress}');
     final touchGroups = availableKeypairs
         .filter((e) => e.physicalKey == null && e.touchPosition != Offset.zero)
-        .groupBy((element) => '${element.touchPosition}-${element.isLongPress}');
+        .groupBy((element) => '${element.touchPosition.dx}-${element.touchPosition.dy}-${element.isLongPress}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

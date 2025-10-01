@@ -207,7 +207,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                               onPressed: () {
                                 (connection.devices.first as ZwiftClickV2).test();
                               },
-                              child: Text('Test'),
+                              child: Text('Reset'),
                             ),
                         ],
                       ),

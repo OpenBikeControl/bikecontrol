@@ -59,7 +59,7 @@ class DesktopActions extends BaseActions {
         final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
         await keyPressSimulator.simulateMouseClickDown(point);
         await keyPressSimulator.simulateMouseClickUp(point);
-        return 'Mouse clicked at: $point';
+        return 'Mouse clicked at: ${point.dx} ${point.dy}';
       }
     }
   }

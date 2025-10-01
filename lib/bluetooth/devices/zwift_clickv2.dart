@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
+import 'package:swift_control/bluetooth/protocol/zp.pb.dart';
 
 import '../ble.dart';
-import '../protocol/zp.pb.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult);
@@ -21,7 +21,10 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   Future<void> test() async {
-    await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_DEV_INFO.value)); // 0008 00
+    await sendCommand(Opcode.RESET, null);
+    //await sendCommand(Opcode.GET, Get(dataObjectId: VendorDO.PAGE_DEVICE_PAIRING.value)); // 0008 82E0 03
+
+    /*await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_DEV_INFO.value)); // 0008 00
     await sendCommand(Opcode.LOG_LEVEL_SET, LogLevelSet(logLevel: LogLevel.LOGLEVEL_TRACE)); // 4108 05
 
     await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_CLIENT_SERVER_CONFIGURATION.value)); // 0008 10
@@ -63,6 +66,6 @@ class ZwiftClickV2 extends ZwiftRide {
         0xD7,
         0xCE,
       ]),
-    );
+    );*/
   }
 }
