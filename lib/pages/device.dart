@@ -201,7 +201,8 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                 setState(() {});
                               },
                             ),
-                          if (connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
+                          if (kDebugMode &&
+                              connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
                             ElevatedButton(
                               onPressed: () {
                                 (connection.devices.first as ZwiftClickV2).test();
