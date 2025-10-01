@@ -5,7 +5,6 @@ import 'package:swift_control/widgets/keymap_explanation.dart';
 
 class DesktopActions extends BaseActions {
   // Track keys that are currently held down in long press mode
-  final Set<ZwiftButton> _heldKeys = <ZwiftButton>{};
 
   @override
   Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
@@ -18,60 +17,42 @@ class DesktopActions extends BaseActions {
       return ('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     }
 
-    // Handle long press mode
-    if (keyPair.isLongPress) {
-      if (isKeyDown && !isKeyUp) {
-        // Key press: start long press
-        if (!_heldKeys.contains(action)) {
-          _heldKeys.add(action);
-          if (keyPair.physicalKey != null) {
-            await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
-            return 'Long press started: ${keyPair.logicalKey?.keyLabel}';
-          } else {
-            final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
-            await keyPressSimulator.simulateMouseClickDown(point);
-            return 'Long Mouse click started at: $point';
-          }
-        }
-      } else if (isKeyUp && !isKeyDown) {
-        // Key release: end long press
-        if (_heldKeys.contains(action)) {
-          _heldKeys.remove(action);
-          if (keyPair.physicalKey != null) {
-            await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
-            return 'Long press ended: ${keyPair.logicalKey?.keyLabel}';
-          } else {
-            final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
-            await keyPressSimulator.simulateMouseClickUp(point);
-            return 'Long Mouse click ended at: $point';
-          }
-        }
-      }
-      // Ignore other combinations in long press mode
-      return 'Long press active';
-    } else {
-      // Handle regular key press mode (existing behavior)
-      if (keyPair.physicalKey != null) {
+    // Handle regular key press mode (existing behavior)
+    if (keyPair.physicalKey != null) {
+      if (isKeyDown) {
+        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
+        return 'Key pressed: $keyPair';
+      } else if (isKeyUp) {
+        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+        return 'Key released: $keyPair';
+      } else {
         await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
         await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
-        return 'Key pressed: $keyPair';
+        return 'Key clicked: $keyPair';
+      }
+    } else {
+      final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
+      if (isKeyDown) {
+        await keyPressSimulator.simulateMouseClickDown(point);
+        return 'Mouse down at: ${point.dx} ${point.dy}';
+      } else if (isKeyUp) {
+        await keyPressSimulator.simulateMouseClickUp(point);
+        return 'Mouse up at: ${point.dx} ${point.dy}';
       } else {
-        final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
         await keyPressSimulator.simulateMouseClickDown(point);
         await keyPressSimulator.simulateMouseClickUp(point);
-        return 'Mouse clicked at: ${point.dx} ${point.dy}';
       }
+      return 'Mouse clicked at: ${point.dx} ${point.dy}';
     }
   }
 
   // Release all held keys (useful for cleanup)
-  Future<void> releaseAllHeldKeys() async {
-    for (final action in _heldKeys.toList()) {
+  Future<void> releaseAllHeldKeys(List<ZwiftButton> list) async {
+    for (final action in list) {
       final keyPair = supportedApp?.keymap.getKeyPair(action);
       if (keyPair?.physicalKey != null) {
         await keyPressSimulator.simulateKeyUp(keyPair!.physicalKey);
       }
     }
-    _heldKeys.clear();
   }
 }

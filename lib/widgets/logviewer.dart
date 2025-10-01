@@ -49,39 +49,46 @@ class _LogviewerState extends State<LogViewer> {
   @override
   Widget build(BuildContext context) {
     return SelectionArea(
-      child: ListView(
-        physics: const NeverScrollableScrollPhysics(),
-        controller: _scrollController,
-        shrinkWrap: true,
-        reverse: true,
-        children:
-            _actions
-                .map(
-                  (action) => Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: action.date.toString().split(" ").last,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                            fontFamily: "monospace",
-                            fontFamilyFallback: <String>["Courier"],
+      child: GestureDetector(
+        onLongPress: () {
+          setState(() {
+            _actions = [];
+          });
+        },
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _scrollController,
+          shrinkWrap: true,
+          reverse: true,
+          children:
+              _actions
+                  .map(
+                    (action) => Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: action.date.toString().split(" ").last,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                              fontFamily: "monospace",
+                              fontFamilyFallback: <String>["Courier"],
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: "  ${action.entry}",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                            fontWeight: FontWeight.bold,
+                          TextSpan(
+                            text: "  ${action.entry}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
+                  )
+                  .toList(),
+        ),
       ),
     );
   }

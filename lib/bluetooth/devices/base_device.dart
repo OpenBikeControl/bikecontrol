@@ -348,11 +348,11 @@ abstract class BaseDevice {
   Future<void> disconnect() async {
     _isInited = false;
     _longPressTimer?.cancel();
-    _previouslyPressedButtons.clear();
     // Release any held keys in long press mode
     if (actionHandler is DesktopActions) {
-      await (actionHandler as DesktopActions).releaseAllHeldKeys();
+      await (actionHandler as DesktopActions).releaseAllHeldKeys(_previouslyPressedButtons.toList());
     }
+    _previouslyPressedButtons.clear();
     await UniversalBle.disconnect(device.deviceId);
     isConnected = false;
   }
