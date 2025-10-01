@@ -376,7 +376,7 @@ class KeypairExplanation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
       spacing: 4,
       children: [
         if (withKey) KeyWidget(label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n')),

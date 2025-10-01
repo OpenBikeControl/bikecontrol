@@ -300,7 +300,7 @@ abstract class BaseDevice {
               buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
         // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
         _longPressTimer?.cancel();
-        _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
+        _longPressTimer = Timer.periodic(const Duration(milliseconds: 350), (timer) async {
           _performActions(buttonsClicked, true);
         });
       } else if (isLongPress) {

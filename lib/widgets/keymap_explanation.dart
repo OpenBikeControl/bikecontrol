@@ -106,21 +106,23 @@ class KeyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      constraints: BoxConstraints(minWidth: 30),
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).colorScheme.primary),
-        borderRadius: BorderRadius.circular(4),
-        color: Theme.of(context).colorScheme.primaryContainer,
-      ),
-      child: Center(
-        child: Text(
-          label.splitByUpperCase(),
-          style: TextStyle(
-            fontFamily: 'monospace',
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
+    return IntrinsicWidth(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        constraints: BoxConstraints(minWidth: 30),
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).colorScheme.primary),
+          borderRadius: BorderRadius.circular(4),
+          color: Theme.of(context).colorScheme.primaryContainer,
+        ),
+        child: Center(
+          child: Text(
+            label.splitByUpperCase(),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
         ),
       ),
