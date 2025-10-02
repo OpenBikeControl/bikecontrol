@@ -1,4 +1,4 @@
-### 2.6.2 (2025-10-01)
+### 2.6.3 (2025-10-01)
 - fix a few issues with the new touch placement feature
 - add a workaround for Zwift Click V2 which resets the device when button events are no longer sent
 - fix issue on Android and Desktop where only a "touch down" was sent, but no "touch up"

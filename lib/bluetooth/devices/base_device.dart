@@ -272,6 +272,9 @@ abstract class BaseDevice {
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message);
 
   Future<void> handleButtonsClicked(List<ZwiftButton>? buttonsClicked) async {
+    final isLongPress =
+        buttonsClicked?.singleOrNull != null &&
+        actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked!.single)?.isLongPress == true;
     if (buttonsClicked == null) {
       // ignore, no changes
     } else if (buttonsClicked.isEmpty) {
@@ -280,20 +283,16 @@ abstract class BaseDevice {
 
       // Handle release events for long press keys
       final buttonsReleased = _previouslyPressedButtons.toList();
-      if (buttonsReleased.isNotEmpty) {
+      if (buttonsReleased.isNotEmpty && isLongPress) {
         await _performRelease(buttonsReleased);
       }
       _previouslyPressedButtons.clear();
     } else {
       // Handle release events for buttons that are no longer pressed
       final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
-      if (buttonsReleased.isNotEmpty) {
+      if (buttonsReleased.isNotEmpty && isLongPress) {
         await _performRelease(buttonsReleased);
       }
-
-      final isLongPress =
-          buttonsClicked.singleOrNull != null &&
-          actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
 
       if (!isLongPress &&
           !(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
