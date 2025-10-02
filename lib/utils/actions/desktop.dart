@@ -19,30 +19,30 @@ class DesktopActions extends BaseActions {
 
     // Handle regular key press mode (existing behavior)
     if (keyPair.physicalKey != null) {
-      if (isKeyDown) {
-        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
-        return 'Key pressed: $keyPair';
-      } else if (isKeyUp) {
-        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
-        return 'Key released: $keyPair';
-      } else {
+      if (isKeyDown && isKeyUp) {
         await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
         await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
         return 'Key clicked: $keyPair';
+      } else if (isKeyDown) {
+        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
+        return 'Key pressed: $keyPair';
+      } else {
+        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+        return 'Key released: $keyPair';
       }
     } else {
       final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
-      if (isKeyDown) {
+      if (isKeyDown && isKeyUp) {
+        await keyPressSimulator.simulateMouseClickDown(point);
+        await keyPressSimulator.simulateMouseClickUp(point);
+        return 'Mouse clicked at: ${point.dx} ${point.dy}';
+      } else if (isKeyDown) {
         await keyPressSimulator.simulateMouseClickDown(point);
         return 'Mouse down at: ${point.dx} ${point.dy}';
-      } else if (isKeyUp) {
+      } else {
         await keyPressSimulator.simulateMouseClickUp(point);
         return 'Mouse up at: ${point.dx} ${point.dy}';
-      } else {
-        await keyPressSimulator.simulateMouseClickDown(point);
-        await keyPressSimulator.simulateMouseClickUp(point);
       }
-      return 'Mouse clicked at: ${point.dx} ${point.dy}';
     }
   }
 

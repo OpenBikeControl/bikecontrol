@@ -56,7 +56,7 @@ class AccessibilityService : AccessibilityService(), Listener {
         path.moveTo(x.toFloat(), y.toFloat())
         path.lineTo(x.toFloat()+1, y.toFloat())
 
-        val stroke = StrokeDescription(path, 0, ViewConfiguration.getTapTimeout().toLong(), isKeyDown)
+        val stroke = StrokeDescription(path, 0, ViewConfiguration.getTapTimeout().toLong(), isKeyDown && !isKeyUp)
         gestureBuilder.addStroke(stroke)
 
         dispatchGesture(gestureBuilder.build(), null, null)

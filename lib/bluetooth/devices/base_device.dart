@@ -272,9 +272,6 @@ abstract class BaseDevice {
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message);
 
   Future<void> handleButtonsClicked(List<ZwiftButton>? buttonsClicked) async {
-    final isLongPress =
-        buttonsClicked?.singleOrNull != null &&
-        actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked!.single)?.isLongPress == true;
     if (buttonsClicked == null) {
       // ignore, no changes
     } else if (buttonsClicked.isEmpty) {
@@ -283,6 +280,9 @@ abstract class BaseDevice {
 
       // Handle release events for long press keys
       final buttonsReleased = _previouslyPressedButtons.toList();
+      final isLongPress =
+          buttonsReleased.singleOrNull != null &&
+          actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && isLongPress) {
         await _performRelease(buttonsReleased);
       }
@@ -290,9 +290,16 @@ abstract class BaseDevice {
     } else {
       // Handle release events for buttons that are no longer pressed
       final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
-      if (buttonsReleased.isNotEmpty && isLongPress) {
+      final wasLongPress =
+          buttonsReleased.singleOrNull != null &&
+          actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+      if (buttonsReleased.isNotEmpty && wasLongPress) {
         await _performRelease(buttonsReleased);
       }
+
+      final isLongPress =
+          buttonsClicked.singleOrNull != null &&
+          actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
 
       if (!isLongPress &&
           !(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
@@ -300,27 +307,41 @@ abstract class BaseDevice {
         // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
         _longPressTimer?.cancel();
         _longPressTimer = Timer.periodic(const Duration(milliseconds: 350), (timer) async {
-          _performActions(buttonsClicked, true);
+          _performClick(buttonsClicked);
         });
       }
       // Update currently pressed buttons
       _previouslyPressedButtons = buttonsClicked.toSet();
 
-      return _performActions(buttonsClicked, false);
+      if (isLongPress) {
+        return _performDown(buttonsClicked);
+      } else {
+        return _performClick(buttonsClicked);
+      }
     }
   }
 
-  Future<void> _performActions(List<ZwiftButton> buttonsClicked, bool repeated) async {
-    if (!repeated &&
-        buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
+  Future<void> _performDown(List<ZwiftButton> buttonsClicked) async {
+    if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
         settings.getVibrationEnabled()) {
       await _vibrate();
     }
     for (final action in buttonsClicked) {
       // For repeated actions, don't trigger key down/up events (useful for long press)
-      final isKeyDown = !repeated;
       actionStreamInternal.add(
-        LogNotification(await actionHandler.performAction(action, isKeyDown: isKeyDown, isKeyUp: false)),
+        LogNotification(await actionHandler.performAction(action, isKeyDown: true, isKeyUp: false)),
+      );
+    }
+  }
+
+  Future<void> _performClick(List<ZwiftButton> buttonsClicked) async {
+    if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
+        settings.getVibrationEnabled()) {
+      await _vibrate();
+    }
+    for (final action in buttonsClicked) {
+      actionStreamInternal.add(
+        LogNotification(await actionHandler.performAction(action, isKeyDown: true, isKeyUp: true)),
       );
     }
   }

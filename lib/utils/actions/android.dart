@@ -44,11 +44,11 @@ class AndroidActions extends BaseActions {
     final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo);
     if (point != Offset.zero) {
       accessibilityHandler.performTouch(point.dx, point.dy, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
-      return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()} -> ${isKeyDown
+      return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()} -> ${isKeyDown && isKeyUp
+          ? "click"
+          : isKeyDown
           ? "down"
-          : isKeyUp
-          ? "up"
-          : "click"}";
+          : "up"}";
     }
     return "No touch performed";
   }

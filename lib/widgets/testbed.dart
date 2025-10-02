@@ -90,6 +90,23 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
     setState(() {});
   }
 
+  void _onPointerUp(PointerUpEvent e) {
+    if (!widget.enabled ||
+        !widget.showTouches ||
+        (e.kind != PointerDeviceKind.unknown && e.kind != PointerDeviceKind.mouse)) {
+      return;
+    }
+    final sample = _TouchSample(
+      pointer: e.pointer,
+      position: e.position,
+      timestamp: DateTime.now(),
+      phase: _TouchPhase.up,
+    );
+    _active[e.pointer] = sample;
+    _history.add(sample);
+    setState(() {});
+  }
+
   void _onPointerCancel(PointerCancelEvent e) {
     if (!widget.enabled || !widget.showTouches || !mounted) return;
     _active.remove(e.pointer);
@@ -130,6 +147,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Listener(
       onPointerDown: _onPointerDown,
+      onPointerUp: _onPointerUp,
       onPointerCancel: _onPointerCancel,
       behavior: HitTestBehavior.translucent,
       child: Focus(
@@ -205,6 +223,8 @@ class _TouchesPainter extends CustomPainter {
     for (final s in samples) {
       final age = now.difference(s.timestamp);
       if (age > duration) continue;
+
+      final color = s.phase == _TouchPhase.down ? this.color : Colors.red;
 
       final t = age.inMilliseconds / duration.inMilliseconds.clamp(1, 1 << 30);
       final fade = (1.0 - t).clamp(0.0, 1.0);
