@@ -137,150 +137,173 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             ? (flutterView.display.size.height - flutterView.physicalSize.height) / flutterView.devicePixelRatio
             : 0.0;
 
-    if (kDebugMode) {
+    if (kDebugMode && false) {
+      print('Position: $position');
       print('Display Size: ${flutterView.display.size}');
       print('View size: ${flutterView.physicalSize}');
       print('Difference: $differenceInHeight');
     }
+
+    final isOnTheRightEdge = position.dx > (MediaQuery.sizeOf(context).width - 250);
+    final label = KeypairExplanation(withKey: true, keyPair: keyPair);
+
+    final iconSize = 40.0;
+    final icon = Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.4),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      child: Icon(
+        (!keyPair.isSpecialKey && keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero)
+            ? Icons.add
+            : Icons.drag_indicator_outlined,
+        size: iconSize,
+        shadows: [
+          Shadow(color: Colors.white, offset: Offset(1, 1)),
+          Shadow(color: Colors.white, offset: Offset(-1, -1)),
+          Shadow(color: Colors.white, offset: Offset(-1, 1)),
+          Shadow(color: Colors.white, offset: Offset(-1, 1)),
+          Shadow(color: Colors.white, offset: Offset(1, -1)),
+        ],
+      ),
+    );
+
     return [
       Positioned(
         left: position.dx,
         top: position.dy - differenceInHeight,
-        child: PopupMenuButton<PhysicalKeyboardKey>(
-          enabled: enableTouch,
-          tooltip: 'Drag to reposition. Tap to edit.',
-          itemBuilder:
-              (context) => [
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: null,
-                  child: ListTile(
-                    leading: Icon(Icons.keyboard_alt_outlined),
-                    title: const Text('Simulate Keyboard shortcut'),
-                  ),
-                  onTap: () async {
-                    await showDialog<void>(
-                      context: context,
-                      barrierDismissible: false, // enable Escape key
-                      builder:
-                          (c) => HotKeyListenerDialog(
-                            customApp: actionHandler.supportedApp! as CustomApp,
-                            keyPair: keyPair,
-                          ),
-                    );
-                    setState(() {});
-                  },
-                ),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: null,
-                  child: ListTile(title: const Text('Simulate Touch'), leading: Icon(Icons.touch_app_outlined)),
-                  onTap: () {
-                    keyPair.physicalKey = null;
-                    keyPair.logicalKey = null;
-                    setState(() {});
-                  },
-                ),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: null,
-                  onTap: () {
-                    keyPair.isLongPress = !keyPair.isLongPress;
-                    setState(() {});
-                  },
-                  child: CheckboxListTile(
-                    value: keyPair.isLongPress,
-                    onChanged: (value) {
-                      keyPair.isLongPress = value ?? false;
-                      setState(() {});
-                      Navigator.of(context).pop();
-                    },
-                    title: const Text('Long Press Mode (vs. repeating)'),
-                  ),
-                ),
-                PopupMenuDivider(),
-                PopupMenuItem(
-                  child: PopupMenuButton<PhysicalKeyboardKey>(
-                    padding: EdgeInsets.zero,
-                    itemBuilder:
-                        (context) => [
-                          PopupMenuItem<PhysicalKeyboardKey>(
-                            value: PhysicalKeyboardKey.mediaPlayPause,
-                            child: const Text('Media: Play/Pause'),
-                          ),
-                          PopupMenuItem<PhysicalKeyboardKey>(
-                            value: PhysicalKeyboardKey.mediaStop,
-                            child: const Text('Media: Stop'),
-                          ),
-                          PopupMenuItem<PhysicalKeyboardKey>(
-                            value: PhysicalKeyboardKey.mediaTrackPrevious,
-                            child: const Text('Media: Previous'),
-                          ),
-                          PopupMenuItem<PhysicalKeyboardKey>(
-                            value: PhysicalKeyboardKey.mediaTrackNext,
-                            child: const Text('Media: Next'),
-                          ),
-                          PopupMenuItem<PhysicalKeyboardKey>(
-                            value: PhysicalKeyboardKey.audioVolumeUp,
-                            child: const Text('Media: Volume Up'),
-                          ),
-                          PopupMenuItem<PhysicalKeyboardKey>(
-                            value: PhysicalKeyboardKey.audioVolumeDown,
-                            child: const Text('Media: Volume Down'),
-                          ),
-                        ],
-                    onSelected: (key) {
-                      keyPair.physicalKey = key;
-                      keyPair.logicalKey = null;
-
-                      setState(() {});
-                    },
+        child: FractionalTranslation(
+          translation: Offset(isOnTheRightEdge ? -1.0 : 0.0, 0),
+          child: PopupMenuButton<PhysicalKeyboardKey>(
+            enabled: enableTouch,
+            tooltip: 'Drag to reposition. Tap to edit.',
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: null,
                     child: ListTile(
-                      leading: Icon(Icons.music_note_outlined),
-                      trailing: Icon(Icons.arrow_right),
-                      title: Text('Simulate Media key'),
+                      leading: Icon(Icons.keyboard_alt_outlined),
+                      title: const Text('Simulate Keyboard shortcut'),
+                    ),
+                    onTap: () async {
+                      await showDialog<void>(
+                        context: context,
+                        barrierDismissible: false, // enable Escape key
+                        builder:
+                            (c) => HotKeyListenerDialog(
+                              customApp: actionHandler.supportedApp! as CustomApp,
+                              keyPair: keyPair,
+                            ),
+                      );
+                      setState(() {});
+                    },
+                  ),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: null,
+                    child: ListTile(title: const Text('Simulate Touch'), leading: Icon(Icons.touch_app_outlined)),
+                    onTap: () {
+                      keyPair.physicalKey = null;
+                      keyPair.logicalKey = null;
+                      setState(() {});
+                    },
+                  ),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: null,
+                    onTap: () {
+                      keyPair.isLongPress = !keyPair.isLongPress;
+                      setState(() {});
+                    },
+                    child: CheckboxListTile(
+                      value: keyPair.isLongPress,
+                      onChanged: (value) {
+                        keyPair.isLongPress = value ?? false;
+                        setState(() {});
+                        Navigator.of(context).pop();
+                      },
+                      title: const Text('Long Press Mode (vs. repeating)'),
                     ),
                   ),
-                ),
-                PopupMenuDivider(),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: null,
-                  child: ListTile(title: const Text('Delete Keymap'), leading: Icon(Icons.delete, color: Colors.red)),
-                  onTap: () {
-                    actionHandler.supportedApp!.keymap.keyPairs.remove(keyPair);
-                    setState(() {});
-                  },
-                ),
-              ],
-          onSelected: (key) {
-            keyPair.physicalKey = key;
-            keyPair.logicalKey = null;
-            setState(() {});
-          },
-          child: Draggable(
-            feedback: Material(color: Colors.transparent, child: KeypairExplanation(withKey: true, keyPair: keyPair)),
-            childWhenDragging: const SizedBox.shrink(),
-            onDraggableCanceled: (_, offset) {
-              final fixedPosition = offset + Offset(0, differenceInHeight);
-              setState(() => onPositionChanged(fixedPosition));
+                  PopupMenuDivider(),
+                  PopupMenuItem(
+                    child: PopupMenuButton<PhysicalKeyboardKey>(
+                      padding: EdgeInsets.zero,
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaPlayPause,
+                              child: const Text('Media: Play/Pause'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaStop,
+                              child: const Text('Media: Stop'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaTrackPrevious,
+                              child: const Text('Media: Previous'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.mediaTrackNext,
+                              child: const Text('Media: Next'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.audioVolumeUp,
+                              child: const Text('Media: Volume Up'),
+                            ),
+                            PopupMenuItem<PhysicalKeyboardKey>(
+                              value: PhysicalKeyboardKey.audioVolumeDown,
+                              child: const Text('Media: Volume Down'),
+                            ),
+                          ],
+                      onSelected: (key) {
+                        keyPair.physicalKey = key;
+                        keyPair.logicalKey = null;
+
+                        setState(() {});
+                      },
+                      child: ListTile(
+                        leading: Icon(Icons.music_note_outlined),
+                        trailing: Icon(Icons.arrow_right),
+                        title: Text('Simulate Media key'),
+                      ),
+                    ),
+                  ),
+                  PopupMenuDivider(),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: null,
+                    child: ListTile(title: const Text('Delete Keymap'), leading: Icon(Icons.delete, color: Colors.red)),
+                    onTap: () {
+                      actionHandler.supportedApp!.keymap.keyPairs.remove(keyPair);
+                      setState(() {});
+                    },
+                  ),
+                ],
+            onSelected: (key) {
+              keyPair.physicalKey = key;
+              keyPair.logicalKey = null;
+              setState(() {});
             },
-            child: KeypairExplanation(withKey: true, keyPair: keyPair),
+            child: label,
           ),
         ),
       ),
-      if (!keyPair.isSpecialKey && keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero)
-        Positioned(
-          left: position.dx - 10,
-          top: position.dy - 10 - differenceInHeight,
-          child: Icon(
-            Icons.add,
-            size: 20,
-            shadows: [
-              Shadow(color: Colors.white, offset: Offset(1, 1)),
-              Shadow(color: Colors.white, offset: Offset(-1, -1)),
-              Shadow(color: Colors.white, offset: Offset(-1, 1)),
-              Shadow(color: Colors.white, offset: Offset(-1, 1)),
-              Shadow(color: Colors.white, offset: Offset(1, -1)),
-            ],
-          ),
+
+      Positioned(
+        left: position.dx - iconSize / 2,
+        top: position.dy - differenceInHeight - iconSize / 2,
+        child: Draggable(
+          feedback: Material(color: Colors.transparent, child: icon),
+          childWhenDragging: const SizedBox.shrink(),
+          onDraggableCanceled: (velo, offset) {
+            // otherwise simulated touch will move it
+            if (velo.pixelsPerSecond.distance > 0) {
+              final fixedPosition = offset + Offset(iconSize / 2, differenceInHeight + iconSize / 2);
+              setState(() => onPositionChanged(fixedPosition));
+            }
+          },
+          child: icon,
         ),
+      ),
     ];
   }
 
@@ -378,6 +401,7 @@ class KeypairExplanation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       spacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (withKey) KeyWidget(label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n')),
         if (keyPair.physicalKey != null) ...[
