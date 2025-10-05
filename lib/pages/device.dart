@@ -27,6 +27,26 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
   final controller = TextEditingController(text: actionHandler.supportedApp?.name);
+  
+  List<SupportedApp> _getAllApps() {
+    final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
+    final customProfiles = settings.getCustomAppProfiles();
+    final customApps = customProfiles.map((profile) {
+      final customApp = CustomApp(profileName: profile);
+      final savedKeymap = settings.prefs.getStringList('customapp_$profile');
+      if (savedKeymap != null) {
+        customApp.decodeKeymap(savedKeymap);
+      }
+      return customApp;
+    }).toList();
+    
+    // If no custom profiles exist, add the default "Custom" one
+    if (customApps.isEmpty) {
+      customApps.add(CustomApp());
+    }
+    
+    return [...baseApps, ...customApps];
+  }
 
   @override
   void initState() {
@@ -112,7 +132,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                               DropdownMenu<SupportedApp>(
                                 controller: controller,
                                 dropdownMenuEntries:
-                                    SupportedApp.supportedApps
+                                    _getAllApps()
                                         .map((app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name))
                                         .toList(),
                                 label: Text('Select Keymap / app'),
@@ -178,6 +198,68 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                   },
                                   child: Text('Customize Keymap'),
                                 ),
+                              
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final profileName = await _showNewProfileDialog();
+                                  if (profileName != null && profileName.isNotEmpty) {
+                                    final customApp = CustomApp(profileName: profileName);
+                                    actionHandler.supportedApp = customApp;
+                                    await settings.setApp(customApp);
+                                    controller.text = profileName;
+                                    setState(() {});
+                                  }
+                                },
+                                child: Text('New Custom Profile'),
+                              ),
+                              
+                              if (actionHandler.supportedApp is CustomApp)
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
+                                    final action = await _showManageProfileDialog(currentProfile);
+                                    if (action != null) {
+                                      if (action == 'rename') {
+                                        final newName = await _showRenameProfileDialog(currentProfile);
+                                        if (newName != null && newName.isNotEmpty && newName != currentProfile) {
+                                          await settings.duplicateCustomAppProfile(currentProfile, newName);
+                                          await settings.deleteCustomAppProfile(currentProfile);
+                                          final customApp = CustomApp(profileName: newName);
+                                          final savedKeymap = settings.prefs.getStringList('customapp_$newName');
+                                          if (savedKeymap != null) {
+                                            customApp.decodeKeymap(savedKeymap);
+                                          }
+                                          actionHandler.supportedApp = customApp;
+                                          await settings.setApp(customApp);
+                                          controller.text = newName;
+                                          setState(() {});
+                                        }
+                                      } else if (action == 'duplicate') {
+                                        final newName = await _showDuplicateProfileDialog(currentProfile);
+                                        if (newName != null && newName.isNotEmpty) {
+                                          await settings.duplicateCustomAppProfile(currentProfile, newName);
+                                          final customApp = CustomApp(profileName: newName);
+                                          final savedKeymap = settings.prefs.getStringList('customapp_$newName');
+                                          if (savedKeymap != null) {
+                                            customApp.decodeKeymap(savedKeymap);
+                                          }
+                                          actionHandler.supportedApp = customApp;
+                                          await settings.setApp(customApp);
+                                          controller.text = newName;
+                                          setState(() {});
+                                        }
+                                      } else if (action == 'delete') {
+                                        final confirmed = await _showDeleteConfirmDialog(currentProfile);
+                                        if (confirmed == true) {
+                                          await settings.deleteCustomAppProfile(currentProfile);
+                                          controller.text = '';
+                                          setState(() {});
+                                        }
+                                      }
+                                    }
+                                  },
+                                  child: Text('Manage Profile'),
+                                ),
                             ],
                           ),
                           if (actionHandler.supportedApp != null)
@@ -221,6 +303,144 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
             Positioned.fill(child: Testbed()),
           ],
         ),
+      ),
+    );
+  }
+  
+  Future<String?> _showNewProfileDialog() async {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('New Custom Profile'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: 'Profile Name',
+            hintText: 'e.g., Workout, Race, Event',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<String?> _showManageProfileDialog(String currentProfile) async {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Manage Profile: $currentProfile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit),
+              title: Text('Rename'),
+              onTap: () => Navigator.pop(context, 'rename'),
+            ),
+            ListTile(
+              leading: Icon(Icons.copy),
+              title: Text('Duplicate'),
+              onTap: () => Navigator.pop(context, 'duplicate'),
+            ),
+            ListTile(
+              leading: Icon(Icons.delete),
+              title: Text('Delete'),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<String?> _showRenameProfileDialog(String currentName) async {
+    final controller = TextEditingController(text: currentName);
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Rename Profile'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: 'Profile Name',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text('Rename'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<String?> _showDuplicateProfileDialog(String currentName) async {
+    final controller = TextEditingController(text: '$currentName (Copy)');
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Duplicate Profile'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: 'New Profile Name',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text('Duplicate'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<bool?> _showDeleteConfirmDialog(String profileName) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Profile'),
+        content: Text('Are you sure you want to delete "$profileName"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+          ),
+        ],
       ),
     );
   }
