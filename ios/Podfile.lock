@@ -1,5 +1,5 @@
 PODS:
-  - bluetooth_low_energy_darwin (0.0.1):
+  - ble_peripheral (0.0.1):
     - Flutter
     - FlutterMacOS
   - device_info_plus (0.0.1):
@@ -23,7 +23,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - bluetooth_low_energy_darwin (from `.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
+  - ble_peripheral (from `.symlinks/plugins/ble_peripheral/darwin`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -35,8 +35,8 @@ DEPENDENCIES:
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 EXTERNAL SOURCES:
-  bluetooth_low_energy_darwin:
-    :path: ".symlinks/plugins/bluetooth_low_energy_darwin/darwin"
+  ble_peripheral:
+    :path: ".symlinks/plugins/ble_peripheral/darwin"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
@@ -57,7 +57,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
-  bluetooth_low_energy_darwin: 764d8d1ae5abefbcdb839e812b4b25c0061fcf8b
+  ble_peripheral: e80b0809599f5406e5d321c12a6dbc07ecdab8bd
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f

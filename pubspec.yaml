@@ -14,8 +14,8 @@ dependencies:
   flutter_local_notifications: ^19.4.1
   universal_ble: ^0.21.1
   intl: any
-  bluetooth_low_energy: ^6.1.0
   protobuf: ^4.2.0
+  ble_peripheral: ^2.4.0
   permission_handler: ^12.0.1
   dartx: any
   image_picker: ^1.1.2

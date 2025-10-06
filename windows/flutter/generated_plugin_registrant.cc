@@ -6,7 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <bluetooth_low_energy_windows/bluetooth_low_energy_windows_plugin_c_api.h>
+#include <ble_peripheral/ble_peripheral_plugin_c_api.h>
 #include <file_selector_windows/file_selector_windows.h>
 #include <keypress_simulator_windows/keypress_simulator_windows_plugin_c_api.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
@@ -16,8 +16,8 @@
 #include <window_manager/window_manager_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  BluetoothLowEnergyWindowsPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("BluetoothLowEnergyWindowsPluginCApi"));
+  BlePeripheralPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("BlePeripheralPluginCApi"));
   FileSelectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FileSelectorWindows"));
   KeypressSimulatorWindowsPluginCApiRegisterWithRegistrar(
