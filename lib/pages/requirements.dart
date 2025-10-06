@@ -56,11 +56,11 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
       final lastSeenVersion = settings.getLastSeenVersion();
-      
+
       if (mounted) {
         await ChangelogDialog.showIfNeeded(context, currentVersion, lastSeenVersion);
       }
-      
+
       // Update last seen version
       await settings.setLastSeenVersion(currentVersion);
     } catch (e) {
@@ -120,7 +120,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                           return;
                         }
                         final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
-                        if (hasEarlierIncomplete) {
+                        if (hasEarlierIncomplete && !kDebugMode) {
                           return;
                         }
                         setState(() {

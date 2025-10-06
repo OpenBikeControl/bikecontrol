@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
+import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -382,6 +383,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                       ],
                   icon: Icon(Icons.more_vert),
                 ),
+                if (kDebugMode) MenuButton(),
               ],
             ),
           ),
