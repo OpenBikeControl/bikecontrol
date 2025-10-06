@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/utils/requirements/android.dart';
+import 'package:swift_control/utils/requirements/ios.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
 abstract class PlatformRequirement {
@@ -25,8 +26,10 @@ Future<List<PlatformRequirement>> getRequirements() async {
   List<PlatformRequirement> list;
   if (kIsWeb) {
     list = [BluetoothTurnedOn(), BluetoothScanning()];
-  } else if (Platform.isMacOS || Platform.isIOS) {
+  } else if (Platform.isMacOS) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+  } else if (Platform.isIOS) {
+    list = [BluetoothTurnedOn(), PairRequirement()];
   } else if (Platform.isWindows) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
   } else if (Platform.isAndroid) {
