@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
@@ -10,7 +11,7 @@ Central? _connectedCentral;
 GATTCharacteristic? _connectedCharacteristic;
 
 Future<void> startHidPeripheral() async {
-  final reportMapData = Uint8List.fromList([
+  final reportMapDataRelative = Uint8List.fromList([
     // Mouse (Report ID 1)
     0x05, 0x01, // Usage Page (Generic Desktop)
     0x09, 0x02, // Usage (Mouse)
@@ -39,40 +40,84 @@ Future<void> startHidPeripheral() async {
     0x81, 0x06, //     Input (Data, Variable, Relative)
     0xC0, //   End Collection
     0xC0, // End Collection
-    // Keyboard (Report ID 2)A
+    // End Collection
+  ]);
+
+  final reportMapDataAbsolute = Uint8List.fromList([
     0x05, 0x01, // Usage Page (Generic Desktop)
-    0x09, 0x06, // Usage (Keyboard)
+    0x09, 0x02, // Usage (Mouse)
     0xA1, 0x01, // Collection (Application)
-    0x85, 0x02, //   Report ID (2)
-    0x05, 0x07, // Usage Page (Key Codes)
-    0x19, 0xE0, // Usage Minimum (224)
-    0x29, 0xE7, // Usage Maximum (231)
-    0x15, 0x00, // Logical Minimum (0)
-    0x25, 0x01, // Logical Maximum (1)
-    0x75, 0x01, // Report Size (1)
-    0x95, 0x08, // Report Count (8)
-    0x81, 0x02, // Input (Data, Variable, Absolute) ; Modifier byte
-    0x95, 0x01, // Report Count (1)
-    0x75, 0x08, // Report Size (8)
-    0x81, 0x01, // Input (Constant) ; Reserved byte
-    0x95, 0x05, // Report Count (5)
-    0x75, 0x01, // Report Size (1)
-    0x05, 0x08, // Usage Page (LEDs)
-    0x19, 0x01, // Usage Minimum (1)
-    0x29, 0x05, // Usage Maximum (5)
-    0x91, 0x02, // Output (Data, Variable, Absolute) ; LED report
-    0x95, 0x01, // Report Count (1)
-    0x75, 0x03, // Report Size (3)
-    0x91, 0x01, // Output (Constant) ; Padding
-    0x95, 0x06, // Report Count (6)
-    0x75, 0x08, // Report Size (8)
-    0x15, 0x00, // Logical Minimum (0)
-    0x25, 0x65, // Logical Maximum (101)
-    0x05, 0x07, // Usage Page (Key Codes)
-    0x19, 0x00, // Usage Minimum (0)
-    0x29, 0x65, // Usage Maximum (101)
-    0x81, 0x00, // Input (Data, Array) ; Key arrays (6 bytes)
+    0x85, 0x01, //   Report ID (1)
+    0x09, 0x01, //   Usage (Pointer)
+    0xA1, 0x00, //   Collection (Physical)
+    0x05, 0x09, //     Usage Page (Buttons)
+    0x19, 0x01, //     Usage Minimum (1)
+    0x29, 0x03, //     Usage Maximum (3)
+    0x15, 0x00, //     Logical Min (0)
+    0x25, 0x01, //     Logical Max (1)
+    0x95, 0x03, //     Report Count (3)
+    0x75, 0x01, //     Report Size (1)
+    0x81, 0x02, //     Input (Data,Var,Abs)  // buttons
+    0x95, 0x01, //     Report Count (1)
+    0x75, 0x05, //     Report Size (5)
+    0x81, 0x03, //     Input (Const,Var,Abs) // padding
+    0x05, 0x01, //     Usage Page (Generic Desktop)
+    0x09, 0x30, //     Usage (X)
+    0x09, 0x31, //     Usage (Y)
+    0x15, 0x00, //     Logical Min (0)
+    0x26, 0xFF, 0x7F, //     Logical Max (32767)
+    0x75, 0x10, //     Report Size (16 bits per axis)
+    0x95, 0x02, //     Report Count (2 axes)
+    0x81, 0x02, //     Input (Data,Var,Abs)  // ABSOLUTE
+    0xC0, //   End Collection
     0xC0, // End Collection
+  ]);
+
+  final reportMapData = Uint8List.fromList([
+    0x05, 0x0d, // USAGE_PAGE (Digitizers)
+    0x09, 0x04, // USAGE (Touch Screen)
+    0xa1, 0x01, // COLLECTION (Application)
+    0x85, 0x02, //   REPORT_ID (Touch)
+    0x09, 0x20, //   USAGE (Stylus)
+    0xa1, 0x00, //   COLLECTION (Physical)
+    0x09, 0x42, //     USAGE (Tip Switch)
+    0x15, 0x00, //     LOGICAL_MINIMUM (0)
+    0x25, 0x01, //     LOGICAL_MAXIMUM (1)
+    0x75, 0x01, //     REPORT_SIZE (1)
+    0x95, 0x01, //     REPORT_COUNT (1)
+    0x81, 0x02, //     INPUT (Data,Var,Abs)
+    0x95, 0x03, //     REPORT_COUNT (3)
+    0x81, 0x03, //     INPUT (Cnst,Ary,Abs)
+    0x09, 0x32, //     USAGE (In Range)
+    0x09, 0x47, //     USAGE (Confidence)
+    0x95, 0x02, //     REPORT_COUNT (2)
+    0x81, 0x02, //     INPUT (Data,Var,Abs)
+    0x95, 0x0a, //     REPORT_COUNT (10)
+    0x81, 0x03, //     INPUT (Cnst,Ary,Abs)
+    0x05, 0x01, //     USAGE_PAGE (Generic Desktop)
+    0x26, 0xff, 0x7f, //     LOGICAL_MAXIMUM (32767)
+    0x75, 0x10, //     REPORT_SIZE (16)
+    0x95, 0x01, //     REPORT_COUNT (1)
+    0xa4, //     PUSH
+    0x55, 0x0d, //     UNIT_EXPONENT (-3)
+    0x65, 0x00, //     UNIT (None)
+    0x09, 0x30, //     USAGE (X)
+    0x35, 0x00, //     PHYSICAL_MINIMUM (0)
+    0x46, 0x00, 0x00, //     PHYSICAL_MAXIMUM (0)
+    0x81, 0x02, //     INPUT (Data,Var,Abs)
+    0x09, 0x31, //     USAGE (Y)
+    0x46, 0x00, 0x00, //     PHYSICAL_MAXIMUM (0)
+    0x81, 0x02, //     INPUT (Data,Var,Abs)
+    0xb4, //     POP
+    0x05, 0x0d, //     USAGE PAGE (Digitizers)
+    0x09, 0x48, //     USAGE (Width)
+    0x09, 0x49, //     USAGE (Height)
+    0x95, 0x02, //     REPORT_COUNT (2)
+    0x81, 0x02, //     INPUT (Data,Var,Abs)
+    0x95, 0x01, //     REPORT_COUNT (1)
+    0x81, 0x03, //     INPUT (Cnst,Ary,Abs)
+    0xc0, //   END_COLLECTION
+    0xc0, // END_COLLECTION
   ]);
 
   // 1) Build characteristics
@@ -86,7 +131,7 @@ Future<void> startHidPeripheral() async {
     uuid: UUID.fromString('2A4B'),
     //properties: [GATTCharacteristicProperty.read],
     //permissions: [GATTCharacteristicPermission.read],
-    value: reportMapData,
+    value: reportMapDataAbsolute,
     descriptors: [
       GATTDescriptor.immutable(uuid: UUID.fromString('2908'), value: Uint8List.fromList([0x0, 0x0])),
     ],
@@ -196,7 +241,9 @@ Future<void> startHidPeripheral() async {
   pm.characteristicNotifyStateChanged.forEach((char) {
     _connectedCentral = char.central;
     _connectedCharacteristic = char.characteristic;
-    print('Notify state changed for characteristic: ${char.characteristic.uuid}');
+    print(
+      'Notify state changed for characteristic: ${char.characteristic.uuid} vs ${char.characteristic.uuid == inputReport.uuid}',
+    );
   });
 
   await pm.startAdvertising(advertisement);
@@ -208,11 +255,29 @@ Future<void> sendMouseReport(int buttons, int dx, int dy) async {
   await pm.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: data);
 }
 
+Uint8List absMouseReport(int buttons3bit, int x, int y) {
+  final b = buttons3bit & 0x07; // lower 3 bits used
+  return Uint8List.fromList([
+    0x01, // Report ID
+    b, // buttons + implicit padding
+    x & 0xFF, (x >> 8) & 0xFF, // X 0..32767
+    y & 0xFF, (y >> 8) & 0xFF, // Y 0..32767
+  ]);
+}
+
+// Send a relative mouse move + button state as 3-byte report: [buttons, dx, dy]
+Future<void> sendAbsMouseReport(int buttons, int dx, int dy) async {
+  await pm.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: absMouseReport(buttons, dx, dy));
+}
+
 class ConnectRequirement extends PlatformRequirement {
   ConnectRequirement() : super('Connect to your other iOS device');
 
   @override
   Future<void> call() async {
+    if (Platform.isAndroid) {
+      await pm.authorize();
+    }
     await startHidPeripheral();
   }
 
@@ -230,15 +295,15 @@ class ConnectRequirement extends PlatformRequirement {
         ),
         ElevatedButton(
           onPressed: () async {
-            sendMouseReport(1, 20, 20);
+            sendAbsMouseReport(1, (32767 / 2).toInt(), (32767 / 2).toInt());
           },
-          child: Text('Simulate'),
+          child: Text('1'),
         ),
         ElevatedButton(
           onPressed: () async {
-            sendMouseReport(1, -20, -20);
+            sendAbsMouseReport(1, 10, 10);
           },
-          child: Text('Simulate'),
+          child: Text('2'),
         ),
       ],
     );

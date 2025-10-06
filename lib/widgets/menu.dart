@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
@@ -69,7 +70,9 @@ class MenuButton extends StatelessWidget {
                             child: Text(e.name),
                             onTap: () {
                               Future.delayed(Duration(seconds: 2)).then((_) {
-                                actionHandler.performAction(e);
+                                connection.devices.firstOrNull?.actionStreamInternal.add(
+                                  RideNotification(Uint8List(0))..buttonsClicked = [e],
+                                );
                               });
                             },
                           ),
