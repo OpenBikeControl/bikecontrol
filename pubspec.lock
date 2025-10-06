@@ -32,14 +32,54 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
-  ble_peripheral:
+  bluetooth_low_energy:
     dependency: "direct main"
     description:
-      name: ble_peripheral
-      sha256: "858d370709507155bbf69e6160e9cb81d802e664f133a649a38b9ca04439884c"
+      name: bluetooth_low_energy
+      sha256: "5dec5831412c7d82b77df878dd3e08a82132426d2fb4c5d7c98c9a8cd0ed79e0"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "6.1.0"
+  bluetooth_low_energy_android:
+    dependency: transitive
+    description:
+      name: bluetooth_low_energy_android
+      sha256: "32c0f84f88770845e3189e04b0ddf4780dc8743fd7a8ade60b99b6cb414b8a89"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
+  bluetooth_low_energy_darwin:
+    dependency: transitive
+    description:
+      name: bluetooth_low_energy_darwin
+      sha256: fbbe3be175cb54093884a84f6f0826d6e8a2a2e29dfeae9b367d5e8e9ee1db38
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
+  bluetooth_low_energy_linux:
+    dependency: transitive
+    description:
+      name: bluetooth_low_energy_linux
+      sha256: a5c740f445dc8d2e940767fa94ed3bb24c32e77bc962a67ab23cb1f218180705
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
+  bluetooth_low_energy_platform_interface:
+    dependency: transitive
+    description:
+      name: bluetooth_low_energy_platform_interface
+      sha256: dd76c0f8e31dcfb984059b03e73cb2998c29cffd17425f4ce946365b63abb3dc
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
+  bluetooth_low_energy_windows:
+    dependency: transitive
+    description:
+      name: bluetooth_low_energy_windows
+      sha256: "7a651259f7bc3ae2bb042c21e15e1e4f88acea57da1f69b3165f239124724791"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   bluez:
     dependency: transitive
     description:
@@ -327,6 +367,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  hybrid_logging:
+    dependency: transitive
+    description:
+      name: hybrid_logging
+      sha256: "54248d52ce68c14702a42fbc4083bac5c6be30f6afad8a41be4bbadd197b8af5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   image:
     dependency: transitive
     description:
