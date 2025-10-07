@@ -199,38 +199,35 @@ class ConnectRequirement extends PlatformRequirement {
   Widget? build(BuildContext context, VoidCallback onUpdate) {
     return StatefulBuilder(
       builder:
-          (context, setState) => Row(
+          (context, setState) => Column(
             spacing: 10,
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  if (_isAdvertising) {
-                    await peripheralManager.stopAdvertising();
-                    _isAdvertising = false;
-                    (actionHandler as IosActions).setConnectedCentral(null, null);
-                    onUpdate();
-                    setState(() {});
-                  } else {
-                    _isAdvertising = true;
-                    setState(() {});
-                  }
-                  await startAdvertising(onUpdate);
-                },
-                child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
+              Row(
+                spacing: 10,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_isAdvertising) {
+                        await peripheralManager.stopAdvertising();
+                        _isAdvertising = false;
+                        (actionHandler as IosActions).setConnectedCentral(null, null);
+                        onUpdate();
+                        setState(() {});
+                      } else {
+                        _isAdvertising = true;
+                        setState(() {});
+                      }
+                      await startAdvertising(onUpdate);
+                    },
+                    child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
+                  ),
+                  if (_isAdvertising) SizedBox(height: 20, width: 20, child: CircularProgressIndicator()),
+                ],
               ),
-              if (_isAdvertising) CircularProgressIndicator(),
-              /*ElevatedButton(
-            onPressed: () async {
-              sendAbsMouseReport(1, 0, 0);
-            },
-            child: Text('1'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              sendAbsMouseReport(1, 0, 90);
-            },
-            child: Text('2'),
-           ),*/
+              if (_isAdvertising)
+                Text(
+                  'On your other iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure to AssistiveTouch is enabled.',
+                ),
             ],
           ),
     );
