@@ -29,7 +29,7 @@ Future<List<PlatformRequirement>> getRequirements() async {
   } else if (Platform.isMacOS) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
   } else if (Platform.isIOS) {
-    list = [BluetoothTurnedOn(), ConnectRequirement()];
+    list = [BluetoothTurnedOn(), ConnectRequirement(), BluetoothScanning()];
   } else if (Platform.isWindows) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
   } else if (Platform.isAndroid) {

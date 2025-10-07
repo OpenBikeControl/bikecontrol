@@ -134,7 +134,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
     // figure out notch height for e.g. macOS. On Windows the display size is not available (0,0).
     final differenceInHeight =
-        (flutterView.display.size.height > 0)
+        (flutterView.display.size.height > 0 && !Platform.isIOS)
             ? (flutterView.display.size.height - flutterView.physicalSize.height) / flutterView.devicePixelRatio
             : 0.0;
 

@@ -8,6 +8,7 @@ import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/actions/ios.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -24,8 +25,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     actionHandler = StubActions();
-  } else if (Platform.isAndroid || Platform.isIOS) {
+  } else if (Platform.isAndroid) {
     actionHandler = AndroidActions();
+  } else if (Platform.isIOS) {
+    actionHandler = IosActions();
   } else {
     actionHandler = DesktopActions();
     // Must add this line.
