@@ -18,9 +18,9 @@ Future<void> startHidPeripheral() async {
     0x85, 0x01, //   Report ID (1)
     0x09, 0x01, //   Usage (Pointer)
     0xA1, 0x00, //   Collection (Physical)
-    0x05, 0x09, //     Usage Page (Buttons)
-    0x19, 0x01, //     Usage Minimum (1)
-    0x29, 0x03, //     Usage Maximum (3)
+    0x05, 0x09, //     Usage Page (Button)
+    0x19, 0x01, //     Usage Min (1)
+    0x29, 0x03, //     Usage Max (3)
     0x15, 0x00, //     Logical Min (0)
     0x25, 0x01, //     Logical Max (1)
     0x95, 0x03, //     Report Count (3)
@@ -33,12 +33,12 @@ Future<void> startHidPeripheral() async {
     0x09, 0x30, //     Usage (X)
     0x09, 0x31, //     Usage (Y)
     0x15, 0x00, //     Logical Min (0)
-    0x25, 0x64, // Logical Max (100)
-    0x75, 0x08, // Report Size (8)
-    0x95, 0x02, // Report Count (2)
-    0x81, 0x02, // Input (Data,Var,Abs)
-    0xC0, //   End Collection
-    0xC0, // End Collection
+    0x25, 0x64, //     Logical Max (100)
+    0x75, 0x08, //     Report Size (8)
+    0x95, 0x02, //     Report Count (2)
+    0x81, 0x02, //     Input (Data,Var,Abs)
+    0xC0,
+    0xC0,
   ]);
 
   // 1) Build characteristics
@@ -163,7 +163,7 @@ Future<void> startHidPeripheral() async {
     _connectedCentral = char.central;
     _connectedCharacteristic = char.characteristic;
     print(
-      'Notify state changed for characteristic: ${char.characteristic.uuid} vs ${char.characteristic.uuid == inputReport.uuid}',
+      'Notify state changed for characteristic: ${char.characteristic.uuid} vs ${char.characteristic.uuid == inputReport.uuid}: ${char.state}',
     );
   });
 
@@ -180,12 +180,14 @@ Uint8List absMouseReport(int buttons3bit, int x, int y) {
   final b = buttons3bit & 0x07;
   final xi = x.clamp(0, 100);
   final yi = y.clamp(0, 100);
-  return Uint8List.fromList([0x01, b, xi, yi]);
+  return Uint8List.fromList([b, xi, yi]);
 }
 
 // Send a relative mouse move + button state as 3-byte report: [buttons, dx, dy]
 Future<void> sendAbsMouseReport(int buttons, int dx, int dy) async {
-  await pm.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: absMouseReport(buttons, dx, dy));
+  final bytes = absMouseReport(buttons, dx, dy);
+  print('Sending abs mouse report: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0'))}');
+  await pm.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: bytes);
 }
 
 class ConnectRequirement extends PlatformRequirement {
@@ -213,31 +215,21 @@ class ConnectRequirement extends PlatformRequirement {
         ),
         ElevatedButton(
           onPressed: () async {
-            //sendAbsMouseReport(1, 0, 50);
-            final topLeft = Uint8List.fromList([
-              0x01, // Report ID
-              0x00, // Buttons
-              0x00, // X = 0
-              0x00, // Y = 0
-            ]);
-
-            await pm.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: topLeft);
+            sendAbsMouseReport(1, 0, 0);
           },
           child: Text('1'),
         ),
         ElevatedButton(
           onPressed: () async {
-            final bottomRight = Uint8List.fromList([
-              0x01, // Report ID
-              0x00, // Buttons
-              0x64, // X = 100
-              0x64, // Y = 100
-            ]);
-
-            //sendAbsMouseReport(2, 0, 90);
-            await pm.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: bottomRight);
+            sendAbsMouseReport(1, 0, 90);
           },
           child: Text('2'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            sendAbsMouseReport(1, 99, 99);
+          },
+          child: Text('3'),
         ),
       ],
     );
