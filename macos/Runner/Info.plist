@@ -25,12 +25,14 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>We need BT access because it&apos;s a BT App.</string>
+	<string>SwiftControl requires Bluetooth to connect to your devices.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSAccessibilityUsageDescription</key>
+    <string>SwiftControl needs to send keys to your trainer app.</string>
 </dict>
 </plist>

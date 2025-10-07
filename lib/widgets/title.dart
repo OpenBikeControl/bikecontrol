@@ -9,6 +9,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:version/version.dart';
 
 String? _latestVersionUrlValue;
 PackageInfo? _packageInfoValue;
@@ -28,11 +29,11 @@ class _AppTitleState extends State<AppTitle> {
       final data = jsonDecode(response.body);
       final tagName = data['tag_name'] as String;
       final prerelase = data['prerelease'] as bool;
-      final latestVersion = tagName.split('+').first;
-      final currentVersion = 'v${_packageInfoValue!.version}';
+      final latestVersion = Version.parse(tagName.split('+').first.replaceAll('v', ''));
+      final currentVersion = Version.parse(_packageInfoValue!.version);
 
       // +1337 releases are considered beta
-      if (latestVersion != currentVersion && !prerelase) {
+      if (latestVersion > currentVersion && !prerelase) {
         final assets = data['assets'] as List;
         if (Platform.isAndroid) {
           final apkUrl = assets.firstOrNullWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];
@@ -90,7 +91,7 @@ class _AppTitleState extends State<AppTitle> {
         print('Failed to check for update: $e');
       }
     }
-    if (_latestVersionUrlValue == null && !kIsWeb) {
+    if (_latestVersionUrlValue == null && !kIsWeb && !Platform.isIOS) {
       final url = await _getLatestVersionUrlIfNewer();
       if (url != null && mounted && !kDebugMode) {
         ScaffoldMessenger.of(context).showSnackBar(
