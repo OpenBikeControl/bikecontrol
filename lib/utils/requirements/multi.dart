@@ -13,7 +13,7 @@ class KeyboardRequirement extends PlatformRequirement {
 
   @override
   Future<void> call() async {
-    await keyPressSimulator.requestAccess();
+    await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
   }
 
   @override

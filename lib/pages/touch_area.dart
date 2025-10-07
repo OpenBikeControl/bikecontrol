@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -36,12 +37,41 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   late StreamSubscription<BaseNotification> _actionSubscription;
   ZwiftButton? _pressedButton;
 
+  Rect? _imageRect;
+
   Future<void> _pickScreenshot() async {
     final picker = ImagePicker();
     final result = await picker.pickImage(source: ImageSource.gallery);
     if (result != null) {
       setState(() {
         _backgroundImage = File(result.path);
+
+        // need to decode image to get its size so we can have a percentage mapping
+        if (Platform.isIOS) {
+          decodeImageFromList(_backgroundImage!.readAsBytesSync()).then((decodedImage) {
+            print(decodedImage.width);
+            print(decodedImage.height);
+
+            // calculate image rectangle in the current screen, given it's boxfit contain
+            final screenSize = MediaQuery.sizeOf(context);
+            final imageAspectRatio = decodedImage.width / decodedImage.height;
+            final screenAspectRatio = screenSize.width / screenSize.height;
+            if (imageAspectRatio > screenAspectRatio) {
+              // image is wider than screen
+              final width = screenSize.width;
+              final height = width / imageAspectRatio;
+              final top = (screenSize.height - height) / 2;
+              _imageRect = Rect.fromLTWH(0, top, width, height);
+            } else {
+              // image is taller than screen
+              final height = screenSize.height;
+              final width = height * imageAspectRatio;
+              final left = (screenSize.width - width) / 2;
+              _imageRect = Rect.fromLTWH(left, 0, width, height);
+            }
+            print('Image Rect: $_imageRect');
+          });
+        }
       });
     }
   }
@@ -101,9 +131,12 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
           final KeyPair keyPair;
           actionHandler.supportedApp!.keymap.keyPairs.add(
             keyPair = KeyPair(
-              touchPosition: context.size!
-                  .center(Offset.zero)
-                  .translate(actionHandler.supportedApp!.keymap.keyPairs.length * 40, 0),
+              touchPosition:
+                  _imageRect != null
+                      ? Offset(actionHandler.supportedApp!.keymap.keyPairs.length * 10, 10)
+                      : context.size!
+                          .center(Offset.zero)
+                          .translate(actionHandler.supportedApp!.keymap.keyPairs.length * 40, 0),
               buttons: [_pressedButton!],
               physicalKey: null,
               logicalKey: null,
@@ -341,25 +374,54 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 ),
               ),
             ),
-          // Touch Areas
-          ...?actionHandler.supportedApp?.keymap.keyPairs
-              .map(
-                (keyPair) => _buildDraggableArea(
-                  enableTouch: true,
-                  position: Offset(
-                    keyPair.touchPosition.dx / devicePixelRatio,
-                    keyPair.touchPosition.dy / devicePixelRatio,
-                  ),
-                  keyPair: keyPair,
-                  onPositionChanged: (newPos) {
+          // draw image rect for debugging
+          if (_imageRect != null && _backgroundImage != null)
+            Positioned.fromRect(
+              rect: _imageRect!,
+              child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 2))),
+            ),
+
+          if (!Platform.isIOS || _imageRect != null)
+            ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
+              final Offset offset;
+
+              if (_imageRect != null) {
+                // map the percentage position to the image rect
+                final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
+                final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
+                print('Relative position: $relativeX, $relativeY');
+                offset = Offset(
+                  _imageRect!.left + relativeX * _imageRect!.width,
+                  _imageRect!.top + relativeY * _imageRect!.height,
+                );
+              } else {
+                offset = Offset(
+                  keyPair.touchPosition.dx / devicePixelRatio,
+                  keyPair.touchPosition.dy / devicePixelRatio,
+                );
+              }
+
+              print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
+
+              return _buildDraggableArea(
+                enableTouch: true,
+                position: offset,
+                keyPair: keyPair,
+                onPositionChanged: (newPos) {
+                  if (_imageRect != null) {
+                    // convert to percentage
+                    final relativeX = ((newPos.dx - _imageRect!.left) / _imageRect!.width).clamp(0.0, 1.0);
+                    final relativeY = ((newPos.dy - _imageRect!.top) / _imageRect!.height).clamp(0.0, 1.0);
+                    keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
+                  } else {
                     final converted = newPos * devicePixelRatio;
                     keyPair.touchPosition = converted;
-                    setState(() {});
-                  },
-                  color: Colors.red,
-                ),
-              )
-              .flatten(),
+                  }
+                  setState(() {});
+                },
+                color: Colors.red,
+              );
+            }).flatten(),
 
           Positioned.fill(child: Testbed()),
 

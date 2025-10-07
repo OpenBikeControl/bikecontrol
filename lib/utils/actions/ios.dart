@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -10,15 +7,8 @@ import 'package:swift_control/widgets/keymap_explanation.dart';
 import '../requirements/ios.dart';
 
 class IosActions extends BaseActions {
-  IosActions() : super() {
-    final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
-    screenSize = flutterView.physicalSize;
-  }
-
   Central? _connectedCentral;
   GATTCharacteristic? _connectedCharacteristic;
-
-  late final Size screenSize;
 
   @override
   Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
@@ -46,10 +36,11 @@ class IosActions extends BaseActions {
         await keyPressSimulator.simulateMouseClickUp(point);
         return 'Mouse up at: ${point.dx} ${point.dy}';
       }*/
-      await sendAbsMouseReport(0, point.dx.toInt(), point.dy.toInt());
-      await sendAbsMouseReport(1, point.dx.toInt(), point.dy.toInt());
-      await sendAbsMouseReport(0, point.dx.toInt(), point.dy.toInt());
-      return 'Mouse moved to: ${point.dx} ${point.dy}';
+      final point2 = point; //Offset(100, 99.0);
+      await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
+      await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
+      await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
+      return 'Mouse moved to: ${point2.dx} ${point2.dy}';
     }
   }
 
@@ -62,18 +53,12 @@ class IosActions extends BaseActions {
 
   // Send a relative mouse move + button state as 3-byte report: [buttons, dx, dy]
   Future<void> sendAbsMouseReport(int buttons, int dx, int dy) async {
-    int toX100(int v) => ((v / max(screenSize.width, screenSize.height)) * 100).toInt();
-    int toY100(int v) => ((v / min(screenSize.width, screenSize.height)) * 100).toInt();
+    final bytes = absMouseReport(buttons, dx, dy);
+    if (kDebugMode) {
+      print('Preparing to send abs mouse report: buttons=$buttons, dx=$dx, dy=$dy');
+      print('Sending abs mouse report: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0'))}');
+    }
 
-    final x100 = toX100(dx);
-    final y100 = toY100(dy);
-
-    print(
-      'Preparing to send abs mouse report: buttons=$buttons, dx=$dx, dy=$dy => x100=$x100, y100=$y100 per screen size: $screenSize',
-    );
-
-    final bytes = absMouseReport(buttons, x100, y100);
-    print('Sending abs mouse report: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0'))}');
     await peripheralManager.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: bytes);
   }
 
