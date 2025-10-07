@@ -1,3 +1,6 @@
+### 2.7.0 (2025-10-07)
+- SwiftControl now supports iOS!
+
 ### 2.6.3 (2025-10-01)
 - fix a few issues with the new touch placement feature
 - add a workaround for Zwift Click V2 which resets the device when button events are no longer sent

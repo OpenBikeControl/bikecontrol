@@ -7,22 +7,18 @@ import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
-import '../keymap/apps/supported_app.dart';
 import '../requirements/ios.dart';
 
 class IosActions extends BaseActions {
+  IosActions() : super() {
+    final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
+    screenSize = flutterView.physicalSize;
+  }
+
   Central? _connectedCentral;
   GATTCharacteristic? _connectedCharacteristic;
 
   late final Size screenSize;
-
-  @override
-  void init(SupportedApp? supportedApp) {
-    super.init(supportedApp);
-
-    final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
-    screenSize = flutterView.physicalSize;
-  }
 
   @override
   Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
