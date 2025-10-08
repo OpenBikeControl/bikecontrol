@@ -231,6 +231,8 @@ class RemoteRequirement extends PlatformRequirement {
     print('Starting advertising with HID service...');
 
     await peripheralManager.startAdvertising(advertisement);
+    _isAdvertising = true;
+    onUpdate();
   }
 
   @override
@@ -252,8 +254,6 @@ class RemoteRequirement extends PlatformRequirement {
                         onUpdate();
                         setState(() {});
                       } else {
-                        _isAdvertising = true;
-                        setState(() {});
                         await startAdvertising(onUpdate);
                       }
                     },
