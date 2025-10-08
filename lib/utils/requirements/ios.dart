@@ -259,6 +259,6 @@ class ConnectRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = (actionHandler as AccessibilityActions).isConnected && false;
+    status = (actionHandler as AccessibilityActions).isConnected;
   }
 }

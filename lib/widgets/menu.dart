@@ -14,38 +14,40 @@ import '../pages/device.dart';
 
 List<Widget> buildMenuButtons() {
   return [
-    PopupMenuButton(
-      itemBuilder: (BuildContext context) {
-        return [
-          PopupMenuItem(
-            child: Text('via Credit Card, Google Pay, Apple Pay and others'),
-            onTap: () {
-              final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
-              final link = switch (currency.currencyName) {
-                'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
-                _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
-              };
-              launchUrlString(link);
-            },
-          ),
-          if (!kIsWeb && Platform.isAndroid && !isFromPlayStore)
+    if (kIsWeb || (!Platform.isIOS && !Platform.isMacOS)) ...[
+      PopupMenuButton(
+        itemBuilder: (BuildContext context) {
+          return [
             PopupMenuItem(
-              child: Text('by buying the app from Play Store'),
+              child: Text('via Credit Card, Google Pay, Apple Pay and others'),
               onTap: () {
-                launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
+                final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
+                final link = switch (currency.currencyName) {
+                  'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
+                  _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
+                };
+                launchUrlString(link);
               },
             ),
-          PopupMenuItem(
-            child: Text('via PayPal'),
-            onTap: () {
-              launchUrlString('https://paypal.me/boni');
-            },
-          ),
-        ];
-      },
-      icon: Text('Donate ♥', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-    ),
-    SizedBox(width: 8),
+            if (!kIsWeb && Platform.isAndroid && !isFromPlayStore)
+              PopupMenuItem(
+                child: Text('by buying the app from Play Store'),
+                onTap: () {
+                  launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
+                },
+              ),
+            PopupMenuItem(
+              child: Text('via PayPal'),
+              onTap: () {
+                launchUrlString('https://paypal.me/boni');
+              },
+            ),
+          ];
+        },
+        icon: Text('Donate ♥', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+      ),
+      SizedBox(width: 8),
+    ],
     const MenuButton(),
     SizedBox(width: 8),
   ];
