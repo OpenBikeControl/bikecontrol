@@ -64,12 +64,8 @@ class RideNotification extends BaseNotification {
 
     // Process ANALOG inputs separately - now properly separated from digital
     // Note: Analog paddle parsing is handled in ZwiftRide.processClickNotification
-    // by manually parsing the embedded Protocol Buffer data, as the protobuf
-    // structure doesn't correctly expose paddle analog values.
+    // using the auto-generated protobuf classes (field 3 AnalogPaddles).
     analogButtons = [];
-
-    // Combine digital and analog buttons for backward compatibility
-    buttonsClicked.addAll(analogButtons);
   }
 
   @override

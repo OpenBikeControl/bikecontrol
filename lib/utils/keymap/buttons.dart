@@ -5,9 +5,7 @@ enum InGameAction {
   navigateRight,
   toggleUi,
   increaseResistance,
-  decreaseResistance, 
-  steerLeft,
-  steerRight;
+  decreaseResistance;
 
   @override
   String toString() {
@@ -23,7 +21,7 @@ enum ZwiftButton {
   navigationRight._(InGameAction.navigateRight),
   onOffLeft._(InGameAction.toggleUi),
   sideButtonLeft._(InGameAction.shiftDown),
-  paddleLeft._(null),
+  paddleLeft._(InGameAction.shiftDown),
 
   // zwift ride only
   shiftUpLeft._(InGameAction.shiftDown),
@@ -37,7 +35,7 @@ enum ZwiftButton {
   y._(null),
   onOffRight._(InGameAction.toggleUi),
   sideButtonRight._(InGameAction.shiftUp),
-  paddleRight._(null),
+  paddleRight._(InGameAction.shiftUp),
 
   // zwift ride only
   shiftUpRight._(InGameAction.shiftUp),

@@ -4,8 +4,8 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
-import 'package:swift_control/bluetooth/protocol/protobuf_parser.dart';
 import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
+import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -208,74 +208,31 @@ class ZwiftRide extends BaseDevice {
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
     final RideNotification clickNotification = RideNotification(message);
 
-    // Parse embedded analog paddle data from controller notification message.
-    // The Zwift Ride paddles send analog pressure values (-100 to 100) that need to be
-    // extracted from the raw Protocol Buffer message structure.
-    //
-    // Message structure (after button map at offset 7):
-    // - Location 0 (left paddle): Embedded directly without 0x1a prefix
-    // - Location 1-3 (right paddle, unused): Prefixed with 0x1a marker
-    //
-    // This implementation mirrors the JavaScript reference from:
-    // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
-    final allAnalogValues = <int, int>{};
-    var offset = 7; // Skip message type (1), field number (1), and button map (5)
+    // Parse analog paddle data using the auto-generated protobuf classes.
+    // All analog paddles (L0-L3) appear in field 3 as repeated RideAnalogKeyPress
+    try {
+      final status = RideKeyPadStatus.fromBuffer(message);
 
-    // Parse first analog location (L0 - left paddle) which appears directly
-    // in the message without the 0x1a section marker
-    if (offset < message.length && message[offset] != 0x1a) {
-      try {
-        final firstAnalog = ProtobufParser.parseKeyGroup(message.sublist(offset));
-        allAnalogValues.addAll(firstAnalog);
+      // Process all analog paddles
+      for (final paddle in status.analogPaddles) {
+        if (paddle.hasLocation() && paddle.hasAnalogValue()) {
+          if (paddle.analogValue.abs() >= analogPaddleThreshold) {
+            final button = switch (paddle.location.value) {
+              0 => ZwiftButton.paddleLeft,   // L0 = left paddle
+              1 => ZwiftButton.paddleRight,  // L1 = right paddle
+              _ => null,                      // L2, L3 unused
+            };
 
-        // Advance to next 0x1a section
-        while (offset < message.length && message[offset] != 0x1a) {
-          offset++;
-        }
-      } catch (e) {
-        // Skip to 0x1a sections on parse error
-        while (offset < message.length && message[offset] != 0x1a) {
-          offset++;
-        }
-      }
-    }
-
-    // Parse remaining analog locations (L1, L2, L3, etc.) which are wrapped
-    // in Protocol Buffer message sections prefixed with 0x1a
-    while (offset < message.length) {
-      if (offset < message.length && message[offset] == 0x1a) {
-        try {
-          final analogData = message.sublist(offset);
-          // Each analog section starts with 0x1a, skip it and parse the rest
-          if (analogData.isNotEmpty && analogData[0] == 0x1a) {
-            final parsedData = ProtobufParser.parseKeyGroup(analogData.sublist(1));
-            allAnalogValues.addAll(parsedData);
+            if (button != null) {
+              clickNotification.buttonsClicked.add(button);
+              clickNotification.analogButtons.add(button);
+            }
           }
-
-          offset += ProtobufParser.findNextMarker(analogData, 0x1a);
-        } catch (e) {
-          offset++;
         }
-      } else {
-        offset++;
       }
-    }
-
-    // Convert analog values to button presses when they exceed threshold.
-    // Location 0 = left paddle, Location 1 = right paddle
-    // Values range from -100 to 100, we use absolute value for threshold check
-    for (final entry in allAnalogValues.entries) {
-      if (entry.value.abs() >= analogPaddleThreshold) {
-        final button = switch (entry.key) {
-          0 => ZwiftButton.paddleLeft,
-          1 => ZwiftButton.paddleRight,
-          _ => null,
-        };
-
-        if (button != null) {
-          clickNotification.buttonsClicked.add(button);
-          clickNotification.analogButtons.add(button);
-        }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing analog paddle data: $e');
       }
     }
 
