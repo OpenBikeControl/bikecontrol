@@ -34,10 +34,14 @@ enum _RideButtonMask {
 
 class RideNotification extends BaseNotification {
   late List<ZwiftButton> buttonsClicked;
+  late List<ZwiftButton> analogButtons;
 
   RideNotification(Uint8List message) {
     final status = RideKeyPadStatus.fromBuffer(message);
 
+    // Debug: Log all button mask detections (moved to ZwiftRide.processClickNotification)
+
+    // Process DIGITAL buttons separately
     buttonsClicked = [
       if (status.buttonMap & _RideButtonMask.LEFT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationLeft,
       if (status.buttonMap & _RideButtonMask.RIGHT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationRight,
@@ -58,22 +62,20 @@ class RideNotification extends BaseNotification {
       if (status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.onOffRight,
     ];
 
-    for (final analogue in status.analogButtons.groupStatus) {
-      if (analogue.analogValue.abs() == 100) {
-        if (analogue.location == RideAnalogLocation.LEFT) {
-          buttonsClicked.add(ZwiftButton.paddleLeft);
-        } else if (analogue.location == RideAnalogLocation.RIGHT) {
-          buttonsClicked.add(ZwiftButton.paddleRight);
-        } else if (analogue.location == RideAnalogLocation.DOWN || analogue.location == RideAnalogLocation.UP) {
-          // TODO what is this even?
-        }
-      }
-    }
+    // Process ANALOG inputs separately - now properly separated from digital
+    // Note: Analog paddle parsing is handled in ZwiftRide.processClickNotification
+    // by manually parsing the embedded Protocol Buffer data, as the protobuf
+    // structure doesn't correctly expose paddle analog values.
+    analogButtons = [];
+
+    // Combine digital and analog buttons for backward compatibility
+    buttonsClicked.addAll(analogButtons);
   }
 
   @override
   String toString() {
-    return 'Buttons: ${buttonsClicked.joinToString(transform: (e) => e.name.splitByUpperCase())}';
+    final digitalButtons = buttonsClicked.where((b) => !analogButtons.contains(b)).toList();
+    return 'Digital: ${digitalButtons.joinToString(transform: (e) => e.name.splitByUpperCase())} | Analog: ${analogButtons.joinToString(transform: (e) => e.name.splitByUpperCase())}';
   }
 
   @override
