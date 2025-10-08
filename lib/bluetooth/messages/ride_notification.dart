@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -36,7 +37,7 @@ class RideNotification extends BaseNotification {
   late List<ZwiftButton> buttonsClicked;
   late List<ZwiftButton> analogButtons;
 
-  RideNotification(Uint8List message) {
+  RideNotification(Uint8List message, {required int analogPaddleThreshold}) {
     final status = RideKeyPadStatus.fromBuffer(message);
 
     // Debug: Log all button mask detections (moved to ZwiftRide.processClickNotification)
@@ -63,9 +64,30 @@ class RideNotification extends BaseNotification {
     ];
 
     // Process ANALOG inputs separately - now properly separated from digital
-    // Note: Analog paddle parsing is handled in ZwiftRide.processClickNotification
-    // using the auto-generated protobuf classes (field 3 AnalogPaddles).
+    // All analog paddles (L0-L3) appear in field 3 as repeated RideAnalogKeyPress
     analogButtons = [];
+    try {
+      for (final paddle in status.analogPaddles) {
+        if (paddle.hasLocation() && paddle.hasAnalogValue()) {
+          if (paddle.analogValue.abs() >= analogPaddleThreshold) {
+            final button = switch (paddle.location.value) {
+              0 => ZwiftButton.paddleLeft,   // L0 = left paddle
+              1 => ZwiftButton.paddleRight,  // L1 = right paddle
+              _ => null,                      // L2, L3 unused
+            };
+
+            if (button != null) {
+              buttonsClicked.add(button);
+              analogButtons.add(button);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing analog paddle data: $e');
+      }
+    }
   }
 
   @override

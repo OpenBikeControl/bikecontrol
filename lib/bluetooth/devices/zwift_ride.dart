@@ -206,35 +206,10 @@ class ZwiftRide extends BaseDevice {
 
   @override
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
-    final RideNotification clickNotification = RideNotification(message);
-
-    // Parse analog paddle data using the auto-generated protobuf classes.
-    // All analog paddles (L0-L3) appear in field 3 as repeated RideAnalogKeyPress
-    try {
-      final status = RideKeyPadStatus.fromBuffer(message);
-
-      // Process all analog paddles
-      for (final paddle in status.analogPaddles) {
-        if (paddle.hasLocation() && paddle.hasAnalogValue()) {
-          if (paddle.analogValue.abs() >= analogPaddleThreshold) {
-            final button = switch (paddle.location.value) {
-              0 => ZwiftButton.paddleLeft,   // L0 = left paddle
-              1 => ZwiftButton.paddleRight,  // L1 = right paddle
-              _ => null,                      // L2, L3 unused
-            };
-
-            if (button != null) {
-              clickNotification.buttonsClicked.add(button);
-              clickNotification.analogButtons.add(button);
-            }
-          }
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing analog paddle data: $e');
-      }
-    }
+    final RideNotification clickNotification = RideNotification(
+      message,
+      analogPaddleThreshold: analogPaddleThreshold,
+    );
 
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
       _lastControllerNotification = clickNotification;
