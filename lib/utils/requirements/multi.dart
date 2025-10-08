@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/scan.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
@@ -38,7 +39,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
   @override
   Future<void> getStatus() async {
     final currentState = await UniversalBle.getBluetoothAvailabilityState();
-    status = currentState == AvailabilityState.poweredOn;
+    status = currentState == AvailabilityState.poweredOn || screenshotMode;
   }
 }
 
@@ -55,7 +56,7 @@ class UnsupportedPlatform extends PlatformRequirement {
 }
 
 class BluetoothScanning extends PlatformRequirement {
-  BluetoothScanning() : super('Finding your Zwift® controller...') {
+  BluetoothScanning() : super('Finding your Controller...') {
     status = false;
   }
 

@@ -91,7 +91,7 @@ class _DevicePageState extends State<DevicePage> {
                       connection.devices.joinToString(
                             separator: '\n',
                             transform: (it) {
-                              return """${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
+                              return """${it.device.name?.screenshot ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
 ${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}
 ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}""".trim();
                             },
@@ -228,4 +228,8 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
       ),
     );
   }
+}
+
+extension Screenshot on String {
+  String get screenshot => screenshotMode ? replaceAll('Zwift ', '') : this;
 }

@@ -362,7 +362,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                     Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
 2. Load the screenshot with the button below
 3. The app is automatically set to landscape orientation for accurate mapping
-4. Press a button on your Zwift device to create a touch area
+4. Press a button on your Click device to create a touch area
 5. Drag the touch areas to the desired position on the screenshot
 6. Save and close this screen'''),
                     ElevatedButton(

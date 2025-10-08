@@ -86,7 +86,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     return AlertDialog(
       content:
           _pressedButton == null
-              ? Text('Press a button on your Zwift device')
+              ? Text('Press a button on your Click device')
               : KeyboardListener(
                 focusNode: _focusNode,
                 autofocus: true,

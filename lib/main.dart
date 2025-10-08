@@ -20,6 +20,7 @@ late BaseActions actionHandler;
 final accessibilityHandler = Accessibility();
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final settings = Settings();
+const screenshotMode = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,7 @@ void main() async {
   if (actionHandler is DesktopActions) {
     // Must add this line.
     await windowManager.ensureInitialized();
+    windowManager.setSize(Size(1280, 800));
   }
 
   runApp(const SwiftPlayApp());

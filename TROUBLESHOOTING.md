@@ -1,18 +1,18 @@
-## Zwift device cannot be found
+## Click device cannot be found
 You may need to update the firmware in Zwift Companion app.
 
-## Zwift device does not send any data
+## Click device does not send any data
 You may need to update the firmware in Zwift Companion app.
 
-## My Zwift Click v2 disconnects after a minute
+## My Click v2 disconnects after a minute
 Check [this](https://github.com/jonasbark/swiftcontrol/issues/68) discussion.
 
-To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.
+To make your Click V2 work best you should connect it in the Zwift app once each day.
 If you don't do that SwiftControl will need to reconnect every minute.
 
 1. Open Zwift app (not the Companion)
 2. Log in (subscription not required) and open the device connection screen
-3. Connect your Trainer, then connect the Zwift Click V2
+3. Connect your Trainer, then connect the Click V2
 4. Close the Zwift app again and connect again in SwiftControl
 
 ## Remote control is not working - nothing happens

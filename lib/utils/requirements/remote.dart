@@ -62,7 +62,8 @@ class RemoteRequirement extends PlatformRequirement {
         return;
       }
     }
-    while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
+    while (peripheralManager.state != BluetoothLowEnergyState.poweredOn &&
+        peripheralManager.state != BluetoothLowEnergyState.unknown) {
       print('Waiting for peripheral manager to be powered on...');
       await Future.delayed(Duration(seconds: 1));
     }
@@ -259,7 +260,7 @@ class RemoteRequirement extends PlatformRequirement {
                     child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
                   ),
                   if (_isAdvertising) SizedBox(height: 20, width: 20, child: CircularProgressIndicator()),
-                  if (kDebugMode)
+                  if (kDebugMode && !screenshotMode)
                     ElevatedButton(
                       onPressed: () {
                         (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
@@ -291,6 +292,6 @@ class RemoteRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = (actionHandler as RemoteActions).isConnected;
+    status = (actionHandler as RemoteActions).isConnected || screenshotMode;
   }
 }
