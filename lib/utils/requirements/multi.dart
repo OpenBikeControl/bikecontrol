@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/pages/scan.dart';
-import 'package:swift_control/utils/requirements/ios.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class KeyboardRequirement extends PlatformRequirement {

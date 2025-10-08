@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
@@ -47,7 +48,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
         _backgroundImage = File(result.path);
 
         // need to decode image to get its size so we can have a percentage mapping
-        if (Platform.isIOS) {
+        if (actionHandler is RemoteActions) {
           decodeImageFromList(_backgroundImage!.readAsBytesSync()).then((decodedImage) {
             print(decodedImage.width);
             print(decodedImage.height);
@@ -381,7 +382,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 2))),
             ),
 
-          if (!Platform.isIOS || _imageRect != null)
+          if (actionHandler is! RemoteActions || _imageRect != null)
             ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
               final Offset offset;
 
@@ -389,7 +390,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 // map the percentage position to the image rect
                 final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
                 final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
-                print('Relative position: $relativeX, $relativeY');
+                //print('Relative position: $relativeX, $relativeY');
                 offset = Offset(
                   _imageRect!.left + relativeX * _imageRect!.width,
                   _imageRect!.top + relativeY * _imageRect!.height,
@@ -401,7 +402,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 );
               }
 
-              print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
+              //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
 
               return _buildDraggableArea(
                 enableTouch: true,

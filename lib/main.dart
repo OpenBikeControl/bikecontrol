@@ -8,7 +8,7 @@ import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/actions/ios.dart';
+import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -16,26 +16,37 @@ import 'bluetooth/connection.dart';
 import 'utils/actions/base_actions.dart';
 
 final connection = Connection();
-late final BaseActions actionHandler;
+late BaseActions actionHandler;
 final accessibilityHandler = Accessibility();
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final settings = Settings();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kIsWeb) {
-    actionHandler = StubActions();
-  } else if (Platform.isAndroid) {
-    actionHandler = AndroidActions();
-  } else if (Platform.isIOS) {
-    actionHandler = IosActions();
-  } else {
-    actionHandler = DesktopActions();
+
+  initializeActions(true);
+  if (actionHandler is DesktopActions) {
     // Must add this line.
     await windowManager.ensureInitialized();
   }
 
   runApp(const SwiftPlayApp());
+}
+
+Future<void> initializeActions(bool local) async {
+  if (kIsWeb) {
+    actionHandler = StubActions();
+  } else if (Platform.isAndroid) {
+    if (local) {
+      actionHandler = AndroidActions();
+    } else {
+      actionHandler = RemoteActions();
+    }
+  } else if (Platform.isIOS) {
+    actionHandler = RemoteActions();
+  } else {
+    actionHandler = DesktopActions();
+  }
 }
 
 class SwiftPlayApp extends StatelessWidget {

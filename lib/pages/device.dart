@@ -13,6 +13,7 @@ import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../utils/actions/remote.dart';
 import '../utils/keymap/apps/custom_app.dart';
 import '../utils/keymap/apps/supported_app.dart';
 import '../widgets/menu.dart';
@@ -88,13 +89,16 @@ class _DevicePageState extends State<DevicePage> {
                       ),
                     Text(
                       connection.devices.joinToString(
-                        separator: '\n',
-                        transform: (it) {
-                          return """${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
+                            separator: '\n',
+                            transform: (it) {
+                              return """${it.device.name ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
 ${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}
 ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}""".trim();
-                        },
-                      ),
+                            },
+                          ) +
+                          (actionHandler is RemoteActions
+                              ? '\n\nRemote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected'}'
+                              : ''),
                     ),
                     Divider(color: Theme.of(context).colorScheme.primary, height: 30),
                     if (!kIsWeb)

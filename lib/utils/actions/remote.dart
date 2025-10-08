@@ -1,11 +1,15 @@
+import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/zwift_click.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
+import 'package:universal_ble/universal_ble.dart';
 
-import '../requirements/ios.dart';
+import '../requirements/remote.dart';
 
-class IosActions extends AccessibilityActions {
+class RemoteActions extends BaseActions {
   @override
   Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
@@ -36,7 +40,7 @@ class IosActions extends AccessibilityActions {
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
-      return 'Mouse moved to: ${point2.dx} ${point2.dy}';
+      return 'Mouse clicked at: ${point2.dx} ${point2.dy}';
     }
   }
 
@@ -57,4 +61,16 @@ class IosActions extends AccessibilityActions {
 
     await peripheralManager.notifyCharacteristic(connectedCentral!, connectedCharacteristic!, value: bytes);
   }
+
+  Central? connectedCentral;
+  GATTCharacteristic? connectedCharacteristic;
+
+  void setConnectedCentral(Central? central, GATTCharacteristic? gattCharacteristic) {
+    connectedCentral = central;
+    connectedCharacteristic = gattCharacteristic;
+
+    connection.signalChange(ZwiftClick(BleDevice(deviceId: 'deviceId', name: 'name')));
+  }
+
+  bool get isConnected => connectedCentral != null;
 }

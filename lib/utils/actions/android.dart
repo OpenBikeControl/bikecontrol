@@ -9,7 +9,7 @@ import 'package:swift_control/widgets/keymap_explanation.dart';
 import '../keymap/apps/supported_app.dart';
 import '../single_line_exception.dart';
 
-class AndroidActions extends AccessibilityActions {
+class AndroidActions extends BaseActions {
   WindowEvent? windowInfo;
 
   @override

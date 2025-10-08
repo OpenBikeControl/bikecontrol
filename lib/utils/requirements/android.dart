@@ -149,7 +149,7 @@ class NotificationRequirement extends PlatformRequirement {
     await AndroidFlutterLocalNotificationsPlugin().startForegroundService(
       1,
       channelGroupId,
-      'Bluetooth keep alive',
+      'Allows SwiftControl to keep running in background',
       foregroundServiceTypes: {AndroidServiceForegroundType.foregroundServiceTypeConnectedDevice},
       notificationDetails: AndroidNotificationDetails(
         channelGroupId,

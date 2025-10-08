@@ -2,27 +2,28 @@ import 'dart:io';
 
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/actions/ios.dart';
+import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 
 final peripheralManager = PeripheralManager();
 bool _isAdvertising = false;
 bool _isSubscribedToEvents = false;
 
-class ConnectRequirement extends PlatformRequirement {
-  ConnectRequirement() : super('Connect to your other iOS device');
+class RemoteRequirement extends PlatformRequirement {
+  RemoteRequirement() : super('Connect to your other device');
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   Future<void> startAdvertising(VoidCallback onUpdate) async {
     if (Platform.isAndroid) {
-      await peripheralManager.authorize();
+      peripheralManager.authorize();
     }
-    await peripheralManager.removeAllServices();
+    if (_isSubscribedToEvents) {
+      await peripheralManager.removeAllServices();
+    }
 
     final reportMapDataAbsolute = Uint8List.fromList([
       0x05, 0x01, // Usage Page (Generic Desktop)
@@ -155,6 +156,14 @@ class ConnectRequirement extends PlatformRequirement {
       if (Platform.isAndroid) {
         peripheralManager.connectionStateChanged.forEach((state) {
           print('Peripheral connection state: ${state.state}');
+          if (state.state == ConnectionState.connected) {
+            (actionHandler as RemoteActions).setConnectedCentral(state.central, inputReport);
+            peripheralManager.stopAdvertising();
+            onUpdate();
+          } else if (state.state == ConnectionState.disconnected) {
+            (actionHandler as RemoteActions).setConnectedCentral(null, null);
+            onUpdate();
+          }
         });
         peripheralManager.stateChanged.forEach((state) {
           print('Peripheral manager state: ${state.state}');
@@ -164,9 +173,9 @@ class ConnectRequirement extends PlatformRequirement {
       peripheralManager.characteristicNotifyStateChanged.forEach((char) {
         if (char.characteristic.uuid == inputReport.uuid) {
           if (char.state) {
-            (actionHandler as AccessibilityActions).setConnectedCentral(char.central, char.characteristic);
+            (actionHandler as RemoteActions).setConnectedCentral(char.central, char.characteristic);
           } else {
-            (actionHandler as AccessibilityActions).setConnectedCentral(null, null);
+            (actionHandler as RemoteActions).setConnectedCentral(null, null);
           }
           onUpdate();
         }
@@ -194,7 +203,12 @@ class ConnectRequirement extends PlatformRequirement {
     );
 
     final advertisement = Advertisement(
-      name: 'SwiftControl',
+      name:
+          'SwiftControl ${Platform.isIOS
+              ? 'iOS'
+              : Platform.isAndroid
+              ? 'Android'
+              : ''}',
       serviceUUIDs: [UUID.fromString('00001812-0000-1000-8000-00805F9B34FB')],
     );
     /*pm.connectionStateChanged.forEach((state) {
@@ -220,7 +234,7 @@ class ConnectRequirement extends PlatformRequirement {
                       if (_isAdvertising) {
                         await peripheralManager.stopAdvertising();
                         _isAdvertising = false;
-                        (actionHandler as AccessibilityActions).setConnectedCentral(null, null);
+                        (actionHandler as RemoteActions).setConnectedCentral(null, null);
                         onUpdate();
                         setState(() {});
                       } else {
@@ -235,14 +249,9 @@ class ConnectRequirement extends PlatformRequirement {
                   if (kDebugMode)
                     ElevatedButton(
                       onPressed: () {
-                        final instance = IosActions();
-                        instance.setConnectedCentral(
-                          (actionHandler as AccessibilityActions).connectedCentral,
-                          (actionHandler as AccessibilityActions).connectedCharacteristic,
-                        );
-                        instance.sendAbsMouseReport(0, 90, 90);
-                        instance.sendAbsMouseReport(1, 90, 90);
-                        instance.sendAbsMouseReport(0, 90, 90);
+                        (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
+                        (actionHandler as RemoteActions).sendAbsMouseReport(1, 90, 90);
+                        (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
                       },
                       child: Text('Test'),
                     ),
@@ -250,7 +259,7 @@ class ConnectRequirement extends PlatformRequirement {
               ),
               if (_isAdvertising)
                 Text(
-                  'On your other iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure to AssistiveTouch is enabled.',
+                  'If your other device is an iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure to AssistiveTouch is enabled.',
                 ),
             ],
           ),
@@ -259,6 +268,6 @@ class ConnectRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = (actionHandler as AccessibilityActions).isConnected;
+    status = (actionHandler as RemoteActions).isConnected;
   }
 }

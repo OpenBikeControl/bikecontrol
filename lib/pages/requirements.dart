@@ -21,6 +21,7 @@ class RequirementsPage extends StatefulWidget {
 
 class _RequirementsPageState extends State<RequirementsPage> with WidgetsBindingObserver {
   int _currentStep = 0;
+  var _local = true;
 
   List<PlatformRequirement> _requirements = [];
 
@@ -28,6 +29,8 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _local = kIsWeb || !Platform.isIOS;
 
     // call after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -93,6 +96,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
           _requirements.isEmpty
               ? Center(child: CircularProgressIndicator())
               : Column(
+                spacing: 8,
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
@@ -100,6 +104,26 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                       'Please complete the following requirements to make the app work correctly:',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
+                  ),
+                  SwitchListTile.adaptive(
+                    value: _local,
+                    title: Text('Trainer app is running on this device'),
+                    subtitle: Text('Turn off if you want to control another device, e.g. your tablet'),
+                    onChanged: (local) {
+                      if (kIsWeb || Platform.isIOS) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('This platform only supports controlling trainer apps on other devices'),
+                          ),
+                        );
+                      } else {
+                        initializeActions(local);
+                        setState(() {
+                          _local = local;
+                          _reloadRequirements();
+                        });
+                      }
+                    },
                   ),
                   Expanded(
                     child: Stepper(
@@ -178,7 +202,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   }
 
   void _reloadRequirements() {
-    getRequirements().then((req) {
+    getRequirements(_local).then((req) {
       _requirements = req;
       _currentStep = req.indexWhere((req) => !req.status);
       if (mounted) {
