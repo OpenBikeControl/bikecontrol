@@ -325,6 +325,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+  flutter_md:
+    dependency: "direct main"
+    description:
+      name: flutter_md
+      sha256: b5a67ae49135f7a76a0cc6f938ee3e8754e71d8448b97cf99c11512877f1d055
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.7"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:

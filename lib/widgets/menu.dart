@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../pages/changelog.dart';
 import '../pages/device.dart';
 
 List<Widget> buildMenuButtons() {
@@ -100,7 +100,16 @@ class MenuButton extends StatelessWidget {
             PopupMenuItem(
               child: Text('Changelog'),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (c) => ChangelogPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
+              },
+            ),
+            PopupMenuItem(
+              child: Text('Troubleshooting Guide'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                );
               },
             ),
             PopupMenuItem(

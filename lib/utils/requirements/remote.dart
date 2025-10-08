@@ -8,6 +8,8 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 
+import '../../pages/markdown.dart';
+
 final peripheralManager = PeripheralManager();
 bool _isAdvertising = false;
 bool _isSubscribedToEvents = false;
@@ -271,10 +273,20 @@ class RemoteRequirement extends PlatformRequirement {
                     ),
                 ],
               ),
-              if (_isAdvertising)
+              if (_isAdvertising) ...[
                 Text(
-                  'If your other device is an iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure to AssistiveTouch is enabled.',
+                  'If your other device is an iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
                 ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                    );
+                  },
+                  child: Text('Check the troubleshooting guide'),
+                ),
+              ],
             ],
           ),
     );

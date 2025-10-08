@@ -47,8 +47,7 @@ Get the latest version for free for Windows, macOS and Android here: https://git
   - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations, but you can use it to remotely control MyWhoosh and similar on e.g. an iPad.
 
 ## Troubleshooting
-- Your Zwift device is found but connection does not work properly? You may need to update the firmware in Zwift Companion app.
-- if you have issues with the "Remote Control" functionality, try to unpair it from your phone / computer Bluetooth settings first.
+Check the troubleshooting guide [here](TROUBLESHOOTING.md).
 
 ## How does it work?
 The app connects to your Zwift device automatically. It does not connect to your trainer itself.

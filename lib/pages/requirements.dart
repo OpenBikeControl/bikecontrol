@@ -158,7 +158,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                                 (index, req) => Step(
                                   title: Text(req.name),
                                   content: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                    padding: const EdgeInsets.only(top: 16.0),
                                     alignment: Alignment.centerLeft,
                                     child:
                                         (index == _currentStep
