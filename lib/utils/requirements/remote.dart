@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -18,11 +19,54 @@ class RemoteRequirement extends PlatformRequirement {
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   Future<void> startAdvertising(VoidCallback onUpdate) async {
-    if (Platform.isAndroid) {
-      peripheralManager.authorize();
+    // Input report characteristic (notify)
+    final inputReport = GATTCharacteristic.mutable(
+      uuid: UUID.fromString('2A4D'),
+      permissions: [GATTCharacteristicPermission.read],
+      properties: [GATTCharacteristicProperty.notify, GATTCharacteristicProperty.read],
+      descriptors: [
+        GATTDescriptor.immutable(
+          // Report Reference: ID=1, Type=Input(1)
+          uuid: UUID.fromString('2908'),
+          value: Uint8List.fromList([0x01, 0x01]),
+        ),
+      ],
+    );
+
+    if (!kIsWeb && Platform.isAndroid) {
+      if (Platform.isAndroid) {
+        peripheralManager.connectionStateChanged.forEach((state) {
+          print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
+          if (state.state == ConnectionState.connected) {
+            /*(actionHandler as RemoteActions).setConnectedCentral(state.central, inputReport);
+            //peripheralManager.stopAdvertising();
+            onUpdate();*/
+          } else if (state.state == ConnectionState.disconnected) {
+            (actionHandler as RemoteActions).setConnectedCentral(null, null);
+            onUpdate();
+          }
+        });
+        peripheralManager.stateChanged.forEach((state) {
+          print('Peripheral manager state: ${state.state}');
+        });
+      }
+
+      final status = await Permission.bluetoothAdvertise.request();
+      if (!status.isGranted) {
+        print('Bluetooth advertise permission not granted');
+        _isAdvertising = false;
+        onUpdate();
+        return;
+      } else {
+        while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
+          print('Waiting for peripheral manager to be powered on...');
+          await Future.delayed(Duration(seconds: 1));
+        }
+      }
     }
+
     if (_isSubscribedToEvents) {
-      await peripheralManager.removeAllServices();
+      //await peripheralManager.removeAllServices();
     }
 
     final reportMapDataAbsolute = Uint8List.fromList([
@@ -87,19 +131,6 @@ class RemoteRequirement extends PlatformRequirement {
     );
 
     // Input report characteristic (notify)
-    final inputReport = GATTCharacteristic.mutable(
-      uuid: UUID.fromString('2A4D'),
-      permissions: [GATTCharacteristicPermission.read],
-      properties: [GATTCharacteristicProperty.notify, GATTCharacteristicProperty.read],
-      descriptors: [
-        GATTDescriptor.immutable(
-          // Report Reference: ID=1, Type=Input(1)
-          uuid: UUID.fromString('2908'),
-          value: Uint8List.fromList([0x01, 0x01]),
-        ),
-      ],
-    );
-    // Input report characteristic (notify)
     final keyboardInputReport = GATTCharacteristic.mutable(
       uuid: UUID.fromString('2A4D'),
       permissions: [GATTCharacteristicPermission.read],
@@ -152,23 +183,6 @@ class RemoteRequirement extends PlatformRequirement {
         print('Read request for characteristic: ${char}');
         // You can respond to read requests here if needed
       });
-
-      if (Platform.isAndroid) {
-        peripheralManager.connectionStateChanged.forEach((state) {
-          print('Peripheral connection state: ${state.state}');
-          if (state.state == ConnectionState.connected) {
-            (actionHandler as RemoteActions).setConnectedCentral(state.central, inputReport);
-            peripheralManager.stopAdvertising();
-            onUpdate();
-          } else if (state.state == ConnectionState.disconnected) {
-            (actionHandler as RemoteActions).setConnectedCentral(null, null);
-            onUpdate();
-          }
-        });
-        peripheralManager.stateChanged.forEach((state) {
-          print('Peripheral manager state: ${state.state}');
-        });
-      }
 
       peripheralManager.characteristicNotifyStateChanged.forEach((char) {
         if (char.characteristic.uuid == inputReport.uuid) {

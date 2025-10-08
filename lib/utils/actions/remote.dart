@@ -13,12 +13,16 @@ class RemoteActions extends BaseActions {
   @override
   Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
-      return ('Supported app is not set');
+      return 'Supported app is not set';
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair == null) {
-      return ('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
+      return 'Keymap entry not found for action: ${action.toString().splitByUpperCase()}';
+    }
+
+    if (!(actionHandler as RemoteActions).isConnected) {
+      return 'Not connected to a device';
     }
 
     if (keyPair.physicalKey != null) {

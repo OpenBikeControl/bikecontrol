@@ -365,7 +365,6 @@ abstract class BaseDevice {
   }
 
   Future<void> disconnect() async {
-    _isInited = false;
     _longPressTimer?.cancel();
     // Release any held keys in long press mode
     if (actionHandler is DesktopActions) {
