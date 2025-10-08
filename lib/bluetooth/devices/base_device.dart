@@ -27,11 +27,10 @@ abstract class BaseDevice {
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 
   bool isConnected = false;
-  bool _isInited = false;
   int? batteryLevel;
   String? firmwareVersion;
 
-  bool supportsEncryption = true;
+  bool supportsEncryption = false;
 
   BleCharacteristic? syncRxCharacteristic;
   Timer? _longPressTimer;
