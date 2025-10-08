@@ -9,13 +9,14 @@ import 'package:swift_control/utils/requirements/multi.dart';
 
 abstract class PlatformRequirement {
   String name;
+  String? description;
   late bool status;
 
-  PlatformRequirement(this.name);
+  PlatformRequirement(this.name, {this.description});
 
   Future<void> getStatus();
 
-  Future<void> call();
+  Future<void> call(BuildContext context, VoidCallback onUpdate);
 
   Widget? build(BuildContext context, VoidCallback onUpdate) {
     return null;
@@ -37,6 +38,7 @@ Future<List<PlatformRequirement>> getRequirements() async {
     final deviceInfo = await deviceInfoPlugin.androidInfo;
     list = [
       BluetoothTurnedOn(),
+      ConnectRequirement(),
       AccessibilityRequirement(),
       NotificationRequirement(),
       if (deviceInfo.version.sdkInt <= 30)

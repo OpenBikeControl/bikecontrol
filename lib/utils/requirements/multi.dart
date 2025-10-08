@@ -12,7 +12,7 @@ class KeyboardRequirement extends PlatformRequirement {
   KeyboardRequirement() : super('Keyboard access');
 
   @override
-  Future<void> call() async {
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
   }
 
@@ -26,7 +26,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
   BluetoothTurnedOn() : super('Bluetooth turned on');
 
   @override
-  Future<void> call() async {
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     if (!kIsWeb && Platform.isIOS) {
       // on iOS we cannot programmatically enable Bluetooth, just open settings
       await peripheralManager.showAppSettings();
@@ -48,7 +48,7 @@ class UnsupportedPlatform extends PlatformRequirement {
   }
 
   @override
-  Future<void> call() async {}
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   @override
   Future<void> getStatus() async {}
@@ -60,7 +60,7 @@ class BluetoothScanning extends PlatformRequirement {
   }
 
   @override
-  Future<void> call() async {}
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   @override
   Future<void> getStatus() async {}

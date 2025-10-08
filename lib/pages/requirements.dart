@@ -142,9 +142,22 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                                               _reloadRequirements();
                                             })
                                             : null) ??
-                                        ElevatedButton(
-                                          onPressed: req.status ? null : () => _callRequirement(req),
-                                          child: Text(req.name),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          spacing: 16,
+                                          children: [
+                                            if (req.description != null)
+                                              Text(req.description!, style: TextStyle(fontSize: 16)),
+                                            ElevatedButton(
+                                              onPressed:
+                                                  req.status
+                                                      ? null
+                                                      : () => _callRequirement(req, context, () {
+                                                        _reloadRequirements();
+                                                      }),
+                                              child: Text(req.name),
+                                            ),
+                                          ],
                                         ),
                                   ),
                                   state: req.status ? StepState.complete : StepState.indexed,
@@ -158,8 +171,8 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
     );
   }
 
-  void _callRequirement(PlatformRequirement req) {
-    req.call().then((_) {
+  void _callRequirement(PlatformRequirement req, BuildContext context, VoidCallback onUpdate) {
+    req.call(context, onUpdate).then((_) {
       _reloadRequirements();
     });
   }

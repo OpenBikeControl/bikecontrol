@@ -1,4 +1,3 @@
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -6,10 +5,7 @@ import 'package:swift_control/widgets/keymap_explanation.dart';
 
 import '../requirements/ios.dart';
 
-class IosActions extends BaseActions {
-  Central? _connectedCentral;
-  GATTCharacteristic? _connectedCharacteristic;
-
+class IosActions extends AccessibilityActions {
   @override
   Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
@@ -59,13 +55,6 @@ class IosActions extends BaseActions {
       print('Sending abs mouse report: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0'))}');
     }
 
-    await peripheralManager.notifyCharacteristic(_connectedCentral!, _connectedCharacteristic!, value: bytes);
+    await peripheralManager.notifyCharacteristic(connectedCentral!, connectedCharacteristic!, value: bytes);
   }
-
-  void setConnectedCentral(Central? central, GATTCharacteristic? gattCharacteristic) {
-    _connectedCentral = central;
-    _connectedCharacteristic = gattCharacteristic;
-  }
-
-  bool get isConnected => _connectedCentral != null;
 }

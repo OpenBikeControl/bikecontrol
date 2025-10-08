@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/actions/ios.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
-
-import '../actions/ios.dart';
 
 final peripheralManager = PeripheralManager();
 bool _isAdvertising = false;
@@ -16,7 +16,7 @@ class ConnectRequirement extends PlatformRequirement {
   ConnectRequirement() : super('Connect to your other iOS device');
 
   @override
-  Future<void> call() async {}
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   Future<void> startAdvertising(VoidCallback onUpdate) async {
     if (Platform.isAndroid) {
@@ -152,12 +152,21 @@ class ConnectRequirement extends PlatformRequirement {
         // You can respond to read requests here if needed
       });
 
+      if (Platform.isAndroid) {
+        peripheralManager.connectionStateChanged.forEach((state) {
+          print('Peripheral connection state: ${state.state}');
+        });
+        peripheralManager.stateChanged.forEach((state) {
+          print('Peripheral manager state: ${state.state}');
+        });
+      }
+
       peripheralManager.characteristicNotifyStateChanged.forEach((char) {
         if (char.characteristic.uuid == inputReport.uuid) {
           if (char.state) {
-            (actionHandler as IosActions).setConnectedCentral(char.central, char.characteristic);
+            (actionHandler as AccessibilityActions).setConnectedCentral(char.central, char.characteristic);
           } else {
-            (actionHandler as IosActions).setConnectedCentral(null, null);
+            (actionHandler as AccessibilityActions).setConnectedCentral(null, null);
           }
           onUpdate();
         }
@@ -191,6 +200,7 @@ class ConnectRequirement extends PlatformRequirement {
     /*pm.connectionStateChanged.forEach((state) {
     print('Peripheral connection state: $state');
   });*/
+    print('Starting advertising with HID service...');
 
     await peripheralManager.startAdvertising(advertisement);
   }
@@ -210,18 +220,32 @@ class ConnectRequirement extends PlatformRequirement {
                       if (_isAdvertising) {
                         await peripheralManager.stopAdvertising();
                         _isAdvertising = false;
-                        (actionHandler as IosActions).setConnectedCentral(null, null);
+                        (actionHandler as AccessibilityActions).setConnectedCentral(null, null);
                         onUpdate();
                         setState(() {});
                       } else {
                         _isAdvertising = true;
                         setState(() {});
+                        await startAdvertising(onUpdate);
                       }
-                      await startAdvertising(onUpdate);
                     },
                     child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
                   ),
                   if (_isAdvertising) SizedBox(height: 20, width: 20, child: CircularProgressIndicator()),
+                  if (kDebugMode)
+                    ElevatedButton(
+                      onPressed: () {
+                        final instance = IosActions();
+                        instance.setConnectedCentral(
+                          (actionHandler as AccessibilityActions).connectedCentral,
+                          (actionHandler as AccessibilityActions).connectedCharacteristic,
+                        );
+                        instance.sendAbsMouseReport(0, 90, 90);
+                        instance.sendAbsMouseReport(1, 90, 90);
+                        instance.sendAbsMouseReport(0, 90, 90);
+                      },
+                      child: Text('Test'),
+                    ),
                 ],
               ),
               if (_isAdvertising)
@@ -235,6 +259,6 @@ class ConnectRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = (actionHandler as IosActions).isConnected;
+    status = (actionHandler as AccessibilityActions).isConnected && false;
   }
 }

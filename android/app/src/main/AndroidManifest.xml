@@ -2,6 +2,8 @@
     <!-- Allow Bluetooth -->
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
+
     <!-- New Bluetooth permissions in Android 12
     https://developer.android.com/about/versions/12/features/bluetooth-permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
