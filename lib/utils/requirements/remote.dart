@@ -7,18 +7,30 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/widgets/small_progress_indicator.dart';
 
 import '../../pages/markdown.dart';
 
 final peripheralManager = PeripheralManager();
 bool _isAdvertising = false;
+bool _isLoading = false;
 bool _isServiceAdded = false;
+bool _isSubscribedToEvents = false;
 
 class RemoteRequirement extends PlatformRequirement {
   RemoteRequirement() : super('Connect to your other device');
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
+
+  Future<void> reconnect() async {
+    await peripheralManager.stopAdvertising();
+    await peripheralManager.removeAllServices();
+    _isServiceAdded = false;
+    _isAdvertising = false;
+    (actionHandler as RemoteActions).setConnectedCentral(null, null);
+    startAdvertising(() {});
+  }
 
   Future<void> startAdvertising(VoidCallback onUpdate) async {
     // Input report characteristic (notify)
@@ -69,6 +81,7 @@ class RemoteRequirement extends PlatformRequirement {
     }
 
     if (!_isServiceAdded) {
+      await Future.delayed(Duration(seconds: 1));
       final reportMapDataAbsolute = Uint8List.fromList([
         0x05, 0x01, // Usage Page (Generic Desktop)
         0x09, 0x02, // Usage (Mouse)
@@ -177,24 +190,27 @@ class RemoteRequirement extends PlatformRequirement {
         includedServices: [],
       );
 
-      peripheralManager.characteristicReadRequested.forEach((char) {
-        print('Read request for characteristic: ${char}');
-        // You can respond to read requests here if needed
-      });
+      if (!_isSubscribedToEvents) {
+        _isSubscribedToEvents = true;
+        peripheralManager.characteristicReadRequested.forEach((char) {
+          print('Read request for characteristic: ${char}');
+          // You can respond to read requests here if needed
+        });
 
-      peripheralManager.characteristicNotifyStateChanged.forEach((char) {
-        if (char.characteristic.uuid == inputReport.uuid) {
-          if (char.state) {
-            (actionHandler as RemoteActions).setConnectedCentral(char.central, char.characteristic);
-          } else {
-            (actionHandler as RemoteActions).setConnectedCentral(null, null);
+        peripheralManager.characteristicNotifyStateChanged.forEach((char) {
+          if (char.characteristic.uuid == inputReport.uuid) {
+            if (char.state) {
+              (actionHandler as RemoteActions).setConnectedCentral(char.central, char.characteristic);
+            } else {
+              (actionHandler as RemoteActions).setConnectedCentral(null, null);
+            }
+            onUpdate();
           }
-          onUpdate();
-        }
-        print(
-          'Notify state changed for characteristic: ${char.characteristic.uuid} vs ${char.characteristic.uuid == inputReport.uuid}: ${char.state}',
-        );
-      });
+          print(
+            'Notify state changed for characteristic: ${char.characteristic.uuid} vs ${char.characteristic.uuid == inputReport.uuid}: ${char.state}',
+          );
+        });
+      }
       await peripheralManager.addService(hidService);
 
       // 3) Optional Battery service
@@ -212,7 +228,6 @@ class RemoteRequirement extends PlatformRequirement {
           includedServices: [],
         ),
       );
-      print('Added services');
       _isServiceAdded = true;
     }
 
@@ -237,61 +252,89 @@ class RemoteRequirement extends PlatformRequirement {
 
   @override
   Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return StatefulBuilder(
-      builder:
-          (context, setState) => Column(
-            spacing: 10,
-            children: [
-              Row(
-                spacing: 10,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (_isAdvertising) {
-                        await peripheralManager.stopAdvertising();
-                        _isAdvertising = false;
-                        (actionHandler as RemoteActions).setConnectedCentral(null, null);
-                        onUpdate();
-                        setState(() {});
-                      } else {
-                        await startAdvertising(onUpdate);
-                      }
-                    },
-                    child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
-                  ),
-                  if (_isAdvertising) SizedBox(height: 20, width: 20, child: CircularProgressIndicator()),
-                  if (kDebugMode && !screenshotMode)
-                    ElevatedButton(
-                      onPressed: () {
-                        (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
-                        (actionHandler as RemoteActions).sendAbsMouseReport(1, 90, 90);
-                        (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
-                      },
-                      child: Text('Test'),
-                    ),
-                ],
-              ),
-              if (_isAdvertising) ...[
-                Text(
-                  'If your other device is an iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-                    );
-                  },
-                  child: Text('Check the troubleshooting guide'),
-                ),
-              ],
-            ],
-          ),
-    );
+    return _PairWidget(onUpdate: onUpdate, requirement: this);
   }
 
   @override
   Future<void> getStatus() async {
     status = (actionHandler as RemoteActions).isConnected || screenshotMode;
+  }
+}
+
+class _PairWidget extends StatefulWidget {
+  final RemoteRequirement requirement;
+  final VoidCallback onUpdate;
+  const _PairWidget({super.key, required this.onUpdate, required this.requirement});
+
+  @override
+  State<_PairWidget> createState() => _PairWidgetState();
+}
+
+class _PairWidgetState extends State<_PairWidget> {
+  @override
+  void initState() {
+    super.initState();
+    // after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      toggle();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 10,
+      children: [
+        Row(
+          spacing: 10,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                await toggle();
+              },
+              child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
+            ),
+            if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
+            if (kDebugMode && !screenshotMode)
+              ElevatedButton(
+                onPressed: () {
+                  (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
+                  (actionHandler as RemoteActions).sendAbsMouseReport(1, 90, 90);
+                  (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
+                },
+                child: Text('Test'),
+              ),
+          ],
+        ),
+        if (_isAdvertising) ...[
+          Text(
+            'If your other device is an iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')));
+            },
+            child: Text('Check the troubleshooting guide'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> toggle() async {
+    if (_isAdvertising) {
+      await peripheralManager.stopAdvertising();
+      _isAdvertising = false;
+      (actionHandler as RemoteActions).setConnectedCentral(null, null);
+      widget.onUpdate();
+      _isLoading = false;
+      setState(() {});
+    } else {
+      _isLoading = true;
+      setState(() {});
+      await widget.requirement.startAdvertising(widget.onUpdate);
+      _isLoading = false;
+      setState(() {});
+    }
   }
 }

@@ -1,4 +1,4 @@
-### 3.0.0 (2025-10-08)
+### 3.0.1 (2025-10-08)
 - SwiftControl now supports iOS!
   - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations but...:
 - You can now use SwiftControl as "remote control" for other devices, such as an iPad. Example scenario:

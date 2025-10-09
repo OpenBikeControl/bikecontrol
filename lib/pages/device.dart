@@ -8,14 +8,18 @@ import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
+import 'package:swift_control/widgets/loading_widget.dart';
 import 'package:swift_control/widgets/logviewer.dart';
+import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../bluetooth/devices/base_device.dart';
 import '../utils/actions/remote.dart';
 import '../utils/keymap/apps/custom_app.dart';
 import '../utils/keymap/apps/supported_app.dart';
+import '../utils/requirements/remote.dart';
 import '../widgets/menu.dart';
 
 class DevicePage extends StatefulWidget {
@@ -25,7 +29,7 @@ class DevicePage extends StatefulWidget {
   State<DevicePage> createState() => _DevicePageState();
 }
 
-class _DevicePageState extends State<DevicePage> {
+class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
   final controller = TextEditingController(text: actionHandler.supportedApp?.name);
 
@@ -33,6 +37,21 @@ class _DevicePageState extends State<DevicePage> {
   void initState() {
     super.initState();
 
+    // keep screen on - this is required for iOS to keep the bluetooth connection alive
+    WakelockPlus.enable();
+    WidgetsBinding.instance.addObserver(this);
+
+    if (actionHandler is RemoteActions && !kIsWeb && Platform.isIOS) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // show snackbar to inform user that the app needs to stay in foreground
+        _snackBarMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text('To keep working properly the app needs to stay in the foreground.'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      });
+    }
     _connectionStateSubscription = connection.connectionStream.listen((state) async {
       setState(() {});
     });
@@ -40,9 +59,25 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
     _connectionStateSubscription.cancel();
     controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && actionHandler is RemoteActions && Platform.isIOS) {
+      final requirement = RemoteRequirement();
+      requirement.reconnect();
+      _snackBarMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text('To keep working properly the app needs to stay in the foreground.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   final _snackBarMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -89,17 +124,33 @@ class _DevicePageState extends State<DevicePage> {
                       ),
                     Text(
                       connection.devices.joinToString(
-                            separator: '\n',
-                            transform: (it) {
-                              return """${it.device.name?.screenshot ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
+                        separator: '\n',
+                        transform: (it) {
+                          return """${it.device.name?.screenshot ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
 ${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}
 ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}""".trim();
-                            },
-                          ) +
-                          (actionHandler is RemoteActions
-                              ? '\n\nRemote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected'}'
-                              : ''),
+                        },
+                      ),
                     ),
+                    if (actionHandler is RemoteActions)
+                      Row(
+                        children: [
+                          Text(
+                            'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected'}',
+                          ),
+                          LoadingWidget(
+                            futureCallback: () async {
+                              final requirement = RemoteRequirement();
+                              await requirement.reconnect();
+                            },
+                            renderChild:
+                                (isLoading, tap) => TextButton(
+                                  onPressed: tap,
+                                  child: isLoading ? SmallProgressIndicator() : Text('Reconnect'),
+                                ),
+                          ),
+                        ],
+                      ),
                     Divider(color: Theme.of(context).colorScheme.primary, height: 30),
                     if (!kIsWeb)
                       Column(
