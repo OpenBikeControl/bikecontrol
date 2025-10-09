@@ -45,6 +45,8 @@ jobs:
           echo -n "$DEVELOPER_ID_APPLICATION_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH
           echo -n "APPSTORE_PROFILE_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS
           echo -n "APPSTORE_PROFILE_MACOS_BASE64" | base64 --decode -o $PP_PATH_MACOS
+          
+          cat $PP_PATH_IOS
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
