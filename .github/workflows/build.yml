@@ -30,6 +30,7 @@ jobs:
       - name: Install certificates
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
+          DEVELOPER_ID_INSTALLER_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           APPSTORE_PROFILE_IOS_BASE64: ${{ secrets.APPSTORE_PROFILE_IOS_BASE64 }}
@@ -38,6 +39,7 @@ jobs:
         run: |
           # create variables
           DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_application_certificate.p12
+          DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_installer_certificate.p12
           PP_PATH_IOS=$RUNNER_TEMP/build_pp_ios.mobileprovision
           PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
           PP_PATH_MACOS=$RUNNER_TEMP/build_pp_macos.provisionprofile
@@ -45,6 +47,7 @@ jobs:
           
           # import certificate and provisioning profile from secrets
           echo -n "$DEVELOPER_ID_APPLICATION_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH
+          echo -n "$DEVELOPER_ID_INSTALLER_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH
           echo -n "$APPSTORE_PROFILE_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS
           echo -n "$APPSTORE_PROFILE_DEV_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS_DEV
           echo -n "$APPSTORE_PROFILE_MACOS_BASE64" | base64 --decode -o $PP_PATH_MACOS
@@ -57,6 +60,7 @@ jobs:
           
           # import certificate to keychain
           security import $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           
@@ -77,11 +81,9 @@ jobs:
 
         #8 Build app ( macos Build )
       - name: Build macOS App
-        if: false
         run: flutter build macos --release
 
       - name: Code Signing
-        if: false
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --options runtime SwiftControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
@@ -191,7 +193,7 @@ jobs:
           whatsNewDirectory: whatsnew
 
       - name: Build iOS app and release
-        if: github.ref == 'refs/heads/ios'
+        if: github.ref == 'refs/heads/ios' && false
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
@@ -202,6 +204,15 @@ jobs:
           ls -lart ./private_keys;
           flutter build ipa --release --export-options-plist=ios/ExportOptions.plist;
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";        
+
+      - name: Release macOS app
+        env:
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          productbuild --component "build/macos/Build/Products/Release/SwiftControl.app" /Applications "SwiftControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
+          xcrun altool --upload-app -f SwiftControl.pkg -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
+        
 
   windows:
     needs: build

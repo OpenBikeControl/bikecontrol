@@ -312,11 +312,14 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       ),
     ];
 
-    final icon = Row(children: isOnTheRightEdge ? draggable.reversed.toList() : draggable);
+    final icon = Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: draggable,
+    );
 
     return Positioned(
-      right: isOnTheRightEdge ? MediaQuery.sizeOf(context).width - position.dx - iconSize / 2 : null,
-      left: isOnTheRightEdge ? null : position.dx - iconSize / 2,
+      left: position.dx - iconSize / 2,
       top: position.dy - differenceInHeight - iconSize / 2,
       child: Tooltip(
         message: 'Drag to reposition',
