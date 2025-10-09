@@ -101,8 +101,45 @@ void main() {
       await newSettings.init();
       
       // Old key should still exist because new key already existed
-      expect(newSettings.prefs.containsKey('customapp'), true);
-      expect(newSettings.prefs.getStringList('customapp_Custom'), ['new_data']);
+      expect(newSettings.getCustomAppKeymap('customapp'), null);
+      final customKeymap = newSettings.getCustomAppKeymap('Custom');
+      expect(customKeymap, isNotNull);
+    });
+
+    test('Should export custom profile as JSON', () async {
+      final customApp = CustomApp(profileName: 'TestProfile');
+      await settings.setApp(customApp);
+      
+      final jsonData = settings.exportCustomAppProfile('TestProfile');
+      expect(jsonData, isNotNull);
+      expect(jsonData, contains('version'));
+      expect(jsonData, contains('profileName'));
+      expect(jsonData, contains('keymap'));
+    });
+
+    test('Should import custom profile from JSON', () async {
+      // First export a profile
+      final customApp = CustomApp(profileName: 'ExportTest');
+      await settings.setApp(customApp);
+      final jsonData = settings.exportCustomAppProfile('ExportTest');
+      
+      // Import with a new name
+      final success = await settings.importCustomAppProfile(jsonData!, newProfileName: 'ImportTest');
+      
+      expect(success, true);
+      final profiles = settings.getCustomAppProfiles();
+      expect(profiles.contains('ImportTest'), true);
+    });
+
+    test('Should fail to import invalid JSON', () async {
+      final success = await settings.importCustomAppProfile('invalid json');
+      expect(success, false);
+    });
+
+    test('Should fail to import JSON with missing fields', () async {
+      final invalidJson = '{"version": 1}';
+      final success = await settings.importCustomAppProfile(invalidJson);
+      expect(success, false);
     });
   });
 }
