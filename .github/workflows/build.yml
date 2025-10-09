@@ -199,6 +199,7 @@ jobs:
         run: |
           mkdir -p ./private_keys;
           printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_ISSUER_ID}.p8";
+          ls -lart ./private_keys;
           flutter build ipa --release --export-options-plist=ios/ExportOptions.plist;
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";        
 
