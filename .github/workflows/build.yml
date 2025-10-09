@@ -53,6 +53,7 @@ jobs:
 
         #2 Setup Java
       - name: Set Up Java
+        if: false
         uses: actions/setup-java@v3.12.0
         with:
           distribution: 'oracle'
