@@ -157,7 +157,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     });
   }
 
-  List<Widget> _buildDraggableArea({
+  Widget _buildDraggableArea({
     required Offset position,
     required bool enableTouch,
     required void Function(Offset newPosition) onPositionChanged,
@@ -182,32 +182,29 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     final isOnTheRightEdge = position.dx > (MediaQuery.sizeOf(context).width - 250);
 
     final iconSize = 40.0;
-    final icon = Container(
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.4),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      width: iconSize,
-      height: iconSize,
-      child: Icon(
-        keyPair.icon,
-        size: iconSize - 12,
-        shadows: [
-          Shadow(color: Colors.white, offset: Offset(1, 1)),
-          Shadow(color: Colors.white, offset: Offset(-1, -1)),
-          Shadow(color: Colors.white, offset: Offset(-1, 1)),
-          Shadow(color: Colors.white, offset: Offset(-1, 1)),
-          Shadow(color: Colors.white, offset: Offset(1, -1)),
-        ],
-      ),
-    );
-
-    return [
-      Positioned(
-        left: position.dx + (isOnTheRightEdge ? -18 : 18),
-        top: position.dy - differenceInHeight - 12,
-        child: FractionalTranslation(
+    final icon = Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.4),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          width: iconSize,
+          height: iconSize,
+          child: Icon(
+            keyPair.icon,
+            size: iconSize - 12,
+            shadows: [
+              Shadow(color: Colors.white, offset: Offset(1, 1)),
+              Shadow(color: Colors.white, offset: Offset(-1, -1)),
+              Shadow(color: Colors.white, offset: Offset(-1, 1)),
+              Shadow(color: Colors.white, offset: Offset(-1, 1)),
+              Shadow(color: Colors.white, offset: Offset(1, -1)),
+            ],
+          ),
+        ),
+        FractionalTranslation(
           translation: Offset(isOnTheRightEdge ? -1.0 : 0.0, 0),
           child: Row(
             spacing: 2,
@@ -328,28 +325,28 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             ],
           ),
         ),
-      ),
+      ],
+    );
 
-      Positioned(
-        left: position.dx - iconSize / 2,
-        top: position.dy - differenceInHeight - iconSize / 2,
-        child: Tooltip(
-          message: 'Drag to reposition',
-          child: Draggable(
-            feedback: Material(color: Colors.transparent, child: icon),
-            childWhenDragging: const SizedBox.shrink(),
-            onDraggableCanceled: (velo, offset) {
-              // otherwise simulated touch will move it
-              if (velo.pixelsPerSecond.distance > 0) {
-                final fixedPosition = offset + Offset(iconSize / 2, differenceInHeight + iconSize / 2);
-                setState(() => onPositionChanged(fixedPosition));
-              }
-            },
-            child: icon,
-          ),
+    return Positioned(
+      left: position.dx - iconSize / 2,
+      top: position.dy - differenceInHeight - iconSize / 2,
+      child: Tooltip(
+        message: 'Drag to reposition',
+        child: Draggable(
+          feedback: Material(color: Colors.transparent, child: icon),
+          childWhenDragging: const SizedBox.shrink(),
+          onDraggableCanceled: (velo, offset) {
+            // otherwise simulated touch will move it
+            if (velo.pixelsPerSecond.distance > 0) {
+              final fixedPosition = offset + Offset(iconSize / 2, differenceInHeight + iconSize / 2);
+              setState(() => onPositionChanged(fixedPosition));
+            }
+          },
+          child: icon,
         ),
       ),
-    ];
+    );
   }
 
   @override
@@ -432,7 +429,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                 },
                 color: Colors.red,
               );
-            }).flatten(),
+            }),
 
           Positioned.fill(child: Testbed()),
 
