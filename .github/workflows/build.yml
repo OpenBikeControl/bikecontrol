@@ -201,7 +201,6 @@ jobs:
         run: |
           mkdir -p ./private_keys;
           printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";
-          ls -lart ./private_keys;
           flutter build ipa --release --export-options-plist=ios/ExportOptions.plist;
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";        
 
@@ -209,7 +208,10 @@ jobs:
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
         run: |
+          mkdir -p ./private_keys;
+          printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";
           productbuild --component "build/macos/Build/Products/Release/SwiftControl.app" /Applications "SwiftControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
           xcrun altool --upload-app -f SwiftControl.pkg -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
         
