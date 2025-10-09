@@ -15,14 +15,32 @@ class Settings {
     _prefs = await SharedPreferences.getInstance();
 
     try {
+      // Get screen size for migrations
+      Size? screenSize;
+      try {
+        final view = WidgetsBinding.instance.platformDispatcher.views.first;
+        screenSize = view.physicalSize / view.devicePixelRatio;
+      } catch (e) {
+        screenSize = null;
+      }
+
       // Handle migration from old "customapp" key to new "customapp_Custom" key
       if (_prefs.containsKey('customapp') && !_prefs.containsKey('customapp_Custom')) {
         final oldCustomApp = _prefs.getStringList('customapp');
         if (oldCustomApp != null) {
-          await _prefs.setStringList('customapp_Custom', oldCustomApp);
+          // Migrate pixel-based to percentage-based if screen size available
+          if (screenSize != null) {
+            final migratedData = await _migrateToPercentageBased(oldCustomApp, screenSize);
+            await _prefs.setStringList('customapp_Custom', migratedData);
+          } else {
+            await _prefs.setStringList('customapp_Custom', oldCustomApp);
+          }
           await _prefs.remove('customapp');
         }
       }
+      
+      // Migrate all existing custom profiles to percentage-based format
+      await _migrateAllProfilesToPercentageBased(screenSize);
       
       final appName = _prefs.getString('app');
       if (appName == null) {
@@ -34,14 +52,6 @@ class Settings {
         final customApp = CustomApp(profileName: appName);
         final appSetting = _prefs.getStringList('customapp_$appName');
         if (appSetting != null) {
-          // Get screen size for percentage-based decoding
-          Size? screenSize;
-          try {
-            final view = WidgetsBinding.instance.platformDispatcher.views.first;
-            screenSize = view.physicalSize / view.devicePixelRatio;
-          } catch (e) {
-            screenSize = null;
-          }
           customApp.decodeKeymap(appSetting, screenSize: screenSize);
         }
         actionHandler.init(customApp);
@@ -148,5 +158,68 @@ class Settings {
 
   Future<void> setVibrationEnabled(bool enabled) async {
     await _prefs.setBool('vibration_enabled', enabled);
+  }
+
+  Future<List<String>> _migrateToPercentageBased(List<String> keymapData, Size screenSize) async {
+    final migratedData = <String>[];
+    
+    for (final encodedKeyPair in keymapData) {
+      try {
+        final decoded = jsonDecode(encodedKeyPair);
+        final touchPosData = decoded['touchPosition'];
+        
+        // Check if already percentage-based
+        if (touchPosData.containsKey('x_percent') && touchPosData.containsKey('y_percent')) {
+          migratedData.add(encodedKeyPair);
+          continue;
+        }
+        
+        // Convert pixel-based to percentage-based
+        final x = (touchPosData['x'] as num).toDouble();
+        final y = (touchPosData['y'] as num).toDouble();
+        
+        decoded['touchPosition'] = {
+          'x_percent': x / screenSize.width,
+          'y_percent': y / screenSize.height,
+        };
+        
+        migratedData.add(jsonEncode(decoded));
+      } catch (e) {
+        // If can't decode, keep original
+        migratedData.add(encodedKeyPair);
+      }
+    }
+    
+    return migratedData;
+  }
+
+  Future<void> _migrateAllProfilesToPercentageBased(Size? screenSize) async {
+    if (screenSize == null) return;
+    
+    final profiles = getCustomAppProfiles();
+    for (final profile in profiles) {
+      final keymap = _prefs.getStringList('customapp_$profile');
+      if (keymap != null) {
+        // Check if migration is needed
+        bool needsMigration = false;
+        for (final encodedKeyPair in keymap) {
+          try {
+            final decoded = jsonDecode(encodedKeyPair);
+            final touchPosData = decoded['touchPosition'];
+            if (!touchPosData.containsKey('x_percent') || !touchPosData.containsKey('y_percent')) {
+              needsMigration = true;
+              break;
+            }
+          } catch (e) {
+            // Skip if can't decode
+          }
+        }
+        
+        if (needsMigration) {
+          final migratedData = await _migrateToPercentageBased(keymap, screenSize);
+          await _prefs.setStringList('customapp_$profile', migratedData);
+        }
+      }
+    }
   }
 }

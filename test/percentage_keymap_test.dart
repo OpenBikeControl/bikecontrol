@@ -22,19 +22,19 @@ void main() {
       expect(encoded, contains('0.5')); // 50% as decimal
     });
 
-    test('Should encode touch position as pixels when screen size not provided', () {
+    test('Should encode touch position as percentages with fallback when screen size not provided', () {
       final keyPair = KeyPair(
         buttons: [ZwiftButton.leftButton],
         physicalKey: null,
         logicalKey: null,
-        touchPosition: Offset(500, 1000),
+        touchPosition: Offset(960, 540), // Center of 1920x1080 fallback
       );
 
       final encoded = keyPair.encode();
-      expect(encoded, contains('"x"'));
-      expect(encoded, contains('"y"'));
-      expect(encoded, contains('500'));
-      expect(encoded, contains('1000'));
+      expect(encoded, contains('x_percent'));
+      expect(encoded, contains('y_percent'));
+      // Should use fallback screen size of 1920x1080
+      expect(encoded, contains('0.5')); // 960/1920 and 540/1080 = 0.5
     });
 
     test('Should decode percentage-based touch position correctly', () {
@@ -66,9 +66,10 @@ void main() {
       );
 
       final encoded = keyPair.encode(screenSize: screenSize);
-      // Should encode as pixels when position is zero
-      expect(encoded, contains('"x"'));
-      expect(encoded, contains('"y"'));
+      // Should encode as percentages even when position is zero
+      expect(encoded, contains('x_percent'));
+      expect(encoded, contains('y_percent'));
+      expect(encoded, contains('0.0'));
     });
 
     test('Should scale touch position correctly across different screen sizes', () {

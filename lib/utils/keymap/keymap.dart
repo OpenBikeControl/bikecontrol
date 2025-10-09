@@ -75,13 +75,29 @@ class KeyPair {
 
   String encode({Size? screenSize}) {
     // encode to save in preferences
-    // If screenSize is provided, store as percentages for better compatibility across devices
-    final touchPosData = screenSize != null && touchPosition != Offset.zero
-        ? {
-            'x_percent': touchPosition.dx / screenSize.width,
-            'y_percent': touchPosition.dy / screenSize.height,
-          }
-        : {'x': touchPosition.dx, 'y': touchPosition.dy};
+    // Always store as percentages for better compatibility across devices
+    final Map<String, double> touchPosData;
+    
+    if (touchPosition == Offset.zero) {
+      // Special case: zero position means no touch (e.g., keyboard shortcut only)
+      touchPosData = {
+        'x_percent': 0.0,
+        'y_percent': 0.0,
+      };
+    } else if (screenSize != null) {
+      // Normal case: convert pixels to percentages
+      touchPosData = {
+        'x_percent': touchPosition.dx / screenSize.width,
+        'y_percent': touchPosition.dy / screenSize.height,
+      };
+    } else {
+      // Fallback: if no screen size available, use a reasonable default (1920x1080)
+      // This should rarely happen as screen size should always be available
+      touchPosData = {
+        'x_percent': touchPosition.dx / 1920.0,
+        'y_percent': touchPosition.dy / 1080.0,
+      };
+    }
     
     return jsonEncode({
       'actions': buttons.map((e) => e.name).toList(),
@@ -99,7 +115,7 @@ class KeyPair {
       return null;
     }
     
-    // Support both percentage-based (new) and pixel-based (old) formats
+    // Support both percentage-based (new) and pixel-based (old) formats for backward compatibility
     final touchPosData = decoded['touchPosition'];
     final Offset touchPosition;
     
@@ -115,8 +131,12 @@ class KeyPair {
         touchPosition = Offset.zero;
       }
     } else {
-      // Old pixel-based format
-      touchPosition = Offset(touchPosData['x'], touchPosData['y']);
+      // Old pixel-based format - read the pixels directly
+      // These will be converted to percentages when saved next time
+      touchPosition = Offset(
+        (touchPosData['x'] as num).toDouble(),
+        (touchPosData['y'] as num).toDouble(),
+      );
     }
     
     return KeyPair(
