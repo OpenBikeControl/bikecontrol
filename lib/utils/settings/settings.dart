@@ -154,7 +154,7 @@ class Settings {
       // Convert pixel-based to percentage-based
       final x = (touchPosData['x'] as num).toDouble();
       final y = (touchPosData['y'] as num).toDouble();
-      return x > 1.0 || y > 1.0;
+      return x > 100.0 || y > 100.0;
     });
 
     for (final entry in needMigrations.entries) {
@@ -165,8 +165,8 @@ class Settings {
         // Convert pixel-based to percentage-based
         final x = (touchPosData['x'] as num).toDouble();
         final y = (touchPosData['y'] as num).toDouble();
-        final newX = (x / screenSize.width).clamp(0.0, 1.0);
-        final newY = (y / screenSize.height).clamp(0.0, 1.0);
+        final newX = (x / screenSize.width).clamp(0.0, 1.0) * 100.0;
+        final newY = (y / screenSize.height).clamp(0.0, 1.0) * 100.0;
 
         // Update the JSON structure
         decoded['touchPosition'] = {'x': newX, 'y': newY};
