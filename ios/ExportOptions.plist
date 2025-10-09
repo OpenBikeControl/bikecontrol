@@ -15,7 +15,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>de.jonasbark.swiftcontrol.darwin</key>
-        <string>Apple Distribution: JONAS TASSILO BARK (UZRHKPVWN9)</string>
+        <string>ios app store</string>
     </dict>
 	<key>stripSwiftSymbols</key>
 	<true/>
