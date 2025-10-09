@@ -213,7 +213,7 @@ jobs:
           mkdir -p ./private_keys;
           printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";
           productbuild --component "build/macos/Build/Products/Release/SwiftControl.app" /Applications "SwiftControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
-          xcrun altool --upload-app -f SwiftControl.pkg -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
+          xcrun altool --upload-app -f SwiftControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
         
 
   windows:
