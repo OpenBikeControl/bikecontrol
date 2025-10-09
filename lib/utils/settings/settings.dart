@@ -7,8 +7,6 @@ import '../keymap/apps/custom_app.dart';
 
 class Settings {
   late final SharedPreferences _prefs;
-  
-  SharedPreferences get prefs => _prefs;
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -63,6 +61,10 @@ class Settings {
     // Get all keys starting with 'customapp_'
     final keys = _prefs.getKeys().where((key) => key.startsWith('customapp_')).toList();
     return keys.map((key) => key.replaceFirst('customapp_', '')).toList();
+  }
+  
+  List<String>? getCustomAppKeymap(String profileName) {
+    return _prefs.getStringList('customapp_$profileName');
   }
   
   Future<void> deleteCustomAppProfile(String profileName) async {

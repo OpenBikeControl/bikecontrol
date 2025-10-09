@@ -33,7 +33,7 @@ class _DevicePageState extends State<DevicePage> {
     final customProfiles = settings.getCustomAppProfiles();
     final customApps = customProfiles.map((profile) {
       final customApp = CustomApp(profileName: profile);
-      final savedKeymap = settings.prefs.getStringList('customapp_$profile');
+      final savedKeymap = settings.getCustomAppKeymap(profile);
       if (savedKeymap != null) {
         customApp.decodeKeymap(savedKeymap);
       }
@@ -225,7 +225,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                           await settings.duplicateCustomAppProfile(currentProfile, newName);
                                           await settings.deleteCustomAppProfile(currentProfile);
                                           final customApp = CustomApp(profileName: newName);
-                                          final savedKeymap = settings.prefs.getStringList('customapp_$newName');
+                                          final savedKeymap = settings.getCustomAppKeymap(newName);
                                           if (savedKeymap != null) {
                                             customApp.decodeKeymap(savedKeymap);
                                           }
@@ -239,7 +239,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                         if (newName != null && newName.isNotEmpty) {
                                           await settings.duplicateCustomAppProfile(currentProfile, newName);
                                           final customApp = CustomApp(profileName: newName);
-                                          final savedKeymap = settings.prefs.getStringList('customapp_$newName');
+                                          final savedKeymap = settings.getCustomAppKeymap(newName);
                                           if (savedKeymap != null) {
                                             customApp.decodeKeymap(savedKeymap);
                                           }
