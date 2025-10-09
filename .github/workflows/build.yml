@@ -193,6 +193,7 @@ jobs:
       - name: Build iOS app and release
         if: github.ref == 'refs/heads/ios'
         run: |
+          
             flutter build ipa --release --export-options-plist=ios/ExportOptions.plist;
             xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey ${{ secrets.APPSTORE_API_KEY }} --apiIssuer ${{ secrets.APPSTORE_API_ISSUER_ID }};        
 
