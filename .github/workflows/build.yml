@@ -84,7 +84,7 @@ jobs:
         run: flutter build macos --release
 
       - name: Code Signing
-        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --options runtime SwiftControl.app -v
+        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
