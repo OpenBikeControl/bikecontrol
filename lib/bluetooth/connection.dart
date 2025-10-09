@@ -186,6 +186,10 @@ class Connection {
     devices.clear();
   }
 
+  void signalNotification(BaseNotification notification) {
+    _actionStreams.add(notification);
+  }
+
   void signalChange(BaseDevice baseDevice) {
     _connectionStreams.add(baseDevice);
   }
