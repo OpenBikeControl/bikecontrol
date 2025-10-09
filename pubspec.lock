@@ -910,7 +910,7 @@ packages:
       path: "."
       ref: HEAD
       resolved-ref: "22b713600511ef5adff60aa70b941ada99ba2890"
-      url: "git@github.com:jonasbark/universal_ble.git"
+      url: "https://github.com/jonasbark/universal_ble.git"
     source: git
     version: "0.21.1"
   url_launcher:

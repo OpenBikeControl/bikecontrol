@@ -38,7 +38,7 @@ dependencies:
 dependency_overrides:
   universal_ble:
     git:
-      url: git@github.com:jonasbark/universal_ble.git
+      url: https://github.com/jonasbark/universal_ble.git
 
 dev_dependencies:
   flutter_test:
