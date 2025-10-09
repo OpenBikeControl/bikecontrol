@@ -46,8 +46,6 @@ jobs:
           echo -n "$APPSTORE_PROFILE_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS
           echo -n "$APPSTORE_PROFILE_MACOS_BASE64" | base64 --decode -o $PP_PATH_MACOS
           
-          cat $PP_PATH_IOS
-
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           # security default-keychain -s $KEYCHAIN_PATH
@@ -63,14 +61,6 @@ jobs:
           cp $PP_PATH_IOS ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
 
-        #2 Setup Java
-      - name: Set Up Java
-        if: false
-        uses: actions/setup-java@v3.12.0
-        with:
-          distribution: 'oracle'
-          java-version: '17'
-
         #3 Setup Flutter
       - name: Set Up Flutter
         uses: subosito/flutter-action@v2
@@ -82,7 +72,8 @@ jobs:
         run: flutter pub get
 
         #8 Build app ( macos Build )
-      - name: Build App
+      - name: Build macOS App
+        if: false
         run: flutter build macos --release
 
       - name: Code Signing
