@@ -73,7 +73,7 @@ class MenuButton extends StatelessWidget {
                             onTap: () {
                               Future.delayed(Duration(seconds: 2)).then((_) {
                                 connection.devices.firstOrNull?.actionStreamInternal.add(
-                                  RideNotification(Uint8List(0))..buttonsClicked = [e],
+                                  RideNotification(Uint8List(0), analogPaddleThreshold: 25)..buttonsClicked = [e],
                                 );
                               });
                             },

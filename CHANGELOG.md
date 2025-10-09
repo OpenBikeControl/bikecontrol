@@ -5,6 +5,7 @@
     - your phone (Android/iOS) runs SwiftControl and connects to your Click devices
     - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
     - after pairing SwiftControl to your iPad / tablet via Bluetooth your phone will send the button presses to your iPad / tablet
+- Ride: analog paddles are now supported thanks to contributor @jmoro
 
 ### 2.6.3 (2025-10-01)
 - fix a few issues with the new touch placement feature
