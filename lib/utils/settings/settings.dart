@@ -52,7 +52,7 @@ class Settings {
         final customApp = CustomApp(profileName: appName);
         final appSetting = _prefs.getStringList('customapp_$appName');
         if (appSetting != null) {
-          customApp.decodeKeymap(appSetting, screenSize: screenSize);
+          customApp.decodeKeymap(appSetting);
         }
         actionHandler.init(customApp);
       } else {
@@ -73,16 +73,7 @@ class Settings {
 
   Future<void> setApp(SupportedApp app) async {
     if (app is CustomApp) {
-      // Get screen size for percentage-based encoding
-      Size? screenSize;
-      try {
-        final view = WidgetsBinding.instance.platformDispatcher.views.first;
-        screenSize = view.physicalSize / view.devicePixelRatio;
-      } catch (e) {
-        // Fallback if screen size is not available
-        screenSize = null;
-      }
-      await _prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap(screenSize: screenSize));
+      await _prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
     }
     await _prefs.setString('app', app.name);
   }

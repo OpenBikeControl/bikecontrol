@@ -22,19 +22,19 @@ class CustomApp extends SupportedApp {
     return keyPair.touchPosition;
   }
 
-  List<String> encodeKeymap({Size? screenSize}) {
+  List<String> encodeKeymap() {
     // encode to save in preferences
-    return keymap.keyPairs.map((e) => e.encode(screenSize: screenSize)).toList();
+    return keymap.keyPairs.map((e) => e.encode()).toList();
   }
 
-  void decodeKeymap(List<String> data, {Size? screenSize}) {
+  void decodeKeymap(List<String> data) {
     // decode from preferences
 
     if (data.isEmpty) {
       return;
     }
 
-    final keyPairs = data.map((e) => KeyPair.decode(e, screenSize: screenSize)).whereNotNull().toList();
+    final keyPairs = data.map((e) => KeyPair.decode(e)).whereNotNull().toList();
     if (keyPairs.isEmpty) {
       return;
     }

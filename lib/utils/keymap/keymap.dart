@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 class Keymap {
@@ -73,7 +75,7 @@ class KeyPair {
         };
   }
 
-  String encode({Size? screenSize}) {
+  String encode() {
     // encode to save in preferences
     // Always store as percentages for better compatibility across devices
     final Map<String, double> touchPosData;
@@ -84,19 +86,30 @@ class KeyPair {
         'x_percent': 0.0,
         'y_percent': 0.0,
       };
-    } else if (screenSize != null) {
-      // Normal case: convert pixels to percentages
-      touchPosData = {
-        'x_percent': touchPosition.dx / screenSize.width,
-        'y_percent': touchPosition.dy / screenSize.height,
-      };
     } else {
-      // Fallback: if no screen size available, use a reasonable default (1920x1080)
-      // This should rarely happen as screen size should always be available
-      touchPosData = {
-        'x_percent': touchPosition.dx / 1920.0,
-        'y_percent': touchPosition.dy / 1080.0,
-      };
+      // Get screen size for conversion
+      Size? screenSize;
+      try {
+        final view = WidgetsBinding.instance.platformDispatcher.views.first;
+        screenSize = view.physicalSize / view.devicePixelRatio;
+      } catch (e) {
+        // Fallback: if no screen size available, use a reasonable default (1920x1080)
+        screenSize = null;
+      }
+      
+      if (screenSize != null) {
+        // Normal case: convert pixels to percentages
+        touchPosData = {
+          'x_percent': touchPosition.dx / screenSize.width,
+          'y_percent': touchPosition.dy / screenSize.height,
+        };
+      } else {
+        // Fallback to default screen size
+        touchPosData = {
+          'x_percent': touchPosition.dx / 1920.0,
+          'y_percent': touchPosition.dy / 1080.0,
+        };
+      }
     }
     
     return jsonEncode({
@@ -108,7 +121,7 @@ class KeyPair {
     });
   }
 
-  static KeyPair? decode(String data, {Size? screenSize}) {
+  static KeyPair? decode(String data) {
     // decode from preferences
     final decoded = jsonDecode(data);
     if (decoded['actions'] == null || decoded['logicalKey'] == null || decoded['physicalKey'] == null) {
@@ -120,14 +133,22 @@ class KeyPair {
     final Offset touchPosition;
     
     if (touchPosData.containsKey('x_percent') && touchPosData.containsKey('y_percent')) {
-      // New percentage-based format
+      // New percentage-based format - convert to pixels
+      Size? screenSize;
+      try {
+        final view = WidgetsBinding.instance.platformDispatcher.views.first;
+        screenSize = view.physicalSize / view.devicePixelRatio;
+      } catch (e) {
+        screenSize = null;
+      }
+      
       if (screenSize != null) {
         touchPosition = Offset(
           touchPosData['x_percent'] * screenSize.width,
           touchPosData['y_percent'] * screenSize.height,
         );
       } else {
-        // Fallback if no screen size provided
+        // Fallback if no screen size available
         touchPosition = Offset.zero;
       }
     } else {
