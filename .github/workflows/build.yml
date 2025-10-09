@@ -180,7 +180,7 @@ jobs:
         run: |
           chmod +x scripts/get_latest_changelog.sh
           mkdir -p whatsnew
-          ./scripts/get_latest_changelog.sh > whatsnew/whatsnew-en-US
+          ./scripts/get_latest_changelog.sh | head -c 500 > whatsnew/whatsnew-en-US
 
       - name: Upload to Play Store
         # only upload when env.VERSION does not end with 1337, which is our indicator for beta releases
