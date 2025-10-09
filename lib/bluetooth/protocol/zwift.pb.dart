@@ -480,62 +480,19 @@ class RideAnalogKeyPress extends $pb.GeneratedMessage {
   void clearAnalogValue() => clearField(2);
 }
 
-class RideAnalogKeyGroup extends $pb.GeneratedMessage {
-  factory RideAnalogKeyGroup({
-    $core.Iterable<RideAnalogKeyPress>? groupStatus,
-  }) {
-    final $result = create();
-    if (groupStatus != null) {
-      $result.groupStatus.addAll(groupStatus);
-    }
-    return $result;
-  }
-  RideAnalogKeyGroup._() : super();
-  factory RideAnalogKeyGroup.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory RideAnalogKeyGroup.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RideAnalogKeyGroup', package: const $pb.PackageName(_omitMessageNames ? '' : 'de.jonasbark'), createEmptyInstance: create)
-    ..pc<RideAnalogKeyPress>(1, _omitFieldNames ? '' : 'GroupStatus', $pb.PbFieldType.PM, protoName: 'GroupStatus', subBuilder: RideAnalogKeyPress.create)
-    ..hasRequiredFields = false
-  ;
-
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  RideAnalogKeyGroup clone() => RideAnalogKeyGroup()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  RideAnalogKeyGroup copyWith(void Function(RideAnalogKeyGroup) updates) => super.copyWith((message) => updates(message as RideAnalogKeyGroup)) as RideAnalogKeyGroup;
-
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static RideAnalogKeyGroup create() => RideAnalogKeyGroup._();
-  RideAnalogKeyGroup createEmptyInstance() => create();
-  static $pb.PbList<RideAnalogKeyGroup> createRepeated() => $pb.PbList<RideAnalogKeyGroup>();
-  @$core.pragma('dart2js:noInline')
-  static RideAnalogKeyGroup getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RideAnalogKeyGroup>(create);
-  static RideAnalogKeyGroup? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.List<RideAnalogKeyPress> get groupStatus => $_getList(0);
-}
-
 /// The command code prepending this message is 0x23
+/// All analog paddles (L0-L3) appear as repeated RideAnalogKeyPress in field 3
 class RideKeyPadStatus extends $pb.GeneratedMessage {
   factory RideKeyPadStatus({
     $core.int? buttonMap,
-    RideAnalogKeyGroup? analogButtons,
+    $core.Iterable<RideAnalogKeyPress>? analogPaddles,
   }) {
     final $result = create();
     if (buttonMap != null) {
       $result.buttonMap = buttonMap;
     }
-    if (analogButtons != null) {
-      $result.analogButtons = analogButtons;
+    if (analogPaddles != null) {
+      $result.analogPaddles.addAll(analogPaddles);
     }
     return $result;
   }
@@ -545,7 +502,7 @@ class RideKeyPadStatus extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RideKeyPadStatus', package: const $pb.PackageName(_omitMessageNames ? '' : 'de.jonasbark'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'ButtonMap', $pb.PbFieldType.OU3, protoName: 'ButtonMap')
-    ..aOM<RideAnalogKeyGroup>(2, _omitFieldNames ? '' : 'AnalogButtons', protoName: 'AnalogButtons', subBuilder: RideAnalogKeyGroup.create)
+    ..pc<RideAnalogKeyPress>(3, _omitFieldNames ? '' : 'AnalogPaddles', $pb.PbFieldType.PM, protoName: 'AnalogPaddles', subBuilder: RideAnalogKeyPress.create)
     ..hasRequiredFields = false
   ;
 
@@ -579,16 +536,8 @@ class RideKeyPadStatus extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearButtonMap() => clearField(1);
 
-  @$pb.TagNumber(2)
-  RideAnalogKeyGroup get analogButtons => $_getN(1);
-  @$pb.TagNumber(2)
-  set analogButtons(RideAnalogKeyGroup v) { setField(2, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasAnalogButtons() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearAnalogButtons() => clearField(2);
-  @$pb.TagNumber(2)
-  RideAnalogKeyGroup ensureAnalogButtons() => $_ensure(1);
+  @$pb.TagNumber(3)
+  $core.List<RideAnalogKeyPress> get analogPaddles => $_getList(1);
 }
 
 /// ------------------ Zwift Click messages

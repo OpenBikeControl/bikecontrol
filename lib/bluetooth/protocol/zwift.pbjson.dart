@@ -170,33 +170,20 @@ final $typed_data.Uint8List rideAnalogKeyPressDescriptor = $convert.base64Decode
     'lkZUFuYWxvZ0xvY2F0aW9uUghMb2NhdGlvbhIgCgtBbmFsb2dWYWx1ZRgCIAEoEVILQW5hbG9n'
     'VmFsdWU=');
 
-@$core.Deprecated('Use rideAnalogKeyGroupDescriptor instead')
-const RideAnalogKeyGroup$json = {
-  '1': 'RideAnalogKeyGroup',
-  '2': [
-    {'1': 'GroupStatus', '3': 1, '4': 3, '5': 11, '6': '.de.jonasbark.RideAnalogKeyPress', '10': 'GroupStatus'},
-  ],
-};
-
-/// Descriptor for `RideAnalogKeyGroup`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List rideAnalogKeyGroupDescriptor = $convert.base64Decode(
-    'ChJSaWRlQW5hbG9nS2V5R3JvdXASQgoLR3JvdXBTdGF0dXMYASADKAsyIC5kZS5qb25hc2Jhcm'
-    'suUmlkZUFuYWxvZ0tleVByZXNzUgtHcm91cFN0YXR1cw==');
-
 @$core.Deprecated('Use rideKeyPadStatusDescriptor instead')
 const RideKeyPadStatus$json = {
   '1': 'RideKeyPadStatus',
   '2': [
     {'1': 'ButtonMap', '3': 1, '4': 1, '5': 13, '10': 'ButtonMap'},
-    {'1': 'AnalogButtons', '3': 2, '4': 1, '5': 11, '6': '.de.jonasbark.RideAnalogKeyGroup', '10': 'AnalogButtons'},
+    {'1': 'AnalogPaddles', '3': 3, '4': 3, '5': 11, '6': '.de.jonasbark.RideAnalogKeyPress', '10': 'AnalogPaddles'},
   ],
 };
 
 /// Descriptor for `RideKeyPadStatus`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List rideKeyPadStatusDescriptor = $convert.base64Decode(
     'ChBSaWRlS2V5UGFkU3RhdHVzEhwKCUJ1dHRvbk1hcBgBIAEoDVIJQnV0dG9uTWFwEkYKDUFuYW'
-    'xvZ0J1dHRvbnMYAiABKAsyIC5kZS5qb25hc2JhcmsuUmlkZUFuYWxvZ0tleUdyb3VwUg1BbmFs'
-    'b2dCdXR0b25z');
+    'xvZ1BhZGRsZXMYAyADKAsyIC5kZS5qb25hc2JhcmsuUmlkZUFuYWxvZ0tleVByZXNzUg1BbmFs'
+    'b2dQYWRkbGVz');
 
 @$core.Deprecated('Use clickKeyPadStatusDescriptor instead')
 const ClickKeyPadStatus$json = {

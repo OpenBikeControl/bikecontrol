@@ -5,6 +5,7 @@ import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
+import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -14,6 +15,11 @@ import '../messages/notification.dart';
 import '../protocol/zp.pb.dart';
 
 class ZwiftRide extends BaseDevice {
+  /// Minimum absolute analog value (0-100) required to trigger paddle button press.
+  /// Values below this threshold are ignored to prevent accidental triggers from
+  /// analog drift or light touches.
+  static const int analogPaddleThreshold = 25;
+
   ZwiftRide(super.scanResult)
     : super(
         availableButtons: [
@@ -200,7 +206,11 @@ class ZwiftRide extends BaseDevice {
 
   @override
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
-    final RideNotification clickNotification = RideNotification(message);
+    final RideNotification clickNotification = RideNotification(
+      message,
+      analogPaddleThreshold: analogPaddleThreshold,
+    );
+
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
       _lastControllerNotification = clickNotification;
 
@@ -240,4 +250,5 @@ class ZwiftRide extends BaseDevice {
       withoutResponse: true,
     );
   }
+
 }

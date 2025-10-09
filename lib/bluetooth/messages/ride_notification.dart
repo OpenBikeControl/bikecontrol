@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -34,10 +35,14 @@ enum _RideButtonMask {
 
 class RideNotification extends BaseNotification {
   late List<ZwiftButton> buttonsClicked;
+  late List<ZwiftButton> analogButtons;
 
-  RideNotification(Uint8List message) {
+  RideNotification(Uint8List message, {required int analogPaddleThreshold}) {
     final status = RideKeyPadStatus.fromBuffer(message);
 
+    // Debug: Log all button mask detections (moved to ZwiftRide.processClickNotification)
+
+    // Process DIGITAL buttons separately
     buttonsClicked = [
       if (status.buttonMap & _RideButtonMask.LEFT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationLeft,
       if (status.buttonMap & _RideButtonMask.RIGHT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationRight,
@@ -58,22 +63,37 @@ class RideNotification extends BaseNotification {
       if (status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.onOffRight,
     ];
 
-    for (final analogue in status.analogButtons.groupStatus) {
-      if (analogue.analogValue.abs() == 100) {
-        if (analogue.location == RideAnalogLocation.LEFT) {
-          buttonsClicked.add(ZwiftButton.paddleLeft);
-        } else if (analogue.location == RideAnalogLocation.RIGHT) {
-          buttonsClicked.add(ZwiftButton.paddleRight);
-        } else if (analogue.location == RideAnalogLocation.DOWN || analogue.location == RideAnalogLocation.UP) {
-          // TODO what is this even?
+    // Process ANALOG inputs separately - now properly separated from digital
+    // All analog paddles (L0-L3) appear in field 3 as repeated RideAnalogKeyPress
+    analogButtons = [];
+    try {
+      for (final paddle in status.analogPaddles) {
+        if (paddle.hasLocation() && paddle.hasAnalogValue()) {
+          if (paddle.analogValue.abs() >= analogPaddleThreshold) {
+            final button = switch (paddle.location.value) {
+              0 => ZwiftButton.paddleLeft,   // L0 = left paddle
+              1 => ZwiftButton.paddleRight,  // L1 = right paddle
+              _ => null,                      // L2, L3 unused
+            };
+
+            if (button != null) {
+              buttonsClicked.add(button);
+              analogButtons.add(button);
+            }
+          }
         }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing analog paddle data: $e');
       }
     }
   }
 
   @override
   String toString() {
-    return 'Buttons: ${buttonsClicked.joinToString(transform: (e) => e.name.splitByUpperCase())}';
+    final digitalButtons = buttonsClicked.where((b) => !analogButtons.contains(b)).toList();
+    return 'Digital: ${digitalButtons.joinToString(transform: (e) => e.name.splitByUpperCase())} | Analog: ${analogButtons.joinToString(transform: (e) => e.name.splitByUpperCase())}';
   }
 
   @override
