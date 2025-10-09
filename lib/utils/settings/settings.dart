@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dartx/dartx.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -98,6 +100,37 @@ class Settings {
     final sourceData = _prefs.getStringList('customapp_$sourceProfileName');
     if (sourceData != null) {
       await _prefs.setStringList('customapp_$newProfileName', sourceData);
+    }
+  }
+  
+  String? exportCustomAppProfile(String profileName) {
+    final data = _prefs.getStringList('customapp_$profileName');
+    if (data == null) return null;
+    
+    // Export as JSON with metadata
+    return jsonEncode({
+      'version': 1,
+      'profileName': profileName,
+      'keymap': data,
+    });
+  }
+  
+  Future<bool> importCustomAppProfile(String jsonData, {String? newProfileName}) async {
+    try {
+      final decoded = jsonDecode(jsonData);
+      
+      // Validate the structure
+      if (decoded['version'] == null || decoded['keymap'] == null) {
+        return false;
+      }
+      
+      final profileName = newProfileName ?? decoded['profileName'] ?? 'Imported';
+      final keymap = List<String>.from(decoded['keymap']);
+      
+      await _prefs.setStringList('customapp_$profileName', keymap);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 

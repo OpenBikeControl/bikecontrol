@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/touch_area.dart';
@@ -284,6 +285,55 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                   },
                                   child: Text('Manage Profile'),
                                 ),
+                              
+                              if (actionHandler.supportedApp is CustomApp)
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
+                                    final jsonData = settings.exportCustomAppProfile(currentProfile);
+                                    if (jsonData != null) {
+                                      await Clipboard.setData(ClipboardData(text: jsonData));
+                                      if (mounted) {
+                                        _snackBarMessengerKey.currentState!.showSnackBar(
+                                          SnackBar(
+                                            content: Text('Profile "$currentProfile" exported to clipboard'),
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Text('Export Profile'),
+                                ),
+                              
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final jsonData = await _showImportDialog();
+                                  if (jsonData != null && jsonData.isNotEmpty) {
+                                    final success = await settings.importCustomAppProfile(jsonData);
+                                    if (mounted) {
+                                      if (success) {
+                                        _snackBarMessengerKey.currentState!.showSnackBar(
+                                          SnackBar(
+                                            content: Text('Profile imported successfully'),
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                        setState(() {});
+                                      } else {
+                                        _snackBarMessengerKey.currentState!.showSnackBar(
+                                          SnackBar(
+                                            content: Text('Failed to import profile. Invalid format.'),
+                                            duration: Duration(seconds: 2),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  }
+                                },
+                                child: Text('Import Profile'),
+                              ),
                             ],
                           ),
                           if (actionHandler.supportedApp != null)
@@ -463,6 +513,53 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
             onPressed: () => Navigator.pop(context, true),
             child: Text('Delete'),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<String?> _showImportDialog() async {
+    final controller = TextEditingController();
+    
+    // Try to get data from clipboard
+    try {
+      final clipboardData = await Clipboard.getData('text/plain');
+      if (clipboardData?.text != null) {
+        controller.text = clipboardData!.text!;
+      }
+    } catch (e) {
+      // Ignore clipboard errors
+    }
+    
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Import Profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Paste the exported JSON data below:'),
+            SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: 'JSON Data',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 5,
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text('Import'),
           ),
         ],
       ),
