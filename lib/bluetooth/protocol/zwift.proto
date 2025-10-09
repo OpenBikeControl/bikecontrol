@@ -79,14 +79,11 @@ message RideAnalogKeyPress {
   optional sint32 AnalogValue = 2;
 }
 
-message RideAnalogKeyGroup {
-  repeated RideAnalogKeyPress GroupStatus = 1;
-}
-
 // The command code prepending this message is 0x23
+// All analog paddles (L0-L3) appear as repeated RideAnalogKeyPress in field 3
 message RideKeyPadStatus {
   optional uint32 ButtonMap = 1;
-  optional RideAnalogKeyGroup AnalogButtons = 2;
+  repeated RideAnalogKeyPress AnalogPaddles = 3;  // Field 3 contains all paddles
 }
 
 //------------------ Zwift Click messages

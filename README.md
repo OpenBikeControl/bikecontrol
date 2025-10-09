@@ -11,8 +11,6 @@ With SwiftControl you can **control your favorite trainer app** using your Zwift
 - control music on your device
 - more? If you can do it via keyboard, mouse or touch, you can do it with SwiftControl
 
-**Android AccessibilityService Usage**: On Android, SwiftControl uses the AccessibilityService API to simulate touch gestures on your screen, allowing your Zwift devices to control training apps. This service only monitors which app window is active and performs touch gestures at the locations you configure. No personal data is accessed or collected.
-
 
 https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
@@ -21,20 +19,21 @@ https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
 ## Downloads
 <a href="https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"><img width="270" height="80" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/a059d5a1-2efb-4f65-8117-ef6a99823b21" /></a>
+<a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284"><img width="270" height="80" alt="App Store" src="https://github.com/user-attachments/assets/c23f977a-48f6-4951-811e-ae530dbfa014" /></a>
+<a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284"><img width="270" height="80" alt="Mac App Store" src="https://github.com/user-attachments/assets/b3552436-409c-43b0-ba7d-b6a72ae30ff1" /></a>
 
-Get the latest version for free for Windows, macOS and Android here: https://github.com/jonasbark/swiftcontrol/releases
+
+Get the latest version for Windows here: https://github.com/jonasbark/swiftcontrol/releases
 
 ## Supported Apps
 - MyWhoosh
 - indieVelo / Training Peaks
 - Biketerra.com
-- any other: 
-  - Android: you can customize simulated touch points of all your buttons in the app
-  - Desktop: you can customize keyboard shortcuts and mouse clicks in the app
+- any other! Customize touch points or keyboard shortcuts to your liking
 
 ## Supported Devices
 - Zwift Click
-- Zwift Click v2 (mostly, see #68)
+- Zwift Click v2 (mostly, see issue #68)
 - Zwift Ride
 - Zwift Play
 
@@ -47,22 +46,27 @@ Get the latest version for free for Windows, macOS and Android here: https://git
   - Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
   - Make sure your Zwift device is not paired with Windows Bluetooth settings: [more information](https://github.com/jonasbark/swiftcontrol/issues/70).
 - [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
-- NOT SUPPORTED: iOS (iPhone, iPad) as Apple does not provide any way to simulate touches or keyboard events
+- iOS (iPhone, iPad)
+  - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations, but you can use it to remotely control MyWhoosh and similar on e.g. an iPad.
 
 ## Troubleshooting
-- Your Zwift device is found but connection does not work properly? You may need to update the firmware in Zwift Companion app.
+Check the troubleshooting guide [here](TROUBLESHOOTING.md).
 
 ## How does it work?
 The app connects to your Zwift device automatically. It does not connect to your trainer itself.
 
-- When using Android: SwiftControl uses the AccessibilityService API to simulate touch gestures on specific parts of your screen to trigger actions in training apps. The service monitors which training app window is currently active to ensure gestures are sent to the correct app.
-- When using macOS or Windows a keyboard or mouse click is used to trigger the action. 
+- **Android**: SwiftControl uses the AccessibilityService API to simulate touch gestures on specific parts of your screen to trigger actions in training apps. The service monitors which training app window is currently active to ensure gestures are sent to the correct app.
+- **macOS** / **Windows** a keyboard or mouse click is used to trigger the action. 
   - there are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - you can also create your own Keymaps for any other app
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
+- **iOS**: use SwiftControl as "remote control" for other devices, such as an iPad. Example scenario:
+    - your phone (Android/iOS) runs SwiftControl and connects to your Zwift devices
+    - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
+    - after pairing SwiftControl to your iPad / tablet via Bluetooth your phone will send the button presses to your iPad / tablet
 
 ## Alternatives
-- [qdomyos-zwift](https://www.qzfitness.com/) directly controls the trainer (as opposed to controlling the trainer app)
+- [qdomyos-zwift](https://www.qzfitness.com/) directly controls the trainer (as opposed to controlling the trainer app). This can be useful if your trainer app does not support virtual shifting.
 
 ## Donate
 Please consider donating to support the development of this app :)

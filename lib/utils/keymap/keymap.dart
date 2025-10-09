@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -60,6 +61,16 @@ class KeyPair {
       physicalKey == PhysicalKeyboardKey.mediaStop ||
       physicalKey == PhysicalKeyboardKey.audioVolumeUp ||
       physicalKey == PhysicalKeyboardKey.audioVolumeDown;
+
+  IconData get icon => switch (physicalKey) {
+    PhysicalKeyboardKey.mediaPlayPause ||
+    PhysicalKeyboardKey.mediaStop ||
+    PhysicalKeyboardKey.mediaTrackPrevious ||
+    PhysicalKeyboardKey.mediaTrackNext ||
+    PhysicalKeyboardKey.audioVolumeUp ||
+    PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
+    _ => physicalKey != null ? Icons.keyboard : Icons.touch_app,
+  };
 
   @override
   String toString() {

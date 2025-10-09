@@ -1,6 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
 import '../pages/touch_area.dart';
@@ -41,7 +42,7 @@ class KeymapExplanation extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(6),
                     child: Text(
-                      'Button on your ${connectedDevice?.device.name ?? connectedDevice?.runtimeType}',
+                      'Button on your ${connectedDevice?.device.name?.screenshot ?? connectedDevice?.runtimeType}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
