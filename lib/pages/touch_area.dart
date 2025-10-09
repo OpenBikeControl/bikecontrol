@@ -104,10 +104,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     // Force landscape orientation during keymap editing
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []).then((_) {
-      // this will make sure the buttons are placed correctly after the transition
-      setState(() {});
-    });
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);
     }
@@ -353,119 +350,125 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     final isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
     final devicePixelRatio = isDesktop ? 1.0 : MediaQuery.devicePixelRatioOf(context);
     return Scaffold(
-      body: InteractiveViewer(
-        transformationController: _transformationController,
-        child: Stack(
-          children: [
-            if (_backgroundImage != null)
-              Positioned.fill(child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)))
-            else
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8,
-                    children: [
-                      Text(
-                        '''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
+      body: LayoutBuilder(
+        builder:
+            // make sure we react to window size changes
+            (BuildContext context, BoxConstraints constraints) => InteractiveViewer(
+              transformationController: _transformationController,
+              child: Stack(
+                children: [
+                  if (_backgroundImage != null)
+                    Positioned.fill(
+                      child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)),
+                    )
+                  else
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 8,
+                          children: [
+                            Text(
+                              '''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
 2. Load the screenshot with the button below
 3. The app is automatically set to landscape orientation for accurate mapping
 4. Press a button on your Click device to create a touch area
 5. Drag the touch areas to the desired position on the screenshot
 6. Save and close this screen''',
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                _pickScreenshot();
+                              },
+                              child: Text('Load in-game screenshot for placement'),
+                            ),
+                          ],
+                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          _pickScreenshot();
+                    ),
+                  // draw image rect for debugging
+                  if (_imageRect != null && _backgroundImage != null)
+                    Positioned.fromRect(
+                      rect: _imageRect!,
+                      child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 2))),
+                    ),
+
+                  if (actionHandler is! RemoteActions || _imageRect != null)
+                    ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
+                      final Offset offset;
+
+                      if (_imageRect != null) {
+                        // map the percentage position to the image rect
+                        final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
+                        final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
+                        //print('Relative position: $relativeX, $relativeY');
+                        offset = Offset(
+                          _imageRect!.left + relativeX * _imageRect!.width,
+                          _imageRect!.top + relativeY * _imageRect!.height,
+                        );
+                      } else {
+                        offset = Offset(
+                          keyPair.touchPosition.dx / devicePixelRatio,
+                          keyPair.touchPosition.dy / devicePixelRatio,
+                        );
+                      }
+
+                      //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
+
+                      return _buildDraggableArea(
+                        enableTouch: true,
+                        position: offset,
+                        keyPair: keyPair,
+                        onPositionChanged: (newPos) {
+                          if (_imageRect != null) {
+                            // convert to percentage
+                            final relativeX = ((newPos.dx - _imageRect!.left) / _imageRect!.width).clamp(0.0, 1.0);
+                            final relativeY = ((newPos.dy - _imageRect!.top) / _imageRect!.height).clamp(0.0, 1.0);
+                            keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
+                          } else {
+                            final converted = newPos * devicePixelRatio;
+                            keyPair.touchPosition = converted;
+                          }
+                          setState(() {});
                         },
-                        child: Text('Load in-game screenshot for placement'),
-                      ),
-                    ],
+                        color: Colors.red,
+                      );
+                    }),
+
+                  Positioned.fill(child: Testbed()),
+
+                  Positioned(
+                    top: 40,
+                    right: 20,
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _saveAndClose,
+                          icon: const Icon(Icons.save),
+                          label: const Text("Save"),
+                        ),
+                        PopupMenuButton(
+                          itemBuilder:
+                              (c) => [
+                                PopupMenuItem(
+                                  child: Text('Reset'),
+                                  onTap: () {
+                                    actionHandler.supportedApp?.keymap.reset();
+                                    setState(() {});
+                                  },
+                                ),
+                              ],
+                          icon: Icon(Icons.more_vert),
+                        ),
+                        if (kDebugMode) MenuButton(),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            // draw image rect for debugging
-            if (_imageRect != null && _backgroundImage != null)
-              Positioned.fromRect(
-                rect: _imageRect!,
-                child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 2))),
-              ),
-
-            if (actionHandler is! RemoteActions || _imageRect != null)
-              ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
-                final Offset offset;
-
-                if (_imageRect != null) {
-                  // map the percentage position to the image rect
-                  final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
-                  final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
-                  //print('Relative position: $relativeX, $relativeY');
-                  offset = Offset(
-                    _imageRect!.left + relativeX * _imageRect!.width,
-                    _imageRect!.top + relativeY * _imageRect!.height,
-                  );
-                } else {
-                  offset = Offset(
-                    keyPair.touchPosition.dx / devicePixelRatio,
-                    keyPair.touchPosition.dy / devicePixelRatio,
-                  );
-                }
-
-                //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
-
-                return _buildDraggableArea(
-                  enableTouch: true,
-                  position: offset,
-                  keyPair: keyPair,
-                  onPositionChanged: (newPos) {
-                    if (_imageRect != null) {
-                      // convert to percentage
-                      final relativeX = ((newPos.dx - _imageRect!.left) / _imageRect!.width).clamp(0.0, 1.0);
-                      final relativeY = ((newPos.dy - _imageRect!.top) / _imageRect!.height).clamp(0.0, 1.0);
-                      keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
-                    } else {
-                      final converted = newPos * devicePixelRatio;
-                      keyPair.touchPosition = converted;
-                    }
-                    setState(() {});
-                  },
-                  color: Colors.red,
-                );
-              }),
-
-            Positioned.fill(child: Testbed()),
-
-            Positioned(
-              top: 40,
-              right: 20,
-              child: Row(
-                spacing: 8,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _saveAndClose,
-                    icon: const Icon(Icons.save),
-                    label: const Text("Save"),
-                  ),
-                  PopupMenuButton(
-                    itemBuilder:
-                        (c) => [
-                          PopupMenuItem(
-                            child: Text('Reset'),
-                            onTap: () {
-                              actionHandler.supportedApp?.keymap.reset();
-                              setState(() {});
-                            },
-                          ),
-                        ],
-                    icon: Icon(Icons.more_vert),
-                  ),
-                  if (kDebugMode) MenuButton(),
                 ],
               ),
             ),
-          ],
-        ),
       ),
     );
   }
