@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
@@ -45,33 +44,29 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     final picker = ImagePicker();
     final result = await picker.pickImage(source: ImageSource.gallery);
     if (result != null) {
-      setState(() {
-        _backgroundImage = File(result.path);
+      final image = File(result.path);
 
-        // need to decode image to get its size so we can have a percentage mapping
-        if (actionHandler is RemoteActions) {
-          decodeImageFromList(_backgroundImage!.readAsBytesSync()).then((decodedImage) {
-            // calculate image rectangle in the current screen, given it's boxfit contain
-            final screenSize = MediaQuery.sizeOf(context);
-            final imageAspectRatio = decodedImage.width / decodedImage.height;
-            final screenAspectRatio = screenSize.width / screenSize.height;
-            if (imageAspectRatio > screenAspectRatio) {
-              // image is wider than screen
-              final width = screenSize.width;
-              final height = width / imageAspectRatio;
-              final top = (screenSize.height - height) / 2;
-              _imageRect = Rect.fromLTWH(0, top, width, height);
-            } else {
-              // image is taller than screen
-              final height = screenSize.height;
-              final width = height * imageAspectRatio;
-              final left = (screenSize.width - width) / 2;
-              _imageRect = Rect.fromLTWH(left, 0, width, height);
-            }
-            setState(() {});
-          });
-        }
-      });
+      // need to decode image to get its size so we can have a percentage mapping
+      final decodedImage = await decodeImageFromList(image.readAsBytesSync());
+      // calculate image rectangle in the current screen, given it's boxfit contain
+      final screenSize = MediaQuery.sizeOf(context);
+      final imageAspectRatio = decodedImage.width / decodedImage.height;
+      final screenAspectRatio = screenSize.width / screenSize.height;
+      if (imageAspectRatio > screenAspectRatio) {
+        // image is wider than screen
+        final width = screenSize.width;
+        final height = width / imageAspectRatio;
+        final top = (screenSize.height - height) / 2;
+        _imageRect = Rect.fromLTWH(0, top, width, height);
+      } else {
+        // image is taller than screen
+        final height = screenSize.height;
+        final width = height * imageAspectRatio;
+        final left = (screenSize.width - width) / 2;
+        _imageRect = Rect.fromLTWH(left, 0, width, height);
+      }
+      _backgroundImage = image;
+      setState(() {});
     }
   }
 
@@ -100,6 +95,11 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   @override
   void initState() {
     super.initState();
+
+    // initialize _imageRect by using Flutter view size
+    final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
+    final size = flutterView.physicalSize / flutterView.devicePixelRatio;
+    _imageRect = Rect.fromLTWH(0, 0, size.width, size.height);
 
     // Force landscape orientation during keymap editing
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
@@ -385,14 +385,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   ),
                 ),
               ),
-            // draw image rect for debugging
-            if (_imageRect != null && _backgroundImage != null)
-              Positioned.fromRect(
-                rect: _imageRect!,
-                child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 2))),
-              ),
 
-            if (actionHandler is! RemoteActions || _imageRect != null)
+            if (_imageRect != null)
               ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
                 final Offset offset;
 

@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 class Keymap {
@@ -90,39 +88,14 @@ class KeyPair {
     // encode to save in preferences
     // Always store as percentages for better compatibility across devices
     final Map<String, double> touchPosData;
-    
+
     if (touchPosition == Offset.zero) {
       // Special case: zero position means no touch (e.g., keyboard shortcut only)
-      touchPosData = {
-        'x_percent': 0.0,
-        'y_percent': 0.0,
-      };
+      touchPosData = {'x': 0.0, 'y': 0.0};
     } else {
-      // Get screen size for conversion
-      Size? screenSize;
-      try {
-        final view = WidgetsBinding.instance.platformDispatcher.views.first;
-        screenSize = view.physicalSize / view.devicePixelRatio;
-      } catch (e) {
-        // Fallback: if no screen size available, use a reasonable default (1920x1080)
-        screenSize = null;
-      }
-      
-      if (screenSize != null) {
-        // Normal case: convert pixels to percentages
-        touchPosData = {
-          'x_percent': touchPosition.dx / screenSize.width,
-          'y_percent': touchPosition.dy / screenSize.height,
-        };
-      } else {
-        // Fallback to default screen size
-        touchPosData = {
-          'x_percent': touchPosition.dx / 1920.0,
-          'y_percent': touchPosition.dy / 1080.0,
-        };
-      }
+      touchPosData = {'x': touchPosition.dx, 'y': touchPosition.dy};
     }
-    
+
     return jsonEncode({
       'actions': buttons.map((e) => e.name).toList(),
       'logicalKey': logicalKey?.keyId.toString() ?? '0',
@@ -138,39 +111,11 @@ class KeyPair {
     if (decoded['actions'] == null || decoded['logicalKey'] == null || decoded['physicalKey'] == null) {
       return null;
     }
-    
+
     // Support both percentage-based (new) and pixel-based (old) formats for backward compatibility
     final touchPosData = decoded['touchPosition'];
-    final Offset touchPosition;
-    
-    if (touchPosData.containsKey('x_percent') && touchPosData.containsKey('y_percent')) {
-      // New percentage-based format - convert to pixels
-      Size? screenSize;
-      try {
-        final view = WidgetsBinding.instance.platformDispatcher.views.first;
-        screenSize = view.physicalSize / view.devicePixelRatio;
-      } catch (e) {
-        screenSize = null;
-      }
-      
-      if (screenSize != null) {
-        touchPosition = Offset(
-          touchPosData['x_percent'] * screenSize.width,
-          touchPosData['y_percent'] * screenSize.height,
-        );
-      } else {
-        // Fallback if no screen size available
-        touchPosition = Offset.zero;
-      }
-    } else {
-      // Old pixel-based format - read the pixels directly
-      // These will be converted to percentages when saved next time
-      touchPosition = Offset(
-        (touchPosData['x'] as num).toDouble(),
-        (touchPosData['y'] as num).toDouble(),
-      );
-    }
-    
+    final Offset touchPosition = Offset((touchPosData['x'] as num).toDouble(), (touchPosData['y'] as num).toDouble());
+
     return KeyPair(
       buttons:
           decoded['actions']

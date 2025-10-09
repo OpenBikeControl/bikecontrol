@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -9,7 +7,7 @@ void main() {
   group('Percentage-based Keymap Tests', () {
     test('Should encode touch position as percentage using fallback screen size', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.leftButton],
+        buttons: [ZwiftButton.paddleRight],
         physicalKey: null,
         logicalKey: null,
         touchPosition: Offset(960, 540), // Center of 1920x1080 fallback
@@ -24,7 +22,7 @@ void main() {
 
     test('Should encode touch position as percentages with fallback when screen size not available', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.leftButton],
+        buttons: [ZwiftButton.paddleRight],
         physicalKey: null,
         logicalKey: null,
         touchPosition: Offset(960, 540), // Center of 1920x1080 fallback
@@ -38,7 +36,8 @@ void main() {
     });
 
     test('Should decode percentage-based touch position correctly', () {
-      final encoded = '{"actions":["leftButton"],"logicalKey":"0","physicalKey":"0","touchPosition":{"x_percent":0.5,"y_percent":0.5},"isLongPress":false}';
+      final encoded =
+          '{"actions":["leftButton"],"logicalKey":"0","physicalKey":"0","touchPosition":{"x_percent":0.5,"y_percent":0.5},"isLongPress":false}';
 
       final keyPair = KeyPair.decode(encoded);
       expect(keyPair, isNotNull);
@@ -47,7 +46,8 @@ void main() {
     });
 
     test('Should decode pixel-based touch position correctly (backward compatibility)', () {
-      final encoded = '{"actions":["leftButton"],"logicalKey":"0","physicalKey":"0","touchPosition":{"x":300,"y":600},"isLongPress":false}';
+      final encoded =
+          '{"actions":["leftButton"],"logicalKey":"0","physicalKey":"0","touchPosition":{"x":300,"y":600},"isLongPress":false}';
 
       final keyPair = KeyPair.decode(encoded);
       expect(keyPair, isNotNull);
@@ -57,7 +57,7 @@ void main() {
 
     test('Should handle zero touch position correctly', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.leftButton],
+        buttons: [ZwiftButton.paddleRight],
         physicalKey: PhysicalKeyboardKey.keyA,
         logicalKey: LogicalKeyboardKey.keyA,
         touchPosition: Offset.zero,
@@ -72,7 +72,7 @@ void main() {
 
     test('Should encode and decode with fallback screen size', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.leftButton],
+        buttons: [ZwiftButton.paddleRight],
         physicalKey: null,
         logicalKey: null,
         touchPosition: Offset(480, 270), // 25% of 1920x1080
@@ -89,7 +89,8 @@ void main() {
     });
 
     test('Should handle decoding when no screen size available', () {
-      final encoded = '{"actions":["leftButton"],"logicalKey":"0","physicalKey":"0","touchPosition":{"x_percent":0.5,"y_percent":0.5},"isLongPress":false}';
+      final encoded =
+          '{"actions":["leftButton"],"logicalKey":"0","physicalKey":"0","touchPosition":{"x_percent":0.5,"y_percent":0.5},"isLongPress":false}';
 
       final keyPair = KeyPair.decode(encoded);
       expect(keyPair, isNotNull);
