@@ -37,6 +37,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   File? _backgroundImage;
   late StreamSubscription<BaseNotification> _actionSubscription;
   ZwiftButton? _pressedButton;
+  final TransformationController _transformationController = TransformationController();
 
   Rect? _imageRect;
 
@@ -50,9 +51,6 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
         // need to decode image to get its size so we can have a percentage mapping
         if (actionHandler is RemoteActions) {
           decodeImageFromList(_backgroundImage!.readAsBytesSync()).then((decodedImage) {
-            print(decodedImage.width);
-            print(decodedImage.height);
-
             // calculate image rectangle in the current screen, given it's boxfit contain
             final screenSize = MediaQuery.sizeOf(context);
             final imageAspectRatio = decodedImage.width / decodedImage.height;
@@ -70,7 +68,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               final left = (screenSize.width - width) / 2;
               _imageRect = Rect.fromLTWH(left, 0, width, height);
             }
-            print('Image Rect: $_imageRect');
+            setState(() {});
           });
         }
       });
@@ -134,7 +132,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             keyPair = KeyPair(
               touchPosition:
                   _imageRect != null
-                      ? Offset(actionHandler.supportedApp!.keymap.keyPairs.length * 10, 10)
+                      ? Offset((actionHandler.supportedApp!.keymap.keyPairs.length + 1) * 10, 10)
                       : context.size!
                           .center(Offset.zero)
                           .translate(actionHandler.supportedApp!.keymap.keyPairs.length * 40, 0),
@@ -179,7 +177,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       print('Difference: $differenceInHeight');
     }
 
-    final isOnTheRightEdge = position.dx > (MediaQuery.sizeOf(context).width - 250);
+    //final isOnTheRightEdge = position.dx > (MediaQuery.sizeOf(context).width - 250);
 
     final iconSize = 40.0;
     final draggable = [
@@ -324,13 +322,24 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       child: Tooltip(
         message: 'Drag to reposition',
         child: Draggable(
+          dragAnchorStrategy: (widget, context, position) {
+            final scale = _transformationController.value.getMaxScaleOnAxis();
+            final RenderBox renderObject = context.findRenderObject() as RenderBox;
+            return renderObject.globalToLocal(position).scale(scale, scale);
+          },
           feedback: Material(color: Colors.transparent, child: icon),
           childWhenDragging: const SizedBox.shrink(),
-          onDraggableCanceled: (velo, offset) {
+          onDragEnd: (details) {
             // otherwise simulated touch will move it
-            if (velo.pixelsPerSecond.distance > 0) {
-              final fixedPosition = offset + Offset(iconSize / 2, differenceInHeight + iconSize / 2);
-              setState(() => onPositionChanged(fixedPosition));
+            if (details.velocity.pixelsPerSecond.distance > 0) {
+              final matrix = Matrix4.inverted(_transformationController.value);
+              final height = 0;
+              final sceneY = details.offset.dy - height;
+              final viewportPoint = MatrixUtils.transformPoint(
+                matrix,
+                Offset(details.offset.dx, sceneY) + Offset(iconSize / 2, differenceInHeight + iconSize / 2),
+              );
+              setState(() => onPositionChanged(viewportPoint));
             }
           },
           child: icon,
@@ -344,110 +353,119 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     final isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
     final devicePixelRatio = isDesktop ? 1.0 : MediaQuery.devicePixelRatioOf(context);
     return Scaffold(
-      body: Stack(
-        children: [
-          if (_backgroundImage != null)
-            Positioned.fill(child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)))
-          else
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 8,
-                  children: [
-                    Text('''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
+      body: InteractiveViewer(
+        transformationController: _transformationController,
+        child: Stack(
+          children: [
+            if (_backgroundImage != null)
+              Positioned.fill(child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)))
+            else
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        '''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
 2. Load the screenshot with the button below
 3. The app is automatically set to landscape orientation for accurate mapping
 4. Press a button on your Click device to create a touch area
 5. Drag the touch areas to the desired position on the screenshot
-6. Save and close this screen'''),
-                    ElevatedButton(
-                      onPressed: () {
-                        _pickScreenshot();
-                      },
-                      child: Text('Load in-game screenshot for placement'),
-                    ),
-                  ],
+6. Save and close this screen''',
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _pickScreenshot();
+                        },
+                        child: Text('Load in-game screenshot for placement'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          // draw image rect for debugging
-          if (_imageRect != null && _backgroundImage != null)
-            Positioned.fromRect(
-              rect: _imageRect!,
-              child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 2))),
-            ),
+            // draw image rect for debugging
+            if (_imageRect != null && _backgroundImage != null)
+              Positioned.fromRect(
+                rect: _imageRect!,
+                child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 2))),
+              ),
 
-          if (actionHandler is! RemoteActions || _imageRect != null)
-            ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
-              final Offset offset;
+            if (actionHandler is! RemoteActions || _imageRect != null)
+              ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
+                final Offset offset;
 
-              if (_imageRect != null) {
-                // map the percentage position to the image rect
-                final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
-                final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
-                //print('Relative position: $relativeX, $relativeY');
-                offset = Offset(
-                  _imageRect!.left + relativeX * _imageRect!.width,
-                  _imageRect!.top + relativeY * _imageRect!.height,
+                if (_imageRect != null) {
+                  // map the percentage position to the image rect
+                  final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
+                  final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
+                  //print('Relative position: $relativeX, $relativeY');
+                  offset = Offset(
+                    _imageRect!.left + relativeX * _imageRect!.width,
+                    _imageRect!.top + relativeY * _imageRect!.height,
+                  );
+                } else {
+                  offset = Offset(
+                    keyPair.touchPosition.dx / devicePixelRatio,
+                    keyPair.touchPosition.dy / devicePixelRatio,
+                  );
+                }
+
+                //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
+
+                return _buildDraggableArea(
+                  enableTouch: true,
+                  position: offset,
+                  keyPair: keyPair,
+                  onPositionChanged: (newPos) {
+                    if (_imageRect != null) {
+                      // convert to percentage
+                      final relativeX = ((newPos.dx - _imageRect!.left) / _imageRect!.width).clamp(0.0, 1.0);
+                      final relativeY = ((newPos.dy - _imageRect!.top) / _imageRect!.height).clamp(0.0, 1.0);
+                      keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
+                    } else {
+                      final converted = newPos * devicePixelRatio;
+                      keyPair.touchPosition = converted;
+                    }
+                    setState(() {});
+                  },
+                  color: Colors.red,
                 );
-              } else {
-                offset = Offset(
-                  keyPair.touchPosition.dx / devicePixelRatio,
-                  keyPair.touchPosition.dy / devicePixelRatio,
-                );
-              }
+              }),
 
-              //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
+            Positioned.fill(child: Testbed()),
 
-              return _buildDraggableArea(
-                enableTouch: true,
-                position: offset,
-                keyPair: keyPair,
-                onPositionChanged: (newPos) {
-                  if (_imageRect != null) {
-                    // convert to percentage
-                    final relativeX = ((newPos.dx - _imageRect!.left) / _imageRect!.width).clamp(0.0, 1.0);
-                    final relativeY = ((newPos.dy - _imageRect!.top) / _imageRect!.height).clamp(0.0, 1.0);
-                    keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
-                  } else {
-                    final converted = newPos * devicePixelRatio;
-                    keyPair.touchPosition = converted;
-                  }
-                  setState(() {});
-                },
-                color: Colors.red,
-              );
-            }),
-
-          Positioned.fill(child: Testbed()),
-
-          Positioned(
-            top: 40,
-            right: 20,
-            child: Row(
-              spacing: 8,
-              children: [
-                ElevatedButton.icon(onPressed: _saveAndClose, icon: const Icon(Icons.save), label: const Text("Save")),
-                PopupMenuButton(
-                  itemBuilder:
-                      (c) => [
-                        PopupMenuItem(
-                          child: Text('Reset'),
-                          onTap: () {
-                            actionHandler.supportedApp?.keymap.reset();
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                  icon: Icon(Icons.more_vert),
-                ),
-                if (kDebugMode) MenuButton(),
-              ],
+            Positioned(
+              top: 40,
+              right: 20,
+              child: Row(
+                spacing: 8,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _saveAndClose,
+                    icon: const Icon(Icons.save),
+                    label: const Text("Save"),
+                  ),
+                  PopupMenuButton(
+                    itemBuilder:
+                        (c) => [
+                          PopupMenuItem(
+                            child: Text('Reset'),
+                            onTap: () {
+                              actionHandler.supportedApp?.keymap.reset();
+                              setState(() {});
+                            },
+                          ),
+                        ],
+                    icon: Icon(Icons.more_vert),
+                  ),
+                  if (kDebugMode) MenuButton(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

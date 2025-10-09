@@ -193,7 +193,6 @@ jobs:
           whatsNewDirectory: whatsnew
 
       - name: Build iOS app and release
-        if: github.ref == 'refs/heads/ios' && false
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}

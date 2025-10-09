@@ -21,7 +21,7 @@ class RemoteActions extends BaseActions {
       return 'Keymap entry not found for action: ${action.toString().splitByUpperCase()}';
     }
 
-    if (!(actionHandler as RemoteActions).isConnected && !screenshotMode) {
+    if (!(actionHandler as RemoteActions).isConnected) {
       return 'Not connected to a device';
     }
 
