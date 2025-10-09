@@ -40,7 +40,7 @@ jobs:
           DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_application_certificate.p12
           PP_PATH_IOS=$RUNNER_TEMP/build_pp_ios.mobileprovision
           PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
-          PP_PATH_MACOS=$RUNNER_TEMP/build_pp_macos.mobileprovision
+          PP_PATH_MACOS=$RUNNER_TEMP/build_pp_macos.provisionprofile
           KEYCHAIN_PATH=$RUNNER_TEMP/pg-signing.keychain-db
           
           # import certificate and provisioning profile from secrets
