@@ -81,16 +81,17 @@ jobs:
 
         #8 Build app ( macos Build )
       - name: Build macOS App
+        if: false
         run: flutter build macos --release
 
       - name: Code Signing
+        if: false
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
       - name: Decode Keystore
-        if: github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
@@ -100,7 +101,6 @@ jobs:
         run: flutter build apk --release
 
       - name: Build Bundle
-        if: github.ref == 'refs/heads/main'
         run: flutter build appbundle --release
 
       - name: Build Web
@@ -183,7 +183,7 @@ jobs:
 
       - name: Upload to Play Store
         # only upload when env.VERSION does not end with 1337, which is our indicator for beta releases
-        if: "!endsWith(env.VERSION, '1337') && github.ref == 'refs/heads/main'"
+        if: "!endsWith(env.VERSION, '1337')"
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
@@ -205,6 +205,7 @@ jobs:
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";        
 
       - name: Release macOS app
+        if: false
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
