@@ -73,23 +73,52 @@ class KeyPair {
         };
   }
 
-  String encode() {
+  String encode({Size? screenSize}) {
     // encode to save in preferences
+    // If screenSize is provided, store as percentages for better compatibility across devices
+    final touchPosData = screenSize != null && touchPosition != Offset.zero
+        ? {
+            'x_percent': touchPosition.dx / screenSize.width,
+            'y_percent': touchPosition.dy / screenSize.height,
+          }
+        : {'x': touchPosition.dx, 'y': touchPosition.dy};
+    
     return jsonEncode({
       'actions': buttons.map((e) => e.name).toList(),
       'logicalKey': logicalKey?.keyId.toString() ?? '0',
       'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
-      'touchPosition': {'x': touchPosition.dx, 'y': touchPosition.dy},
+      'touchPosition': touchPosData,
       'isLongPress': isLongPress,
     });
   }
 
-  static KeyPair? decode(String data) {
+  static KeyPair? decode(String data, {Size? screenSize}) {
     // decode from preferences
     final decoded = jsonDecode(data);
     if (decoded['actions'] == null || decoded['logicalKey'] == null || decoded['physicalKey'] == null) {
       return null;
     }
+    
+    // Support both percentage-based (new) and pixel-based (old) formats
+    final touchPosData = decoded['touchPosition'];
+    final Offset touchPosition;
+    
+    if (touchPosData.containsKey('x_percent') && touchPosData.containsKey('y_percent')) {
+      // New percentage-based format
+      if (screenSize != null) {
+        touchPosition = Offset(
+          touchPosData['x_percent'] * screenSize.width,
+          touchPosData['y_percent'] * screenSize.height,
+        );
+      } else {
+        // Fallback if no screen size provided
+        touchPosition = Offset.zero;
+      }
+    } else {
+      // Old pixel-based format
+      touchPosition = Offset(touchPosData['x'], touchPosData['y']);
+    }
+    
     return KeyPair(
       buttons:
           decoded['actions']
@@ -98,7 +127,7 @@ class KeyPair {
       logicalKey: int.parse(decoded['logicalKey']) != 0 ? LogicalKeyboardKey(int.parse(decoded['logicalKey'])) : null,
       physicalKey:
           int.parse(decoded['physicalKey']) != 0 ? PhysicalKeyboardKey(int.parse(decoded['physicalKey'])) : null,
-      touchPosition: Offset(decoded['touchPosition']['x'], decoded['touchPosition']['y']),
+      touchPosition: touchPosition,
       isLongPress: decoded['isLongPress'] ?? false,
     );
   }

@@ -31,11 +31,21 @@ class _DevicePageState extends State<DevicePage> {
   List<SupportedApp> _getAllApps() {
     final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
     final customProfiles = settings.getCustomAppProfiles();
+    
+    // Get screen size for percentage-based decoding
+    Size? screenSize;
+    try {
+      final view = WidgetsBinding.instance.platformDispatcher.views.first;
+      screenSize = view.physicalSize / view.devicePixelRatio;
+    } catch (e) {
+      screenSize = MediaQuery.maybeOf(context)?.size;
+    }
+    
     final customApps = customProfiles.map((profile) {
       final customApp = CustomApp(profileName: profile);
       final savedKeymap = settings.getCustomAppKeymap(profile);
       if (savedKeymap != null) {
-        customApp.decodeKeymap(savedKeymap);
+        customApp.decodeKeymap(savedKeymap, screenSize: screenSize);
       }
       return customApp;
     }).toList();
@@ -227,7 +237,14 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                           final customApp = CustomApp(profileName: newName);
                                           final savedKeymap = settings.getCustomAppKeymap(newName);
                                           if (savedKeymap != null) {
-                                            customApp.decodeKeymap(savedKeymap);
+                                            Size? screenSize;
+                                            try {
+                                              final view = WidgetsBinding.instance.platformDispatcher.views.first;
+                                              screenSize = view.physicalSize / view.devicePixelRatio;
+                                            } catch (e) {
+                                              screenSize = MediaQuery.maybeOf(context)?.size;
+                                            }
+                                            customApp.decodeKeymap(savedKeymap, screenSize: screenSize);
                                           }
                                           actionHandler.supportedApp = customApp;
                                           await settings.setApp(customApp);
@@ -241,7 +258,14 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                           final customApp = CustomApp(profileName: newName);
                                           final savedKeymap = settings.getCustomAppKeymap(newName);
                                           if (savedKeymap != null) {
-                                            customApp.decodeKeymap(savedKeymap);
+                                            Size? screenSize;
+                                            try {
+                                              final view = WidgetsBinding.instance.platformDispatcher.views.first;
+                                              screenSize = view.physicalSize / view.devicePixelRatio;
+                                            } catch (e) {
+                                              screenSize = MediaQuery.maybeOf(context)?.size;
+                                            }
+                                            customApp.decodeKeymap(savedKeymap, screenSize: screenSize);
                                           }
                                           actionHandler.supportedApp = customApp;
                                           await settings.setApp(customApp);

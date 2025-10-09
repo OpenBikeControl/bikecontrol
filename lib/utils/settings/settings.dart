@@ -1,4 +1,5 @@
 import 'package:dartx/dartx.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 
@@ -31,7 +32,15 @@ class Settings {
         final customApp = CustomApp(profileName: appName);
         final appSetting = _prefs.getStringList('customapp_$appName');
         if (appSetting != null) {
-          customApp.decodeKeymap(appSetting);
+          // Get screen size for percentage-based decoding
+          Size? screenSize;
+          try {
+            final view = WidgetsBinding.instance.platformDispatcher.views.first;
+            screenSize = view.physicalSize / view.devicePixelRatio;
+          } catch (e) {
+            screenSize = null;
+          }
+          customApp.decodeKeymap(appSetting, screenSize: screenSize);
         }
         actionHandler.init(customApp);
       } else {
@@ -52,7 +61,16 @@ class Settings {
 
   Future<void> setApp(SupportedApp app) async {
     if (app is CustomApp) {
-      await _prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
+      // Get screen size for percentage-based encoding
+      Size? screenSize;
+      try {
+        final view = WidgetsBinding.instance.platformDispatcher.views.first;
+        screenSize = view.physicalSize / view.devicePixelRatio;
+      } catch (e) {
+        // Fallback if screen size is not available
+        screenSize = null;
+      }
+      await _prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap(screenSize: screenSize));
     }
     await _prefs.setString('app', app.name);
   }
