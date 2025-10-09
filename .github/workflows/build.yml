@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ios
     paths:
       - '.github/workflows/**'
       - 'lib/**'
@@ -78,20 +79,25 @@ jobs:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
       - name: Decode Keystore
+        if: github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
       - name: Build APK
+        if: github.ref == 'refs/heads/main'
         run: flutter build apk --release
 
       - name: Build Bundle
+        if: github.ref == 'refs/heads/main'
         run: flutter build appbundle --release
 
       - name: Build Web
+        if: github.ref == 'refs/heads/main'
         run: flutter build web --release --base-href "/swiftcontrol/"
 
       - name: Handle archives
+        if: github.ref == 'refs/heads/main'
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
           cd build/macos/Build/Products/Release/
@@ -99,6 +105,7 @@ jobs:
 
         #9 Upload Artifacts
       - name: Upload Artifacts
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: Releases
@@ -108,6 +115,7 @@ jobs:
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
+        if: github.ref == 'refs/heads/main'
         id: extract_version
         run: |
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
@@ -115,6 +123,7 @@ jobs:
 
         #11 Check if Tag Exists
       - name: Check if Tag Exists
+        if: github.ref == 'refs/heads/main'
         id: check_tag
         run: |
           if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
@@ -125,7 +134,7 @@ jobs:
 
         #12 Modify Tag if it Exists
       - name: Modify Tag
-        if: env.TAG_EXISTS == 'true'
+        if: env.TAG_EXISTS == 'true' && github.ref == 'refs/heads/main'
         id: modify_tag
         run: |
           new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
@@ -133,6 +142,7 @@ jobs:
 
         #13 Create Release
       - name: Create Release
+        if: github.ref == 'refs/heads/main'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
@@ -143,12 +153,14 @@ jobs:
           token: ${{ secrets.TOKEN }}
 
       - name: Upload static files as artifact
+        if: github.ref == 'refs/heads/main'
         id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
       - name: Web Deploy
+        if: github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v4
 
       - name: Extract latest changelog
@@ -160,7 +172,7 @@ jobs:
 
       - name: Upload to Play Store
         # only upload when env.VERSION does not end with 1337, which is our indicator for beta releases
-        if: "!endsWith(env.VERSION, '1337')"
+        if: "!endsWith(env.VERSION, '1337') && github.ref == 'refs/heads/main'"
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
@@ -169,8 +181,15 @@ jobs:
           track: production
           whatsNewDirectory: whatsnew
 
+      - name: Build iOS app and release
+        if: github.ref == 'refs/heads/ios'
+        run: |
+            flutter build ipa --release;
+            xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey ${{ secrets.APPSTORE_API_KEY }} --apiIssuer ${{ secrets.APPSTORE_API_ISSUER_ID }};        
+
   windows:
     needs: build
+    if: github.ref == 'refs/heads/main'
     name: Build & Release on Windows
     runs-on: windows-latest
 
