@@ -18,7 +18,7 @@ class KeymapExplanation extends StatelessWidget {
     final connectedDevice = connection.devices.firstOrNull;
 
     final availableKeypairs = keymap.keyPairs.filter(
-      (e) => connectedDevice?.availableButtons.containsAny(e.buttons) == true,
+      (e) => connectedDevice?.availableButtons.containsAny(e.buttons) ?? true,
     );
 
     final keyboardGroups = availableKeypairs
@@ -80,7 +80,7 @@ class KeymapExplanation extends StatelessWidget {
                         children: [
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
-                              if (connectedDevice?.availableButtons.contains(button) == true)
+                              if (connectedDevice?.availableButtons.contains(button) ?? true)
                                 IntrinsicWidth(child: ButtonWidget(button: button)),
                         ],
                       ),
@@ -103,7 +103,7 @@ class KeymapExplanation extends StatelessWidget {
                         children: [
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
-                              if (connectedDevice?.availableButtons.contains(button) == true)
+                              if (connectedDevice?.availableButtons.contains(button) ?? true)
                                 ButtonWidget(button: button),
                         ],
                       ),
