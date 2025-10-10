@@ -10,6 +10,7 @@ import 'package:swift_control/bluetooth/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/pages/touch_area.dart';
+import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/loading_widget.dart';
 import 'package:swift_control/widgets/logviewer.dart';
@@ -112,6 +113,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       (device) => (device.device.name == 'Zwift Ride' || device.device.name == 'Zwift Play') && device.isConnected,
     );
 
+    final paddingMultiplicator = actionHandler is DesktopActions ? 2.5 : 1.0;
+
     return ScaffoldMessenger(
       key: _snackBarMessengerKey,
       child: PopScope(
@@ -127,7 +130,12 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               ),
               body: SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 16, left: 8.0, right: 8, bottom: 8),
+                padding: EdgeInsets.only(
+                  top: 16,
+                  left: 8.0 * paddingMultiplicator,
+                  right: 8 * paddingMultiplicator,
+                  bottom: 8,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
