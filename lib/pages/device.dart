@@ -38,15 +38,14 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
     final customProfiles = settings.getCustomAppProfiles();
 
-    final customApps =
-        customProfiles.map((profile) {
-          final customApp = CustomApp(profileName: profile);
-          final savedKeymap = settings.getCustomAppKeymap(profile);
-          if (savedKeymap != null) {
-            customApp.decodeKeymap(savedKeymap);
-          }
-          return customApp;
-        }).toList();
+    final customApps = customProfiles.map((profile) {
+      final customApp = CustomApp(profileName: profile);
+      final savedKeymap = settings.getCustomAppKeymap(profile);
+      if (savedKeymap != null) {
+        customApp.decodeKeymap(savedKeymap);
+      }
+      return customApp;
+    }).toList();
 
     // If no custom profiles exist, add the default "Custom" one
     if (customApps.isEmpty) {
@@ -151,7 +150,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                         transform: (it) {
                           return """${it.device.name?.screenshot ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
 ${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}
-${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}""".trim();
+${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}"""
+                              .trim();
                         },
                       ),
                     ),
@@ -166,11 +166,10 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                               final requirement = RemoteRequirement();
                               await requirement.reconnect();
                             },
-                            renderChild:
-                                (isLoading, tap) => TextButton(
-                                  onPressed: tap,
-                                  child: isLoading ? SmallProgressIndicator() : Text('Reconnect'),
-                                ),
+                            renderChild: (isLoading, tap) => TextButton(
+                              onPressed: tap,
+                              child: isLoading ? SmallProgressIndicator() : Text('Reconnect'),
+                            ),
                           ),
                         ],
                       ),
@@ -183,10 +182,9 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                         children: [
                           Flex(
                             mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment:
-                                MediaQuery.sizeOf(context).width > 600
-                                    ? CrossAxisAlignment.center
-                                    : CrossAxisAlignment.start,
+                            crossAxisAlignment: MediaQuery.sizeOf(context).width > 600
+                                ? CrossAxisAlignment.center
+                                : CrossAxisAlignment.start,
                             direction: MediaQuery.sizeOf(context).width > 600 ? Axis.horizontal : Axis.vertical,
                             spacing: 8,
                             children: [
@@ -382,64 +380,62 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('New Custom Profile'),
-            content: TextField(
-              controller: controller,
-              decoration: InputDecoration(labelText: 'Profile Name', hintText: 'e.g., Workout, Race, Event'),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Create')),
-            ],
-          ),
+      builder: (context) => AlertDialog(
+        title: Text('New Custom Profile'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'Profile Name', hintText: 'e.g., Workout, Race, Event'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Create')),
+        ],
+      ),
     );
   }
 
   Future<String?> _showManageProfileDialog(String? currentProfile) async {
     return showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Manage Profile: ${currentProfile ?? ''}'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (currentProfile != null && actionHandler.supportedApp is CustomApp)
-                  ListTile(
-                    leading: Icon(Icons.edit),
-                    title: Text('Rename'),
-                    onTap: () => Navigator.pop(context, 'rename'),
-                  ),
-                if (currentProfile != null)
-                  ListTile(
-                    leading: Icon(Icons.copy),
-                    title: Text('Duplicate'),
-                    onTap: () => Navigator.pop(context, 'duplicate'),
-                  ),
-                ListTile(
-                  leading: Icon(Icons.file_upload),
-                  title: Text('Import'),
-                  onTap: () => Navigator.pop(context, 'import'),
-                ),
-                if (currentProfile != null)
-                  ListTile(
-                    leading: Icon(Icons.share),
-                    title: Text('Export'),
-                    onTap: () => Navigator.pop(context, 'export'),
-                  ),
-                if (currentProfile != null)
-                  ListTile(
-                    leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                    title: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                    onTap: () => Navigator.pop(context, 'delete'),
-                  ),
-              ],
+      builder: (context) => AlertDialog(
+        title: Text('Manage Profile: ${currentProfile ?? ''}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (currentProfile != null && actionHandler.supportedApp is CustomApp)
+              ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('Rename'),
+                onTap: () => Navigator.pop(context, 'rename'),
+              ),
+            if (currentProfile != null)
+              ListTile(
+                leading: Icon(Icons.copy),
+                title: Text('Duplicate'),
+                onTap: () => Navigator.pop(context, 'duplicate'),
+              ),
+            ListTile(
+              leading: Icon(Icons.file_upload),
+              title: Text('Import'),
+              onTap: () => Navigator.pop(context, 'import'),
             ),
-            actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel'))],
-          ),
+            if (currentProfile != null)
+              ListTile(
+                leading: Icon(Icons.share),
+                title: Text('Export'),
+                onTap: () => Navigator.pop(context, 'export'),
+              ),
+            if (currentProfile != null)
+              ListTile(
+                leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                title: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                onTap: () => Navigator.pop(context, 'delete'),
+              ),
+          ],
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel'))],
+      ),
     );
   }
 
@@ -447,19 +443,18 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
     final controller = TextEditingController(text: currentName);
     return showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Rename Profile'),
-            content: TextField(
-              controller: controller,
-              decoration: InputDecoration(labelText: 'Profile Name'),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Rename')),
-            ],
-          ),
+      builder: (context) => AlertDialog(
+        title: Text('Rename Profile'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'Profile Name'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Rename')),
+        ],
+      ),
     );
   }
 
@@ -467,38 +462,36 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
     final controller = TextEditingController(text: '$currentName (Copy)');
     return showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Duplicate Profile'),
-            content: TextField(
-              controller: controller,
-              decoration: InputDecoration(labelText: 'New Profile Name'),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Duplicate')),
-            ],
-          ),
+      builder: (context) => AlertDialog(
+        title: Text('Duplicate Profile'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'New Profile Name'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Duplicate')),
+        ],
+      ),
     );
   }
 
   Future<bool?> _showDeleteConfirmDialog(String profileName) async {
     return showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Delete Profile'),
-            content: Text('Are you sure you want to delete "$profileName"? This action cannot be undone.'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text('Delete'),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text('Delete Profile'),
+        content: Text('Are you sure you want to delete "$profileName"? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
           ),
+        ],
+      ),
     );
   }
 
@@ -517,27 +510,26 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
 
     return showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Import Profile'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Paste the exported JSON data below:'),
-                SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  decoration: InputDecoration(labelText: 'JSON Data', border: OutlineInputBorder()),
-                  maxLines: 5,
-                  autofocus: true,
-                ),
-              ],
+      builder: (context) => AlertDialog(
+        title: Text('Import Profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Paste the exported JSON data below:'),
+            SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(labelText: 'JSON Data', border: OutlineInputBorder()),
+              maxLines: 5,
+              autofocus: true,
             ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Import')),
-            ],
-          ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Import')),
+        ],
+      ),
     );
   }
 
@@ -569,16 +561,17 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
               physicalKey: pair.physicalKey,
               logicalKey: pair.logicalKey,
               isLongPress: pair.isLongPress,
-              touchPosition:
-                  pair.touchPosition != Offset.zero
-                      ? pair.touchPosition
-                      : Offset(((indexB + 1)) * 10, 20 + (index * 10)),
+              touchPosition: pair.touchPosition != Offset.zero
+                  ? pair.touchPosition
+                  : Offset(((indexB + 1)) * 10, 20 + (index * 10)),
             );
           });
         });
 
         actionHandler.supportedApp = customApp;
         await settings.setApp(customApp);
+        controller.text = newName;
+        setState(() {});
       }
     }
   }

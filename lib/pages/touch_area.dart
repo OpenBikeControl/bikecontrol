@@ -150,23 +150,24 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   }
 
   Widget _buildDraggableArea({
-    required Offset position,
     required bool enableTouch,
     required void Function(Offset newPosition) onPositionChanged,
     required Color color,
     required KeyPair keyPair,
   }) {
+    // map the percentage position to the image rect
+    final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
+    final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
+    //print('Relative position: $relativeX, $relativeY');
     final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
     final isTouchOnly = actionHandler is RemoteActions || actionHandler is AndroidActions;
 
     // figure out notch height for e.g. macOS. On Windows the display size is not available (0,0).
-    final differenceInHeight =
-        (flutterView.display.size.height > 0 && !Platform.isIOS)
-            ? (flutterView.display.size.height - flutterView.physicalSize.height) / flutterView.devicePixelRatio
-            : 0.0;
+    final differenceInHeight = (flutterView.display.size.height > 0 && !Platform.isIOS)
+        ? (flutterView.display.size.height - flutterView.physicalSize.height) / flutterView.devicePixelRatio
+        : 0.0;
 
     if (kDebugMode && false) {
-      print('Position: $position');
       print('Display Size: ${flutterView.display.size}');
       print('View size: ${flutterView.physicalSize}');
       print('Difference: $differenceInHeight');
@@ -175,6 +176,16 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     //final isOnTheRightEdge = position.dx > (MediaQuery.sizeOf(context).width - 250);
 
     final iconSize = 40.0;
+
+    final Offset position = Offset(
+      _imageRect.left + relativeX * _imageRect.width - iconSize / 2,
+      _imageRect.top + relativeY * _imageRect.height - differenceInHeight - iconSize / 2,
+    );
+
+    print(
+      'Drawing at offset $position for keypair with position ${keyPair.touchPosition} and image rect $_imageRect',
+    );
+
     final draggable = [
       Container(
         decoration: BoxDecoration(
@@ -198,104 +209,104 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       ),
       PopupMenuButton<PhysicalKeyboardKey>(
         enabled: enableTouch,
-        itemBuilder:
-            (context) => [
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: null,
-                child: ListTile(
-                  leading: Icon(Icons.keyboard_alt_outlined),
-                  title: const Text('Simulate Keyboard shortcut'),
+        itemBuilder: (context) => [
+          PopupMenuItem<PhysicalKeyboardKey>(
+            value: null,
+            child: ListTile(
+              leading: Icon(Icons.keyboard_alt_outlined),
+              title: const Text('Simulate Keyboard shortcut'),
+            ),
+            onTap: () async {
+              await showDialog<void>(
+                context: context,
+                barrierDismissible: false, // enable Escape key
+                builder: (c) =>
+                    HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
+              );
+              setState(() {});
+            },
+          ),
+          PopupMenuItem<PhysicalKeyboardKey>(
+            value: null,
+            child: ListTile(title: const Text('Simulate Touch'), leading: Icon(Icons.touch_app_outlined)),
+            onTap: () {
+              keyPair.physicalKey = null;
+              keyPair.logicalKey = null;
+              setState(() {});
+            },
+          ),
+          PopupMenuItem<PhysicalKeyboardKey>(
+            value: null,
+            onTap: () {
+              keyPair.isLongPress = !keyPair.isLongPress;
+              setState(() {});
+            },
+            child: CheckboxListTile(
+              value: keyPair.isLongPress,
+              onChanged: (value) {
+                keyPair.isLongPress = value ?? false;
+                setState(() {});
+                Navigator.of(context).pop();
+              },
+              title: const Text('Long Press Mode (vs. repeating)'),
+            ),
+          ),
+          PopupMenuDivider(),
+          PopupMenuItem(
+            child: PopupMenuButton<PhysicalKeyboardKey>(
+              padding: EdgeInsets.zero,
+              itemBuilder: (context) => [
+                PopupMenuItem<PhysicalKeyboardKey>(
+                  value: PhysicalKeyboardKey.mediaPlayPause,
+                  child: const Text('Media: Play/Pause'),
                 ),
-                onTap: () async {
-                  await showDialog<void>(
-                    context: context,
-                    barrierDismissible: false, // enable Escape key
-                    builder:
-                        (c) =>
-                            HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
-                  );
-                  setState(() {});
-                },
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: null,
-                child: ListTile(title: const Text('Simulate Touch'), leading: Icon(Icons.touch_app_outlined)),
-                onTap: () {
-                  keyPair.physicalKey = null;
-                  keyPair.logicalKey = null;
-                  setState(() {});
-                },
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: null,
-                onTap: () {
-                  keyPair.isLongPress = !keyPair.isLongPress;
-                  setState(() {});
-                },
-                child: CheckboxListTile(
-                  value: keyPair.isLongPress,
-                  onChanged: (value) {
-                    keyPair.isLongPress = value ?? false;
-                    setState(() {});
-                    Navigator.of(context).pop();
-                  },
-                  title: const Text('Long Press Mode (vs. repeating)'),
+                PopupMenuItem<PhysicalKeyboardKey>(
+                  value: PhysicalKeyboardKey.mediaStop,
+                  child: const Text('Media: Stop'),
                 ),
-              ),
-              PopupMenuDivider(),
-              PopupMenuItem(
-                child: PopupMenuButton<PhysicalKeyboardKey>(
-                  padding: EdgeInsets.zero,
-                  itemBuilder:
-                      (context) => [
-                        PopupMenuItem<PhysicalKeyboardKey>(
-                          value: PhysicalKeyboardKey.mediaPlayPause,
-                          child: const Text('Media: Play/Pause'),
-                        ),
-                        PopupMenuItem<PhysicalKeyboardKey>(
-                          value: PhysicalKeyboardKey.mediaStop,
-                          child: const Text('Media: Stop'),
-                        ),
-                        PopupMenuItem<PhysicalKeyboardKey>(
-                          value: PhysicalKeyboardKey.mediaTrackPrevious,
-                          child: const Text('Media: Previous'),
-                        ),
-                        PopupMenuItem<PhysicalKeyboardKey>(
-                          value: PhysicalKeyboardKey.mediaTrackNext,
-                          child: const Text('Media: Next'),
-                        ),
-                        PopupMenuItem<PhysicalKeyboardKey>(
-                          value: PhysicalKeyboardKey.audioVolumeUp,
-                          child: const Text('Media: Volume Up'),
-                        ),
-                        PopupMenuItem<PhysicalKeyboardKey>(
-                          value: PhysicalKeyboardKey.audioVolumeDown,
-                          child: const Text('Media: Volume Down'),
-                        ),
-                      ],
-                  onSelected: (key) {
-                    keyPair.physicalKey = key;
-                    keyPair.logicalKey = null;
+                PopupMenuItem<PhysicalKeyboardKey>(
+                  value: PhysicalKeyboardKey.mediaTrackPrevious,
+                  child: const Text('Media: Previous'),
+                ),
+                PopupMenuItem<PhysicalKeyboardKey>(
+                  value: PhysicalKeyboardKey.mediaTrackNext,
+                  child: const Text('Media: Next'),
+                ),
+                PopupMenuItem<PhysicalKeyboardKey>(
+                  value: PhysicalKeyboardKey.audioVolumeUp,
+                  child: const Text('Media: Volume Up'),
+                ),
+                PopupMenuItem<PhysicalKeyboardKey>(
+                  value: PhysicalKeyboardKey.audioVolumeDown,
+                  child: const Text('Media: Volume Down'),
+                ),
+              ],
+              onSelected: (key) {
+                keyPair.physicalKey = key;
+                keyPair.logicalKey = null;
 
-                    setState(() {});
-                  },
-                  child: ListTile(
-                    leading: Icon(Icons.music_note_outlined),
-                    trailing: Icon(Icons.arrow_right),
-                    title: Text('Simulate Media key'),
-                  ),
-                ),
+                setState(() {});
+              },
+              child: ListTile(
+                leading: Icon(Icons.music_note_outlined),
+                trailing: Icon(Icons.arrow_right),
+                title: Text('Simulate Media key'),
               ),
-              PopupMenuDivider(),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: null,
-                child: ListTile(title: const Text('Delete Keymap'), leading: Icon(Icons.delete, color: Colors.red)),
-                onTap: () {
-                  actionHandler.supportedApp!.keymap.keyPairs.remove(keyPair);
-                  setState(() {});
-                },
-              ),
-            ],
+            ),
+          ),
+          PopupMenuDivider(),
+          PopupMenuItem<PhysicalKeyboardKey>(
+            value: null,
+            child: ListTile(
+              title: const Text('Delete Keymap'),
+              leading: Icon(Icons.delete, color: Colors.red),
+            ),
+            onTap: () {
+              actionHandler.supportedApp!.keymap.keyPairs.remove(keyPair);
+              setState(() {});
+            },
+          ),
+        ],
         onSelected: (key) {
           keyPair.physicalKey = key;
           keyPair.logicalKey = null;
@@ -316,11 +327,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       children: draggable,
     );
 
-    print('Placing at ${position.dx}, ${position.dy - differenceInHeight} vs image rect $_imageRect');
-
     return Positioned(
-      left: position.dx - iconSize / 2,
-      top: position.dy - differenceInHeight - iconSize / 2,
+      left: position.dx,
+      top: position.dy,
       child: Tooltip(
         message: 'Drag to reposition',
         child: Draggable(
@@ -364,7 +373,13 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               children: [
                 if (_backgroundImage != null)
                   Positioned.fill(
-                    child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)),
+                    child: Opacity(
+                      opacity: 0.5,
+                      child: Image.file(
+                        _backgroundImage!,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   )
                 else
                   Center(
@@ -393,21 +408,18 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                     ),
                   ),
 
+                // draw _imageRect for debugging
+                if (kDebugMode)
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.green, width: 2),
+                    ),
+                    child: SizedBox.fromSize(size: _imageRect.size),
+                  ),
+
                 ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
-                  // map the percentage position to the image rect
-                  final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
-                  final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
-                  //print('Relative position: $relativeX, $relativeY');
-                  final Offset offset = Offset(
-                    _imageRect.left + relativeX * _imageRect.width,
-                    _imageRect.top + relativeY * _imageRect.height,
-                  );
-
-                  //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
-
                   return _buildDraggableArea(
                     enableTouch: true,
-                    position: offset,
                     keyPair: keyPair,
                     onPositionChanged: (newPos) {
                       // convert to percentage
@@ -434,16 +446,16 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                         label: const Text("Save"),
                       ),
                       PopupMenuButton(
-                        itemBuilder:
-                            (c) => [
-                              PopupMenuItem(
-                                child: Text('Reset'),
-                                onTap: () {
-                                  actionHandler.supportedApp?.keymap.reset();
-                                  setState(() {});
-                                },
-                              ),
-                            ],
+                        itemBuilder: (c) => [
+                          PopupMenuItem(
+                            child: Text('Reset'),
+                            onTap: () {
+                              _backgroundImage = null;
+                              actionHandler.supportedApp?.keymap.reset();
+                              setState(() {});
+                            },
+                          ),
+                        ],
                         icon: Icon(Icons.more_vert),
                       ),
                       if (kDebugMode) MenuButton(),
@@ -473,7 +485,9 @@ class KeypairExplanation extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (withKey)
-          KeyWidget(label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n'))
+          KeyWidget(
+            label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n'),
+          )
         else
           Icon(isTouchOnly ? Icons.touch_app : keyPair.icon),
         if (keyPair.physicalKey != null && !isTouchOnly) ...[
