@@ -1,7 +1,7 @@
 name: swift_control
 description: "SwiftControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 3.0.1+22
+version: 3.0.2+23
 
 environment:
   sdk: ^3.9.0
