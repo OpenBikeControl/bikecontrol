@@ -158,7 +158,7 @@ jobs:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           allowUpdates: true
           prerelease: ${{ endsWith(env.VERSION, '1337') }}
-          body: "I recommend downloading the Android version from the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"
+          bodyFile: scripts/RELEASE_NOTES.md
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
 
@@ -294,6 +294,6 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip"
-          body: "I recommend downloading the Android version from the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"
+          bodyFile: scripts/RELEASE_NOTES.md
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
