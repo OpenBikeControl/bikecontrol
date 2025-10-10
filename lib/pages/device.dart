@@ -197,7 +197,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                     (app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name),
                                   ),
                                   DropdownMenuEntry(
-                                    value: null,
+                                    value: CustomApp(profileName: 'New'),
                                     label: 'Create new keymap',
                                     labelWidget: Text('Create new keymap'),
                                     leadingIcon: Icon(Icons.add),
@@ -206,6 +206,8 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                 label: Text('Select Keymap / app'),
                                 onSelected: (app) async {
                                   if (app == null) {
+                                    return;
+                                  } else if (app.name == 'New') {
                                     final profileName = await _showNewProfileDialog();
                                     if (profileName != null && profileName.isNotEmpty) {
                                       final customApp = CustomApp(profileName: profileName);
@@ -214,20 +216,20 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                       controller.text = profileName;
                                       setState(() {});
                                     }
-                                    return;
-                                  }
-                                  controller.text = app.name ?? '';
-                                  actionHandler.supportedApp = app;
-                                  await settings.setApp(app);
-                                  setState(() {});
-                                  if (app is! CustomApp && !kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
-                                    _snackBarMessengerKey.currentState!.showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Customize the keymap if you experience any issues (e.g. wrong keyboard output)',
+                                  } else {
+                                    controller.text = app.name ?? '';
+                                    actionHandler.supportedApp = app;
+                                    await settings.setApp(app);
+                                    setState(() {});
+                                    if (app is! CustomApp && !kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+                                      _snackBarMessengerKey.currentState!.showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Customize the keymap if you experience any issues (e.g. wrong keyboard output)',
+                                          ),
                                         ),
-                                      ),
-                                    );
+                                      );
+                                    }
                                   }
                                 },
                                 initialSelection: actionHandler.supportedApp,
@@ -293,7 +295,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                                 _snackBarMessengerKey.currentState!.showSnackBar(
                                                   SnackBar(
                                                     content: Text('Profile imported successfully'),
-                                                    duration: Duration(seconds: 2),
+                                                    duration: Duration(seconds: 5),
                                                   ),
                                                 );
                                                 setState(() {});
@@ -301,7 +303,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                                 _snackBarMessengerKey.currentState!.showSnackBar(
                                                   SnackBar(
                                                     content: Text('Failed to import profile. Invalid format.'),
-                                                    duration: Duration(seconds: 2),
+                                                    duration: Duration(seconds: 5),
                                                     backgroundColor: Colors.red,
                                                   ),
                                                 );
@@ -317,7 +319,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                               _snackBarMessengerKey.currentState!.showSnackBar(
                                                 SnackBar(
                                                   content: Text('Profile "$currentProfile" exported to clipboard'),
-                                                  duration: Duration(seconds: 2),
+                                                  duration: Duration(seconds: 5),
                                                 ),
                                               );
                                             }
@@ -570,7 +572,7 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
               touchPosition:
                   pair.touchPosition != Offset.zero
                       ? pair.touchPosition
-                      : Offset(((indexB + 1)) * 100, 200 + (index * 100)),
+                      : Offset(((indexB + 1)) * 10, 20 + (index * 10)),
             );
           });
         });
