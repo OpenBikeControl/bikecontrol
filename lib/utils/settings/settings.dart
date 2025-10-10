@@ -104,9 +104,12 @@ class Settings {
   String? exportCustomAppProfile(String profileName) {
     final data = prefs.getStringList('customapp_$profileName');
     if (data == null) return null;
-
-    // Export as JSON with metadata
-    return jsonEncode({'version': 1, 'profileName': profileName, 'keymap': data});
+    var encoder = JsonEncoder.withIndent("     ");
+    return encoder.convert({
+      'version': 1,
+      'profileName': profileName,
+      'keymap': data.map((e) => jsonDecode(e)).toList(),
+    });
   }
 
   Future<bool> importCustomAppProfile(String jsonData, {String? newProfileName}) async {
@@ -119,11 +122,12 @@ class Settings {
       }
 
       final profileName = newProfileName ?? decoded['profileName'] ?? 'Imported';
-      final keymap = List<String>.from(decoded['keymap']);
+      final keymap = (decoded['keymap'] as List).map((e) => jsonEncode(e)).toList().cast<String>();
 
       await prefs.setStringList('customapp_$profileName', keymap);
       return true;
     } catch (e) {
+      print(e);
       return false;
     }
   }

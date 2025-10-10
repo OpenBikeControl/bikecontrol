@@ -22,6 +22,11 @@ abstract class SupportedApp {
         throw SingleLineException("No key pair found for action: $action");
       }
       return keyPair.touchPosition;
+    } else {
+      final keyPair = keymap.getKeyPair(action);
+      if (keyPair != null && keyPair.touchPosition != Offset.zero) {
+        return keyPair.touchPosition;
+      }
     }
     return Offset.zero;
   }

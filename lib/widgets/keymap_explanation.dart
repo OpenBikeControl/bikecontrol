@@ -2,6 +2,8 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
+import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
 import '../pages/touch_area.dart';
@@ -15,15 +17,17 @@ class KeymapExplanation extends StatelessWidget {
   Widget build(BuildContext context) {
     final connectedDevice = connection.devices.firstOrNull;
 
+    final isTouchOnlyActions = actionHandler is AndroidActions || actionHandler is RemoteActions;
+
     final availableKeypairs = keymap.keyPairs.filter(
       (e) => connectedDevice?.availableButtons.containsAny(e.buttons) == true,
     );
 
     final keyboardGroups = availableKeypairs
-        .filter((e) => e.physicalKey != null)
+        .filter((e) => e.physicalKey != null && !isTouchOnlyActions)
         .groupBy((element) => '${element.physicalKey?.usbHidUsage}-${element.isLongPress}');
     final touchGroups = availableKeypairs
-        .filter((e) => e.physicalKey == null && e.touchPosition != Offset.zero)
+        .filter((e) => (e.physicalKey == null || isTouchOnlyActions) && e.touchPosition != Offset.zero)
         .groupBy((element) => '${element.touchPosition.dx}-${element.touchPosition.dy}-${element.isLongPress}');
 
     return Column(
@@ -71,7 +75,10 @@ class KeymapExplanation extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Padding(padding: const EdgeInsets.all(6), child: KeypairExplanation(keyPair: pair.value.first)),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: KeypairExplanation(keyPair: pair.value.first, isTouchOnly: isTouchOnlyActions),
+                    ),
                   ],
                 ),
               ],
@@ -80,8 +87,9 @@ class KeymapExplanation extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Row(
+                      child: Wrap(
                         spacing: 8,
+                        runSpacing: 8,
                         children: [
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
@@ -90,7 +98,10 @@ class KeymapExplanation extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Padding(padding: const EdgeInsets.all(6), child: KeypairExplanation(keyPair: pair.value.first)),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: KeypairExplanation(keyPair: pair.value.first, isTouchOnly: isTouchOnlyActions),
+                    ),
                   ],
                 ),
               ],

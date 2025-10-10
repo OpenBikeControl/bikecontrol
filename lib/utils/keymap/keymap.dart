@@ -86,21 +86,12 @@ class KeyPair {
 
   String encode() {
     // encode to save in preferences
-    // Always store as percentages for better compatibility across devices
-    final Map<String, double> touchPosData;
-
-    if (touchPosition == Offset.zero) {
-      // Special case: zero position means no touch (e.g., keyboard shortcut only)
-      touchPosData = {'x': 0.0, 'y': 0.0};
-    } else {
-      touchPosData = {'x': touchPosition.dx, 'y': touchPosition.dy};
-    }
 
     return jsonEncode({
       'actions': buttons.map((e) => e.name).toList(),
-      'logicalKey': logicalKey?.keyId.toString() ?? '0',
-      'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
-      'touchPosition': touchPosData,
+      if (logicalKey != null) 'logicalKey': logicalKey?.keyId.toString(),
+      if (physicalKey != null) 'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
+      if (touchPosition != Offset.zero) 'touchPosition': {'x': touchPosition.dx, 'y': touchPosition.dy},
       'isLongPress': isLongPress,
     });
   }
@@ -108,22 +99,29 @@ class KeyPair {
   static KeyPair? decode(String data) {
     // decode from preferences
     final decoded = jsonDecode(data);
-    if (decoded['actions'] == null || decoded['logicalKey'] == null || decoded['physicalKey'] == null) {
-      return null;
-    }
 
     // Support both percentage-based (new) and pixel-based (old) formats for backward compatibility
-    final touchPosData = decoded['touchPosition'];
-    final Offset touchPosition = Offset((touchPosData['x'] as num).toDouble(), (touchPosData['y'] as num).toDouble());
+    final Offset touchPosition =
+        decoded.containsKey('touchPosition')
+            ? Offset(
+              (decoded['touchPosition']['x'] as num).toDouble(),
+              (decoded['touchPosition']['y'] as num).toDouble(),
+            )
+            : Offset.zero;
 
     return KeyPair(
       buttons:
           decoded['actions']
               .map<ZwiftButton>((e) => ZwiftButton.values.firstWhere((element) => element.name == e))
               .toList(),
-      logicalKey: int.parse(decoded['logicalKey']) != 0 ? LogicalKeyboardKey(int.parse(decoded['logicalKey'])) : null,
+      logicalKey:
+          decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
+              ? LogicalKeyboardKey(int.parse(decoded['logicalKey']))
+              : null,
       physicalKey:
-          int.parse(decoded['physicalKey']) != 0 ? PhysicalKeyboardKey(int.parse(decoded['physicalKey'])) : null,
+          decoded.containsKey('physicalKey') && int.parse(decoded['physicalKey']) != 0
+              ? PhysicalKeyboardKey(int.parse(decoded['physicalKey']))
+              : null,
       touchPosition: touchPosition,
       isLongPress: decoded['isLongPress'] ?? false,
     );

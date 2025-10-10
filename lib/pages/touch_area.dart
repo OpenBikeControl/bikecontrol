@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
@@ -38,7 +40,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   ZwiftButton? _pressedButton;
   final TransformationController _transformationController = TransformationController();
 
-  Rect? _imageRect;
+  late Rect _imageRect;
 
   Future<void> _pickScreenshot() async {
     final picker = ImagePicker();
@@ -104,10 +106,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     // Force landscape orientation during keymap editing
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []).then((_) {
-      // this will make sure the buttons are placed correctly after the transition
-      setState(() {});
-    });
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);
     }
@@ -130,12 +129,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
           final KeyPair keyPair;
           actionHandler.supportedApp!.keymap.keyPairs.add(
             keyPair = KeyPair(
-              touchPosition:
-                  _imageRect != null
-                      ? Offset((actionHandler.supportedApp!.keymap.keyPairs.length + 1) * 10, 10)
-                      : context.size!
-                          .center(Offset.zero)
-                          .translate(actionHandler.supportedApp!.keymap.keyPairs.length * 40, 0),
+              touchPosition: Offset((actionHandler.supportedApp!.keymap.keyPairs.length + 1) * 10, 10),
               buttons: [_pressedButton!],
               physicalKey: null,
               logicalKey: null,
@@ -163,6 +157,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     required KeyPair keyPair,
   }) {
     final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
+    final isTouchOnly = actionHandler is RemoteActions || actionHandler is AndroidActions;
 
     // figure out notch height for e.g. macOS. On Windows the display size is not available (0,0).
     final differenceInHeight =
@@ -190,7 +185,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
         width: iconSize,
         height: iconSize,
         child: Icon(
-          keyPair.icon,
+          isTouchOnly ? Icons.touch_app_outlined : keyPair.icon,
           size: iconSize - 12,
           shadows: [
             Shadow(color: Colors.white, offset: Offset(1, 1)),
@@ -306,7 +301,12 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
           keyPair.logicalKey = null;
           setState(() {});
         },
-        child: Row(children: [KeypairExplanation(withKey: true, keyPair: keyPair), Icon(Icons.more_vert)]),
+        child: Row(
+          children: [
+            KeypairExplanation(withKey: true, keyPair: keyPair, isTouchOnly: isTouchOnly),
+            Icon(Icons.more_vert),
+          ],
+        ),
       ),
     ];
 
@@ -315,6 +315,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: draggable,
     );
+
+    print('Placing at ${position.dx}, ${position.dy - differenceInHeight} vs image rect $_imageRect');
 
     return Positioned(
       left: position.dx - iconSize / 2,
@@ -350,121 +352,108 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-    final devicePixelRatio = isDesktop ? 1.0 : MediaQuery.devicePixelRatioOf(context);
     return Scaffold(
       body: LayoutBuilder(
-        builder:
-            (context, constraints) => InteractiveViewer(
-              transformationController: _transformationController,
-              child: Stack(
-                children: [
-                  if (_backgroundImage != null)
-                    Positioned.fill(
-                      child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)),
-                    )
-                  else
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 8,
-                          children: [
-                            Text(
-                              '''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
+        builder: (context, constraints) {
+          if (_backgroundImage == null && constraints.biggest != _imageRect.size) {
+            _imageRect = Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight);
+          }
+          return InteractiveViewer(
+            transformationController: _transformationController,
+            child: Stack(
+              children: [
+                if (_backgroundImage != null)
+                  Positioned.fill(
+                    child: Opacity(opacity: 0.5, child: Image.file(_backgroundImage!, fit: BoxFit.contain)),
+                  )
+                else
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 8,
+                        children: [
+                          Text(
+                            '''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
 2. Load the screenshot with the button below
 3. The app is automatically set to landscape orientation for accurate mapping
 4. Press a button on your Click device to create a touch area
 5. Drag the touch areas to the desired position on the screenshot
 6. Save and close this screen''',
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                _pickScreenshot();
-                              },
-                              child: Text('Load in-game screenshot for placement'),
-                            ),
-                          ],
-                        ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              _pickScreenshot();
+                            },
+                            child: Text('Load in-game screenshot for placement'),
+                          ),
+                        ],
                       ),
                     ),
-
-                  if (_imageRect != null)
-                    ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
-                      final Offset offset;
-
-                      if (_imageRect != null) {
-                        // map the percentage position to the image rect
-                        final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
-                        final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
-                        //print('Relative position: $relativeX, $relativeY');
-                        offset = Offset(
-                          _imageRect!.left + relativeX * _imageRect!.width,
-                          _imageRect!.top + relativeY * _imageRect!.height,
-                        );
-                      } else {
-                        offset = Offset(
-                          keyPair.touchPosition.dx / devicePixelRatio,
-                          keyPair.touchPosition.dy / devicePixelRatio,
-                        );
-                      }
-
-                      //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
-
-                      return _buildDraggableArea(
-                        enableTouch: true,
-                        position: offset,
-                        keyPair: keyPair,
-                        onPositionChanged: (newPos) {
-                          if (_imageRect != null) {
-                            // convert to percentage
-                            final relativeX = ((newPos.dx - _imageRect!.left) / _imageRect!.width).clamp(0.0, 1.0);
-                            final relativeY = ((newPos.dy - _imageRect!.top) / _imageRect!.height).clamp(0.0, 1.0);
-                            keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
-                          } else {
-                            final converted = newPos * devicePixelRatio;
-                            keyPair.touchPosition = converted;
-                          }
-                          setState(() {});
-                        },
-                        color: Colors.red,
-                      );
-                    }),
-
-                  Positioned.fill(child: Testbed()),
-
-                  Positioned(
-                    top: 40,
-                    right: 20,
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: _saveAndClose,
-                          icon: const Icon(Icons.save),
-                          label: const Text("Save"),
-                        ),
-                        PopupMenuButton(
-                          itemBuilder:
-                              (c) => [
-                                PopupMenuItem(
-                                  child: Text('Reset'),
-                                  onTap: () {
-                                    actionHandler.supportedApp?.keymap.reset();
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
-                          icon: Icon(Icons.more_vert),
-                        ),
-                        if (kDebugMode) MenuButton(),
-                      ],
-                    ),
                   ),
-                ],
-              ),
+
+                ...?actionHandler.supportedApp?.keymap.keyPairs.map((keyPair) {
+                  // map the percentage position to the image rect
+                  final relativeX = min(100.0, keyPair.touchPosition.dx) / 100.0;
+                  final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
+                  //print('Relative position: $relativeX, $relativeY');
+                  final Offset offset = Offset(
+                    _imageRect.left + relativeX * _imageRect.width,
+                    _imageRect.top + relativeY * _imageRect.height,
+                  );
+
+                  //print('Drawing at offset $offset for keypair with position ${keyPair.touchPosition}');
+
+                  return _buildDraggableArea(
+                    enableTouch: true,
+                    position: offset,
+                    keyPair: keyPair,
+                    onPositionChanged: (newPos) {
+                      // convert to percentage
+                      final relativeX = ((newPos.dx - _imageRect.left) / _imageRect.width).clamp(0.0, 1.0);
+                      final relativeY = ((newPos.dy - _imageRect.top) / _imageRect.height).clamp(0.0, 1.0);
+                      keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
+                      setState(() {});
+                    },
+                    color: Colors.red,
+                  );
+                }),
+
+                Positioned.fill(child: Testbed()),
+
+                Positioned(
+                  top: 40,
+                  right: 20,
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _saveAndClose,
+                        icon: const Icon(Icons.save),
+                        label: const Text("Save"),
+                      ),
+                      PopupMenuButton(
+                        itemBuilder:
+                            (c) => [
+                              PopupMenuItem(
+                                child: Text('Reset'),
+                                onTap: () {
+                                  actionHandler.supportedApp?.keymap.reset();
+                                  setState(() {});
+                                },
+                              ),
+                            ],
+                        icon: Icon(Icons.more_vert),
+                      ),
+                      if (kDebugMode) MenuButton(),
+                    ],
+                  ),
+                ),
+              ],
             ),
+          );
+        },
       ),
     );
   }
@@ -472,9 +461,10 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
 class KeypairExplanation extends StatelessWidget {
   final bool withKey;
+  final bool isTouchOnly;
   final KeyPair keyPair;
 
-  const KeypairExplanation({super.key, required this.keyPair, this.withKey = false});
+  const KeypairExplanation({super.key, required this.keyPair, this.withKey = false, required this.isTouchOnly});
 
   @override
   Widget build(BuildContext context) {
@@ -485,8 +475,8 @@ class KeypairExplanation extends StatelessWidget {
         if (withKey)
           KeyWidget(label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n'))
         else
-          Icon(keyPair.icon),
-        if (keyPair.physicalKey != null) ...[
+          Icon(isTouchOnly ? Icons.touch_app : keyPair.icon),
+        if (keyPair.physicalKey != null && !isTouchOnly) ...[
           KeyWidget(
             label: switch (keyPair.physicalKey) {
               PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',

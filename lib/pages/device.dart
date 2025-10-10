@@ -190,15 +190,30 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                             direction: MediaQuery.sizeOf(context).width > 600 ? Axis.horizontal : Axis.vertical,
                             spacing: 8,
                             children: [
-                              DropdownMenu<SupportedApp>(
+                              DropdownMenu<SupportedApp?>(
                                 controller: controller,
-                                dropdownMenuEntries:
-                                    _getAllApps()
-                                        .map((app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name))
-                                        .toList(),
+                                dropdownMenuEntries: [
+                                  ..._getAllApps().map(
+                                    (app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name),
+                                  ),
+                                  DropdownMenuEntry(
+                                    value: null,
+                                    label: 'Create new keymap',
+                                    labelWidget: Text('Create new keymap'),
+                                    leadingIcon: Icon(Icons.add),
+                                  ),
+                                ],
                                 label: Text('Select Keymap / app'),
                                 onSelected: (app) async {
                                   if (app == null) {
+                                    final profileName = await _showNewProfileDialog();
+                                    if (profileName != null && profileName.isNotEmpty) {
+                                      final customApp = CustomApp(profileName: profileName);
+                                      actionHandler.supportedApp = customApp;
+                                      await settings.setApp(customApp);
+                                      controller.text = profileName;
+                                      setState(() {});
+                                    }
                                     return;
                                   }
                                   controller.text = app.name ?? '';
@@ -222,34 +237,10 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                               Row(
                                 children: [
                                   if (actionHandler.supportedApp != null)
-                                    IconButton(
+                                    ElevatedButton.icon(
                                       onPressed: () async {
-                                        if (actionHandler.supportedApp! is! CustomApp) {
-                                          final customApp = CustomApp();
-
-                                          final connectedDevice = connection.devices.firstOrNull;
-                                          actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
-                                            pair.buttons
-                                                .filter(
-                                                  (button) =>
-                                                      connectedDevice?.availableButtons.contains(button) == true,
-                                                )
-                                                .forEachIndexed((button, indexB) {
-                                                  customApp.setKey(
-                                                    button,
-                                                    physicalKey: pair.physicalKey!,
-                                                    logicalKey: pair.logicalKey,
-                                                    isLongPress: pair.isLongPress,
-                                                    touchPosition:
-                                                        pair.touchPosition != Offset.zero
-                                                            ? pair.touchPosition
-                                                            : Offset(((indexB + 1)) * 100, 200 + (index * 100)),
-                                                  );
-                                                });
-                                          });
-
-                                          actionHandler.supportedApp = customApp;
-                                          await settings.setApp(customApp);
+                                        if (actionHandler.supportedApp is! CustomApp) {
+                                          await _duplicate(actionHandler.supportedApp!.name);
                                         }
                                         final result = await Navigator.of(
                                           context,
@@ -261,108 +252,81 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
                                         setState(() {});
                                       },
                                       icon: Icon(Icons.edit),
+                                      label: Text('Customize'),
                                     ),
 
                                   IconButton(
                                     onPressed: () async {
-                                      final profileName = await _showNewProfileDialog();
-                                      if (profileName != null && profileName.isNotEmpty) {
-                                        final customApp = CustomApp(profileName: profileName);
-                                        actionHandler.supportedApp = customApp;
-                                        await settings.setApp(customApp);
-                                        controller.text = profileName;
-                                        setState(() {});
-                                      }
-                                    },
-                                    icon: Icon(Icons.add),
-                                  ),
-
-                                  if (actionHandler.supportedApp is CustomApp)
-                                    IconButton(
-                                      onPressed: () async {
-                                        final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
-                                        final action = await _showManageProfileDialog(currentProfile);
-                                        if (action != null) {
-                                          if (action == 'rename') {
-                                            final newName = await _showRenameProfileDialog(currentProfile);
-                                            if (newName != null && newName.isNotEmpty && newName != currentProfile) {
-                                              await settings.duplicateCustomAppProfile(currentProfile, newName);
-                                              await settings.deleteCustomAppProfile(currentProfile);
-                                              final customApp = CustomApp(profileName: newName);
-                                              final savedKeymap = settings.getCustomAppKeymap(newName);
-                                              if (savedKeymap != null) {
-                                                customApp.decodeKeymap(savedKeymap);
-                                              }
-                                              actionHandler.supportedApp = customApp;
-                                              await settings.setApp(customApp);
-                                              controller.text = newName;
-                                              setState(() {});
+                                      final currentProfile = actionHandler.supportedApp?.name;
+                                      final action = await _showManageProfileDialog(currentProfile);
+                                      if (action != null) {
+                                        if (action == 'rename') {
+                                          final newName = await _showRenameProfileDialog(currentProfile!);
+                                          if (newName != null && newName.isNotEmpty && newName != currentProfile) {
+                                            await settings.duplicateCustomAppProfile(currentProfile, newName);
+                                            await settings.deleteCustomAppProfile(currentProfile);
+                                            final customApp = CustomApp(profileName: newName);
+                                            final savedKeymap = settings.getCustomAppKeymap(newName);
+                                            if (savedKeymap != null) {
+                                              customApp.decodeKeymap(savedKeymap);
                                             }
-                                          } else if (action == 'duplicate') {
-                                            final newName = await _showDuplicateProfileDialog(currentProfile);
-                                            if (newName != null && newName.isNotEmpty) {
-                                              await settings.duplicateCustomAppProfile(currentProfile, newName);
-                                              final customApp = CustomApp(profileName: newName);
-                                              final savedKeymap = settings.getCustomAppKeymap(newName);
-                                              if (savedKeymap != null) {
-                                                customApp.decodeKeymap(savedKeymap);
-                                              }
-                                              actionHandler.supportedApp = customApp;
-                                              await settings.setApp(customApp);
-                                              controller.text = newName;
-                                              setState(() {});
-                                            }
-                                          } else if (action == 'delete') {
-                                            final confirmed = await _showDeleteConfirmDialog(currentProfile);
-                                            if (confirmed == true) {
-                                              await settings.deleteCustomAppProfile(currentProfile);
-                                              controller.text = '';
-                                              setState(() {});
-                                            }
-                                          } else if (action == 'import') {
-                                            final jsonData = await _showImportDialog();
-                                            if (jsonData != null && jsonData.isNotEmpty) {
-                                              final success = await settings.importCustomAppProfile(jsonData);
-                                              if (mounted) {
-                                                if (success) {
-                                                  _snackBarMessengerKey.currentState!.showSnackBar(
-                                                    SnackBar(
-                                                      content: Text('Profile imported successfully'),
-                                                      duration: Duration(seconds: 2),
-                                                    ),
-                                                  );
-                                                  setState(() {});
-                                                } else {
-                                                  _snackBarMessengerKey.currentState!.showSnackBar(
-                                                    SnackBar(
-                                                      content: Text('Failed to import profile. Invalid format.'),
-                                                      duration: Duration(seconds: 2),
-                                                      backgroundColor: Colors.red,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            }
-                                          } else if (action == 'export') {
-                                            final currentProfile =
-                                                (actionHandler.supportedApp as CustomApp).profileName;
-                                            final jsonData = settings.exportCustomAppProfile(currentProfile);
-                                            if (jsonData != null) {
-                                              await Clipboard.setData(ClipboardData(text: jsonData));
-                                              if (mounted) {
+                                            actionHandler.supportedApp = customApp;
+                                            await settings.setApp(customApp);
+                                            controller.text = newName;
+                                            setState(() {});
+                                          }
+                                        } else if (action == 'duplicate') {
+                                          _duplicate(currentProfile!);
+                                        } else if (action == 'delete') {
+                                          final confirmed = await _showDeleteConfirmDialog(currentProfile!);
+                                          if (confirmed == true) {
+                                            await settings.deleteCustomAppProfile(currentProfile);
+                                            controller.text = '';
+                                            setState(() {});
+                                          }
+                                        } else if (action == 'import') {
+                                          final jsonData = await _showImportDialog();
+                                          if (jsonData != null && jsonData.isNotEmpty) {
+                                            final success = await settings.importCustomAppProfile(jsonData);
+                                            if (mounted) {
+                                              if (success) {
                                                 _snackBarMessengerKey.currentState!.showSnackBar(
                                                   SnackBar(
-                                                    content: Text('Profile "$currentProfile" exported to clipboard'),
+                                                    content: Text('Profile imported successfully'),
                                                     duration: Duration(seconds: 2),
+                                                  ),
+                                                );
+                                                setState(() {});
+                                              } else {
+                                                _snackBarMessengerKey.currentState!.showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('Failed to import profile. Invalid format.'),
+                                                    duration: Duration(seconds: 2),
+                                                    backgroundColor: Colors.red,
                                                   ),
                                                 );
                                               }
                                             }
                                           }
+                                        } else if (action == 'export') {
+                                          final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
+                                          final jsonData = settings.exportCustomAppProfile(currentProfile);
+                                          if (jsonData != null) {
+                                            await Clipboard.setData(ClipboardData(text: jsonData));
+                                            if (mounted) {
+                                              _snackBarMessengerKey.currentState!.showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Profile "$currentProfile" exported to clipboard'),
+                                                  duration: Duration(seconds: 2),
+                                                ),
+                                              );
+                                            }
+                                          }
                                         }
-                                      },
-                                      icon: Icon(Icons.more_vert),
-                                    ),
+                                      }
+                                    },
+                                    icon: Icon(Icons.more_vert),
+                                  ),
                                 ],
                               ),
                             ],
@@ -432,40 +396,44 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
     );
   }
 
-  Future<String?> _showManageProfileDialog(String currentProfile) async {
+  Future<String?> _showManageProfileDialog(String? currentProfile) async {
     return showDialog<String>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('Manage Profile: $currentProfile'),
+            title: Text('Manage Profile: ${currentProfile ?? ''}'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
-                  leading: Icon(Icons.edit),
-                  title: Text('Rename'),
-                  onTap: () => Navigator.pop(context, 'rename'),
-                ),
-                ListTile(
-                  leading: Icon(Icons.copy),
-                  title: Text('Duplicate'),
-                  onTap: () => Navigator.pop(context, 'duplicate'),
-                ),
+                if (currentProfile != null && actionHandler.supportedApp is CustomApp)
+                  ListTile(
+                    leading: Icon(Icons.edit),
+                    title: Text('Rename'),
+                    onTap: () => Navigator.pop(context, 'rename'),
+                  ),
+                if (currentProfile != null)
+                  ListTile(
+                    leading: Icon(Icons.copy),
+                    title: Text('Duplicate'),
+                    onTap: () => Navigator.pop(context, 'duplicate'),
+                  ),
                 ListTile(
                   leading: Icon(Icons.file_upload),
                   title: Text('Import'),
                   onTap: () => Navigator.pop(context, 'import'),
                 ),
-                ListTile(
-                  leading: Icon(Icons.share),
-                  title: Text('Export'),
-                  onTap: () => Navigator.pop(context, 'export'),
-                ),
-                ListTile(
-                  leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                  title: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                  onTap: () => Navigator.pop(context, 'delete'),
-                ),
+                if (currentProfile != null)
+                  ListTile(
+                    leading: Icon(Icons.share),
+                    title: Text('Export'),
+                    onTap: () => Navigator.pop(context, 'export'),
+                  ),
+                if (currentProfile != null)
+                  ListTile(
+                    leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                    title: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    onTap: () => Navigator.pop(context, 'delete'),
+                  ),
               ],
             ),
             actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel'))],
@@ -569,6 +537,48 @@ ${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''
             ],
           ),
     );
+  }
+
+  Future<void> _duplicate(String currentProfile) async {
+    final newName = await _showDuplicateProfileDialog(currentProfile);
+    if (newName != null && newName.isNotEmpty) {
+      if (actionHandler.supportedApp is CustomApp) {
+        await settings.duplicateCustomAppProfile(currentProfile, newName);
+        final customApp = CustomApp(profileName: newName);
+        final savedKeymap = settings.getCustomAppKeymap(newName);
+        if (savedKeymap != null) {
+          customApp.decodeKeymap(savedKeymap);
+        }
+        actionHandler.supportedApp = customApp;
+        await settings.setApp(customApp);
+        controller.text = newName;
+        setState(() {});
+      } else {
+        final customApp = CustomApp(profileName: newName);
+
+        final connectedDevice = connection.devices.firstOrNull;
+        actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
+          pair.buttons.filter((button) => connectedDevice?.availableButtons.contains(button) == true).forEachIndexed((
+            button,
+            indexB,
+          ) {
+            customApp.setKey(
+              button,
+              physicalKey: pair.physicalKey,
+              logicalKey: pair.logicalKey,
+              isLongPress: pair.isLongPress,
+              touchPosition:
+                  pair.touchPosition != Offset.zero
+                      ? pair.touchPosition
+                      : Offset(((indexB + 1)) * 100, 200 + (index * 100)),
+            );
+          });
+        });
+
+        actionHandler.supportedApp = customApp;
+        await settings.setApp(customApp);
+      }
+    }
   }
 }
 

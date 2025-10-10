@@ -9,9 +9,9 @@ import '../keymap.dart';
 
 class CustomApp extends SupportedApp {
   final String profileName;
-  
-  CustomApp({this.profileName = 'Custom'}) 
-      : super(name: profileName, packageName: "custom_$profileName", keymap: Keymap(keyPairs: []));
+
+  CustomApp({this.profileName = 'Custom'})
+    : super(name: profileName, packageName: "custom_$profileName", keymap: Keymap(keyPairs: []));
 
   @override
   Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
@@ -43,7 +43,7 @@ class CustomApp extends SupportedApp {
 
   void setKey(
     ZwiftButton zwiftButton, {
-    required PhysicalKeyboardKey physicalKey,
+    required PhysicalKeyboardKey? physicalKey,
     required LogicalKeyboardKey? logicalKey,
     bool isLongPress = false,
     Offset? touchPosition,

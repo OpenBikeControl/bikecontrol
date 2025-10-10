@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/zwift_click.dart';
@@ -25,21 +27,10 @@ class RemoteActions extends BaseActions {
       return 'Not connected to a device';
     }
 
-    if (keyPair.physicalKey != null) {
-      return ('Physical key actions are not supported on iOS');
+    if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {
+      return ('Physical key actions are not supported, yet');
     } else {
       final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
-      /*if (isKeyDown && isKeyUp) {
-        await keyPressSimulator.simulateMouseClickDown(point);
-        await keyPressSimulator.simulateMouseClickUp(point);
-        return 'Mouse clicked at: ${point.dx} ${point.dy}';
-      } else if (isKeyDown) {
-        await keyPressSimulator.simulateMouseClickDown(point);
-        return 'Mouse down at: ${point.dx} ${point.dy}';
-      } else {
-        await keyPressSimulator.simulateMouseClickUp(point);
-        return 'Mouse up at: ${point.dx} ${point.dy}';
-      }*/
       final point2 = point; //Offset(100, 99.0);
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
