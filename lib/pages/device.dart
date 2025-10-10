@@ -6,7 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
+import 'package:swift_control/bluetooth/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/loading_widget.dart';
@@ -106,6 +108,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final canVibrate = connection.devices.any(
+      (device) => (device.device.name == 'Zwift Ride' || device.device.name == 'Zwift Play') && device.isConnected,
+    );
+
     return ScaffoldMessenger(
       key: _snackBarMessengerKey,
       child: PopScope(
@@ -121,249 +127,319 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
               ),
               body: SingleChildScrollView(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(top: 16, left: 8.0, right: 8, bottom: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 10,
                   children: [
-                    Text('Connected Devices:', style: Theme.of(context).textTheme.titleMedium),
-
-                    if (connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text('Connected Devices', style: Theme.of(context).textTheme.titleMedium),
+                    ),
+                    Card(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 16.0,
+                          right: 16,
+                          top: 16,
+                          bottom: actionHandler is RemoteActions ? 0 : 12,
                         ),
-                        padding: const EdgeInsets.all(8),
-                        child: Text(
-                          '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
+                        child: Column(
+                          children: [
+                            if (connection.devices.isEmpty)
+                              Text('No devices connected. Go back and connect a device to get started.'),
+                            ...connection.devices.map(
+                              (device) => Row(
+                                children: [
+                                  Text(
+                                    device.device.name?.screenshot ?? device.runtimeType.toString(),
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  if (device.batteryLevel != null) ...[
+                                    Icon(switch (device.batteryLevel!) {
+                                      >= 80 => Icons.battery_full,
+                                      >= 60 => Icons.battery_6_bar,
+                                      >= 50 => Icons.battery_5_bar,
+                                      >= 25 => Icons.battery_4_bar,
+                                      >= 10 => Icons.battery_2_bar,
+                                      _ => Icons.battery_alert,
+                                    }),
+                                    Text('${device.batteryLevel}%'),
+                                    if (device.firmwareVersion != null) Text(' - Firmware: ${device.firmwareVersion}'),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            if (actionHandler is RemoteActions)
+                              Row(
+                                children: [
+                                  Text(
+                                    'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected'}',
+                                  ),
+                                  LoadingWidget(
+                                    futureCallback: () async {
+                                      final requirement = RemoteRequirement();
+                                      await requirement.reconnect();
+                                    },
+                                    renderChild: (isLoading, tap) => TextButton(
+                                      onPressed: tap,
+                                      child: isLoading ? SmallProgressIndicator() : Text('Reconnect'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                            if (connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
+                              Container(
+                                margin: EdgeInsets.only(bottom: 6),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.errorContainer,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
 
 1. Open Zwift app
 2. Log in (subscription not required) and open the device connection screen
 3. Connect your Trainer, then connect the Zwift Click V2
 4. Close the Zwift app again and connect again in SwiftControl''',
+                                    ),
+                                    Row(
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            connection.devices.whereType<ZwiftClickV2>().forEach(
+                                              (device) => device.sendCommand(Opcode.RESET, null),
+                                            );
+                                          },
+                                          child: Text('Reset now'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                                              ),
+                                            );
+                                          },
+                                          child: Text('Troubleshooting'),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                    Text(
-                      connection.devices.joinToString(
-                        separator: '\n',
-                        transform: (it) {
-                          return """${it.device.name?.screenshot ?? it.runtimeType}: ${it.isConnected ? 'Connected' : 'Not connected'}
-${it.batteryLevel != null ? ' - Battery Level: ${it.batteryLevel}%' : ''}
-${it.firmwareVersion != null ? ' - Firmware Version: ${it.firmwareVersion}' : ''}"""
-                              .trim();
-                        },
-                      ),
                     ),
-                    if (actionHandler is RemoteActions)
-                      Row(
-                        children: [
-                          Text(
-                            'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected'}',
-                          ),
-                          LoadingWidget(
-                            futureCallback: () async {
-                              final requirement = RemoteRequirement();
-                              await requirement.reconnect();
-                            },
-                            renderChild: (isLoading, tap) => TextButton(
-                              onPressed: tap,
-                              child: isLoading ? SmallProgressIndicator() : Text('Reconnect'),
-                            ),
-                          ),
-                        ],
+
+                    if (!kIsWeb) ...[
+                      SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text('Customize', style: Theme.of(context).textTheme.titleMedium),
                       ),
-                    Divider(color: Theme.of(context).colorScheme.primary, height: 30),
-                    if (!kIsWeb)
-                      Column(
-                        spacing: 12,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Flex(
+                      Card(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: 16.0,
+                            right: 16,
+                            top: 16,
+                            bottom: canVibrate ? 0 : 12,
+                          ),
+                          child: Column(
+                            spacing: 12,
                             mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: MediaQuery.sizeOf(context).width > 600
-                                ? CrossAxisAlignment.center
-                                : CrossAxisAlignment.start,
-                            direction: MediaQuery.sizeOf(context).width > 600 ? Axis.horizontal : Axis.vertical,
-                            spacing: 8,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              DropdownMenu<SupportedApp?>(
-                                controller: controller,
-                                dropdownMenuEntries: [
-                                  ..._getAllApps().map(
-                                    (app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name),
-                                  ),
-                                  DropdownMenuEntry(
-                                    value: CustomApp(profileName: 'New'),
-                                    label: 'Create new keymap',
-                                    labelWidget: Text('Create new keymap'),
-                                    leadingIcon: Icon(Icons.add),
-                                  ),
-                                ],
-                                label: Text('Select Keymap / app'),
-                                onSelected: (app) async {
-                                  if (app == null) {
-                                    return;
-                                  } else if (app.name == 'New') {
-                                    final profileName = await _showNewProfileDialog();
-                                    if (profileName != null && profileName.isNotEmpty) {
-                                      final customApp = CustomApp(profileName: profileName);
-                                      actionHandler.supportedApp = customApp;
-                                      await settings.setApp(customApp);
-                                      controller.text = profileName;
-                                      setState(() {});
-                                    }
-                                  } else {
-                                    controller.text = app.name ?? '';
-                                    actionHandler.supportedApp = app;
-                                    await settings.setApp(app);
-                                    setState(() {});
-                                    if (app is! CustomApp && !kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
-                                      _snackBarMessengerKey.currentState!.showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Customize the keymap if you experience any issues (e.g. wrong keyboard output)',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                                initialSelection: actionHandler.supportedApp,
-                                hintText: 'Select your Keymap',
-                              ),
-
                               Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                spacing: 8,
                                 children: [
-                                  if (actionHandler.supportedApp != null)
-                                    ElevatedButton.icon(
-                                      onPressed: () async {
-                                        if (actionHandler.supportedApp is! CustomApp) {
-                                          await _duplicate(actionHandler.supportedApp!.name);
-                                        }
-                                        final result = await Navigator.of(
-                                          context,
-                                        ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
-
-                                        if (result == true && actionHandler.supportedApp is CustomApp) {
-                                          await settings.setApp(actionHandler.supportedApp!);
-                                        }
-                                        setState(() {});
-                                      },
-                                      icon: Icon(Icons.edit),
-                                      label: Text('Customize'),
-                                    ),
-
-                                  IconButton(
-                                    onPressed: () async {
-                                      final currentProfile = actionHandler.supportedApp?.name;
-                                      final action = await _showManageProfileDialog(currentProfile);
-                                      if (action != null) {
-                                        if (action == 'rename') {
-                                          final newName = await _showRenameProfileDialog(currentProfile!);
-                                          if (newName != null && newName.isNotEmpty && newName != currentProfile) {
-                                            await settings.duplicateCustomAppProfile(currentProfile, newName);
-                                            await settings.deleteCustomAppProfile(currentProfile);
-                                            final customApp = CustomApp(profileName: newName);
-                                            final savedKeymap = settings.getCustomAppKeymap(newName);
-                                            if (savedKeymap != null) {
-                                              customApp.decodeKeymap(savedKeymap);
-                                            }
+                                  Expanded(
+                                    child: DropdownMenu<SupportedApp?>(
+                                      controller: controller,
+                                      dropdownMenuEntries: [
+                                        ..._getAllApps().map(
+                                          (app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name),
+                                        ),
+                                        DropdownMenuEntry(
+                                          value: CustomApp(profileName: 'New'),
+                                          label: 'Create new keymap',
+                                          labelWidget: Text('Create new keymap'),
+                                          leadingIcon: Icon(Icons.add),
+                                        ),
+                                      ],
+                                      label: Text('Select Keymap / app'),
+                                      onSelected: (app) async {
+                                        if (app == null) {
+                                          return;
+                                        } else if (app.name == 'New') {
+                                          final profileName = await _showNewProfileDialog();
+                                          if (profileName != null && profileName.isNotEmpty) {
+                                            final customApp = CustomApp(profileName: profileName);
                                             actionHandler.supportedApp = customApp;
                                             await settings.setApp(customApp);
-                                            controller.text = newName;
+                                            controller.text = profileName;
                                             setState(() {});
                                           }
-                                        } else if (action == 'duplicate') {
-                                          _duplicate(currentProfile!);
-                                        } else if (action == 'delete') {
-                                          final confirmed = await _showDeleteConfirmDialog(currentProfile!);
-                                          if (confirmed == true) {
-                                            await settings.deleteCustomAppProfile(currentProfile);
-                                            controller.text = '';
-                                            setState(() {});
+                                        } else {
+                                          controller.text = app.name ?? '';
+                                          actionHandler.supportedApp = app;
+                                          await settings.setApp(app);
+                                          setState(() {});
+                                          if (app is! CustomApp &&
+                                              !kIsWeb &&
+                                              (Platform.isMacOS || Platform.isWindows)) {
+                                            _snackBarMessengerKey.currentState!.showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Customize the keymap if you experience any issues (e.g. wrong keyboard output)',
+                                                ),
+                                              ),
+                                            );
                                           }
-                                        } else if (action == 'import') {
-                                          final jsonData = await _showImportDialog();
-                                          if (jsonData != null && jsonData.isNotEmpty) {
-                                            final success = await settings.importCustomAppProfile(jsonData);
-                                            if (mounted) {
-                                              if (success) {
-                                                _snackBarMessengerKey.currentState!.showSnackBar(
-                                                  SnackBar(
-                                                    content: Text('Profile imported successfully'),
-                                                    duration: Duration(seconds: 5),
-                                                  ),
-                                                );
+                                        }
+                                      },
+                                      initialSelection: actionHandler.supportedApp,
+                                      hintText: 'Select your Keymap',
+                                    ),
+                                  ),
+
+                                  Row(
+                                    children: [
+                                      if (actionHandler.supportedApp != null)
+                                        ElevatedButton.icon(
+                                          onPressed: () async {
+                                            if (actionHandler.supportedApp is! CustomApp) {
+                                              await _duplicate(actionHandler.supportedApp!.name);
+                                            }
+                                            final result = await Navigator.of(
+                                              context,
+                                            ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
+
+                                            if (result == true && actionHandler.supportedApp is CustomApp) {
+                                              await settings.setApp(actionHandler.supportedApp!);
+                                            }
+                                            setState(() {});
+                                          },
+                                          icon: Icon(Icons.edit),
+                                          label: Text('Edit'),
+                                        ),
+
+                                      IconButton(
+                                        onPressed: () async {
+                                          final currentProfile = actionHandler.supportedApp?.name;
+                                          final action = await _showManageProfileDialog(currentProfile);
+                                          if (action != null) {
+                                            if (action == 'rename') {
+                                              final newName = await _showRenameProfileDialog(currentProfile!);
+                                              if (newName != null && newName.isNotEmpty && newName != currentProfile) {
+                                                await settings.duplicateCustomAppProfile(currentProfile, newName);
+                                                await settings.deleteCustomAppProfile(currentProfile);
+                                                final customApp = CustomApp(profileName: newName);
+                                                final savedKeymap = settings.getCustomAppKeymap(newName);
+                                                if (savedKeymap != null) {
+                                                  customApp.decodeKeymap(savedKeymap);
+                                                }
+                                                actionHandler.supportedApp = customApp;
+                                                await settings.setApp(customApp);
+                                                controller.text = newName;
                                                 setState(() {});
-                                              } else {
-                                                _snackBarMessengerKey.currentState!.showSnackBar(
-                                                  SnackBar(
-                                                    content: Text('Failed to import profile. Invalid format.'),
-                                                    duration: Duration(seconds: 5),
-                                                    backgroundColor: Colors.red,
-                                                  ),
-                                                );
+                                              }
+                                            } else if (action == 'duplicate') {
+                                              _duplicate(currentProfile!);
+                                            } else if (action == 'delete') {
+                                              final confirmed = await _showDeleteConfirmDialog(currentProfile!);
+                                              if (confirmed == true) {
+                                                await settings.deleteCustomAppProfile(currentProfile);
+                                                controller.text = '';
+                                                setState(() {});
+                                              }
+                                            } else if (action == 'import') {
+                                              final jsonData = await _showImportDialog();
+                                              if (jsonData != null && jsonData.isNotEmpty) {
+                                                final success = await settings.importCustomAppProfile(jsonData);
+                                                if (mounted) {
+                                                  if (success) {
+                                                    _snackBarMessengerKey.currentState!.showSnackBar(
+                                                      SnackBar(
+                                                        content: Text('Profile imported successfully'),
+                                                        duration: Duration(seconds: 5),
+                                                      ),
+                                                    );
+                                                    setState(() {});
+                                                  } else {
+                                                    _snackBarMessengerKey.currentState!.showSnackBar(
+                                                      SnackBar(
+                                                        content: Text('Failed to import profile. Invalid format.'),
+                                                        duration: Duration(seconds: 5),
+                                                        backgroundColor: Colors.red,
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                              }
+                                            } else if (action == 'export') {
+                                              final currentProfile =
+                                                  (actionHandler.supportedApp as CustomApp).profileName;
+                                              final jsonData = settings.exportCustomAppProfile(currentProfile);
+                                              if (jsonData != null) {
+                                                await Clipboard.setData(ClipboardData(text: jsonData));
+                                                if (mounted) {
+                                                  _snackBarMessengerKey.currentState!.showSnackBar(
+                                                    SnackBar(
+                                                      content: Text('Profile "$currentProfile" exported to clipboard'),
+                                                      duration: Duration(seconds: 5),
+                                                    ),
+                                                  );
+                                                }
                                               }
                                             }
                                           }
-                                        } else if (action == 'export') {
-                                          final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
-                                          final jsonData = settings.exportCustomAppProfile(currentProfile);
-                                          if (jsonData != null) {
-                                            await Clipboard.setData(ClipboardData(text: jsonData));
-                                            if (mounted) {
-                                              _snackBarMessengerKey.currentState!.showSnackBar(
-                                                SnackBar(
-                                                  content: Text('Profile "$currentProfile" exported to clipboard'),
-                                                  duration: Duration(seconds: 5),
-                                                ),
-                                              );
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    icon: Icon(Icons.more_vert),
+                                        },
+                                        icon: Icon(Icons.more_vert),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
+                              if (actionHandler.supportedApp != null)
+                                KeymapExplanation(
+                                  key: Key(actionHandler.supportedApp!.keymap.runtimeType.toString()),
+                                  keymap: actionHandler.supportedApp!.keymap,
+                                  onUpdate: () {
+                                    setState(() {});
+                                    controller.text = actionHandler.supportedApp?.name ?? '';
+                                  },
+                                ),
+                              if (canVibrate) ...[
+                                SwitchListTile(
+                                  title: Text('Enable vibration feedback when shifting gears'),
+                                  value: settings.getVibrationEnabled(),
+                                  contentPadding: EdgeInsets.zero,
+                                  onChanged: (value) async {
+                                    await settings.setVibrationEnabled(value);
+                                    setState(() {});
+                                  },
+                                ),
+                              ],
                             ],
                           ),
-                          if (actionHandler.supportedApp != null)
-                            KeymapExplanation(
-                              key: Key(actionHandler.supportedApp!.keymap.runtimeType.toString()),
-                              keymap: actionHandler.supportedApp!.keymap,
-                              onUpdate: () {
-                                setState(() {});
-                                controller.text = actionHandler.supportedApp?.name ?? '';
-                              },
-                            ),
-                          if (connection.devices.any(
-                            (device) =>
-                                (device.device.name == 'Zwift Ride' || device.device.name == 'Zwift Play') &&
-                                device.isConnected,
-                          ))
-                            SwitchListTile(
-                              title: Text('Vibration on Shift'),
-                              subtitle: Text('Enable vibration feedback when shifting gears'),
-                              value: settings.getVibrationEnabled(),
-                              onChanged: (value) async {
-                                await settings.setVibrationEnabled(value);
-                                setState(() {});
-                              },
-                            ),
-                          if (kDebugMode &&
-                              connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
-                            ElevatedButton(
-                              onPressed: () {
-                                (connection.devices.first as ZwiftClickV2).test();
-                              },
-                              child: Text('Test'),
-                            ),
-                        ],
+                        ),
                       ),
+                    ],
+                    SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text('Logs', style: Theme.of(context).textTheme.titleMedium),
+                    ),
                     LogViewer(),
                   ],
                 ),

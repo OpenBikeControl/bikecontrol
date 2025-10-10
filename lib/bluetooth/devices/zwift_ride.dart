@@ -5,7 +5,6 @@ import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
-import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -90,9 +89,7 @@ class ZwiftRide extends BaseDevice {
           'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day. Resetting the device now.',
         ),
       );
-      if (!kDebugMode) {
-        sendCommand(Opcode.RESET, null);
-      }
+      sendCommand(Opcode.RESET, null);
     }
 
     switch (opcode) {
@@ -250,5 +247,4 @@ class ZwiftRide extends BaseDevice {
       withoutResponse: true,
     );
   }
-
 }

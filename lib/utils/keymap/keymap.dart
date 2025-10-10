@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+
+import '../actions/base_actions.dart';
 
 class Keymap {
   static Keymap custom = Keymap(keyPairs: []);
@@ -16,9 +19,8 @@ class Keymap {
   String toString() {
     return keyPairs.joinToString(
       separator: ('\n---------\n'),
-      transform:
-          (k) =>
-              '''Button: ${k.buttons.joinToString(transform: (e) => e.name)}\nKeyboard key: ${k.logicalKey?.keyLabel ?? 'Not assigned'}\nAction: ${k.buttons.firstOrNull?.action}${k.touchPosition != Offset.zero ? '\nTouch Position: ${k.touchPosition.toString()}' : ''}${k.isLongPress ? '\nLong Press: Enabled' : ''}''',
+      transform: (k) =>
+          '''Button: ${k.buttons.joinToString(transform: (e) => e.name)}\nKeyboard key: ${k.logicalKey?.keyLabel ?? 'Not assigned'}\nAction: ${k.buttons.firstOrNull?.action}${k.touchPosition != Offset.zero ? '\nTouch Position: ${k.touchPosition.toString()}' : ''}${k.isLongPress ? '\nLong Press: Enabled' : ''}''',
     );
   }
 
@@ -60,15 +62,20 @@ class KeyPair {
       physicalKey == PhysicalKeyboardKey.audioVolumeUp ||
       physicalKey == PhysicalKeyboardKey.audioVolumeDown;
 
-  IconData get icon => switch (physicalKey) {
-    PhysicalKeyboardKey.mediaPlayPause ||
-    PhysicalKeyboardKey.mediaStop ||
-    PhysicalKeyboardKey.mediaTrackPrevious ||
-    PhysicalKeyboardKey.mediaTrackNext ||
-    PhysicalKeyboardKey.audioVolumeUp ||
-    PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
-    _ => physicalKey != null ? Icons.keyboard : Icons.touch_app,
-  };
+  IconData get icon {
+    return switch (physicalKey) {
+      PhysicalKeyboardKey.mediaPlayPause ||
+      PhysicalKeyboardKey.mediaStop ||
+      PhysicalKeyboardKey.mediaTrackPrevious ||
+      PhysicalKeyboardKey.mediaTrackNext ||
+      PhysicalKeyboardKey.audioVolumeUp ||
+      PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
+      _ =>
+        physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard)
+            ? Icons.keyboard
+            : Icons.touch_app,
+    };
+  }
 
   @override
   String toString() {
@@ -101,27 +108,23 @@ class KeyPair {
     final decoded = jsonDecode(data);
 
     // Support both percentage-based (new) and pixel-based (old) formats for backward compatibility
-    final Offset touchPosition =
-        decoded.containsKey('touchPosition')
-            ? Offset(
-              (decoded['touchPosition']['x'] as num).toDouble(),
-              (decoded['touchPosition']['y'] as num).toDouble(),
-            )
-            : Offset.zero;
+    final Offset touchPosition = decoded.containsKey('touchPosition')
+        ? Offset(
+            (decoded['touchPosition']['x'] as num).toDouble(),
+            (decoded['touchPosition']['y'] as num).toDouble(),
+          )
+        : Offset.zero;
 
     return KeyPair(
-      buttons:
-          decoded['actions']
-              .map<ZwiftButton>((e) => ZwiftButton.values.firstWhere((element) => element.name == e))
-              .toList(),
-      logicalKey:
-          decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
-              ? LogicalKeyboardKey(int.parse(decoded['logicalKey']))
-              : null,
-      physicalKey:
-          decoded.containsKey('physicalKey') && int.parse(decoded['physicalKey']) != 0
-              ? PhysicalKeyboardKey(int.parse(decoded['physicalKey']))
-              : null,
+      buttons: decoded['actions']
+          .map<ZwiftButton>((e) => ZwiftButton.values.firstWhere((element) => element.name == e))
+          .toList(),
+      logicalKey: decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
+          ? LogicalKeyboardKey(int.parse(decoded['logicalKey']))
+          : null,
+      physicalKey: decoded.containsKey('physicalKey') && int.parse(decoded['physicalKey']) != 0
+          ? PhysicalKeyboardKey(int.parse(decoded['physicalKey']))
+          : null,
       touchPosition: touchPosition,
       isLongPress: decoded['isLongPress'] ?? false,
     );

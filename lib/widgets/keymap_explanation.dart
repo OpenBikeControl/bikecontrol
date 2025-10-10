@@ -2,11 +2,11 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
 import '../pages/touch_area.dart';
+import '../utils/actions/base_actions.dart';
 
 class KeymapExplanation extends StatelessWidget {
   final Keymap keymap;
@@ -17,17 +17,19 @@ class KeymapExplanation extends StatelessWidget {
   Widget build(BuildContext context) {
     final connectedDevice = connection.devices.firstOrNull;
 
-    final isTouchOnlyActions = actionHandler is AndroidActions || actionHandler is RemoteActions;
-
     final availableKeypairs = keymap.keyPairs.filter(
       (e) => connectedDevice?.availableButtons.containsAny(e.buttons) == true,
     );
 
     final keyboardGroups = availableKeypairs
-        .filter((e) => e.physicalKey != null && !isTouchOnlyActions)
+        .filter((e) => e.physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard))
         .groupBy((element) => '${element.physicalKey?.usbHidUsage}-${element.isLongPress}');
     final touchGroups = availableKeypairs
-        .filter((e) => (e.physicalKey == null || isTouchOnlyActions) && e.touchPosition != Offset.zero)
+        .filter(
+          (e) =>
+              (e.physicalKey == null || !actionHandler.supportedModes.contains(SupportedMode.keyboard)) &&
+              e.touchPosition != Offset.zero,
+        )
         .groupBy((element) => '${element.touchPosition.dx}-${element.touchPosition.dy}-${element.isLongPress}');
 
     return Column(
@@ -39,14 +41,22 @@ class KeymapExplanation extends StatelessWidget {
           Text('No key mappings found. Please customize the keymap.')
         else
           Table(
-            border: TableBorder.all(color: Theme.of(context).colorScheme.primaryContainer),
+            border: TableBorder.symmetric(
+              borderRadius: BorderRadius.circular(9),
+              inside: BorderSide(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              outside: BorderSide(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+            ),
             children: [
               TableRow(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(6),
                     child: Text(
-                      'Button on your ${connectedDevice?.device.name?.screenshot ?? connectedDevice?.runtimeType}',
+                      'Button on your ${connectedDevice?.device.name?.screenshot ?? connectedDevice?.runtimeType ?? 'device'}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -71,13 +81,13 @@ class KeymapExplanation extends StatelessWidget {
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
                               if (connectedDevice?.availableButtons.contains(button) == true)
-                                IntrinsicWidth(child: KeyWidget(label: button.name)),
+                                IntrinsicWidth(child: ButtonWidget(button: button)),
                         ],
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: KeypairExplanation(keyPair: pair.value.first, isTouchOnly: isTouchOnlyActions),
+                      child: KeypairExplanation(keyPair: pair.value.first),
                     ),
                   ],
                 ),
@@ -94,13 +104,13 @@ class KeymapExplanation extends StatelessWidget {
                           for (final keyPair in pair.value)
                             for (final button in keyPair.buttons)
                               if (connectedDevice?.availableButtons.contains(button) == true)
-                                KeyWidget(label: button.name),
+                                ButtonWidget(button: button),
                         ],
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: KeypairExplanation(keyPair: pair.value.first, isTouchOnly: isTouchOnlyActions),
+                      child: KeypairExplanation(keyPair: pair.value.first),
                     ),
                   ],
                 ),
@@ -136,6 +146,44 @@ class KeyWidget extends StatelessWidget {
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ButtonWidget extends StatelessWidget {
+  final ZwiftButton button;
+  const ButtonWidget({super.key, required this.button});
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicWidth(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        constraints: BoxConstraints(minWidth: 30),
+        decoration: BoxDecoration(
+          border: Border.all(color: button.color != null ? Colors.black : Theme.of(context).colorScheme.primary),
+          shape: button.color != null || button.icon != null ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: button.color != null || button.icon != null ? null : BorderRadius.circular(4),
+          color: button.color ?? Theme.of(context).colorScheme.primaryContainer,
+        ),
+        child: Center(
+          child: button.icon != null
+              ? Icon(
+                  button.icon,
+                  color: Colors.white,
+                  size: 14,
+                )
+              : Text(
+                  button.name.splitByUpperCase(),
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    fontWeight: button.color != null ? FontWeight.bold : null,
+                    color: button.color != null ? Colors.white : Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
         ),
       ),
     );

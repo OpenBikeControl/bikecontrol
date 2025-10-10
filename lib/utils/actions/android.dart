@@ -12,6 +12,8 @@ import '../single_line_exception.dart';
 class AndroidActions extends BaseActions {
   WindowEvent? windowInfo;
 
+  AndroidActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.media]});
+
   @override
   void init(SupportedApp? supportedApp) {
     super.init(supportedApp);
@@ -41,7 +43,7 @@ class AndroidActions extends BaseActions {
         return "Key pressed: ${keyPair.toString()}";
       }
     }
-    final point = supportedApp!.resolveTouchPosition(action: button, windowInfo: windowInfo);
+    final point = resolveTouchPosition(action: button, windowInfo: windowInfo);
     if (point != Offset.zero) {
       accessibilityHandler.performTouch(point.dx, point.dy, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
       return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()} -> ${isKeyDown && isKeyUp

@@ -2,15 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
@@ -20,6 +17,7 @@ import '../bluetooth/messages/click_notification.dart';
 import '../bluetooth/messages/notification.dart';
 import '../bluetooth/messages/play_notification.dart';
 import '../bluetooth/messages/ride_notification.dart';
+import '../utils/actions/base_actions.dart';
 import '../utils/keymap/apps/custom_app.dart';
 import '../utils/keymap/buttons.dart';
 import '../utils/keymap/keymap.dart';
@@ -160,7 +158,6 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     final relativeY = min(100.0, keyPair.touchPosition.dy) / 100.0;
     //print('Relative position: $relativeX, $relativeY');
     final flutterView = WidgetsBinding.instance.platformDispatcher.views.first;
-    final isTouchOnly = actionHandler is RemoteActions || actionHandler is AndroidActions;
 
     // figure out notch height for e.g. macOS. On Windows the display size is not available (0,0).
     final differenceInHeight = (flutterView.display.size.height > 0 && !Platform.isIOS)
@@ -196,7 +193,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
         width: iconSize,
         height: iconSize,
         child: Icon(
-          isTouchOnly ? Icons.touch_app_outlined : keyPair.icon,
+          keyPair.icon,
           size: iconSize - 12,
           shadows: [
             Shadow(color: Colors.white, offset: Offset(1, 1)),
@@ -210,31 +207,33 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       PopupMenuButton<PhysicalKeyboardKey>(
         enabled: enableTouch,
         itemBuilder: (context) => [
-          PopupMenuItem<PhysicalKeyboardKey>(
-            value: null,
-            child: ListTile(
-              leading: Icon(Icons.keyboard_alt_outlined),
-              title: const Text('Simulate Keyboard shortcut'),
+          if (actionHandler.supportedModes.contains(SupportedMode.keyboard))
+            PopupMenuItem<PhysicalKeyboardKey>(
+              value: null,
+              child: ListTile(
+                leading: Icon(Icons.keyboard_alt_outlined),
+                title: const Text('Simulate Keyboard shortcut'),
+              ),
+              onTap: () async {
+                await showDialog<void>(
+                  context: context,
+                  barrierDismissible: false, // enable Escape key
+                  builder: (c) =>
+                      HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
+                );
+                setState(() {});
+              },
             ),
-            onTap: () async {
-              await showDialog<void>(
-                context: context,
-                barrierDismissible: false, // enable Escape key
-                builder: (c) =>
-                    HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
-              );
-              setState(() {});
-            },
-          ),
-          PopupMenuItem<PhysicalKeyboardKey>(
-            value: null,
-            child: ListTile(title: const Text('Simulate Touch'), leading: Icon(Icons.touch_app_outlined)),
-            onTap: () {
-              keyPair.physicalKey = null;
-              keyPair.logicalKey = null;
-              setState(() {});
-            },
-          ),
+          if (actionHandler.supportedModes.contains(SupportedMode.touch))
+            PopupMenuItem<PhysicalKeyboardKey>(
+              value: null,
+              child: ListTile(title: const Text('Simulate Touch'), leading: Icon(Icons.touch_app_outlined)),
+              onTap: () {
+                keyPair.physicalKey = null;
+                keyPair.logicalKey = null;
+                setState(() {});
+              },
+            ),
           PopupMenuItem<PhysicalKeyboardKey>(
             value: null,
             onTap: () {
@@ -251,49 +250,50 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               title: const Text('Long Press Mode (vs. repeating)'),
             ),
           ),
-          PopupMenuDivider(),
-          PopupMenuItem(
-            child: PopupMenuButton<PhysicalKeyboardKey>(
-              padding: EdgeInsets.zero,
-              itemBuilder: (context) => [
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: PhysicalKeyboardKey.mediaPlayPause,
-                  child: const Text('Media: Play/Pause'),
-                ),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: PhysicalKeyboardKey.mediaStop,
-                  child: const Text('Media: Stop'),
-                ),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: PhysicalKeyboardKey.mediaTrackPrevious,
-                  child: const Text('Media: Previous'),
-                ),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: PhysicalKeyboardKey.mediaTrackNext,
-                  child: const Text('Media: Next'),
-                ),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: PhysicalKeyboardKey.audioVolumeUp,
-                  child: const Text('Media: Volume Up'),
-                ),
-                PopupMenuItem<PhysicalKeyboardKey>(
-                  value: PhysicalKeyboardKey.audioVolumeDown,
-                  child: const Text('Media: Volume Down'),
-                ),
-              ],
-              onSelected: (key) {
-                keyPair.physicalKey = key;
-                keyPair.logicalKey = null;
+          if (actionHandler.supportedModes.contains(SupportedMode.media)) PopupMenuDivider(),
+          if (actionHandler.supportedModes.contains(SupportedMode.media))
+            PopupMenuItem(
+              child: PopupMenuButton<PhysicalKeyboardKey>(
+                padding: EdgeInsets.zero,
+                itemBuilder: (context) => [
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: PhysicalKeyboardKey.mediaPlayPause,
+                    child: const Text('Media: Play/Pause'),
+                  ),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: PhysicalKeyboardKey.mediaStop,
+                    child: const Text('Media: Stop'),
+                  ),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: PhysicalKeyboardKey.mediaTrackPrevious,
+                    child: const Text('Media: Previous'),
+                  ),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: PhysicalKeyboardKey.mediaTrackNext,
+                    child: const Text('Media: Next'),
+                  ),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: PhysicalKeyboardKey.audioVolumeUp,
+                    child: const Text('Media: Volume Up'),
+                  ),
+                  PopupMenuItem<PhysicalKeyboardKey>(
+                    value: PhysicalKeyboardKey.audioVolumeDown,
+                    child: const Text('Media: Volume Down'),
+                  ),
+                ],
+                onSelected: (key) {
+                  keyPair.physicalKey = key;
+                  keyPair.logicalKey = null;
 
-                setState(() {});
-              },
-              child: ListTile(
-                leading: Icon(Icons.music_note_outlined),
-                trailing: Icon(Icons.arrow_right),
-                title: Text('Simulate Media key'),
+                  setState(() {});
+                },
+                child: ListTile(
+                  leading: Icon(Icons.music_note_outlined),
+                  trailing: Icon(Icons.arrow_right),
+                  title: Text('Simulate Media key'),
+                ),
               ),
             ),
-          ),
           PopupMenuDivider(),
           PopupMenuItem<PhysicalKeyboardKey>(
             value: null,
@@ -314,7 +314,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
         },
         child: Row(
           children: [
-            KeypairExplanation(withKey: true, keyPair: keyPair, isTouchOnly: isTouchOnly),
+            KeypairExplanation(withKey: true, keyPair: keyPair),
             Icon(Icons.more_vert),
           ],
         ),
@@ -338,7 +338,10 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             final RenderBox renderObject = context.findRenderObject() as RenderBox;
             return renderObject.globalToLocal(position).scale(scale, scale);
           },
-          feedback: Material(color: Colors.transparent, child: icon),
+          feedback: Material(
+            color: Colors.transparent,
+            child: icon,
+          ),
           childWhenDragging: const SizedBox.shrink(),
           onDragEnd: (details) {
             // otherwise simulated touch will move it
@@ -473,10 +476,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
 
 class KeypairExplanation extends StatelessWidget {
   final bool withKey;
-  final bool isTouchOnly;
   final KeyPair keyPair;
 
-  const KeypairExplanation({super.key, required this.keyPair, this.withKey = false, required this.isTouchOnly});
+  const KeypairExplanation({super.key, required this.keyPair, this.withKey = false});
 
   @override
   Widget build(BuildContext context) {
@@ -485,12 +487,12 @@ class KeypairExplanation extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (withKey)
-          KeyWidget(
-            label: keyPair.buttons.joinToString(transform: (e) => e.name, separator: '\n'),
+          Row(
+            children: keyPair.buttons.map((b) => ButtonWidget(button: b)).toList(),
           )
         else
-          Icon(isTouchOnly ? Icons.touch_app : keyPair.icon),
-        if (keyPair.physicalKey != null && !isTouchOnly) ...[
+          Icon(keyPair.icon),
+        if (keyPair.physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
           KeyWidget(
             label: switch (keyPair.physicalKey) {
               PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
@@ -502,11 +504,11 @@ class KeypairExplanation extends StatelessWidget {
               _ => keyPair.logicalKey?.keyLabel ?? 'Unknown',
             },
           ),
-          if (keyPair.isLongPress) Text('long'),
+          if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
         ] else ...[
           if (!withKey)
             KeyWidget(label: 'X: ${keyPair.touchPosition.dx.toInt()}, Y: ${keyPair.touchPosition.dy.toInt()}'),
-          if (keyPair.isLongPress) Text('long'),
+          if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
         ],
       ],
     );
