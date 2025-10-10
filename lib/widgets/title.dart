@@ -39,12 +39,14 @@ class _AppTitleState extends State<AppTitle> {
           final apkUrl = assets.firstOrNullWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];
           return apkUrl;
         } else if (Platform.isMacOS) {
-          final dmgUrl =
-              assets.firstOrNullWhere((asset) => asset['name'].endsWith('.macos.zip'))['browser_download_url'];
+          final dmgUrl = assets.firstOrNullWhere(
+            (asset) => asset['name'].endsWith('.macos.zip'),
+          )['browser_download_url'];
           return dmgUrl;
         } else if (Platform.isWindows) {
-          final appImageUrl =
-              assets.firstOrNullWhere((asset) => asset['name'].endsWith('.windows.zip'))['browser_download_url'];
+          final appImageUrl = assets.firstOrNullWhere(
+            (asset) => asset['name'].endsWith('.windows.zip'),
+          )['browser_download_url'];
           return appImageUrl;
         }
       }
@@ -115,7 +117,7 @@ class _AppTitleState extends State<AppTitle> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('SwiftControl'),
+        Text('SwiftControl', style: TextStyle(fontWeight: FontWeight.bold)),
         if (_packageInfoValue != null)
           Text(
             'v${_packageInfoValue!.version}',

@@ -29,12 +29,14 @@ class _LogviewerState extends State<LogViewer> {
           _actions.add((date: DateTime.now(), entry: data.toString()));
           _actions = _actions.takeLast(60).toList();
         });
-        // scroll to the bottom
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 60),
-          curve: Curves.easeInOut,
-        );
+        if (_scrollController.hasClients) {
+          // scroll to the bottom
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 60),
+            curve: Curves.easeInOut,
+          );
+        }
       }
     });
   }
@@ -48,48 +50,56 @@ class _LogviewerState extends State<LogViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return SelectionArea(
-      child: GestureDetector(
-        onLongPress: () {
-          setState(() {
-            _actions = [];
-          });
-        },
-        child: ListView(
-          physics: const NeverScrollableScrollPhysics(),
-          controller: _scrollController,
-          shrinkWrap: true,
-          reverse: true,
-          children:
-              _actions
-                  .map(
-                    (action) => Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: action.date.toString().split(" ").last,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                              fontFamily: "monospace",
-                              fontFamilyFallback: <String>["Courier"],
+    return _actions.isEmpty
+        ? Container()
+        : SafeArea(
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: SelectionArea(
+                  child: GestureDetector(
+                    onLongPress: () {
+                      setState(() {
+                        _actions = [];
+                      });
+                    },
+                    child: ListView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller: _scrollController,
+                      shrinkWrap: true,
+                      reverse: true,
+                      children: _actions
+                          .map(
+                            (action) => Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: action.date.toString().split(" ").last,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFeatures: [FontFeature.tabularFigures()],
+                                      fontFamily: "monospace",
+                                      fontFamilyFallback: <String>["Courier"],
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: "  ${action.entry}",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFeatures: [FontFeature.tabularFigures()],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          TextSpan(
-                            text: "  ${action.entry}",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                          )
+                          .toList(),
                     ),
-                  )
-                  .toList(),
-        ),
-      ),
-    );
+                  ),
+                ),
+              ),
+            ),
+          );
   }
 }

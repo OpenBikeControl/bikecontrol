@@ -1,4 +1,3 @@
-import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
@@ -41,9 +40,4 @@ class Biketerra extends SupportedApp {
           ],
         ),
       );
-}
-
-extension WindowSize on WindowEvent {
-  int get width => right - left;
-  int get height => bottom - top;
 }

@@ -23,7 +23,10 @@ class ChangelogDialog extends StatelessWidget {
           ),
         ],
       ),
-      content: Container(constraints: BoxConstraints(minWidth: 460), child: MarkdownWidget(markdown: latestVersion)),
+      content: Container(
+        constraints: BoxConstraints(minWidth: 460),
+        child: MarkdownWidget(markdown: latestVersion),
+      ),
       actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Got it!'))],
     );
   }
@@ -35,7 +38,11 @@ class ChangelogDialog extends StatelessWidget {
         final entry = await rootBundle.loadString('CHANGELOG.md');
         if (context.mounted) {
           final markdown = Markdown.fromString(entry);
-          showDialog(context: context, builder: (context) => ChangelogDialog(entry: markdown));
+          showDialog(
+            context: context,
+            useRootNavigator: true,
+            builder: (context) => ChangelogDialog(entry: markdown),
+          );
         }
       } catch (e) {
         print('Failed to load changelog for dialog: $e');

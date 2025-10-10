@@ -92,53 +92,47 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: buildMenuButtons(),
       ),
-      body:
-          _requirements.isEmpty
-              ? Center(child: CircularProgressIndicator())
-              : Column(
-                spacing: 8,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
-                    child: Text(
-                      'Please complete the following requirements to make the app work correctly:',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  SwitchListTile.adaptive(
-                    value: _local,
-                    title: Text('Trainer app is running on this device'),
-                    subtitle: Text('Turn off if you want to control another device, e.g. your tablet'),
-                    onChanged: (local) {
-                      if (kIsWeb || Platform.isIOS) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('This platform only supports controlling trainer apps on other devices'),
-                          ),
-                        );
-                      } else {
-                        initializeActions(local);
-                        setState(() {
-                          _local = local;
-                          _reloadRequirements();
-                        });
-                      }
-                    },
-                  ),
-                  Expanded(
+      body: _requirements.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                SwitchListTile.adaptive(
+                  value: _local,
+                  title: Text('Trainer app is running on this device'),
+                  subtitle: Text('Turn off if you want to control another device, e.g. your tablet'),
+                  onChanged: (local) {
+                    if (kIsWeb || Platform.isIOS) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('This platform only supports controlling trainer apps on other devices'),
+                        ),
+                      );
+                    } else {
+                      initializeActions(local);
+                      setState(() {
+                        _local = local;
+                        _reloadRequirements();
+                      });
+                    }
+                  },
+                ),
+                Expanded(
+                  child: Card(
+                    margin: EdgeInsets.symmetric(horizontal: 16),
                     child: Stepper(
                       currentStep: _currentStep,
                       connectorColor: WidgetStateProperty.resolveWith<Color>(
                         (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
                       ),
-                      onStepContinue:
-                          _currentStep < _requirements.length
-                              ? () {
-                                setState(() {
-                                  _currentStep += 1;
-                                });
-                              }
-                              : null,
+                      onStepContinue: _currentStep < _requirements.length
+                          ? () {
+                              setState(() {
+                                _currentStep += 1;
+                              });
+                            }
+                          : null,
                       onStepTapped: (step) {
                         if (_requirements[step].status) {
                           return;
@@ -152,46 +146,38 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                         });
                       },
                       controlsBuilder: (context, details) => Container(),
-                      steps:
-                          _requirements
-                              .mapIndexed(
-                                (index, req) => Step(
-                                  title: Text(req.name),
-                                  content: Container(
-                                    padding: const EdgeInsets.only(top: 16.0),
-                                    alignment: Alignment.centerLeft,
-                                    child:
-                                        (index == _currentStep
-                                            ? req.build(context, () {
+                      steps: _requirements
+                          .mapIndexed(
+                            (index, req) => Step(
+                              title: Text(req.name, style: TextStyle(fontWeight: FontWeight.w600)),
+                              subtitle: req.description != null ? Text(req.description!) : null,
+                              content: Container(
+                                padding: const EdgeInsets.only(top: 16.0),
+                                alignment: Alignment.centerLeft,
+                                child:
+                                    (index == _currentStep
+                                        ? req.build(context, () {
+                                            _reloadRequirements();
+                                          })
+                                        : null) ??
+                                    ElevatedButton(
+                                      onPressed: req.status
+                                          ? null
+                                          : () => _callRequirement(req, context, () {
                                               _reloadRequirements();
-                                            })
-                                            : null) ??
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          spacing: 16,
-                                          children: [
-                                            if (req.description != null)
-                                              Text(req.description!, style: TextStyle(fontSize: 16)),
-                                            ElevatedButton(
-                                              onPressed:
-                                                  req.status
-                                                      ? null
-                                                      : () => _callRequirement(req, context, () {
-                                                        _reloadRequirements();
-                                                      }),
-                                              child: Text(req.name),
-                                            ),
-                                          ],
-                                        ),
-                                  ),
-                                  state: req.status ? StepState.complete : StepState.indexed,
-                                ),
-                              )
-                              .toList(),
+                                            }),
+                                      child: Text(req.name),
+                                    ),
+                              ),
+                              state: req.status ? StepState.complete : StepState.indexed,
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
     );
   }
 
