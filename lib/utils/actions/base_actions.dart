@@ -26,8 +26,10 @@ abstract class BaseActions {
         final y = windowInfo.top + (keyPair.touchPosition.dy / 100) * (windowInfo.bottom - windowInfo.top);
         return Offset(x, y);
       } else {
-        final screenSize = WidgetsBinding.instance.platformDispatcher.views.first.display.size;
-        print('Screen size: $screenSize');
+        // TODO support multiple screens
+        final screenSize =
+            WidgetsBinding.instance.platformDispatcher.views.first.display.size /
+            WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
         final x = (keyPair.touchPosition.dx / 100) * screenSize.width;
         final y = (keyPair.touchPosition.dy / 100) * screenSize.height;
         return Offset(x, y);
