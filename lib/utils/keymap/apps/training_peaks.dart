@@ -8,7 +8,7 @@ import '../keymap.dart';
 class TrainingPeaks extends SupportedApp {
   TrainingPeaks()
     : super(
-        name: 'IndieVelo / TrainingPeaks',
+        name: 'TrainingPeaks Virtual / IndieVelo',
         packageName: "com.indieVelo.client",
         keymap: Keymap(
           keyPairs: [
