@@ -21,6 +21,7 @@ class RequirementsPage extends StatefulWidget {
 
 class _RequirementsPageState extends State<RequirementsPage> with WidgetsBindingObserver {
   int _currentStep = 0;
+  var _local = true;
 
   List<PlatformRequirement> _requirements = [];
 
@@ -28,6 +29,8 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _local = kIsWeb || !Platform.isIOS;
 
     // call after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,11 +59,11 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
       final lastSeenVersion = settings.getLastSeenVersion();
-      
+
       if (mounted) {
         await ChangelogDialog.showIfNeeded(context, currentVersion, lastSeenVersion);
       }
-      
+
       // Update last seen version
       await settings.setLastSeenVersion(currentVersion);
     } catch (e) {
@@ -89,38 +92,53 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: buildMenuButtons(),
       ),
-      body:
-          _requirements.isEmpty
-              ? Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
-                    child: Text(
-                      'Please complete the following requirements to make the app work correctly:',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  Expanded(
+      body: _requirements.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                SwitchListTile.adaptive(
+                  value: _local,
+                  title: Text('Trainer app is running on this device'),
+                  subtitle: Text('Turn off if you want to control another device, e.g. your tablet'),
+                  onChanged: (local) {
+                    if (kIsWeb || Platform.isIOS) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('This platform only supports controlling trainer apps on other devices'),
+                        ),
+                      );
+                    } else {
+                      initializeActions(local);
+                      setState(() {
+                        _local = local;
+                        _reloadRequirements();
+                      });
+                    }
+                  },
+                ),
+                Expanded(
+                  child: Card(
+                    margin: EdgeInsets.symmetric(horizontal: 16),
                     child: Stepper(
                       currentStep: _currentStep,
                       connectorColor: WidgetStateProperty.resolveWith<Color>(
                         (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
                       ),
-                      onStepContinue:
-                          _currentStep < _requirements.length
-                              ? () {
-                                setState(() {
-                                  _currentStep += 1;
-                                });
-                              }
-                              : null,
+                      onStepContinue: _currentStep < _requirements.length
+                          ? () {
+                              setState(() {
+                                _currentStep += 1;
+                              });
+                            }
+                          : null,
                       onStepTapped: (step) {
                         if (_requirements[step].status) {
                           return;
                         }
                         final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
-                        if (hasEarlierIncomplete) {
+                        if (hasEarlierIncomplete && !kDebugMode) {
                           return;
                         }
                         setState(() {
@@ -128,44 +146,49 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                         });
                       },
                       controlsBuilder: (context, details) => Container(),
-                      steps:
-                          _requirements
-                              .mapIndexed(
-                                (index, req) => Step(
-                                  title: Text(req.name),
-                                  content: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                    alignment: Alignment.centerLeft,
-                                    child:
-                                        (index == _currentStep
-                                            ? req.build(context, () {
+                      steps: _requirements
+                          .mapIndexed(
+                            (index, req) => Step(
+                              title: Text(req.name, style: TextStyle(fontWeight: FontWeight.w600)),
+                              subtitle: req.description != null ? Text(req.description!) : null,
+                              content: Container(
+                                padding: const EdgeInsets.only(top: 16.0),
+                                alignment: Alignment.centerLeft,
+                                child:
+                                    (index == _currentStep
+                                        ? req.build(context, () {
+                                            _reloadRequirements();
+                                          })
+                                        : null) ??
+                                    ElevatedButton(
+                                      onPressed: req.status
+                                          ? null
+                                          : () => _callRequirement(req, context, () {
                                               _reloadRequirements();
-                                            })
-                                            : null) ??
-                                        ElevatedButton(
-                                          onPressed: req.status ? null : () => _callRequirement(req),
-                                          child: Text(req.name),
-                                        ),
-                                  ),
-                                  state: req.status ? StepState.complete : StepState.indexed,
-                                ),
-                              )
-                              .toList(),
+                                            }),
+                                      child: Text(req.name),
+                                    ),
+                              ),
+                              state: req.status ? StepState.complete : StepState.indexed,
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
     );
   }
 
-  void _callRequirement(PlatformRequirement req) {
-    req.call().then((_) {
+  void _callRequirement(PlatformRequirement req, BuildContext context, VoidCallback onUpdate) {
+    req.call(context, onUpdate).then((_) {
       _reloadRequirements();
     });
   }
 
   void _reloadRequirements() {
-    getRequirements().then((req) {
+    getRequirements(_local).then((req) {
       _requirements = req;
       _currentStep = req.indexWhere((req) => !req.status);
       if (mounted) {

@@ -4,12 +4,17 @@ on:
   push:
     branches:
       - main
+      - ios
     paths:
       - '.github/workflows/**'
       - 'lib/**'
       - 'accessibility/**'
       - 'keypress_simulator/**'
       - 'pubspec.yaml'
+
+env:
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  FLUTTER_VERSION: 3.35.5
 
 jobs:
   build:
@@ -29,15 +34,27 @@ jobs:
       - name: Install certificates
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
+          DEVELOPER_ID_INSTALLER_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APPSTORE_PROFILE_IOS_BASE64: ${{ secrets.APPSTORE_PROFILE_IOS_BASE64 }}
+          APPSTORE_PROFILE_MACOS_BASE64: ${{ secrets.APPSTORE_PROFILE_MACOS_BASE64 }}
+          APPSTORE_PROFILE_DEV_IOS_BASE64: ${{ secrets.APPSTORE_PROFILE_DEV_IOS_BASE64 }}
         run: |
           # create variables
           DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_application_certificate.p12
+          DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_installer_certificate.p12
+          PP_PATH_IOS=$RUNNER_TEMP/build_pp_ios.mobileprovision
+          PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
+          PP_PATH_MACOS=$RUNNER_TEMP/build_pp_macos.provisionprofile
           KEYCHAIN_PATH=$RUNNER_TEMP/pg-signing.keychain-db
           
           # import certificate and provisioning profile from secrets
           echo -n "$DEVELOPER_ID_APPLICATION_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH
+          echo -n "$DEVELOPER_ID_INSTALLER_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH
+          echo -n "$APPSTORE_PROFILE_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS
+          echo -n "$APPSTORE_PROFILE_DEV_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS_DEV
+          echo -n "$APPSTORE_PROFILE_MACOS_BASE64" | base64 --decode -o $PP_PATH_MACOS
           
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -47,51 +64,66 @@ jobs:
           
           # import certificate to keychain
           security import $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH_IOS ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH_IOS_DEV ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
 
-        #2 Setup Java
-      - name: Set Up Java
-        uses: actions/setup-java@v3.12.0
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
         with:
-          distribution: 'oracle'
-          java-version: '17'
+          cache: true
 
-        #3 Setup Flutter
-      - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
+      - name: 🚀 Shorebird Release macOS
+        uses: shorebirdtech/shorebird-release@v1
         with:
-          channel: 'stable'
-
-        #4 Install Dependencies
-      - name: Install Dependencies
-        run: flutter pub get
-
-        #8 Build app ( macos Build )
-      - name: Build App
-        run: flutter build macos --release
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: macos
 
       - name: Code Signing
-        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --options runtime SwiftControl.app -v
+        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
+
+      - name: Prepare App Store authentication key
+        env:
+          API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+        run: |
+          mkdir -p ./private_keys;
+          printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";      
+
+      - name: Upload to macOS App Store
+        env:
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          productbuild --component "build/macos/Build/Products/Release/SwiftControl.app" /Applications "SwiftControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
+          xcrun altool --upload-app -f SwiftControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
 
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
-      - name: Build APK
-        run: flutter build apk --release
-
-      - name: Build Bundle
-        run: flutter build appbundle --release
+      - name: 🚀 Shorebird Release Android
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: android
+          args: "--artifact=apk"
 
       - name: Build Web
+        if: github.ref == 'refs/heads/main'
         run: flutter build web --release --base-href "/swiftcontrol/"
 
       - name: Handle archives
+        if: github.ref == 'refs/heads/main'
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
           cd build/macos/Build/Products/Release/
@@ -99,6 +131,7 @@ jobs:
 
         #9 Upload Artifacts
       - name: Upload Artifacts
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: Releases
@@ -108,6 +141,7 @@ jobs:
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
+        if: github.ref == 'refs/heads/main'
         id: extract_version
         run: |
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
@@ -115,6 +149,7 @@ jobs:
 
         #11 Check if Tag Exists
       - name: Check if Tag Exists
+        if: github.ref == 'refs/heads/main'
         id: check_tag
         run: |
           if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
@@ -125,7 +160,7 @@ jobs:
 
         #12 Modify Tag if it Exists
       - name: Modify Tag
-        if: env.TAG_EXISTS == 'true'
+        if: env.TAG_EXISTS == 'true' && github.ref == 'refs/heads/main'
         id: modify_tag
         run: |
           new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
@@ -133,22 +168,25 @@ jobs:
 
         #13 Create Release
       - name: Create Release
+        if: github.ref == 'refs/heads/main'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           allowUpdates: true
           prerelease: ${{ endsWith(env.VERSION, '1337') }}
-          body: "You can also download the Android version from the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"
+          bodyFile: scripts/RELEASE_NOTES.md
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
 
       - name: Upload static files as artifact
+        if: github.ref == 'refs/heads/main'
         id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
       - name: Web Deploy
+        if: github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v4
 
       - name: Extract latest changelog
@@ -156,7 +194,7 @@ jobs:
         run: |
           chmod +x scripts/get_latest_changelog.sh
           mkdir -p whatsnew
-          ./scripts/get_latest_changelog.sh > whatsnew/whatsnew-en-US
+          ./scripts/get_latest_changelog.sh | head -c 500 > whatsnew/whatsnew-en-US
 
       - name: Upload to Play Store
         # only upload when env.VERSION does not end with 1337, which is our indicator for beta releases
@@ -169,8 +207,25 @@ jobs:
           track: production
           whatsNewDirectory: whatsnew
 
+      - name: 🚀 Shorebird Release iOS
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: ios
+          args: "--export-options-plist ios/ExportOptions.plist"
+
+      - name: Upload to iOS App Store
+        env:
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";
+
+        
+
   windows:
     needs: build
+    if: github.ref == 'refs/heads/main'
     name: Build & Release on Windows
     runs-on: windows-latest
 
@@ -186,18 +241,16 @@ jobs:
           distribution: 'oracle'
           java-version: '17'
 
-        #3 Setup Flutter
-      - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
         with:
-          channel: 'stable'
+          cache: true
 
-        #4 Install Dependencies
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build App
-        run: flutter build windows
+      - name: 🚀 Shorebird Release Windows
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: windows
 
       - name: Zip directory (Windows)
         shell: pwsh
@@ -248,5 +301,6 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip"
+          bodyFile: scripts/RELEASE_NOTES.md
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}

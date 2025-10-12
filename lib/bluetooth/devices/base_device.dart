@@ -27,11 +27,10 @@ abstract class BaseDevice {
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 
   bool isConnected = false;
-  bool _isInited = false;
   int? batteryLevel;
   String? firmwareVersion;
 
-  bool supportsEncryption = true;
+  bool supportsEncryption = false;
 
   BleCharacteristic? syncRxCharacteristic;
   Timer? _longPressTimer;
@@ -366,7 +365,6 @@ abstract class BaseDevice {
   }
 
   Future<void> disconnect() async {
-    _isInited = false;
     _longPressTimer?.cancel();
     // Release any held keys in long press mode
     if (actionHandler is DesktopActions) {

@@ -14,6 +14,11 @@ import '../messages/notification.dart';
 import '../protocol/zp.pb.dart';
 
 class ZwiftRide extends BaseDevice {
+  /// Minimum absolute analog value (0-100) required to trigger paddle button press.
+  /// Values below this threshold are ignored to prevent accidental triggers from
+  /// analog drift or light touches.
+  static const int analogPaddleThreshold = 25;
+
   ZwiftRide(super.scanResult)
     : super(
         availableButtons: [
@@ -84,9 +89,7 @@ class ZwiftRide extends BaseDevice {
           'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day. Resetting the device now.',
         ),
       );
-      if (!kDebugMode) {
-        sendCommand(Opcode.RESET, null);
-      }
+      sendCommand(Opcode.RESET, null);
     }
 
     switch (opcode) {
@@ -200,7 +203,11 @@ class ZwiftRide extends BaseDevice {
 
   @override
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
-    final RideNotification clickNotification = RideNotification(message);
+    final RideNotification clickNotification = RideNotification(
+      message,
+      analogPaddleThreshold: analogPaddleThreshold,
+    );
+
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
       _lastControllerNotification = clickNotification;
 

@@ -1,15 +1,20 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/scan.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
   KeyboardRequirement() : super('Keyboard access');
 
   @override
-  Future<void> call() async {
-    await keyPressSimulator.requestAccess();
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
+    await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
   }
 
   @override
@@ -22,14 +27,19 @@ class BluetoothTurnedOn extends PlatformRequirement {
   BluetoothTurnedOn() : super('Bluetooth turned on');
 
   @override
-  Future<void> call() async {
-    await UniversalBle.enableBluetooth();
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
+    if (!kIsWeb && Platform.isIOS) {
+      // on iOS we cannot programmatically enable Bluetooth, just open settings
+      await peripheralManager.showAppSettings();
+    } else {
+      await UniversalBle.enableBluetooth();
+    }
   }
 
   @override
   Future<void> getStatus() async {
     final currentState = await UniversalBle.getBluetoothAvailabilityState();
-    status = currentState == AvailabilityState.poweredOn;
+    status = currentState == AvailabilityState.poweredOn || screenshotMode;
   }
 }
 
@@ -39,19 +49,19 @@ class UnsupportedPlatform extends PlatformRequirement {
   }
 
   @override
-  Future<void> call() async {}
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   @override
   Future<void> getStatus() async {}
 }
 
 class BluetoothScanning extends PlatformRequirement {
-  BluetoothScanning() : super('Finding your Zwift® controller...') {
+  BluetoothScanning() : super('Finding your Controller...') {
     status = false;
   }
 
   @override
-  Future<void> call() async {}
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   @override
   Future<void> getStatus() async {}

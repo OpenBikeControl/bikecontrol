@@ -23,8 +23,10 @@ linter:
   rules:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    - require_trailing_commas
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
 formatter:
   page_width: 120
+  trailing_commas: preserve

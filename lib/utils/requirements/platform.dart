@@ -5,28 +5,32 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:swift_control/utils/requirements/remote.dart';
 
 abstract class PlatformRequirement {
   String name;
+  String? description;
   late bool status;
 
-  PlatformRequirement(this.name);
+  PlatformRequirement(this.name, {this.description});
 
   Future<void> getStatus();
 
-  Future<void> call();
+  Future<void> call(BuildContext context, VoidCallback onUpdate);
 
   Widget? build(BuildContext context, VoidCallback onUpdate) {
     return null;
   }
 }
 
-Future<List<PlatformRequirement>> getRequirements() async {
+Future<List<PlatformRequirement>> getRequirements(bool local) async {
   List<PlatformRequirement> list;
   if (kIsWeb) {
     list = [BluetoothTurnedOn(), BluetoothScanning()];
-  } else if (Platform.isMacOS || Platform.isIOS) {
+  } else if (Platform.isMacOS) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+  } else if (Platform.isIOS) {
+    list = [BluetoothTurnedOn(), RemoteRequirement(), BluetoothScanning()];
   } else if (Platform.isWindows) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
   } else if (Platform.isAndroid) {
@@ -34,7 +38,7 @@ Future<List<PlatformRequirement>> getRequirements() async {
     final deviceInfo = await deviceInfoPlugin.androidInfo;
     list = [
       BluetoothTurnedOn(),
-      AccessibilityRequirement(),
+      if (local) AccessibilityRequirement() else RemoteRequirement(),
       NotificationRequirement(),
       if (deviceInfo.version.sdkInt <= 30)
         LocationRequirement()

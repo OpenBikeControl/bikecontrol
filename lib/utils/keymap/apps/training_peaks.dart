@@ -1,10 +1,7 @@
-import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/single_line_exception.dart';
 
 import '../keymap.dart';
 
@@ -20,11 +17,13 @@ class TrainingPeaks extends SupportedApp {
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
               physicalKey: PhysicalKeyboardKey.numpadSubtract,
               logicalKey: LogicalKeyboardKey.numpadSubtract,
+              touchPosition: Offset(50 * 1.32, 74),
             ),
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
               physicalKey: PhysicalKeyboardKey.numpadAdd,
               logicalKey: LogicalKeyboardKey.numpadAdd,
+              touchPosition: Offset(50 * 1.15, 74),
             ),
             KeyPair(
               buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
@@ -54,20 +53,4 @@ class TrainingPeaks extends SupportedApp {
           ],
         ),
       );
-
-  @override
-  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
-    final superPosition = super.resolveTouchPosition(action: action, windowInfo: windowInfo);
-    if (superPosition != Offset.zero) {
-      return superPosition;
-    }
-    if (windowInfo == null) {
-      throw SingleLineException("Window size not known - open $this first");
-    }
-    return switch (action.action) {
-      InGameAction.shiftUp => Offset(windowInfo.width / 2 * 1.32, windowInfo.height * 0.74),
-      InGameAction.shiftDown => Offset(windowInfo.width / 2 * 1.15, windowInfo.height * 0.74),
-      _ => throw SingleLineException("Unsupported action for IndieVelo: $action"),
-    };
-  }
 }

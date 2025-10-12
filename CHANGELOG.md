@@ -1,3 +1,13 @@
+### 3.0.3 (2025-10-12)
+- SwiftControl now supports iOS!
+  - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations but...:
+- You can now use SwiftControl as "remote control" for other devices, such as an iPad. Example scenario:
+    - your phone (Android/iOS) runs SwiftControl and connects to your Click devices
+    - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
+    - after pairing SwiftControl to your iPad / tablet via Bluetooth your phone will send the button presses to your iPad / tablet
+- Ride: analog paddles are now supported thanks to contributor @jmoro
+- you can now zoom in and out in the Keymap customization screen
+
 ### 2.6.3 (2025-10-01)
 - fix a few issues with the new touch placement feature
 - add a workaround for Zwift Click V2 which resets the device when button events are no longer sent

@@ -4,6 +4,8 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
 class DesktopActions extends BaseActions {
+  DesktopActions({super.supportedModes = const [SupportedMode.keyboard, SupportedMode.touch, SupportedMode.media]});
+
   // Track keys that are currently held down in long press mode
 
   @override
@@ -31,7 +33,7 @@ class DesktopActions extends BaseActions {
         return 'Key released: $keyPair';
       }
     } else {
-      final point = supportedApp!.resolveTouchPosition(action: action, windowInfo: null);
+      final point = resolveTouchPosition(action: action, windowInfo: null);
       if (isKeyDown && isKeyUp) {
         await keyPressSimulator.simulateMouseClickDown(point);
         await keyPressSimulator.simulateMouseClickUp(point);

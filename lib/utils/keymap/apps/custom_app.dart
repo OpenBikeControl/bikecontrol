@@ -1,23 +1,19 @@
-import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 
-import '../../single_line_exception.dart';
 import '../buttons.dart';
 import '../keymap.dart';
 
 class CustomApp extends SupportedApp {
-  CustomApp() : super(name: 'Custom', packageName: "custom", keymap: Keymap.custom);
+  final String profileName;
 
-  @override
-  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
-    final keyPair = keymap.getKeyPair(action);
-    if (keyPair == null || keyPair.touchPosition == Offset.zero) {
-      throw SingleLineException("No key pair found for action: $action. You may want to adjust the keymap.");
-    }
-    return keyPair.touchPosition;
-  }
+  CustomApp({this.profileName = 'Custom'})
+    : super(
+        name: profileName,
+        packageName: "custom_$profileName",
+        keymap: Keymap(keyPairs: []),
+      );
 
   List<String> encodeKeymap() {
     // encode to save in preferences
@@ -40,7 +36,7 @@ class CustomApp extends SupportedApp {
 
   void setKey(
     ZwiftButton zwiftButton, {
-    required PhysicalKeyboardKey physicalKey,
+    required PhysicalKeyboardKey? physicalKey,
     required LogicalKeyboardKey? logicalKey,
     bool isLongPress = false,
     Offset? touchPosition,

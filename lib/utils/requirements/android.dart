@@ -8,41 +8,20 @@ import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/accessibility_disclosure_dialog.dart';
 
 class AccessibilityRequirement extends PlatformRequirement {
-  AccessibilityRequirement() : super('Allow Accessibility Service');
+  AccessibilityRequirement()
+    : super(
+        'Allow Accessibility Service',
+        description: 'SwiftControl needs accessibility permission to control your training apps.',
+      );
 
   @override
-  Future<void> call() async {
-    return accessibilityHandler.openPermissions();
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
+    _showDisclosureDialog(context, onUpdate);
   }
 
   @override
   Future<void> getStatus() async {
     status = await accessibilityHandler.hasPermission();
-  }
-
-  @override
-  Widget? build(BuildContext context, VoidCallback onUpdate) {
-    if (status) {
-      return null; // Already granted, no need for disclosure
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'SwiftControl needs accessibility permission to control your training apps.',
-            style: TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => _showDisclosureDialog(context, onUpdate),
-            child: const Text('Show Permission Details'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _showDisclosureDialog(BuildContext context, VoidCallback onUpdate) async {
@@ -72,7 +51,7 @@ class BluetoothScanRequirement extends PlatformRequirement {
   BluetoothScanRequirement() : super('Allow Bluetooth Scan');
 
   @override
-  Future<void> call() async {
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await Permission.bluetoothScan.request();
   }
 
@@ -87,7 +66,7 @@ class LocationRequirement extends PlatformRequirement {
   LocationRequirement() : super('Allow Location so Bluetooth scan works');
 
   @override
-  Future<void> call() async {
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await Permission.locationWhenInUse.request();
   }
 
@@ -102,7 +81,7 @@ class BluetoothConnectRequirement extends PlatformRequirement {
   BluetoothConnectRequirement() : super('Allow Bluetooth Connections');
 
   @override
-  Future<void> call() async {
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await Permission.bluetoothConnect.request();
   }
 
@@ -114,10 +93,11 @@ class BluetoothConnectRequirement extends PlatformRequirement {
 }
 
 class NotificationRequirement extends PlatformRequirement {
-  NotificationRequirement() : super('Allow adding persistent Notification (keeps app alive)');
+  NotificationRequirement()
+    : super('Allow persistent Notification', description: 'This keeps the app alive in background');
 
   @override
-  Future<void> call() async {
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
@@ -170,7 +150,7 @@ class NotificationRequirement extends PlatformRequirement {
     await AndroidFlutterLocalNotificationsPlugin().startForegroundService(
       1,
       channelGroupId,
-      'Bluetooth keep alive',
+      'Allows SwiftControl to keep running in background',
       foregroundServiceTypes: {AndroidServiceForegroundType.foregroundServiceTypeConnectedDevice},
       notificationDetails: AndroidNotificationDetails(
         channelGroupId,
