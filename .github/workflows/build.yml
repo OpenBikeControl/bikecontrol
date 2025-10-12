@@ -12,6 +12,10 @@ on:
       - 'keypress_simulator/**'
       - 'pubspec.yaml'
 
+env:
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  FLUTTER_VERSION: 3.35.5
+
 jobs:
   build:
     name: Build & Release
@@ -69,20 +73,22 @@ jobs:
           cp $PP_PATH_IOS_DEV ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
 
-        #3 Setup Flutter
-      - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
         with:
           cache: true
-          channel: 'stable'
 
-        #4 Install Dependencies
-      - name: Install Dependencies
-        run: flutter pub get
+      - name: 🚀 Shorebird Release macOS
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: macos
 
-        #8 Build app ( macos Build )
-      - name: Build macOS App
-        run: flutter build macos --release
+      - name: 🚀 Shorebird Release macOS
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: macos
 
       - name: Code Signing
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
@@ -90,17 +96,32 @@ jobs:
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
+      - name: Prepare App Store authentication key
+        env:
+          API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
+        run: |
+          mkdir -p ./private_keys;
+          printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";      
+
+      - name: Upload to macOS App Store
+        env:
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          productbuild --component "build/macos/Build/Products/Release/SwiftControl.app" /Applications "SwiftControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
+          xcrun altool --upload-app -f SwiftControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
+
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
-      - name: Build APK
-        if: github.ref == 'refs/heads/main'
-        run: flutter build apk --release
-
-      - name: Build Bundle
-        run: flutter build appbundle --release
+      - name: 🚀 Shorebird Release Android
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: android
+          args: "--artifact=apk"
 
       - name: Build Web
         if: github.ref == 'refs/heads/main'
@@ -191,27 +212,20 @@ jobs:
           track: production
           whatsNewDirectory: whatsnew
 
-      - name: Build iOS app and release
-        env:
-          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
-          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-          API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
-        run: |
-          mkdir -p ./private_keys;
-          printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";
-          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist;
-          xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";        
+      - name: 🚀 Shorebird Release iOS
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: ios
+          args: "--export-options-plist ios/ExportOptions.plist"
 
-      - name: Release macOS app
+      - name: Upload to iOS App Store
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-          API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
         run: |
-          mkdir -p ./private_keys;
-          printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";
-          productbuild --component "build/macos/Build/Products/Release/SwiftControl.app" /Applications "SwiftControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
-          xcrun altool --upload-app -f SwiftControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
+          xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";
+
         
 
   windows:
@@ -232,18 +246,16 @@ jobs:
           distribution: 'oracle'
           java-version: '17'
 
-        #3 Setup Flutter
-      - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
         with:
-          channel: 'stable'
+          cache: true
 
-        #4 Install Dependencies
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build App
-        run: flutter build windows
+      - name: 🚀 Shorebird Release macOS
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: windows
 
       - name: Zip directory (Windows)
         shell: pwsh
