@@ -28,8 +28,9 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
 ## Supported Apps
 - MyWhoosh
 - indieVelo / Training Peaks
-- Biketerra.com
-- any other! Customize touch points or keyboard shortcuts to your liking
+- Biketerra.com (they do offer native integration already - check it out)
+- Rouvy (most Zwift devices are already supported by Rouvy)
+- any other! You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
 
 ## Supported Devices
 - Zwift Click
@@ -38,32 +39,32 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
 - Zwift Play
 
 ## Supported Platforms
-- Android
-  - App is losing connection over time? Read about how to [keep the app alive](https://dontkillmyapp.com/).
-- macOS
-- Windows 
-  - Windows may flag the app as virus. I think it does so because the app does control the mouse and keyboard.
+- [Android](https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol)
+- [iOS (iPhone, iPad)](https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone)
+  - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations, but you can use it to remotely control MyWhoosh and similar on e.g. an iPad.
+- [macOS](https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac)
+- [Windows](https://github.com/jonasbark/swiftcontrol/releases)
+  - Windows may flag the app as virus. It likely does so because the app controls the mouse and keyboard.
   - Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
   - Make sure your Zwift device is not paired with Windows Bluetooth settings: [more information](https://github.com/jonasbark/swiftcontrol/issues/70).
-- [Web](https://jonasbark.github.io/swiftcontrol/) (you won't be able to do much)
-- iOS (iPhone, iPad)
-  - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations, but you can use it to remotely control MyWhoosh and similar on e.g. an iPad.
+- [Web](https://jonasbark.github.io/swiftcontrol/) (this is just a tech demo - you won't be able to control other apps)
 
 ## Troubleshooting
 Check the troubleshooting guide [here](TROUBLESHOOTING.md).
 
 ## How does it work?
-The app connects to your Zwift device automatically. It does not connect to your trainer itself.
+The app connects to your Zwift devices automatically. It does not connect to your trainer itself.
 
 - **Android**: SwiftControl uses the AccessibilityService API to simulate touch gestures on specific parts of your screen to trigger actions in training apps. The service monitors which training app window is currently active to ensure gestures are sent to the correct app.
+- **iOS**: use SwiftControl as "remote control" for other devices, such as an iPad. Example scenario:
+  - your phone (Android/iOS) runs SwiftControl and connects to your Zwift devices
+  - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
+  - after pairing SwiftControl to your iPad / tablet via Bluetooth your phone will send the button presses to your iPad / tablet
 - **macOS** / **Windows** a keyboard or mouse click is used to trigger the action. 
   - there are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - you can also create your own Keymaps for any other app
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
-- **iOS**: use SwiftControl as "remote control" for other devices, such as an iPad. Example scenario:
-    - your phone (Android/iOS) runs SwiftControl and connects to your Zwift devices
-    - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
-    - after pairing SwiftControl to your iPad / tablet via Bluetooth your phone will send the button presses to your iPad / tablet
+</details>
 
 ## Alternatives
 - [qdomyos-zwift](https://www.qzfitness.com/) directly controls the trainer (as opposed to controlling the trainer app). This can be useful if your trainer app does not support virtual shifting.
