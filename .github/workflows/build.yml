@@ -84,12 +84,6 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
 
-      - name: 🚀 Shorebird Release macOS
-        uses: shorebirdtech/shorebird-release@v1
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          platform: macos
-
       - name: Code Signing
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
         working-directory: build/macos/Build/Products/Release
@@ -251,7 +245,7 @@ jobs:
         with:
           cache: true
 
-      - name: 🚀 Shorebird Release macOS
+      - name: 🚀 Shorebird Release Windows
         uses: shorebirdtech/shorebird-release@v1
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
