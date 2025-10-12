@@ -154,14 +154,18 @@ class KeyWidget extends StatelessWidget {
 
 class ButtonWidget extends StatelessWidget {
   final ZwiftButton button;
-  const ButtonWidget({super.key, required this.button});
+  final bool big;
+  const ButtonWidget({super.key, required this.button, this.big = false});
 
   @override
   Widget build(BuildContext context) {
     return IntrinsicWidth(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        constraints: BoxConstraints(minWidth: 30),
+        constraints: BoxConstraints(
+          minWidth: big && button.color != null ? 40 : 30,
+          minHeight: big && button.color != null ? 40 : 0,
+        ),
         decoration: BoxDecoration(
           border: Border.all(color: button.color != null ? Colors.black : Theme.of(context).colorScheme.primary),
           shape: button.color != null || button.icon != null ? BoxShape.circle : BoxShape.rectangle,
@@ -173,13 +177,13 @@ class ButtonWidget extends StatelessWidget {
               ? Icon(
                   button.icon,
                   color: Colors.white,
-                  size: 14,
+                  size: big && button.color != null ? null : 14,
                 )
               : Text(
                   button.name.splitByUpperCase(),
                   style: TextStyle(
                     fontFamily: 'monospace',
-                    fontSize: 12,
+                    fontSize: big && button.color != null ? 20 : 12,
                     fontWeight: button.color != null ? FontWeight.bold : null,
                     color: button.color != null ? Colors.white : Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
