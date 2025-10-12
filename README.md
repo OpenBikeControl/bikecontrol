@@ -27,7 +27,7 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
 
 ## Supported Apps
 - MyWhoosh
-- indieVelo / Training Peaks
+- TrainingPeaks Virtual / indieVelo
 - Biketerra.com (they do offer native integration already - check it out)
 - Rouvy (most Zwift devices are already supported by Rouvy)
 - any other! You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
@@ -47,7 +47,8 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
   - Windows may flag the app as virus. It likely does so because the app controls the mouse and keyboard.
   - Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
   - Make sure your Zwift device is not paired with Windows Bluetooth settings: [more information](https://github.com/jonasbark/swiftcontrol/issues/70).
-- [Web](https://jonasbark.github.io/swiftcontrol/) (this is just a tech demo - you won't be able to control other apps)
+- [Web](https://jonasbark.github.io/swiftcontrol/)
+  - this is just a tech demo - you won't be able to control other apps
 
 ## Troubleshooting
 Check the troubleshooting guide [here](TROUBLESHOOTING.md).
