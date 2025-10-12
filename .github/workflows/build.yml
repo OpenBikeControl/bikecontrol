@@ -93,6 +93,7 @@ jobs:
       - name: Prepare App Store authentication key
         env:
           API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
         run: |
           mkdir -p ./private_keys;
           printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";      
