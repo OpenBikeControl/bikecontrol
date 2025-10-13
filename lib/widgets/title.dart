@@ -14,7 +14,6 @@ import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:version/version.dart';
 
-String? _latestVersionUrlValue;
 PackageInfo? _packageInfoValue;
 bool? isFromPlayStore;
 
@@ -29,7 +28,7 @@ class _AppTitleState extends State<AppTitle> {
   final updater = ShorebirdUpdater();
   Patch? _shorebirdPatch;
 
-  Future<String?> _getLatestVersionUrlIfNewer() async {
+  Future<Pair<Version, String>?> _getLatestVersionUrlIfNewer() async {
     final response = await http.get(Uri.parse('https://api.github.com/repos/jonasbark/swiftcontrol/releases/latest'));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -43,17 +42,17 @@ class _AppTitleState extends State<AppTitle> {
         final assets = data['assets'] as List;
         if (Platform.isAndroid) {
           final apkUrl = assets.firstOrNullWhere((asset) => asset['name'].endsWith('.apk'))['browser_download_url'];
-          return apkUrl;
+          return Pair(latestVersion, apkUrl);
         } else if (Platform.isMacOS) {
           final dmgUrl = assets.firstOrNullWhere(
             (asset) => asset['name'].endsWith('.macos.zip'),
           )['browser_download_url'];
-          return dmgUrl;
+          return Pair(latestVersion, dmgUrl);
         } else if (Platform.isWindows) {
           final appImageUrl = assets.firstOrNullWhere(
             (asset) => asset['name'].endsWith('.windows.zip'),
           )['browser_download_url'];
-          return appImageUrl;
+          return Pair(latestVersion, appImageUrl);
         }
       }
     }
@@ -79,8 +78,6 @@ class _AppTitleState extends State<AppTitle> {
         });
         _checkForUpdate();
       });
-    } else {
-      _checkForUpdate();
     }
   }
 
@@ -105,9 +102,11 @@ class _AppTitleState extends State<AppTitle> {
       } else if (updateStatus == UpdateStatus.restartRequired) {
         _showShorebirdRestartSnackbar();
       }
-      return null;
     }
-    if (!kIsWeb && Platform.isAndroid) {
+
+    if (kIsWeb) {
+      // no-op
+    } else if (Platform.isAndroid) {
       try {
         final appUpdateInfo = await InAppUpdate.checkForUpdate();
         if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
@@ -131,22 +130,38 @@ class _AppTitleState extends State<AppTitle> {
         print('Failed to check for update: $e');
       }
       setState(() {});
-    }
-    if (_latestVersionUrlValue == null && !kIsWeb && !Platform.isIOS) {
-      final url = await _getLatestVersionUrlIfNewer();
-      if (url != null && mounted && !kDebugMode) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('New version available: ${url.split("/").takeLast(2).first.split('%').first}'),
-            duration: Duration(seconds: 1337),
-            action: SnackBarAction(
-              label: 'Download',
-              onPressed: () {
-                launchUrlString(url);
-              },
-            ),
-          ),
-        );
+    } else if (Platform.isIOS) {
+      final url = Uri.parse('https://itunes.apple.com/lookup?id=6753721284');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['resultCount'] > 0) {
+          final versionString = data['results'][0]['version'] as String;
+          _compareVersion(versionString);
+        }
+      }
+    } else if (Platform.isMacOS) {
+      final url = Uri.parse('https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac');
+      final res = await http.get(url, headers: {'User-Agent': 'Mozilla/5.0'});
+      if (res.statusCode != 200) return null;
+
+      final body = res.body;
+      final regex = RegExp(
+        r'whats-new__latest__version">Version ([0-9]{1,2}\.[0-9]{1,2}.[0-9]{1,2})</p>',
+        dotAll: true,
+      );
+      final match = regex.firstMatch(body);
+      if (match == null) return null;
+      final versionString = match.group(1);
+
+      if (versionString != null) {
+        _compareVersion(versionString);
+      }
+    } else if (Platform.isWindows) {
+      final updatePair = await _getLatestVersionUrlIfNewer();
+      if (updatePair != null && mounted && !kDebugMode) {
+        _showUpdateSnackbar(updatePair.first, updatePair.second);
       }
     }
   }
@@ -185,6 +200,33 @@ class _AppTitleState extends State<AppTitle> {
                 },
               )
             : null,
+      ),
+    );
+  }
+
+  void _compareVersion(String versionString) {
+    final parsed = Version.parse(versionString);
+    final current = Version.parse(_packageInfoValue!.version);
+    if (parsed > current && mounted && !kDebugMode) {
+      if (Platform.isAndroid) {
+        _showUpdateSnackbar(parsed, 'https://play.google.com/store/apps/details?id=org.jonasbark.swiftcontrol');
+      } else if (Platform.isIOS || Platform.isMacOS) {
+        _showUpdateSnackbar(parsed, 'https://apps.apple.com/app/id6753721284');
+      }
+    }
+  }
+
+  void _showUpdateSnackbar(Version newVersion, String url) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('New version available: ${newVersion.toString()}'),
+        duration: Duration(seconds: 1337),
+        action: SnackBarAction(
+          label: 'Download',
+          onPressed: () {
+            launchUrlString(url);
+          },
+        ),
       ),
     );
   }
