@@ -1,8 +1,3 @@
-### 3.0.4 (not released yet) 
-- adjusted MyWhoosh keyboard navigation mapping (thanks @bin101)
-- initial support for Wahook Kickr Bike Shift (thanks @MattW2)
-- initial support for Elite Square Smart Frame 
-
 ### 3.0.3 (2025-10-12)
 - SwiftControl now supports iOS!
   - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations but...:
