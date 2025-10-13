@@ -1,5 +1,8 @@
 import 'package:accessibility/accessibility.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../keymap/apps/supported_app.dart';
@@ -21,17 +24,38 @@ abstract class BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {
       // convert relative position to absolute position based on window info
-      if (windowInfo != null && windowInfo.right != 0) {
+
+      if (windowInfo != null && windowInfo.top > 0) {
         final x = windowInfo.left + (keyPair.touchPosition.dx / 100) * (windowInfo.right - windowInfo.left);
         final y = windowInfo.top + (keyPair.touchPosition.dy / 100) * (windowInfo.bottom - windowInfo.top);
+
+        if (kDebugMode) {
+          print("Window info: ${windowInfo.encode()} => Touch at: $x, $y");
+        }
         return Offset(x, y);
       } else {
         // TODO support multiple screens
-        final screenSize =
-            WidgetsBinding.instance.platformDispatcher.views.first.display.size /
-            WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-        final x = (keyPair.touchPosition.dx / 100) * screenSize.width;
-        final y = (keyPair.touchPosition.dy / 100) * screenSize.height;
+        final display = WidgetsBinding.instance.platformDispatcher.views.first.display;
+        final displaySize = display.size;
+
+        late final Size physicalSize;
+        if (this is AndroidActions) {
+          // display size is already in physical pixels
+          physicalSize = displaySize;
+        } else if (this is DesktopActions) {
+          // display size is in logical pixels, convert to physical pixels
+          // TODO on macOS the notch is included here, but it's not part of the usable screen area, so we should exclude it
+          physicalSize = displaySize / display.devicePixelRatio;
+        } else {
+          physicalSize = displaySize;
+        }
+
+        final x = (keyPair.touchPosition.dx / 100.0) * physicalSize.width;
+        final y = (keyPair.touchPosition.dy / 100.0) * physicalSize.height;
+
+        if (kDebugMode) {
+          print("Screen size: $physicalSize => Touch at: $x, $y");
+        }
         return Offset(x, y);
       }
     }
