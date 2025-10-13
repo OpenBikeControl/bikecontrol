@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - web
+      - wahoo_kickr_bike_shift
     paths:
       - '.github/workflows/**'
       - 'lib/**'

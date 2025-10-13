@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
-import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../messages/notification.dart';
@@ -74,4 +74,35 @@ class EliteSquare extends BaseDevice {
   String _bytesToHex(List<int> bytes) {
     return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
   }
+}
+
+class SquareConstants {
+  static const String DEVICE_NAME = "SQUARE";
+  static const String CHARACTERISTIC_UUID = "347b0043-7635-408b-8918-8ff3949ce592";
+  static const String SERVICE_UUID = "347b0001-7635-408b-8918-8ff3949ce592";
+  static const int RECONNECT_DELAY = 5; // seconds between reconnection attempts
+
+  // Button mapping https://images.bike24.com/i/mb/c7/36/d9/elite-square-smart-frame-indoor-bike-3-1724305.jpg
+  static const Map<String, ControllerButton> BUTTON_MAPPING = {
+    "00000200": ControllerButton.navigationUp, //"Up",
+    "00000100": ControllerButton.navigationLeft, //"Left",
+    "00000800": ControllerButton.navigationDown, // "Down",
+    "00000400": ControllerButton.navigationRight, //"Right",
+    "00002000": ControllerButton.powerUpLeft, //"X",
+    "00001000": ControllerButton.sideButtonLeft, // "Square",
+    "00008000": ControllerButton.campagnoloLeft, // "Left Campagnolo",
+    "00004000": ControllerButton.onOffLeft, //"Left brake",
+    "00000002": ControllerButton.shiftDownLeft, //"Left shift 1",
+    "00000001": ControllerButton.paddleLeft, // "Left shift 2",
+    "02000000": ControllerButton.y, // "Y",
+    "01000000": ControllerButton.a, //"A",
+    "08000000": ControllerButton.b, // "B",
+    "04000000": ControllerButton.z, // "Z",
+    "20000000": ControllerButton.powerUpRight, // "Circle",
+    "10000000": ControllerButton.sideButtonRight, //"Triangle",
+    "80000000": ControllerButton.campagnoloRight, // "Right Campagnolo",
+    "40000000": ControllerButton.onOffRight, //"Right brake",
+    "00020000": ControllerButton.sideButtonRight, //"Right shift 1",
+    "00010000": ControllerButton.paddleRight, //"Right shift 2",
+  };
 }

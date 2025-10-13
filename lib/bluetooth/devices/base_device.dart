@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/ble.dart';
+import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
@@ -33,6 +34,7 @@ abstract class BaseDevice {
     BleUuid.ZWIFT_CUSTOM_SERVICE_UUID,
     BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
     SquareConstants.SERVICE_UUID,
+    WahooKickrBikeShiftConstants.SERVICE_UUID,
   ];
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
@@ -80,6 +82,15 @@ abstract class BaseDevice {
       };
     } else if (scanResult.services.contains(SquareConstants.SERVICE_UUID)) {
       return EliteSquare(scanResult);
+    } else if (scanResult.services.contains(WahooKickrBikeShiftConstants.SERVICE_UUID)) {
+      if (scanResult.name != null && !scanResult.name!.toUpperCase().contains('KICKR BIKE SHIFT')) {
+        return WahooKickrBikeShift(scanResult);
+      } else if (kIsWeb && scanResult.name == null) {
+        // some devices don't broadcast the name, so we must rely on the service UUID
+        return WahooKickrBikeShift(scanResult);
+      } else {
+        return null;
+      }
     } else {
       return null;
     }
