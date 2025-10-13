@@ -17,7 +17,7 @@ abstract class BaseActions {
     this.supportedApp = supportedApp;
   }
 
-  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
+  Offset resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {
       // convert relative position to absolute position based on window info
@@ -38,14 +38,14 @@ abstract class BaseActions {
     return Offset.zero;
   }
 
-  Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false});
+  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false});
 }
 
 class StubActions extends BaseActions {
   StubActions({super.supportedModes = const []});
 
   @override
-  Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
+  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
     return Future.value(action.name);
   }
 }

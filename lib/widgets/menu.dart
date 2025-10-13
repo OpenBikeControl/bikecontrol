@@ -68,7 +68,7 @@ class MenuButton extends StatelessWidget {
             child: PopupMenuButton(
               child: Text("Simulate buttons"),
               itemBuilder: (_) {
-                return ZwiftButton.values
+                return ControllerButton.values
                     .map(
                       (e) => PopupMenuItem(
                         child: Text(e.name),

@@ -15,7 +15,7 @@ enum InGameAction {
   }
 }
 
-enum ZwiftButton {
+enum ControllerButton {
   // left controller
   navigationUp._(InGameAction.increaseResistance, icon: Icons.keyboard_arrow_up, color: Colors.black),
   navigationDown._(InGameAction.decreaseResistance, icon: Icons.keyboard_arrow_down, color: Colors.black),
@@ -42,12 +42,16 @@ enum ZwiftButton {
   // zwift ride only
   shiftUpRight._(InGameAction.shiftUp, icon: Icons.add, color: Colors.black),
   shiftDownRight._(InGameAction.shiftUp),
-  powerUpRight._(InGameAction.shiftUp);
+  powerUpRight._(InGameAction.shiftUp),
+
+  // elite square only
+  campagnoloLeft._(InGameAction.shiftDown),
+  campagnoloRight._(InGameAction.shiftUp);
 
   final InGameAction? action;
   final Color? color;
   final IconData? icon;
-  const ZwiftButton._(this.action, {this.color, this.icon});
+  const ControllerButton._(this.action, {this.color, this.icon});
 
   @override
   String toString() {

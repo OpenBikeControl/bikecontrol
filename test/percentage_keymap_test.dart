@@ -7,7 +7,7 @@ void main() {
   group('Percentage-based Keymap Tests', () {
     test('Should encode touch position as percentage using fallback screen size', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.paddleRight],
+        buttons: [ControllerButton.paddleRight],
         physicalKey: null,
         logicalKey: null,
         touchPosition: Offset(960, 540), // Center of 1920x1080 fallback
@@ -22,7 +22,7 @@ void main() {
 
     test('Should encode touch position as percentages with fallback when screen size not available', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.paddleRight],
+        buttons: [ControllerButton.paddleRight],
         physicalKey: null,
         logicalKey: null,
         touchPosition: Offset(960, 540), // Center of 1920x1080 fallback
@@ -57,7 +57,7 @@ void main() {
 
     test('Should handle zero touch position correctly', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.paddleRight],
+        buttons: [ControllerButton.paddleRight],
         physicalKey: PhysicalKeyboardKey.keyA,
         logicalKey: LogicalKeyboardKey.keyA,
         touchPosition: Offset.zero,
@@ -72,7 +72,7 @@ void main() {
 
     test('Should encode and decode with fallback screen size', () {
       final keyPair = KeyPair(
-        buttons: [ZwiftButton.paddleRight],
+        buttons: [ControllerButton.paddleRight],
         physicalKey: null,
         logicalKey: null,
         touchPosition: Offset(480, 270), // 25% of 1920x1080

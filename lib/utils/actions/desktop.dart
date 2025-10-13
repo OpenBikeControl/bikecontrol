@@ -9,7 +9,7 @@ class DesktopActions extends BaseActions {
   // Track keys that are currently held down in long press mode
 
   @override
-  Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
       return ('Supported app is not set');
     }
@@ -49,7 +49,7 @@ class DesktopActions extends BaseActions {
   }
 
   // Release all held keys (useful for cleanup)
-  Future<void> releaseAllHeldKeys(List<ZwiftButton> list) async {
+  Future<void> releaseAllHeldKeys(List<ControllerButton> list) async {
     for (final action in list) {
       final keyPair = supportedApp?.keymap.getKeyPair(action);
       if (keyPair?.physicalKey != null) {

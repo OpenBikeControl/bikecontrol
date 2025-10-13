@@ -51,6 +51,7 @@ dev_dependencies:
 
   flutter_launcher_icons: "^0.14.3"
   flutter_lints: ^6.0.0
+  msix: ^3.16.12
 
 flutter:
   uses-material-design: true
@@ -58,3 +59,14 @@ flutter:
     - CHANGELOG.md
     - TROUBLESHOOTING.md
     - shorebird.yaml
+
+msix_config:
+  display_name: SwiftControl
+  publisher_display_name: Jonas Bark
+  identity_name: JonasBark.SwiftControl
+  publisher: CN=EDA6D86E-3E52-4054-9F3A-4277AFCCB2C4
+  store: true
+  msix_version: 1.0.0.0
+  logo_path: logo.jpg
+  build_windows: false
+  capabilities: internetClient,bluetooth,inputInjectionBrokered

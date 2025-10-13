@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:accessibility/accessibility.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/zwift_click.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -16,7 +16,7 @@ class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch]});
 
   @override
-  Future<String> performAction(ZwiftButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
       return 'Supported app is not set';
     }
@@ -43,7 +43,7 @@ class RemoteActions extends BaseActions {
   }
 
   @override
-  Offset resolveTouchPosition({required ZwiftButton action, required WindowEvent? windowInfo}) {
+  Offset resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) {
     // for remote actions we use the relative position only
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {

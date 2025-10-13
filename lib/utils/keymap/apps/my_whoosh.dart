@@ -13,33 +13,33 @@ class MyWhoosh extends SupportedApp {
         keymap: Keymap(
           keyPairs: [
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
               physicalKey: PhysicalKeyboardKey.keyI,
               logicalKey: LogicalKeyboardKey.keyI,
               touchPosition: Offset(80, 94),
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
               physicalKey: PhysicalKeyboardKey.keyK,
               logicalKey: LogicalKeyboardKey.keyK,
               touchPosition: Offset(98, 94),
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
               physicalKey: PhysicalKeyboardKey.arrowRight,
               logicalKey: LogicalKeyboardKey.arrowRight,
               touchPosition: Offset(98, 80),
               isLongPress: true,
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.navigateLeft).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.navigateLeft).toList(),
               physicalKey: PhysicalKeyboardKey.arrowLeft,
               logicalKey: LogicalKeyboardKey.arrowLeft,
               touchPosition: Offset(32, 80),
               isLongPress: true,
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.toggleUi).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.toggleUi).toList(),
               physicalKey: PhysicalKeyboardKey.keyH,
               logicalKey: LogicalKeyboardKey.keyH,
             ),

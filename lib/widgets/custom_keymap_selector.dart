@@ -27,7 +27,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
 
   final FocusNode _focusNode = FocusNode();
   KeyDownEvent? _pressedKey;
-  ZwiftButton? _pressedButton;
+  ControllerButton? _pressedButton;
 
   @override
   void initState() {
@@ -84,24 +84,23 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      content:
-          _pressedButton == null
-              ? Text('Press a button on your Click device')
-              : KeyboardListener(
-                focusNode: _focusNode,
-                autofocus: true,
-                onKeyEvent: _onKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 20,
-                  children: [
-                    Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
-                    Text(_formatKey(_pressedKey)),
-                  ],
-                ),
+      content: _pressedButton == null
+          ? Text('Press a button on your Click device')
+          : KeyboardListener(
+              focusNode: _focusNode,
+              autofocus: true,
+              onKeyEvent: _onKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 20,
+                children: [
+                  Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
+                  Text(_formatKey(_pressedKey)),
+                ],
               ),
+            ),
 
       actions: [TextButton(onPressed: () => Navigator.of(context).pop(_pressedKey), child: Text("OK"))],
     );

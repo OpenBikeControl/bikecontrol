@@ -1,9 +1,9 @@
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
 
 class BleUuid {
   static final DEVICE_INFORMATION_SERVICE_UUID = "0000180a-0000-1000-8000-00805f9b34fb".toLowerCase();
-  static final DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION =
-      "00002a26-0000-1000-8000-00805f9b34fb".toLowerCase();
+  static final DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION = "00002a26-0000-1000-8000-00805f9b34fb"
+      .toLowerCase();
 
   static final DEVICE_BATTERY_SERVICE_UUID = "0000180f-0000-1000-8000-00805f9b34fb".toLowerCase();
   static final DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL = "00002a19-0000-1000-8000-00805f9b34fb".toLowerCase();

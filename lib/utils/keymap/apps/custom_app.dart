@@ -35,7 +35,7 @@ class CustomApp extends SupportedApp {
   }
 
   void setKey(
-    ZwiftButton zwiftButton, {
+    ControllerButton zwiftButton, {
     required PhysicalKeyboardKey? physicalKey,
     required LogicalKeyboardKey? logicalKey,
     bool isLongPress = false,

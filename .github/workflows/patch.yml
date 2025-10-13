@@ -1,0 +1,81 @@
+name: "Patch"
+
+on:
+  workflow_dispatch:
+
+env:
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  FLUTTER_VERSION: 3.35.5
+
+jobs:
+  build:
+    name: Build & Release
+    runs-on: macos-latest
+
+    permissions:
+      id-token: write
+      pages: write
+      contents: write
+
+    steps:
+      #1 Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
+          echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
+
+      - name: 🚀 Shorebird Patch macOS
+        uses: shorebirdtech/shorebird-patch@v1
+        with:
+          platform: macos
+          release-version: latest
+
+      - name: 🚀 Shorebird Patch Android
+        uses: shorebirdtech/shorebird-patch@v1
+        with:
+          platform: android
+          release-version: latest
+
+      - name: 🚀 Shorebird Patch iOS
+        uses: shorebirdtech/shorebird-patch@v1
+        with:
+          platform: ios
+          release-version: latest
+
+
+  windows:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    name: Build & Release on Windows
+    runs-on: windows-latest
+
+    steps:
+      #1 Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+        #2 Setup Java
+      - name: Set Up Java
+        uses: actions/setup-java@v3.12.0
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: 🚀 Shorebird Release Windows
+        uses: shorebirdtech/shorebird-patch@v1
+        with:
+          platform: windows
+          release-version: latest

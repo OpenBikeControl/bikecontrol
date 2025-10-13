@@ -43,8 +43,9 @@ class Connection {
           _addDevices([scanResult]);
         } else {
           final manufacturerData = result.manufacturerDataList;
-          final data =
-              manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+          final data = manufacturerData
+              .firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)
+              ?.payload;
           _actionStreams.add(LogNotification('Found unknown device with identifier: ${data?.firstOrNull}'));
         }
       }
@@ -69,7 +70,7 @@ class Connection {
     // does not work on web, may not work on Windows
     if (!kIsWeb && !Platform.isWindows) {
       UniversalBle.getSystemDevices(
-        withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID],
+        withServices: BaseDevice.servicesToScan,
       ).then((devices) async {
         final baseDevices = devices.mapNotNull(BaseDevice.fromScanResult).toList();
         if (baseDevices.isNotEmpty) {
@@ -79,8 +80,8 @@ class Connection {
     }
 
     await UniversalBle.startScan(
-      scanFilter: ScanFilter(withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID]),
-      platformConfig: PlatformConfig(web: WebOptions(optionalServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID])),
+      scanFilter: ScanFilter(withServices: BaseDevice.servicesToScan),
+      platformConfig: PlatformConfig(web: WebOptions(optionalServices: BaseDevice.servicesToScan)),
     );
     Future.delayed(Duration(seconds: 30)).then((_) {
       if (isScanning.value) {

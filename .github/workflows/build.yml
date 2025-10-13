@@ -1,16 +1,7 @@
 name: "Build"
 
 on:
-  push:
-    branches:
-      - main
-      - ios
-    paths:
-      - '.github/workflows/**'
-      - 'lib/**'
-      - 'accessibility/**'
-      - 'keypress_simulator/**'
-      - 'pubspec.yaml'
+  workflow_dispatch:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}

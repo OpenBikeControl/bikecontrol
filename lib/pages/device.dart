@@ -5,7 +5,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
@@ -162,6 +162,25 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     device.device.name?.screenshot ?? device.runtimeType.toString(),
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
+                                  if (device.isBeta)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'BETA',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   if (device.batteryLevel != null) ...[
                                     Icon(switch (device.batteryLevel!) {
                                       >= 80 => Icons.battery_full,
