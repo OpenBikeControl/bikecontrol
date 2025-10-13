@@ -42,7 +42,11 @@ enum ControllerButton {
   // zwift ride only
   shiftUpRight._(InGameAction.shiftUp, icon: Icons.add, color: Colors.black),
   shiftDownRight._(InGameAction.shiftUp),
-  powerUpRight._(InGameAction.shiftUp);
+  powerUpRight._(InGameAction.shiftUp),
+
+  // elite square only
+  campagnoloLeft._(InGameAction.shiftDown),
+  campagnoloRight._(InGameAction.shiftUp);
 
   final InGameAction? action;
   final Color? color;

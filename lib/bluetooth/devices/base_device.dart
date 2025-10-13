@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/ble.dart';
+import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
@@ -13,6 +14,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
+import 'elite/elite_square.dart';
 
 abstract class BaseDevice {
   final BleDevice scanResult;
@@ -31,6 +33,8 @@ abstract class BaseDevice {
   static List<String> servicesToScan = [
     BleUuid.ZWIFT_CUSTOM_SERVICE_UUID,
     BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
+    SquareConstants.SERVICE_UUID,
+    WahooKickrBikeShiftConstants.SERVICE_UUID,
   ];
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
@@ -40,6 +44,7 @@ abstract class BaseDevice {
             'Zwift Ride' => ZwiftRide(scanResult),
             'Zwift Play' => ZwiftPlay(scanResult),
             'Zwift Click' => ZwiftClickV2(scanResult),
+            'SQUARE' => EliteSquare(scanResult),
             _ => null,
           }
         : switch (scanResult.name) {
@@ -52,7 +57,10 @@ abstract class BaseDevice {
 
     if (device != null) {
       return device;
-    } else {
+    } else if (scanResult.services.containsAny([
+      BleUuid.ZWIFT_CUSTOM_SERVICE_UUID,
+      BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
+    ])) {
       // otherwise use the manufacturer data to identify the device
       final manufacturerData = scanResult.manufacturerDataList;
       final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
@@ -72,6 +80,19 @@ abstract class BaseDevice {
         //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
         _ => null,
       };
+    } else if (scanResult.services.contains(SquareConstants.SERVICE_UUID)) {
+      return EliteSquare(scanResult);
+    } else if (scanResult.services.contains(WahooKickrBikeShiftConstants.SERVICE_UUID)) {
+      if (scanResult.name != null && !scanResult.name!.toUpperCase().contains('KICKR BIKE SHIFT')) {
+        return WahooKickrBikeShift(scanResult);
+      } else if (kIsWeb && scanResult.name == null) {
+        // some devices don't broadcast the name, so we must rely on the service UUID
+        return WahooKickrBikeShift(scanResult);
+      } else {
+        return null;
+      }
+    } else {
+      return null;
     }
   }
 
@@ -110,8 +131,6 @@ abstract class BaseDevice {
 
   Future<void> handleServices(List<BleService> services);
   Future<void> processCharacteristic(String characteristic, Uint8List bytes);
-
-  Future<List<ControllerButton>?> processClickNotification(Uint8List message);
 
   Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked) async {
     if (buttonsClicked == null) {
