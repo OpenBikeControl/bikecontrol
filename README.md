@@ -39,6 +39,8 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
 - Zwift Click v2 (mostly, see issue #68)
 - Zwift Ride
 - Zwift Play
+- Elite Square Smart Frame (beta)
+- Wahoo Kickr Bike Shift (beta)
 
 ## Supported Platforms
 
