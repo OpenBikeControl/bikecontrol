@@ -164,6 +164,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
         ? (flutterView.display.size.height - flutterView.physicalSize.height) / flutterView.devicePixelRatio
         : 0.0;
 
+    // Store the initial drag position to calculate drag distance
+    Offset? dragStartPosition;
+
     if (kDebugMode && false) {
       print('Display Size: ${flutterView.display.size}');
       print('View size: ${flutterView.physicalSize}');
@@ -358,9 +361,19 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             child: icon,
           ),
           childWhenDragging: const SizedBox.shrink(),
+          onDragStarted: () {
+            // Capture the starting position to calculate drag distance later
+            dragStartPosition = position;
+          },
           onDragEnd: (details) {
-            // otherwise simulated touch will move it
-            if (details.velocity.pixelsPerSecond.distance > 0) {
+            // Calculate drag distance to prevent accidental repositioning from clicks
+            // while allowing legitimate drags even with low velocity (e.g., when overlapping buttons)
+            final dragDistance = dragStartPosition != null
+                ? (details.offset - dragStartPosition!).distance
+                : double.infinity;
+
+            // Only update position if dragged more than 5 pixels (prevents accidental clicks)
+            if (dragDistance > 5) {
               final matrix = Matrix4.inverted(_transformationController.value);
               final height = 0;
               final sceneY = details.offset.dy - height;
