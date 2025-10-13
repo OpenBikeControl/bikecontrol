@@ -1,7 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
-import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
@@ -13,7 +13,7 @@ import '../ble.dart';
 import '../messages/notification.dart';
 import '../protocol/zp.pb.dart';
 
-class ZwiftRide extends BaseDevice {
+class ZwiftRide extends ZwiftDevice {
   /// Minimum absolute analog value (0-100) required to trigger paddle button press.
   /// Values below this threshold are ignored to prevent accidental triggers from
   /// analog drift or light touches.
@@ -22,24 +22,24 @@ class ZwiftRide extends BaseDevice {
   ZwiftRide(super.scanResult)
     : super(
         availableButtons: [
-          ZwiftButton.navigationLeft,
-          ZwiftButton.navigationRight,
-          ZwiftButton.navigationUp,
-          ZwiftButton.navigationDown,
-          ZwiftButton.a,
-          ZwiftButton.b,
-          ZwiftButton.y,
-          ZwiftButton.z,
-          ZwiftButton.shiftUpLeft,
-          ZwiftButton.shiftDownLeft,
-          ZwiftButton.shiftUpRight,
-          ZwiftButton.shiftDownRight,
-          ZwiftButton.powerUpLeft,
-          ZwiftButton.powerUpRight,
-          ZwiftButton.onOffLeft,
-          ZwiftButton.onOffRight,
-          ZwiftButton.paddleLeft,
-          ZwiftButton.paddleRight,
+          ControllerButton.navigationLeft,
+          ControllerButton.navigationRight,
+          ControllerButton.navigationUp,
+          ControllerButton.navigationDown,
+          ControllerButton.a,
+          ControllerButton.b,
+          ControllerButton.y,
+          ControllerButton.z,
+          ControllerButton.shiftUpLeft,
+          ControllerButton.shiftDownLeft,
+          ControllerButton.shiftUpRight,
+          ControllerButton.shiftDownRight,
+          ControllerButton.powerUpLeft,
+          ControllerButton.powerUpRight,
+          ControllerButton.onOffLeft,
+          ControllerButton.onOffRight,
+          ControllerButton.paddleLeft,
+          ControllerButton.paddleRight,
         ],
       );
 
@@ -202,7 +202,7 @@ class ZwiftRide extends BaseDevice {
   }
 
   @override
-  Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
+  Future<List<ControllerButton>?> processClickNotification(Uint8List message) async {
     final RideNotification clickNotification = RideNotification(
       message,
       analogPaddleThreshold: analogPaddleThreshold,

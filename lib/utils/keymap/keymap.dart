@@ -24,12 +24,12 @@ class Keymap {
     );
   }
 
-  PhysicalKeyboardKey? getPhysicalKey(ZwiftButton action) {
+  PhysicalKeyboardKey? getPhysicalKey(ControllerButton action) {
     // get the key pair by in game action
     return keyPairs.firstOrNullWhere((element) => element.buttons.contains(action))?.physicalKey;
   }
 
-  KeyPair? getKeyPair(ZwiftButton action) {
+  KeyPair? getKeyPair(ControllerButton action) {
     // get the key pair by in game action
     return keyPairs.firstOrNullWhere((element) => element.buttons.contains(action));
   }
@@ -40,7 +40,7 @@ class Keymap {
 }
 
 class KeyPair {
-  final List<ZwiftButton> buttons;
+  final List<ControllerButton> buttons;
   PhysicalKeyboardKey? physicalKey;
   LogicalKeyboardKey? logicalKey;
   Offset touchPosition;
@@ -117,7 +117,7 @@ class KeyPair {
 
     return KeyPair(
       buttons: decoded['actions']
-          .map<ZwiftButton>((e) => ZwiftButton.values.firstWhere((element) => element.name == e))
+          .map<ControllerButton>((e) => ControllerButton.values.firstWhere((element) => element.name == e))
           .toList(),
       logicalKey: decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
           ? LogicalKeyboardKey(int.parse(decoded['logicalKey']))

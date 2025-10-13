@@ -25,7 +25,7 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<String> performAction(ZwiftButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<String> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
       return ("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
     }

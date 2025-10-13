@@ -15,7 +15,7 @@ enum InGameAction {
   }
 }
 
-enum ZwiftButton {
+enum ControllerButton {
   // left controller
   navigationUp._(InGameAction.increaseResistance, icon: Icons.keyboard_arrow_up, color: Colors.black),
   navigationDown._(InGameAction.decreaseResistance, icon: Icons.keyboard_arrow_down, color: Colors.black),
@@ -47,7 +47,7 @@ enum ZwiftButton {
   final InGameAction? action;
   final Color? color;
   final IconData? icon;
-  const ZwiftButton._(this.action, {this.color, this.icon});
+  const ControllerButton._(this.action, {this.color, this.icon});
 
   @override
   String toString() {

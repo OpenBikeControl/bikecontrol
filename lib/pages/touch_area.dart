@@ -35,7 +35,7 @@ class TouchAreaSetupPage extends StatefulWidget {
 class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   File? _backgroundImage;
   late StreamSubscription<BaseNotification> _actionSubscription;
-  ZwiftButton? _pressedButton;
+  ControllerButton? _pressedButton;
   final TransformationController _transformationController = TransformationController();
 
   late Rect _imageRect;

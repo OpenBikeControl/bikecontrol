@@ -13,27 +13,27 @@ class Biketerra extends SupportedApp {
         keymap: Keymap(
           keyPairs: [
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
               physicalKey: PhysicalKeyboardKey.keyS,
               logicalKey: LogicalKeyboardKey.keyS,
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
               physicalKey: PhysicalKeyboardKey.keyW,
               logicalKey: LogicalKeyboardKey.keyW,
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
               physicalKey: PhysicalKeyboardKey.arrowRight,
               logicalKey: LogicalKeyboardKey.arrowRight,
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.navigateLeft).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.navigateLeft).toList(),
               physicalKey: PhysicalKeyboardKey.arrowLeft,
               logicalKey: LogicalKeyboardKey.arrowLeft,
             ),
             KeyPair(
-              buttons: ZwiftButton.values.filter((e) => e.action == InGameAction.toggleUi).toList(),
+              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.toggleUi).toList(),
               physicalKey: PhysicalKeyboardKey.keyU,
               logicalKey: LogicalKeyboardKey.keyU,
             ),

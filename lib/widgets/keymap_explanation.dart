@@ -153,7 +153,7 @@ class KeyWidget extends StatelessWidget {
 }
 
 class ButtonWidget extends StatelessWidget {
-  final ZwiftButton button;
+  final ControllerButton button;
   final bool big;
   const ButtonWidget({super.key, required this.button, this.big = false});
 

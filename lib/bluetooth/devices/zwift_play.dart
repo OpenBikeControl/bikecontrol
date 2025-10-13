@@ -1,30 +1,30 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/messages/play_notification.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../ble.dart';
 
-class ZwiftPlay extends BaseDevice {
+class ZwiftPlay extends ZwiftDevice {
   ZwiftPlay(super.scanResult)
     : super(
         availableButtons: [
-          ZwiftButton.y,
-          ZwiftButton.z,
-          ZwiftButton.a,
-          ZwiftButton.b,
-          ZwiftButton.onOffRight,
-          ZwiftButton.sideButtonRight,
-          ZwiftButton.paddleRight,
-          ZwiftButton.navigationUp,
-          ZwiftButton.navigationLeft,
-          ZwiftButton.navigationRight,
-          ZwiftButton.navigationDown,
-          ZwiftButton.onOffLeft,
-          ZwiftButton.sideButtonLeft,
-          ZwiftButton.paddleLeft,
+          ControllerButton.y,
+          ControllerButton.z,
+          ControllerButton.a,
+          ControllerButton.b,
+          ControllerButton.onOffRight,
+          ControllerButton.sideButtonRight,
+          ControllerButton.paddleRight,
+          ControllerButton.navigationUp,
+          ControllerButton.navigationLeft,
+          ControllerButton.navigationRight,
+          ControllerButton.navigationDown,
+          ControllerButton.onOffLeft,
+          ControllerButton.sideButtonLeft,
+          ControllerButton.paddleLeft,
         ],
       );
 
@@ -34,7 +34,7 @@ class ZwiftPlay extends BaseDevice {
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_PLAY;
 
   @override
-  Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
+  Future<List<ControllerButton>?> processClickNotification(Uint8List message) async {
     final PlayNotification clickNotification = PlayNotification(message);
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
       _lastControllerNotification = clickNotification;

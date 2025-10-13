@@ -8,13 +8,13 @@ import '../protocol/zwift.pb.dart';
 import 'notification.dart';
 
 class ClickNotification extends BaseNotification {
-  late List<ZwiftButton> buttonsClicked;
+  late List<ControllerButton> buttonsClicked;
 
   ClickNotification(Uint8List message) {
     final status = ClickKeyPadStatus.fromBuffer(message);
     buttonsClicked = [
-      if (status.buttonPlus == PlayButtonStatus.ON) ZwiftButton.shiftUpRight,
-      if (status.buttonMinus == PlayButtonStatus.ON) ZwiftButton.shiftDownLeft,
+      if (status.buttonPlus == PlayButtonStatus.ON) ControllerButton.shiftUpRight,
+      if (status.buttonMinus == PlayButtonStatus.ON) ControllerButton.shiftDownLeft,
     ];
   }
 

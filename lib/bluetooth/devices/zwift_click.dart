@@ -1,16 +1,17 @@
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../messages/click_notification.dart';
 
-class ZwiftClick extends BaseDevice {
-  ZwiftClick(super.scanResult) : super(availableButtons: [ZwiftButton.shiftUpRight, ZwiftButton.shiftDownLeft]);
+class ZwiftClick extends ZwiftDevice {
+  ZwiftClick(super.scanResult)
+    : super(availableButtons: [ControllerButton.shiftUpRight, ControllerButton.shiftDownLeft]);
 
   ClickNotification? _lastClickNotification;
 
   @override
-  Future<List<ZwiftButton>?> processClickNotification(Uint8List message) async {
+  Future<List<ControllerButton>?> processClickNotification(Uint8List message) async {
     final ClickNotification clickNotification = ClickNotification(message);
     if (_lastClickNotification == null || _lastClickNotification != clickNotification) {
       _lastClickNotification = clickNotification;

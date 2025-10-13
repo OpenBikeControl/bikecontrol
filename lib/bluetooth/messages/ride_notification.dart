@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
@@ -34,8 +32,8 @@ enum _RideButtonMask {
 }
 
 class RideNotification extends BaseNotification {
-  late List<ZwiftButton> buttonsClicked;
-  late List<ZwiftButton> analogButtons;
+  late List<ControllerButton> buttonsClicked;
+  late List<ControllerButton> analogButtons;
 
   RideNotification(Uint8List message, {required int analogPaddleThreshold}) {
     final status = RideKeyPadStatus.fromBuffer(message);
@@ -44,23 +42,31 @@ class RideNotification extends BaseNotification {
 
     // Process DIGITAL buttons separately
     buttonsClicked = [
-      if (status.buttonMap & _RideButtonMask.LEFT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationLeft,
-      if (status.buttonMap & _RideButtonMask.RIGHT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationRight,
-      if (status.buttonMap & _RideButtonMask.UP_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationUp,
-      if (status.buttonMap & _RideButtonMask.DOWN_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.navigationDown,
-      if (status.buttonMap & _RideButtonMask.A_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.a,
-      if (status.buttonMap & _RideButtonMask.B_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.b,
-      if (status.buttonMap & _RideButtonMask.Y_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.y,
-      if (status.buttonMap & _RideButtonMask.Z_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.z,
-      if (status.buttonMap & _RideButtonMask.SHFT_UP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.shiftUpLeft,
-      if (status.buttonMap & _RideButtonMask.SHFT_DN_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.shiftDownLeft,
-      if (status.buttonMap & _RideButtonMask.SHFT_UP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.shiftUpRight,
+      if (status.buttonMap & _RideButtonMask.LEFT_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.navigationLeft,
+      if (status.buttonMap & _RideButtonMask.RIGHT_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.navigationRight,
+      if (status.buttonMap & _RideButtonMask.UP_BTN.mask == PlayButtonStatus.ON.value) ControllerButton.navigationUp,
+      if (status.buttonMap & _RideButtonMask.DOWN_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.navigationDown,
+      if (status.buttonMap & _RideButtonMask.A_BTN.mask == PlayButtonStatus.ON.value) ControllerButton.a,
+      if (status.buttonMap & _RideButtonMask.B_BTN.mask == PlayButtonStatus.ON.value) ControllerButton.b,
+      if (status.buttonMap & _RideButtonMask.Y_BTN.mask == PlayButtonStatus.ON.value) ControllerButton.y,
+      if (status.buttonMap & _RideButtonMask.Z_BTN.mask == PlayButtonStatus.ON.value) ControllerButton.z,
+      if (status.buttonMap & _RideButtonMask.SHFT_UP_L_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.shiftUpLeft,
+      if (status.buttonMap & _RideButtonMask.SHFT_DN_L_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.shiftDownLeft,
+      if (status.buttonMap & _RideButtonMask.SHFT_UP_R_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.shiftUpRight,
       if (status.buttonMap & _RideButtonMask.SHFT_DN_R_BTN.mask == PlayButtonStatus.ON.value)
-        ZwiftButton.shiftDownRight,
-      if (status.buttonMap & _RideButtonMask.POWERUP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.powerUpLeft,
-      if (status.buttonMap & _RideButtonMask.POWERUP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.powerUpRight,
-      if (status.buttonMap & _RideButtonMask.ONOFF_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.onOffLeft,
-      if (status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButton.onOffRight,
+        ControllerButton.shiftDownRight,
+      if (status.buttonMap & _RideButtonMask.POWERUP_L_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.powerUpLeft,
+      if (status.buttonMap & _RideButtonMask.POWERUP_R_BTN.mask == PlayButtonStatus.ON.value)
+        ControllerButton.powerUpRight,
+      if (status.buttonMap & _RideButtonMask.ONOFF_L_BTN.mask == PlayButtonStatus.ON.value) ControllerButton.onOffLeft,
+      if (status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == PlayButtonStatus.ON.value) ControllerButton.onOffRight,
     ];
 
     // Process ANALOG inputs separately - now properly separated from digital
@@ -71,9 +77,9 @@ class RideNotification extends BaseNotification {
         if (paddle.hasLocation() && paddle.hasAnalogValue()) {
           if (paddle.analogValue.abs() >= analogPaddleThreshold) {
             final button = switch (paddle.location.value) {
-              0 => ZwiftButton.paddleLeft,   // L0 = left paddle
-              1 => ZwiftButton.paddleRight,  // L1 = right paddle
-              _ => null,                      // L2, L3 unused
+              0 => ControllerButton.paddleLeft, // L0 = left paddle
+              1 => ControllerButton.paddleRight, // L1 = right paddle
+              _ => null, // L2, L3 unused
             };
 
             if (button != null) {
