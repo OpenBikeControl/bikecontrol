@@ -18,6 +18,8 @@ https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
 
 ## Downloads
+Check the compatibility matrix below!
+
 <a href="https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"><img width="270" height="80" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/a059d5a1-2efb-4f65-8117-ef6a99823b21" /></a>
 <a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone"><img width="270" height="80" alt="App Store" src="https://github.com/user-attachments/assets/c23f977a-48f6-4951-811e-ae530dbfa014" /></a>
 <a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac"><img width="270" height="80" alt="Mac App Store" src="https://github.com/user-attachments/assets/b3552436-409c-43b0-ba7d-b6a72ae30ff1" /></a>
@@ -27,7 +29,7 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
 
 ## Supported Apps
 - MyWhoosh
-- indieVelo / Training Peaks
+- TrainingPeaks Virtual / indieVelo
 - Biketerra.com (they do offer native integration already - check it out)
 - Rouvy (most Zwift devices are already supported by Rouvy)
 - any other! You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
@@ -39,15 +41,17 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
 - Zwift Play
 
 ## Supported Platforms
-- [Android](https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol)
-- [iOS (iPhone, iPad)](https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone)
-  - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations, but you can use it to remotely control MyWhoosh and similar on e.g. an iPad.
-- [macOS](https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac)
-- [Windows](https://github.com/jonasbark/swiftcontrol/releases)
-  - Windows may flag the app as virus. It likely does so because the app controls the mouse and keyboard.
-  - Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).
-  - Make sure your Zwift device is not paired with Windows Bluetooth settings: [more information](https://github.com/jonasbark/swiftcontrol/issues/70).
-- [Web](https://jonasbark.github.io/swiftcontrol/) (this is just a tech demo - you won't be able to control other apps)
+
+| Platform you want to run your Trainer app, e.g. MyWhoosh on | Possible | Link                                                                                                                                                                                                                                                        | Information                                                                                                                                                                                                                                                                                                                                                                                                                            |
+|-------------------------------------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Android                                                     | ✅        | <a href="https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"><img width="270" height="80" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/a059d5a1-2efb-4f65-8117-ef6a99823b21" /></a> |                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| iPad (and possibly Apple TV)                                | ✅        | <a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone"><img width="270" height="80" alt="App Store" src="https://github.com/user-attachments/assets/c23f977a-48f6-4951-811e-ae530dbfa014" /></a>                                 | You will need to use SwiftControl as a "remote" to control the trainer app on your iPad. Typically you would use an iPhone or an Android phone for that.                                                                                                                                                                                                                                                                               |
+| Windows                                                     | ✅        | [Get it here](https://github.com/jonasbark/swiftcontrol/releases)                                                                                                                                                                       | - Windows may flag the app as virus. It likely does so because the app controls the mouse and keyboard.<br>- Bluetooth connection unstable? You may need to use an [external Bluetooth adapter](https://github.com/jonasbark/swiftcontrol/issues/14#issuecomment-3193839509).<br>- Make sure your Zwift device is not paired with Windows Bluetooth settings: [more information](https://github.com/jonasbark/swiftcontrol/issues/70). |
+| macOS                                                       | ✅        | <a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac"><img width="270" height="80" alt="Mac App Store" src="https://github.com/user-attachments/assets/b3552436-409c-43b0-ba7d-b6a72ae30ff1" /></a>                                |                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| iPhone                                                      | ❌        |                                                                                                                                                                                                                                                             | Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations, but you can use it to remotely control MyWhoosh and similar on e.g. an iPad.                                                                                                                                                                                                                                                      |
+
+
+For testing purposes you can also run it on [Web](https://jonasbark.github.io/swiftcontrol/) but this is just a tech demo - you won't be able to control other apps.
 
 ## Troubleshooting
 Check the troubleshooting guide [here](TROUBLESHOOTING.md).
