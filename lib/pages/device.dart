@@ -162,6 +162,25 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     device.device.name?.screenshot ?? device.runtimeType.toString(),
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
+                                  if (device.isBeta)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'BETA',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   if (device.batteryLevel != null) ...[
                                     Icon(switch (device.batteryLevel!) {
                                       >= 80 => Icons.battery_full,

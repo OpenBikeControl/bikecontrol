@@ -6,7 +6,7 @@ import '../../ble.dart';
 import '../../protocol/zp.pbenum.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
-  ZwiftClickV2(super.scanResult);
+  ZwiftClickV2(super.scanResult) : super(isBeta: true);
 
   @override
   bool get supportsEncryption => false;

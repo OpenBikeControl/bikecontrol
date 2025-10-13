@@ -19,7 +19,7 @@ class ZwiftRide extends ZwiftDevice {
   /// analog drift or light touches.
   static const int analogPaddleThreshold = 25;
 
-  ZwiftRide(super.scanResult)
+  ZwiftRide(super.scanResult, {super.isBeta})
     : super(
         availableButtons: [
           ControllerButton.navigationLeft,

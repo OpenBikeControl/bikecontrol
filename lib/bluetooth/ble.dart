@@ -1,9 +1,10 @@
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 
 class BleUuid {
   static final DEVICE_INFORMATION_SERVICE_UUID = "0000180a-0000-1000-8000-00805f9b34fb".toLowerCase();
-  static final DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION =
-      "00002a26-0000-1000-8000-00805f9b34fb".toLowerCase();
+  static final DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION = "00002a26-0000-1000-8000-00805f9b34fb"
+      .toLowerCase();
 
   static final DEVICE_BATTERY_SERVICE_UUID = "0000180f-0000-1000-8000-00805f9b34fb".toLowerCase();
   static final DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL = "00002a19-0000-1000-8000-00805f9b34fb".toLowerCase();
@@ -12,6 +13,55 @@ class BleUuid {
   static final ZWIFT_ASYNC_CHARACTERISTIC_UUID = "00000002-19CA-4651-86E5-FA29DCDD09D1".toLowerCase();
   static final ZWIFT_SYNC_RX_CHARACTERISTIC_UUID = "00000003-19CA-4651-86E5-FA29DCDD09D1".toLowerCase();
   static final ZWIFT_SYNC_TX_CHARACTERISTIC_UUID = "00000004-19CA-4651-86E5-FA29DCDD09D1".toLowerCase();
+}
+
+class SquareConstants {
+  static const String DEVICE_NAME = "SQUARE";
+  static const String CHARACTERISTIC_UUID = "347b0043-7635-408b-8918-8ff3949ce592";
+  static const String SERVICE_UUID = "347b0001-7635-408b-8918-8ff3949ce592";
+  static const int RECONNECT_DELAY = 5; // seconds between reconnection attempts
+
+  // Button mapping https://images.bike24.com/i/mb/c7/36/d9/elite-square-smart-frame-indoor-bike-3-1724305.jpg
+  static const Map<String, ControllerButton> BUTTON_MAPPING = {
+    "00000200": ControllerButton.navigationUp, //"Up",
+    "00000100": ControllerButton.navigationLeft, //"Left",
+    "00000800": ControllerButton.navigationDown, // "Down",
+    "00000400": ControllerButton.navigationRight, //"Right",
+    "00002000": ControllerButton.powerUpLeft, //"X",
+    "00001000": ControllerButton.sideButtonLeft, // "Square",
+    "00008000": ControllerButton.campagnoloLeft, // "Left Campagnolo",
+    "00004000": ControllerButton.onOffLeft, //"Left brake",
+    "00000002": ControllerButton.shiftDownLeft, //"Left shift 1",
+    "00000001": ControllerButton.paddleLeft, // "Left shift 2",
+    "02000000": ControllerButton.y, // "Y",
+    "01000000": ControllerButton.a, //"A",
+    "08000000": ControllerButton.b, // "B",
+    "04000000": ControllerButton.z, // "Z",
+    "20000000": ControllerButton.powerUpRight, // "Circle",
+    "10000000": ControllerButton.sideButtonRight, //"Triangle",
+    "80000000": ControllerButton.campagnoloRight, // "Right Campagnolo",
+    "40000000": ControllerButton.onOffRight, //"Right brake",
+    "00020000": ControllerButton.sideButtonRight, //"Right shift 1",
+    "00010000": ControllerButton.paddleRight, //"Right shift 2",
+  };
+
+  // Key mapping for button presses
+  static const Map<String, LogicalKeyboardKey> KEY_MAPPING = {
+    "Up": LogicalKeyboardKey.arrowUp,
+    "Left": LogicalKeyboardKey.arrowLeft,
+    "Down": LogicalKeyboardKey.arrowDown,
+    "Right": LogicalKeyboardKey.arrowRight,
+    "Square": LogicalKeyboardKey.keyR,
+    "Left Campagnolo": LogicalKeyboardKey.arrowLeft,
+    "Left brake": LogicalKeyboardKey.digit6,
+    "Y": LogicalKeyboardKey.keyG,
+    "A": LogicalKeyboardKey.enter,
+    "B": LogicalKeyboardKey.escape,
+    "Z": LogicalKeyboardKey.keyT,
+    "Triangle": LogicalKeyboardKey.space,
+    "Right Campagnolo": LogicalKeyboardKey.arrowRight,
+    "Right brake": LogicalKeyboardKey.digit1,
+  };
 }
 
 class Constants {

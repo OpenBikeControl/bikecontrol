@@ -17,7 +17,7 @@ import '../../../utils/crypto/encryption_utils.dart';
 abstract class ZwiftDevice extends BaseDevice {
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 
-  ZwiftDevice(super.scanResult, {required super.availableButtons});
+  ZwiftDevice(super.scanResult, {required super.availableButtons, super.isBeta});
 
   bool supportsEncryption = false;
 
@@ -180,6 +180,8 @@ abstract class ZwiftDevice extends BaseDevice {
         break;
     }
   }
+
+  Future<List<ControllerButton>?> processClickNotification(Uint8List message);
 
   @override
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
