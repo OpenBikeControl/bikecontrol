@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 
-import '../ble.dart';
-import '../protocol/zp.pbenum.dart';
+import '../../ble.dart';
+import '../../protocol/zp.pbenum.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult);

@@ -1,17 +1,17 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-import '../../main.dart';
-import '../ble.dart';
-import '../messages/notification.dart';
-import '../protocol/zp.pb.dart';
+import '../../../main.dart';
+import '../../ble.dart';
+import '../../messages/notification.dart';
+import '../../protocol/zp.pb.dart';
 
 class ZwiftRide extends ZwiftDevice {
   /// Minimum absolute analog value (0-100) required to trigger paddle button press.

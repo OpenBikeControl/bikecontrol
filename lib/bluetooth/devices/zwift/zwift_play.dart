@@ -5,7 +5,7 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/messages/play_notification.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
-import '../ble.dart';
+import '../../ble.dart';
 
 class ZwiftPlay extends ZwiftDevice {
   ZwiftPlay(super.scanResult)

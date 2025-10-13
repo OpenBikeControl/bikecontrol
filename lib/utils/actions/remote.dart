@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:accessibility/accessibility.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/zwift_click.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';

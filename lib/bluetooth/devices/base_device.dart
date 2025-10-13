@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/ble.dart';
-import 'package:swift_control/bluetooth/devices/zwift_click.dart';
-import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
-import 'package:swift_control/bluetooth/devices/zwift_play.dart';
-import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -16,9 +16,10 @@ import '../messages/notification.dart';
 
 abstract class BaseDevice {
   final BleDevice scanResult;
+  final bool isBeta;
   final List<ControllerButton> availableButtons;
 
-  BaseDevice(this.scanResult, {required this.availableButtons});
+  BaseDevice(this.scanResult, {required this.availableButtons, this.isBeta = false});
 
   bool isConnected = false;
   int? batteryLevel;
@@ -26,6 +27,11 @@ abstract class BaseDevice {
 
   Timer? _longPressTimer;
   Set<ControllerButton> _previouslyPressedButtons = <ControllerButton>{};
+
+  static List<String> servicesToScan = [
+    BleUuid.ZWIFT_CUSTOM_SERVICE_UUID,
+    BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
+  ];
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
     // Use the name first as the "System Devices" and Web (android sometimes Windows) don't have manufacturer data

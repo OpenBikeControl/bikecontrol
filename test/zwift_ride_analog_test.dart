@@ -1,6 +1,7 @@
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:swift_control/bluetooth/devices/zwift_ride.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 
 void main() {
   group('Zwift Ride Analog Paddle - ZigZag Encoding Tests', () {

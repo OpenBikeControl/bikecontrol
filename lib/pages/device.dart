@@ -5,7 +5,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/bluetooth/devices/zwift_clickv2.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
