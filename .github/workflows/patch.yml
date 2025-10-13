@@ -97,7 +97,6 @@ jobs:
           args: '--allow-asset-diffs'
 
   windows:
-    needs: build
     name: Patch Windows
     runs-on: windows-latest
 
