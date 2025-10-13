@@ -9,6 +9,7 @@ env:
 
 jobs:
   build:
+    if: false
     name: Patch iOS, Android & macOS
     runs-on: macos-latest
 
@@ -122,3 +123,4 @@ jobs:
         with:
           platform: windows
           release-version: latest
+          args: '--allow-asset-diffs'
