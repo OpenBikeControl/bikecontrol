@@ -39,21 +39,28 @@ abstract class BaseDevice {
 
   static BaseDevice? fromScanResult(BleDevice scanResult) {
     // Use the name first as the "System Devices" and Web (android sometimes Windows) don't have manufacturer data
-    final device = kIsWeb
-        ? switch (scanResult.name) {
-            'Zwift Ride' => ZwiftRide(scanResult),
-            'Zwift Play' => ZwiftPlay(scanResult),
-            'Zwift Click' => ZwiftClickV2(scanResult),
-            'SQUARE' => EliteSquare(scanResult),
-            _ => null,
-          }
-        : switch (scanResult.name) {
-            //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
-            // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
-            'Zwift Play' => ZwiftPlay(scanResult),
-            //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the left controller
-            _ => null,
-          };
+    BaseDevice? device;
+    if (kIsWeb) {
+      device = switch (scanResult.name) {
+        'Zwift Ride' => ZwiftRide(scanResult),
+        'Zwift Play' => ZwiftPlay(scanResult),
+        'Zwift Click' => ZwiftClickV2(scanResult),
+        'SQUARE' => EliteSquare(scanResult),
+        _ => null,
+      };
+
+      if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT')) {
+        device = WahooKickrBikeShift(scanResult);
+      }
+    } else {
+      device = switch (scanResult.name) {
+        //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
+        // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
+        'Zwift Play' => ZwiftPlay(scanResult),
+        //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the left controller
+        _ => null,
+      };
+    }
 
     if (device != null) {
       return device;
