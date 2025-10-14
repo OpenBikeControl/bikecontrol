@@ -77,6 +77,7 @@ class MenuButton extends StatelessWidget {
                             connection.signalNotification(
                               RideNotification(Uint8List(0), analogPaddleThreshold: 25)..buttonsClicked = [e],
                             );
+                            connection.devices.firstOrNull?.handleButtonsClicked([e]);
                           });
                         },
                       ),

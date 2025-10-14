@@ -33,7 +33,7 @@ class RemoteActions extends BaseActions {
     if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {
       return ('Physical key actions are not supported, yet');
     } else {
-      final point = resolveTouchPosition(action: action, windowInfo: null);
+      final point = await resolveTouchPosition(action: action, windowInfo: null);
       final point2 = point; //Offset(100, 99.0);
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
@@ -43,7 +43,7 @@ class RemoteActions extends BaseActions {
   }
 
   @override
-  Offset resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) {
+  Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {
     // for remote actions we use the relative position only
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {

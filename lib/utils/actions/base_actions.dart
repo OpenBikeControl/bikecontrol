@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -20,7 +23,7 @@ abstract class BaseActions {
     this.supportedApp = supportedApp;
   }
 
-  Offset resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) {
+  Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {
       // convert relative position to absolute position based on window info
@@ -35,8 +38,18 @@ abstract class BaseActions {
         return Offset(x, y);
       } else {
         // TODO support multiple screens
-        final display = WidgetsBinding.instance.platformDispatcher.views.first.display;
-        final displaySize = display.size;
+        final Size displaySize;
+        final double devicePixelRatio;
+        if (Platform.isWindows) {
+          // TODO remove once https://github.com/flutter/flutter/pull/164460 is available in stable
+          final display = await screenRetriever.getPrimaryDisplay();
+          displaySize = display.size;
+          devicePixelRatio = 1.0;
+        } else {
+          final display = WidgetsBinding.instance.platformDispatcher.views.first.display;
+          displaySize = display.size;
+          devicePixelRatio = display.devicePixelRatio;
+        }
 
         late final Size physicalSize;
         if (this is AndroidActions) {
@@ -45,7 +58,7 @@ abstract class BaseActions {
         } else if (this is DesktopActions) {
           // display size is in logical pixels, convert to physical pixels
           // TODO on macOS the notch is included here, but it's not part of the usable screen area, so we should exclude it
-          physicalSize = displaySize / display.devicePixelRatio;
+          physicalSize = displaySize / devicePixelRatio;
         } else {
           physicalSize = displaySize;
         }
