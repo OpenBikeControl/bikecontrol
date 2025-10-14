@@ -92,9 +92,19 @@ class _AppTitleState extends State<AppTitle> {
             action: SnackBarAction(
               label: 'Update',
               onPressed: () {
-                updater.update().then((value) {
-                  _showShorebirdRestartSnackbar();
-                });
+                updater
+                    .update()
+                    .then((value) {
+                      _showShorebirdRestartSnackbar();
+                    })
+                    .catchError((e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to update: $e'),
+                          duration: Duration(seconds: 5),
+                        ),
+                      );
+                    });
               },
             ),
           ),

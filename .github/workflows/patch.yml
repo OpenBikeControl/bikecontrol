@@ -117,7 +117,7 @@ jobs:
         with:
           cache: true
 
-      - name: 🚀 Shorebird Release Windows
+      - name: 🚀 Shorebird Patch Windows
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: windows

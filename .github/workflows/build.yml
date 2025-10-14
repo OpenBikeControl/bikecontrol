@@ -2,6 +2,27 @@ name: "Build"
 
 on:
   workflow_dispatch:
+    inputs:
+      build_mac:
+        description: 'Build for macOS'
+        required: false
+        default: 'true'
+      build_windows:
+        description: 'Build for Windows'
+        required: false
+        default: 'true'
+      build_android:
+        description: 'Build for Android'
+        required: false
+        default: 'true'
+      build_ios:
+        description: 'Build for iOS'
+        required: false
+        default: 'true'
+      build_web:
+        description: 'Build for Web'
+        required: false
+        default: 'true'
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
@@ -23,6 +44,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install certificates
+        if: github.event.inputs.build_mac == 'true' || github.event.inputs.build_ios == 'true'
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
           DEVELOPER_ID_INSTALLER_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
@@ -70,23 +92,27 @@ jobs:
           cache: true
 
       - name: 🚀 Shorebird Release macOS
+        if: github.event.inputs.build_mac == 'true'
         uses: shorebirdtech/shorebird-release@v1
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
 
       - name: Code Signing
+        if: github.event.inputs.build_mac == 'true'
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
       - name: Decode Keystore
+        if: github.event.inputs.build_android == 'true'
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
       - name: 🚀 Shorebird Release Android
+        if: github.event.inputs.build_android == 'true'
         uses: shorebirdtech/shorebird-release@v1
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -94,35 +120,45 @@ jobs:
           args: "--artifact=apk"
 
       - name: Set Up Flutter
+        if: github.event.inputs.build_web == 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Build Web
-        if: github.ref == 'refs/heads/main'
+        if: github.event.inputs.build_web == 'true'
         run: flutter build web --release --base-href "/swiftcontrol/"
 
-      - name: Handle archives
-        if: github.ref == 'refs/heads/main'
+      - name: Handle Android archives
+        if: github.event.inputs.build_android == 'true'
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
+
+      - name: Handle macOS archives
+        if: github.event.inputs.build_mac == 'true'
+        run: |
           cd build/macos/Build/Products/Release/
           zip -r SwiftControl.macos.zip SwiftControl.app/
 
-        #9 Upload Artifacts
-      - name: Upload Artifacts
-        if: github.ref == 'refs/heads/main'
+      - name: Upload Android Artifacts
+        if: github.event.inputs.build_android == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Releases
           path: |
             build/app/outputs/flutter-apk/SwiftControl.android.apk
+
+      - name: Upload macOS Artifacts
+        if: github.event.inputs.build_mac == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Releases
+          path: |
             build/macos/Build/Products/Release/SwiftControl.macos.zip
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
-        if: github.ref == 'refs/heads/main'
         id: extract_version
         run: |
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
@@ -130,7 +166,6 @@ jobs:
 
         #11 Check if Tag Exists
       - name: Check if Tag Exists
-        if: github.ref == 'refs/heads/main'
         id: check_tag
         run: |
           if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
@@ -141,7 +176,7 @@ jobs:
 
         #12 Modify Tag if it Exists
       - name: Modify Tag
-        if: env.TAG_EXISTS == 'true' && github.ref == 'refs/heads/main'
+        if: env.TAG_EXISTS == 'true'
         id: modify_tag
         run: |
           new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
@@ -149,7 +184,6 @@ jobs:
 
         #13 Create Release
       - name: Create Release
-        if: github.ref == 'refs/heads/main'
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
@@ -160,14 +194,14 @@ jobs:
           token: ${{ secrets.TOKEN }}
 
       - name: Upload static files as artifact
-        if: github.ref == 'refs/heads/main'
+        if: github.event.inputs.build_web == 'true'
         id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
       - name: Web Deploy
-        if: github.ref == 'refs/heads/main'
+        if: github.event.inputs.build_web == 'true'
         uses: actions/deploy-pages@v4
 
       - name: Extract latest changelog
@@ -178,6 +212,7 @@ jobs:
           ./scripts/get_latest_changelog.sh | head -c 500 > whatsnew/whatsnew-en-US
 
       - name: 🚀 Shorebird Release iOS
+        if: github.event.inputs.build_ios == 'true'
         uses: shorebirdtech/shorebird-release@v1
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -185,6 +220,7 @@ jobs:
           args: "--export-options-plist ios/ExportOptions.plist"
 
       - name: Prepare App Store authentication key
+        if: github.event.inputs.build_ios == 'true' || github.event.inputs.build_mac == 'true'
         env:
           API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
@@ -193,8 +229,7 @@ jobs:
           printf %s "$API_KEY_BASE64" | base64 -D > "./private_keys/AuthKey_${APPSTORE_API_KEY}.p8";      
 
       - name: Upload to Play Store
-        # only upload when env.VERSION does not end with 1337, which is our indicator for beta releases
-        if: "!endsWith(env.VERSION, '1337')"
+        if: github.event.inputs.build_android == 'true'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
@@ -204,6 +239,7 @@ jobs:
           whatsNewDirectory: whatsnew
 
       - name: Upload to macOS App Store
+        if: github.event.inputs.build_mac == 'true'
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
@@ -212,6 +248,7 @@ jobs:
           xcrun altool --upload-app -f SwiftControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
 
       - name: Upload to iOS App Store
+        if: github.event.inputs.build_ios == 'true'
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
@@ -221,7 +258,7 @@ jobs:
 
   windows:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.event.inputs.build_windows == 'true'
     name: Build & Release on Windows
     runs-on: windows-latest
 

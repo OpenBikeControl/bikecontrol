@@ -15,7 +15,7 @@ on:
 
 jobs:
   build:
-    name: Build & Release
+    name: Build Web
     runs-on: macos-latest
 
     permissions:
