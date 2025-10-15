@@ -119,6 +119,7 @@ jobs:
         run: |
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r');
           echo "VERSION=$version" >> $GITHUB_ENV;
+          cd build/macos/Build/Products/Release/;
           /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v;
 
       #9 Upload Artifacts
