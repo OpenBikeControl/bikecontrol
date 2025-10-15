@@ -142,6 +142,7 @@ jobs:
 
   windows:
     name: Patch Windows
+    if: false
     runs-on: windows-latest
 
     steps:
