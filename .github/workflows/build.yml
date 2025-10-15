@@ -98,13 +98,6 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
 
-      - name: Code Signing
-        if: github.event.inputs.build_mac == 'true'
-        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
-        working-directory: build/macos/Build/Products/Release
-        env:
-          DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
-
       - name: Decode Keystore
         if: github.event.inputs.build_android == 'true'
         run: |
@@ -129,69 +122,6 @@ jobs:
       - name: Build Web
         if: github.event.inputs.build_web == 'true'
         run: flutter build web --release --base-href "/swiftcontrol/"
-
-      - name: Handle Android archives
-        if: github.event.inputs.build_android == 'true'
-        run: |
-          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
-
-      - name: Handle macOS archives
-        if: github.event.inputs.build_mac == 'true'
-        run: |
-          cd build/macos/Build/Products/Release/
-          zip -r SwiftControl.macos.zip SwiftControl.app/
-
-      - name: Upload Android Artifacts
-        if: github.event.inputs.build_android == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Releases
-          path: |
-            build/app/outputs/flutter-apk/SwiftControl.android.apk
-
-      - name: Upload macOS Artifacts
-        if: github.event.inputs.build_mac == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Releases
-          path: |
-            build/macos/Build/Products/Release/SwiftControl.macos.zip
-
-        #10 Extract Version
-      - name: Extract version from pubspec.yaml
-        id: extract_version
-        run: |
-          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
-          echo "VERSION=$version" >> $GITHUB_ENV
-
-        #11 Check if Tag Exists
-      - name: Check if Tag Exists
-        id: check_tag
-        run: |
-          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
-            echo "TAG_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "TAG_EXISTS=false" >> $GITHUB_ENV
-          fi
-
-        #12 Modify Tag if it Exists
-      - name: Modify Tag
-        if: env.TAG_EXISTS == 'true'
-        id: modify_tag
-        run: |
-          new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
-          echo "VERSION=$new_version" >> $GITHUB_ENV
-
-        #13 Create Release
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
-          allowUpdates: true
-          prerelease: ${{ endsWith(env.VERSION, '1337') }}
-          bodyFile: scripts/RELEASE_NOTES.md
-          tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
 
       - name: Upload static files as artifact
         if: github.event.inputs.build_web == 'true'
@@ -254,7 +184,76 @@ jobs:
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
         run: |
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";
-        
+
+      - name: Handle Android archives
+        if: github.event.inputs.build_android == 'true'
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
+
+      - name: Code Signing of macOS app
+        if: github.event.inputs.build_mac == 'true'
+        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
+        working-directory: build/macos/Build/Products/Release
+        env:
+          DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
+
+      - name: Handle macOS archives
+        if: github.event.inputs.build_mac == 'true'
+        run: |
+          cd build/macos/Build/Products/Release/
+          zip -r SwiftControl.macos.zip SwiftControl.app/
+
+      - name: Upload Android Artifacts
+        if: github.event.inputs.build_android == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Releases
+          path: |
+            build/app/outputs/flutter-apk/SwiftControl.android.apk
+
+      - name: Upload macOS Artifacts
+        if: github.event.inputs.build_mac == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Releases
+          path: |
+            build/macos/Build/Products/Release/SwiftControl.macos.zip
+
+        #10 Extract Version
+      - name: Extract version from pubspec.yaml
+        id: extract_version
+        run: |
+          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+        #11 Check if Tag Exists
+      - name: Check if Tag Exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "TAG_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "TAG_EXISTS=false" >> $GITHUB_ENV
+          fi
+
+        #12 Modify Tag if it Exists
+      - name: Modify Tag
+        if: env.TAG_EXISTS == 'true'
+        id: modify_tag
+        run: |
+          new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
+          echo "VERSION=$new_version" >> $GITHUB_ENV
+
+        #13 Create Release
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
+          allowUpdates: true
+          prerelease: ${{ endsWith(env.VERSION, '1337') }}
+          bodyFile: scripts/RELEASE_NOTES.md
+          tag: v${{ env.VERSION }}
+          token: ${{ secrets.TOKEN }}
 
   windows:
     needs: build

@@ -14,6 +14,13 @@ class KeyboardRequirement extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Enable keyboard access in the following screen for SwiftControl. If you don\'t see SwiftControl, please add it manually.',
+        ),
+      ),
+    );
     await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
   }
 
