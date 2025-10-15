@@ -9,7 +9,6 @@ env:
 
 jobs:
   build:
-    if: false
     name: Patch iOS, Android & macOS
     runs-on: macos-latest
 
@@ -95,6 +94,43 @@ jobs:
           platform: ios
           release-version: latest
           args: '--allow-asset-diffs'
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      # shorebird struggles with the app from GitHub
+      - name: Build macOS
+        env:
+          DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
+        run: |
+          flutter build macos --release;
+          cd build/macos/Build/Products/Release/;
+          zip -r SwiftControl.macos.zip SwiftControl.app/;
+          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r');
+          echo "VERSION=$version" >> $GITHUB_ENV;
+          /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v;
+
+      #9 Upload Artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Releases
+          path: |
+            build/macos/Build/Products/Release/SwiftControl.macos.zip
+
+      # add artifact to release
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "build/macos/Build/Products/Release/SwiftControl.macos.zip"
+          bodyFile: scripts/RELEASE_NOTES.md
+          tag: v${{ env.VERSION }}
+          token: ${{ secrets.TOKEN }}
 
   windows:
     name: Patch Windows

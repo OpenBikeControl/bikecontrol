@@ -26,8 +26,8 @@ enum ControllerButton {
   paddleLeft._(InGameAction.shiftDown),
 
   // zwift ride only
-  shiftUpLeft._(InGameAction.shiftDown, icon: Icons.minimize_rounded, color: Colors.black),
-  shiftDownLeft._(InGameAction.shiftDown, icon: Icons.minimize_rounded, color: Colors.black),
+  shiftUpLeft._(InGameAction.shiftDown, icon: Icons.remove, color: Colors.black),
+  shiftDownLeft._(InGameAction.shiftDown, icon: Icons.remove, color: Colors.black),
   powerUpLeft._(InGameAction.shiftDown),
 
   // right controller

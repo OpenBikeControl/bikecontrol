@@ -68,6 +68,9 @@ class RemoteActions extends BaseActions {
     }
 
     await peripheralManager.notifyCharacteristic(connectedCentral!, connectedCharacteristic!, value: bytes);
+
+    // we don't want to overwhelm the target device
+    await Future.delayed(Duration(milliseconds: 10));
   }
 
   Central? connectedCentral;
