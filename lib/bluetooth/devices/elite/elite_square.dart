@@ -37,6 +37,7 @@ class EliteSquare extends BaseDevice {
     if (characteristic == SquareConstants.CHARACTERISTIC_UUID) {
       final fullValue = _bytesToHex(bytes);
       final currentValue = _extractButtonCode(fullValue);
+      actionStreamInternal.add(LogNotification('Received $fullValue - vs $currentValue (last: $_lastValue)'));
 
       if (_lastValue != null) {
         final currentRelevantPart = fullValue.length >= 19
@@ -48,9 +49,7 @@ class EliteSquare extends BaseDevice {
 
         if (currentRelevantPart != lastRelevantPart) {
           final buttonClicked = SquareConstants.BUTTON_MAPPING[currentValue];
-          if (buttonClicked != null) {
-            actionStreamInternal.add(LogNotification('Button pressed: $buttonClicked'));
-          }
+          actionStreamInternal.add(LogNotification('Button pressed: $buttonClicked'));
           handleButtonsClicked([
             if (buttonClicked != null) buttonClicked,
           ]);
