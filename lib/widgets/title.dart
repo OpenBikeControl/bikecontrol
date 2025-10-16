@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:restart/restart.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:version/version.dart';
@@ -202,11 +202,8 @@ class _AppTitleState extends State<AppTitle> {
             ? SnackBarAction(
                 label: 'Restart',
                 onPressed: () {
-                  if (Platform.isAndroid) {
-                    restart();
-                  } else if (Platform.isIOS) {
-                    Restart.restartApp();
-                  }
+                  connection.reset();
+                  Restart.restartApp();
                 },
               )
             : null,
