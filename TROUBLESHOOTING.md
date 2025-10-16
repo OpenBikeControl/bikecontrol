@@ -26,3 +26,6 @@ If you don't do that SwiftControl will need to reconnect every minute.
 iOS seems to be buggy here - try this in the iOS settings:
 AssistiveTouch settings > Pointer Devices > Devices > Connected Devices > iPhone (or SwiftControl iOS) > Button 1 
 switch the setting to None, then back to Single-Tap and it should work again
+
+## SwiftControl crashes on Windows when searching for the device 
+You're probably running into [this](https://github.com/jonasbark/swiftcontrol/issues/70) issue. Disconnect your controller device (e.g. Zwift Play) from Windows Bluetooth settings.
