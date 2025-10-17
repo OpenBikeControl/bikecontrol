@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/bluetooth/protocol/zwift.pb.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 

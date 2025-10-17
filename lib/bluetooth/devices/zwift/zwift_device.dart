@@ -6,20 +6,12 @@ import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/crypto/local_key_provider.dart';
-import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-import '../../../utils/crypto/encryption_utils.dart';
-
 abstract class ZwiftDevice extends BaseDevice {
-  final zapEncryption = ZapCrypto(LocalKeyProvider());
-
   ZwiftDevice(super.scanResult, {required super.availableButtons, super.isBeta});
-
-  bool supportsEncryption = false;
 
   BleCharacteristic? syncRxCharacteristic;
 
@@ -73,27 +65,13 @@ abstract class ZwiftDevice extends BaseDevice {
   }
 
   Future<void> setupHandshake() async {
-    if (supportsEncryption) {
-      await UniversalBle.write(
-        device.deviceId,
-        customServiceId,
-        syncRxCharacteristic!.uuid,
-        Uint8List.fromList([
-          ...Constants.RIDE_ON,
-          ...Constants.REQUEST_START,
-          ...zapEncryption.localKeyProvider.getPublicKeyBytes(),
-        ]),
-        withoutResponse: true,
-      );
-    } else {
-      await UniversalBle.write(
-        device.deviceId,
-        customServiceId,
-        syncRxCharacteristic!.uuid,
-        Constants.RIDE_ON,
-        withoutResponse: true,
-      );
-    }
+    await UniversalBle.write(
+      device.deviceId,
+      customServiceId,
+      syncRxCharacteristic!.uuid,
+      Constants.RIDE_ON,
+      withoutResponse: true,
+    );
   }
 
   @override
@@ -110,7 +88,7 @@ abstract class ZwiftDevice extends BaseDevice {
     try {
       if (bytes.startsWith(startCommand)) {
         _processDevicePublicKeyResponse(bytes);
-      } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
+      } else {
         processData(bytes);
       }
     } catch (e, stackTrace) {
@@ -129,33 +107,11 @@ abstract class ZwiftDevice extends BaseDevice {
     if (kDebugMode) {
       print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
-    zapEncryption.initialise(devicePublicKeyBytes);
   }
 
   Future<void> processData(Uint8List bytes) async {
-    int type;
-    Uint8List message;
-
-    if (supportsEncryption) {
-      final counter = bytes.sublist(0, 4); // Int.SIZE_BYTES is 4
-      final payload = bytes.sublist(4);
-
-      if (zapEncryption.encryptionKeyBytes == null) {
-        actionStreamInternal.add(
-          LogNotification(
-            'Encryption not initialized, yet. You may need to update the firmware of your device with the Zwift Companion app.',
-          ),
-        );
-        return;
-      }
-
-      final data = zapEncryption.decrypt(counter, payload);
-      type = data[0];
-      message = data.sublist(1);
-    } else {
-      type = bytes[0];
-      message = bytes.sublist(1);
-    }
+    int type = bytes[0];
+    Uint8List message = bytes.sublist(1);
 
     switch (type) {
       case Constants.EMPTY_MESSAGE_TYPE:
@@ -207,7 +163,7 @@ abstract class ZwiftDevice extends BaseDevice {
       device.deviceId,
       customServiceId,
       syncRxCharacteristic!.uuid,
-      supportsEncryption ? zapEncryption.encrypt(vibrateCommand) : vibrateCommand,
+      vibrateCommand,
       withoutResponse: true,
     );
   }

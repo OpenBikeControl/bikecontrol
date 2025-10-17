@@ -1,15 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:swift_control/bluetooth/ble.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
-
-import '../../ble.dart';
-import '../../protocol/zp.pbenum.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult) : super(isBeta: true);
-
-  @override
-  bool get supportsEncryption => false;
 
   @override
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK_V2;

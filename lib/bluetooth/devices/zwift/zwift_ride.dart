@@ -1,17 +1,16 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:swift_control/bluetooth/ble.dart';
+import 'package:swift_control/bluetooth/devices/zwift/messages/ride_notification.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:swift_control/bluetooth/messages/ride_notification.dart';
-import 'package:swift_control/bluetooth/protocol/zp_vendor.pb.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
-
-import '../../../main.dart';
-import '../../ble.dart';
-import '../../messages/notification.dart';
-import '../../protocol/zp.pb.dart';
 
 class ZwiftRide extends ZwiftDevice {
   /// Minimum absolute analog value (0-100) required to trigger paddle button press.
@@ -46,36 +45,12 @@ class ZwiftRide extends ZwiftDevice {
   @override
   String get customServiceId => BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID;
 
-  @override
-  bool get supportsEncryption => false;
-
   RideNotification? _lastControllerNotification;
 
   @override
   Future<void> processData(Uint8List bytes) async {
-    Opcode? opcode;
-    Uint8List message;
-
-    if (supportsEncryption) {
-      final counter = bytes.sublist(0, 4); // Int.SIZE_BYTES is 4
-      final payload = bytes.sublist(4);
-
-      if (zapEncryption.encryptionKeyBytes == null) {
-        actionStreamInternal.add(
-          LogNotification(
-            'Encryption not initialized, yet. You may need to update the firmware of your device with the Zwift Companion app.',
-          ),
-        );
-        return;
-      }
-
-      final data = zapEncryption.decrypt(counter, payload);
-      opcode = Opcode.valueOf(data[0]);
-      message = data.sublist(1);
-    } else {
-      opcode = Opcode.valueOf(bytes[0]);
-      message = bytes.sublist(1);
-    }
+    Opcode? opcode = Opcode.valueOf(bytes[0]);
+    Uint8List message = bytes.sublist(1);
 
     if (kDebugMode) {
       print(

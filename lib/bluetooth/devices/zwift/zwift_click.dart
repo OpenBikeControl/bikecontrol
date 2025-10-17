@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/zwift/messages/click_notification.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-
-import '../../messages/click_notification.dart';
 
 class ZwiftClick extends ZwiftDevice {
   ZwiftClick(super.scanResult)
