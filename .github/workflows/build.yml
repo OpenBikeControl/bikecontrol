@@ -265,7 +265,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           allowUpdates: true
-          prerelease: ${{ endsWith(env.VERSION, '1337') }}
+          prerelease: true
           bodyFile: scripts/RELEASE_NOTES.md
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
@@ -349,5 +349,6 @@ jobs:
           allowUpdates: true
           artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip"
           bodyFile: scripts/RELEASE_NOTES.md
+          prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
