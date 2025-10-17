@@ -1,6 +1,6 @@
 # SwiftControl
 
-<img src="logo.jpg" alt="SwiftControl Logo"/>
+<img src="logo.png" alt="SwiftControl Logo"/>
 
 ## Description
 
