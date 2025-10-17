@@ -198,15 +198,18 @@ class _AppTitleState extends State<AppTitle> {
       SnackBar(
         content: Text('Restart the app to use the new version'),
         duration: Duration(seconds: 10),
-        action: Platform.isIOS || Platform.isAndroid
-            ? SnackBarAction(
-                label: 'Restart',
-                onPressed: () {
-                  connection.reset();
-                  Restart.restartApp();
-                },
-              )
-            : null,
+        action: SnackBarAction(
+          label: 'Restart',
+          onPressed: () {
+            if (Platform.isIOS || Platform.isAndroid) {
+              connection.reset();
+              Restart.restartApp(delayBeforeRestart: 1000);
+            } else {
+              connection.reset();
+              exit(0);
+            }
+          },
+        ),
       ),
     );
   }

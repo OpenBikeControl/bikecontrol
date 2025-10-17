@@ -164,7 +164,6 @@ class NotificationRequirement extends PlatformRequirement {
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
   if (notificationResponse.actionId != null) {
-    connection.reset();
     AndroidFlutterLocalNotificationsPlugin().stopForegroundService().then((_) {
       exit(0);
     });
