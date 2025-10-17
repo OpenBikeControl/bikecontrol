@@ -1,4 +1,4 @@
-### 3.1.0 (not released yet) 
+### 3.1.0 (2025-10-17) 
 - new app icon
 - adjusted MyWhoosh keyboard navigation mapping (thanks @bin101)
 - support for Wahook Kickr Bike Shift (thanks @MattW2)
