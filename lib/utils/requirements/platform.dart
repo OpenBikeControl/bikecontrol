@@ -28,17 +28,17 @@ Future<List<PlatformRequirement>> getRequirements(bool local) async {
   if (kIsWeb) {
     list = [BluetoothTurnedOn(), BluetoothScanning()];
   } else if (Platform.isMacOS) {
-    list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+    list = [BluetoothTurnedOn(), local ? KeyboardRequirement() : RemoteRequirement(), BluetoothScanning()];
   } else if (Platform.isIOS) {
     list = [BluetoothTurnedOn(), RemoteRequirement(), BluetoothScanning()];
   } else if (Platform.isWindows) {
-    list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+    list = [BluetoothTurnedOn(), local ? KeyboardRequirement() : RemoteRequirement(), BluetoothScanning()];
   } else if (Platform.isAndroid) {
     final deviceInfoPlugin = DeviceInfoPlugin();
     final deviceInfo = await deviceInfoPlugin.androidInfo;
     list = [
       BluetoothTurnedOn(),
-      if (local) AccessibilityRequirement() else RemoteRequirement(),
+      local ? AccessibilityRequirement() : RemoteRequirement(),
       NotificationRequirement(),
       if (deviceInfo.version.sdkInt <= 30)
         LocationRequirement()

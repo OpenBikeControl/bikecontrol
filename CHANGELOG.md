@@ -1,6 +1,7 @@
-### 3.0.4 (not released yet) 
+### 3.1.0 (not released yet) 
+- new app icon
 - adjusted MyWhoosh keyboard navigation mapping (thanks @bin101)
-- initial support for Wahook Kickr Bike Shift (thanks @MattW2)
+- support for Wahook Kickr Bike Shift (thanks @MattW2)
 - initial support for Elite Square Smart Frame 
 
 ### 3.0.3 (2025-10-12)

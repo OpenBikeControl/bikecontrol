@@ -47,7 +47,11 @@ Future<void> initializeActions(bool local) async {
   } else if (Platform.isIOS) {
     actionHandler = RemoteActions();
   } else {
-    actionHandler = DesktopActions();
+    if (local) {
+      actionHandler = DesktopActions();
+    } else {
+      actionHandler = RemoteActions();
+    }
   }
 }
 
