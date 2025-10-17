@@ -345,7 +345,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                         ElevatedButton.icon(
                                           onPressed: () async {
                                             if (actionHandler.supportedApp is! CustomApp) {
-                                              await _duplicate(actionHandler.supportedApp!.name);
+                                              final result = await _duplicate(actionHandler.supportedApp!.name);
+                                              if (result == null) {
+                                                return;
+                                              }
                                             }
                                             final result = await Navigator.of(
                                               context,
@@ -636,7 +639,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _duplicate(String currentProfile) async {
+  Future<String?> _duplicate(String currentProfile) async {
     final newName = await _showDuplicateProfileDialog(currentProfile);
     if (newName != null && newName.isNotEmpty) {
       if (actionHandler.supportedApp is CustomApp) {
@@ -677,6 +680,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
         setState(() {});
       }
     }
+    return null;
   }
 }
 
