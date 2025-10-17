@@ -7,15 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
-import 'package:swift_control/bluetooth/devices/zwift/messages/click_notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../bluetooth/devices/zwift/messages/play_notification.dart';
-import '../bluetooth/devices/zwift/messages/ride_notification.dart';
 import '../bluetooth/messages/notification.dart';
 import '../utils/actions/base_actions.dart';
 import '../utils/keymap/apps/custom_app.dart';
@@ -112,13 +109,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       if (!mounted) {
         return;
       }
-      if (data is ClickNotification) {
-        _pressedButton = data.buttonsClicked.singleOrNull;
-      }
-      if (data is PlayNotification) {
-        _pressedButton = data.buttonsClicked.singleOrNull;
-      }
-      if (data is RideNotification) {
+      if (data is ButtonNotification) {
         _pressedButton = data.buttonsClicked.singleOrNull;
       }
 

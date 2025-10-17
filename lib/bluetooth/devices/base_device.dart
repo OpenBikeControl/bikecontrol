@@ -156,6 +156,8 @@ abstract class BaseDevice {
       }
       _previouslyPressedButtons.clear();
     } else {
+      actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked));
+
       // Handle release events for buttons that are no longer pressed
       final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
       final wasLongPress =

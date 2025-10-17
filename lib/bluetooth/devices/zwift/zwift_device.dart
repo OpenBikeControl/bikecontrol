@@ -15,6 +15,8 @@ abstract class ZwiftDevice extends BaseDevice {
 
   BleCharacteristic? syncRxCharacteristic;
 
+  List<ControllerButton>? _lastButtonsClicked;
+
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
@@ -126,18 +128,26 @@ abstract class ZwiftDevice extends BaseDevice {
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
       case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
       case Constants.RIDE_NOTIFICATION_MESSAGE_TYPE:
-        processClickNotification(message)
-            .then((buttonsClicked) async {
-              return handleButtonsClicked(buttonsClicked);
-            })
-            .catchError((e) {
-              actionStreamInternal.add(LogNotification(e.toString()));
-            });
+        try {
+          final buttonsClicked = processClickNotification(message);
+          handleButtonsClicked(buttonsClicked);
+        } catch (e) {
+          actionStreamInternal.add(LogNotification(e.toString()));
+        }
         break;
     }
   }
 
-  Future<List<ControllerButton>?> processClickNotification(Uint8List message);
+  @override
+  Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked) async {
+    // the same messages are sent multiple times, so ignore
+    if (_lastButtonsClicked?.contentEquals(buttonsClicked ?? []) == false) {
+      super.handleButtonsClicked(buttonsClicked);
+    }
+    _lastButtonsClicked = buttonsClicked;
+  }
+
+  List<ControllerButton> processClickNotification(Uint8List message);
 
   @override
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {

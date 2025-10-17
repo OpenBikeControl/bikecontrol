@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/bluetooth/devices/zwift/messages/click_notification.dart';
-import 'package:swift_control/bluetooth/devices/zwift/messages/play_notification.dart';
-import 'package:swift_control/bluetooth/devices/zwift/messages/ride_notification.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -37,17 +34,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
       if (!mounted || widget.keyPair != null) {
         return;
       }
-      if (data is ClickNotification) {
-        setState(() {
-          _pressedButton = data.buttonsClicked.singleOrNull;
-        });
-      }
-      if (data is PlayNotification) {
-        setState(() {
-          _pressedButton = data.buttonsClicked.singleOrNull;
-        });
-      }
-      if (data is RideNotification) {
+      if (data is ButtonNotification) {
         setState(() {
           _pressedButton = data.buttonsClicked.singleOrNull;
         });

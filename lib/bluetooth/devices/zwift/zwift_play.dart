@@ -1,7 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/zwift/messages/play_notification.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
@@ -28,24 +26,32 @@ class ZwiftPlay extends ZwiftDevice {
         ],
       );
 
-  PlayNotification? _lastControllerNotification;
-
   @override
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_PLAY;
 
   @override
-  Future<List<ControllerButton>?> processClickNotification(Uint8List message) async {
-    final PlayNotification clickNotification = PlayNotification(message);
-    if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
-      _lastControllerNotification = clickNotification;
+  List<ControllerButton> processClickNotification(Uint8List message) {
+    final status = PlayKeyPadStatus.fromBuffer(message);
 
-      if (clickNotification.buttonsClicked.isNotEmpty) {
-        actionStreamInternal.add(clickNotification);
-      }
-
-      return clickNotification.buttonsClicked;
-    } else {
-      return null;
-    }
+    return [
+      if (status.rightPad == PlayButtonStatus.ON) ...[
+        if (status.buttonYUp == PlayButtonStatus.ON) ControllerButton.y,
+        if (status.buttonZLeft == PlayButtonStatus.ON) ControllerButton.z,
+        if (status.buttonARight == PlayButtonStatus.ON) ControllerButton.a,
+        if (status.buttonBDown == PlayButtonStatus.ON) ControllerButton.b,
+        if (status.buttonOn == PlayButtonStatus.ON) ControllerButton.onOffRight,
+        if (status.buttonShift == PlayButtonStatus.ON) ControllerButton.sideButtonRight,
+        if (status.analogLR.abs() == 100) ControllerButton.paddleRight,
+      ],
+      if (status.rightPad == PlayButtonStatus.OFF) ...[
+        if (status.buttonYUp == PlayButtonStatus.ON) ControllerButton.navigationUp,
+        if (status.buttonZLeft == PlayButtonStatus.ON) ControllerButton.navigationLeft,
+        if (status.buttonARight == PlayButtonStatus.ON) ControllerButton.navigationRight,
+        if (status.buttonBDown == PlayButtonStatus.ON) ControllerButton.navigationDown,
+        if (status.buttonOn == PlayButtonStatus.ON) ControllerButton.onOffLeft,
+        if (status.buttonShift == PlayButtonStatus.ON) ControllerButton.sideButtonLeft,
+        if (status.analogLR.abs() == 100) ControllerButton.paddleLeft,
+      ],
+    ];
   }
 }
