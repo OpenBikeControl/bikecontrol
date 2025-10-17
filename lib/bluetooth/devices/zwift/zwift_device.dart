@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -17,8 +18,8 @@ abstract class ZwiftDevice extends BaseDevice {
 
   List<ControllerButton>? _lastButtonsClicked;
 
-  List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
-  String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
+  List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK;
+  String get customServiceId => ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -47,13 +48,13 @@ abstract class ZwiftDevice extends BaseDevice {
     }
 
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(
-      (characteristic) => characteristic.uuid == BleUuid.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
     );
     final syncTxCharacteristic = customService.characteristics.firstOrNullWhere(
-      (characteristic) => characteristic.uuid == BleUuid.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID,
+      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID,
     );
     syncRxCharacteristic = customService.characteristics.firstOrNullWhere(
-      (characteristic) => characteristic.uuid == BleUuid.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID,
+      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID,
     );
 
     if (asyncCharacteristic == null || syncTxCharacteristic == null || syncRxCharacteristic == null) {
@@ -71,7 +72,7 @@ abstract class ZwiftDevice extends BaseDevice {
       device.deviceId,
       customServiceId,
       syncRxCharacteristic!.uuid,
-      Constants.RIDE_ON,
+      ZwiftConstants.RIDE_ON,
       withoutResponse: true,
     );
   }
@@ -105,7 +106,9 @@ abstract class ZwiftDevice extends BaseDevice {
   }
 
   void _processDevicePublicKeyResponse(Uint8List bytes) {
-    final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START_CLICK.length);
+    final devicePublicKeyBytes = bytes.sublist(
+      ZwiftConstants.RIDE_ON.length + ZwiftConstants.RESPONSE_START_CLICK.length,
+    );
     if (kDebugMode) {
       print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
@@ -116,18 +119,18 @@ abstract class ZwiftDevice extends BaseDevice {
     Uint8List message = bytes.sublist(1);
 
     switch (type) {
-      case Constants.EMPTY_MESSAGE_TYPE:
+      case ZwiftConstants.EMPTY_MESSAGE_TYPE:
         //print("Empty Message"); // expected when nothing happening
         break;
-      case Constants.BATTERY_LEVEL_TYPE:
+      case ZwiftConstants.BATTERY_LEVEL_TYPE:
         if (batteryLevel != message[1]) {
           batteryLevel = message[1];
           connection.signalChange(this);
         }
         break;
-      case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
-      case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
-      case Constants.RIDE_NOTIFICATION_MESSAGE_TYPE:
+      case ZwiftConstants.CLICK_NOTIFICATION_MESSAGE_TYPE:
+      case ZwiftConstants.PLAY_NOTIFICATION_MESSAGE_TYPE:
+      case ZwiftConstants.RIDE_NOTIFICATION_MESSAGE_TYPE:
         try {
           final buttonsClicked = processClickNotification(message);
           handleButtonsClicked(buttonsClicked);
@@ -168,7 +171,7 @@ abstract class ZwiftDevice extends BaseDevice {
   }
 
   Future<void> _vibrate() async {
-    final vibrateCommand = Uint8List.fromList([...Constants.VIBRATE_PATTERN, 0x20]);
+    final vibrateCommand = Uint8List.fromList([...ZwiftConstants.VIBRATE_PATTERN, 0x20]);
     await UniversalBle.write(
       device.deviceId,
       customServiceId,

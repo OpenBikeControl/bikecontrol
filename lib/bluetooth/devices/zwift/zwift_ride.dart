@@ -1,7 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
-import 'package:swift_control/bluetooth/ble.dart';
+import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
@@ -43,7 +43,7 @@ class ZwiftRide extends ZwiftDevice {
       );
 
   @override
-  String get customServiceId => BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID;
+  String get customServiceId => ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID;
 
   @override
   Future<void> processData(Uint8List bytes) async {
@@ -56,7 +56,7 @@ class ZwiftRide extends ZwiftDevice {
       );
     }
 
-    if (bytes.startsWith(Constants.RESPONSE_STOPPED_CLICK_V2) && this is ZwiftClickV2) {
+    if (bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2) && this is ZwiftClickV2) {
       actionStreamInternal.add(
         LogNotification(
           'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day. Resetting the device now.',

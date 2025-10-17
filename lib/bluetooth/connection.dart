@@ -9,8 +9,8 @@ import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-import '../bluetooth/ble.dart';
 import 'devices/base_device.dart';
+import 'devices/zwift/constants.dart';
 import 'messages/notification.dart';
 
 class Connection {
@@ -44,7 +44,7 @@ class Connection {
         } else {
           final manufacturerData = result.manufacturerDataList;
           final data = manufacturerData
-              .firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)
+              .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
               ?.payload;
           _actionStreams.add(LogNotification('Found unknown device with identifier: ${data?.firstOrNull}'));
         }

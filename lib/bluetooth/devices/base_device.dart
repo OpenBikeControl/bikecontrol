@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
+import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
@@ -31,8 +31,8 @@ abstract class BaseDevice {
   Set<ControllerButton> _previouslyPressedButtons = <ControllerButton>{};
 
   static List<String> servicesToScan = [
-    BleUuid.ZWIFT_CUSTOM_SERVICE_UUID,
-    BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
+    ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID,
+    ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
     SquareConstants.SERVICE_UUID,
     WahooKickrBikeShiftConstants.SERVICE_UUID,
   ];
@@ -65,25 +65,27 @@ abstract class BaseDevice {
     if (device != null) {
       return device;
     } else if (scanResult.services.containsAny([
-      BleUuid.ZWIFT_CUSTOM_SERVICE_UUID,
-      BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
+      ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID,
+      ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
     ])) {
       // otherwise use the manufacturer data to identify the device
       final manufacturerData = scanResult.manufacturerDataList;
-      final data = manufacturerData.firstOrNullWhere((e) => e.companyId == Constants.ZWIFT_MANUFACTURER_ID)?.payload;
+      final data = manufacturerData
+          .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
+          ?.payload;
 
       if (data == null || data.isEmpty) {
         return null;
       }
 
-      final type = DeviceType.fromManufacturerData(data.first);
+      final type = ZwiftDeviceType.fromManufacturerData(data.first);
       return switch (type) {
-        DeviceType.click => ZwiftClick(scanResult),
-        DeviceType.playRight => ZwiftPlay(scanResult),
-        DeviceType.playLeft => ZwiftPlay(scanResult),
-        DeviceType.rideLeft => ZwiftRide(scanResult),
+        ZwiftDeviceType.click => ZwiftClick(scanResult),
+        ZwiftDeviceType.playRight => ZwiftPlay(scanResult),
+        ZwiftDeviceType.playLeft => ZwiftPlay(scanResult),
+        ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
         //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
-        DeviceType.clickV2Left => ZwiftClickV2(scanResult),
+        ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
         //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
         _ => null,
       };

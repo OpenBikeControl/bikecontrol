@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-
-import '../../ble.dart';
 
 class ZwiftPlay extends ZwiftDevice {
   ZwiftPlay(super.scanResult)
@@ -27,7 +26,7 @@ class ZwiftPlay extends ZwiftDevice {
       );
 
   @override
-  List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_PLAY;
+  List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_PLAY;
 
   @override
   List<ControllerButton> processClickNotification(Uint8List message) {
