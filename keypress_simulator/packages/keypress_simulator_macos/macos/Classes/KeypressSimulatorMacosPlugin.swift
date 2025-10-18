@@ -67,11 +67,11 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
         let point = CGPoint(x: x, y: y)
 
         // Move mouse to the point
-        /*let move = CGEvent(mouseEventSource: nil,
+        let move = CGEvent(mouseEventSource: nil,
                            mouseType: .mouseMoved,
                            mouseCursorPosition: point,
                            mouseButton: .left)
-        move?.post(tap: .cghidEventTap)*/
+        move?.post(tap: .cghidEventTap)
 
         if (keyDown) {
             // Mouse down

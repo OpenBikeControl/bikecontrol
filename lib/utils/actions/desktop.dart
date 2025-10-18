@@ -36,6 +36,7 @@ class DesktopActions extends BaseActions {
       final point = await resolveTouchPosition(action: action, windowInfo: null);
       if (isKeyDown && isKeyUp) {
         await keyPressSimulator.simulateMouseClickDown(point);
+        // slight move to register clicks on some apps, see issue #116
         await keyPressSimulator.simulateMouseClickUp(point);
         return 'Mouse clicked at: ${point.dx} ${point.dy}';
       } else if (isKeyDown) {
