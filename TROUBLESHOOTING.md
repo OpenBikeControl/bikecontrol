@@ -15,6 +15,13 @@ If you don't do that SwiftControl will need to reconnect every minute.
 3. Connect your Trainer, then connect the Click V2
 4. Close the Zwift app again and connect again in SwiftControl
 
+## Android: Connection works, buttons work but nothing happens in MyWhoosh and similar
+- especially for Redmi and other chinese Android devices please follow the instructions on https://dontkillmyapp.com/:
+  - disable battery optimization for SwiftControl
+  - enable auto start of SwiftControl
+  - grant accessibility permission for SwiftControl
+- see https://github.com/jonasbark/swiftcontrol/issues/38 for more details
+
 ## Remote control is not working - nothing happens
 - Try to unpair it from your phone / computer Bluetooth settings, then re-pair it.
 - Try restarting the pairing process in SwiftControl
