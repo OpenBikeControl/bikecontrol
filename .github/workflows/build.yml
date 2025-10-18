@@ -250,14 +250,6 @@ jobs:
             echo "TAG_EXISTS=false" >> $GITHUB_ENV
           fi
 
-        #12 Modify Tag if it Exists
-      - name: Modify Tag
-        if: env.TAG_EXISTS && inputs.build_github
-        id: modify_tag
-        run: |
-          new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
-          echo "VERSION=$new_version" >> $GITHUB_ENV
-
         #13 Create Release
       - name: Create Release
         if: inputs.build_github

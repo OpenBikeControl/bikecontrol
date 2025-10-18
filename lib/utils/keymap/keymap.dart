@@ -115,10 +115,16 @@ class KeyPair {
           )
         : Offset.zero;
 
+    final buttons = decoded['actions']
+        .map<ControllerButton?>((e) => ControllerButton.values.firstOrNullWhere((element) => element.name == e))
+        .where((e) => e != null)
+        .cast<ControllerButton>()
+        .toList();
+    if (buttons.isEmpty) {
+      return null;
+    }
     return KeyPair(
-      buttons: decoded['actions']
-          .map<ControllerButton>((e) => ControllerButton.values.firstWhere((element) => element.name == e))
-          .toList(),
+      buttons: buttons,
       logicalKey: decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
           ? LogicalKeyboardKey(int.parse(decoded['logicalKey']))
           : null,

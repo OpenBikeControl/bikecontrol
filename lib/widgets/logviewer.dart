@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../bluetooth/messages/notification.dart';
@@ -27,7 +28,7 @@ class _LogviewerState extends State<LogViewer> {
       if (mounted) {
         setState(() {
           _actions.add((date: DateTime.now(), entry: data.toString()));
-          _actions = _actions.takeLast(60).toList();
+          _actions = _actions.takeLast(kIsWeb ? 1000 : 60).toList();
         });
         if (_scrollController.hasClients) {
           // scroll to the bottom
