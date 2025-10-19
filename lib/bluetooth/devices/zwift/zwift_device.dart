@@ -18,6 +18,7 @@ abstract class ZwiftDevice extends BaseDevice {
 
   List<ControllerButton>? _lastButtonsClicked;
 
+  String get latestFirmwareVersion;
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK;
   String get customServiceId => ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID;
 
@@ -45,6 +46,13 @@ abstract class ZwiftDevice extends BaseDevice {
       );
       firmwareVersion = String.fromCharCodes(firmwareData);
       connection.signalChange(this);
+      if (firmwareVersion != latestFirmwareVersion) {
+        actionStreamInternal.add(
+          LogNotification(
+            'A new firmware version is available for ${device.name ?? device.rawName}: $latestFirmwareVersion (current: $firmwareVersion). Please update it in Zwift Companion app.',
+          ),
+        );
+      }
     }
 
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(

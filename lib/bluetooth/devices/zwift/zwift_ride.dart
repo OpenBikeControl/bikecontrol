@@ -46,6 +46,9 @@ class ZwiftRide extends ZwiftDevice {
   String get customServiceId => ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID;
 
   @override
+  String get latestFirmwareVersion => '1.2.0';
+
+  @override
   Future<void> processData(Uint8List bytes) async {
     Opcode? opcode = Opcode.valueOf(bytes[0]);
     Uint8List message = bytes.sublist(1);

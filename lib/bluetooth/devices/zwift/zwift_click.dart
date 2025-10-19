@@ -16,4 +16,7 @@ class ZwiftClick extends ZwiftDevice {
     ];
     return buttonsClicked;
   }
+
+  @override
+  String get latestFirmwareVersion => '1.1.0';
 }

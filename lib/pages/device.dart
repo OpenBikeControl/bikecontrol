@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/pages/touch_area.dart';
@@ -192,6 +193,16 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     }),
                                     Text('${device.batteryLevel}%'),
                                     if (device.firmwareVersion != null) Text(' - Firmware: ${device.firmwareVersion}'),
+                                    if (device.firmwareVersion != null &&
+                                        device is ZwiftDevice &&
+                                        device.firmwareVersion != device.latestFirmwareVersion) ...[
+                                      SizedBox(width: 8),
+                                      Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
+                                      Text(
+                                        ' (latest: ${device.latestFirmwareVersion})',
+                                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                                      ),
+                                    ],
                                   ],
                                 ],
                               ),

@@ -53,4 +53,7 @@ class ZwiftPlay extends ZwiftDevice {
       ],
     ];
   }
+
+  @override
+  String get latestFirmwareVersion => '1.3.1';
 }
