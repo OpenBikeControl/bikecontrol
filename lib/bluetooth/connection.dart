@@ -35,7 +35,7 @@ class Connection {
   void initialize() {
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(LogNotification('Bluetooth availability changed: $available'));
-      if (available == AvailabilityState.poweredOn && !isScanning.value) {
+      if (available == AvailabilityState.poweredOn) {
         performScanning();
       } else if (available == AvailabilityState.poweredOff) {
         reset();
@@ -72,6 +72,9 @@ class Connection {
   }
 
   Future<void> performScanning() async {
+    if (isScanning.value) {
+      return;
+    }
     isScanning.value = true;
     _actionStreams.add(LogNotification('Scanning for devices...'));
 
@@ -91,12 +94,6 @@ class Connection {
       scanFilter: ScanFilter(withServices: BaseDevice.servicesToScan),
       platformConfig: PlatformConfig(web: WebOptions(optionalServices: BaseDevice.servicesToScan)),
     );
-    Future.delayed(Duration(seconds: 30)).then((_) {
-      if (isScanning.value) {
-        UniversalBle.stopScan();
-        isScanning.value = false;
-      }
-    });
   }
 
   void _addDevices(List<BaseDevice> dev) {
@@ -155,9 +152,7 @@ class Connection {
           _connectionSubscriptions.remove(bleDevice);
           _lastScanResult.clear();
           // try reconnect
-          if (!isScanning.value) {
-            performScanning();
-          }
+          performScanning();
         }
       });
       _connectionSubscriptions[bleDevice] = connectionStateSubscription;
