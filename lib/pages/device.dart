@@ -18,6 +18,7 @@ import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../bluetooth/devices/base_device.dart';
@@ -95,14 +96,18 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && actionHandler is RemoteActions && Platform.isIOS) {
-      final requirement = RemoteRequirement();
-      requirement.reconnect();
-      _snackBarMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text('To keep working properly the app needs to stay in the foreground.'),
-          duration: Duration(seconds: 5),
-        ),
-      );
+      UniversalBle.getBluetoothAvailabilityState().then((state) {
+        if (state == AvailabilityState.poweredOn) {
+          final requirement = RemoteRequirement();
+          requirement.reconnect();
+          _snackBarMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: Text('To keep working properly the app needs to stay in the foreground.'),
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+      });
     }
   }
 

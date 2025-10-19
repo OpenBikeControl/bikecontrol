@@ -38,7 +38,8 @@ class RemoteActions extends BaseActions {
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
-      return 'Mouse clicked at: ${point2.dx} ${point2.dy}';
+
+      return 'Mouse clicked at: ${point2.dx.toInt()} ${point2.dy.toInt()}';
     }
   }
 

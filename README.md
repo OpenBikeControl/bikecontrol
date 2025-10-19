@@ -40,7 +40,6 @@ Get the latest version for Windows here: https://github.com/jonasbark/swiftcontr
 - Zwift Ride
 - Zwift Play
 - Elite Square Smart Frame (beta)
-- Elite Sterzo Smart (beta)
 - Wahoo Kickr Bike Shift (beta)
 
 ## Supported Platforms

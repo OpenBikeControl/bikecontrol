@@ -33,6 +33,14 @@ class Connection {
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
 
   void initialize() {
+    UniversalBle.onAvailabilityChange = (available) {
+      _actionStreams.add(LogNotification('Bluetooth availability changed: $available'));
+      if (available == AvailabilityState.poweredOn && !isScanning.value) {
+        performScanning();
+      } else if (available == AvailabilityState.poweredOff) {
+        reset();
+      }
+    };
     UniversalBle.onScanResult = (result) {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
         _lastScanResult.add(result);
@@ -181,6 +189,7 @@ class Connection {
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
       UniversalBle.disconnect(device.device.deviceId);
+      signalChange(device);
     }
     _lastScanResult.clear();
     hasDevices.value = false;
