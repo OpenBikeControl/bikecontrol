@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 abstract class PlatformRequirement {
   String name;
@@ -26,7 +27,12 @@ abstract class PlatformRequirement {
 Future<List<PlatformRequirement>> getRequirements(bool local) async {
   List<PlatformRequirement> list;
   if (kIsWeb) {
-    list = [BluetoothTurnedOn(), BluetoothScanning()];
+    final availablity = await UniversalBle.getBluetoothAvailabilityState();
+    if (availablity == AvailabilityState.unsupported) {
+      list = [UnsupportedPlatform()];
+    } else {
+      list = [BluetoothTurnedOn(), BluetoothScanning()];
+    }
   } else if (Platform.isMacOS) {
     list = [BluetoothTurnedOn(), local ? KeyboardRequirement() : RemoteRequirement(), BluetoothScanning()];
   } else if (Platform.isIOS) {

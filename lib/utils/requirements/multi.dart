@@ -51,7 +51,8 @@ class BluetoothTurnedOn extends PlatformRequirement {
 }
 
 class UnsupportedPlatform extends PlatformRequirement {
-  UnsupportedPlatform() : super('Unsupported platform :(') {
+  UnsupportedPlatform()
+    : super('This ${kIsWeb ? 'Browser does not support Web Bluetooth and ' : 'platform'} is not supported :(') {
     status = false;
   }
 
