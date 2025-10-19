@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -35,9 +34,9 @@ class EliteSterzo extends BaseDevice {
     if (service == null) {
       throw Exception('Elite Sterzo service not found');
     }
-    
+
     _serviceUuid = service.uuid;
-    
+
     // Find characteristics
     final challengeChar = service.characteristics.firstOrNullWhere(
       (e) => e.uuid == SterzoConstants.CHALLENGE_CODE_CHARACTERISTIC_UUID,
@@ -93,7 +92,7 @@ class EliteSterzo extends BaseDevice {
       // Challenge is in bytes 2-3 (big-endian)
       final challenge = (bytes[2] << 8) | bytes[3];
       _latestChallenge = challenge;
-      
+
       actionStreamInternal.add(LogNotification('Elite Sterzo: Received challenge code: $challenge'));
 
       // Respond to challenge
@@ -111,7 +110,7 @@ class EliteSterzo extends BaseDevice {
 
     // Get response codes for the challenge
     final challengeCodes = _getChallengeResponse(_latestChallenge!);
-    
+
     // Send challenge response
     await UniversalBle.write(
       device.deviceId,
@@ -159,7 +158,7 @@ class EliteSterzo extends BaseDevice {
       } else {
         // On native platforms, try to load from cache first
         _challengeCodesData = await _loadCachedChallengeCodes();
-        
+
         if (_challengeCodesData == null) {
           // Cache miss - fetch from HTTP and cache it
           _challengeCodesData = await _fetchChallengeCodes();
@@ -174,17 +173,18 @@ class EliteSterzo extends BaseDevice {
   }
 
   static Future<Uint8List?> _fetchChallengeCodes() async {
+    final url = kIsWeb
+        ? 'https://corsproxy.io/${SterzoConstants.CHALLENGE_CODES_URL}'
+        : SterzoConstants.CHALLENGE_CODES_URL;
     try {
-      final response = await http.get(
-        Uri.parse(SterzoConstants.CHALLENGE_CODES_URL),
-      );
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         return response.bodyBytes;
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to fetch challenge codes: $e');
+        print('Failed to fetch challenge codes for URL $url: $e');
       }
     }
     return null;
@@ -194,7 +194,7 @@ class EliteSterzo extends BaseDevice {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cached = prefs.getString(SterzoConstants.CACHE_KEY);
-      
+
       if (cached != null) {
         // Decode from base64
         return base64Decode(cached);
@@ -223,19 +223,19 @@ class EliteSterzo extends BaseDevice {
     if (bytes.length >= 4) {
       // Steering angle is a 32-bit float (little-endian)
       final angle = ByteData.sublistView(bytes).getFloat32(0, Endian.little);
-      
+
       actionStreamInternal.add(LogNotification('Steering angle: ${angle.toStringAsFixed(1)}°'));
 
       // Determine steering direction based on angle threshold
       final button = _getSteeringButton(angle);
-      
+
       if (button != null) {
         handleButtonsClicked([button]);
       } else if (_getSteeringButton(_lastAngle) != null) {
         // Release button if we were steering but now we're centered
         handleButtonsClicked([]);
       }
-      
+
       _lastAngle = angle;
     }
   }
@@ -260,7 +260,7 @@ class EliteSterzo extends BaseDevice {
     if (index >= 0 && index < _challengeCodesData!.length - 1) {
       return [_challengeCodesData![index], _challengeCodesData![index + 1]];
     }
-    
+
     // Fallback for out of range challenges
     return [0x96, 0x96];
   }
@@ -268,24 +268,24 @@ class EliteSterzo extends BaseDevice {
 
 class SterzoConstants {
   static const String DEVICE_NAME = "STERZO";
-  
+
   // Elite Sterzo Smart characteristic UUIDs
   static const String MEASUREMENT_CHARACTERISTIC_UUID = "347b0030-7635-408b-8918-8ff3949ce592";
   static const String CONTROL_POINT_CHARACTERISTIC_UUID = "347b0031-7635-408b-8918-8ff3949ce592";
   static const String CHALLENGE_CODE_CHARACTERISTIC_UUID = "347b0032-7635-408b-8918-8ff3949ce592";
-  
+
   // Service UUID pattern (matches Elite devices)
   static const String SERVICE_UUID = "347b0001-7635-408b-8918-8ff3949ce592";
-  
+
   // Steering angle threshold in degrees to trigger steering action
   static const double STEERING_THRESHOLD = 5.0;
-  
+
   static const int RECONNECT_DELAY = 5; // seconds between reconnection attempts
-  
+
   // URL to fetch challenge codes
-  static const String CHALLENGE_CODES_URL = 
+  static const String CHALLENGE_CODES_URL =
       'https://github.com/zacharyedwardbull/pycycling/raw/refs/heads/master/pycycling/data/sterzo-challenge-codes.dat';
-  
+
   // Cache key for SharedPreferences
   static const String CACHE_KEY = 'elite_sterzo_challenge_codes';
 }
