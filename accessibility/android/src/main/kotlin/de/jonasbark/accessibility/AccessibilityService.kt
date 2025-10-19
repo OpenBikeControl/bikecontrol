@@ -5,6 +5,7 @@ import android.accessibilityservice.GestureDescription
 import android.accessibilityservice.GestureDescription.StrokeDescription
 import android.graphics.Path
 import android.graphics.Rect
+import android.os.Build
 import android.util.Log
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
@@ -56,7 +57,12 @@ class AccessibilityService : AccessibilityService(), Listener {
         path.moveTo(x.toFloat(), y.toFloat())
         path.lineTo(x.toFloat()+1, y.toFloat())
 
-        val stroke = StrokeDescription(path, 0, ViewConfiguration.getTapTimeout().toLong(), isKeyDown && !isKeyUp)
+        val stroke = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            StrokeDescription(path, 0, ViewConfiguration.getTapTimeout().toLong(), isKeyDown && !isKeyUp)
+        } else {
+            // API 24–25: no “willContinue” support
+            StrokeDescription(path, 0L, ViewConfiguration.getTapTimeout().toLong())
+        }
         gestureBuilder.addStroke(stroke)
 
         dispatchGesture(gestureBuilder.build(), null, null)
