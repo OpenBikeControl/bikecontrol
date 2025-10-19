@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -20,6 +24,8 @@ class EliteSterzo extends BaseDevice {
   double _lastAngle = 0.0;
   int? _latestChallenge;
   String? _serviceUuid;
+  static Uint8List? _challengeCodesData;
+  static bool _isLoadingChallenges = false;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -100,6 +106,9 @@ class EliteSterzo extends BaseDevice {
       return;
     }
 
+    // Ensure challenge codes are loaded
+    await _ensureChallengeCodesLoaded();
+
     // Get response codes for the challenge
     final challengeCodes = _getChallengeResponse(_latestChallenge!);
     
@@ -124,6 +133,90 @@ class EliteSterzo extends BaseDevice {
     );
 
     actionStreamInternal.add(LogNotification('Elite Sterzo: Steering measurements activated'));
+  }
+
+  static Future<void> _ensureChallengeCodesLoaded() async {
+    if (_challengeCodesData != null) {
+      return; // Already loaded
+    }
+
+    // Wait if already loading
+    while (_isLoadingChallenges) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
+    // Check again after waiting
+    if (_challengeCodesData != null) {
+      return;
+    }
+
+    _isLoadingChallenges = true;
+
+    try {
+      if (kIsWeb) {
+        // On web, always fetch from HTTP
+        _challengeCodesData = await _fetchChallengeCodes();
+      } else {
+        // On native platforms, try to load from cache first
+        _challengeCodesData = await _loadCachedChallengeCodes();
+        
+        if (_challengeCodesData == null) {
+          // Cache miss - fetch from HTTP and cache it
+          _challengeCodesData = await _fetchChallengeCodes();
+          if (_challengeCodesData != null) {
+            await _cacheChallengeCodes(_challengeCodesData!);
+          }
+        }
+      }
+    } finally {
+      _isLoadingChallenges = false;
+    }
+  }
+
+  static Future<Uint8List?> _fetchChallengeCodes() async {
+    try {
+      final response = await http.get(
+        Uri.parse(SterzoConstants.CHALLENGE_CODES_URL),
+      );
+
+      if (response.statusCode == 200) {
+        return response.bodyBytes;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to fetch challenge codes: $e');
+      }
+    }
+    return null;
+  }
+
+  static Future<Uint8List?> _loadCachedChallengeCodes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(SterzoConstants.CACHE_KEY);
+      
+      if (cached != null) {
+        // Decode from base64
+        return base64Decode(cached);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to load cached challenge codes: $e');
+      }
+    }
+    return null;
+  }
+
+  static Future<void> _cacheChallengeCodes(Uint8List data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Encode to base64 for storage
+      await prefs.setString(SterzoConstants.CACHE_KEY, base64Encode(data));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to cache challenge codes: $e');
+      }
+    }
   }
 
   void _handleSteeringMeasurement(Uint8List bytes) {
@@ -158,14 +251,17 @@ class EliteSterzo extends BaseDevice {
   }
 
   List<int> _getChallengeResponse(int challenge) {
-    // This is a simplified challenge-response lookup
-    // The full implementation would use a 128KB lookup table
-    // For now, using a subset of common challenge codes
-    final index = challenge * 2;
-    if (index < _challengeCodes.length - 1) {
-      return [_challengeCodes[index], _challengeCodes[index + 1]];
+    if (_challengeCodesData == null) {
+      // Fallback if data not loaded
+      return [0x96, 0x96];
     }
-    // Fallback for unknown challenges
+
+    final index = challenge * 2;
+    if (index >= 0 && index < _challengeCodesData!.length - 1) {
+      return [_challengeCodesData![index], _challengeCodesData![index + 1]];
+    }
+    
+    // Fallback for out of range challenges
     return [0x96, 0x96];
   }
 }
@@ -185,25 +281,11 @@ class SterzoConstants {
   static const double STEERING_THRESHOLD = 5.0;
   
   static const int RECONNECT_DELAY = 5; // seconds between reconnection attempts
+  
+  // URL to fetch challenge codes
+  static const String CHALLENGE_CODES_URL = 
+      'https://github.com/zacharyedwardbull/pycycling/raw/refs/heads/master/pycycling/data/sterzo-challenge-codes.dat';
+  
+  // Cache key for SharedPreferences
+  static const String CACHE_KEY = 'elite_sterzo_challenge_codes';
 }
-
-// Subset of challenge-response codes from sterzo-challenge-codes.dat
-// This is a simplified version - the full table is 128KB
-const List<int> _challengeCodes = [
-  0x96, 0x96, 0x96, 0x9f, 0x96, 0x18, 0x90, 0x99, 0x96, 0x92, 0x96, 0xcb, 0x95, 0x9c, 0x8a, 0x9d,
-  0x96, 0xbe, 0x97, 0xbf, 0x9c, 0xa0, 0x96, 0xaa, 0x96, 0xc2, 0x95, 0xe3, 0x8a, 0xa4, 0x96, 0xbb,
-  0x97, 0xa6, 0x9e, 0x27, 0xde, 0xa8, 0x96, 0xe5, 0x94, 0x2a, 0x83, 0xab, 0x96, 0xba, 0x96, 0x15,
-  0x90, 0xae, 0xa4, 0xaf, 0x96, 0x84, 0x97, 0x01, 0x98, 0xb2, 0xe2, 0xb3, 0x96, 0xcc, 0x95, 0x55,
-  0xb6, 0xb6, 0x96, 0x96, 0x97, 0xa8, 0x9e, 0x79, 0xde, 0xba, 0x96, 0xf1, 0x94, 0xdc, 0x85, 0x3d,
-  0x36, 0xbe, 0x96, 0x1b, 0x93, 0x80, 0xbd, 0xc1, 0x96, 0xee, 0x97, 0xab, 0x9d, 0x44, 0xc8, 0xc5,
-  0x96, 0xa6, 0x95, 0xd7, 0x8f, 0xc8, 0x5a, 0xc9, 0x96, 0x1a, 0x90, 0x6b, 0xa0, 0xcc, 0x96, 0xfa,
-  0x97, 0x0e, 0x98, 0x8f, 0xe2, 0xd0, 0x96, 0xa7, 0x95, 0x12, 0x88, 0x53, 0x6e, 0xd4, 0x96, 0x29,
-  0x9e, 0xd6, 0xd7, 0xd7, 0x96, 0x9a, 0x94, 0xc1, 0x87, 0xda, 0x1c, 0xdb, 0x96, 0x50, 0x92, 0xad,
-  0xb2, 0xde, 0xb2, 0xde, 0x97, 0xc8, 0x9f, 0x81, 0xda, 0xe2, 0x96, 0xae, 0x94, 0x94, 0x85, 0x25,
-  0x36, 0xe6, 0x96, 0x45, 0x93, 0xc8, 0xbf, 0x69, 0xc6, 0xeb, 0x97, 0xbf, 0x9c, 0x2c, 0xc1, 0xed,
-  0x96, 0xb6, 0x94, 0x27, 0x80, 0x70, 0x20, 0xf1, 0x96, 0x4a, 0x93, 0x23, 0xb9, 0xf4, 0xea, 0xf4,
-  0x97, 0x76, 0x9a, 0xd7, 0xf4, 0xf8, 0x96, 0x9a, 0x95, 0xda, 0x8f, 0xbb, 0x5a, 0xfc, 0x96, 0x33,
-  0x90, 0x7e, 0xa2, 0x7f, 0x3e, 0x01, 0x97, 0xad, 0x9b, 0x82, 0xfb, 0x03, 0x96, 0x6a, 0x95, 0x7d,
-  0x8a, 0x06, 0x74, 0x07, 0x96, 0xec, 0x91, 0x39, 0xac, 0x0a, 0x42, 0x0a, 0x97, 0xd4, 0x98, 0xed,
-  0xee, 0x0e, 0x96, 0x76, 0x95, 0xc0, 0x88, 0xd1, 0x6e, 0x12, 0x96, 0xe9, 0x91, 0xf4, 0xa9, 0x95,
-];
