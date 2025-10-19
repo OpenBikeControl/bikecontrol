@@ -98,26 +98,27 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 8,
               children: [
-                SwitchListTile.adaptive(
-                  value: _local,
-                  title: Text('Trainer app is running on this device'),
-                  subtitle: Text('Turn off if you want to control another device, e.g. your tablet'),
-                  onChanged: (local) {
-                    if (kIsWeb || Platform.isIOS) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('This platform only supports controlling trainer apps on other devices'),
-                        ),
-                      );
-                    } else {
-                      initializeActions(local);
-                      setState(() {
-                        _local = local;
-                        _reloadRequirements();
-                      });
-                    }
-                  },
-                ),
+                if (!kIsWeb)
+                  SwitchListTile.adaptive(
+                    value: _local,
+                    title: Text('Trainer app is running on this device'),
+                    subtitle: Text('Turn off if you want to control another device, e.g. your tablet'),
+                    onChanged: (local) {
+                      if (Platform.isIOS) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('This platform only supports controlling trainer apps on other devices'),
+                          ),
+                        );
+                      } else {
+                        initializeActions(local);
+                        setState(() {
+                          _local = local;
+                          _reloadRequirements();
+                        });
+                      }
+                    },
+                  ),
                 Expanded(
                   child: Card(
                     margin: EdgeInsets.symmetric(horizontal: 16),
