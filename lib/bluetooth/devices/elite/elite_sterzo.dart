@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -193,9 +192,12 @@ class EliteSterzo extends BaseDevice {
 
   static Future<Uint8List?> _loadCachedChallengeCodes() async {
     try {
-      final file = await _getCacheFile();
-      if (await file.exists()) {
-        return await file.readAsBytes();
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(SterzoConstants.CACHE_KEY);
+      
+      if (cached != null) {
+        // Decode from base64
+        return base64Decode(cached);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -207,18 +209,14 @@ class EliteSterzo extends BaseDevice {
 
   static Future<void> _cacheChallengeCodes(Uint8List data) async {
     try {
-      final file = await _getCacheFile();
-      await file.writeAsBytes(data);
+      final prefs = await SharedPreferences.getInstance();
+      // Encode to base64 for storage
+      await prefs.setString(SterzoConstants.CACHE_KEY, base64Encode(data));
     } catch (e) {
       if (kDebugMode) {
         print('Failed to cache challenge codes: $e');
       }
     }
-  }
-
-  static Future<File> _getCacheFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File('${directory.path}/${SterzoConstants.CACHE_FILENAME}');
   }
 
   void _handleSteeringMeasurement(Uint8List bytes) {
@@ -288,6 +286,6 @@ class SterzoConstants {
   static const String CHALLENGE_CODES_URL = 
       'https://github.com/zacharyedwardbull/pycycling/raw/refs/heads/master/pycycling/data/sterzo-challenge-codes.dat';
   
-  // Filename for cached challenge codes
-  static const String CACHE_FILENAME = 'sterzo_challenge_codes.dat';
+  // Cache key for SharedPreferences
+  static const String CACHE_KEY = 'elite_sterzo_challenge_codes';
 }
