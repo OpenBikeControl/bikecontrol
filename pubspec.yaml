@@ -32,6 +32,7 @@ dependencies:
   keypress_simulator:
     path: keypress_simulator/packages/keypress_simulator
   shared_preferences: ^2.5.3
+  path_provider: ^2.1.5
   flex_color_scheme: ^8.3.0
   accessibility:
     path: accessibility
