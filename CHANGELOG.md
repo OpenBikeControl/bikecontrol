@@ -2,7 +2,10 @@
 - new app icon
 - adjusted MyWhoosh keyboard navigation mapping (thanks @bin101)
 - support for Wahook Kickr Bike Shift (thanks @MattW2)
-- initial support for Elite Square Smart Frame 
+- initial support for Elite Square Smart Frame
+- reconnects to your device automatically when connection is lost
+- SwiftControl now warns you if your device firmware is outdated
+- SwiftControl is now available in Microsoft Store: https://apps.microsoft.com/detail/9NP42GS03Z26
 
 ### 3.0.3 (2025-10-12)
 - SwiftControl now supports iOS!
