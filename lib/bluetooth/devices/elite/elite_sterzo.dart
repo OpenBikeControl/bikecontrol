@@ -37,6 +37,7 @@ class EliteSterzo extends BaseDevice {
 
   // Debounce timer for PWM-like keypress behavior
   Timer? _keypressTimer;
+  bool _isProcessingKeypresses = false;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -261,14 +262,14 @@ class EliteSterzo extends BaseDevice {
       // Round to whole degrees to reduce noise
       final roundedAngle = calibratedAngle.round();
 
-      // Only log when rounded value changes to reduce verbosity
+      // Only log and process steering when rounded value changes to reduce verbosity
       if (_lastRoundedAngle != roundedAngle) {
         actionStreamInternal.add(LogNotification('Steering angle: $roundedAngle°'));
         _lastRoundedAngle = roundedAngle;
-      }
 
-      // Apply PWM-like steering behavior
-      _applyPWMSteering(roundedAngle);
+        // Apply PWM-like steering behavior only when angle changes
+        _applyPWMSteering(roundedAngle);
+      }
 
       _lastAngle = calibratedAngle;
     }
@@ -289,7 +290,9 @@ class EliteSterzo extends BaseDevice {
       // Calculate number of keypress levels based on angle magnitude
       final levels = _calculateKeypressLevels(roundedAngle.abs());
 
-      // Schedule repeated keypresses
+      // Only trigger new keypresses when rounded angle changes to avoid overlap
+      // The check for _lastRoundedAngle change is already done in _handleSteeringMeasurement
+      // so we know this is a new angle value
       _scheduleRepeatedKeypresses(button, levels);
     } else {
       // Center position - release any held buttons
@@ -305,19 +308,20 @@ class EliteSterzo extends BaseDevice {
 
   /// Schedules repeated keypresses to simulate PWM behavior
   Future<void> _scheduleRepeatedKeypresses(ControllerButton button, int levels) async {
-    // Send the first batch of keypresses immediately
+    // Don't overlap keypress sequences
+    if (_isProcessingKeypresses) {
+      return;
+    }
+
+    _isProcessingKeypresses = true;
+
+    // Send keypresses in sequence with delays between them
     for (int i = 0; i < levels; i++) {
       await Future.delayed(Duration(milliseconds: SterzoConstants.KEY_REPEAT_INTERVAL_MS));
       handleButtonsClicked([button]);
     }
 
-    // Schedule next batch with a slight debounce
-    _keypressTimer = Timer(
-      Duration(milliseconds: SterzoConstants.KEY_REPEAT_INTERVAL_MS * 2),
-      () {
-        // This ensures continuous steering if angle hasn't changed
-      },
-    );
+    _isProcessingKeypresses = false;
   }
 
   List<int> _getChallengeResponse(int challenge) {
