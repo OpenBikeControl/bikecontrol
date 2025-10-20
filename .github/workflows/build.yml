@@ -356,7 +356,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip,build/windows/x64/runner/Release/swift_control.msix"
+          artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip,build/windows/x64/runner/Release/SwiftControl.windows.msix"
           bodyFile: scripts/RELEASE_NOTES.md
           prerelease: true
           tag: v${{ env.VERSION }}
