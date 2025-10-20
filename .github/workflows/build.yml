@@ -41,7 +41,6 @@ env:
 jobs:
   build:
     name: Build & Release
-    if: inputs.build_mac || inputs.build_android || inputs.build_ios || inputs.build_web
     runs-on: macos-latest
 
     permissions:
@@ -98,6 +97,7 @@ jobs:
           cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: 🐦 Setup Shorebird
+        if: inputs.build_mac || inputs.build_android || inputs.build_ios || inputs.build_web
         uses: shorebirdtech/setup-shorebird@v1
         with:
           cache: true
