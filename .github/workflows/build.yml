@@ -316,6 +316,12 @@ jobs:
         if: false
         run: msstore reconfigure --tenantId $ --clientId $ --clientSecret $ --sellerId $
 
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
       - name: Create MSIX package
         run: dart run msix:create
 
