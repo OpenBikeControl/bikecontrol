@@ -264,7 +264,7 @@ jobs:
 
   windows:
     needs: build
-    if: inputs.build_windows && inputs.build_github
+    if: inputs.build_windows
     name: Build & Release on Windows
     runs-on: windows-latest
 
@@ -315,7 +315,25 @@ jobs:
           }
           Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/SwiftControl.windows.zip"
 
-      #9 Upload Artifacts
+      - uses: microsoft/setup-msstore-cli@v1
+        if: false
+
+      - name: Configure the Microsoft Store CLI
+        if: false
+        run: msstore reconfigure --tenantId $ --clientId $ --clientSecret $ --sellerId $
+
+      - name: Create MSIX package
+        run: dart run msix:create
+
+      - name: Publish MSIX to the Microsoft Store
+        if: false
+        run: msstore publish -v "build/windows/x64/runner/Release/"
+
+      - name: Rename swift_control.msix to SwiftControl.windows.msix
+        shell: pwsh
+        run: |
+          Rename-Item -Path "build/windows/x64/runner/Release/swift_control.msix" -NewName "SwiftControl.windows.msix"
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -323,8 +341,8 @@ jobs:
           name: Releases
           path: |
             build/windows/x64/runner/Release/SwiftControl.windows.zip
+            build/windows/x64/runner/Release/SwiftControl.windows.msix
 
-      #10 Extract Version
       - name: Extract version from pubspec.yaml (Windows)
         shell: pwsh
         run: |
@@ -333,13 +351,12 @@ jobs:
           }
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
-      # add artifact to release
 
-      - name: Create Release
+      - name: Update Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip"
+          artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip,build/windows/x64/runner/Release/swift_control.msix"
           bodyFile: scripts/RELEASE_NOTES.md
           prerelease: true
           tag: v${{ env.VERSION }}
