@@ -41,6 +41,7 @@ env:
 jobs:
   build:
     name: Build & Release
+    if: inputs.build_mac || inputs.build_android || inputs.build_ios || inputs.build_web
     runs-on: macos-latest
 
     permissions:
@@ -272,13 +273,6 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-        #2 Setup Java
-      - name: Set Up Java
-        uses: actions/setup-java@v3.12.0
-        with:
-          distribution: 'oracle'
-          java-version: '17'
 
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
