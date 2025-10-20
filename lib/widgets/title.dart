@@ -132,7 +132,7 @@ class _AppTitleState extends State<AppTitle> {
       final res = await http.get(url, headers: {'User-Agent': 'Mozilla/5.0'});
       if (res.statusCode != 200) return null;
 
-      final body = res.body;
+      final body = res.body.trim();
       _compareVersion(body);
     }
   }
