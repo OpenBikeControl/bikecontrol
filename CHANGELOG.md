@@ -1,3 +1,13 @@
+### 3.1.1 (TBD)
+- Elite Sterzo Smart improvements (fixes #111):
+  - Ignore initial NaN readings during device connection
+  - Automatic calibration: averages first 10 valid readings to compute offset
+  - Rounding steering angles to whole degrees for stability
+  - PWM-like steering behavior: repeated keypresses proportional to angle magnitude
+  - Reduced log verbosity: only logs when rounded angle changes
+  - Increased steering threshold from 5° to 10° for better dead-zone
+  - All parameters configurable via constants
+
 ### 3.1.0 (2025-10-17) 
 - new app icon
 - adjusted MyWhoosh keyboard navigation mapping (thanks @bin101)

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartx/dartx.dart';
@@ -25,6 +26,17 @@ class EliteSterzo extends BaseDevice {
   String? _serviceUuid;
   static Uint8List? _challengeCodesData;
   static bool _isLoadingChallenges = false;
+
+  // Calibration state
+  final List<double> _calibrationSamples = [];
+  double _calibrationOffset = 0.0;
+  bool _isCalibrated = false;
+
+  // Last rounded angle for logging optimization
+  int? _lastRoundedAngle;
+
+  // Debounce timer for PWM-like keypress behavior
+  Timer? _keypressTimer;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -222,32 +234,90 @@ class EliteSterzo extends BaseDevice {
   void _handleSteeringMeasurement(Uint8List bytes) {
     if (bytes.length >= 4) {
       // Steering angle is a 32-bit float (little-endian)
-      final angle = ByteData.sublistView(bytes).getFloat32(0, Endian.little);
+      final rawAngle = ByteData.sublistView(bytes).getFloat32(0, Endian.little);
 
-      actionStreamInternal.add(LogNotification('Steering angle: ${angle.toStringAsFixed(1)}°'));
-
-      // Determine steering direction based on angle threshold
-      final button = _getSteeringButton(angle);
-
-      if (button != null) {
-        handleButtonsClicked([button]);
-      } else if (_getSteeringButton(_lastAngle) != null) {
-        // Release button if we were steering but now we're centered
-        handleButtonsClicked([]);
+      // Ignore NaN readings during initial connection
+      if (rawAngle.isNaN) {
+        return;
       }
 
-      _lastAngle = angle;
+      // Handle calibration: collect initial samples to compute offset
+      if (!_isCalibrated) {
+        _calibrationSamples.add(rawAngle);
+        if (_calibrationSamples.length >= SterzoConstants.CALIBRATION_SAMPLE_COUNT) {
+          // Compute average offset from collected samples
+          _calibrationOffset = _calibrationSamples.reduce((a, b) => a + b) / _calibrationSamples.length;
+          _isCalibrated = true;
+          actionStreamInternal.add(LogNotification(
+            'Elite Sterzo: Calibration complete, offset: ${_calibrationOffset.toStringAsFixed(2)}°'
+          ));
+        }
+        return; // Don't process steering during calibration
+      }
+
+      // Apply calibration offset
+      final calibratedAngle = rawAngle - _calibrationOffset;
+
+      // Round to whole degrees to reduce noise
+      final roundedAngle = calibratedAngle.round();
+
+      // Only log when rounded value changes to reduce verbosity
+      if (_lastRoundedAngle != roundedAngle) {
+        actionStreamInternal.add(LogNotification('Steering angle: $roundedAngle°'));
+        _lastRoundedAngle = roundedAngle;
+      }
+
+      // Apply PWM-like steering behavior
+      _applyPWMSteering(roundedAngle);
+
+      _lastAngle = calibratedAngle;
     }
   }
 
-  ControllerButton? _getSteeringButton(double angle) {
-    // Use a threshold to avoid jitter around center
-    if (angle < -SterzoConstants.STEERING_THRESHOLD) {
-      return ControllerButton.navigationLeft;
-    } else if (angle > SterzoConstants.STEERING_THRESHOLD) {
-      return ControllerButton.navigationRight;
+  /// Applies PWM-like steering behavior with repeated keypresses proportional to angle magnitude
+  void _applyPWMSteering(int roundedAngle) {
+    // Cancel any pending keypress timer
+    _keypressTimer?.cancel();
+
+    // Determine if we're steering
+    if (roundedAngle.abs() > SterzoConstants.STEERING_THRESHOLD) {
+      // Determine direction
+      final button = roundedAngle > 0 
+        ? ControllerButton.navigationRight 
+        : ControllerButton.navigationLeft;
+
+      // Calculate number of keypress levels based on angle magnitude
+      final levels = _calculateKeypressLevels(roundedAngle.abs());
+
+      // Schedule repeated keypresses
+      _scheduleRepeatedKeypresses(button, levels);
+    } else {
+      // Center position - release any held buttons
+      handleButtonsClicked([]);
     }
-    return null;
+  }
+
+  /// Calculates the number of keypress levels based on angle magnitude
+  int _calculateKeypressLevels(int absAngle) {
+    final levels = (absAngle / SterzoConstants.LEVEL_DEGREE_STEP).floor();
+    return levels.clamp(1, SterzoConstants.MAX_LEVELS);
+  }
+
+  /// Schedules repeated keypresses to simulate PWM behavior
+  Future<void> _scheduleRepeatedKeypresses(ControllerButton button, int levels) async {
+    // Send the first batch of keypresses immediately
+    for (int i = 0; i < levels; i++) {
+      await Future.delayed(Duration(milliseconds: SterzoConstants.KEY_REPEAT_INTERVAL_MS));
+      handleButtonsClicked([button]);
+    }
+
+    // Schedule next batch with a slight debounce
+    _keypressTimer = Timer(
+      Duration(milliseconds: SterzoConstants.KEY_REPEAT_INTERVAL_MS * 2),
+      () {
+        // This ensures continuous steering if angle hasn't changed
+      },
+    );
   }
 
   List<int> _getChallengeResponse(int challenge) {
@@ -264,6 +334,12 @@ class EliteSterzo extends BaseDevice {
     // Fallback for out of range challenges
     return [0x96, 0x96];
   }
+
+  @override
+  Future<void> disconnect() async {
+    _keypressTimer?.cancel();
+    await super.disconnect();
+  }
 }
 
 class SterzoConstants {
@@ -278,7 +354,7 @@ class SterzoConstants {
   static const String SERVICE_UUID = "347b0001-7635-408b-8918-8ff3949ce592";
 
   // Steering angle threshold in degrees to trigger steering action
-  static const double STEERING_THRESHOLD = 5.0;
+  static const double STEERING_THRESHOLD = 10.0;
 
   static const int RECONNECT_DELAY = 5; // seconds between reconnection attempts
 
@@ -288,4 +364,16 @@ class SterzoConstants {
 
   // Cache key for SharedPreferences
   static const String CACHE_KEY = 'elite_sterzo_challenge_codes';
+
+  // Calibration settings
+  // Number of initial valid samples to collect for calibration offset
+  static const int CALIBRATION_SAMPLE_COUNT = 10;
+
+  // PWM-like steering behavior constants
+  // Degrees per level for repeated keypress behavior
+  static const double LEVEL_DEGREE_STEP = 10.0;
+  // Maximum number of keypress levels
+  static const int MAX_LEVELS = 5;
+  // Interval between repeated keypresses in milliseconds
+  static const int KEY_REPEAT_INTERVAL_MS = 40;
 }
