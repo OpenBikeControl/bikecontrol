@@ -51,6 +51,29 @@ List<Widget> buildMenuButtons() {
       ),
       SizedBox(width: 8),
     ],
+    PopupMenuButton(
+      itemBuilder: (BuildContext context) {
+        return [
+          PopupMenuItem(
+            child: Text('Troubleshooting Guide'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+              );
+            },
+          ),
+          PopupMenuItem(
+            child: Text('Get Support'),
+            onTap: () {
+              launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
+            },
+          ),
+        ];
+      },
+      icon: Icon(Icons.help_outline),
+    ),
+    SizedBox(width: 8),
     const MenuButton(),
     SizedBox(width: 8),
   ];
@@ -106,21 +129,7 @@ class MenuButton extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
           },
         ),
-        PopupMenuItem(
-          child: Text('Troubleshooting Guide'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-            );
-          },
-        ),
-        PopupMenuItem(
-          child: Text('Feedback'),
-          onTap: () {
-            launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
-          },
-        ),
+
         PopupMenuItem(
           child: Text('License'),
           onTap: () {

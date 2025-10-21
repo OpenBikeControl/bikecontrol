@@ -10,7 +10,6 @@ import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/settings/settings.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'bluetooth/connection.dart';
 import 'utils/actions/base_actions.dart';
@@ -24,13 +23,6 @@ const screenshotMode = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  initializeActions(true);
-  if (actionHandler is DesktopActions) {
-    // Must add this line.
-    await windowManager.ensureInitialized();
-    windowManager.setSize(Size(1280, 800));
-  }
 
   runApp(const SwiftPlayApp());
 }

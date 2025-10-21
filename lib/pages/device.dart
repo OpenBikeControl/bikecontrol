@@ -11,6 +11,7 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/pages/touch_area.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/loading_widget.dart';
@@ -159,8 +160,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                         ),
                         child: Column(
                           children: [
-                            if (connection.devices.isEmpty)
-                              Text('No devices connected. Go back and connect a device to get started.'),
+                            if (connection.devices.isEmpty) Text('No devices connected. Searching...'),
                             ...connection.devices.map(
                               (device) => Row(
                                 children: [

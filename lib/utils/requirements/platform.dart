@@ -22,6 +22,10 @@ abstract class PlatformRequirement {
   Widget? build(BuildContext context, VoidCallback onUpdate) {
     return null;
   }
+
+  Widget? buildDescription() {
+    return null;
+  }
 }
 
 Future<List<PlatformRequirement>> getRequirements(bool local) async {
@@ -34,15 +38,26 @@ Future<List<PlatformRequirement>> getRequirements(bool local) async {
       list = [BluetoothTurnedOn(), BluetoothScanning()];
     }
   } else if (Platform.isMacOS) {
-    list = [BluetoothTurnedOn(), local ? KeyboardRequirement() : RemoteRequirement(), BluetoothScanning()];
+    list = [
+      TargetRequirement(),
+      BluetoothTurnedOn(),
+      local ? KeyboardRequirement() : RemoteRequirement(),
+      BluetoothScanning(),
+    ];
   } else if (Platform.isIOS) {
-    list = [BluetoothTurnedOn(), RemoteRequirement(), BluetoothScanning()];
+    list = [TargetRequirement(), BluetoothTurnedOn(), RemoteRequirement(), BluetoothScanning()];
   } else if (Platform.isWindows) {
-    list = [BluetoothTurnedOn(), local ? KeyboardRequirement() : RemoteRequirement(), BluetoothScanning()];
+    list = [
+      TargetRequirement(),
+      BluetoothTurnedOn(),
+      local ? KeyboardRequirement() : RemoteRequirement(),
+      BluetoothScanning(),
+    ];
   } else if (Platform.isAndroid) {
     final deviceInfoPlugin = DeviceInfoPlugin();
     final deviceInfo = await deviceInfoPlugin.androidInfo;
     list = [
+      TargetRequirement(),
       BluetoothTurnedOn(),
       local ? AccessibilityRequirement() : RemoteRequirement(),
       NotificationRequirement(),

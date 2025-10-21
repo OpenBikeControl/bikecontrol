@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
@@ -18,10 +19,27 @@ bool _isServiceAdded = false;
 bool _isSubscribedToEvents = false;
 
 class RemoteRequirement extends PlatformRequirement {
-  RemoteRequirement() : super('Connect to your other device');
+  RemoteRequirement()
+    : super(
+        'Connect to your target device',
+      );
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
+
+  @override
+  Widget? buildDescription() {
+    return settings.getLastTarget() == null
+        ? null
+        : Text(
+            switch (settings.getLastTarget()) {
+              Target.iPad =>
+                'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
+              _ =>
+                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for SwiftControl or your machines name. Pairing is required to use the remote feature.',
+            },
+          );
+  }
 
   Future<void> reconnect() async {
     await peripheralManager.stopAdvertising();
@@ -74,8 +92,7 @@ class RemoteRequirement extends PlatformRequirement {
         return;
       }
     }
-    while (peripheralManager.state != BluetoothLowEnergyState.poweredOn &&
-        peripheralManager.state != BluetoothLowEnergyState.unknown) {
+    while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
       print('Waiting for peripheral manager to be powered on...');
       await Future.delayed(Duration(seconds: 1));
     }
@@ -284,6 +301,7 @@ class _PairWidgetState extends State<_PairWidget> {
   Widget build(BuildContext context) {
     return Column(
       spacing: 10,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           spacing: 10,
@@ -295,21 +313,9 @@ class _PairWidgetState extends State<_PairWidget> {
               child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
             ),
             if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
-            if (kDebugMode && !screenshotMode)
-              ElevatedButton(
-                onPressed: () {
-                  (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
-                  (actionHandler as RemoteActions).sendAbsMouseReport(1, 90, 90);
-                  (actionHandler as RemoteActions).sendAbsMouseReport(0, 90, 90);
-                },
-                child: Text('Test'),
-              ),
           ],
         ),
         if (_isAdvertising) ...[
-          Text(
-            'If your other device is an iOS device, go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
-          ),
           TextButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')));

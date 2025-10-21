@@ -75,7 +75,6 @@ jobs:
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
       - name: 🚀 Shorebird Patch macOS
-        if: false
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: macos
@@ -87,7 +86,7 @@ jobs:
         with:
           platform: android
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs'
+          args: '--allow-asset-diffs'
 
       - name: 🚀 Shorebird Patch iOS
         uses: shorebirdtech/shorebird-patch@v1
@@ -136,7 +135,6 @@ jobs:
           token: ${{ secrets.TOKEN }}
 
   windows:
-    if: false
     name: Patch Windows
     runs-on: windows-latest
 
