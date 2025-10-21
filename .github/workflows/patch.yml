@@ -79,21 +79,21 @@ jobs:
         with:
           platform: macos
           release-version: latest
-          args: '--allow-asset-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs'
 
       - name: 🚀 Shorebird Patch Android
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: android
           release-version: latest
-          args: '--allow-asset-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs'
 
       - name: 🚀 Shorebird Patch iOS
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: ios
           release-version: latest
-          args: '--allow-asset-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs'
 
       - name: Set Up Flutter
         uses: subosito/flutter-action@v2
@@ -160,4 +160,4 @@ jobs:
         with:
           platform: windows
           release-version: latest
-          args: '--allow-asset-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs'
