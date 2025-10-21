@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+    <string>This app connects to your trainer app on your local network.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>SwiftControl uses Bluetooth to connect to accessories.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

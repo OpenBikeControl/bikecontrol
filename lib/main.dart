@@ -8,10 +8,12 @@ import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/actions/link.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 
 import 'bluetooth/connection.dart';
+import 'link/link.dart';
 import 'utils/actions/base_actions.dart';
 
 final connection = Connection();
@@ -19,6 +21,7 @@ late BaseActions actionHandler;
 final accessibilityHandler = Accessibility();
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final settings = Settings();
+final whooshLink = WhooshLink();
 const screenshotMode = false;
 
 void main() async {
@@ -27,23 +30,33 @@ void main() async {
   runApp(const SwiftPlayApp());
 }
 
-Future<void> initializeActions(bool local) async {
+enum ConnectionType {
+  local,
+  remote,
+  link,
+}
+
+Future<void> initializeActions(ConnectionType connectionType) async {
   if (kIsWeb) {
     actionHandler = StubActions();
   } else if (Platform.isAndroid) {
-    if (local) {
-      actionHandler = AndroidActions();
-    } else {
-      actionHandler = RemoteActions();
-    }
+    actionHandler = switch (connectionType) {
+      ConnectionType.local => AndroidActions(),
+      ConnectionType.remote => RemoteActions(),
+      ConnectionType.link => LinkActions(),
+    };
   } else if (Platform.isIOS) {
-    actionHandler = RemoteActions();
+    actionHandler = switch (connectionType) {
+      ConnectionType.local => throw UnimplementedError('Local actions are not supported on iOS'),
+      ConnectionType.remote => RemoteActions(),
+      ConnectionType.link => LinkActions(),
+    };
   } else {
-    if (local) {
-      actionHandler = DesktopActions();
-    } else {
-      actionHandler = RemoteActions();
-    }
+    actionHandler = switch (connectionType) {
+      ConnectionType.local => DesktopActions(),
+      ConnectionType.remote => RemoteActions(),
+      ConnectionType.link => LinkActions(),
+    };
   }
 }
 

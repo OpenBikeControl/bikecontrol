@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:swift_control/widgets/keymap_explanation.dart';
 
 enum InGameAction {
   shiftUp,
   shiftDown,
   navigateLeft,
   navigateRight,
-  toggleUi,
   increaseResistance,
-  decreaseResistance;
+  decreaseResistance,
+  toggleUi,
+  cameraAngle,
+  emote,
+  uturn,
+  steering;
 
   @override
   String toString() {
-    return name;
+    return name.splitByUpperCase();
   }
 }
 
 enum ControllerButton {
   // left controller
-  navigationUp._(InGameAction.increaseResistance, icon: Icons.keyboard_arrow_up, color: Colors.black),
-  navigationDown._(InGameAction.decreaseResistance, icon: Icons.keyboard_arrow_down, color: Colors.black),
+  navigationUp._(null, icon: Icons.keyboard_arrow_up, color: Colors.black),
+  navigationDown._(InGameAction.uturn, icon: Icons.keyboard_arrow_down, color: Colors.black),
   navigationLeft._(InGameAction.navigateLeft, icon: Icons.keyboard_arrow_left, color: Colors.black),
   navigationRight._(InGameAction.navigateRight, icon: Icons.keyboard_arrow_right, color: Colors.black),
   onOffLeft._(InGameAction.toggleUi),

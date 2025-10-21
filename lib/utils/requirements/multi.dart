@@ -7,6 +7,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/scan.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
+import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
@@ -84,6 +85,11 @@ typedef BoolFunction = bool Function();
 
 enum Target {
   thisDevice(title: 'This device', description: 'Trainer app runs on this device', icon: Icons.devices),
+  myWhooshLink(
+    title: 'MyWhoosh Link',
+    description: 'Control MyWhoosh directly on another device',
+    icon: Icons.link,
+  ),
   iPad(
     title: 'iPad',
     description: 'Remotely control the trainer app on an iPad',
@@ -111,13 +117,6 @@ enum Target {
 
   const Target({required this.title, required this.description, required this.icon});
 
-  bool get isCompatible {
-    return switch (this) {
-      Target.thisDevice => !Platform.isIOS,
-      _ => true,
-    };
-  }
-
   String? get warning {
     return switch (this) {
       Target.android when Platform.isAndroid =>
@@ -130,6 +129,14 @@ enum Target {
       Target.macOS => "Download and use SwiftControl on that macOS device.",
       Target.windows => "Download and use SwiftControl on that Windows device.",
       _ => null,
+    };
+  }
+
+  ConnectionType get connectionType {
+    return switch (this) {
+      Target.thisDevice => ConnectionType.local,
+      Target.myWhooshLink => ConnectionType.link,
+      _ => ConnectionType.remote,
     };
   }
 }
@@ -158,18 +165,18 @@ class TargetRequirement extends PlatformRequirement {
         return DropdownMenuEntry(
           value: target,
           label: target.title,
-          enabled: target.isCompatible,
           trailingIcon: Icon(target.icon),
           labelWidget: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(target.title, style: TextStyle(fontWeight: FontWeight.bold)),
               Text(
-                target.isCompatible
-                    ? target.description
-                    : 'Due to iOS restrictions only controlling trainer apps on other devices is supported :(',
+                target == Target.myWhooshLink && Platform.isAndroid
+                    ? 'Control MyWhoosh directly on this or another device'
+                    : target.description,
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
+              if (target == Target.myWhooshLink) Divider(),
             ],
           ),
         );
@@ -179,7 +186,7 @@ class TargetRequirement extends PlatformRequirement {
       onSelected: (target) async {
         if (target != null) {
           await settings.setLastTarget(target);
-          initializeActions(target == Target.thisDevice);
+          initializeActions(target.connectionType);
           if (target.warning != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -218,5 +225,45 @@ class TargetRequirement extends PlatformRequirement {
     } else {
       return null;
     }
+  }
+}
+
+class LinkRequirement extends PlatformRequirement {
+  LinkRequirement()
+    : super(
+        'Link Requirement',
+        description: 'Start MyWhoosh on another device, open the connection screen and you\'re good to go!',
+      );
+
+  @override
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
+
+  @override
+  Widget? build(BuildContext context, VoidCallback onUpdate) {
+    return ValueListenableBuilder(
+      valueListenable: whooshLink.isStarted,
+      builder: (BuildContext context, value, Widget? child) {
+        return Row(
+          spacing: 8,
+          children: [
+            ElevatedButton(
+              onPressed: value
+                  ? null
+                  : () async {
+                      await whooshLink.startServer();
+                      onUpdate();
+                    },
+              child: Text(value ? 'Waiting for MyWhoosh...' : 'Start MyWhoosh Link Server'),
+            ),
+            if (value) SmallProgressIndicator(),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Future<void> getStatus() async {
+    status = whooshLink.isConnected.value || kDebugMode;
   }
 }

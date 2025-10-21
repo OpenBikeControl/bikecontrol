@@ -33,6 +33,8 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>SwiftControl requires Bluetooth to connect to your devices.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+    <string>This app connects to your trainer app on your local network.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMainNibFile</key>

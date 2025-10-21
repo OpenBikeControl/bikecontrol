@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
@@ -28,7 +29,7 @@ abstract class PlatformRequirement {
   }
 }
 
-Future<List<PlatformRequirement>> getRequirements(bool local) async {
+Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType) async {
   List<PlatformRequirement> list;
   if (kIsWeb) {
     final availablity = await UniversalBle.getBluetoothAvailabilityState();
@@ -41,16 +42,29 @@ Future<List<PlatformRequirement>> getRequirements(bool local) async {
     list = [
       TargetRequirement(),
       BluetoothTurnedOn(),
-      local ? KeyboardRequirement() : RemoteRequirement(),
+      switch (connectionType) {
+        ConnectionType.local => KeyboardRequirement(),
+        ConnectionType.remote => RemoteRequirement(),
+        ConnectionType.link => LinkRequirement(),
+      },
       BluetoothScanning(),
     ];
   } else if (Platform.isIOS) {
-    list = [TargetRequirement(), BluetoothTurnedOn(), RemoteRequirement(), BluetoothScanning()];
+    list = [
+      TargetRequirement(),
+      BluetoothTurnedOn(),
+      RemoteRequirement(),
+      BluetoothScanning(),
+    ];
   } else if (Platform.isWindows) {
     list = [
       TargetRequirement(),
       BluetoothTurnedOn(),
-      local ? KeyboardRequirement() : RemoteRequirement(),
+      switch (connectionType) {
+        ConnectionType.local => KeyboardRequirement(),
+        ConnectionType.remote => RemoteRequirement(),
+        ConnectionType.link => LinkRequirement(),
+      },
       BluetoothScanning(),
     ];
   } else if (Platform.isAndroid) {
@@ -66,7 +80,11 @@ Future<List<PlatformRequirement>> getRequirements(bool local) async {
         BluetoothScanRequirement(),
         BluetoothConnectRequirement(),
       ],
-      local ? AccessibilityRequirement() : RemoteRequirement(),
+      switch (connectionType) {
+        ConnectionType.local => AccessibilityRequirement(),
+        ConnectionType.remote => RemoteRequirement(),
+        ConnectionType.link => LinkRequirement(),
+      },
       BluetoothScanning(),
     ];
   } else {

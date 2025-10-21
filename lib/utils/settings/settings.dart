@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -16,7 +17,7 @@ class Settings {
 
   Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
-    initializeActions(settings.getLastTarget() == Target.thisDevice);
+    initializeActions(settings.getLastTarget()?.connectionType ?? ConnectionType.local);
 
     if (actionHandler is DesktopActions) {
       // Must add this line.
@@ -201,5 +202,17 @@ class Settings {
     }
 
     return migratedData;
+  }
+
+  void setInGameActionForButton(ControllerButton button, InGameAction inGameAction) {
+    final key = 'ingameaction_${button.name}';
+    prefs.setString(key, inGameAction.name);
+  }
+
+  InGameAction? getInGameActionForButton(ControllerButton button) {
+    final key = 'ingameaction_${button.name}';
+    final actionName = prefs.getString(key);
+    if (actionName == null) return button.action;
+    return InGameAction.values.firstOrNullWhere((e) => e.name == actionName) ?? button.action;
   }
 }
