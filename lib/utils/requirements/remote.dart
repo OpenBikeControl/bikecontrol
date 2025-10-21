@@ -94,6 +94,9 @@ class RemoteRequirement extends PlatformRequirement {
     }
     while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
       print('Waiting for peripheral manager to be powered on...');
+      if (settings.getLastTarget() == Target.thisDevice) {
+        return;
+      }
       await Future.delayed(Duration(seconds: 1));
     }
 
@@ -340,7 +343,7 @@ class _PairWidgetState extends State<_PairWidget> {
       setState(() {});
       await widget.requirement.startAdvertising(widget.onUpdate);
       _isLoading = false;
-      setState(() {});
+      if (mounted) setState(() {});
     }
   }
 }

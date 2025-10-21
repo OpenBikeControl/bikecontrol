@@ -59,7 +59,6 @@ Future<List<PlatformRequirement>> getRequirements(bool local) async {
     list = [
       TargetRequirement(),
       BluetoothTurnedOn(),
-      local ? AccessibilityRequirement() : RemoteRequirement(),
       NotificationRequirement(),
       if (deviceInfo.version.sdkInt <= 30)
         LocationRequirement()
@@ -67,6 +66,7 @@ Future<List<PlatformRequirement>> getRequirements(bool local) async {
         BluetoothScanRequirement(),
         BluetoothConnectRequirement(),
       ],
+      local ? AccessibilityRequirement() : RemoteRequirement(),
       BluetoothScanning(),
     ];
   } else {
