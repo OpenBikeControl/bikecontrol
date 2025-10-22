@@ -46,6 +46,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
         ConnectionType.local => KeyboardRequirement(),
         ConnectionType.remote => RemoteRequirement(),
         ConnectionType.link => LinkRequirement(),
+        ConnectionType.unknown => PlaceholderRequirement(),
       },
       BluetoothScanning(),
     ];
@@ -53,7 +54,12 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
     list = [
       TargetRequirement(),
       BluetoothTurnedOn(),
-      RemoteRequirement(),
+      switch (connectionType) {
+        ConnectionType.local => RemoteRequirement(),
+        ConnectionType.remote => RemoteRequirement(),
+        ConnectionType.link => LinkRequirement(),
+        ConnectionType.unknown => PlaceholderRequirement(),
+      },
       BluetoothScanning(),
     ];
   } else if (Platform.isWindows) {
@@ -64,6 +70,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
         ConnectionType.local => KeyboardRequirement(),
         ConnectionType.remote => RemoteRequirement(),
         ConnectionType.link => LinkRequirement(),
+        ConnectionType.unknown => PlaceholderRequirement(),
       },
       BluetoothScanning(),
     ];
@@ -84,6 +91,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
         ConnectionType.local => AccessibilityRequirement(),
         ConnectionType.remote => RemoteRequirement(),
         ConnectionType.link => LinkRequirement(),
+        ConnectionType.unknown => PlaceholderRequirement(),
       },
       BluetoothScanning(),
     ];

@@ -4,7 +4,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
-import '../widgets/logviewer.dart';
+import 'logviewer.dart';
 
 class ScanWidget extends StatefulWidget {
   const ScanWidget({super.key});

@@ -17,7 +17,7 @@ class Settings {
 
   Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
-    initializeActions(settings.getLastTarget()?.connectionType ?? ConnectionType.local);
+    initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
     if (actionHandler is DesktopActions) {
       // Must add this line.
@@ -214,5 +214,15 @@ class Settings {
     final actionName = prefs.getString(key);
     if (actionName == null) return button.action;
     return InGameAction.values.firstOrNullWhere((e) => e.name == actionName) ?? button.action;
+  }
+
+  void setInGameActionForButtonValue(ControllerButton button, InGameAction inGameAction, int value) {
+    final key = 'ingameaction_${button.name}_value';
+    prefs.setInt(key, value);
+  }
+
+  int? getInGameActionForButtonValue(ControllerButton button) {
+    final key = 'ingameaction_${button.name}_value';
+    return prefs.getInt(key);
   }
 }

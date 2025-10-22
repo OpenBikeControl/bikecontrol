@@ -11,6 +11,7 @@ class LinkActions extends BaseActions {
     if (inGameAction == null) {
       return 'No action defined for button: $action';
     }
-    return whooshLink.sendAction(inGameAction);
+    final value = settings.getInGameActionForButtonValue(action);
+    return whooshLink.sendAction(inGameAction, value);
   }
 }

@@ -58,6 +58,10 @@ flutter:
   assets:
     - CHANGELOG.md
     - TROUBLESHOOTING.md
+    - INSTRUCTIONS_ANDROID.md
+    - INSTRUCTIONS_IOS.md
+    - INSTRUCTIONS_WINDOWS.md
+    - INSTRUCTIONS_MACOS.md
     - shorebird.yaml
 
 msix_config:

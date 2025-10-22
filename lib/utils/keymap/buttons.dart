@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
 
 enum InGameAction {
-  shiftUp,
-  shiftDown,
-  navigateLeft,
-  navigateRight,
-  increaseResistance,
-  decreaseResistance,
-  toggleUi,
-  cameraAngle,
-  emote,
-  uturn,
-  steering;
+  shiftUp('Shift Up'),
+  shiftDown('Shift Down'),
+  navigateLeft('Navigate Left'),
+  navigateRight('Navigate Right'),
+  increaseResistance('Increase Resistance'),
+  decreaseResistance('Decrease Resistance'),
+  toggleUi('Toggle UI'),
+  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6]),
+  uturn('U-Turn'),
+  steerLeft('Steer Left'),
+  steerRight('Steer Right');
+
+  final String title;
+  final List<int>? possibleValues;
+
+  const InGameAction(this.title, {this.possibleValues});
 
   @override
   String toString() {
-    return name.splitByUpperCase();
+    return title;
   }
 }
 

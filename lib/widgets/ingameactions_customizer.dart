@@ -1,18 +1,19 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/link/link.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
-class IngameactionsCustomizer extends StatefulWidget {
-  const IngameactionsCustomizer({super.key});
+class InGameActionsCustomizer extends StatefulWidget {
+  const InGameActionsCustomizer({super.key});
 
   @override
-  State<IngameactionsCustomizer> createState() => _IngameactionsCustomizerState();
+  State<InGameActionsCustomizer> createState() => _InGameActionsCustomizerState();
 }
 
-class _IngameactionsCustomizerState extends State<IngameactionsCustomizer> {
+class _InGameActionsCustomizerState extends State<InGameActionsCustomizer> {
   @override
   Widget build(BuildContext context) {
     final connectedDevice = connection.devices.firstOrNull;
@@ -58,7 +59,9 @@ class _IngameactionsCustomizerState extends State<IngameactionsCustomizer> {
                     padding: const EdgeInsets.all(6),
                     child: Row(
                       children: [
-                        IntrinsicWidth(child: ButtonWidget(button: button)),
+                        IntrinsicWidth(
+                          child: ButtonWidget(button: button),
+                        ),
                       ],
                     ),
                   ),
@@ -66,25 +69,10 @@ class _IngameactionsCustomizerState extends State<IngameactionsCustomizer> {
                     padding: const EdgeInsets.all(6),
                     child: Row(
                       children: [
-                        DropdownButton<InGameAction>(
-                          isDense: true,
-                          items: InGameAction.values
-                              .map(
-                                (ingame) => DropdownMenuItem(
-                                  value: ingame,
-                                  child: Text(ingame.toString()),
-                                ),
-                              )
-                              .toList(),
-                          value: settings.getInGameActionForButton(button),
-                          onChanged: (action) {
-                            settings.setInGameActionForButton(
-                              button,
-                              action!,
-                            );
-                            setState(() {});
-                          },
-                        ),
+                        if (MediaQuery.sizeOf(context).width < 1800)
+                          Expanded(child: _buildDropdownButton(button, true))
+                        else
+                          _buildDropdownButton(button, false),
                       ],
                     ),
                   ),
@@ -93,6 +81,54 @@ class _IngameactionsCustomizerState extends State<IngameactionsCustomizer> {
             ],
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownButton(ControllerButton button, bool expand) {
+    final value = WhooshLink.supportedActions.contains(settings.getInGameActionForButton(button))
+        ? settings.getInGameActionForButton(button)
+        : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButton<InGameAction>(
+          isExpanded: expand,
+          items: WhooshLink.supportedActions
+              .map(
+                (ingame) => DropdownMenuItem(
+                  value: ingame,
+                  child: Text(ingame.toString()),
+                ),
+              )
+              .toList(),
+          padding: EdgeInsets.zero,
+          menuWidth: 250,
+          value: value,
+          onChanged: (action) {
+            settings.setInGameActionForButton(
+              button,
+              action!,
+            );
+            setState(() {});
+          },
+        ),
+        if (value?.possibleValues != null)
+          DropdownButton<int>(
+            items: value!.possibleValues!
+                .map((val) => DropdownMenuItem<int>(value: val, child: Text(val.toString())))
+                .toList(),
+            value: settings.getInGameActionForButtonValue(button),
+            onChanged: (val) {
+              settings.setInGameActionForButtonValue(
+                button,
+                value,
+                val!,
+              );
+              setState(() {});
+            },
+            hint: Text('Value'),
+          ),
       ],
     );
   }

@@ -31,12 +31,16 @@ void main() async {
 }
 
 enum ConnectionType {
+  unknown,
   local,
   remote,
   link,
 }
 
 Future<void> initializeActions(ConnectionType connectionType) async {
+  if (connectionType != ConnectionType.link) {
+    whooshLink.stopServer();
+  }
   if (kIsWeb) {
     actionHandler = StubActions();
   } else if (Platform.isAndroid) {
@@ -44,18 +48,21 @@ Future<void> initializeActions(ConnectionType connectionType) async {
       ConnectionType.local => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.link => LinkActions(),
+      ConnectionType.unknown => StubActions(),
     };
   } else if (Platform.isIOS) {
     actionHandler = switch (connectionType) {
-      ConnectionType.local => throw UnimplementedError('Local actions are not supported on iOS'),
+      ConnectionType.local => StubActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.link => LinkActions(),
+      ConnectionType.unknown => StubActions(),
     };
   } else {
     actionHandler = switch (connectionType) {
       ConnectionType.local => DesktopActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.link => LinkActions(),
+      ConnectionType.unknown => StubActions(),
     };
   }
 }

@@ -8,8 +8,30 @@ class WhooshLink {
   Socket? _socket;
   ServerSocket? _server;
 
+  static final List<InGameAction> supportedActions = [
+    InGameAction.shiftUp,
+    InGameAction.shiftDown,
+    InGameAction.cameraAngle,
+    InGameAction.emote,
+    InGameAction.uturn,
+    InGameAction.steerLeft,
+    InGameAction.steerRight,
+  ];
+
   final ValueNotifier<bool> isConnected = ValueNotifier(false);
   final ValueNotifier<bool> isStarted = ValueNotifier(false);
+
+  void stopServer() async {
+    if (isStarted.value) {
+      await _socket?.close();
+      await _server?.close();
+      isConnected.value = false;
+      isStarted.value = false;
+      if (kDebugMode) {
+        print('Server stopped.');
+      }
+    }
+  }
 
   Future<void> startServer() async {
     // Create and bind server socket
@@ -51,7 +73,7 @@ class WhooshLink {
     });
   }
 
-  String sendAction(InGameAction action) {
+  String sendAction(InGameAction action, int? value) {
     if (!isConnected.value) {
       return 'Not connected to MyWhoosh.';
     }
@@ -71,13 +93,13 @@ class WhooshLink {
       InGameAction.cameraAngle => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'CameraAngle': '1',
+          'CameraAngle': '$value',
         },
       },
       InGameAction.emote => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'Emote': '1',
+          'Emote': '$value',
         },
       },
       InGameAction.uturn => {
@@ -86,10 +108,16 @@ class WhooshLink {
           'UTurn': 'true',
         },
       },
-      InGameAction.steering => {
+      InGameAction.steerLeft => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'Steering': '0',
+          'Steering': '-1',
+        },
+      },
+      InGameAction.steerRight => {
+        'MessageType': 'Controls',
+        'InGameControls': {
+          'Steering': '1',
         },
       },
       InGameAction.increaseResistance => null,

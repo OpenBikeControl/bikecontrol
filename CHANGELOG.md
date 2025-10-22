@@ -1,3 +1,10 @@
+### 3.2.0 (2025-10-22)
+- a brand-new way of controlling MyWhoosh:
+  - device pairing no longer required as mouse emulation is no longer needed  
+  - SwiftControl can now stay in the background
+  - more devices can be controlled
+  - do more, such as define Emotes, Camera angles and steering
+
 ### 3.1.0 (2025-10-17) 
 - new app icon
 - adjusted MyWhoosh keyboard navigation mapping (thanks @bin101)

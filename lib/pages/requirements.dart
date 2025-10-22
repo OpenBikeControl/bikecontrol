@@ -158,7 +158,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   }
 
   void _reloadRequirements() {
-    getRequirements(settings.getLastTarget()?.connectionType ?? ConnectionType.local).then((req) {
+    getRequirements(settings.getLastTarget()?.connectionType ?? ConnectionType.unknown).then((req) {
       _requirements = req;
       _currentStep = req.indexWhere((req) => !req.status);
       if (mounted) {

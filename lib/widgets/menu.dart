@@ -55,6 +55,22 @@ List<Widget> buildMenuButtons() {
       itemBuilder: (BuildContext context) {
         return [
           PopupMenuItem(
+            child: Text('Instructions'),
+            onTap: () {
+              final instructions = Platform.isAndroid
+                  ? 'INSTRUCTIONS_ANDROID.md'
+                  : Platform.isIOS
+                  ? 'INSTRUCTIONS_IOS.md'
+                  : Platform.isMacOS
+                  ? 'INSTRUCTIONS_MACOS.md'
+                  : 'INSTRUCTIONS_WINDOWS.md';
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: instructions)),
+              );
+            },
+          ),
+          PopupMenuItem(
             child: Text('Troubleshooting Guide'),
             onTap: () {
               Navigator.push(

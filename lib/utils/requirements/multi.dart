@@ -4,10 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/scan.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
+import 'package:swift_control/widgets/beta_pill.dart';
+import 'package:swift_control/widgets/link.dart';
+import 'package:swift_control/widgets/scan.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
@@ -84,38 +85,54 @@ class BluetoothScanning extends PlatformRequirement {
 typedef BoolFunction = bool Function();
 
 enum Target {
-  thisDevice(title: 'This device', description: 'Trainer app runs on this device', icon: Icons.devices),
+  thisDevice(
+    title: 'This device',
+    description: 'Trainer app runs on this device',
+    icon: Icons.devices,
+  ),
   myWhooshLink(
     title: 'MyWhoosh Link',
-    description: 'Control MyWhoosh directly on another device',
+    description: 'Control MyWhoosh directly on another device, such as a tablet or a TV',
     icon: Icons.link,
   ),
   iPad(
     title: 'iPad',
-    description: 'Remotely control the trainer app on an iPad',
+    description: 'Remotely control any trainer app on an iPad by acting as a Mouse',
     icon: Icons.settings_remote_outlined,
+    isBeta: true,
   ),
   android(
     title: 'Android Device',
-    description: 'Remotely control the trainer app on an Android device',
+    description: 'Remotely control any trainer app on an Android device',
     icon: Icons.settings_remote_outlined,
+    isBeta: true,
   ),
   macOS(
     title: 'Mac',
-    description: 'Remotely control the trainer app on a Mac',
+    description: 'Remotely control any trainer app on a Mac',
     icon: Icons.settings_remote_outlined,
+    isBeta: true,
   ),
   windows(
     title: 'Windows PC',
-    description: 'Remotely control the trainer app on a Windows PC',
+    description: 'Remotely control any trainer app on a Windows PC',
     icon: Icons.settings_remote_outlined,
+    isBeta: true,
   );
 
   final String title;
   final String description;
   final IconData icon;
+  final bool isBeta;
 
-  const Target({required this.title, required this.description, required this.icon});
+  const Target({required this.title, required this.description, required this.icon, this.isBeta = false});
+
+  bool get isCompatible {
+    return switch (this) {
+      Target.thisDevice => !Platform.isIOS,
+      _ => true,
+    };
+  }
 
   String? get warning {
     return switch (this) {
@@ -165,19 +182,34 @@ class TargetRequirement extends PlatformRequirement {
         return DropdownMenuEntry(
           value: target,
           label: target.title,
+          enabled: target.isCompatible,
           trailingIcon: Icon(target.icon),
-          labelWidget: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(target.title, style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(
-                target == Target.myWhooshLink && Platform.isAndroid
-                    ? 'Control MyWhoosh directly on this or another device'
-                    : target.description,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              if (target == Target.myWhooshLink) Divider(),
-            ],
+          labelWidget: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(target.title, style: TextStyle(fontWeight: FontWeight.bold)),
+                    if (target.isBeta) BetaPill(),
+                  ],
+                ),
+                Text(
+                  target == Target.myWhooshLink && Platform.isAndroid
+                      ? 'Control MyWhoosh directly on this or another device'
+                      : target.isCompatible
+                      ? target.description
+                      : 'Due to iOS restrictions only controlling trainer apps on other devices is supported.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                if (target == Target.myWhooshLink)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Divider(),
+                  ),
+              ],
+            ),
           ),
         );
       }).toList(),
@@ -240,30 +272,23 @@ class LinkRequirement extends PlatformRequirement {
 
   @override
   Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return ValueListenableBuilder(
-      valueListenable: whooshLink.isStarted,
-      builder: (BuildContext context, value, Widget? child) {
-        return Row(
-          spacing: 8,
-          children: [
-            ElevatedButton(
-              onPressed: value
-                  ? null
-                  : () async {
-                      await whooshLink.startServer();
-                      onUpdate();
-                    },
-              child: Text(value ? 'Waiting for MyWhoosh...' : 'Start MyWhoosh Link Server'),
-            ),
-            if (value) SmallProgressIndicator(),
-          ],
-        );
-      },
-    );
+    return LinkWidget(onUpdate: onUpdate);
   }
 
   @override
   Future<void> getStatus() async {
-    status = whooshLink.isConnected.value || kDebugMode;
+    status = whooshLink.isConnected.value;
+  }
+}
+
+class PlaceholderRequirement extends PlatformRequirement {
+  PlaceholderRequirement() : super('Requirement');
+
+  @override
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
+
+  @override
+  Future<void> getStatus() async {
+    status = false;
   }
 }
