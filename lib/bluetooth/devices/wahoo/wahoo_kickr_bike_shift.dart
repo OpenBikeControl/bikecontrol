@@ -9,7 +9,6 @@ class WahooKickrBikeShift extends BaseDevice {
   WahooKickrBikeShift(super.scanResult)
     : super(
         availableButtons: WahooKickrBikeShiftConstants.prefixToButton.values.toList(),
-        isBeta: true,
       );
 
   @override
