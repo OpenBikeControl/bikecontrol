@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -23,54 +22,44 @@ abstract class BaseActions {
     this.supportedApp = supportedApp;
   }
 
-  Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {
+  Future<Offset> resolveTouchPosition({required ControllerButton action}) async {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {
       // convert relative position to absolute position based on window info
 
-      if (windowInfo != null && windowInfo.top > 0) {
-        final x = windowInfo.left + (keyPair.touchPosition.dx / 100) * (windowInfo.right - windowInfo.left);
-        final y = windowInfo.top + (keyPair.touchPosition.dy / 100) * (windowInfo.bottom - windowInfo.top);
-
-        if (kDebugMode) {
-          print("Window info: ${windowInfo.encode()} => Touch at: $x, $y");
-        }
-        return Offset(x, y);
+      // TODO support multiple screens
+      final Size displaySize;
+      final double devicePixelRatio;
+      if (Platform.isWindows) {
+        // TODO remove once https://github.com/flutter/flutter/pull/164460 is available in stable
+        final display = await screenRetriever.getPrimaryDisplay();
+        displaySize = display.size;
+        devicePixelRatio = 1.0;
       } else {
-        // TODO support multiple screens
-        final Size displaySize;
-        final double devicePixelRatio;
-        if (Platform.isWindows) {
-          // TODO remove once https://github.com/flutter/flutter/pull/164460 is available in stable
-          final display = await screenRetriever.getPrimaryDisplay();
-          displaySize = display.size;
-          devicePixelRatio = 1.0;
-        } else {
-          final display = WidgetsBinding.instance.platformDispatcher.views.first.display;
-          displaySize = display.size;
-          devicePixelRatio = display.devicePixelRatio;
-        }
-
-        late final Size physicalSize;
-        if (this is AndroidActions) {
-          // display size is already in physical pixels
-          physicalSize = displaySize;
-        } else if (this is DesktopActions) {
-          // display size is in logical pixels, convert to physical pixels
-          // TODO on macOS the notch is included here, but it's not part of the usable screen area, so we should exclude it
-          physicalSize = displaySize / devicePixelRatio;
-        } else {
-          physicalSize = displaySize;
-        }
-
-        final x = (keyPair.touchPosition.dx / 100.0) * physicalSize.width;
-        final y = (keyPair.touchPosition.dy / 100.0) * physicalSize.height;
-
-        if (kDebugMode) {
-          print("Screen size: $physicalSize => Touch at: $x, $y");
-        }
-        return Offset(x, y);
+        final display = WidgetsBinding.instance.platformDispatcher.views.first.display;
+        displaySize = display.size;
+        devicePixelRatio = display.devicePixelRatio;
       }
+
+      late final Size physicalSize;
+      if (this is AndroidActions) {
+        // display size is already in physical pixels
+        physicalSize = displaySize;
+      } else if (this is DesktopActions) {
+        // display size is in logical pixels, convert to physical pixels
+        // TODO on macOS the notch is included here, but it's not part of the usable screen area, so we should exclude it
+        physicalSize = displaySize / devicePixelRatio;
+      } else {
+        physicalSize = displaySize;
+      }
+
+      final x = (keyPair.touchPosition.dx / 100.0) * physicalSize.width;
+      final y = (keyPair.touchPosition.dy / 100.0) * physicalSize.height;
+
+      if (kDebugMode) {
+        print("Screen size: $physicalSize => Touch at: $x, $y");
+      }
+      return Offset(x, y);
     }
     return Offset.zero;
   }

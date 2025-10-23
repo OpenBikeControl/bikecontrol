@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/pages/touch_area.dart';
+import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/link.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
@@ -21,6 +23,7 @@ import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:swift_control/widgets/warning.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -41,6 +44,8 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
   final controller = TextEditingController(text: actionHandler.supportedApp?.name);
+
+  bool _showAutoRotateWarning = false;
 
   List<SupportedApp> _getAllApps() {
     final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
@@ -81,6 +86,13 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
           ),
         );
       });
+    } else if (actionHandler is AndroidActions) {
+      DeviceAutoRotateChecker.checkAutoRotate().then((autoRotate) => _showAutoRotateWarning = !autoRotate);
+      _deviceAutoRotateStream = DeviceAutoRotateChecker.autoRotateStream.listen((autoRotate) {
+        setState(() {
+          _showAutoRotateWarning = !autoRotate;
+        });
+      });
     }
     _connectionStateSubscription = connection.connectionStream.listen((state) async {
       setState(() {});
@@ -93,28 +105,33 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
     _connectionStateSubscription.cancel();
     controller.dispose();
+    _deviceAutoRotateStream?.cancel();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && actionHandler is RemoteActions && Platform.isIOS) {
-      UniversalBle.getBluetoothAvailabilityState().then((state) {
-        if (state == AvailabilityState.poweredOn) {
-          final requirement = RemoteRequirement();
-          requirement.reconnect();
-          _snackBarMessengerKey.currentState?.showSnackBar(
-            SnackBar(
-              content: Text('To keep working properly the app needs to stay in the foreground.'),
-              duration: Duration(seconds: 5),
-            ),
-          );
-        }
-      });
+    if (state == AppLifecycleState.resumed) {
+      if (actionHandler is RemoteActions && Platform.isIOS) {
+        UniversalBle.getBluetoothAvailabilityState().then((state) {
+          if (state == AvailabilityState.poweredOn) {
+            final requirement = RemoteRequirement();
+            requirement.reconnect();
+            _snackBarMessengerKey.currentState?.showSnackBar(
+              SnackBar(
+                content: Text('To keep working properly the app needs to stay in the foreground.'),
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+        });
+      }
     }
   }
 
   final _snackBarMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+  StreamSubscription<bool>? _deviceAutoRotateStream;
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +165,12 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_showAutoRotateWarning)
+                      Warning(
+                        children: [
+                          Text('Enable auto-rotation on your device to make sure the app works correctly.'),
+                        ],
+                      ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Text('Connected Devices', style: Theme.of(context).textTheme.titleMedium),
@@ -226,50 +249,40 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               ),
 
                             if (connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
-                              Container(
-                                margin: EdgeInsets.only(bottom: 6),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.errorContainer,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
+                              Warning(
+                                children: [
+                                  Text(
+                                    '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
 
 1. Open Zwift app
 2. Log in (subscription not required) and open the device connection screen
 3. Connect your Trainer, then connect the Zwift Click V2
 4. Close the Zwift app again and connect again in SwiftControl''',
-                                    ),
-                                    Row(
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {
-                                            connection.devices.whereType<ZwiftClickV2>().forEach(
-                                              (device) => device.sendCommand(Opcode.RESET, null),
-                                            );
-                                          },
-                                          child: Text('Reset now'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                                              ),
-                                            );
-                                          },
-                                          child: Text('Troubleshooting'),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          connection.devices.whereType<ZwiftClickV2>().forEach(
+                                            (device) => device.sendCommand(Opcode.RESET, null),
+                                          );
+                                        },
+                                        child: Text('Reset now'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                                            ),
+                                          );
+                                        },
+                                        child: Text('Troubleshooting'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                           ],
                         ),
