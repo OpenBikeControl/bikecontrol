@@ -54,7 +54,7 @@ abstract class BaseDevice {
       if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT')) {
         device = WahooKickrBikeShift(scanResult);
       }
-      
+
       if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('STERZO')) {
         device = EliteSterzo(scanResult);
       }
@@ -66,7 +66,7 @@ abstract class BaseDevice {
         //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the left controller
         _ => null,
       };
-      
+
       if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('STERZO')) {
         device = EliteSterzo(scanResult);
       }
@@ -104,14 +104,7 @@ abstract class BaseDevice {
     } else if (scanResult.services.contains(SterzoConstants.SERVICE_UUID)) {
       return EliteSterzo(scanResult);
     } else if (scanResult.services.contains(WahooKickrBikeShiftConstants.SERVICE_UUID)) {
-      if (scanResult.name != null && !scanResult.name!.toUpperCase().contains('KICKR BIKE SHIFT')) {
-        return WahooKickrBikeShift(scanResult);
-      } else if (kIsWeb && scanResult.name == null) {
-        // some devices don't broadcast the name, so we must rely on the service UUID
-        return WahooKickrBikeShift(scanResult);
-      } else {
-        return null;
-      }
+      return WahooKickrBikeShift(scanResult);
     } else {
       return null;
     }

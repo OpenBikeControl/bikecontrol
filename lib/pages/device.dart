@@ -94,7 +94,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
     _connectionStateSubscription.cancel();
     controller.dispose();
-    _deviceAutoRotateStream?.cancel();
     super.dispose();
   }
 
@@ -119,8 +118,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   }
 
   final _snackBarMessengerKey = GlobalKey<ScaffoldMessengerState>();
-
-  StreamSubscription<bool>? _deviceAutoRotateStream;
 
   @override
   Widget build(BuildContext context) {
