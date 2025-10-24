@@ -168,15 +168,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.11"
-  device_auto_rotate_checker:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "2cd4bb52733f664875cec2780a8091d4698226cb"
-      url: "https://github.com/mpcreza/device_auto_rotate_checker"
-    source: git
-    version: "0.0.2"
   device_info_plus:
     dependency: "direct main"
     description:
