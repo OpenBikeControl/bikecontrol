@@ -103,7 +103,7 @@ abstract class BaseDevice {
       return EliteSquare(scanResult);
     } else if (scanResult.services.contains(SterzoConstants.SERVICE_UUID)) {
       return EliteSterzo(scanResult);
-    } else if (scanResult.services.contains(WahooKickrBikeShiftConstants.SERVICE_UUID)) {
+    } else if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT')) {
       return WahooKickrBikeShift(scanResult);
     } else {
       return null;
