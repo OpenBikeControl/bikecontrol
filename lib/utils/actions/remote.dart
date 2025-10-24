@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:accessibility/accessibility.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
@@ -32,7 +33,7 @@ class RemoteActions extends BaseActions {
     if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {
       return ('Physical key actions are not supported, yet');
     } else {
-      final point = await resolveTouchPosition(action: action);
+      final point = await resolveTouchPosition(action: action, windowInfo: null);
       final point2 = point; //Offset(100, 99.0);
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
@@ -43,7 +44,7 @@ class RemoteActions extends BaseActions {
   }
 
   @override
-  Future<Offset> resolveTouchPosition({required ControllerButton action, bool isAppInForeground = false}) async {
+  Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {
     // for remote actions we use the relative position only
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {

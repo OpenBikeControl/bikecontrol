@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -22,7 +24,7 @@ abstract class BaseActions {
     this.supportedApp = supportedApp;
   }
 
-  Future<Offset> resolveTouchPosition({required ControllerButton action}) async {
+  Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {
       // convert relative position to absolute position based on window info
@@ -43,8 +45,18 @@ abstract class BaseActions {
 
       late final Size physicalSize;
       if (this is AndroidActions) {
-        // display size is already in physical pixels
-        physicalSize = displaySize;
+        if (windowInfo != null && windowInfo.packageName != 'de.jonasbark.swiftcontrol') {
+          // a trainer app is in foreground, so use the always assume landscape
+          final windowWidth = (windowInfo.right - windowInfo.left).toDouble();
+          final windowHeight = (windowInfo.bottom - windowInfo.top).toDouble();
+          physicalSize = Size(
+            max(windowWidth, windowHeight),
+            min(windowWidth, windowHeight),
+          );
+        } else {
+          // display size is already in physical pixels
+          physicalSize = displaySize;
+        }
       } else if (this is DesktopActions) {
         // display size is in logical pixels, convert to physical pixels
         // TODO on macOS the notch is included here, but it's not part of the usable screen area, so we should exclude it

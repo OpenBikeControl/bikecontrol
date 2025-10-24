@@ -6,10 +6,23 @@ import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
+import '../keymap/apps/supported_app.dart';
 import '../single_line_exception.dart';
 
 class AndroidActions extends BaseActions {
+  WindowEvent? windowInfo;
+
   AndroidActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.media]});
+
+  @override
+  void init(SupportedApp? supportedApp) {
+    super.init(supportedApp);
+    streamEvents().listen((windowEvent) {
+      if (supportedApp != null) {
+        windowInfo = windowEvent;
+      }
+    });
+  }
 
   @override
   Future<String> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
@@ -30,7 +43,7 @@ class AndroidActions extends BaseActions {
         return "Key pressed: ${keyPair.toString()}";
       }
     }
-    final point = await resolveTouchPosition(action: button);
+    final point = await resolveTouchPosition(action: button, windowInfo: windowInfo);
     if (point != Offset.zero) {
       try {
         await accessibilityHandler.performTouch(point.dx, point.dy, isKeyDown: isKeyDown, isKeyUp: isKeyUp);

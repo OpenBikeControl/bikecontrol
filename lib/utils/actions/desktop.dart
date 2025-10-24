@@ -33,7 +33,7 @@ class DesktopActions extends BaseActions {
         return 'Key released: $keyPair';
       }
     } else {
-      final point = await resolveTouchPosition(action: action);
+      final point = await resolveTouchPosition(action: action, windowInfo: null);
       if (isKeyDown && isKeyUp) {
         await keyPressSimulator.simulateMouseClickDown(point);
         // slight move to register clicks on some apps, see issue #116

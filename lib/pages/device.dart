@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +10,6 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/pages/touch_area.dart';
-import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/link.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
@@ -44,8 +42,6 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
   final controller = TextEditingController(text: actionHandler.supportedApp?.name);
-
-  bool _showAutoRotateWarning = false;
 
   List<SupportedApp> _getAllApps() {
     final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
@@ -85,13 +81,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
             duration: Duration(seconds: 5),
           ),
         );
-      });
-    } else if (actionHandler is AndroidActions) {
-      DeviceAutoRotateChecker.checkAutoRotate().then((autoRotate) => _showAutoRotateWarning = !autoRotate);
-      _deviceAutoRotateStream = DeviceAutoRotateChecker.autoRotateStream.listen((autoRotate) {
-        setState(() {
-          _showAutoRotateWarning = !autoRotate;
-        });
       });
     }
     _connectionStateSubscription = connection.connectionStream.listen((state) async {
@@ -165,7 +154,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_showAutoRotateWarning)
+                    if (!kIsWeb && Platform.isAndroid)
                       Warning(
                         children: [
                           Text('Enable auto-rotation on your device to make sure the app works correctly.'),
