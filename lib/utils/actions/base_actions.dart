@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
@@ -28,49 +29,49 @@ abstract class BaseActions {
     if (keyPair != null && keyPair.touchPosition != Offset.zero) {
       // convert relative position to absolute position based on window info
 
-      if (windowInfo != null && windowInfo.top > 0) {
-        final x = windowInfo.left + (keyPair.touchPosition.dx / 100) * (windowInfo.right - windowInfo.left);
-        final y = windowInfo.top + (keyPair.touchPosition.dy / 100) * (windowInfo.bottom - windowInfo.top);
-
-        if (kDebugMode) {
-          print("Window info: ${windowInfo.encode()} => Touch at: $x, $y");
-        }
-        return Offset(x, y);
+      // TODO support multiple screens
+      final Size displaySize;
+      final double devicePixelRatio;
+      if (Platform.isWindows) {
+        // TODO remove once https://github.com/flutter/flutter/pull/164460 is available in stable
+        final display = await screenRetriever.getPrimaryDisplay();
+        displaySize = display.size;
+        devicePixelRatio = 1.0;
       } else {
-        // TODO support multiple screens
-        final Size displaySize;
-        final double devicePixelRatio;
-        if (Platform.isWindows) {
-          // TODO remove once https://github.com/flutter/flutter/pull/164460 is available in stable
-          final display = await screenRetriever.getPrimaryDisplay();
-          displaySize = display.size;
-          devicePixelRatio = 1.0;
-        } else {
-          final display = WidgetsBinding.instance.platformDispatcher.views.first.display;
-          displaySize = display.size;
-          devicePixelRatio = display.devicePixelRatio;
-        }
+        final display = WidgetsBinding.instance.platformDispatcher.views.first.display;
+        displaySize = display.size;
+        devicePixelRatio = display.devicePixelRatio;
+      }
 
-        late final Size physicalSize;
-        if (this is AndroidActions) {
+      late final Size physicalSize;
+      if (this is AndroidActions) {
+        if (windowInfo != null && windowInfo.packageName != 'de.jonasbark.swiftcontrol') {
+          // a trainer app is in foreground, so use the always assume landscape
+          final windowWidth = (windowInfo.right - windowInfo.left).toDouble();
+          final windowHeight = (windowInfo.bottom - windowInfo.top).toDouble();
+          physicalSize = Size(
+            max(windowWidth, windowHeight),
+            min(windowWidth, windowHeight),
+          );
+        } else {
           // display size is already in physical pixels
           physicalSize = displaySize;
-        } else if (this is DesktopActions) {
-          // display size is in logical pixels, convert to physical pixels
-          // TODO on macOS the notch is included here, but it's not part of the usable screen area, so we should exclude it
-          physicalSize = displaySize / devicePixelRatio;
-        } else {
-          physicalSize = displaySize;
         }
-
-        final x = (keyPair.touchPosition.dx / 100.0) * physicalSize.width;
-        final y = (keyPair.touchPosition.dy / 100.0) * physicalSize.height;
-
-        if (kDebugMode) {
-          print("Screen size: $physicalSize => Touch at: $x, $y");
-        }
-        return Offset(x, y);
+      } else if (this is DesktopActions) {
+        // display size is in logical pixels, convert to physical pixels
+        // TODO on macOS the notch is included here, but it's not part of the usable screen area, so we should exclude it
+        physicalSize = displaySize / devicePixelRatio;
+      } else {
+        physicalSize = displaySize;
       }
+
+      final x = (keyPair.touchPosition.dx / 100.0) * physicalSize.width;
+      final y = (keyPair.touchPosition.dy / 100.0) * physicalSize.height;
+
+      if (kDebugMode) {
+        print("Screen size: $physicalSize => Touch at: $x, $y");
+      }
+      return Offset(x, y);
     }
     return Offset.zero;
   }
