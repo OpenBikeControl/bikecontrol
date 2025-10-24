@@ -137,11 +137,11 @@ enum Target {
   String? get warning {
     return switch (this) {
       Target.android when Platform.isAndroid =>
-        "Download and use SwiftControl on that Android device or select 'This device'.",
+        "Select 'This device' unless you want to control another Android device. Are you sure?",
       Target.macOS when Platform.isMacOS =>
-        "Download and use SwiftControl on that macOS device or select 'This device'.",
+        "Select 'This device' unless you want to control another macOS device. Are you sure?",
       Target.windows when Platform.isWindows =>
-        "Download and use SwiftControl on that Windows device or select 'This device'.",
+        "Select 'This device' unless you want to control another Windows device. Are you sure?",
       Target.android => "Download and use SwiftControl on that Android device.",
       Target.macOS => "Download and use SwiftControl on that macOS device.",
       Target.windows => "Download and use SwiftControl on that Windows device.",

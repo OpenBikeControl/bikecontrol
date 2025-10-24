@@ -54,7 +54,9 @@ class Connection {
           final data = manufacturerData
               .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
               ?.payload;
-          _actionStreams.add(LogNotification('Found unknown device with identifier: ${data?.firstOrNull}'));
+          if (data != null) {
+            _actionStreams.add(LogNotification('Found unknown device with identifier: ${data.firstOrNull}'));
+          }
         }
       }
     };
@@ -91,7 +93,8 @@ class Connection {
     }
 
     await UniversalBle.startScan(
-      scanFilter: ScanFilter(withServices: BaseDevice.servicesToScan),
+      // allow all to enable Wahoo Kickr Bike Shift detection
+      //scanFilter: ScanFilter(withServices: BaseDevice.servicesToScan),
       platformConfig: PlatformConfig(web: WebOptions(optionalServices: BaseDevice.servicesToScan)),
     );
   }

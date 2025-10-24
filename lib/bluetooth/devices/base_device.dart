@@ -67,8 +67,12 @@ abstract class BaseDevice {
         _ => null,
       };
 
-      if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('STERZO')) {
-        device = EliteSterzo(scanResult);
+      if (scanResult.name != null) {
+        if (scanResult.name!.toUpperCase().startsWith('STERZO')) {
+          device = EliteSterzo(scanResult);
+        } else if (scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT')) {
+          return WahooKickrBikeShift(scanResult);
+        }
       }
     }
 
@@ -103,8 +107,6 @@ abstract class BaseDevice {
       return EliteSquare(scanResult);
     } else if (scanResult.services.contains(SterzoConstants.SERVICE_UUID)) {
       return EliteSterzo(scanResult);
-    } else if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT')) {
-      return WahooKickrBikeShift(scanResult);
     } else {
       return null;
     }
