@@ -11,6 +11,9 @@ class ZwiftClickV2 extends ZwiftRide {
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;
 
   @override
+  String get latestFirmwareVersion => '1.1.0';
+
+  @override
   Future<void> setupHandshake() async {
     super.setupHandshake();
     await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
