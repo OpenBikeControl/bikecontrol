@@ -9,7 +9,6 @@ env:
 
 jobs:
   build:
-    if: false
     name: Patch iOS, Android & macOS
     runs-on: macos-latest
 
