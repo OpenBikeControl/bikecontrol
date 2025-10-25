@@ -1,3 +1,9 @@
+### 3.2.1 (unreleased)
+- fix firmware version display for Zwift Click V2 devices
+- attempt to fix touch position on some Android devices
+- Wahoo Kickr Bike Shift can now be connected correctly
+- update default keymap for TrainingPeaks
+
 ### 3.2.0 (2025-10-22)
 - a brand-new way of controlling MyWhoosh:
   - device pairing no longer required as mouse emulation is no longer needed  
