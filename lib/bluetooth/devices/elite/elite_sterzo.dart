@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -14,8 +15,8 @@ class EliteSterzo extends BluetoothDevice {
   EliteSterzo(super.scanResult)
     : super(
         availableButtons: [
-          ControllerButton.navigationLeft,
-          ControllerButton.navigationRight,
+          SterzoButtons.leftSteer,
+          SterzoButtons.rightSteer,
         ],
         isBeta: true,
       );
@@ -243,9 +244,9 @@ class EliteSterzo extends BluetoothDevice {
   ControllerButton? _getSteeringButton(double angle) {
     // Use a threshold to avoid jitter around center
     if (angle < -SterzoConstants.STEERING_THRESHOLD) {
-      return ControllerButton.navigationLeft;
+      return SterzoButtons.leftSteer;
     } else if (angle > SterzoConstants.STEERING_THRESHOLD) {
-      return ControllerButton.navigationRight;
+      return SterzoButtons.rightSteer;
     }
     return null;
   }
@@ -288,4 +289,22 @@ class SterzoConstants {
 
   // Cache key for SharedPreferences
   static const String CACHE_KEY = 'elite_sterzo_challenge_codes';
+}
+
+class SterzoButtons {
+  static final ControllerButton leftSteer = ControllerButton(
+    'leftSteer',
+    action: InGameAction.steerLeft,
+    color: const Color(0xFF6A5ACD),
+  );
+  static final ControllerButton rightSteer = ControllerButton(
+    'rightSteer',
+    action: InGameAction.steerRight,
+    color: const Color(0xFFFFA500),
+  );
+
+  static List<ControllerButton> get values => [
+    leftSteer,
+    rightSteer,
+  ];
 }

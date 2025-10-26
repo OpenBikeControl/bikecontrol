@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 
@@ -70,8 +71,8 @@ abstract class BaseDevice {
           actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
 
       if (!isLongPress &&
-          !(buttonsClicked.singleOrNull == ControllerButton.onOffLeft ||
-              buttonsClicked.singleOrNull == ControllerButton.onOffRight)) {
+          !(buttonsClicked.singleOrNull == ZwiftButtons.onOffLeft ||
+              buttonsClicked.singleOrNull == ZwiftButtons.onOffRight)) {
         // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
         _longPressTimer?.cancel();
         _longPressTimer = Timer.periodic(const Duration(milliseconds: 350), (timer) async {

@@ -167,17 +167,17 @@ abstract class BluetoothDevice extends BaseDevice {
             _ => Icons.battery_alert,
           }),
           Text('$batteryLevel%'),
-          if (firmwareVersion != null) Text(' - Firmware: $firmwareVersion'),
-          if (firmwareVersion != null &&
-              this is ZwiftDevice &&
-              firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion) ...[
-            SizedBox(width: 8),
-            Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
-            Text(
-              ' (latest: ${(this as ZwiftDevice).latestFirmwareVersion})',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
+        ],
+        if (firmwareVersion != null) Text(' - Firmware: $firmwareVersion'),
+        if (firmwareVersion != null &&
+            this is ZwiftDevice &&
+            firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion) ...[
+          SizedBox(width: 8),
+          Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
+          Text(
+            ' (latest: ${(this as ZwiftDevice).latestFirmwareVersion})',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         ],
       ],
     );

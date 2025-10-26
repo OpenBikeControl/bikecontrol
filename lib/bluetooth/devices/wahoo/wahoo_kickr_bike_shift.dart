@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -112,17 +113,75 @@ class WahooKickrBikeShiftConstants {
 
   // https://support.wahoofitness.com/hc/en-us/articles/22259367275410-Shifter-and-button-configuration-for-KICKR-BIKE-1-2
   static const Map<String, ControllerButton> prefixToButton = {
-    '0001': ControllerButton.powerUpRight, //'Right Up',
-    '8000': ControllerButton.sideButtonRight, //'Right Down',
-    '0008': ControllerButton.navigationRight, //'Right Steer',
-    '0200': ControllerButton.powerUpLeft, // 'Left Up',
-    '0400': ControllerButton.sideButtonLeft, //'Left Down',
-    '2000': ControllerButton.navigationLeft, //'Left Steer',
-    '0004': ControllerButton.shiftUpRight, // 'Right Shift Up',
-    '0002': ControllerButton.shiftDownRight, // 'Right Shift Down',
-    '1000': ControllerButton.shiftUpLeft, //'Left Shift Up',
-    '0800': ControllerButton.shiftDownLeft, //'Left Shift Down',
-    '4000': ControllerButton.paddleRight, //'Right Brake',
-    '0100': ControllerButton.paddleLeft, //'Left Brake',
+    '0001': WahooKickrShiftButtons.rightUp, //'Right Up',
+    '8000': WahooKickrShiftButtons.rightDown, //'Right Down',
+    '0008': WahooKickrShiftButtons.rightSteer, //'Right Steer',
+    '0200': WahooKickrShiftButtons.leftUp, // 'Left Up',
+    '0400': WahooKickrShiftButtons.leftDown, //'Left Down',
+    '2000': WahooKickrShiftButtons.leftSteer, //'Left Steer',
+    '0004': WahooKickrShiftButtons.shiftUpRight, // 'Right Shift Up',
+    '0002': WahooKickrShiftButtons.shiftDownRight, // 'Right Shift Down',
+    '1000': WahooKickrShiftButtons.shiftUpLeft, //'Left Shift Up',
+    '0800': WahooKickrShiftButtons.shiftDownLeft, //'Left Shift Down',
+    '4000': WahooKickrShiftButtons.rightBrake, //'Right Brake',
+    '0100': WahooKickrShiftButtons.leftBrake, //'Left Brake',
   };
+}
+
+class WahooKickrShiftButtons {
+  static const ControllerButton leftSteer = ControllerButton(
+    'leftSteer',
+    action: InGameAction.navigateLeft,
+    icon: Icons.keyboard_arrow_left,
+    color: Colors.black,
+  );
+  static const ControllerButton rightSteer = ControllerButton(
+    'rightSteer',
+    action: InGameAction.navigateRight,
+    icon: Icons.keyboard_arrow_right,
+    color: Colors.black,
+  );
+  static const ControllerButton leftDown = ControllerButton('leftDown', action: InGameAction.shiftDown);
+  static const ControllerButton leftBrake = ControllerButton('leftBrake', action: InGameAction.shiftDown);
+
+  static const ControllerButton shiftUpLeft = ControllerButton(
+    'shiftUpLeft',
+    action: InGameAction.shiftDown,
+    icon: Icons.remove,
+    color: Colors.black,
+  );
+  static const ControllerButton shiftDownLeft = ControllerButton(
+    'shiftDownLeft',
+    action: InGameAction.shiftDown,
+    icon: Icons.remove,
+    color: Colors.black,
+  );
+  static const ControllerButton leftUp = ControllerButton('leftUp', action: InGameAction.shiftDown);
+
+  static const ControllerButton rightDown = ControllerButton('rightDown', action: InGameAction.shiftUp);
+  static const ControllerButton rightBrake = ControllerButton('rightBrake', action: InGameAction.shiftUp);
+
+  static const ControllerButton shiftUpRight = ControllerButton(
+    'shiftUpRight',
+    action: InGameAction.shiftUp,
+    icon: Icons.add,
+    color: Colors.black,
+  );
+  static const ControllerButton shiftDownRight = ControllerButton('shiftDownRight', action: InGameAction.shiftUp);
+  static const ControllerButton rightUp = ControllerButton('rightUp', action: InGameAction.shiftUp);
+
+  static const List<ControllerButton> values = [
+    leftSteer,
+    rightSteer,
+    leftDown,
+    leftBrake,
+    shiftUpLeft,
+    shiftDownLeft,
+    leftUp,
+    rightDown,
+    rightBrake,
+    shiftUpRight,
+    shiftDownRight,
+    rightUp,
+  ];
 }
