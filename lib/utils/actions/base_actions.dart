@@ -2,12 +2,15 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:accessibility/accessibility.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 
 import '../keymap/apps/supported_app.dart';
 
@@ -22,6 +25,25 @@ abstract class BaseActions {
 
   void init(SupportedApp? supportedApp) {
     this.supportedApp = supportedApp;
+
+    if (supportedApp != null) {
+      final allButtons = connection.devices.map((e) => e.availableButtons).flatten().distinct();
+
+      final newButtons = allButtons.filter(
+        (button) => supportedApp.keymap.getKeyPair(button) == null,
+      );
+      for (final button in newButtons) {
+        supportedApp.keymap.addKeyPair(
+          KeyPair(
+            touchPosition: Offset.zero,
+            buttons: [button],
+            physicalKey: null,
+            logicalKey: null,
+            isLongPress: false,
+          ),
+        );
+      }
+    }
   }
 
   Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {

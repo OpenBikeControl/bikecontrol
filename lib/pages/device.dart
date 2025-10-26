@@ -8,7 +8,6 @@ import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
-import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/link.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
@@ -319,31 +318,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                                     Row(
                                       children: [
-                                        if (actionHandler.supportedApp != null)
-                                          ElevatedButton.icon(
-                                            onPressed: () async {
-                                              if (actionHandler.supportedApp is! CustomApp) {
-                                                final result = await KeypadManager().duplicate(
-                                                  context,
-                                                  actionHandler.supportedApp!.name,
-                                                );
-                                                if (result == null) {
-                                                  return;
-                                                }
-                                              }
-                                              final result = await Navigator.of(
-                                                context,
-                                              ).push<bool>(MaterialPageRoute(builder: (_) => TouchAreaSetupPage()));
-
-                                              if (result == true && actionHandler.supportedApp is CustomApp) {
-                                                await settings.setApp(actionHandler.supportedApp!);
-                                              }
-                                              setState(() {});
-                                            },
-                                            icon: Icon(Icons.edit),
-                                            label: Text('Edit'),
-                                          ),
-
                                         IconButton(
                                           onPressed: () async {
                                             final currentProfile = actionHandler.supportedApp?.name;
@@ -451,6 +425,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                   onUpdate: () {
                                     setState(() {});
                                     controller.text = actionHandler.supportedApp?.name ?? '';
+
+                                    if (actionHandler.supportedApp is CustomApp) {
+                                      settings.setApp(actionHandler.supportedApp!);
+                                    }
                                   },
                                 ),
                               if (canVibrate) ...[

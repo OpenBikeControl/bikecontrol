@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartx/dartx.dart';
@@ -14,6 +15,9 @@ class Keymap {
   List<KeyPair> keyPairs;
 
   Keymap({required this.keyPairs});
+
+  final StreamController<void> _updateStream = StreamController<void>.broadcast();
+  Stream<void> get updateStream => _updateStream.stream;
 
   @override
   String toString() {
@@ -36,6 +40,12 @@ class Keymap {
 
   void reset() {
     keyPairs = [];
+    _updateStream.add(null);
+  }
+
+  void addKeyPair(KeyPair keyPair) {
+    keyPairs.add(keyPair);
+    _updateStream.add(null);
   }
 }
 

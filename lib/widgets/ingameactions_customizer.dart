@@ -4,7 +4,7 @@ import 'package:swift_control/link/link.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
+import 'package:swift_control/widgets/button_widget.dart';
 
 class InGameActionsCustomizer extends StatefulWidget {
   const InGameActionsCustomizer({super.key});
@@ -59,9 +59,7 @@ class _InGameActionsCustomizerState extends State<InGameActionsCustomizer> {
                     padding: const EdgeInsets.all(6),
                     child: Row(
                       children: [
-                        IntrinsicWidth(
-                          child: ButtonWidget(button: button),
-                        ),
+                        ButtonWidget(button: button),
                       ],
                     ),
                   ),

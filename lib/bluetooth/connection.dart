@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -9,6 +10,7 @@ import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -117,6 +119,16 @@ class Connection {
       Gamepads.list().then((list) {
         final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
         _addDevices(pads);
+
+        final removedDevices = gamepadDevices.where((device) => list.none((pad) => pad.id == device.id)).toList();
+        for (var device in removedDevices) {
+          devices.remove(device);
+          _streamSubscriptions[device]?.cancel();
+          _streamSubscriptions.remove(device);
+          _connectionSubscriptions[device]?.cancel();
+          _connectionSubscriptions.remove(device);
+          signalChange(device);
+        }
       });
     });
     Gamepads.list().then((list) {
@@ -191,6 +203,21 @@ class Connection {
       }
 
       await device.connect();
+
+      final newButtons = device.availableButtons.filter(
+        (button) => actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
+      );
+      for (final button in newButtons) {
+        actionHandler.supportedApp?.keymap.addKeyPair(
+          KeyPair(
+            touchPosition: Offset.zero,
+            buttons: [button],
+            physicalKey: null,
+            logicalKey: null,
+            isLongPress: false,
+          ),
+        );
+      }
 
       _streamSubscriptions[device] = actionSubscription;
     } catch (e, backtrace) {
