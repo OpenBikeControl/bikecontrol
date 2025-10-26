@@ -109,7 +109,7 @@ class _AppTitleState extends State<AppTitle> {
         }
       }
     } else if (Platform.isMacOS) {
-      final url = Uri.parse('https://apps.microsoft.com/detail/9NP42GS03Z26');
+      final url = Uri.parse('https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac');
       final res = await http.get(url, headers: {'User-Agent': 'Mozilla/5.0'});
       if (res.statusCode != 200) return null;
 
