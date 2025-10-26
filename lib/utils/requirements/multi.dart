@@ -37,12 +37,25 @@ class BluetoothTurnedOn extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
+    final currentState = await UniversalBle.getBluetoothAvailabilityState();
     if (!kIsWeb && Platform.isIOS) {
       // on iOS we cannot programmatically enable Bluetooth, just open settings
       await peripheralManager.showAppSettings();
-    } else {
+    } else if (currentState == AvailabilityState.poweredOff) {
       await UniversalBle.enableBluetooth();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to enable Bluetooth: $currentState')));
     }
+  }
+
+  @override
+  Widget? build(BuildContext context, VoidCallback onUpdate) {
+    return ElevatedButton(
+      onPressed: () {
+        call(context, onUpdate);
+      },
+      child: Text('Enable Bluetooth'),
+    );
   }
 
   @override

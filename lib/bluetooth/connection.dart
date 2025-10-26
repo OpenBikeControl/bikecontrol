@@ -230,13 +230,16 @@ class Connection {
     }
   }
 
-  void reset() {
+  Future<void> reset() async {
     _actionStreams.add(LogNotification('Disconnecting all devices'));
     if (actionHandler is AndroidActions) {
       AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
       _androidNotificationsSetup = false;
     }
-    UniversalBle.stopScan();
+    final isBtEnabled = (await UniversalBle.getBluetoothAvailabilityState()) == AvailabilityState.poweredOn;
+    if (isBtEnabled) {
+      UniversalBle.stopScan();
+    }
     isScanning.value = false;
     for (var device in bluetoothDevices) {
       _streamSubscriptions[device]?.cancel();
