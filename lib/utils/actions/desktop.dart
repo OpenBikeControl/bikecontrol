@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -34,17 +36,21 @@ class DesktopActions extends BaseActions {
       }
     } else {
       final point = await resolveTouchPosition(action: action, windowInfo: null);
-      if (isKeyDown && isKeyUp) {
-        await keyPressSimulator.simulateMouseClickDown(point);
-        // slight move to register clicks on some apps, see issue #116
-        await keyPressSimulator.simulateMouseClickUp(point);
-        return 'Mouse clicked at: ${point.dx} ${point.dy}';
-      } else if (isKeyDown) {
-        await keyPressSimulator.simulateMouseClickDown(point);
-        return 'Mouse down at: ${point.dx} ${point.dy}';
+      if (point != Offset.zero) {
+        if (isKeyDown && isKeyUp) {
+          await keyPressSimulator.simulateMouseClickDown(point);
+          // slight move to register clicks on some apps, see issue #116
+          await keyPressSimulator.simulateMouseClickUp(point);
+          return 'Mouse clicked at: ${point.dx.toInt()} ${point.dy.toInt()}';
+        } else if (isKeyDown) {
+          await keyPressSimulator.simulateMouseClickDown(point);
+          return 'Mouse down at: ${point.dx.toInt()} ${point.dy.toInt()}';
+        } else {
+          await keyPressSimulator.simulateMouseClickUp(point);
+          return 'Mouse up at: ${point.dx.toInt()} ${point.dy.toInt()}';
+        }
       } else {
-        await keyPressSimulator.simulateMouseClickUp(point);
-        return 'Mouse up at: ${point.dx} ${point.dy}';
+        return 'No action assigned';
       }
     }
   }
