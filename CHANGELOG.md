@@ -1,6 +1,13 @@
-### 3.2.1 (unreleased)
+### 3.3.0 (unreleased)
+
+**New Feature:**
+- Support for Elite Sterzo (thanks @michidk)
+- Support for Gamepads
+- you can now customize the Keymap right from the Customize section
+
+**Fixes:**
 - fix firmware version display for Zwift Click V2 devices
-- attempt to fix touch position on some Android devices
+- fix touch position on some Android devices
 - Wahoo Kickr Bike Shift can now be connected correctly
 - update default keymap for TrainingPeaks
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartx/dartx.dart';
@@ -7,6 +8,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../actions/base_actions.dart';
+import 'apps/custom_app.dart';
 
 class Keymap {
   static Keymap custom = Keymap(keyPairs: []);
@@ -14,6 +16,9 @@ class Keymap {
   List<KeyPair> keyPairs;
 
   Keymap({required this.keyPairs});
+
+  final StreamController<void> _updateStream = StreamController<void>.broadcast();
+  Stream<void> get updateStream => _updateStream.stream;
 
   @override
   String toString() {
@@ -36,6 +41,16 @@ class Keymap {
 
   void reset() {
     keyPairs = [];
+    _updateStream.add(null);
+  }
+
+  void addKeyPair(KeyPair keyPair) {
+    keyPairs.add(keyPair);
+    _updateStream.add(null);
+
+    if (actionHandler.supportedApp is CustomApp) {
+      settings.setApp(actionHandler.supportedApp!);
+    }
   }
 }
 
@@ -116,8 +131,9 @@ class KeyPair {
         : Offset.zero;
 
     final buttons = decoded['actions']
-        .map<ControllerButton?>((e) => ControllerButton.values.firstOrNullWhere((element) => element.name == e))
-        .where((e) => e != null)
+        .map<ControllerButton>(
+          (e) => ControllerButton.values.firstOrNullWhere((element) => element.name == e) ?? ControllerButton(e),
+        )
         .cast<ControllerButton>()
         .toList();
     if (buttons.isEmpty) {

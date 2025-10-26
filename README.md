@@ -41,7 +41,9 @@ Check the compatibility matrix below!
 - Zwift Ride
 - Zwift Play
 - Wahoo Kickr Bike Shift
+- Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
+- Gamepads (beta)
 
 Support for other devices can be added - check the issues tab here on GithUb. 
 

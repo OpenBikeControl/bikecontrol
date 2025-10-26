@@ -49,7 +49,7 @@ class CustomApp extends SupportedApp {
       keyPair.isLongPress = isLongPress;
       keyPair.touchPosition = touchPosition ?? Offset.zero;
     } else {
-      keymap.keyPairs.add(
+      keymap.addKeyPair(
         KeyPair(
           buttons: [zwiftButton],
           physicalKey: physicalKey,

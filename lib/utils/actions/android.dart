@@ -56,6 +56,6 @@ class AndroidActions extends BaseActions {
           ? "down"
           : "up"}";
     }
-    return "No touch performed";
+    return "No action assigned";
   }
 }

@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/widgets/button_widget.dart';
+
+import '../bluetooth/messages/notification.dart';
 
 /// A developer overlay that visualizes touches and keyboard events.
 /// - Touch dots appear where you touch and fade out over [touchRevealDuration].
@@ -14,8 +20,8 @@ class Testbed extends StatefulWidget {
     this.enabled = true,
     this.showTouches = true,
     this.showKeyboard = true,
-    this.touchRevealDuration = const Duration(seconds: 2),
-    this.keyboardRevealDuration = const Duration(seconds: 2),
+    this.touchRevealDuration = const Duration(seconds: 3),
+    this.keyboardRevealDuration = const Duration(seconds: 3),
     this.maxKeyboardEvents = 6,
     this.touchColor = const Color(0xFF00BCD4), // cyan-ish
     this.keyboardBadgeColor = const Color(0xCC000000), // translucent black
@@ -40,6 +46,7 @@ class Testbed extends StatefulWidget {
 
 class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
+  late StreamSubscription<BaseNotification> _actionSubscription;
 
   // ----- Touch tracking -----
   final Map<int, _TouchSample> _active = <int, _TouchSample>{};
@@ -55,6 +62,25 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _focusNode = FocusNode(debugLabel: 'TestbedFocus', canRequestFocus: true, skipTraversal: true);
+    _actionSubscription = connection.actionStream.listen((data) async {
+      if (!mounted) {
+        return;
+      }
+      if (data is ButtonNotification) {
+        for (final button in data.buttonsClicked) {
+          final sample = _KeySample(
+            button: button,
+            text: '🔘 ${button.name}',
+            timestamp: DateTime.now(),
+          );
+          _keys.insert(0, sample);
+          if (_keys.length > widget.maxKeyboardEvents) {
+            _keys.removeLast();
+          }
+        }
+        setState(() {});
+      }
+    });
 
     _ticker = createTicker((_) {
       // Cull expired touch and key samples.
@@ -215,10 +241,9 @@ class _TouchesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
 
     for (final s in samples) {
       final age = now.difference(s.timestamp);
@@ -242,17 +267,15 @@ class _TouchesPainter extends CustomPainter {
       canvas.drawCircle(s.position, rOuter, paint);
 
       // Inner fill (stronger)
-      final fill =
-          Paint()
-            ..style = PaintingStyle.fill
-            ..color = color.withOpacity(0.35 + 0.35 * fade);
+      final fill = Paint()
+        ..style = PaintingStyle.fill
+        ..color = color.withOpacity(0.35 + 0.35 * fade);
       canvas.drawCircle(s.position, rInner, fill);
 
       // Tiny center dot for precision
-      final center =
-          Paint()
-            ..style = PaintingStyle.fill
-            ..color = color.withOpacity(0.9 * fade);
+      final center = Paint()
+        ..style = PaintingStyle.fill
+        ..color = color.withOpacity(0.9 * fade);
       canvas.drawCircle(s.position, 2.5, center);
     }
   }
@@ -269,7 +292,8 @@ class _TouchesPainter extends CustomPainter {
 // ===== Keyboard overlay =====
 
 class _KeySample {
-  _KeySample({required this.text, required this.timestamp});
+  _KeySample({required this.text, required this.timestamp, this.button});
+  final ControllerButton? button;
   final String text;
   final DateTime timestamp;
 }
@@ -297,7 +321,7 @@ class _KeyboardOverlay extends StatelessWidget {
       children: [
         for (final item in items)
           _KeyboardToast(
-            text: item.text,
+            item: item,
             age: now.difference(item.timestamp),
             duration: duration,
             badgeColor: badgeColor,
@@ -310,14 +334,14 @@ class _KeyboardOverlay extends StatelessWidget {
 
 class _KeyboardToast extends StatelessWidget {
   const _KeyboardToast({
-    required this.text,
+    required this.item,
     required this.age,
     required this.duration,
     required this.badgeColor,
     required this.textStyle,
   });
 
-  final String text;
+  final _KeySample item;
   final Duration age;
   final Duration duration;
   final Color badgeColor;
@@ -329,13 +353,14 @@ class _KeyboardToast extends StatelessWidget {
     final fade = 1.0 - t;
 
     return Material(
+      color: Colors.transparent,
       child: Opacity(
         opacity: fade,
         child: Container(
           margin: const EdgeInsets.only(bottom: 6),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
-          child: Text(text, style: textStyle),
+          child: item.button != null ? ButtonWidget(button: item.button!) : Text(item.text, style: textStyle),
         ),
       ),
     );

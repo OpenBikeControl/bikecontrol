@@ -109,7 +109,7 @@ class _AppTitleState extends State<AppTitle> {
         }
       }
     } else if (Platform.isMacOS) {
-      final url = Uri.parse('https://apps.microsoft.com/detail/9NP42GS03Z26');
+      final url = Uri.parse('https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac');
       final res = await http.get(url, headers: {'User-Agent': 'Mozilla/5.0'});
       if (res.statusCode != 200) return null;
 
@@ -157,10 +157,10 @@ class _AppTitleState extends State<AppTitle> {
   void _showShorebirdRestartSnackbar() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Restart the app to use the new version'),
+        content: Text('Force-close the app to use the new version'),
         duration: Duration(seconds: 10),
         action: SnackBarAction(
-          label: 'Restart',
+          label: 'Attempt Restart',
           onPressed: () {
             if (Platform.isIOS || Platform.isAndroid) {
               connection.reset();

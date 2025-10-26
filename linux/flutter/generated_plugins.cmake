@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   bluetooth_low_energy_linux
   file_selector_linux
+  gamepads_linux
   screen_retriever_linux
   url_launcher_linux
   window_manager

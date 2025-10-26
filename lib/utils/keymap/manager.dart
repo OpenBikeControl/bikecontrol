@@ -5,15 +5,15 @@ import 'package:swift_control/main.dart';
 
 import 'apps/custom_app.dart';
 
-class KeypadManager {
+class KeymapManager {
   // Singleton instance
-  static final KeypadManager _instance = KeypadManager._internal();
+  static final KeymapManager _instance = KeymapManager._internal();
 
   // Private constructor
-  KeypadManager._internal();
+  KeymapManager._internal();
 
   // Factory constructor to return the singleton instance
-  factory KeypadManager() {
+  factory KeymapManager() {
     return _instance;
   }
 
@@ -104,7 +104,7 @@ class KeypadManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Duplicate Profile'),
+        title: Text('Create new custom profile by duplicating "$currentName"'),
         content: TextField(
           controller: controller,
           decoration: InputDecoration(labelText: 'New Profile Name'),

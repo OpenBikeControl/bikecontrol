@@ -4,7 +4,7 @@ import 'package:swift_control/link/link.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
+import 'package:swift_control/widgets/button_widget.dart';
 
 class InGameActionsCustomizer extends StatefulWidget {
   const InGameActionsCustomizer({super.key});
@@ -39,7 +39,7 @@ class _InGameActionsCustomizerState extends State<InGameActionsCustomizer> {
                 Padding(
                   padding: const EdgeInsets.all(6),
                   child: Text(
-                    'Button on your ${connectedDevice?.device.name?.screenshot ?? connectedDevice?.runtimeType ?? 'device'}',
+                    'Button on your ${connectedDevice?.name.screenshot ?? connectedDevice?.runtimeType ?? 'device'}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -59,9 +59,7 @@ class _InGameActionsCustomizerState extends State<InGameActionsCustomizer> {
                     padding: const EdgeInsets.all(6),
                     child: Row(
                       children: [
-                        IntrinsicWidth(
-                          child: ButtonWidget(button: button),
-                        ),
+                        ButtonWidget(button: button),
                       ],
                     ),
                   ),

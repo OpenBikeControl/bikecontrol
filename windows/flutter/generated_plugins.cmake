@@ -5,9 +5,11 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   bluetooth_low_energy_windows
   file_selector_windows
+  gamepads_windows
   keypress_simulator_windows
   permission_handler_windows
   screen_retriever_windows
+  share_plus
   universal_ble
   url_launcher_windows
   window_manager
