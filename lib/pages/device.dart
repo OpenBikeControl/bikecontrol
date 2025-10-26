@@ -199,47 +199,50 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               ),
 
                             if (connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
-                              Warning(
-                                children: [
-                                  Text(
-                                    '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Warning(
+                                  children: [
+                                    Text(
+                                      '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
 
 1. Open Zwift app
 2. Log in (subscription not required) and open the device connection screen
 3. Connect your Trainer, then connect the Zwift Click V2
 4. Close the Zwift app again and connect again in SwiftControl''',
-                                  ),
-                                  Row(
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          connection.devices.whereType<ZwiftClickV2>().forEach(
-                                            (device) => device.sendCommand(Opcode.RESET, null),
-                                          );
-                                        },
-                                        child: Text('Reset now'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                                            ),
-                                          );
-                                        },
-                                        child: Text('Troubleshooting'),
-                                      ),
-                                      if (kDebugMode)
+                                    ),
+                                    Row(
+                                      children: [
                                         TextButton(
                                           onPressed: () {
-                                            (connection.bluetoothDevices.first as ZwiftClickV2).test();
+                                            connection.devices.whereType<ZwiftClickV2>().forEach(
+                                              (device) => device.sendCommand(Opcode.RESET, null),
+                                            );
                                           },
-                                          child: Text('Test'),
+                                          child: Text('Reset now'),
                                         ),
-                                    ],
-                                  ),
-                                ],
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                                              ),
+                                            );
+                                          },
+                                          child: Text('Troubleshooting'),
+                                        ),
+                                        if (kDebugMode)
+                                          TextButton(
+                                            onPressed: () {
+                                              (connection.bluetoothDevices.first as ZwiftClickV2).test();
+                                            },
+                                            child: Text('Test'),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                           ],
                         ),

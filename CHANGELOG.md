@@ -4,6 +4,7 @@
 - Support for Elite Sterzo (thanks @michidk)
 - Support for Gamepads
 - you can now customize the Keymap right from the Customize section
+- show signal strength of connected devices (thanks @michidk)
 
 **Fixes:**
 - fix firmware version display for Zwift Click V2 devices

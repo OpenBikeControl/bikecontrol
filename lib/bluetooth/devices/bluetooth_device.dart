@@ -160,21 +160,6 @@ abstract class BluetoothDevice extends BaseDevice {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         if (isBeta) BetaPill(),
-        if (rssi != null) ...[
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Icon(
-              switch (rssi!) {
-                >= -50 => Icons.signal_cellular_4_bar,
-                >= -60 => Icons.signal_cellular_alt_2_bar,
-                >= -70 => Icons.signal_cellular_alt_1_bar,
-                _ => Icons.signal_cellular_alt,
-              },
-              size: 18,
-            ),
-          ),
-          Text('$rssi dBm'),
-        ],
         if (batteryLevel != null) ...[
           Icon(switch (batteryLevel!) {
             >= 80 => Icons.battery_full,
@@ -197,6 +182,22 @@ abstract class BluetoothDevice extends BaseDevice {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         ],
+        if (rssi != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Tooltip(
+              message: 'Signal Strength: $rssi dBm',
+              child: Icon(
+                switch (rssi!) {
+                  >= -50 => Icons.signal_cellular_4_bar,
+                  >= -60 => Icons.signal_cellular_alt_2_bar,
+                  >= -70 => Icons.signal_cellular_alt_1_bar,
+                  _ => Icons.signal_cellular_alt,
+                },
+                size: 18,
+              ),
+            ),
+          ),
       ],
     );
   }
