@@ -349,7 +349,7 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.media)) ...[
+        if (keyPair.isSpecialKey && actionHandler.supportedModes.contains(SupportedMode.media))
           _KeyWidget(
             label: switch (keyPair.physicalKey) {
               PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
@@ -358,8 +358,12 @@ class KeypairExplanation extends StatelessWidget {
               PhysicalKeyboardKey.mediaTrackNext => 'Next',
               PhysicalKeyboardKey.audioVolumeUp => 'Volume Up',
               PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
-              _ => keyPair.logicalKey?.keyLabel ?? 'Unknown',
+              _ => 'Unknown',
             },
+          )
+        else if (keyPair.physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
+          _KeyWidget(
+            label: keyPair.logicalKey?.keyLabel ?? 'Unknown',
           ),
           if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
         ] else ...[

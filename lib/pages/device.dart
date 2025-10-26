@@ -285,7 +285,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                           if (app == null) {
                                             return;
                                           } else if (app.name == 'New') {
-                                            final profileName = await KeypadManager().showNewProfileDialog(context);
+                                            final profileName = await KeymapManager().showNewProfileDialog(context);
                                             if (profileName != null && profileName.isNotEmpty) {
                                               final customApp = CustomApp(profileName: profileName);
                                               actionHandler.supportedApp = customApp;
@@ -321,13 +321,13 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                         IconButton(
                                           onPressed: () async {
                                             final currentProfile = actionHandler.supportedApp?.name;
-                                            final action = await KeypadManager().showManageProfileDialog(
+                                            final action = await KeymapManager().showManageProfileDialog(
                                               context,
                                               currentProfile,
                                             );
                                             if (action != null) {
                                               if (action == 'rename') {
-                                                final newName = await KeypadManager().showRenameProfileDialog(
+                                                final newName = await KeymapManager().showRenameProfileDialog(
                                                   context,
                                                   currentProfile!,
                                                 );
@@ -347,7 +347,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                                   setState(() {});
                                                 }
                                               } else if (action == 'duplicate') {
-                                                final newName = await KeypadManager().duplicate(
+                                                final newName = await KeymapManager().duplicate(
                                                   context,
                                                   currentProfile!,
                                                 );
@@ -357,7 +357,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                                   setState(() {});
                                                 }
                                               } else if (action == 'delete') {
-                                                final confirmed = await KeypadManager().showDeleteConfirmDialog(
+                                                final confirmed = await KeymapManager().showDeleteConfirmDialog(
                                                   context,
                                                   currentProfile!,
                                                 );
@@ -367,7 +367,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                                   setState(() {});
                                                 }
                                               } else if (action == 'import') {
-                                                final jsonData = await KeypadManager().showImportDialog(context);
+                                                final jsonData = await KeymapManager().showImportDialog(context);
                                                 if (jsonData != null && jsonData.isNotEmpty) {
                                                   final success = await settings.importCustomAppProfile(jsonData);
                                                   if (mounted) {

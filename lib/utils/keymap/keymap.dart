@@ -8,6 +8,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../actions/base_actions.dart';
+import 'apps/custom_app.dart';
 
 class Keymap {
   static Keymap custom = Keymap(keyPairs: []);
@@ -46,6 +47,10 @@ class Keymap {
   void addKeyPair(KeyPair keyPair) {
     keyPairs.add(keyPair);
     _updateStream.add(null);
+
+    if (actionHandler.supportedApp is CustomApp) {
+      settings.setApp(actionHandler.supportedApp!);
+    }
   }
 }
 
@@ -126,8 +131,9 @@ class KeyPair {
         : Offset.zero;
 
     final buttons = decoded['actions']
-        .map<ControllerButton?>((e) => ControllerButton.values.firstOrNullWhere((element) => element.name == e))
-        .where((e) => e != null)
+        .map<ControllerButton>(
+          (e) => ControllerButton.values.firstOrNullWhere((element) => element.name == e) ?? ControllerButton(e),
+        )
         .cast<ControllerButton>()
         .toList();
     if (buttons.isEmpty) {

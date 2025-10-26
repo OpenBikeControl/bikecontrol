@@ -8,6 +8,7 @@ import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
 
@@ -34,6 +35,17 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   }
 
   @override
+  void didUpdateWidget(KeymapExplanation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.keymap != widget.keymap) {
+      _updateStreamListener.cancel();
+      _updateStreamListener = widget.keymap.updateStream.listen((_) {
+        setState(() {});
+      });
+    }
+  }
+
+  @override
   void dispose() {
     super.dispose();
     _updateStreamListener.cancel();
@@ -41,11 +53,8 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   @override
   Widget build(BuildContext context) {
-    final allAvailableButtons = connection.devices.flatMap((e) => e.availableButtons).distinct();
-
-    final availableKeypairs = widget.keymap.keyPairs.filter(
-      (e) => allAvailableButtons.containsAny(e.buttons),
-    );
+    final availableKeypairs = widget.keymap.keyPairs;
+    final allAvailableButtons = connection.devices.flatMap((d) => d.availableButtons);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +100,8 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                       runSpacing: 8,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
+                        for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                          IntrinsicWidth(child: ButtonWidget(button: button)),
                       ],
                     ),
                   ),
@@ -225,36 +235,46 @@ class _ButtonEditor extends StatelessWidget {
         else
           Text('No action assigned'),
 
-        PopupMenuButton<PhysicalKeyboardKey>(
-          enabled: true,
-          itemBuilder: (context) => [
-            if (actions.length > 1) ...actions,
-            PopupMenuItem<PhysicalKeyboardKey>(
-              value: null,
-              onTap: () {
-                keyPair.isLongPress = !keyPair.isLongPress;
-                onUpdate();
-              },
-              child: CheckboxListTile(
-                value: keyPair.isLongPress,
-                onChanged: (value) {
-                  keyPair.isLongPress = value ?? false;
-
+        if (actionHandler.supportedApp is CustomApp)
+          PopupMenuButton<PhysicalKeyboardKey>(
+            enabled: true,
+            itemBuilder: (context) => [
+              if (actions.length > 1) ...actions,
+              PopupMenuItem<PhysicalKeyboardKey>(
+                value: null,
+                onTap: () {
+                  keyPair.isLongPress = !keyPair.isLongPress;
                   onUpdate();
-                  Navigator.of(context).pop();
                 },
-                title: const Text('Long Press Mode (vs. repeating)'),
-              ),
-            ),
-          ],
-          onSelected: (key) {
-            keyPair.physicalKey = key;
-            keyPair.logicalKey = null;
+                child: CheckboxListTile(
+                  value: keyPair.isLongPress,
+                  onChanged: (value) {
+                    keyPair.isLongPress = value ?? false;
 
-            onUpdate();
-          },
-          icon: Icon(Icons.edit),
-        ),
+                    onUpdate();
+                    Navigator.of(context).pop();
+                  },
+                  title: const Text('Long Press Mode (vs. repeating)'),
+                ),
+              ),
+            ],
+            onSelected: (key) {
+              keyPair.physicalKey = key;
+              keyPair.logicalKey = null;
+
+              onUpdate();
+            },
+            icon: Icon(Icons.edit),
+          )
+        else
+          IconButton(
+            onPressed: () async {
+              final currentProfile = actionHandler.supportedApp!.name;
+              await KeymapManager().duplicate(context, currentProfile);
+              onUpdate();
+            },
+            icon: Icon(Icons.edit),
+          ),
       ],
     );
   }
