@@ -327,7 +327,9 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                       children: [
                                         IconButton(
                                           onPressed: () async {
-                                            final currentProfile = actionHandler.supportedApp?.name;
+                                            final currentProfile = actionHandler.supportedApp is CustomApp
+                                                ? actionHandler.supportedApp?.name
+                                                : null;
                                             final action = await KeymapManager().showManageProfileDialog(
                                               context,
                                               currentProfile,

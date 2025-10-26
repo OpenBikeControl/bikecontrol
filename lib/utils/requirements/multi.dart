@@ -44,7 +44,10 @@ class BluetoothTurnedOn extends PlatformRequirement {
     } else if (currentState == AvailabilityState.poweredOff) {
       await UniversalBle.enableBluetooth();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to enable Bluetooth: $currentState')));
+      // I guess bluetooth is on now
+      // TODO move UniversalBle.onAvailabilityChange
+      getStatus();
+      onUpdate();
     }
   }
 
