@@ -100,8 +100,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                       runSpacing: 8,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                          IntrinsicWidth(child: ButtonWidget(button: button)),
+                        if (actionHandler.supportedApp is! CustomApp)
+                          for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                            IntrinsicWidth(child: ButtonWidget(button: button))
+                        else
+                          for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
                       ],
                     ),
                   ),

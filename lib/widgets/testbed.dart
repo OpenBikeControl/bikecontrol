@@ -20,8 +20,8 @@ class Testbed extends StatefulWidget {
     this.enabled = true,
     this.showTouches = true,
     this.showKeyboard = true,
-    this.touchRevealDuration = const Duration(seconds: 2),
-    this.keyboardRevealDuration = const Duration(seconds: 2),
+    this.touchRevealDuration = const Duration(seconds: 3),
+    this.keyboardRevealDuration = const Duration(seconds: 3),
     this.maxKeyboardEvents = 6,
     this.touchColor = const Color(0xFF00BCD4), // cyan-ish
     this.keyboardBadgeColor = const Color(0xCC000000), // translucent black

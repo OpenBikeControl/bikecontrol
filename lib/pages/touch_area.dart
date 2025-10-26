@@ -4,8 +4,10 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -37,29 +39,37 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     final result = await picker.pickImage(source: ImageSource.gallery);
     if (result != null) {
       final image = File(result.path);
-
-      // need to decode image to get its size so we can have a percentage mapping
-      final decodedImage = await decodeImageFromList(image.readAsBytesSync());
-      // calculate image rectangle in the current screen, given it's boxfit contain
-      final screenSize = MediaQuery.sizeOf(context);
-      final imageAspectRatio = decodedImage.width / decodedImage.height;
-      final screenAspectRatio = screenSize.width / screenSize.height;
-      if (imageAspectRatio > screenAspectRatio) {
-        // image is wider than screen
-        final width = screenSize.width;
-        final height = width / imageAspectRatio;
-        final top = (screenSize.height - height) / 2;
-        _imageRect = Rect.fromLTWH(0, top, width, height);
-      } else {
-        // image is taller than screen
-        final height = screenSize.height;
-        final width = height * imageAspectRatio;
-        final left = (screenSize.width - width) / 2;
-        _imageRect = Rect.fromLTWH(left, 0, width, height);
-      }
-      _backgroundImage = image;
-      setState(() {});
+      final Directory tempDir = await getTemporaryDirectory();
+      final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
+      await image.copy(tempImage.path);
+      _backgroundImage = tempImage;
+      await _calculateBounds();
     }
+  }
+
+  Future<void> _calculateBounds() async {
+    if (_backgroundImage == null) return;
+
+    // need to decode image to get its size so we can have a percentage mapping
+    final decodedImage = await decodeImageFromList(_backgroundImage!.readAsBytesSync());
+    // calculate image rectangle in the current screen, given it's boxfit contain
+    final screenSize = MediaQuery.sizeOf(context);
+    final imageAspectRatio = decodedImage.width / decodedImage.height;
+    final screenAspectRatio = screenSize.width / screenSize.height;
+    if (imageAspectRatio > screenAspectRatio) {
+      // image is wider than screen
+      final width = screenSize.width;
+      final height = width / imageAspectRatio;
+      final top = (screenSize.height - height) / 2;
+      _imageRect = Rect.fromLTWH(0, top, width, height);
+    } else {
+      // image is taller than screen
+      final height = screenSize.height;
+      final width = height * imageAspectRatio;
+      final left = (screenSize.width - width) / 2;
+      _imageRect = Rect.fromLTWH(left, 0, width, height);
+    }
+    setState(() {});
   }
 
   void _saveAndClose() {
@@ -99,6 +109,18 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.setFullScreen(true);
     }
+    getTemporaryDirectory().then((tempDir) async {
+      final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
+      if (tempImage.existsSync()) {
+        _backgroundImage = tempImage;
+        setState(() {});
+
+        // wait a bit until device rotation is done
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          _calculateBounds();
+        });
+      }
+    });
   }
 
   Widget _buildDraggableArea({
@@ -310,6 +332,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                             child: Text('Reset'),
                             onTap: () {
                               _backgroundImage = null;
+
                               actionHandler.supportedApp?.keymap.reset();
                               setState(() {});
                             },

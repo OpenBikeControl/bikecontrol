@@ -19,6 +19,7 @@ dependencies:
       url: https://github.com/jonasbark/universal_ble.git
   gamepads: ^0.1.8+2
 
+  path_provider: ^2.1.5
   intl: any
   version: ^3.0.0
   bluetooth_low_energy: ^6.1.0
@@ -37,7 +38,11 @@ dependencies:
   accessibility:
     path: accessibility
 
-  # shorebird related
+  device_auto_rotate_checker:
+    git:
+      url: https://github.com/mpcreza/device_auto_rotate_checker.git
+
+  # app update related
   shorebird_code_push: ^2.0.5
   restart_app:
     git:

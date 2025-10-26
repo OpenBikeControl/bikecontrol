@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,27 +40,9 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
   final controller = TextEditingController(text: actionHandler.supportedApp?.name);
-
-  List<SupportedApp> _getAllApps() {
-    final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
-    final customProfiles = settings.getCustomAppProfiles();
-
-    final customApps = customProfiles.map((profile) {
-      final customApp = CustomApp(profileName: profile);
-      final savedKeymap = settings.getCustomAppKeymap(profile);
-      if (savedKeymap != null) {
-        customApp.decodeKeymap(savedKeymap);
-      }
-      return customApp;
-    }).toList();
-
-    // If no custom profiles exist, add the default "Custom" one
-    if (customApps.isEmpty) {
-      customApps.add(CustomApp());
-    }
-
-    return [...baseApps, ...customApps];
-  }
+  final _snackBarMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  bool _showAutoRotationWarning = false;
+  StreamSubscription<bool>? _autoRotateStream;
 
   @override
   void initState() {
@@ -83,12 +66,28 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     _connectionStateSubscription = connection.connectionStream.listen((state) async {
       setState(() {});
     });
+
+    if (!kIsWeb && Platform.isAndroid) {
+      DeviceAutoRotateChecker.checkAutoRotate().then((isEnabled) {
+        if (!isEnabled) {
+          setState(() {
+            _showAutoRotationWarning = true;
+          });
+        }
+      });
+      _autoRotateStream = DeviceAutoRotateChecker.autoRotateStream.listen((isEnabled) {
+        setState(() {
+          _showAutoRotationWarning = !isEnabled;
+        });
+      });
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
 
+    _autoRotateStream?.cancel();
     _connectionStateSubscription.cancel();
     controller.dispose();
     super.dispose();
@@ -113,8 +112,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       }
     }
   }
-
-  final _snackBarMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +145,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (!kIsWeb && Platform.isAndroid)
+                    if (_showAutoRotationWarning)
                       Warning(
                         children: [
                           Text('Enable auto-rotation on your device to make sure the app works correctly.'),
@@ -462,6 +459,27 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  List<SupportedApp> _getAllApps() {
+    final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
+    final customProfiles = settings.getCustomAppProfiles();
+
+    final customApps = customProfiles.map((profile) {
+      final customApp = CustomApp(profileName: profile);
+      final savedKeymap = settings.getCustomAppKeymap(profile);
+      if (savedKeymap != null) {
+        customApp.decodeKeymap(savedKeymap);
+      }
+      return customApp;
+    }).toList();
+
+    // If no custom profiles exist, add the default "Custom" one
+    if (customApps.isEmpty) {
+      customApps.add(CustomApp());
+    }
+
+    return [...baseApps, ...customApps];
   }
 }
 
