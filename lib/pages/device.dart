@@ -230,6 +230,13 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                         },
                                         child: Text('Troubleshooting'),
                                       ),
+                                      if (kDebugMode)
+                                        TextButton(
+                                          onPressed: () {
+                                            (connection.bluetoothDevices.first as ZwiftClickV2).test();
+                                          },
+                                          child: Text('Test'),
+                                        ),
                                     ],
                                   ),
                                 ],

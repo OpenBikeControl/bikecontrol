@@ -65,7 +65,9 @@ class ZwiftRide extends ZwiftDevice {
           'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day. Resetting the device now.',
         ),
       );
-      sendCommand(Opcode.RESET, null);
+      if (!kDebugMode) {
+        sendCommand(Opcode.RESET, null);
+      }
     }
 
     switch (opcode) {
