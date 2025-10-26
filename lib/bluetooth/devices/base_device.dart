@@ -125,7 +125,7 @@ abstract class BaseDevice {
     return runtimeType.toString();
   }
 
-  BleDevice get device => scanResult;
+  BleDevice get device => scanResult!;
   final StreamController<BaseNotification> actionStreamInternal = StreamController<BaseNotification>.broadcast();
 
   Stream<BaseNotification> get actionStream => actionStreamInternal.stream;

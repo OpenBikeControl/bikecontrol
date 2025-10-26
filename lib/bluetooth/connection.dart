@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:gamepads/gamepads.dart';
+import 'package:swift_control/bluetooth/devices/gamepad/gamepad.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/requirements/android.dart';
@@ -44,6 +46,11 @@ class Connection {
     UniversalBle.onScanResult = (result) {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
         _lastScanResult.add(result);
+
+        if (kDebugMode) {
+          print('Scan result: ${result.name} - ${result.deviceId}');
+        }
+
         final scanResult = BaseDevice.fromScanResult(result);
 
         if (scanResult != null) {
@@ -71,6 +78,33 @@ class Connection {
         device.processCharacteristic(characteristicUuid, value);
       }
     };
+
+    Gamepads.list().then((list) {
+      print('Connected gamepads: ${list.length}');
+      if (list.isNotEmpty) {
+        final pads = list
+            .map(
+              (pad) => Gamepad(
+                BleDevice(
+                  deviceId: pad.id,
+                  name: pad.name,
+                  rssi: 0,
+                  services: [],
+                ),
+              ),
+            )
+            .toList();
+        _addDevices(pads);
+        Gamepads.events.listen((event) {
+          _actionStreams.add(LogNotification('Gamepad event: $event'));
+          final device = devices.firstOrNullWhere((e) => e.device.deviceId == event.gamepadId);
+          if (device is Gamepad) {
+            device.processGamepadEvent(event);
+          }
+        });
+      }
+    });
+    // ...
   }
 
   Future<void> performScanning() async {
@@ -120,22 +154,26 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      _actionStreams.add(LogNotification('Connecting to: ${device.device.name ?? device.runtimeType}'));
-      _connect(device)
-          .then((_) {
-            _handlingConnectionQueue = false;
-            _actionStreams.add(LogNotification('Connection finished: ${device.device.name ?? device.runtimeType}'));
-            if (_connectionQueue.isNotEmpty) {
-              _handleConnectionQueue();
-            }
-          })
-          .catchError((e) {
-            _handlingConnectionQueue = false;
-            _actionStreams.add(LogNotification('Connection failed: ${device.device.name ?? device.runtimeType} - $e'));
-            if (_connectionQueue.isNotEmpty) {
-              _handleConnectionQueue();
-            }
-          });
+      if (device is! Gamepad) {
+        _actionStreams.add(LogNotification('Connecting to: ${device.device.name ?? device.runtimeType}'));
+        _connect(device)
+            .then((_) {
+              _handlingConnectionQueue = false;
+              _actionStreams.add(LogNotification('Connection finished: ${device.device.name ?? device.runtimeType}'));
+              if (_connectionQueue.isNotEmpty) {
+                _handleConnectionQueue();
+              }
+            })
+            .catchError((e) {
+              _handlingConnectionQueue = false;
+              _actionStreams.add(
+                LogNotification('Connection failed: ${device.device.name ?? device.runtimeType} - $e'),
+              );
+              if (_connectionQueue.isNotEmpty) {
+                _handleConnectionQueue();
+              }
+            });
+      }
     }
   }
 
