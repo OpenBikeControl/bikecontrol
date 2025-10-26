@@ -31,8 +31,8 @@ Check the compatibility matrix below!
 ## Supported Apps
 - MyWhoosh
 - TrainingPeaks Virtual / indieVelo
-- Biketerra.com (they do offer native integration already - check it out)
-- Rouvy (most Zwift devices are already supported by Rouvy)
+- Biketerra.com
+- Rouvy
 - any other! You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
 
 ## Supported Devices

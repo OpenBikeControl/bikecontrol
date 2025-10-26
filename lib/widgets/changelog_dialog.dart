@@ -9,7 +9,10 @@ class ChangelogDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final latestVersion = Markdown(blocks: entry.blocks.skip(1).take(2).toList(), markdown: entry.markdown);
+    final latestVersion = Markdown(
+      blocks: entry.blocks.skip(1).takeWhile((b) => b.type != 'heading').toList(),
+      markdown: entry.markdown,
+    );
     return AlertDialog(
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +36,7 @@ class ChangelogDialog extends StatelessWidget {
 
   static Future<void> showIfNeeded(BuildContext context, String currentVersion, String? lastSeenVersion) async {
     // Show dialog if this is a new version
-    if (lastSeenVersion != currentVersion) {
+    if (lastSeenVersion != currentVersion || true) {
       try {
         final entry = await rootBundle.loadString('CHANGELOG.md');
         if (context.mounted) {

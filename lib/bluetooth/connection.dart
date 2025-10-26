@@ -46,7 +46,7 @@ class Connection {
   void initialize() {
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(LogNotification('Bluetooth availability changed: $available'));
-      if (available == AvailabilityState.poweredOn) {
+      if (available == AvailabilityState.poweredOn && !kIsWeb) {
         performScanning();
       } else if (available == AvailabilityState.poweredOff) {
         reset();
@@ -111,7 +111,7 @@ class Connection {
 
     await UniversalBle.startScan(
       // allow all to enable Wahoo Kickr Bike Shift detection
-      //scanFilter: ScanFilter(withServices: BaseDevice.servicesToScan),
+      //scanFilter: kIsWeb ? ScanFilter(withServices: BluetoothDevice.servicesToScan) : null,
       platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
     );
 
