@@ -157,10 +157,10 @@ class _AppTitleState extends State<AppTitle> {
   void _showShorebirdRestartSnackbar() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Restart the app to use the new version'),
+        content: Text('Force-close the app to use the new version'),
         duration: Duration(seconds: 10),
         action: SnackBarAction(
-          label: 'Restart',
+          label: 'Attempt Restart',
           onPressed: () {
             if (Platform.isIOS || Platform.isAndroid) {
               connection.reset();
