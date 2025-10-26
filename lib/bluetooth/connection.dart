@@ -53,6 +53,16 @@ class Connection {
       }
     };
     UniversalBle.onScanResult = (result) {
+      // Update RSSI for already connected devices
+      final existingDevice = devices.firstOrNullWhere(
+        (e) => e is BluetoothDevice && e.device.deviceId == result.deviceId,
+      );
+      if (existingDevice != null && existingDevice is BluetoothDevice) {
+        existingDevice.rssi = result.rssi;
+        _connectionStreams.add(existingDevice); // Notify UI of update
+        return;
+      }
+
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
         _lastScanResult.add(result);
 
