@@ -39,7 +39,7 @@ class _InGameActionsCustomizerState extends State<InGameActionsCustomizer> {
                 Padding(
                   padding: const EdgeInsets.all(6),
                   child: Text(
-                    'Button on your ${connectedDevice?.device.name?.screenshot ?? connectedDevice?.runtimeType ?? 'device'}',
+                    'Button on your ${connectedDevice?.name.screenshot ?? connectedDevice?.runtimeType ?? 'device'}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),

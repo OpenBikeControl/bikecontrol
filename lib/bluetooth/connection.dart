@@ -5,7 +5,8 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
-import 'package:swift_control/bluetooth/devices/gamepad/gamepad.dart';
+import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/requirements/android.dart';
@@ -17,9 +18,13 @@ import 'messages/notification.dart';
 
 class Connection {
   final devices = <BaseDevice>[];
+
+  List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
+  List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
+
   var _androidNotificationsSetup = false;
 
-  final _connectionQueue = <BaseDevice>[];
+  final _connectionQueue = <BluetoothDevice>[];
   var _handlingConnectionQueue = false;
 
   final Map<BaseDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
@@ -51,10 +56,11 @@ class Connection {
           print('Scan result: ${result.name} - ${result.deviceId}');
         }
 
-        final scanResult = BaseDevice.fromScanResult(result);
+        final scanResult = BluetoothDevice.fromScanResult(result);
 
         if (scanResult != null) {
           _actionStreams.add(LogNotification('Found new device: ${scanResult.runtimeType}'));
+          _connectionQueue.addAll([scanResult]);
           _addDevices([scanResult]);
         } else {
           final manufacturerData = result.manufacturerDataList;
@@ -69,7 +75,7 @@ class Connection {
     };
 
     UniversalBle.onValueChange = (deviceId, characteristicUuid, value) {
-      final device = devices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
       if (device == null) {
         _actionStreams.add(LogNotification('Device not found: $deviceId'));
         UniversalBle.disconnect(deviceId);
@@ -80,27 +86,17 @@ class Connection {
     };
 
     Gamepads.list().then((list) {
-      print('Connected gamepads: ${list.length}');
       if (list.isNotEmpty) {
         final pads = list
             .map(
-              (pad) => Gamepad(
-                BleDevice(
-                  deviceId: pad.id,
-                  name: pad.name,
-                  rssi: 0,
-                  services: [],
-                ),
-              ),
+              (pad) => GamepadDevice(pad.name, id: pad.id),
             )
             .toList();
         _addDevices(pads);
         Gamepads.events.listen((event) {
           _actionStreams.add(LogNotification('Gamepad event: $event'));
-          final device = devices.firstOrNullWhere((e) => e.device.deviceId == event.gamepadId);
-          if (device is Gamepad) {
-            device.processGamepadEvent(event);
-          }
+          final device = gamepadDevices.firstOrNullWhere((e) => e.id == event.gamepadId);
+          device?.processGamepadEvent(event);
         });
       }
     });
@@ -117,10 +113,11 @@ class Connection {
     // does not work on web, may not work on Windows
     if (!kIsWeb && !Platform.isWindows) {
       UniversalBle.getSystemDevices(
-        withServices: BaseDevice.servicesToScan,
+        withServices: BluetoothDevice.servicesToScan,
       ).then((devices) async {
-        final baseDevices = devices.mapNotNull(BaseDevice.fromScanResult).toList();
+        final baseDevices = devices.mapNotNull(BluetoothDevice.fromScanResult).toList();
         if (baseDevices.isNotEmpty) {
+          _connectionQueue.addAll(baseDevices);
           _addDevices(baseDevices);
         }
       });
@@ -129,15 +126,13 @@ class Connection {
     await UniversalBle.startScan(
       // allow all to enable Wahoo Kickr Bike Shift detection
       //scanFilter: ScanFilter(withServices: BaseDevice.servicesToScan),
-      platformConfig: PlatformConfig(web: WebOptions(optionalServices: BaseDevice.servicesToScan)),
+      platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
     );
   }
 
   void _addDevices(List<BaseDevice> dev) {
     final newDevices = dev.where((device) => !devices.contains(device)).toList();
     devices.addAll(newDevices);
-
-    _connectionQueue.addAll(newDevices);
     _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
@@ -154,30 +149,28 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      if (device is! Gamepad) {
-        _actionStreams.add(LogNotification('Connecting to: ${device.device.name ?? device.runtimeType}'));
-        _connect(device)
-            .then((_) {
-              _handlingConnectionQueue = false;
-              _actionStreams.add(LogNotification('Connection finished: ${device.device.name ?? device.runtimeType}'));
-              if (_connectionQueue.isNotEmpty) {
-                _handleConnectionQueue();
-              }
-            })
-            .catchError((e) {
-              _handlingConnectionQueue = false;
-              _actionStreams.add(
-                LogNotification('Connection failed: ${device.device.name ?? device.runtimeType} - $e'),
-              );
-              if (_connectionQueue.isNotEmpty) {
-                _handleConnectionQueue();
-              }
-            });
-      }
+      _actionStreams.add(LogNotification('Connecting to: ${device.device.name ?? device.runtimeType}'));
+      _connect(device)
+          .then((_) {
+            _handlingConnectionQueue = false;
+            _actionStreams.add(LogNotification('Connection finished: ${device.device.name ?? device.runtimeType}'));
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          })
+          .catchError((e) {
+            _handlingConnectionQueue = false;
+            _actionStreams.add(
+              LogNotification('Connection failed: ${device.device.name ?? device.runtimeType} - $e'),
+            );
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          });
     }
   }
 
-  Future<void> _connect(BaseDevice bleDevice) async {
+  Future<void> _connect(BluetoothDevice bleDevice) async {
     try {
       final actionSubscription = bleDevice.actionStream.listen((data) {
         _actionStreams.add(data);
@@ -219,7 +212,7 @@ class Connection {
     }
     UniversalBle.stopScan();
     isScanning.value = false;
-    for (var device in devices) {
+    for (var device in bluetoothDevices) {
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();

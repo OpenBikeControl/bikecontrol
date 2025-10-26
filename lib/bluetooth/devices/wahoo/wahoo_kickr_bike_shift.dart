@@ -1,11 +1,12 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-class WahooKickrBikeShift extends BaseDevice {
+import '../bluetooth_device.dart';
+
+class WahooKickrBikeShift extends BluetoothDevice {
   WahooKickrBikeShift(super.scanResult)
     : super(
         availableButtons: WahooKickrBikeShiftConstants.prefixToButton.values.toList(),

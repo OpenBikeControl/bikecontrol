@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
-import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../messages/notification.dart';
+import '../bluetooth_device.dart';
 
-class EliteSquare extends BaseDevice {
+class EliteSquare extends BluetoothDevice {
   EliteSquare(super.scanResult)
     : super(
         availableButtons: SquareConstants.BUTTON_MAPPING.values.toList(),

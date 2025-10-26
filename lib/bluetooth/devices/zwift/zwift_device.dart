@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/ble.dart';
-import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
@@ -11,7 +11,7 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-abstract class ZwiftDevice extends BaseDevice {
+abstract class ZwiftDevice extends BluetoothDevice {
   ZwiftDevice(super.scanResult, {required super.availableButtons, super.isBeta});
 
   BleCharacteristic? syncRxCharacteristic;

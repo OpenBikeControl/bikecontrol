@@ -4,13 +4,13 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../messages/notification.dart';
+import '../bluetooth_device.dart';
 
-class EliteSterzo extends BaseDevice {
+class EliteSterzo extends BluetoothDevice {
   EliteSterzo(super.scanResult)
     : super(
         availableButtons: [

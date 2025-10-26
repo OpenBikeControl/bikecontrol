@@ -6,14 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/link.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
-import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/ingameactions_customizer.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/loading_widget.dart';
@@ -121,7 +119,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final canVibrate = connection.devices.any(
+    final canVibrate = connection.bluetoothDevices.any(
       (device) => (device.device.name == 'Zwift Ride' || device.device.name == 'Zwift Play') && device.isConnected,
     );
 
@@ -174,37 +172,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                           children: [
                             if (connection.devices.isEmpty) Text('No devices connected. Searching...'),
                             ...connection.devices.map(
-                              (device) => Row(
-                                children: [
-                                  Text(
-                                    device.device.name?.screenshot ?? device.runtimeType.toString(),
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  if (device.isBeta) BetaPill(),
-                                  if (device.batteryLevel != null) ...[
-                                    Icon(switch (device.batteryLevel!) {
-                                      >= 80 => Icons.battery_full,
-                                      >= 60 => Icons.battery_6_bar,
-                                      >= 50 => Icons.battery_5_bar,
-                                      >= 25 => Icons.battery_4_bar,
-                                      >= 10 => Icons.battery_2_bar,
-                                      _ => Icons.battery_alert,
-                                    }),
-                                    Text('${device.batteryLevel}%'),
-                                    if (device.firmwareVersion != null) Text(' - Firmware: ${device.firmwareVersion}'),
-                                    if (device.firmwareVersion != null &&
-                                        device is ZwiftDevice &&
-                                        device.firmwareVersion != device.latestFirmwareVersion) ...[
-                                      SizedBox(width: 8),
-                                      Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
-                                      Text(
-                                        ' (latest: ${device.latestFirmwareVersion})',
-                                        style: TextStyle(color: Theme.of(context).colorScheme.error),
-                                      ),
-                                    ],
-                                  ],
-                                ],
-                              ),
+                              (device) => device.showInformation(context),
                             ),
                             if (actionHandler is RemoteActions)
                               Row(
