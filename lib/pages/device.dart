@@ -227,7 +227,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (connection.remoteDevices.isNotEmpty ||
                                 actionHandler is RemoteActions ||
-                                whooshLink.isStarted.value)
+                                !whooshLink.isConnected.value)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
                                 width: double.infinity,
@@ -250,7 +250,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               (device) => device.showInformation(context),
                             ),
 
-                            if (whooshLink.isStarted.value) LinkDevice('').showInformation(context),
+                            if (!whooshLink.isConnected.value) LinkDevice('').showInformation(context),
 
                             if (actionHandler is RemoteActions)
                               Row(

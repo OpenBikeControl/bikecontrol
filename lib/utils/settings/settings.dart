@@ -202,4 +202,12 @@ class Settings {
 
     return migratedData;
   }
+
+  bool getMyWhooshLinkEnabled() {
+    return prefs.getBool('mywhoosh_link_enabled') ?? true;
+  }
+
+  Future<void> setMyWhooshLinkEnabled(bool enabled) async {
+    await prefs.setBool('mywhoosh_link_enabled', enabled);
+  }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/widgets/loading_widget.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
 class LinkDevice extends BaseDevice {
@@ -26,47 +25,37 @@ class LinkDevice extends BaseDevice {
     return ValueListenableBuilder(
       valueListenable: whooshLink.isConnected,
       builder: (context, isConnected, _) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('MyWhoosh Link: ${isConnected ? 'Connected' : 'Not connected'}'),
-            Row(
-              children: [
-                if (!isConnected)
-                  LoadingWidget(
-                    futureCallback: () => connection.startMyWhooshServer(),
-                    renderChild: (isLoading, tap) => ValueListenableBuilder(
-                      valueListenable: whooshLink.isConnected,
-                      builder: (c, isConnected, _) => TextButton(
-                        onPressed: !isConnected ? tap : null,
-                        child: isLoading || (!isConnected && whooshLink.isStarted.value)
-                            ? SmallProgressIndicator()
-                            : Text('Connect'),
-                      ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: settings.getMyWhooshLinkEnabled(),
+              onChanged: (value) {
+                settings.setMyWhooshLinkEnabled(value);
+                if (!value) {
+                  disconnect();
+                  connection.disconnect(this, forget: true);
+                } else if (value) {
+                  connection.startMyWhooshServer();
+                }
+                setState(() {});
+              },
+              title: Text('Enable MyWhoosh Link'),
+              subtitle: Row(
+                spacing: 12,
+                children: [
+                  if (!settings.getMyWhooshLinkEnabled())
+                    Text('Disabled')
+                  else ...[
+                    Text(
+                      isConnected ? "Connected" : "Looking for connection...",
                     ),
-                  ),
-
-                PopupMenuButton(
-                  itemBuilder: (c) => [
-                    if (isConnected)
-                      PopupMenuItem(
-                        child: Text('Disconnect'),
-                        onTap: () {
-                          connection.disconnect(this, forget: true);
-                        },
-                      )
-                    else
-                      PopupMenuItem(
-                        child: Text('Stop'),
-                        onTap: () {
-                          whooshLink.stopServer();
-                        },
-                      ),
+                    if (!isConnected) SmallProgressIndicator(),
                   ],
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            );
+          },
         );
       },
     );
