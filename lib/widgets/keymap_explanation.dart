@@ -94,27 +94,33 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
             for (final keyPair in availableKeypairs) ...[
               TableRow(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        if (actionHandler.supportedApp is! CustomApp)
-                          if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
-                            Text('No button assigned for your connected device')
+                  TableCell(
+                    verticalAlignment: TableCellVerticalAlignment.middle,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (actionHandler.supportedApp is! CustomApp)
+                            if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
+                              Text('No button assigned for your connected device')
+                            else
+                              for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                                IntrinsicWidth(child: ButtonWidget(button: button))
                           else
-                            for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                              IntrinsicWidth(child: ButtonWidget(button: button))
-                        else
-                          for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
-                      ],
+                            for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
+                        ],
+                      ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
+                  TableCell(
+                    verticalAlignment: TableCellVerticalAlignment.middle,
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
+                    ),
                   ),
                 ],
               ),
@@ -296,43 +302,39 @@ class _ButtonEditor extends StatelessWidget {
       ),
     ];
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        if (keyPair.buttons.isNotEmpty &&
-            (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
-          Expanded(
-            child: KeypairExplanation(
-              keyPair: keyPair,
-            ),
-          )
-        else
-          Expanded(child: Text('No action assigned')),
+    return Container(
+      constraints: BoxConstraints(minHeight: kMinInteractiveDimension - 6),
+      padding: EdgeInsets.only(right: actionHandler.supportedApp is CustomApp ? 4 : 0),
+      child: PopupMenuButton(
+        itemBuilder: (c) => actions,
+        enabled: actionHandler.supportedApp is CustomApp,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            if (keyPair.buttons.isNotEmpty &&
+                (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
+              Expanded(
+                child: KeypairExplanation(
+                  keyPair: keyPair,
+                ),
+              )
+            else
+              Expanded(child: Text('No action assigned')),
 
-        if (actionHandler.supportedApp is CustomApp)
-          PopupMenuButton<PhysicalKeyboardKey>(
-            enabled: true,
-            itemBuilder: (context) => [
-              if (actions.length > 1) ...actions,
-            ],
-            onSelected: (key) {
-              keyPair.physicalKey = key;
-              keyPair.logicalKey = null;
-
-              onUpdate();
-            },
-            icon: Icon(Icons.edit),
-          )
-        else
-          IconButton(
-            onPressed: () async {
-              final currentProfile = actionHandler.supportedApp!.name;
-              await KeymapManager().duplicate(context, currentProfile);
-              onUpdate();
-            },
-            icon: Icon(Icons.edit),
-          ),
-      ],
+            if (actionHandler.supportedApp is! CustomApp)
+              IconButton(
+                onPressed: () async {
+                  final currentProfile = actionHandler.supportedApp!.name;
+                  await KeymapManager().duplicate(context, currentProfile);
+                  onUpdate();
+                },
+                icon: Icon(Icons.edit),
+              )
+            else
+              Icon(Icons.edit, size: 14),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -27,30 +27,42 @@ class LinkDevice extends BaseDevice {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text('MyWhoosh Link: ${isConnected ? 'Connected' : 'Not connected'}'),
-        if (isConnected)
-          PopupMenuButton(
-            itemBuilder: (c) => [
-              PopupMenuItem(
-                child: Text('Disconnect'),
-                onTap: () {
-                  connection.disconnect(this, forget: true);
-                },
+        Row(
+          children: [
+            if (!isConnected)
+              LoadingWidget(
+                futureCallback: () => connection.startMyWhooshServer(),
+                renderChild: (isLoading, tap) => ValueListenableBuilder(
+                  valueListenable: whooshLink.isConnected,
+                  builder: (c, isConnected, _) => TextButton(
+                    onPressed: !isConnected ? tap : null,
+                    child: isLoading || (!isConnected && whooshLink.isStarted.value)
+                        ? SmallProgressIndicator()
+                        : Text('Connect'),
+                  ),
+                ),
               ),
-            ],
-          )
-        else
-          LoadingWidget(
-            futureCallback: () => connection.startMyWhooshServer(),
-            renderChild: (isLoading, tap) => ValueListenableBuilder(
-              valueListenable: whooshLink.isConnected,
-              builder: (c, isConnected, _) => TextButton(
-                onPressed: !isConnected ? tap : null,
-                child: isLoading || (!isConnected && whooshLink.isStarted.value)
-                    ? SmallProgressIndicator()
-                    : Text('Connect'),
-              ),
+
+            PopupMenuButton(
+              itemBuilder: (c) => [
+                if (isConnected)
+                  PopupMenuItem(
+                    child: Text('Disconnect'),
+                    onTap: () {
+                      connection.disconnect(this, forget: true);
+                    },
+                  )
+                else
+                  PopupMenuItem(
+                    child: Text('Stop'),
+                    onTap: () {
+                      whooshLink.stopServer();
+                    },
+                  ),
+              ],
             ),
-          ),
+          ],
+        ),
       ],
     );
   }

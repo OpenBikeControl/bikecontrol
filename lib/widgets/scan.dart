@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
 
 class ScanWidget extends StatefulWidget {
   const ScanWidget({super.key});
@@ -67,7 +66,6 @@ class _ScanWidgetState extends State<ScanWidget> {
                     },
                     child: const Text("Show Troubleshooting Guide"),
                   ),
-                  SmallProgressIndicator(),
                   SizedBox(),
                 ],
               );

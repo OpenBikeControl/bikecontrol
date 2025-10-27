@@ -53,7 +53,7 @@ class AndroidActions extends BaseActions {
       try {
         await accessibilityHandler.performTouch(point.dx, point.dy, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
       } on PlatformException catch (e) {
-        return "Failed to perform touch action. Please get in contact with Jonas.\n${e.message}";
+        return "Accessibility Service not working. Follow instructions at https://dontkillmyapp.com/";
       }
       return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()} -> ${isKeyDown && isKeyUp
           ? "click"

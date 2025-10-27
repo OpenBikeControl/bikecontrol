@@ -89,25 +89,24 @@ enum Target {
   ),
   iPad(
     title: 'iPad',
-    description: 'Remotely control any trainer app on an iPad by acting as a Mouse',
+    description: 'Remotely control any trainer app on an iPad by acting as a Mouse, or directly via MyWhoosh Link',
     icon: Icons.settings_remote_outlined,
-    isBeta: true,
   ),
   android(
     title: 'Android Device',
-    description: 'Remotely control any trainer app on an Android device',
+    description: 'Remotely control any trainer app on another Android device, or directly via MyWhoosh Link',
     icon: Icons.settings_remote_outlined,
     isBeta: true,
   ),
   macOS(
     title: 'Mac',
-    description: 'Remotely control any trainer app on a Mac',
+    description: 'Remotely control any trainer app on another Mac, or directly via MyWhoosh Link',
     icon: Icons.settings_remote_outlined,
     isBeta: true,
   ),
   windows(
     title: 'Windows PC',
-    description: 'Remotely control any trainer app on a Windows PC',
+    description: 'Remotely control any trainer app on another Windows PC, or directly via MyWhoosh Link',
     icon: Icons.settings_remote_outlined,
     isBeta: true,
   );
@@ -183,7 +182,7 @@ class TargetRequirement extends PlatformRequirement {
                 Row(
                   children: [
                     Text(target.title, style: TextStyle(fontWeight: FontWeight.bold)),
-                    if (target.isBeta) BetaPill(),
+                    if (target.isBeta || (!Platform.isIOS && target == Target.iPad)) BetaPill(),
                   ],
                 ),
                 Text(

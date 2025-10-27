@@ -30,7 +30,7 @@ class RemoteActions extends BaseActions {
     if (keyPair.inGameAction != null && whooshLink.isConnected.value) {
       return whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
     } else if (!(actionHandler as RemoteActions).isConnected) {
-      return 'Not connected to a device';
+      return 'Not connected to a ${settings.getLastTarget()?.name ?? 'remote'} device';
     }
 
     if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {

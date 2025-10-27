@@ -160,9 +160,6 @@ class Connection {
         if (existing != null) {
           existing.isConnected = true;
           signalChange(existing);
-        } else {
-          final linkDevice = LinkDevice(socket.remoteAddress.address);
-          _addDevices([linkDevice]);
         }
       },
       onDisconnected: (socket) {

@@ -84,7 +84,9 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                   if (_requirements[step].status && _requirements[step] is! TargetRequirement) {
                     return;
                   }
-                  final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
+                  final hasEarlierIncomplete =
+                      _requirements.indexWhere((req) => !req.status) != -1 &&
+                      _requirements.indexWhere((req) => !req.status) < step;
                   if (hasEarlierIncomplete) {
                     return;
                   }

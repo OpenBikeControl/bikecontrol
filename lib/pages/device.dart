@@ -5,15 +5,14 @@ import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:swift_control/bluetooth/devices/link/link_device.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/scan.dart';
+import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:swift_control/widgets/warning.dart';
@@ -54,12 +53,16 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       _checkAndShowChangelog();
     });
 
-    if (actionHandler is RemoteActions && !kIsWeb && Platform.isIOS) {
+    whooshLink.isStarted.addListener(() {
+      if (mounted) setState(() {});
+    });
+
+    if (actionHandler is RemoteActions && !kIsWeb && Platform.isIOS && (actionHandler as RemoteActions).isConnected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // show snackbar to inform user that the app needs to stay in foreground
         _snackBarMessengerKey.currentState?.showSnackBar(
           SnackBar(
-            content: Text('To keep working properly the app needs to stay in the foreground.'),
+            content: Text('To simulate touches the app needs to stay in the foreground.'),
             duration: Duration(seconds: 5),
           ),
         );
@@ -98,14 +101,14 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (actionHandler is RemoteActions && Platform.isIOS) {
+      if (actionHandler is RemoteActions && Platform.isIOS && (actionHandler as RemoteActions).isConnected) {
         UniversalBle.getBluetoothAvailabilityState().then((state) {
           if (state == AvailabilityState.poweredOn) {
             final requirement = RemoteRequirement();
             requirement.reconnect();
             _snackBarMessengerKey.currentState?.showSnackBar(
               SnackBar(
-                content: Text('To keep working properly the app needs to stay in the foreground.'),
+                content: Text('To simulate touches the app needs to stay in the foreground.'),
                 duration: Duration(seconds: 5),
               ),
             );
@@ -191,32 +194,40 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (connection.controllerDevices.isEmpty)
-                              ScanWidget()
-                            else
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 8.0),
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: Theme.of(context).colorScheme.primaryContainer,
-                                    ),
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Text(
-                                    'Connected Controllers',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 8.0),
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).colorScheme.primaryContainer,
                                   ),
                                 ),
                               ),
-                            ...connection.controllerDevices.map(
-                              (device) => device.showInformation(context),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Connected Controllers',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    if (connection.controllerDevices.isEmpty) SmallProgressIndicator(),
+                                  ],
+                                ),
+                              ),
                             ),
+                            if (connection.controllerDevices.isEmpty)
+                              ScanWidget()
+                            else
+                              ...connection.controllerDevices.map(
+                                (device) => device.showInformation(context),
+                              ),
 
-                            if (connection.remoteDevices.isNotEmpty || actionHandler is RemoteActions)
+                            if (connection.remoteDevices.isNotEmpty ||
+                                actionHandler is RemoteActions ||
+                                whooshLink.isStarted.value)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
                                 width: double.infinity,
@@ -230,7 +241,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                                   child: Text(
-                                    'Remote Devices',
+                                    'Remote Connections',
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -238,6 +249,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                             ...connection.remoteDevices.map(
                               (device) => device.showInformation(context),
                             ),
+
+                            if (whooshLink.isStarted.value) LinkDevice('').showInformation(context),
 
                             if (actionHandler is RemoteActions)
                               Row(
@@ -258,53 +271,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     ],
                                   ),
                                 ],
-                              ),
-
-                            if (connection.devices.any((device) => (device is ZwiftClickV2) && device.isConnected))
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Warning(
-                                  children: [
-                                    Text(
-                                      '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
-
-1. Open Zwift app
-2. Log in (subscription not required) and open the device connection screen
-3. Connect your Trainer, then connect the Zwift Click V2
-4. Close the Zwift app again and connect again in SwiftControl''',
-                                    ),
-                                    Row(
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {
-                                            connection.devices.whereType<ZwiftClickV2>().forEach(
-                                              (device) => device.sendCommand(Opcode.RESET, null),
-                                            );
-                                          },
-                                          child: Text('Reset now'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                                              ),
-                                            );
-                                          },
-                                          child: Text('Troubleshooting'),
-                                        ),
-                                        if (kDebugMode)
-                                          TextButton(
-                                            onPressed: () {
-                                              (connection.bluetoothDevices.first as ZwiftClickV2).test();
-                                            },
-                                            child: Text('Test'),
-                                          ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
                               ),
                           ],
                         ),

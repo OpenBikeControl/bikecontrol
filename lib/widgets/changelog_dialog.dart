@@ -36,7 +36,7 @@ class ChangelogDialog extends StatelessWidget {
 
   static Future<void> showIfNeeded(BuildContext context, String currentVersion, String? lastSeenVersion) async {
     // Show dialog if this is a new version
-    if (lastSeenVersion != currentVersion || true) {
+    if (lastSeenVersion != currentVersion) {
       try {
         final entry = await rootBundle.loadString('CHANGELOG.md');
         if (context.mounted) {

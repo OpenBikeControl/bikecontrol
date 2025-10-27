@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -92,6 +93,11 @@ class RemoteRequirement extends PlatformRequirement {
         return;
       }
     }
+    if (kDebugMode) {
+      print('Continuing');
+      return;
+    }
+
     while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
       print('Waiting for peripheral manager to be powered on...');
       if (settings.getLastTarget() == Target.thisDevice) {
@@ -99,7 +105,6 @@ class RemoteRequirement extends PlatformRequirement {
       }
       await Future.delayed(Duration(seconds: 1));
     }
-
     if (!_isServiceAdded) {
       await Future.delayed(Duration(seconds: 1));
       final reportMapDataAbsolute = Uint8List.fromList([
@@ -317,6 +322,30 @@ class _PairWidgetState extends State<_PairWidget> {
             ),
             if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
           ],
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (c) => DevicePage(),
+                settings: RouteSettings(name: '/device'),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Use MyWhoosh Link only'),
+                Text(
+                  'No pairing required, connect directly via MyWhoosh Link.',
+                  style: TextStyle(fontSize: 10, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
         ),
         if (_isAdvertising) ...[
           TextButton(
