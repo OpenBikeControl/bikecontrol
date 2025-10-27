@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 
@@ -76,6 +77,30 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
           _keys.insert(0, sample);
           if (_keys.length > widget.maxKeyboardEvents) {
             _keys.removeLast();
+          }
+
+          if (actionHandler.supportedApp is! CustomApp &&
+              actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
+            ScaffoldMessenger.maybeOf(
+              context,
+            )?.showSnackBar(
+              SnackBar(
+                padding: EdgeInsets.only(left: 70, top: 12, bottom: 12, right: 12),
+                content: Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: 'Use a custom keymap to support the '),
+                      WidgetSpan(
+                        child: ButtonWidget(button: button),
+                      ),
+                      const TextSpan(
+                        text: ' button.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
           }
         }
         setState(() {});
