@@ -146,7 +146,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
           currentPath = route.settings.name;
           return true;
         });
-        if (currentPath == null || currentPath != '/device') {
+        if (currentPath == '/') {
           Navigator.push(
             context,
             MaterialPageRoute(

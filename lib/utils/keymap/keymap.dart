@@ -60,6 +60,8 @@ class KeyPair {
   LogicalKeyboardKey? logicalKey;
   Offset touchPosition;
   bool isLongPress;
+  InGameAction? inGameAction;
+  int? inGameActionValue;
 
   KeyPair({
     required this.buttons,
@@ -67,6 +69,8 @@ class KeyPair {
     required this.logicalKey,
     this.touchPosition = Offset.zero,
     this.isLongPress = false,
+    this.inGameAction,
+    this.inGameActionValue,
   });
 
   bool get isSpecialKey =>
@@ -85,10 +89,9 @@ class KeyPair {
       PhysicalKeyboardKey.mediaTrackNext ||
       PhysicalKeyboardKey.audioVolumeUp ||
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
-      _ =>
-        physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard)
-            ? Icons.keyboard
-            : Icons.touch_app,
+      _ when physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard) => Icons.keyboard,
+      _ when inGameAction != null && whooshLink.isConnected.value => Icons.link,
+      _ => Icons.touch_app,
     };
   }
 
@@ -115,6 +118,8 @@ class KeyPair {
       if (physicalKey != null) 'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
       if (touchPosition != Offset.zero) 'touchPosition': {'x': touchPosition.dx, 'y': touchPosition.dy},
       'isLongPress': isLongPress,
+      'inGameAction': inGameAction?.name,
+      'inGameActionValue': inGameActionValue,
     });
   }
 
@@ -149,6 +154,10 @@ class KeyPair {
           : null,
       touchPosition: touchPosition,
       isLongPress: decoded['isLongPress'] ?? false,
+      inGameAction: decoded.containsKey('inGameAction')
+          ? InGameAction.values.firstOrNullWhere((element) => element.name == decoded['inGameAction'])
+          : null,
+      inGameActionValue: decoded['inGameActionValue'],
     );
   }
 }

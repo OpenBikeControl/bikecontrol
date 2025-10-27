@@ -132,7 +132,7 @@ class WhooshLink {
     if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
       _socket?.writeln(jsonString);
-      return 'Sent action to MyWhoosh: $action';
+      return 'Sent action to MyWhoosh: $action ${value ?? ''}';
     } else {
       return 'No action available for button: $action';
     }

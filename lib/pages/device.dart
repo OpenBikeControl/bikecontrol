@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
@@ -13,10 +12,8 @@ import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
-import 'package:swift_control/widgets/loading_widget.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/scan.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:swift_control/widgets/warning.dart';
@@ -249,15 +246,16 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                   Text(
                                     'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected'}',
                                   ),
-                                  LoadingWidget(
-                                    futureCallback: () async {
-                                      final requirement = RemoteRequirement();
-                                      await requirement.reconnect();
-                                    },
-                                    renderChild: (isLoading, tap) => TextButton(
-                                      onPressed: tap,
-                                      child: isLoading ? SmallProgressIndicator() : Text('Reconnect'),
-                                    ),
+                                  PopupMenuButton(
+                                    itemBuilder: (_) => [
+                                      PopupMenuItem(
+                                        child: Text('Reconnect'),
+                                        onTap: () async {
+                                          final requirement = RemoteRequirement();
+                                          await requirement.reconnect();
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -358,7 +356,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                           final profileName = await KeymapManager().showNewProfileDialog(context);
                                           if (profileName != null && profileName.isNotEmpty) {
                                             final customApp = CustomApp(profileName: profileName);
-                                            actionHandler.supportedApp = customApp;
+                                            actionHandler.init(customApp);
                                             await settings.setApp(customApp);
                                             controller.text = profileName;
                                             setState(() {});
@@ -388,99 +386,11 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                                   Row(
                                     children: [
-                                      IconButton(
-                                        onPressed: () async {
-                                          final currentProfile = actionHandler.supportedApp is CustomApp
-                                              ? actionHandler.supportedApp?.name
-                                              : null;
-                                          final action = await KeymapManager().showManageProfileDialog(
-                                            context,
-                                            currentProfile,
-                                          );
-                                          if (action != null) {
-                                            if (action == 'rename') {
-                                              final newName = await KeymapManager().showRenameProfileDialog(
-                                                context,
-                                                currentProfile!,
-                                              );
-                                              if (newName != null && newName.isNotEmpty && newName != currentProfile) {
-                                                await settings.duplicateCustomAppProfile(currentProfile, newName);
-                                                await settings.deleteCustomAppProfile(currentProfile);
-                                                final customApp = CustomApp(profileName: newName);
-                                                final savedKeymap = settings.getCustomAppKeymap(newName);
-                                                if (savedKeymap != null) {
-                                                  customApp.decodeKeymap(savedKeymap);
-                                                }
-                                                actionHandler.supportedApp = customApp;
-                                                await settings.setApp(customApp);
-                                                controller.text = newName;
-                                                setState(() {});
-                                              }
-                                            } else if (action == 'duplicate') {
-                                              final newName = await KeymapManager().duplicate(
-                                                context,
-                                                currentProfile!,
-                                              );
-
-                                              if (newName != null) {
-                                                controller.text = newName;
-                                                setState(() {});
-                                              }
-                                            } else if (action == 'delete') {
-                                              final confirmed = await KeymapManager().showDeleteConfirmDialog(
-                                                context,
-                                                currentProfile!,
-                                              );
-                                              if (confirmed == true) {
-                                                await settings.deleteCustomAppProfile(currentProfile);
-                                                controller.text = '';
-                                                setState(() {});
-                                              }
-                                            } else if (action == 'import') {
-                                              final jsonData = await KeymapManager().showImportDialog(context);
-                                              if (jsonData != null && jsonData.isNotEmpty) {
-                                                final success = await settings.importCustomAppProfile(jsonData);
-                                                if (mounted) {
-                                                  if (success) {
-                                                    _snackBarMessengerKey.currentState!.showSnackBar(
-                                                      SnackBar(
-                                                        content: Text('Profile imported successfully'),
-                                                        duration: Duration(seconds: 5),
-                                                      ),
-                                                    );
-                                                    setState(() {});
-                                                  } else {
-                                                    _snackBarMessengerKey.currentState!.showSnackBar(
-                                                      SnackBar(
-                                                        content: Text('Failed to import profile. Invalid format.'),
-                                                        duration: Duration(seconds: 5),
-                                                        backgroundColor: Colors.red,
-                                                      ),
-                                                    );
-                                                  }
-                                                }
-                                              }
-                                            } else if (action == 'export') {
-                                              final currentProfile =
-                                                  (actionHandler.supportedApp as CustomApp).profileName;
-                                              final jsonData = settings.exportCustomAppProfile(currentProfile);
-                                              if (jsonData != null) {
-                                                Clipboard.setData(ClipboardData(text: jsonData));
-                                                if (mounted) {
-                                                  _snackBarMessengerKey.currentState!.showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Profile "$currentProfile" exported to clipboard',
-                                                      ),
-                                                      duration: Duration(seconds: 5),
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            }
-                                          }
-                                        },
-                                        icon: Icon(Icons.more_vert),
+                                      KeymapManager().getManageProfileDialog(
+                                        context,
+                                        actionHandler.supportedApp is CustomApp
+                                            ? actionHandler.supportedApp?.name
+                                            : null,
                                       ),
                                     ],
                                   ),

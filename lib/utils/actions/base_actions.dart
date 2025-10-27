@@ -46,9 +46,8 @@ abstract class BaseActions {
     }
   }
 
-  Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {
-    final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (keyPair != null && keyPair.touchPosition != Offset.zero) {
+  Future<Offset> resolveTouchPosition({required KeyPair keyPair, required WindowEvent? windowInfo}) async {
+    if (keyPair.touchPosition != Offset.zero) {
       // convert relative position to absolute position based on window info
 
       // TODO support multiple screens

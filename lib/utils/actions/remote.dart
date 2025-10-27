@@ -7,6 +7,7 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -26,14 +27,16 @@ class RemoteActions extends BaseActions {
       return 'Keymap entry not found for action: ${action.toString().splitByUpperCase()}';
     }
 
-    if (!(actionHandler as RemoteActions).isConnected) {
+    if (keyPair.inGameAction != null && whooshLink.isConnected.value) {
+      return whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+    } else if (!(actionHandler as RemoteActions).isConnected) {
       return 'Not connected to a device';
     }
 
     if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {
       return ('Physical key actions are not supported, yet');
     } else {
-      final point = await resolveTouchPosition(action: action, windowInfo: null);
+      final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: null);
       final point2 = point; //Offset(100, 99.0);
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
@@ -44,13 +47,9 @@ class RemoteActions extends BaseActions {
   }
 
   @override
-  Future<Offset> resolveTouchPosition({required ControllerButton action, required WindowEvent? windowInfo}) async {
+  Future<Offset> resolveTouchPosition({required KeyPair keyPair, required WindowEvent? windowInfo}) async {
     // for remote actions we use the relative position only
-    final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (keyPair != null && keyPair.touchPosition != Offset.zero) {
-      return keyPair.touchPosition;
-    }
-    return Offset.zero;
+    return keyPair.touchPosition;
   }
 
   Uint8List absMouseReport(int buttons3bit, int x, int y) {

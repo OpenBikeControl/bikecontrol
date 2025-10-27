@@ -12,6 +12,7 @@ import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
 
+import '../bluetooth/devices/link/link.dart';
 import '../pages/touch_area.dart';
 
 class KeymapExplanation extends StatefulWidget {
@@ -133,6 +134,52 @@ class _ButtonEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = [
+      if (whooshLink.isConnected.value)
+        PopupMenuItem<PhysicalKeyboardKey>(
+          child: PopupMenuButton(
+            itemBuilder: (_) => WhooshLink.supportedActions.map(
+              (ingame) {
+                return PopupMenuItem(
+                  value: ingame,
+                  child: ingame.possibleValues != null
+                      ? PopupMenuButton(
+                          itemBuilder: (c) => ingame.possibleValues!
+                              .map(
+                                (value) => PopupMenuItem(
+                                  value: value,
+                                  child: Text(value.toString()),
+                                  onTap: () {
+                                    keyPair.inGameAction = ingame;
+                                    keyPair.inGameActionValue = value;
+                                    onUpdate();
+                                  },
+                                ),
+                              )
+                              .toList(),
+                          child: Row(
+                            children: [
+                              Expanded(child: Text(ingame.toString())),
+                              Icon(Icons.arrow_right),
+                            ],
+                          ),
+                        )
+                      : Text(ingame.toString()),
+                  onTap: () {
+                    keyPair.inGameAction = ingame;
+                    keyPair.inGameActionValue = null;
+                    onUpdate();
+                  },
+                );
+              },
+            ).toList(),
+            child: Row(
+              children: [
+                Expanded(child: Text('MyWhoosh Link Action')),
+                Icon(Icons.arrow_right),
+              ],
+            ),
+          ),
+        ),
       if (actionHandler.supportedModes.contains(SupportedMode.keyboard))
         PopupMenuItem<PhysicalKeyboardKey>(
           value: null,
@@ -227,12 +274,33 @@ class _ButtonEditor extends StatelessWidget {
             ),
           ),
         ),
+
+      PopupMenuItem<PhysicalKeyboardKey>(
+        value: null,
+        onTap: () {
+          keyPair.isLongPress = !keyPair.isLongPress;
+          onUpdate();
+        },
+        child: ListTile(
+          title: const Text('Long Press Mode (vs. repeating)'),
+          trailing: Checkbox(
+            value: keyPair.isLongPress,
+            onChanged: (value) {
+              keyPair.isLongPress = value ?? false;
+
+              onUpdate();
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+      ),
     ];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        if (keyPair.buttons.isNotEmpty && (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero))
+        if (keyPair.buttons.isNotEmpty &&
+            (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
           Expanded(
             child: KeypairExplanation(
               keyPair: keyPair,
@@ -246,23 +314,6 @@ class _ButtonEditor extends StatelessWidget {
             enabled: true,
             itemBuilder: (context) => [
               if (actions.length > 1) ...actions,
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: null,
-                onTap: () {
-                  keyPair.isLongPress = !keyPair.isLongPress;
-                  onUpdate();
-                },
-                child: CheckboxListTile(
-                  value: keyPair.isLongPress,
-                  onChanged: (value) {
-                    keyPair.isLongPress = value ?? false;
-
-                    onUpdate();
-                    Navigator.of(context).pop();
-                  },
-                  title: const Text('Long Press Mode (vs. repeating)'),
-                ),
-              ),
             ],
             onSelected: (key) {
               keyPair.physicalKey = key;

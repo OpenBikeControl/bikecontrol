@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -22,7 +23,9 @@ class DesktopActions extends BaseActions {
     }
 
     // Handle regular key press mode (existing behavior)
-    if (keyPair.physicalKey != null) {
+    if (keyPair.inGameAction != null && whooshLink.isConnected.value) {
+      return whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+    } else if (keyPair.physicalKey != null) {
       if (isKeyDown && isKeyUp) {
         await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
         await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
@@ -35,7 +38,7 @@ class DesktopActions extends BaseActions {
         return 'Key released: $keyPair';
       }
     } else {
-      final point = await resolveTouchPosition(action: action, windowInfo: null);
+      final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: null);
       if (point != Offset.zero) {
         if (isKeyDown && isKeyUp) {
           await keyPressSimulator.simulateMouseClickDown(point);

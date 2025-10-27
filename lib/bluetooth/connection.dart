@@ -60,7 +60,7 @@ class Connection {
       final existingDevice = bluetoothDevices.firstOrNullWhere(
         (e) => e.device.deviceId == result.deviceId,
       );
-      if (existingDevice != null) {
+      if (existingDevice != null && existingDevice.rssi != result.rssi) {
         existingDevice.rssi = result.rssi;
         _connectionStreams.add(existingDevice); // Notify UI of update
       }

@@ -44,6 +44,7 @@ class ChangelogDialog extends StatelessWidget {
           showDialog(
             context: context,
             useRootNavigator: true,
+            routeSettings: RouteSettings(name: '/changelog'),
             builder: (context) => ChangelogDialog(entry: markdown),
           );
         }

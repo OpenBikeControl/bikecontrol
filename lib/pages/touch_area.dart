@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -372,7 +373,14 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.isSpecialKey && actionHandler.supportedModes.contains(SupportedMode.media))
+        if (keyPair.inGameAction != null && whooshLink.isConnected.value)
+          _KeyWidget(
+            label: [
+              keyPair.inGameAction.toString().split('.').last,
+              if (keyPair.inGameActionValue != null) ': ${keyPair.inGameActionValue}',
+            ].joinToString(separator: ''),
+          )
+        else if (keyPair.isSpecialKey && actionHandler.supportedModes.contains(SupportedMode.media))
           _KeyWidget(
             label: switch (keyPair.physicalKey) {
               PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
