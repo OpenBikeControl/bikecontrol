@@ -3,6 +3,7 @@
 **New Feature:**
 - Support for Elite Sterzo (thanks @michidk)
 - Support for Gamepads
+- Support for cheap bluetooth remotes (such as [these](https://www.amazon.com/s?k=bluetooth+remote))
 - you can now customize the Keymap right from the Customize section
 - show signal strength of connected devices (thanks @michidk)
 

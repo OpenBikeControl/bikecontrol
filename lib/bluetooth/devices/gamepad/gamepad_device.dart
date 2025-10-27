@@ -5,6 +5,7 @@ import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
@@ -25,16 +26,18 @@ class GamepadDevice extends BaseDevice {
 
       if (button == null) {
         button = ControllerButton(event.key);
-        availableButtons.add(button);
-        actionHandler.supportedApp?.keymap.addKeyPair(
-          KeyPair(
-            touchPosition: Offset.zero,
-            buttons: [button],
-            physicalKey: null,
-            logicalKey: null,
-            isLongPress: false,
-          ),
-        );
+        if (actionHandler.supportedApp is CustomApp) {
+          availableButtons.add(button);
+          actionHandler.supportedApp?.keymap.addKeyPair(
+            KeyPair(
+              touchPosition: Offset.zero,
+              buttons: [button],
+              physicalKey: null,
+              logicalKey: null,
+              isLongPress: false,
+            ),
+          );
+        }
       }
 
       final buttonsClicked = event.value == 0.0 ? [button] : <ControllerButton>[];
