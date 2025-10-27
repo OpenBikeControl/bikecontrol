@@ -18,8 +18,8 @@ class WhooshLink {
     InGameAction.steerRight,
   ];
 
-  final ValueNotifier<bool> isConnected = ValueNotifier(false);
   final ValueNotifier<bool> isStarted = ValueNotifier(false);
+  final ValueNotifier<bool> isConnected = ValueNotifier(false);
 
   void stopServer() async {
     if (isStarted.value) {
@@ -33,7 +33,10 @@ class WhooshLink {
     }
   }
 
-  Future<void> startServer() async {
+  Future<void> startServer({
+    required void Function(Socket socket) onConnected,
+    required void Function(Socket socket) onDisconnected,
+  }) async {
     // Create and bind server socket
     _server = await ServerSocket.bind(
       InternetAddress.anyIPv6,
@@ -49,6 +52,7 @@ class WhooshLink {
     // Accept connection
     _server!.listen((Socket socket) {
       _socket = socket;
+      onConnected(socket);
       isConnected.value = true;
       if (kDebugMode) {
         print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
@@ -67,6 +71,7 @@ class WhooshLink {
         },
         onDone: () {
           print('Client disconnected: $socket');
+          onDisconnected(socket);
           isConnected.value = false;
         },
       );
@@ -74,9 +79,6 @@ class WhooshLink {
   }
 
   String sendAction(InGameAction action, int? value) {
-    if (!isConnected.value) {
-      return 'Not connected to MyWhoosh.';
-    }
     final jsonObject = switch (action) {
       InGameAction.shiftUp => {
         'MessageType': 'Controls',

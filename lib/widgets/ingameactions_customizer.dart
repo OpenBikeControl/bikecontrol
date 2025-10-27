@@ -1,6 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_control/link/link.dart';
+import 'package:swift_control/bluetooth/devices/link/link.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';

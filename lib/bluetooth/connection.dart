@@ -15,6 +15,7 @@ import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'devices/base_device.dart';
+import 'devices/link/link_device.dart';
 import 'devices/zwift/constants.dart';
 import 'messages/notification.dart';
 
@@ -23,6 +24,8 @@ class Connection {
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
+  List<BaseDevice> get controllerDevices => [...bluetoothDevices, ...gamepadDevices];
+  List<BaseDevice> get remoteDevices => devices.whereNot((d) => d is BluetoothDevice || d is GamepadDevice).toList();
 
   var _androidNotificationsSetup = false;
 
@@ -45,7 +48,7 @@ class Connection {
 
   void initialize() {
     UniversalBle.onAvailabilityChange = (available) {
-      _actionStreams.add(LogNotification('Bluetooth availability changed: $available'));
+      _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb) {
         performScanning();
       } else if (available == AvailabilityState.poweredOff) {
@@ -144,6 +147,34 @@ class Connection {
       final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
       _addDevices(pads);
     });
+
+    startMyWhooshServer();
+  }
+
+  Future<void> startMyWhooshServer() {
+    return whooshLink.startServer(
+      onConnected: (socket) {
+        final existing = remoteDevices.firstOrNullWhere(
+          (e) => e is LinkDevice && e.identifier == socket.remoteAddress.address,
+        );
+        if (existing != null) {
+          existing.isConnected = true;
+          signalChange(existing);
+        } else {
+          final linkDevice = LinkDevice(socket.remoteAddress.address);
+          _addDevices([linkDevice]);
+        }
+      },
+      onDisconnected: (socket) {
+        final device = devices.firstOrNullWhere(
+          (device) => device is LinkDevice && device.identifier == socket.remoteAddress.address,
+        );
+        if (device != null) {
+          devices.remove(device);
+          signalChange(device);
+        }
+      },
+    );
   }
 
   void _addDevices(List<BaseDevice> dev) {
@@ -207,6 +238,7 @@ class Connection {
       }
 
       await device.connect();
+      signalChange(device);
 
       final newButtons = device.availableButtons.filter(
         (button) => actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
@@ -267,17 +299,21 @@ class Connection {
     _connectionStreams.add(baseDevice);
   }
 
-  Future<void> disconnect(BluetoothDevice device, {required bool forget}) async {
+  Future<void> disconnect(BaseDevice device, {required bool forget}) async {
     if (device.isConnected) {
       await device.disconnect();
     }
-    devices.remove(device);
-    if (!forget) {
+    if (device is! LinkDevice) {
+      // keep it in the list to allow reconnect
+      devices.remove(device);
+    }
+    if (!forget && device is BluetoothDevice) {
       _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
     }
+    signalChange(device);
   }
 }

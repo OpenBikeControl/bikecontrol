@@ -239,7 +239,7 @@ class _ButtonEditor extends StatelessWidget {
             ),
           )
         else
-          Text('No action assigned'),
+          Expanded(child: Text('No action assigned')),
 
         if (actionHandler.supportedApp is CustomApp)
           PopupMenuButton<PhysicalKeyboardKey>(

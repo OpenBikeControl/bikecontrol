@@ -36,7 +36,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
     if (availablity == AvailabilityState.unsupported) {
       list = [UnsupportedPlatform()];
     } else {
-      list = [BluetoothTurnedOn(), BluetoothScanning()];
+      list = [BluetoothTurnedOn()];
     }
   } else if (Platform.isMacOS) {
     list = [
@@ -45,10 +45,8 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       switch (connectionType) {
         ConnectionType.local => KeyboardRequirement(),
         ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.link => LinkRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
-      BluetoothScanning(),
     ];
   } else if (Platform.isIOS) {
     list = [
@@ -57,10 +55,8 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       switch (connectionType) {
         ConnectionType.local => RemoteRequirement(),
         ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.link => LinkRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
-      BluetoothScanning(),
     ];
   } else if (Platform.isWindows) {
     list = [
@@ -69,10 +65,8 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       switch (connectionType) {
         ConnectionType.local => KeyboardRequirement(),
         ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.link => LinkRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
-      BluetoothScanning(),
     ];
   } else if (Platform.isAndroid) {
     final deviceInfoPlugin = DeviceInfoPlugin();
@@ -90,10 +84,8 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       switch (connectionType) {
         ConnectionType.local => AccessibilityRequirement(),
         ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.link => LinkRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
-      BluetoothScanning(),
     ];
   } else {
     list = [UnsupportedPlatform()];

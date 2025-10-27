@@ -15,6 +15,17 @@ class LogNotification extends BaseNotification {
   }
 }
 
+class BluetoothAvailabilityNotification extends BaseNotification {
+  final bool isAvailable;
+
+  BluetoothAvailabilityNotification(this.isAvailable);
+
+  @override
+  String toString() {
+    return 'Bluetooth is ${isAvailable ? "available" : "unavailable"}';
+  }
+}
+
 class ButtonNotification extends BaseNotification {
   List<ControllerButton> buttonsClicked;
 

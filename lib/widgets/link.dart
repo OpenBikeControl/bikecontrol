@@ -15,10 +15,6 @@ class _LinkWidgetState extends State<LinkWidget> {
   @override
   void initState() {
     super.initState();
-    whooshLink.startServer();
-    whooshLink.isConnected.addListener(() {
-      widget.onUpdate();
-    });
   }
 
   @override
@@ -34,11 +30,7 @@ class _LinkWidgetState extends State<LinkWidget> {
               spacing: 8,
               children: [
                 ElevatedButton(
-                  onPressed: value
-                      ? null
-                      : () async {
-                          await whooshLink.startServer();
-                        },
+                  onPressed: value ? null : () async {},
                   child: Text(value ? 'Waiting for MyWhoosh...' : 'Start Listening for MyWhoosh'),
                 ),
                 if (value) SmallProgressIndicator(),

@@ -3,11 +3,9 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/widgets/changelog_dialog.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
 
@@ -33,7 +31,6 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
     // call after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       settings.init().then((_) {
-        _checkAndShowChangelog();
         if (!kIsWeb && Platform.isMacOS) {
           // add more delay due to CBManagerStateUnknown
           Future.delayed(const Duration(seconds: 2), () {
@@ -44,29 +41,6 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
         }
       });
     });
-
-    connection.hasDevices.addListener(() {
-      if (connection.hasDevices.value) {
-        Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
-      }
-    });
-  }
-
-  Future<void> _checkAndShowChangelog() async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
-      final lastSeenVersion = settings.getLastSeenVersion();
-
-      if (mounted) {
-        await ChangelogDialog.showIfNeeded(context, currentVersion, lastSeenVersion);
-      }
-
-      // Update last seen version
-      await settings.setLastSeenVersion(currentVersion);
-    } catch (e) {
-      print('Failed to check changelog: $e');
-    }
   }
 
   @override
@@ -160,9 +134,27 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   void _reloadRequirements() {
     getRequirements(settings.getLastTarget()?.connectionType ?? ConnectionType.unknown).then((req) {
       _requirements = req;
-      _currentStep = req.indexWhere((req) => !req.status);
-      if (mounted) {
-        setState(() {});
+      final unresolvedIndex = req.indexWhere((req) => !req.status);
+      if (unresolvedIndex != -1) {
+        _currentStep = unresolvedIndex;
+        if (mounted) {
+          setState(() {});
+        }
+      } else if (mounted) {
+        String? currentPath;
+        navigatorKey.currentState?.popUntil((route) {
+          currentPath = route.settings.name;
+          return true;
+        });
+        if (currentPath == null || currentPath != '/device') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (c) => DevicePage(),
+              settings: RouteSettings(name: '/device'),
+            ),
+          );
+        }
       }
     });
   }

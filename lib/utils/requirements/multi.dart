@@ -7,8 +7,6 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
-import 'package:swift_control/widgets/link.dart';
-import 'package:swift_control/widgets/scan.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
@@ -81,23 +79,6 @@ class UnsupportedPlatform extends PlatformRequirement {
   Future<void> getStatus() async {}
 }
 
-class BluetoothScanning extends PlatformRequirement {
-  BluetoothScanning() : super('Finding your Controller...') {
-    status = false;
-  }
-
-  @override
-  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
-
-  @override
-  Future<void> getStatus() async {}
-
-  @override
-  Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return ScanWidget();
-  }
-}
-
 typedef BoolFunction = bool Function();
 
 enum Target {
@@ -105,11 +86,6 @@ enum Target {
     title: 'This device',
     description: 'Trainer app runs on this device',
     icon: Icons.devices,
-  ),
-  myWhooshLink(
-    title: 'MyWhoosh Link',
-    description: 'Control MyWhoosh directly on another device, such as a tablet or a TV',
-    icon: Icons.link,
   ),
   iPad(
     title: 'iPad',
@@ -168,7 +144,6 @@ enum Target {
   ConnectionType get connectionType {
     return switch (this) {
       Target.thisDevice => ConnectionType.local,
-      Target.myWhooshLink => ConnectionType.link,
       _ => ConnectionType.remote,
     };
   }
@@ -212,18 +187,11 @@ class TargetRequirement extends PlatformRequirement {
                   ],
                 ),
                 Text(
-                  target == Target.myWhooshLink && Platform.isAndroid
-                      ? 'Control MyWhoosh directly on this or another device'
-                      : target.isCompatible
+                  target.isCompatible
                       ? target.description
                       : 'Due to iOS restrictions only controlling trainer apps on other devices is supported.',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
-                if (target == Target.myWhooshLink)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Divider(),
-                  ),
               ],
             ),
           ),
@@ -273,27 +241,6 @@ class TargetRequirement extends PlatformRequirement {
     } else {
       return null;
     }
-  }
-}
-
-class LinkRequirement extends PlatformRequirement {
-  LinkRequirement()
-    : super(
-        'Link Requirement',
-        description: 'Start MyWhoosh on another device, open the connection screen and you\'re good to go!',
-      );
-
-  @override
-  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
-
-  @override
-  Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return LinkWidget(onUpdate: onUpdate);
-  }
-
-  @override
-  Future<void> getStatus() async {
-    status = whooshLink.isConnected.value;
   }
 }
 

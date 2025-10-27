@@ -26,6 +26,11 @@ class _LogviewerState extends State<LogViewer> {
 
     _actionSubscription = connection.actionStream.listen((data) {
       if (mounted) {
+        if (data is BluetoothAvailabilityNotification) {
+          if (!data.isAvailable && Navigator.canPop(context)) {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          }
+        }
         setState(() {
           _actions.add((date: DateTime.now(), entry: data.toString()));
           _actions = _actions.takeLast(kIsWeb ? 1000 : 60).toList();

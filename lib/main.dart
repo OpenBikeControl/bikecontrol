@@ -8,15 +8,15 @@ import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/actions/link.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 
 import 'bluetooth/connection.dart';
-import 'link/link.dart';
+import 'bluetooth/devices/link/link.dart';
 import 'utils/actions/base_actions.dart';
 
 final connection = Connection();
+final navigatorKey = GlobalKey<NavigatorState>();
 late BaseActions actionHandler;
 final accessibilityHandler = Accessibility();
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -34,34 +34,27 @@ enum ConnectionType {
   unknown,
   local,
   remote,
-  link,
 }
 
 Future<void> initializeActions(ConnectionType connectionType) async {
-  if (connectionType != ConnectionType.link) {
-    whooshLink.stopServer();
-  }
   if (kIsWeb) {
     actionHandler = StubActions();
   } else if (Platform.isAndroid) {
     actionHandler = switch (connectionType) {
       ConnectionType.local => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
-      ConnectionType.link => LinkActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else if (Platform.isIOS) {
     actionHandler = switch (connectionType) {
       ConnectionType.local => StubActions(),
       ConnectionType.remote => RemoteActions(),
-      ConnectionType.link => LinkActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else {
     actionHandler = switch (connectionType) {
       ConnectionType.local => DesktopActions(),
       ConnectionType.remote => RemoteActions(),
-      ConnectionType.link => LinkActions(),
       ConnectionType.unknown => StubActions(),
     };
   }
@@ -73,6 +66,7 @@ class SwiftPlayApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'SwiftControl',
       theme: AppTheme.light,
