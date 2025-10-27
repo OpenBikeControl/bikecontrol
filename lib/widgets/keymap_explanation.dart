@@ -101,8 +101,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         if (actionHandler.supportedApp is! CustomApp)
-                          for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                            IntrinsicWidth(child: ButtonWidget(button: button))
+                          if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
+                            Text('No button assigned for your connected device')
+                          else
+                            for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                              IntrinsicWidth(child: ButtonWidget(button: button))
                         else
                           for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
                       ],

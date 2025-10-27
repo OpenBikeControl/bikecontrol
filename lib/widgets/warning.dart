@@ -8,6 +8,7 @@ class Warning extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(bottom: 6),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(8),

@@ -151,6 +151,12 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                           Text('Enable auto-rotation on your device to make sure the app works correctly.'),
                         ],
                       ),
+                    if (connection.gamepadDevices.isNotEmpty && actionHandler.supportedApp is! CustomApp)
+                      Warning(
+                        children: [
+                          Text('Your gamepad requires a custom keymap to be able to use all buttons.'),
+                        ],
+                      ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Text('Connected Devices', style: Theme.of(context).textTheme.titleMedium),
