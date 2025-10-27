@@ -71,7 +71,7 @@ class Connection {
         if (kDebugMode) {
           print('Scan result: ${result.name} - ${result.deviceId}');
         }
-        
+
         final scanResult = BluetoothDevice.fromScanResult(result);
 
         if (scanResult != null) {

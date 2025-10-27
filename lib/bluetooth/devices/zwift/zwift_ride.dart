@@ -61,7 +61,9 @@ class ZwiftRide extends ZwiftDevice {
       );
     }
 
-    if (bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2) && this is ZwiftClickV2) {
+    if (this is ZwiftClickV2 &&
+        (bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_1) ||
+            bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_2))) {
       actionStreamInternal.add(
         LogNotification(
           'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day. Resetting the device now.',
