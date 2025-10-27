@@ -69,6 +69,7 @@ flutter:
     - INSTRUCTIONS_WINDOWS.md
     - INSTRUCTIONS_MACOS.md
     - shorebird.yaml
+    - icon.png
 
 msix_config:
   display_name: SwiftControl

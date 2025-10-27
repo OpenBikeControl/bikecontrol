@@ -8,7 +8,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:swift_control/bluetooth/devices/link/link_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
+import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/scan.dart';
@@ -227,7 +229,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (connection.remoteDevices.isNotEmpty ||
                                 actionHandler is RemoteActions ||
-                                !whooshLink.isConnected.value)
+                                settings.getTrainerApp() is MyWhoosh)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
                                 width: double.infinity,
@@ -250,7 +252,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               (device) => device.showInformation(context),
                             ),
 
-                            if (!whooshLink.isConnected.value) LinkDevice('').showInformation(context),
+                            if (settings.getTrainerApp() is MyWhoosh && !whooshLink.isConnected.value)
+                              LinkDevice('').showInformation(context),
 
                             if (actionHandler is RemoteActions)
                               Row(
@@ -305,7 +308,17 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                       controller: controller,
                                       dropdownMenuEntries: [
                                         ..._getAllApps().map(
-                                          (app) => DropdownMenuEntry<SupportedApp>(value: app, label: app.name),
+                                          (app) => DropdownMenuEntry<SupportedApp>(
+                                            value: app,
+                                            label: app.name,
+                                            labelWidget: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(app.name),
+                                                if (app is CustomApp) BetaPill(text: 'CUSTOM'),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                         DropdownMenuEntry(
                                           value: CustomApp(profileName: 'New'),
@@ -314,7 +327,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                           leadingIcon: Icon(Icons.add),
                                         ),
                                       ],
-                                      label: Text('Select Keymap / app'),
+                                      label: Text('Select Keymap'),
                                       onSelected: (app) async {
                                         if (app == null) {
                                           return;
@@ -323,14 +336,14 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                           if (profileName != null && profileName.isNotEmpty) {
                                             final customApp = CustomApp(profileName: profileName);
                                             actionHandler.init(customApp);
-                                            await settings.setApp(customApp);
+                                            await settings.setSupportedApp(customApp);
                                             controller.text = profileName;
                                             setState(() {});
                                           }
                                         } else {
                                           controller.text = app.name ?? '';
                                           actionHandler.supportedApp = app;
-                                          await settings.setApp(app);
+                                          await settings.setSupportedApp(app);
                                           setState(() {});
                                           if (app is! CustomApp &&
                                               !kIsWeb &&
@@ -371,7 +384,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     controller.text = actionHandler.supportedApp?.name ?? '';
 
                                     if (actionHandler.supportedApp is CustomApp) {
-                                      settings.setApp(actionHandler.supportedApp!);
+                                      settings.setSupportedApp(actionHandler.supportedApp!);
                                     }
                                   },
                                 ),
@@ -409,7 +422,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   }
 
   List<SupportedApp> _getAllApps() {
-    final baseApps = SupportedApp.supportedApps.where((app) => app is! CustomApp).toList();
+    final baseApp = settings.getTrainerApp();
     final customProfiles = settings.getCustomAppProfiles();
 
     final customApps = customProfiles.map((profile) {
@@ -426,7 +439,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       customApps.add(CustomApp());
     }
 
-    return [...baseApps, ...customApps];
+    return [if (baseApp != null) baseApp, ...customApps];
   }
 }
 

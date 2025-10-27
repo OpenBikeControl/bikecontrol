@@ -25,6 +25,7 @@ abstract class BaseActions {
 
   void init(SupportedApp? supportedApp) {
     this.supportedApp = supportedApp;
+    print('Supported app: ${supportedApp?.name ?? "None"}');
 
     if (supportedApp != null) {
       final allButtons = connection.devices.map((e) => e.availableButtons).flatten().distinct();

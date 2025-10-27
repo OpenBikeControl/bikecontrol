@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dartx/dartx.dart';
-import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
@@ -24,47 +23,8 @@ class Settings {
     }
 
     try {
-      // Get screen size for migrations
-      Size? screenSize;
-      try {
-        final view = WidgetsBinding.instance.platformDispatcher.views.first;
-        screenSize = view.physicalSize / view.devicePixelRatio;
-      } catch (e) {
-        screenSize = null;
-      }
-
-      // Handle migration from old "customapp" key to new "customapp_Custom" key
-      if (prefs.containsKey('customapp') && !prefs.containsKey('customapp_Custom')) {
-        final oldCustomApp = prefs.getStringList('customapp');
-        if (oldCustomApp != null) {
-          // Migrate pixel-based to percentage-based if screen size available
-          if (screenSize != null) {
-            final migratedData = await _migrateToPercentageBased(oldCustomApp, screenSize);
-            await prefs.setStringList('customapp_Custom', migratedData);
-          } else {
-            await prefs.setStringList('customapp_Custom', oldCustomApp);
-          }
-          await prefs.remove('customapp');
-        }
-      }
-
-      final appName = prefs.getString('app');
-      if (appName == null) {
-        return;
-      }
-
-      // Check if it's a custom app with a profile name
-      if (appName.startsWith('Custom') || prefs.containsKey('customapp_$appName')) {
-        final customApp = CustomApp(profileName: appName);
-        final appSetting = prefs.getStringList('customapp_$appName');
-        if (appSetting != null) {
-          customApp.decodeKeymap(appSetting);
-        }
-        actionHandler.init(customApp);
-      } else {
-        final app = SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
-        actionHandler.init(app);
-      }
+      final app = getSupportedApp();
+      actionHandler.init(app);
     } catch (e) {
       // couldn't decode, reset
       await prefs.clear();
@@ -77,11 +37,42 @@ class Settings {
     actionHandler.init(null);
   }
 
-  Future<void> setApp(SupportedApp app) async {
+  void setTrainerApp(SupportedApp app) {
+    prefs.setString('trainer_app', app.name);
+  }
+
+  SupportedApp? getTrainerApp() {
+    final appName = prefs.getString('trainer_app');
+    if (appName == null) {
+      return null;
+    }
+    return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
+  }
+
+  Future<void> setSupportedApp(SupportedApp app) async {
     if (app is CustomApp) {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
     }
     await prefs.setString('app', app.name);
+  }
+
+  SupportedApp? getSupportedApp() {
+    final appName = prefs.getString('app');
+    if (appName == null) {
+      return null;
+    }
+
+    // Check if it's a custom app with a profile name
+    if (appName.startsWith('Custom') || prefs.containsKey('customapp_$appName')) {
+      final customApp = CustomApp(profileName: appName);
+      final appSetting = prefs.getStringList('customapp_$appName');
+      if (appSetting != null) {
+        customApp.decodeKeymap(appSetting);
+      }
+      return customApp;
+    } else {
+      return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
+    }
   }
 
   List<String> getCustomAppProfiles() {
@@ -165,42 +156,6 @@ class Settings {
 
   Future<void> setVibrationEnabled(bool enabled) async {
     await prefs.setBool('vibration_enabled', enabled);
-  }
-
-  Future<List<String>> _migrateToPercentageBased(List<String> keymapData, Size screenSize) async {
-    final migratedData = <String>[];
-
-    final needMigrations = keymapData.associateWith((encodedKeyPair) {
-      final decoded = jsonDecode(encodedKeyPair);
-      final touchPosData = decoded['touchPosition'];
-
-      // Convert pixel-based to percentage-based
-      final x = (touchPosData['x'] as num).toDouble();
-      final y = (touchPosData['y'] as num).toDouble();
-      return x > 100.0 || y > 100.0;
-    });
-
-    for (final entry in needMigrations.entries) {
-      if (entry.value) {
-        final decoded = jsonDecode(entry.key);
-        final touchPosData = decoded['touchPosition'];
-
-        // Convert pixel-based to percentage-based
-        final x = (touchPosData['x'] as num).toDouble();
-        final y = (touchPosData['y'] as num).toDouble();
-        final newX = (x / screenSize.width).clamp(0.0, 1.0) * 100.0;
-        final newY = (y / screenSize.height).clamp(0.0, 1.0) * 100.0;
-
-        // Update the JSON structure
-        decoded['touchPosition'] = {'x': newX, 'y': newY};
-
-        migratedData.add(jsonEncode(decoded));
-      } else {
-        migratedData.add(entry.key);
-      }
-    }
-
-    return migratedData;
   }
 
   bool getMyWhooshLinkEnabled() {

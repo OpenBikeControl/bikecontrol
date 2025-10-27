@@ -14,6 +14,7 @@ import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../utils/keymap/apps/my_whoosh.dart';
 import 'devices/base_device.dart';
 import 'devices/link/link_device.dart';
 import 'devices/zwift/constants.dart';
@@ -82,7 +83,7 @@ class Connection {
           final data = manufacturerData
               .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
               ?.payload;
-          if (data != null) {
+          if (data != null && kDebugMode) {
             _actionStreams.add(LogNotification('Found unknown device with identifier: ${data.firstOrNull}'));
           }
         }
@@ -155,7 +156,9 @@ class Connection {
       _addDevices(pads);
     });
 
-    startMyWhooshServer();
+    if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh) {
+      startMyWhooshServer();
+    }
   }
 
   Future<void> startMyWhooshServer() {

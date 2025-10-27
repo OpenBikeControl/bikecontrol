@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
+import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
@@ -151,7 +154,7 @@ enum Target {
 class TargetRequirement extends PlatformRequirement {
   TargetRequirement()
     : super(
-        'Select Target Device',
+        'Select Trainer App & Target Device',
         description: 'Select your Target Device where you want to run your trainer app on',
       ) {
     status = false;
@@ -162,65 +165,100 @@ class TargetRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = settings.getLastTarget() != null;
+    status = settings.getLastTarget() != null && settings.getTrainerApp() != null;
   }
 
   @override
   Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return DropdownMenu<Target>(
-      dropdownMenuEntries: Target.values.map((target) {
-        return DropdownMenuEntry(
-          value: target,
-          label: target.title,
-          enabled: target.isCompatible,
-          trailingIcon: Icon(target.icon),
-          labelWidget: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    return Column(
+      spacing: 8,
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Select Trainer App', style: TextStyle(fontWeight: FontWeight.bold)),
+        DropdownMenu<SupportedApp>(
+          dropdownMenuEntries: SupportedApp.supportedApps.map((app) {
+            return DropdownMenuEntry(
+              value: app,
+              label: app.name,
+            );
+          }).toList(),
+          hintText: 'Select Trainer app',
+          initialSelection: settings.getTrainerApp(),
+          onSelected: (selectedApp) async {
+            if (settings.getTrainerApp() is MyWhoosh && selectedApp is! MyWhoosh && whooshLink.isStarted.value) {
+              whooshLink.stopServer();
+            }
+            settings.setTrainerApp(selectedApp!);
+            if (actionHandler.supportedApp == null ||
+                (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
+              actionHandler.init(selectedApp);
+              settings.setSupportedApp(selectedApp);
+            }
+          },
+        ),
+        SizedBox(height: 8),
+        Text(
+          'Select Target where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        DropdownMenu<Target>(
+          dropdownMenuEntries: Target.values.map((target) {
+            return DropdownMenuEntry(
+              value: target,
+              label: target.title,
+              enabled: target.isCompatible,
+              trailingIcon: Icon(target.icon),
+              labelWidget: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(target.title, style: TextStyle(fontWeight: FontWeight.bold)),
-                    if (target.isBeta || (!Platform.isIOS && target == Target.iPad)) BetaPill(),
+                    Row(
+                      children: [
+                        Text(target.title, style: TextStyle(fontWeight: FontWeight.bold)),
+                        if (target.isBeta || (!Platform.isIOS && target == Target.iPad)) BetaPill(),
+                      ],
+                    ),
+                    Text(
+                      target.isCompatible
+                          ? target.description
+                          : 'Due to iOS restrictions only controlling trainer apps on other devices is supported.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                   ],
                 ),
-                Text(
-                  target.isCompatible
-                      ? target.description
-                      : 'Due to iOS restrictions only controlling trainer apps on other devices is supported.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-      hintText: name,
-      initialSelection: settings.getLastTarget(),
-      onSelected: (target) async {
-        if (target != null) {
-          await settings.setLastTarget(target);
-          initializeActions(target.connectionType);
-          if (target.warning != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(target.warning!),
-                duration: Duration(seconds: 10),
               ),
             );
-          }
-          onUpdate();
-        }
-      },
+          }).toList(),
+          hintText: name,
+          initialSelection: settings.getLastTarget(),
+          onSelected: (target) async {
+            if (target != null) {
+              await settings.setLastTarget(target);
+              initializeActions(target.connectionType);
+              if (target.warning != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(target.warning!),
+                    duration: Duration(seconds: 10),
+                  ),
+                );
+              }
+              onUpdate();
+            }
+          },
+        ),
+      ],
     );
   }
 
   @override
   Widget? buildDescription() {
+    final trainer = settings.getTrainerApp();
     final target = settings.getLastTarget();
 
-    if (target != null) {
+    if (target != null && trainer != null) {
       if (target.warning != null) {
         return Row(
           spacing: 8,
@@ -235,7 +273,7 @@ class TargetRequirement extends PlatformRequirement {
           ],
         );
       } else {
-        return Text(target.title);
+        return Text('${trainer.name} on ${target.title}');
       }
     } else {
       return null;

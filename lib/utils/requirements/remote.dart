@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
@@ -323,30 +324,31 @@ class _PairWidgetState extends State<_PairWidget> {
             if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
           ],
         ),
-        ElevatedButton(
-          onPressed: () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (c) => DevicePage(),
-                settings: RouteSettings(name: '/device'),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Use MyWhoosh Link only'),
-                Text(
-                  'No pairing required, connect directly via MyWhoosh Link.',
-                  style: TextStyle(fontSize: 10, color: Colors.black87),
+        if (settings.getTrainerApp() is MyWhoosh)
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (c) => DevicePage(),
+                  settings: RouteSettings(name: '/device'),
                 ),
-              ],
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Use MyWhoosh Link only'),
+                  Text(
+                    'No pairing required, connect directly via MyWhoosh Link.',
+                    style: TextStyle(fontSize: 10, color: Colors.black87),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         if (_isAdvertising) ...[
           TextButton(
             onPressed: () {

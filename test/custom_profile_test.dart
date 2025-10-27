@@ -28,8 +28,8 @@ void main() {
 
     test('Should save and retrieve custom profile', () async {
       final customApp = CustomApp(profileName: 'Race');
-      await settings.setApp(customApp);
-      
+      await settings.setSupportedApp(customApp);
+
       final profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('Race'), true);
     });
@@ -38,11 +38,11 @@ void main() {
       final workout = CustomApp(profileName: 'Workout');
       final race = CustomApp(profileName: 'Race');
       final event = CustomApp(profileName: 'Event');
-      
-      await settings.setApp(workout);
-      await settings.setApp(race);
-      await settings.setApp(event);
-      
+
+      await settings.setSupportedApp(workout);
+      await settings.setSupportedApp(race);
+      await settings.setSupportedApp(event);
+
       final profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('Workout'), true);
       expect(profiles.contains('Race'), true);
@@ -52,10 +52,10 @@ void main() {
 
     test('Should duplicate custom profile', () async {
       final original = CustomApp(profileName: 'Original');
-      await settings.setApp(original);
-      
+      await settings.setSupportedApp(original);
+
       await settings.duplicateCustomAppProfile('Original', 'Copy');
-      
+
       final profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('Original'), true);
       expect(profiles.contains('Copy'), true);
@@ -64,13 +64,13 @@ void main() {
 
     test('Should delete custom profile', () async {
       final customApp = CustomApp(profileName: 'ToDelete');
-      await settings.setApp(customApp);
-      
+      await settings.setSupportedApp(customApp);
+
       var profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('ToDelete'), true);
-      
+
       await settings.deleteCustomAppProfile('ToDelete');
-      
+
       profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('ToDelete'), false);
     });
@@ -81,10 +81,10 @@ void main() {
         'customapp': ['test_data'],
         'app': 'Custom',
       });
-      
+
       final newSettings = Settings();
       await newSettings.init();
-      
+
       // Check that migration happened
       expect(newSettings.prefs.containsKey('customapp'), false);
       expect(newSettings.prefs.containsKey('customapp_Custom'), true);
@@ -96,10 +96,10 @@ void main() {
         'customapp_Custom': ['new_data'],
         'app': 'Custom',
       });
-      
+
       final newSettings = Settings();
       await newSettings.init();
-      
+
       // Old key should still exist because new key already existed
       expect(newSettings.getCustomAppKeymap('customapp'), null);
       final customKeymap = newSettings.getCustomAppKeymap('Custom');
@@ -108,8 +108,8 @@ void main() {
 
     test('Should export custom profile as JSON', () async {
       final customApp = CustomApp(profileName: 'TestProfile');
-      await settings.setApp(customApp);
-      
+      await settings.setSupportedApp(customApp);
+
       final jsonData = settings.exportCustomAppProfile('TestProfile');
       expect(jsonData, isNotNull);
       expect(jsonData, contains('version'));
@@ -120,12 +120,12 @@ void main() {
     test('Should import custom profile from JSON', () async {
       // First export a profile
       final customApp = CustomApp(profileName: 'ExportTest');
-      await settings.setApp(customApp);
+      await settings.setSupportedApp(customApp);
       final jsonData = settings.exportCustomAppProfile('ExportTest');
-      
+
       // Import with a new name
       final success = await settings.importCustomAppProfile(jsonData!, newProfileName: 'ImportTest');
-      
+
       expect(success, true);
       final profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('ImportTest'), true);

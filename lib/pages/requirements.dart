@@ -64,66 +64,90 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: buildMenuButtons(),
       ),
-      body: _requirements.isEmpty
-          ? Center(child: CircularProgressIndicator())
-          : Card(
-              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Stepper(
-                currentStep: _currentStep,
-                connectorColor: WidgetStateProperty.resolveWith<Color>(
-                  (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
-                ),
-                onStepContinue: _currentStep < _requirements.length
-                    ? () {
-                        setState(() {
-                          _currentStep += 1;
-                        });
-                      }
-                    : null,
-                onStepTapped: (step) {
-                  if (_requirements[step].status && _requirements[step] is! TargetRequirement) {
-                    return;
-                  }
-                  final hasEarlierIncomplete =
-                      _requirements.indexWhere((req) => !req.status) != -1 &&
-                      _requirements.indexWhere((req) => !req.status) < step;
-                  if (hasEarlierIncomplete) {
-                    return;
-                  }
-                  setState(() {
-                    _currentStep = step;
-                  });
-                },
-                controlsBuilder: (context, details) => Container(),
-                steps: _requirements
-                    .mapIndexed(
-                      (index, req) => Step(
-                        title: Text(req.name, style: TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: req.buildDescription() ?? (req.description != null ? Text(req.description!) : null),
-                        content: Container(
-                          padding: const EdgeInsets.only(top: 16.0),
-                          alignment: Alignment.centerLeft,
-                          child:
-                              (index == _currentStep
-                                  ? req.build(context, () {
-                                      _reloadRequirements();
-                                    })
-                                  : null) ??
-                              ElevatedButton(
-                                onPressed: req.status
-                                    ? null
-                                    : () => _callRequirement(req, context, () {
-                                        _reloadRequirements();
-                                      }),
-                                child: Text(req.name),
-                              ),
-                        ),
-                        state: req.status ? StepState.complete : StepState.indexed,
-                      ),
-                    )
-                    .toList(),
+      body: Column(
+        spacing: 12,
+        children: [
+          SizedBox(height: 12),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 12,
+            children: [
+              Image.asset('icon.png', width: 64, height: 64),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Welcome to SwiftControl!', style: Theme.of(context).textTheme.titleMedium),
+                  Container(
+                    constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 140),
+                    child: Text('Get started by completing the following steps:', style: TextStyle(fontSize: 14)),
+                  ),
+                ],
               ),
-            ),
+            ],
+          ),
+          _requirements.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : Card(
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Stepper(
+                    currentStep: _currentStep,
+                    connectorColor: WidgetStateProperty.resolveWith<Color>(
+                      (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
+                    ),
+                    onStepContinue: _currentStep < _requirements.length
+                        ? () {
+                            setState(() {
+                              _currentStep += 1;
+                            });
+                          }
+                        : null,
+                    onStepTapped: (step) {
+                      if (_requirements[step].status && _requirements[step] is! TargetRequirement) {
+                        return;
+                      }
+                      final hasEarlierIncomplete =
+                          _requirements.indexWhere((req) => !req.status) != -1 &&
+                          _requirements.indexWhere((req) => !req.status) < step;
+                      if (hasEarlierIncomplete) {
+                        return;
+                      }
+                      setState(() {
+                        _currentStep = step;
+                      });
+                    },
+                    controlsBuilder: (context, details) => Container(),
+                    steps: _requirements
+                        .mapIndexed(
+                          (index, req) => Step(
+                            title: Text(req.name, style: TextStyle(fontWeight: FontWeight.w600)),
+                            subtitle:
+                                req.buildDescription() ?? (req.description != null ? Text(req.description!) : null),
+                            content: Container(
+                              padding: const EdgeInsets.only(top: 16.0),
+                              alignment: Alignment.centerLeft,
+                              child:
+                                  (index == _currentStep
+                                      ? req.build(context, () {
+                                          _reloadRequirements();
+                                        })
+                                      : null) ??
+                                  ElevatedButton(
+                                    onPressed: req.status
+                                        ? null
+                                        : () => _callRequirement(req, context, () {
+                                            _reloadRequirements();
+                                          }),
+                                    child: Text(req.name),
+                                  ),
+                            ),
+                            state: req.status ? StepState.complete : StepState.indexed,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+        ],
+      ),
     );
   }
 
@@ -139,9 +163,6 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
       final unresolvedIndex = req.indexWhere((req) => !req.status);
       if (unresolvedIndex != -1) {
         _currentStep = unresolvedIndex;
-        if (mounted) {
-          setState(() {});
-        }
       } else if (mounted) {
         String? currentPath;
         navigatorKey.currentState?.popUntil((route) {
@@ -157,6 +178,9 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
             ),
           );
         }
+      }
+      if (mounted) {
+        setState(() {});
       }
     });
   }

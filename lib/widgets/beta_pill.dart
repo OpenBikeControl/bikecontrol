@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class BetaPill extends StatelessWidget {
-  const BetaPill({super.key});
+  final String text;
+  const BetaPill({super.key, this.text = 'BETA'});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +15,7 @@ class BetaPill extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
-          'BETA',
+          text,
           style: TextStyle(
             color: Colors.white,
             fontSize: 10,

@@ -58,6 +58,7 @@ Future<void> initializeActions(ConnectionType connectionType) async {
       ConnectionType.unknown => StubActions(),
     };
   }
+  actionHandler.init(settings.getSupportedApp());
 }
 
 class SwiftPlayApp extends StatelessWidget {

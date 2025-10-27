@@ -8,7 +8,7 @@ import '../keymap.dart';
 class CustomApp extends SupportedApp {
   final String profileName;
 
-  CustomApp({this.profileName = 'Custom'})
+  CustomApp({this.profileName = 'Other'})
     : super(
         name: profileName,
         packageName: "custom_$profileName",
