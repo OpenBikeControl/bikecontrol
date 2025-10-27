@@ -198,12 +198,7 @@ class Connection {
           device.isConnected = state;
           _connectionStreams.add(device);
           if (!device.isConnected) {
-            devices.remove(device);
-            _streamSubscriptions[device]?.cancel();
-            _streamSubscriptions.remove(device);
-            _connectionSubscriptions[device]?.cancel();
-            _connectionSubscriptions.remove(device);
-            _lastScanResult.clear();
+            disconnect(device, forget: true);
             // try reconnect
             performScanning();
           }
@@ -270,5 +265,19 @@ class Connection {
 
   void signalChange(BaseDevice baseDevice) {
     _connectionStreams.add(baseDevice);
+  }
+
+  Future<void> disconnect(BluetoothDevice device, {required bool forget}) async {
+    if (device.isConnected) {
+      await device.disconnect();
+    }
+    devices.remove(device);
+    if (!forget) {
+      _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
+      _streamSubscriptions[device]?.cancel();
+      _streamSubscriptions.remove(device);
+      _connectionSubscriptions[device]?.cancel();
+      _connectionSubscriptions.remove(device);
+    }
   }
 }

@@ -11,6 +11,7 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -198,6 +199,17 @@ abstract class BluetoothDevice extends BaseDevice {
               ),
             ),
           ),
+        Expanded(child: SizedBox()),
+        PopupMenuButton(
+          itemBuilder: (c) => [
+            PopupMenuItem(
+              child: Text('Disconnect and Forget'),
+              onTap: () {
+                connection.disconnect(this, forget: true);
+              },
+            ),
+          ],
+        ),
       ],
     );
   }
