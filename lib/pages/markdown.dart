@@ -56,29 +56,28 @@ class _ChangelogPageState extends State<MarkdownPage> {
         title: Text(widget.assetPath.replaceAll('.md', '').toLowerCase().capitalize),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body:
-          _error != null
-              ? Center(child: Text(_error!))
-              : _markdown == null
-              ? Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: MarkdownWidget(
-                        markdown: _markdown!,
-                        theme: MarkdownThemeData(
-                          textStyle: TextStyle(fontSize: 14.0, color: Colors.black87),
-                          onLinkTap: (title, url) {
-                            launchUrlString(url);
-                          },
-                        ),
+      body: _error != null
+          ? Center(child: Text(_error!))
+          : _markdown == null
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: MarkdownWidget(
+                      markdown: _markdown!,
+                      theme: MarkdownThemeData(
+                        textStyle: TextStyle(fontSize: 14.0, color: Colors.black87),
+                        onLinkTap: (title, url) {
+                          launchUrlString(url);
+                        },
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
     );
   }
 }

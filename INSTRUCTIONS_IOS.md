@@ -7,3 +7,4 @@ Step 2 is not necessary after that once step 3 works
 And here's a video with a few explanations:
 
 [![SwiftControl Instruction for iOS](https://img.youtube.com/vi/p8sgQhuufeI/0.jpg)](https://www.youtube.com/watch?v=p8sgQhuufeI)
+[https://www.youtube.com/watch?v=p8sgQhuufeI](https://www.youtube.com/watch?v=p8sgQhuufeI)

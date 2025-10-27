@@ -16,11 +16,11 @@ If you don't do that SwiftControl will need to reconnect every minute.
 4. Close the Zwift app again and connect again in SwiftControl
 
 ## Android: Connection works, buttons work but nothing happens in MyWhoosh and similar
-- especially for Redmi and other chinese Android devices please follow the instructions on https://dontkillmyapp.com/:
+- especially for Redmi and other chinese Android devices please follow the instructions on [https://dontkillmyapp.com/](https://dontkillmyapp.com/):
   - disable battery optimization for SwiftControl
   - enable auto start of SwiftControl
   - grant accessibility permission for SwiftControl
-- see https://github.com/jonasbark/swiftcontrol/issues/38 for more details
+- see [https://github.com/jonasbark/swiftcontrol/issues/38](https://github.com/jonasbark/swiftcontrol/issues/38) for more details
 
 ## Remote control is not working - nothing happens
 - Try to unpair it from your phone / computer Bluetooth settings, then re-pair it.
@@ -40,8 +40,10 @@ You're probably running into [this](https://github.com/jonasbark/swiftcontrol/is
 ## Link requirement for MyWhoosh stuck at "Waiting for MyWhoosh"
 The same network restrictions apply for SwiftControl as it applies to MyWhoosh Link app. Please verify with the MyWhoosh Link app if connection is possible at all.
 Here are some instructions that can help:
-https://mywhoosh.com/troubleshoot/
-https://www.facebook.com/groups/mywhoosh/posts/1323791068858873/
+
+[https://mywhoosh.com/troubleshoot/](https://mywhoosh.com/troubleshoot/)
+[https://www.facebook.com/groups/mywhoosh/posts/1323791068858873/](https://www.facebook.com/groups/mywhoosh/posts/1323791068858873/)
+
 In essence:
 - your two devices (phone, tablet) need to be on the same WiFi network
 - on iOS you have to turn off "Private Wi-Fi Address" in the WiFi settings

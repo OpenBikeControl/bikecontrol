@@ -310,6 +310,7 @@ class _ButtonEditor extends StatelessWidget {
         enabled: actionHandler.supportedApp is CustomApp,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: 6,
           children: [
             if (keyPair.buttons.isNotEmpty &&
                 (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
@@ -319,7 +320,12 @@ class _ButtonEditor extends StatelessWidget {
                 ),
               )
             else
-              Expanded(child: Text('No action assigned')),
+              Expanded(
+                child: Text(
+                  'No action assigned',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
 
             if (actionHandler.supportedApp is! CustomApp)
               IconButton(

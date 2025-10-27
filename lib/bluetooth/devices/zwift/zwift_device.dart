@@ -152,7 +152,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   @override
   Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked) async {
     // the same messages are sent multiple times, so ignore
-    if (_lastButtonsClicked?.contentEquals(buttonsClicked ?? []) == false) {
+    if (_lastButtonsClicked == null || _lastButtonsClicked?.contentEquals(buttonsClicked ?? []) == false) {
       super.handleButtonsClicked(buttonsClicked);
     }
     _lastButtonsClicked = buttonsClicked;

@@ -23,47 +23,52 @@ class LinkDevice extends BaseDevice {
 
   @override
   Widget showInformation(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('MyWhoosh Link: ${isConnected ? 'Connected' : 'Not connected'}'),
-        Row(
+    return ValueListenableBuilder(
+      valueListenable: whooshLink.isConnected,
+      builder: (context, isConnected, _) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (!isConnected)
-              LoadingWidget(
-                futureCallback: () => connection.startMyWhooshServer(),
-                renderChild: (isLoading, tap) => ValueListenableBuilder(
-                  valueListenable: whooshLink.isConnected,
-                  builder: (c, isConnected, _) => TextButton(
-                    onPressed: !isConnected ? tap : null,
-                    child: isLoading || (!isConnected && whooshLink.isStarted.value)
-                        ? SmallProgressIndicator()
-                        : Text('Connect'),
+            Text('MyWhoosh Link: ${isConnected ? 'Connected' : 'Not connected'}'),
+            Row(
+              children: [
+                if (!isConnected)
+                  LoadingWidget(
+                    futureCallback: () => connection.startMyWhooshServer(),
+                    renderChild: (isLoading, tap) => ValueListenableBuilder(
+                      valueListenable: whooshLink.isConnected,
+                      builder: (c, isConnected, _) => TextButton(
+                        onPressed: !isConnected ? tap : null,
+                        child: isLoading || (!isConnected && whooshLink.isStarted.value)
+                            ? SmallProgressIndicator()
+                            : Text('Connect'),
+                      ),
+                    ),
                   ),
-                ),
-              ),
 
-            PopupMenuButton(
-              itemBuilder: (c) => [
-                if (isConnected)
-                  PopupMenuItem(
-                    child: Text('Disconnect'),
-                    onTap: () {
-                      connection.disconnect(this, forget: true);
-                    },
-                  )
-                else
-                  PopupMenuItem(
-                    child: Text('Stop'),
-                    onTap: () {
-                      whooshLink.stopServer();
-                    },
-                  ),
+                PopupMenuButton(
+                  itemBuilder: (c) => [
+                    if (isConnected)
+                      PopupMenuItem(
+                        child: Text('Disconnect'),
+                        onTap: () {
+                          connection.disconnect(this, forget: true);
+                        },
+                      )
+                    else
+                      PopupMenuItem(
+                        child: Text('Stop'),
+                        onTap: () {
+                          whooshLink.stopServer();
+                        },
+                      ),
+                  ],
+                ),
               ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
