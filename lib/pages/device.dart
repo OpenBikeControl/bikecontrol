@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/main.dart';
@@ -404,7 +404,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                                     (actionHandler.supportedApp as CustomApp).profileName;
                                                 final jsonData = settings.exportCustomAppProfile(currentProfile);
                                                 if (jsonData != null) {
-                                                  SharePlus.instance.share(ShareParams(text: jsonData));
+                                                  Clipboard.setData(ClipboardData(text: jsonData));
                                                   if (mounted) {
                                                     _snackBarMessengerKey.currentState!.showSnackBar(
                                                       SnackBar(
