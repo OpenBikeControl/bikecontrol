@@ -57,77 +57,80 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final availableKeypairs = widget.keymap.keyPairs;
     final allAvailableButtons = connection.devices.flatMap((d) => d.availableButtons);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      spacing: 8,
-      children: [
-        Table(
-          border: TableBorder.symmetric(
-            borderRadius: BorderRadius.circular(9),
-            inside: BorderSide(
-              color: Theme.of(context).colorScheme.primaryContainer,
+    return ValueListenableBuilder(
+      valueListenable: whooshLink.isConnected,
+      builder: (c, _, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        spacing: 8,
+        children: [
+          Table(
+            border: TableBorder.symmetric(
+              borderRadius: BorderRadius.circular(9),
+              inside: BorderSide(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              outside: BorderSide(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
             ),
-            outside: BorderSide(
-              color: Theme.of(context).colorScheme.primaryContainer,
-            ),
-          ),
-          children: [
-            TableRow(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: Text(
-                    'Button on your ${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: Text(
-                    'Action',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            for (final keyPair in availableKeypairs) ...[
+            children: [
               TableRow(
                 children: [
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (actionHandler.supportedApp is! CustomApp)
-                            if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
-                              Text('No button assigned for your connected device')
-                            else
-                              for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                                IntrinsicWidth(child: ButtonWidget(button: button))
-                          else
-                            for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
-                        ],
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Text(
+                      'Button on your ${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
+                  Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Text(
+                      'Action',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
+              for (final keyPair in availableKeypairs) ...[
+                TableRow(
+                  children: [
+                    TableCell(
+                      verticalAlignment: TableCellVerticalAlignment.middle,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            if (actionHandler.supportedApp is! CustomApp)
+                              if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
+                                Text('No button assigned for your connected device')
+                              else
+                                for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                                  IntrinsicWidth(child: ButtonWidget(button: button))
+                            else
+                              for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    TableCell(
+                      verticalAlignment: TableCellVerticalAlignment.middle,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
