@@ -1,3 +1,4 @@
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_sterzo.dart';
@@ -65,5 +66,5 @@ class ControllerButton {
     ...ZwiftButtons.values,
     ...EliteSquareButtons.values,
     ...WahooKickrShiftButtons.values,
-  ];
+  ].distinct().toList();
 }

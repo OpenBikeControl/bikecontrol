@@ -71,7 +71,7 @@ class Connection {
         if (kDebugMode) {
           print('Scan result: ${result.name} - ${result.deviceId}');
         }
-
+        
         final scanResult = BluetoothDevice.fromScanResult(result);
 
         if (scanResult != null) {
@@ -99,7 +99,14 @@ class Connection {
         device.processCharacteristic(characteristicUuid, value);
       }
     };
-    // ...
+
+    UniversalBle.onConnectionChange = (String deviceId, bool isConnected, String? error) {
+      final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      if (device != null && !isConnected) {
+        // allow reconnection
+        _lastScanResult.removeWhere((d) => d.deviceId == deviceId);
+      }
+    };
   }
 
   Future<void> performScanning() async {

@@ -124,8 +124,6 @@ class ZwiftButtons {
   static const ControllerButton shiftDownLeft = ControllerButton(
     'shiftDownLeft',
     action: InGameAction.shiftDown,
-    icon: Icons.remove,
-    color: Colors.black,
   );
   static const ControllerButton powerUpLeft = ControllerButton('powerUpLeft', action: InGameAction.shiftDown);
 

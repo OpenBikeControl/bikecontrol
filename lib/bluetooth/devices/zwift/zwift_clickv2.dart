@@ -7,7 +7,22 @@ import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/widgets/warning.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
-  ZwiftClickV2(super.scanResult) : super(isBeta: true);
+  ZwiftClickV2(super.scanResult)
+    : super(
+        isBeta: true,
+        availableButtons: [
+          ZwiftButtons.navigationLeft,
+          ZwiftButtons.navigationRight,
+          ZwiftButtons.navigationUp,
+          ZwiftButtons.navigationDown,
+          ZwiftButtons.a,
+          ZwiftButtons.b,
+          ZwiftButtons.y,
+          ZwiftButtons.z,
+          ZwiftButtons.shiftUpLeft,
+          ZwiftButtons.shiftUpRight,
+        ],
+      );
 
   @override
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;

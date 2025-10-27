@@ -18,28 +18,30 @@ class ZwiftRide extends ZwiftDevice {
   /// analog drift or light touches.
   static const int analogPaddleThreshold = 25;
 
-  ZwiftRide(super.scanResult, {super.isBeta})
+  ZwiftRide(super.scanResult, {super.isBeta, List<ControllerButton>? availableButtons})
     : super(
-        availableButtons: [
-          ZwiftButtons.navigationLeft,
-          ZwiftButtons.navigationRight,
-          ZwiftButtons.navigationUp,
-          ZwiftButtons.navigationDown,
-          ZwiftButtons.a,
-          ZwiftButtons.b,
-          ZwiftButtons.y,
-          ZwiftButtons.z,
-          ZwiftButtons.shiftUpLeft,
-          ZwiftButtons.shiftDownLeft,
-          ZwiftButtons.shiftUpRight,
-          ZwiftButtons.shiftDownRight,
-          ZwiftButtons.powerUpLeft,
-          ZwiftButtons.powerUpRight,
-          ZwiftButtons.onOffLeft,
-          ZwiftButtons.onOffRight,
-          ZwiftButtons.paddleLeft,
-          ZwiftButtons.paddleRight,
-        ],
+        availableButtons:
+            availableButtons ??
+            [
+              ZwiftButtons.navigationLeft,
+              ZwiftButtons.navigationRight,
+              ZwiftButtons.navigationUp,
+              ZwiftButtons.navigationDown,
+              ZwiftButtons.a,
+              ZwiftButtons.b,
+              ZwiftButtons.y,
+              ZwiftButtons.z,
+              ZwiftButtons.shiftUpLeft,
+              ZwiftButtons.shiftDownLeft,
+              ZwiftButtons.shiftUpRight,
+              ZwiftButtons.shiftDownRight,
+              ZwiftButtons.powerUpLeft,
+              ZwiftButtons.powerUpRight,
+              ZwiftButtons.onOffLeft,
+              ZwiftButtons.onOffRight,
+              ZwiftButtons.paddleLeft,
+              ZwiftButtons.paddleRight,
+            ],
       );
 
   @override
