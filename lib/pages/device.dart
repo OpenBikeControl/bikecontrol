@@ -345,24 +345,12 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                           actionHandler.supportedApp = app;
                                           await settings.setSupportedApp(app);
                                           setState(() {});
-                                          if (app is! CustomApp &&
-                                              !kIsWeb &&
-                                              (Platform.isMacOS || Platform.isWindows)) {
-                                            _snackBarMessengerKey.currentState!.showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Customize the keymap if you experience any issues (e.g. wrong keyboard output)',
-                                                ),
-                                              ),
-                                            );
-                                          }
                                         }
                                       },
                                       initialSelection: actionHandler.supportedApp,
                                       hintText: 'Select your Keymap',
                                     ),
                                   ),
-
                                   Row(
                                     children: [
                                       KeymapManager().getManageProfileDialog(
@@ -370,11 +358,20 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                         actionHandler.supportedApp is CustomApp
                                             ? actionHandler.supportedApp?.name
                                             : null,
+                                        onDone: () {
+                                          setState(() {});
+                                          controller.text = actionHandler.supportedApp?.name ?? '';
+                                        },
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
+                              if (actionHandler.supportedApp is! CustomApp)
+                                Text(
+                                  'Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)',
+                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                ),
                               if (actionHandler.supportedApp != null && connection.controllerDevices.isNotEmpty)
                                 KeymapExplanation(
                                   key: Key(actionHandler.supportedApp!.keymap.runtimeType.toString()),

@@ -69,12 +69,7 @@ abstract class BaseActions {
       if (this is AndroidActions) {
         if (windowInfo != null && windowInfo.packageName != 'de.jonasbark.swiftcontrol') {
           // a trainer app is in foreground, so use the always assume landscape
-          final windowWidth = (windowInfo.right - windowInfo.left).toDouble();
-          final windowHeight = (windowInfo.bottom - windowInfo.top).toDouble();
-          physicalSize = Size(
-            max(windowWidth, windowHeight),
-            min(windowWidth, windowHeight),
-          );
+          physicalSize = Size(max(displaySize.width, displaySize.height), min(displaySize.width, displaySize.height));
         } else {
           // display size is already in physical pixels
           physicalSize = displaySize;
@@ -91,7 +86,7 @@ abstract class BaseActions {
       final y = (keyPair.touchPosition.dy / 100.0) * physicalSize.height;
 
       if (kDebugMode) {
-        print("Screen size: $physicalSize => Touch at: $x, $y");
+        print("Screen size: $physicalSize vs $displaySize => Touch at: $x, $y");
       }
       return Offset(x, y);
     }

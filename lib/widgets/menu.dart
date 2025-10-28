@@ -80,11 +80,20 @@ List<Widget> buildMenuButtons() {
             },
           ),
           PopupMenuItem(
-            child: Text('Get Support'),
+            child: Text('Provide Feedback'),
             onTap: () {
               launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
             },
           ),
+          if (!kIsWeb)
+            PopupMenuItem(
+              child: Text('Get Support'),
+              onTap: () {
+                final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
+                final suffix = isFromStore ? '' : 'ler';
+                launchUrlString('mailto:jonas.t.bark+swiftcontrol$suffix@gmail.com');
+              },
+            ),
         ];
       },
       icon: Icon(Icons.help_outline),

@@ -12,7 +12,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
-import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -34,6 +33,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   final TransformationController _transformationController = TransformationController();
 
   late Rect _imageRect;
+
+  bool _showAll = false;
 
   Future<void> _pickScreenshot() async {
     final picker = ImagePicker();
@@ -244,6 +245,12 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
           if (_backgroundImage == null && constraints.biggest != _imageRect.size) {
             _imageRect = Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight);
           }
+          final keyPairsToShow = _showAll
+              ? actionHandler.supportedApp?.keymap.keyPairs
+                        .where((kp) => kp.touchPosition != Offset.zero && !kp.isSpecialKey)
+                        .toList() ??
+                    []
+              : [widget.keyPair];
           return InteractiveViewer(
             transformationController: _transformationController,
             child: Stack(
@@ -272,18 +279,19 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                     ),
                   ),
 
-                _buildDraggableArea(
-                  enableTouch: true,
-                  keyPair: widget.keyPair,
-                  onPositionChanged: (newPos) {
-                    // convert to percentage
-                    final relativeX = ((newPos.dx - _imageRect.left) / _imageRect.width).clamp(0.0, 1.0);
-                    final relativeY = ((newPos.dy - _imageRect.top) / _imageRect.height).clamp(0.0, 1.0);
-                    widget.keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
-                    setState(() {});
-                  },
-                  color: Colors.red,
-                ),
+                for (final keyPair in keyPairsToShow)
+                  _buildDraggableArea(
+                    enableTouch: true,
+                    keyPair: keyPair,
+                    onPositionChanged: (newPos) {
+                      // convert to percentage
+                      final relativeX = ((newPos.dx - _imageRect.left) / _imageRect.width).clamp(0.0, 1.0);
+                      final relativeY = ((newPos.dy - _imageRect.top) / _imageRect.height).clamp(0.0, 1.0);
+                      keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
+                      setState(() {});
+                    },
+                    color: Colors.red,
+                  ),
 
                 Positioned.fill(child: Testbed()),
 
@@ -330,6 +338,26 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                       PopupMenuButton(
                         itemBuilder: (c) => [
                           PopupMenuItem(
+                            child: Row(
+                              children: [
+                                Checkbox(
+                                  value: _showAll,
+                                  onChanged: (_) {
+                                    setState(() {
+                                      _showAll = !_showAll;
+                                    });
+                                  },
+                                ),
+                                Text('Show all touch areas'),
+                              ],
+                            ),
+                            onTap: () {
+                              setState(() {
+                                _showAll = !_showAll;
+                              });
+                            },
+                          ),
+                          PopupMenuItem(
                             child: Text('Reset'),
                             onTap: () {
                               _backgroundImage = null;
@@ -341,7 +369,6 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                         ],
                         icon: Icon(Icons.more_vert),
                       ),
-                      if (kDebugMode) MenuButton(),
                     ],
                   ),
                 ),

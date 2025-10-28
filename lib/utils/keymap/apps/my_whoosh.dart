@@ -22,13 +22,13 @@ class MyWhoosh extends SupportedApp {
               buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
               physicalKey: PhysicalKeyboardKey.keyK,
               logicalKey: LogicalKeyboardKey.keyK,
-              touchPosition: Offset(98, 94),
+              touchPosition: Offset(97, 94),
             ),
             KeyPair(
               buttons: ControllerButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
               physicalKey: PhysicalKeyboardKey.arrowRight,
               logicalKey: LogicalKeyboardKey.arrowRight,
-              touchPosition: Offset(98, 80),
+              touchPosition: Offset(60, 80),
               isLongPress: true,
             ),
             KeyPair(

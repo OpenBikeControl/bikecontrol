@@ -36,7 +36,11 @@ class KeymapManager {
     );
   }
 
-  PopupMenuButton<String> getManageProfileDialog(BuildContext context, String? currentProfile) {
+  PopupMenuButton<String> getManageProfileDialog(
+    BuildContext context,
+    String? currentProfile, {
+    required VoidCallback onDone,
+  }) {
     return PopupMenuButton(
       itemBuilder: (context) => [
         if (currentProfile != null && actionHandler.supportedApp is CustomApp)
@@ -58,6 +62,7 @@ class KeymapManager {
                 actionHandler.supportedApp = customApp;
                 await settings.setSupportedApp(customApp);
               }
+              onDone();
             },
           ),
         if (currentProfile != null)
@@ -68,6 +73,7 @@ class KeymapManager {
                 context,
                 currentProfile,
               );
+              onDone();
             },
           ),
         PopupMenuItem(
@@ -116,7 +122,7 @@ class KeymapManager {
           ),
         if (currentProfile != null)
           PopupMenuItem(
-            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            value: 'delete',
             onTap: () async {
               final confirmed = await _showDeleteConfirmDialog(
                 context,
@@ -125,7 +131,9 @@ class KeymapManager {
               if (confirmed == true) {
                 await settings.deleteCustomAppProfile(currentProfile);
               }
+              onDone();
             },
+            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
       ],
     );
@@ -252,9 +260,7 @@ class KeymapManager {
               physicalKey: pair.physicalKey,
               logicalKey: pair.logicalKey,
               isLongPress: pair.isLongPress,
-              touchPosition: pair.touchPosition != Offset.zero
-                  ? pair.touchPosition
-                  : Offset(((indexB + 1)) * 10, 20 + (index * 10)),
+              touchPosition: pair.touchPosition,
             );
           });
         });
