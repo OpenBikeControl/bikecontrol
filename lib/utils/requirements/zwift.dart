@@ -11,8 +11,6 @@ import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' hide RideButtonMask;
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
-import 'package:swift_control/utils/crypto/local_key_provider.dart';
-import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -26,7 +24,6 @@ bool _isAdvertising = false;
 bool _isLoading = false;
 bool _isServiceAdded = false;
 bool _isSubscribedToEvents = false;
-final _zapEncryption = ZapCrypto(LocalKeyProvider());
 Central? _central;
 GATTCharacteristic? _asyncCharacteristic;
 
@@ -183,22 +180,6 @@ class ZwiftRequirement extends PlatformRequirement {
                   syncTxCharacteristic,
                   value: ZwiftConstants.RIDE_ON,
                 );
-              } else if (value.startsWith(handshake)) {
-                final devicePublicKeyBytes = value.sublist(
-                  ZwiftConstants.RIDE_ON.length + ZwiftConstants.RESPONSE_START_CLICK_V2.length,
-                );
-                if (kDebugMode) {
-                  print(
-                    "Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
-                  );
-                }
-                _zapEncryption.initialise(devicePublicKeyBytes);
-                // respond with our public key
-                await peripheralManager.notifyCharacteristic(
-                  _central!,
-                  syncTxCharacteristic,
-                  value: Uint8List.fromList(ZwiftConstants.RIDE_ON),
-                );
               }
               break;
             default:
@@ -316,7 +297,7 @@ class ZwiftRequirement extends PlatformRequirement {
       manufacturerSpecificData: [
         ManufacturerSpecificData(
           id: 0x094A,
-          data: Uint8List.fromList([ZwiftConstants.CLICK_V2_LEFT_SIDE, 0x43, 0x63]),
+          data: Uint8List.fromList([ZwiftConstants.CLICK_V2_LEFT_SIDE, 0x13, 0x37]),
         ),
       ],
     );
@@ -342,7 +323,7 @@ class ZwiftRequirement extends PlatformRequirement {
   void writeCommand() {
     final status = RideKeyPadStatus()
       //..buttonMap = (~RideButtonMask.SHFT_UP_R_BTN.mask) & 0xFFFFFFFF
-      //..buttonMap = (~RideButtonMask.SHFT_UP_L_BTN.mask) & 0xFFFFFFFF
+      ..buttonMap = (~RideButtonMask.SHFT_UP_L_BTN.mask) & 0xFFFFFFFF
       ..buttonMap = (~RideButtonMask.LEFT_BTN.mask) & 0xFFFFFFFF
       ..analogPaddles.clear();
 
@@ -361,11 +342,6 @@ class ZwiftRequirement extends PlatformRequirement {
 
     final zero = Uint8List.fromList([0x23, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
     peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
-  }
-
-  int encodeActiveLowMap(RideButtonMask button, PlayButtonStatus status) {
-    // 32-bit mask: pressed bit = 0, others = 1
-    return (0xFFFFFFFF ^ button.mask) & 0xFFFFFFFF;
   }
 }
 
