@@ -7,7 +7,8 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' hide RideButtonMask;
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
@@ -17,6 +18,7 @@ import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
+import '../../bluetooth/devices/zwift/zwift_ride.dart';
 import '../../pages/markdown.dart';
 
 final peripheralManager = PeripheralManager();
@@ -192,15 +194,10 @@ class ZwiftRequirement extends PlatformRequirement {
                 }
                 _zapEncryption.initialise(devicePublicKeyBytes);
                 // respond with our public key
-                final response = [
-                  ...ZwiftConstants.RIDE_ON,
-                  ...ZwiftConstants.RESPONSE_START_CLICK,
-                  ..._zapEncryption.localKeyProvider.getPublicKeyBytes(),
-                ];
                 await peripheralManager.notifyCharacteristic(
                   _central!,
                   syncTxCharacteristic,
-                  value: Uint8List.fromList(response),
+                  value: Uint8List.fromList(ZwiftConstants.RIDE_ON),
                 );
               }
               break;
@@ -268,7 +265,7 @@ class ZwiftRequirement extends PlatformRequirement {
       // Unknown Service
       await peripheralManager.addService(
         GATTService(
-          uuid: UUID.fromString(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID),
+          uuid: UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT),
           isPrimary: true,
           characteristics: [
             _asyncCharacteristic!,
@@ -312,9 +309,15 @@ class ZwiftRequirement extends PlatformRequirement {
 
     final advertisement = Advertisement(
       name: 'SwiftControl',
-      serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID)],
+      serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
+      serviceData: {
+        UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),
+      },
       manufacturerSpecificData: [
-        ManufacturerSpecificData(id: 0x094A, data: Uint8List.fromList([0x09, 0xFD, 0x82])),
+        ManufacturerSpecificData(
+          id: 0x094A,
+          data: Uint8List.fromList([ZwiftConstants.CLICK_V2_LEFT_SIDE, 0x43, 0x63]),
+        ),
       ],
     );
     print('Starting advertising with HID service...');
@@ -337,38 +340,32 @@ class ZwiftRequirement extends PlatformRequirement {
   int counter = 0;
 
   void writeCommand() {
-    final down = true;
-    final constructed = ClickKeyPadStatus.create()
-      ..buttonPlus = down ? PlayButtonStatus.ON : PlayButtonStatus.OFF
-      ..buttonMinus = !down ? PlayButtonStatus.ON : PlayButtonStatus.OFF;
-    final commandProto = constructed.writeToBuffer();
+    final status = RideKeyPadStatus()
+      //..buttonMap = (~RideButtonMask.SHFT_UP_R_BTN.mask) & 0xFFFFFFFF
+      //..buttonMap = (~RideButtonMask.SHFT_UP_L_BTN.mask) & 0xFFFFFFFF
+      ..buttonMap = (~RideButtonMask.LEFT_BTN.mask) & 0xFFFFFFFF
+      ..analogPaddles.clear();
 
-    final command = down
-        ? Uint8List.fromList([ZwiftConstants.CLICK_NOTIFICATION_MESSAGE_TYPE, ...commandProto])
-        : Uint8List.fromList([0x37, 0x08, 0x01, 0x10, 0x01]);
+    // Serialize to bytes if you need to send it
+    final bytes = status.writeToBuffer();
 
-    print('Constructed command      : ${command.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
-    print('Constructed command proto:    ${commandProto.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    //..buttonMinus = !down ? PlayButtonStatus.ON : PlayButtonStatus.OFF;
+    final commandProto = Uint8List.fromList([
+      Opcode.CONTROLLER_NOTIFICATION.value,
+      ...bytes,
+    ]);
 
-    final encrypted = _zapEncryption.encrypt(command);
-    print('Sending command          : ${encrypted.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
-    print('vs                       : 10 00 00 00 99 56 9e d2 c4 f2 a3 e5 b6');
+    print('Constructed proto        : ${commandProto.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
 
-    final counter = encrypted.sublist(0, 4); // Int.SIZE_BYTES is 4
-    final payload = encrypted.sublist(4);
-    final data = _zapEncryption.decrypt(counter, payload);
-    final type = data[0];
-    final message = data.sublist(1);
+    peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: commandProto);
 
-    print(
-      'Decrypted message type: ${type.toRadixString(16).padLeft(2, '0')}, message: ${message.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}',
-    );
+    final zero = Uint8List.fromList([0x23, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
+    peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
+  }
 
-    peripheralManager.notifyCharacteristic(
-      _central!,
-      _asyncCharacteristic!,
-      value: encrypted,
-    );
+  int encodeActiveLowMap(RideButtonMask button, PlayButtonStatus status) {
+    // 32-bit mask: pressed bit = 0, others = 1
+    return (0xFFFFFFFF ^ button.mask) & 0xFFFFFFFF;
   }
 }
 

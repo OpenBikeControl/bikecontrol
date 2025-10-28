@@ -89,7 +89,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     if (kDebugMode) {
       print(
-        "${DateTime.now().toString().split(" ").last} Received data on $characteristic:\n${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
+        "${DateTime.now().toString().split(" ").last} Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
       );
     }
     if (bytes.isEmpty) {
@@ -98,7 +98,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
     try {
       if (bytes.startsWith(startCommand)) {
-        _processDevicePublicKeyResponse(bytes);
+        processDevicePublicKeyResponse(bytes);
       } else {
         processData(bytes);
       }
@@ -113,7 +113,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
     }
   }
 
-  void _processDevicePublicKeyResponse(Uint8List bytes) {
+  void processDevicePublicKeyResponse(Uint8List bytes) {
     final devicePublicKeyBytes = bytes.sublist(
       ZwiftConstants.RIDE_ON.length + ZwiftConstants.RESPONSE_START_CLICK.length,
     );

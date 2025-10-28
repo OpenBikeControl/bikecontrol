@@ -190,24 +190,23 @@ class ZwiftRide extends ZwiftDevice {
 
     // Process DIGITAL buttons separately
     final buttonsClicked = [
-      if (status.buttonMap & _RideButtonMask.LEFT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationLeft,
-      if (status.buttonMap & _RideButtonMask.RIGHT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationRight,
-      if (status.buttonMap & _RideButtonMask.UP_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationUp,
-      if (status.buttonMap & _RideButtonMask.DOWN_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationDown,
-      if (status.buttonMap & _RideButtonMask.A_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.a,
-      if (status.buttonMap & _RideButtonMask.B_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.b,
-      if (status.buttonMap & _RideButtonMask.Y_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.y,
-      if (status.buttonMap & _RideButtonMask.Z_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.z,
-      if (status.buttonMap & _RideButtonMask.SHFT_UP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.shiftUpLeft,
-      if (status.buttonMap & _RideButtonMask.SHFT_DN_L_BTN.mask == PlayButtonStatus.ON.value)
-        ZwiftButtons.shiftDownLeft,
-      if (status.buttonMap & _RideButtonMask.SHFT_UP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.shiftUpRight,
-      if (status.buttonMap & _RideButtonMask.SHFT_DN_R_BTN.mask == PlayButtonStatus.ON.value)
+      if (status.buttonMap & RideButtonMask.LEFT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationLeft,
+      if (status.buttonMap & RideButtonMask.RIGHT_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationRight,
+      if (status.buttonMap & RideButtonMask.UP_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationUp,
+      if (status.buttonMap & RideButtonMask.DOWN_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.navigationDown,
+      if (status.buttonMap & RideButtonMask.A_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.a,
+      if (status.buttonMap & RideButtonMask.B_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.b,
+      if (status.buttonMap & RideButtonMask.Y_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.y,
+      if (status.buttonMap & RideButtonMask.Z_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.z,
+      if (status.buttonMap & RideButtonMask.SHFT_UP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.shiftUpLeft,
+      if (status.buttonMap & RideButtonMask.SHFT_DN_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.shiftDownLeft,
+      if (status.buttonMap & RideButtonMask.SHFT_UP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.shiftUpRight,
+      if (status.buttonMap & RideButtonMask.SHFT_DN_R_BTN.mask == PlayButtonStatus.ON.value)
         ZwiftButtons.shiftDownRight,
-      if (status.buttonMap & _RideButtonMask.POWERUP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.powerUpLeft,
-      if (status.buttonMap & _RideButtonMask.POWERUP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.powerUpRight,
-      if (status.buttonMap & _RideButtonMask.ONOFF_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.onOffLeft,
-      if (status.buttonMap & _RideButtonMask.ONOFF_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.onOffRight,
+      if (status.buttonMap & RideButtonMask.POWERUP_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.powerUpLeft,
+      if (status.buttonMap & RideButtonMask.POWERUP_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.powerUpRight,
+      if (status.buttonMap & RideButtonMask.ONOFF_L_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.onOffLeft,
+      if (status.buttonMap & RideButtonMask.ONOFF_R_BTN.mask == PlayButtonStatus.ON.value) ZwiftButtons.onOffRight,
     ];
 
     // Process ANALOG inputs separately - now properly separated from digital
@@ -267,7 +266,7 @@ class ZwiftRide extends ZwiftDevice {
   }
 }
 
-enum _RideButtonMask {
+enum RideButtonMask {
   LEFT_BTN(0x00001),
   UP_BTN(0x00002),
   RIGHT_BTN(0x00004),
@@ -290,5 +289,5 @@ enum _RideButtonMask {
 
   final int mask;
 
-  const _RideButtonMask(this.mask);
+  const RideButtonMask(this.mask);
 }
