@@ -41,12 +41,12 @@ class ZwiftConstants {
 
   // Message types received from device
   static const CONTROLLER_NOTIFICATION_MESSAGE_TYPE = 07;
-  static const EMPTY_MESSAGE_TYPE = 21;
+  static const EMPTY_MESSAGE_TYPE = 21; // 0x15
   static const BATTERY_LEVEL_TYPE = 25;
   static const UNKNOWN_CLICKV2_TYPE = 0x3C;
 
   // not figured out the protobuf type this really is, the content is just two varints.
-  static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55;
+  static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55; // 0x37
   static const int PLAY_NOTIFICATION_MESSAGE_TYPE = 7;
   static const int RIDE_NOTIFICATION_MESSAGE_TYPE = 35; // 0x23
 

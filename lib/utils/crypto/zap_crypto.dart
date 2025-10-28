@@ -75,7 +75,7 @@ class ZapCrypto {
 
   Uint8List createCounterBytes(int messageCounter) {
     final buffer = ByteData(4);
-    buffer.setInt32(0, messageCounter, Endian.big);
+    buffer.setInt32(0, messageCounter, Endian.little);
     return buffer.buffer.asUint8List();
   }
 }

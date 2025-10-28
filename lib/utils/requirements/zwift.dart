@@ -7,8 +7,8 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/crypto/zap_crypto.dart';
@@ -24,10 +24,11 @@ bool _isAdvertising = false;
 bool _isLoading = false;
 bool _isServiceAdded = false;
 bool _isSubscribedToEvents = false;
+final _zapEncryption = ZapCrypto(LocalKeyProvider());
+Central? _central;
+GATTCharacteristic? _asyncCharacteristic;
 
 class ZwiftRequirement extends PlatformRequirement {
-  final zapEncryption = ZapCrypto(LocalKeyProvider());
-
   ZwiftRequirement()
     : super(
         'Connect to your target device',
@@ -73,7 +74,7 @@ class ZwiftRequirement extends PlatformRequirement {
             //peripheralManager.stopAdvertising();
             onUpdate();*/
           } else if (state.state == ConnectionState.disconnected) {
-            (actionHandler as RemoteActions).setConnectedCentral(null, null);
+            //(actionHandler as RemoteActions).setConnectedCentral(null, null);
             onUpdate();
           }
         });
@@ -108,7 +109,7 @@ class ZwiftRequirement extends PlatformRequirement {
       ],
     );
 
-    final asyncCharacteristic = GATTCharacteristic.mutable(
+    _asyncCharacteristic = GATTCharacteristic.mutable(
       uuid: UUID.fromString(ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID),
       descriptors: [],
       properties: [
@@ -157,7 +158,7 @@ class ZwiftRequirement extends PlatformRequirement {
           );
         });
         peripheralManager.characteristicWriteRequested.forEach((eventArgs) async {
-          final central = eventArgs.central;
+          _central = eventArgs.central;
           final characteristic = eventArgs.characteristic;
           final request = eventArgs.request;
           final offset = request.offset;
@@ -176,7 +177,7 @@ class ZwiftRequirement extends PlatformRequirement {
 
               if (value.contentEquals(handshake)) {
                 await peripheralManager.notifyCharacteristic(
-                  central,
+                  _central!,
                   syncTxCharacteristic,
                   value: ZwiftConstants.RIDE_ON,
                 );
@@ -189,15 +190,15 @@ class ZwiftRequirement extends PlatformRequirement {
                     "Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
                   );
                 }
-                zapEncryption.initialise(devicePublicKeyBytes);
+                _zapEncryption.initialise(devicePublicKeyBytes);
                 // respond with our public key
                 final response = [
                   ...ZwiftConstants.RIDE_ON,
                   ...ZwiftConstants.RESPONSE_START_CLICK,
-                  ...zapEncryption.localKeyProvider.getPublicKeyBytes(),
+                  ..._zapEncryption.localKeyProvider.getPublicKeyBytes(),
                 ];
                 await peripheralManager.notifyCharacteristic(
-                  central,
+                  _central!,
                   syncTxCharacteristic,
                   value: Uint8List.fromList(response),
                 );
@@ -224,7 +225,7 @@ class ZwiftRequirement extends PlatformRequirement {
             ),
             GATTCharacteristic.immutable(
               uuid: UUID.fromString('2A25'),
-              value: Uint8List.fromList('09-B48123283828FFD82'.codeUnits),
+              value: Uint8List.fromList('09-B48123283828F1337'.codeUnits),
               descriptors: [],
             ),
             GATTCharacteristic.immutable(
@@ -270,7 +271,7 @@ class ZwiftRequirement extends PlatformRequirement {
           uuid: UUID.fromString(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID),
           isPrimary: true,
           characteristics: [
-            asyncCharacteristic,
+            _asyncCharacteristic!,
             GATTCharacteristic.mutable(
               uuid: UUID.fromString(ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID),
               descriptors: [],
@@ -332,6 +333,43 @@ class ZwiftRequirement extends PlatformRequirement {
   Future<void> getStatus() async {
     status = (actionHandler as RemoteActions).isConnected || screenshotMode;
   }
+
+  int counter = 0;
+
+  void writeCommand() {
+    final down = true;
+    final constructed = ClickKeyPadStatus.create()
+      ..buttonPlus = down ? PlayButtonStatus.ON : PlayButtonStatus.OFF
+      ..buttonMinus = !down ? PlayButtonStatus.ON : PlayButtonStatus.OFF;
+    final commandProto = constructed.writeToBuffer();
+
+    final command = down
+        ? Uint8List.fromList([ZwiftConstants.CLICK_NOTIFICATION_MESSAGE_TYPE, ...commandProto])
+        : Uint8List.fromList([0x37, 0x08, 0x01, 0x10, 0x01]);
+
+    print('Constructed command      : ${command.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    print('Constructed command proto:    ${commandProto.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
+
+    final encrypted = _zapEncryption.encrypt(command);
+    print('Sending command          : ${encrypted.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    print('vs                       : 10 00 00 00 99 56 9e d2 c4 f2 a3 e5 b6');
+
+    final counter = encrypted.sublist(0, 4); // Int.SIZE_BYTES is 4
+    final payload = encrypted.sublist(4);
+    final data = _zapEncryption.decrypt(counter, payload);
+    final type = data[0];
+    final message = data.sublist(1);
+
+    print(
+      'Decrypted message type: ${type.toRadixString(16).padLeft(2, '0')}, message: ${message.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}',
+    );
+
+    peripheralManager.notifyCharacteristic(
+      _central!,
+      _asyncCharacteristic!,
+      value: encrypted,
+    );
+  }
 }
 
 class _PairWidget extends StatefulWidget {
@@ -380,26 +418,11 @@ class _PairWidgetState extends State<_PairWidget> {
         if (settings.getTrainerApp() is MyWhoosh)
           ElevatedButton(
             onPressed: () async {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (c) => DevicePage(),
-                  settings: RouteSettings(name: '/device'),
-                ),
-              );
+              widget.requirement.writeCommand();
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Use MyWhoosh Link only'),
-                  Text(
-                    'No pairing required, connect directly via MyWhoosh Link.',
-                    style: TextStyle(fontSize: 10, color: Colors.black87),
-                  ),
-                ],
-              ),
+              child: Text('Send command'),
             ),
           ),
         if (_isAdvertising) ...[
