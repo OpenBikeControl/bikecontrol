@@ -7,6 +7,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
+import 'package:swift_control/utils/requirements/zwift.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 abstract class PlatformRequirement {
@@ -83,7 +84,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       ],
       switch (connectionType) {
         ConnectionType.local => AccessibilityRequirement(),
-        ConnectionType.remote => RemoteRequirement(),
+        ConnectionType.remote => ZwiftRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
     ];

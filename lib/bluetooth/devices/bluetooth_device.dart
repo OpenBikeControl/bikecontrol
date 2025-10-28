@@ -79,8 +79,8 @@ abstract class BluetoothDevice extends BaseDevice {
     if (device != null) {
       return device;
     } else if (scanResult.services.containsAny([
-      ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID,
-      ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID,
+      ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID.toLowerCase(),
+      ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID.toLowerCase(),
     ])) {
       // otherwise use the manufacturer data to identify the device
       final manufacturerData = scanResult.manufacturerDataList;
