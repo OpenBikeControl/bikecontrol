@@ -35,7 +35,7 @@ class RemoteRequirement extends PlatformRequirement {
         ? null
         : Text(
             switch (settings.getLastTarget()) {
-              Target.iPad =>
+              Target.iOS =>
                 'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
               _ =>
                 'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for SwiftControl or your machines name. Pairing is required to use the remote feature.',

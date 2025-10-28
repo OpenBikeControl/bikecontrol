@@ -6,9 +6,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:swift_control/bluetooth/devices/link/link_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -229,7 +231,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (connection.remoteDevices.isNotEmpty ||
                                 actionHandler is RemoteActions ||
-                                settings.getTrainerApp() is MyWhoosh)
+                                settings.getTrainerApp() is MyWhoosh ||
+                                settings.getTrainerApp() is Zwift)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
                                 width: double.infinity,
@@ -254,6 +257,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (settings.getTrainerApp() is MyWhoosh && !whooshLink.isConnected.value)
                               LinkDevice('').showInformation(context),
+                            if (settings.getTrainerApp() is Zwift) ZwiftEmulatorInformation(),
 
                             if (actionHandler is RemoteActions)
                               Row(

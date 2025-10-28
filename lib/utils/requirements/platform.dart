@@ -45,6 +45,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       BluetoothTurnedOn(),
       switch (connectionType) {
         ConnectionType.local => KeyboardRequirement(),
+        ConnectionType.zwift => ZwiftRequirement(),
         ConnectionType.remote => RemoteRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
@@ -55,6 +56,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       BluetoothTurnedOn(),
       switch (connectionType) {
         ConnectionType.local => RemoteRequirement(),
+        ConnectionType.zwift => ZwiftRequirement(),
         ConnectionType.remote => RemoteRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
@@ -65,6 +67,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       BluetoothTurnedOn(),
       switch (connectionType) {
         ConnectionType.local => KeyboardRequirement(),
+        ConnectionType.zwift => ZwiftRequirement(),
         ConnectionType.remote => RemoteRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
@@ -84,7 +87,8 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       ],
       switch (connectionType) {
         ConnectionType.local => AccessibilityRequirement(),
-        ConnectionType.remote => ZwiftRequirement(),
+        ConnectionType.zwift => ZwiftRequirement(),
+        ConnectionType.remote => RemoteRequirement(),
         ConnectionType.unknown => PlaceholderRequirement(),
       },
     ];

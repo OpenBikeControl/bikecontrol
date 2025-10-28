@@ -59,7 +59,7 @@ class ZwiftButtons {
   // left controller
   static const ControllerButton navigationUp = ControllerButton(
     'navigationUp',
-    action: null,
+    action: InGameAction.toggleUi,
     icon: Icons.keyboard_arrow_up,
     color: Colors.black,
   );

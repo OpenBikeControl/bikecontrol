@@ -1,6 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
@@ -10,6 +11,7 @@ class MyWhoosh extends SupportedApp {
     : super(
         name: 'MyWhoosh',
         packageName: "com.mywhoosh.whooshgame",
+        compatibleTargets: Target.values,
         keymap: Keymap(
           keyPairs: [
             KeyPair(

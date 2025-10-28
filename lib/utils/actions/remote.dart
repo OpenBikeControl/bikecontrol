@@ -4,6 +4,7 @@ import 'package:accessibility/accessibility.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -29,6 +30,8 @@ class RemoteActions extends BaseActions {
 
     if (keyPair.inGameAction != null && whooshLink.isConnected.value) {
       return whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+    } else if (keyPair.inGameAction != null && zwiftEmulator.isConnected.value) {
+      return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
     } else if (!(actionHandler as RemoteActions).isConnected) {
       return 'Not connected to a ${settings.getLastTarget()?.name ?? 'remote'} device';
     }

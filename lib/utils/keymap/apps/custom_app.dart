@@ -1,6 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
@@ -11,6 +12,7 @@ class CustomApp extends SupportedApp {
   CustomApp({this.profileName = 'Other'})
     : super(
         name: profileName,
+        compatibleTargets: Target.values,
         packageName: "custom_$profileName",
         keymap: Keymap(keyPairs: []),
       );

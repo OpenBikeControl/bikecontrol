@@ -9,6 +9,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -400,7 +401,7 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.inGameAction != null && whooshLink.isConnected.value)
+        if (keyPair.inGameAction != null && (whooshLink.isConnected.value || zwiftEmulator.isConnected.value))
           _KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,

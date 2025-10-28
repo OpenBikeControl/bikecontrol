@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
@@ -184,6 +185,52 @@ class _ButtonEditor extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(child: Text('MyWhoosh Link Action')),
+                Icon(Icons.arrow_right),
+              ],
+            ),
+          ),
+        ),
+      if (zwiftEmulator.isConnected.value)
+        PopupMenuItem<PhysicalKeyboardKey>(
+          child: PopupMenuButton(
+            itemBuilder: (_) => ZwiftEmulator.supportedActions.map(
+              (ingame) {
+                return PopupMenuItem(
+                  value: ingame,
+                  child: ingame.possibleValues != null
+                      ? PopupMenuButton(
+                          itemBuilder: (c) => ingame.possibleValues!
+                              .map(
+                                (value) => PopupMenuItem(
+                                  value: value,
+                                  child: Text(value.toString()),
+                                  onTap: () {
+                                    keyPair.inGameAction = ingame;
+                                    keyPair.inGameActionValue = value;
+                                    onUpdate();
+                                  },
+                                ),
+                              )
+                              .toList(),
+                          child: Row(
+                            children: [
+                              Expanded(child: Text(ingame.toString())),
+                              Icon(Icons.arrow_right),
+                            ],
+                          ),
+                        )
+                      : Text(ingame.toString()),
+                  onTap: () {
+                    keyPair.inGameAction = ingame;
+                    keyPair.inGameActionValue = null;
+                    onUpdate();
+                  },
+                );
+              },
+            ).toList(),
+            child: Row(
+              children: [
+                Expanded(child: Text('Zwift Action')),
                 Icon(Icons.arrow_right),
               ],
             ),

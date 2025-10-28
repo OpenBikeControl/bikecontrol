@@ -4,6 +4,7 @@ import 'package:swift_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 
 import '../keymap.dart';
 
@@ -12,6 +13,7 @@ class TrainingPeaks extends SupportedApp {
     : super(
         name: 'TrainingPeaks Virtual / IndieVelo',
         packageName: "com.indieVelo.client",
+        compatibleTargets: Target.values,
         keymap: Keymap(
           keyPairs: [
             // Explicit controller-button mappings with updated touch coordinates

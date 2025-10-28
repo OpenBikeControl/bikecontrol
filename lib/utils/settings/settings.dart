@@ -15,7 +15,7 @@ class Settings {
 
   Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
-    initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
+    initializeActions(getTrainerApp()?.connectionType ?? getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
     if (actionHandler is DesktopActions) {
       // Must add this line.
