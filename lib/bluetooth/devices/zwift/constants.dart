@@ -32,9 +32,9 @@ class ZwiftConstants {
   static final VIBRATE_PATTERN = Uint8List.fromList([0x12, 0x12, 0x08, 0x0A, 0x06, 0x08, 0x02, 0x10, 0x00, 0x18]);
 
   // these don't actually seem to matter, its just the header has to be 7 bytes RIDEON + 2
-  static final REQUEST_START = Uint8List.fromList([0, 9]); //byteArrayOf(1, 2)
-  static final RESPONSE_START_CLICK = Uint8List.fromList([1, 3]); // from device
-  static final RESPONSE_START_PLAY = Uint8List.fromList([1, 4]); // from device
+  static final REQUEST_START = Uint8List.fromList([0x00, 0x09]); //byteArrayOf(1, 2)
+  static final RESPONSE_START_CLICK = Uint8List.fromList([0x01, 0x03]); // from device
+  static final RESPONSE_START_PLAY = Uint8List.fromList([0x01, 0x04]); // from device
   static final RESPONSE_START_CLICK_V2 = Uint8List.fromList([0x02, 0x03]); // from device
   static final RESPONSE_STOPPED_CLICK_V2_VARIANT_1 = Uint8List.fromList([0xff, 0x05, 0x00, 0xea, 0x05]); // from device
   static final RESPONSE_STOPPED_CLICK_V2_VARIANT_2 = Uint8List.fromList([0xff, 0x05, 0x00, 0xfa, 0x05]); // from device

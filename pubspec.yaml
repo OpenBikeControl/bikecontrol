@@ -19,6 +19,7 @@ dependencies:
       url: https://github.com/jonasbark/universal_ble.git
   gamepads: ^0.1.8+2
 
+  pointycastle: any
   path_provider: ^2.1.5
   intl: any
   version: ^3.0.0

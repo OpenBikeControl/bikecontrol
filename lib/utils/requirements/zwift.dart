@@ -10,6 +10,8 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/utils/crypto/local_key_provider.dart';
+import 'package:swift_control/utils/crypto/zap_crypto.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -24,6 +26,8 @@ bool _isServiceAdded = false;
 bool _isSubscribedToEvents = false;
 
 class ZwiftRequirement extends PlatformRequirement {
+  final zapEncryption = ZapCrypto(LocalKeyProvider());
+
   ZwiftRequirement()
     : super(
         'Connect to your target device',
@@ -159,23 +163,43 @@ class ZwiftRequirement extends PlatformRequirement {
           final offset = request.offset;
           final value = request.value;
           print(
-            'Write request for characteristic: ${characteristic.uuid}, value: ${value.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}\n${String.fromCharCodes(value)}',
+            'Write request for characteristic: ${characteristic.uuid}',
           );
 
           switch (eventArgs.characteristic.uuid.toString().toUpperCase()) {
             case ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID:
-              print('Handling write request for SYNC RX characteristic');
+              print(
+                'Handling write request for SYNC RX characteristic, value: ${value.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}\n${String.fromCharCodes(value)}',
+              );
 
-              if (value.startsWith(ZwiftConstants.RIDE_ON)) {
+              final handshake = [...ZwiftConstants.RIDE_ON, ...ZwiftConstants.RESPONSE_START_CLICK_V2];
+
+              if (value.contentEquals(handshake)) {
                 await peripheralManager.notifyCharacteristic(
                   central,
                   syncTxCharacteristic,
                   value: ZwiftConstants.RIDE_ON,
                 );
+              } else if (value.startsWith(handshake)) {
+                final devicePublicKeyBytes = value.sublist(
+                  ZwiftConstants.RIDE_ON.length + ZwiftConstants.RESPONSE_START_CLICK_V2.length,
+                );
+                if (kDebugMode) {
+                  print(
+                    "Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
+                  );
+                }
+                zapEncryption.initialise(devicePublicKeyBytes);
+                // respond with our public key
+                final response = [
+                  ...ZwiftConstants.RIDE_ON,
+                  ...ZwiftConstants.RESPONSE_START_CLICK,
+                  ...zapEncryption.localKeyProvider.getPublicKeyBytes(),
+                ];
                 await peripheralManager.notifyCharacteristic(
                   central,
-                  asyncCharacteristic,
-                  value: Uint8List.fromList([0x19, 0x10, 0x03]),
+                  syncTxCharacteristic,
+                  value: Uint8List.fromList(response),
                 );
               }
               break;
