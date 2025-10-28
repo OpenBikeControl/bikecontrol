@@ -350,6 +350,19 @@ class _ButtonEditor extends StatelessWidget {
           ),
         ),
       ),
+      PopupMenuItem<PhysicalKeyboardKey>(
+        value: null,
+        onTap: () {
+          keyPair.isLongPress = false;
+          keyPair.physicalKey = null;
+          keyPair.logicalKey = null;
+          keyPair.touchPosition = Offset.zero;
+          keyPair.inGameAction = null;
+          keyPair.inGameActionValue = null;
+          onUpdate();
+        },
+        child: const Text('Unassign action'),
+      ),
     ];
 
     return Container(

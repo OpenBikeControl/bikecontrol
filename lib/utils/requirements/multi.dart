@@ -147,7 +147,7 @@ enum Target {
   }
 
   String? get warning {
-    if (actionHandler.supportedApp is Zwift) {
+    if (settings.getTrainerApp() is Zwift) {
       // no warnings for zwift
       return null;
     }
