@@ -117,7 +117,7 @@ enum Target {
   }
 
   bool get isBeta {
-    final supportedApp = actionHandler.supportedApp;
+    final supportedApp = settings.getTrainerApp();
 
     if (supportedApp is Zwift) {
       // everything is supported, this device is not compatible anyway
@@ -204,6 +204,19 @@ class TargetRequirement extends PlatformRequirement {
               return DropdownMenuEntry(
                 value: app,
                 label: app.name,
+                enabled: !(app is Zwift && !(Platform.isWindows || Platform.isAndroid)),
+                labelWidget: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(app.name),
+                          Text(
+                            'Not compatible with Apple devices :(',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      )
+                    : null,
               );
             }).toList(),
             hintText: 'Select Trainer app',

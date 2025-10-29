@@ -23,7 +23,13 @@ abstract class SupportedApp {
     this.connectionType,
   });
 
-  static final List<SupportedApp> supportedApps = [MyWhoosh(), Zwift(), TrainingPeaks(), Biketerra(), CustomApp()];
+  static final List<SupportedApp> supportedApps = [
+    MyWhoosh(),
+    Zwift(),
+    TrainingPeaks(),
+    Biketerra(),
+    CustomApp(),
+  ];
 
   @override
   String toString() {

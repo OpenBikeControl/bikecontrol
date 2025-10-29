@@ -12,13 +12,25 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:swift_control/widgets/title.dart';
 
 import 'protocol/zwift.pb.dart' show RideKeyPadStatus;
 
 final zwiftEmulator = ZwiftEmulator();
 
 class ZwiftEmulator {
-  static final List<InGameAction> supportedActions = InGameAction.values;
+  static final List<InGameAction> supportedActions = [
+    InGameAction.shiftUp,
+    InGameAction.shiftDown,
+    InGameAction.uturn,
+    InGameAction.steerLeft,
+    InGameAction.steerRight,
+    InGameAction.openActionBar,
+    InGameAction.usePowerUp,
+    InGameAction.select,
+    InGameAction.back,
+    InGameAction.rideOnBomb,
+  ];
 
   ValueNotifier<bool> isConnected = ValueNotifier<bool>(false);
   bool get isAdvertising => _isAdvertising;
@@ -53,11 +65,11 @@ class ZwiftEmulator {
         peripheralManager.connectionStateChanged.forEach((state) {
           print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
           if (state.state == ConnectionState.connected) {
-            /*(actionHandler as RemoteActions).setConnectedCentral(state.central, inputReport);
-            //peripheralManager.stopAdvertising();
-            onUpdate();*/
+            _central = state.central;
+            isConnected.value = true;
           } else if (state.state == ConnectionState.disconnected) {
-            //(actionHandler as RemoteActions).setConnectedCentral(null, null);
+            _central = null;
+            isConnected.value = false;
             onUpdate();
           }
         });
@@ -181,7 +193,7 @@ class ZwiftEmulator {
           characteristics: [
             GATTCharacteristic.immutable(
               uuid: UUID.fromString('2A29'),
-              value: Uint8List.fromList('Zwift Inc'.codeUnits),
+              value: Uint8List.fromList('SwiftControl'.codeUnits),
               descriptors: [],
             ),
             GATTCharacteristic.immutable(
@@ -196,7 +208,7 @@ class ZwiftEmulator {
             ),
             GATTCharacteristic.immutable(
               uuid: UUID.fromString('2A26'),
-              value: Uint8List.fromList('1.1.0'.codeUnits),
+              value: Uint8List.fromList((packageInfoValue?.version ?? '1.0.0').codeUnits),
               descriptors: [],
             ),
           ],
@@ -298,36 +310,51 @@ class ZwiftEmulator {
     _isLoading = false;
   }
 
+  /*
+
+  static final List<InGameAction> supportedActions = [
+    InGameAction.shiftUp,
+    InGameAction.shiftDown,
+    InGameAction.uturn,
+    InGameAction.steerLeft,
+    InGameAction.steerRight,
+    InGameAction.openActionBar,
+    InGameAction.usePowerUp,
+    InGameAction.select,
+    InGameAction.back,
+    InGameAction.rideOnBomb,
+  ];
+   */
+
   Future<String> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
     final button = switch (inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
-      InGameAction.navigateLeft => RideButtonMask.LEFT_BTN,
-      InGameAction.navigateRight => RideButtonMask.RIGHT_BTN,
-      InGameAction.increaseResistance => RideButtonMask.SHFT_UP_R_BTN,
-      InGameAction.decreaseResistance => RideButtonMask.SHFT_UP_L_BTN,
-      InGameAction.toggleUi => RideButtonMask.UP_BTN,
-      InGameAction.cameraAngle => RideButtonMask.Z_BTN,
-      InGameAction.emote => RideButtonMask.A_BTN,
       InGameAction.uturn => RideButtonMask.DOWN_BTN,
       InGameAction.steerLeft => RideButtonMask.LEFT_BTN,
       InGameAction.steerRight => RideButtonMask.RIGHT_BTN,
+      InGameAction.openActionBar => RideButtonMask.UP_BTN,
+      InGameAction.usePowerUp => RideButtonMask.Y_BTN,
+      InGameAction.select => RideButtonMask.A_BTN,
+      InGameAction.back => RideButtonMask.B_BTN,
+      InGameAction.rideOnBomb => RideButtonMask.Z_BTN,
+      _ => null,
     };
+
+    if (button == null) {
+      return 'Action ${inGameAction.name} not supported by Zwift Emulator';
+    }
 
     final status = RideKeyPadStatus()
       ..buttonMap = (~button.mask) & 0xFFFFFFFF
       ..analogPaddles.clear();
 
-    // Serialize to bytes if you need to send it
     final bytes = status.writeToBuffer();
 
-    //..buttonMinus = !down ? PlayButtonStatus.ON : PlayButtonStatus.OFF;
     final commandProto = Uint8List.fromList([
       Opcode.CONTROLLER_NOTIFICATION.value,
       ...bytes,
     ]);
-
-    print('Constructed proto        : ${commandProto.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
 
     peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: commandProto);
 

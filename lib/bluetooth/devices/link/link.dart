@@ -127,6 +127,7 @@ class WhooshLink {
       InGameAction.navigateLeft => null,
       InGameAction.navigateRight => null,
       InGameAction.toggleUi => null,
+      _ => null,
     };
 
     if (jsonObject != null) {
