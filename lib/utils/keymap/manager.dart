@@ -60,7 +60,7 @@ class KeymapManager {
                   customApp.decodeKeymap(savedKeymap);
                 }
                 actionHandler.supportedApp = customApp;
-                await settings.setSupportedApp(customApp);
+                await settings.setKeyMap(customApp);
               }
               onDone();
             },
@@ -244,7 +244,7 @@ class KeymapManager {
           customApp.decodeKeymap(savedKeymap);
         }
         actionHandler.supportedApp = customApp;
-        await settings.setSupportedApp(customApp);
+        await settings.setKeyMap(customApp);
         return newName;
       } else {
         final customApp = CustomApp(profileName: newName);
@@ -266,7 +266,7 @@ class KeymapManager {
         });
 
         actionHandler.supportedApp = customApp;
-        await settings.setSupportedApp(customApp);
+        await settings.setKeyMap(customApp);
         return newName;
       }
     }

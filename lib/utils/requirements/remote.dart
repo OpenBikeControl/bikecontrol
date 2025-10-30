@@ -94,13 +94,13 @@ class RemoteRequirement extends PlatformRequirement {
         return;
       }
     }
-    if (kDebugMode) {
+    if (kDebugMode && false) {
       print('Continuing');
       return;
     }
 
     while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
-      print('Waiting for peripheral manager to be powered on...');
+      print('Waiting for peripheral manager to be powered on... ${peripheralManager.state}');
       if (settings.getLastTarget() == Target.thisDevice) {
         return;
       }
@@ -283,7 +283,7 @@ class RemoteRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = (actionHandler as RemoteActions).isConnected || screenshotMode;
+    status = (actionHandler is RemoteActions && (actionHandler as RemoteActions).isConnected) || screenshotMode;
   }
 }
 

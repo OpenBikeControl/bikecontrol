@@ -12,6 +12,7 @@ import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
+import 'package:swift_control/utils/requirements/zwift.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/logviewer.dart';
@@ -58,6 +59,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     });
 
     whooshLink.isStarted.addListener(() {
+      if (mounted) setState(() {});
+    });
+
+    zwiftEmulator.isConnected.addListener(() {
       if (mounted) setState(() {});
     });
 
@@ -257,7 +262,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (settings.getTrainerApp() is MyWhoosh && !whooshLink.isConnected.value)
                               LinkDevice('').showInformation(context),
-                            if (settings.getTrainerApp() is Zwift) ZwiftEmulatorInformation(),
+                            if (settings.getTrainerApp() is Zwift && !(Platform.isIOS || Platform.isMacOS))
+                              ZwiftRequirement().build(context, () {
+                                setState(() {});
+                              })!,
 
                             if (actionHandler is RemoteActions)
                               Row(
@@ -340,14 +348,14 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                           if (profileName != null && profileName.isNotEmpty) {
                                             final customApp = CustomApp(profileName: profileName);
                                             actionHandler.init(customApp);
-                                            await settings.setSupportedApp(customApp);
+                                            await settings.setKeyMap(customApp);
                                             controller.text = profileName;
                                             setState(() {});
                                           }
                                         } else {
                                           controller.text = app.name ?? '';
                                           actionHandler.supportedApp = app;
-                                          await settings.setSupportedApp(app);
+                                          await settings.setKeyMap(app);
                                           setState(() {});
                                         }
                                       },
@@ -385,7 +393,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     controller.text = actionHandler.supportedApp?.name ?? '';
 
                                     if (actionHandler.supportedApp is CustomApp) {
-                                      settings.setSupportedApp(actionHandler.supportedApp!);
+                                      settings.setKeyMap(actionHandler.supportedApp!);
                                     }
                                   },
                                 ),

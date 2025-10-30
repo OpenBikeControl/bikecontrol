@@ -113,13 +113,13 @@ enum Target {
   const Target({required this.title, required this.icon});
 
   bool get isCompatible {
-    return actionHandler.supportedApp?.compatibleTargets.contains(this) == true;
+    return settings.getTrainerApp()?.compatibleTargets.contains(this) == true;
   }
 
   bool get isBeta {
     final supportedApp = settings.getTrainerApp();
 
-    if (supportedApp is Zwift) {
+    if (supportedApp is Zwift && !(Platform.isIOS || Platform.isMacOS)) {
       // everything is supported, this device is not compatible anyway
       return false;
     }
@@ -204,15 +204,21 @@ class TargetRequirement extends PlatformRequirement {
               return DropdownMenuEntry(
                 value: app,
                 label: app.name,
-                enabled: !(app is Zwift && !(Platform.isWindows || Platform.isAndroid)),
                 labelWidget: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(app.name),
-                          Text(
-                            'Not compatible with Apple devices :(',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'When running SwiftControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                              ),
+                              Icon(Icons.warning_amber),
+                            ],
                           ),
                         ],
                       )
@@ -229,7 +235,7 @@ class TargetRequirement extends PlatformRequirement {
               if (actionHandler.supportedApp == null ||
                   (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
                 actionHandler.init(selectedApp);
-                settings.setSupportedApp(selectedApp);
+                settings.setKeyMap(selectedApp);
               }
               setState(() {});
             },
@@ -258,7 +264,7 @@ class TargetRequirement extends PlatformRequirement {
                         ],
                       ),
                       Text(
-                        target.getDescription(actionHandler.supportedApp),
+                        target.getDescription(settings.getTrainerApp()),
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                       if (target == Target.thisDevice)
@@ -280,7 +286,7 @@ class TargetRequirement extends PlatformRequirement {
             onSelected: (target) async {
               if (target != null) {
                 await settings.setLastTarget(target);
-                initializeActions(settings.getTrainerApp()?.connectionType ?? target.connectionType);
+                initializeActions(target.connectionType);
                 if (target.warning != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

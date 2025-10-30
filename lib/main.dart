@@ -34,7 +34,6 @@ enum ConnectionType {
   unknown,
   local,
   remote,
-  zwift,
 }
 
 Future<void> initializeActions(ConnectionType connectionType) async {
@@ -43,26 +42,23 @@ Future<void> initializeActions(ConnectionType connectionType) async {
   } else if (Platform.isAndroid) {
     actionHandler = switch (connectionType) {
       ConnectionType.local => AndroidActions(),
-      ConnectionType.zwift => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else if (Platform.isIOS) {
     actionHandler = switch (connectionType) {
       ConnectionType.local => StubActions(),
-      ConnectionType.zwift => StubActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else {
     actionHandler = switch (connectionType) {
       ConnectionType.local => DesktopActions(),
-      ConnectionType.zwift => DesktopActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   }
-  actionHandler.init(settings.getSupportedApp());
+  actionHandler.init(settings.getKeyMap());
 }
 
 class SwiftPlayApp extends StatelessWidget {

@@ -4,7 +4,7 @@
 
 ## Description
 
-With SwiftControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride or Zwift Play devices. Here's what you can do with it, depending on your configuration:
+With SwiftControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride, Zwift Play, or other similar devices. Here's what you can do with it, depending on your configuration:
 - Virtual Gear shifting
 - Steering / turning
 - adjust workout intensity
@@ -33,6 +33,7 @@ Check the compatibility matrix below!
 - TrainingPeaks Virtual / indieVelo
 - Biketerra.com
 - Rouvy
+- Zwift (Android and Windows only)
 - any other! You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
 
 ## Supported Devices
@@ -80,7 +81,6 @@ The app connects to your Controller devices (such as Zwift ones) automatically. 
   - there are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - you can also create your own Keymaps for any other app
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
-</details>
 
 ## Alternatives
 - [qdomyos-zwift](https://www.qzfitness.com/) directly controls the trainer (as opposed to controlling the trainer app). This can be useful if your trainer app does not support virtual shifting.
