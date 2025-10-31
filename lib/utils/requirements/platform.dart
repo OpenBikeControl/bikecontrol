@@ -71,6 +71,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
   } else if (Platform.isAndroid) {
     final deviceInfoPlugin = DeviceInfoPlugin();
     final deviceInfo = await deviceInfoPlugin.androidInfo;
+    final isMiui = await MiuiWarningRequirement.isMiuiDevice();
     list = [
       TargetRequirement(),
       BluetoothTurnedOn(),
@@ -81,6 +82,8 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
         BluetoothScanRequirement(),
         BluetoothConnectRequirement(),
       ],
+      if (isMiui && connectionType == ConnectionType.local)
+        MiuiWarningRequirement(),
       switch (connectionType) {
         ConnectionType.local => AccessibilityRequirement(),
         ConnectionType.remote => RemoteRequirement(),
