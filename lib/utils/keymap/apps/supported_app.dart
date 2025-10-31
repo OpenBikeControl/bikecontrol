@@ -1,4 +1,5 @@
 import 'package:swift_control/utils/keymap/apps/biketerra.dart';
+import 'package:swift_control/utils/keymap/apps/rouvy.dart';
 import 'package:swift_control/utils/keymap/apps/training_peaks.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
@@ -25,6 +26,7 @@ abstract class SupportedApp {
     Zwift(),
     TrainingPeaks(),
     Biketerra(),
+    Rouvy(),
     CustomApp(),
   ];
 

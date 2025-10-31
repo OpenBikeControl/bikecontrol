@@ -33,8 +33,11 @@ Check the compatibility matrix below!
 - TrainingPeaks Virtual / indieVelo
 - Biketerra.com
 - Rouvy
-- Zwift (Android and Windows only)
-- any other! You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
+- Zwift 
+  - only Android and Windows support virtual shifting and in-app-navigation
+  - iOS / macOS only support controlling Zwift via keyboard shortcuts or touch controls
+- any other!
+  - you can add custom mapping and adjust touch points or keyboard shortcuts to your liking
 
 ## Supported Devices
 - Zwift Click

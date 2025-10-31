@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/apps/rouvy.dart';
+import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
@@ -46,13 +48,21 @@ class ZwiftRequirement extends PlatformRequirement {
                 spacing: 12,
                 children: [
                   if (!settings.getZwiftEmulatorEnabled())
-                    Expanded(child: Text('Disabled. Virtual shifting and on screen navigation will not work.'))
+                    Expanded(
+                      child: Text(
+                        'Disabled. ${settings.getTrainerApp() is Zwift
+                            ? 'Virtual shifting and on screen navigation will not work.'
+                            : settings.getTrainerApp() is Rouvy
+                            ? 'Virtual shifting will not work.'
+                            : ''}',
+                      ),
+                    )
                   else ...[
                     Expanded(
                       child: Text(
                         isConnected
                             ? "Connected"
-                            : "Waiting for connection. Choose SwiftControl in Zwift's controller pairing menu.",
+                            : "Waiting for connection. Choose SwiftControl in ${settings.getTrainerApp()?.name}'s controller pairing menu.",
                       ),
                     ),
                     if (!isConnected) SmallProgressIndicator(),
