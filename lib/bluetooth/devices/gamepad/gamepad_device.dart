@@ -50,14 +50,17 @@ class GamepadDevice extends BaseDevice {
 
   @override
   Widget showInformation(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          name.screenshot,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        if (isBeta) BetaPill(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Text(
+            name.screenshot,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          if (isBeta) BetaPill(),
+        ],
+      ),
     );
   }
 }
