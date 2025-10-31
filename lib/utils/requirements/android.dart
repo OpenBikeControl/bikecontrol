@@ -186,8 +186,10 @@ class MiuiWarningRequirement extends PlatformRequirement {
     if (_isMiui != null) return _isMiui!;
     
     try {
-      final deviceInfo = await DeviceInfoPlugin().androidInfo;
-      // Check if manufacturer is Xiaomi or if it's running MIUI
+      // Reuse DeviceInfoPlugin instance for efficiency
+      final deviceInfoPlugin = DeviceInfoPlugin();
+      final deviceInfo = await deviceInfoPlugin.androidInfo;
+      // Check if manufacturer/brand is Xiaomi, Redmi, or Poco (all MIUI-based)
       _isMiui = deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
                 deviceInfo.brand.toLowerCase() == 'xiaomi' ||
                 deviceInfo.brand.toLowerCase() == 'redmi' ||
@@ -201,12 +203,17 @@ class MiuiWarningRequirement extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    // This is an informational requirement, no action needed
+    // This requirement is purely informational and doesn't require any permission
+    // or system setting changes. The user interaction is handled through the
+    // build() method which displays the warning and continue button.
   }
 
   @override
   Future<void> getStatus() async {
-    // This is always "complete" - it's just a warning
+    // This requirement is always marked as complete because it's an informational
+    // warning that doesn't block the user from proceeding. Unlike requirements
+    // that must be fulfilled (like permissions), this just ensures the user is
+    // aware of MIUI's battery optimization issues before continuing setup.
     status = true;
   }
 
