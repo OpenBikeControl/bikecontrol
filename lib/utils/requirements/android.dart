@@ -1,14 +1,11 @@
 import 'dart:io';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/accessibility_disclosure_dialog.dart';
-import 'package:swift_control/widgets/warning.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AccessibilityRequirement extends PlatformRequirement {
   AccessibilityRequirement()
@@ -170,133 +167,5 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
     AndroidFlutterLocalNotificationsPlugin().stopForegroundService().then((_) {
       exit(0);
     });
-  }
-}
-
-class MiuiWarningRequirement extends PlatformRequirement {
-  static bool? _isMiui;
-
-  MiuiWarningRequirement()
-    : super(
-        'MIUI Battery Optimization Warning',
-        description: 'MIUI devices may kill the accessibility service. Please disable battery optimization.',
-      );
-
-  static Future<bool> isMiuiDevice() async {
-    if (_isMiui != null) return _isMiui!;
-    
-    try {
-      // Reuse DeviceInfoPlugin instance for efficiency
-      final deviceInfoPlugin = DeviceInfoPlugin();
-      final deviceInfo = await deviceInfoPlugin.androidInfo;
-      // Check if manufacturer/brand is Xiaomi, Redmi, or Poco (all MIUI-based)
-      _isMiui = deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
-                deviceInfo.brand.toLowerCase() == 'xiaomi' ||
-                deviceInfo.brand.toLowerCase() == 'redmi' ||
-                deviceInfo.brand.toLowerCase() == 'poco';
-      return _isMiui!;
-    } catch (e) {
-      _isMiui = false;
-      return false;
-    }
-  }
-
-  @override
-  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    // This requirement is purely informational and doesn't require any permission
-    // or system setting changes. The user interaction is handled through the
-    // build() method which displays the warning and continue button.
-  }
-
-  @override
-  Future<void> getStatus() async {
-    // This requirement is always marked as complete because it's an informational
-    // warning that doesn't block the user from proceeding. Unlike requirements
-    // that must be fulfilled (like permissions), this just ensures the user is
-    // aware of MIUI's battery optimization issues before continuing setup.
-    status = true;
-  }
-
-  @override
-  Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return Warning(
-      children: [
-        Row(
-          children: [
-            Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.error),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'MIUI Device Detected',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-        Text(
-          'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
-          style: TextStyle(fontSize: 14),
-        ),
-        SizedBox(height: 8),
-        Text(
-          'To ensure SwiftControl works properly:',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        Text(
-          '• Disable battery optimization for SwiftControl',
-          style: TextStyle(fontSize: 14),
-        ),
-        Text(
-          '• Enable autostart for SwiftControl',
-          style: TextStyle(fontSize: 14),
-        ),
-        Text(
-          '• Lock the app in recent apps',
-          style: TextStyle(fontSize: 14),
-        ),
-        SizedBox(height: 12),
-        ElevatedButton.icon(
-          onPressed: () async {
-            final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url, mode: LaunchMode.externalApplication);
-            }
-          },
-          icon: Icon(Icons.open_in_new),
-          label: Text('View Detailed Instructions'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.errorContainer,
-            foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-          ),
-        ),
-        SizedBox(height: 8),
-        ElevatedButton(
-          onPressed: () {
-            onUpdate();
-          },
-          child: Text('I understand, continue'),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget? buildDescription() {
-    return Row(
-      children: [
-        Icon(Icons.info_outline, size: 16, color: Colors.orange),
-        SizedBox(width: 4),
-        Expanded(
-          child: Text(
-            'Please review the battery optimization settings',
-            style: TextStyle(color: Colors.orange),
-          ),
-        ),
-      ],
-    );
   }
 }

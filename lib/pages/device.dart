@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -21,6 +22,7 @@ import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:swift_control/widgets/warning.dart';
 import 'package:universal_ble/universal_ble.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../bluetooth/devices/base_device.dart';
@@ -43,6 +45,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   final controller = TextEditingController(text: actionHandler.supportedApp?.name);
   final _snackBarMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _showAutoRotationWarning = false;
+  bool _showMiuiWarning = false;
   StreamSubscription<bool>? _autoRotateStream;
 
   @override
@@ -99,6 +102,11 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
           _showAutoRotationWarning = !isEnabled;
         });
       });
+      
+      // Check if device is MIUI and using local accessibility service
+      if (actionHandler is! RemoteActions) {
+        _checkMiuiDevice();
+      }
     }
   }
 
@@ -129,6 +137,23 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
           }
         });
       }
+    }
+  }
+
+  Future<void> _checkMiuiDevice() async {
+    try {
+      final deviceInfo = await DeviceInfoPlugin().androidInfo;
+      final isMiui = deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
+                      deviceInfo.brand.toLowerCase() == 'xiaomi' ||
+                      deviceInfo.brand.toLowerCase() == 'redmi' ||
+                      deviceInfo.brand.toLowerCase() == 'poco';
+      if (isMiui && mounted) {
+        setState(() {
+          _showMiuiWarning = true;
+        });
+      }
+    } catch (e) {
+      // Silently fail if device info is not available
     }
   }
 
@@ -185,6 +210,63 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                       Warning(
                         children: [
                           Text('Enable auto-rotation on your device to make sure the app works correctly.'),
+                        ],
+                      ),
+                    if (_showMiuiWarning)
+                      Warning(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.error),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'MIUI Device Detected',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'To ensure SwiftControl works properly:',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            '• Disable battery optimization for SwiftControl',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            '• Enable autostart for SwiftControl',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            '• Lock the app in recent apps',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            icon: Icon(Icons.open_in_new),
+                            label: Text('View Detailed Instructions'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                              foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                            ),
+                          ),
                         ],
                       ),
                     Padding(
