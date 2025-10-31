@@ -310,22 +310,6 @@ class ZwiftEmulator {
     _isLoading = false;
   }
 
-  /*
-
-  static final List<InGameAction> supportedActions = [
-    InGameAction.shiftUp,
-    InGameAction.shiftDown,
-    InGameAction.uturn,
-    InGameAction.steerLeft,
-    InGameAction.steerRight,
-    InGameAction.openActionBar,
-    InGameAction.usePowerUp,
-    InGameAction.select,
-    InGameAction.back,
-    InGameAction.rideOnBomb,
-  ];
-   */
-
   Future<String> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
     final button = switch (inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
