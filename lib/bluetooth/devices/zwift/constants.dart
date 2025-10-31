@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 class ZwiftConstants {
-  static final ZWIFT_CUSTOM_SERVICE_UUID = "00000001-19CA-4651-86E5-FA29DCDD09D1".toLowerCase();
-  static final ZWIFT_RIDE_CUSTOM_SERVICE_UUID = "0000fc82-0000-1000-8000-00805f9b34fb".toLowerCase();
-  static final ZWIFT_ASYNC_CHARACTERISTIC_UUID = "00000002-19CA-4651-86E5-FA29DCDD09D1".toLowerCase();
-  static final ZWIFT_SYNC_RX_CHARACTERISTIC_UUID = "00000003-19CA-4651-86E5-FA29DCDD09D1".toLowerCase();
-  static final ZWIFT_SYNC_TX_CHARACTERISTIC_UUID = "00000004-19CA-4651-86E5-FA29DCDD09D1".toLowerCase();
+  static const ZWIFT_CUSTOM_SERVICE_UUID = "00000001-19CA-4651-86E5-FA29DCDD09D1";
+  static const ZWIFT_RIDE_CUSTOM_SERVICE_UUID = "0000fc82-0000-1000-8000-00805f9b34fb";
+  static const ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT = "fc82";
+  static const ZWIFT_ASYNC_CHARACTERISTIC_UUID = "00000002-19CA-4651-86E5-FA29DCDD09D1";
+  static const ZWIFT_SYNC_RX_CHARACTERISTIC_UUID = "00000003-19CA-4651-86E5-FA29DCDD09D1";
+  static const ZWIFT_SYNC_TX_CHARACTERISTIC_UUID = "00000004-19CA-4651-86E5-FA29DCDD09D1";
 
   static const ZWIFT_MANUFACTURER_ID = 2378; // Zwift, Inc => 0x094A
 
@@ -32,21 +33,21 @@ class ZwiftConstants {
   static final VIBRATE_PATTERN = Uint8List.fromList([0x12, 0x12, 0x08, 0x0A, 0x06, 0x08, 0x02, 0x10, 0x00, 0x18]);
 
   // these don't actually seem to matter, its just the header has to be 7 bytes RIDEON + 2
-  static final REQUEST_START = Uint8List.fromList([0, 9]); //byteArrayOf(1, 2)
-  static final RESPONSE_START_CLICK = Uint8List.fromList([1, 3]); // from device
-  static final RESPONSE_START_PLAY = Uint8List.fromList([1, 4]); // from device
+  static final REQUEST_START = Uint8List.fromList([0x00, 0x09]); //byteArrayOf(1, 2)
+  static final RESPONSE_START_CLICK = Uint8List.fromList([0x01, 0x03]); // from device
+  static final RESPONSE_START_PLAY = Uint8List.fromList([0x01, 0x04]); // from device
   static final RESPONSE_START_CLICK_V2 = Uint8List.fromList([0x02, 0x03]); // from device
   static final RESPONSE_STOPPED_CLICK_V2_VARIANT_1 = Uint8List.fromList([0xff, 0x05, 0x00, 0xea, 0x05]); // from device
   static final RESPONSE_STOPPED_CLICK_V2_VARIANT_2 = Uint8List.fromList([0xff, 0x05, 0x00, 0xfa, 0x05]); // from device
 
   // Message types received from device
   static const CONTROLLER_NOTIFICATION_MESSAGE_TYPE = 07;
-  static const EMPTY_MESSAGE_TYPE = 21;
+  static const EMPTY_MESSAGE_TYPE = 21; // 0x15
   static const BATTERY_LEVEL_TYPE = 25;
   static const UNKNOWN_CLICKV2_TYPE = 0x3C;
 
   // not figured out the protobuf type this really is, the content is just two varints.
-  static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55;
+  static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55; // 0x37
   static const int PLAY_NOTIFICATION_MESSAGE_TYPE = 7;
   static const int RIDE_NOTIFICATION_MESSAGE_TYPE = 35; // 0x23
 
@@ -58,7 +59,7 @@ class ZwiftButtons {
   // left controller
   static const ControllerButton navigationUp = ControllerButton(
     'navigationUp',
-    action: null,
+    action: InGameAction.toggleUi,
     icon: Icons.keyboard_arrow_up,
     color: Colors.black,
   );

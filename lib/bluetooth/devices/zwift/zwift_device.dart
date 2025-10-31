@@ -24,7 +24,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId);
+    final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId.toLowerCase());
 
     if (customService == null) {
       throw Exception(
@@ -33,10 +33,10 @@ abstract class ZwiftDevice extends BluetoothDevice {
     }
 
     final deviceInformationService = services.firstOrNullWhere(
-      (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID,
+      (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID.toLowerCase(),
     );
     final firmwareCharacteristic = deviceInformationService?.characteristics.firstOrNullWhere(
-      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION,
+      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION.toLowerCase(),
     );
     if (firmwareCharacteristic != null) {
       final firmwareData = await UniversalBle.read(
@@ -56,13 +56,13 @@ abstract class ZwiftDevice extends BluetoothDevice {
     }
 
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(
-      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID.toLowerCase(),
     );
     final syncTxCharacteristic = customService.characteristics.firstOrNullWhere(
-      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID,
+      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID.toLowerCase(),
     );
     syncRxCharacteristic = customService.characteristics.firstOrNullWhere(
-      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID,
+      (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID.toLowerCase(),
     );
 
     if (asyncCharacteristic == null || syncTxCharacteristic == null || syncRxCharacteristic == null) {
@@ -87,7 +87,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    if (kDebugMode && false) {
+    if (kDebugMode) {
       print(
         "${DateTime.now().toString().split(" ").last} Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
       );
@@ -98,7 +98,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
     try {
       if (bytes.startsWith(startCommand)) {
-        _processDevicePublicKeyResponse(bytes);
+        processDevicePublicKeyResponse(bytes);
       } else {
         processData(bytes);
       }
@@ -113,7 +113,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
     }
   }
 
-  void _processDevicePublicKeyResponse(Uint8List bytes) {
+  void processDevicePublicKeyResponse(Uint8List bytes) {
     final devicePublicKeyBytes = bytes.sublist(
       ZwiftConstants.RIDE_ON.length + ZwiftConstants.RESPONSE_START_CLICK.length,
     );

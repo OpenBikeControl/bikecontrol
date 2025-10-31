@@ -10,6 +10,8 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 
+import '../../../widgets/warning.dart';
+
 class GamepadDevice extends BaseDevice {
   final String id;
 
@@ -50,14 +52,29 @@ class GamepadDevice extends BaseDevice {
 
   @override
   Widget showInformation(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          name.screenshot,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        if (isBeta) BetaPill(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        spacing: 8,
+        children: [
+          Row(
+            children: [
+              Text(
+                name.screenshot,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              if (isBeta) BetaPill(),
+            ],
+          ),
+
+          if (actionHandler.supportedApp is! CustomApp)
+            Warning(
+              children: [
+                Text('Use a custom keymap to use the buttons on $name.'),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

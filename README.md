@@ -4,7 +4,7 @@
 
 ## Description
 
-With SwiftControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride or Zwift Play devices. Here's what you can do with it, depending on your configuration:
+With SwiftControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride, Zwift Play, or other similar devices. Here's what you can do with it, depending on your configuration:
 - Virtual Gear shifting
 - Steering / turning
 - adjust workout intensity
@@ -33,7 +33,11 @@ Check the compatibility matrix below!
 - TrainingPeaks Virtual / indieVelo
 - Biketerra.com
 - Rouvy
-- any other! You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
+- Zwift 
+  - only Android and Windows support virtual shifting and in-app-navigation
+  - iOS / macOS only support controlling Zwift via keyboard shortcuts or touch controls
+- any other!
+  - you can add custom mapping and adjust touch points or keyboard shortcuts to your liking
 
 ## Supported Devices
 - Zwift Click
@@ -44,7 +48,9 @@ Check the compatibility matrix below!
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
 - Gamepads (beta)
-- Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta, confirmed on Android)
+- Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)
+  - works on Android
+  - on iOS it would require playing back an audio file - let me know if that is of interest to you
 
 Support for other devices can be added - check the issues tab here on GithUb. 
 
@@ -80,7 +86,6 @@ The app connects to your Controller devices (such as Zwift ones) automatically. 
   - there are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - you can also create your own Keymaps for any other app
   - you can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts
-</details>
 
 ## Alternatives
 - [qdomyos-zwift](https://www.qzfitness.com/) directly controls the trainer (as opposed to controlling the trainer app). This can be useful if your trainer app does not support virtual shifting.

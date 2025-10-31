@@ -49,7 +49,7 @@ class Keymap {
     _updateStream.add(null);
 
     if (actionHandler.supportedApp is CustomApp) {
-      settings.setSupportedApp(actionHandler.supportedApp!);
+      settings.setKeyMap(actionHandler.supportedApp!);
     }
   }
 }

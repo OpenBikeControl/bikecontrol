@@ -6,10 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:swift_control/bluetooth/devices/link/link_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
+import 'package:swift_control/utils/requirements/zwift.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/logviewer.dart';
@@ -58,6 +60,16 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     whooshLink.isStarted.addListener(() {
       if (mounted) setState(() {});
     });
+
+    zwiftEmulator.isConnected.addListener(() {
+      if (mounted) setState(() {});
+    });
+
+    if (settings.getZwiftEmulatorEnabled() && actionHandler.supportedApp?.supportsZwiftEmulation == true) {
+      zwiftEmulator.startAdvertising(() {
+        if (mounted) setState(() {});
+      });
+    }
 
     if (actionHandler is RemoteActions && !kIsWeb && Platform.isIOS && (actionHandler as RemoteActions).isConnected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -175,12 +187,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                           Text('Enable auto-rotation on your device to make sure the app works correctly.'),
                         ],
                       ),
-                    if (connection.gamepadDevices.isNotEmpty && actionHandler.supportedApp is! CustomApp)
-                      Warning(
-                        children: [
-                          Text('Your gamepad requires a custom keymap to be able to use all buttons.'),
-                        ],
-                      ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Text('Connected Devices', style: Theme.of(context).textTheme.titleMedium),
@@ -229,7 +235,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (connection.remoteDevices.isNotEmpty ||
                                 actionHandler is RemoteActions ||
-                                settings.getTrainerApp() is MyWhoosh)
+                                settings.getTrainerApp() is MyWhoosh ||
+                                actionHandler.supportedApp?.supportsZwiftEmulation == true)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
                                 width: double.infinity,
@@ -254,6 +261,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (settings.getTrainerApp() is MyWhoosh && !whooshLink.isConnected.value)
                               LinkDevice('').showInformation(context),
+                            if (actionHandler.supportedApp?.supportsZwiftEmulation == true)
+                              ZwiftRequirement().build(context, () {
+                                setState(() {});
+                              })!,
 
                             if (actionHandler is RemoteActions)
                               Row(
@@ -336,14 +347,14 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                           if (profileName != null && profileName.isNotEmpty) {
                                             final customApp = CustomApp(profileName: profileName);
                                             actionHandler.init(customApp);
-                                            await settings.setSupportedApp(customApp);
+                                            await settings.setKeyMap(customApp);
                                             controller.text = profileName;
                                             setState(() {});
                                           }
                                         } else {
                                           controller.text = app.name ?? '';
                                           actionHandler.supportedApp = app;
-                                          await settings.setSupportedApp(app);
+                                          await settings.setKeyMap(app);
                                           setState(() {});
                                         }
                                       },
@@ -370,7 +381,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               if (actionHandler.supportedApp is! CustomApp)
                                 Text(
                                   'Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)',
-                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                  style: TextStyle(fontSize: 12),
                                 ),
                               if (actionHandler.supportedApp != null && connection.controllerDevices.isNotEmpty)
                                 KeymapExplanation(
@@ -381,7 +392,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     controller.text = actionHandler.supportedApp?.name ?? '';
 
                                     if (actionHandler.supportedApp is CustomApp) {
-                                      settings.setSupportedApp(actionHandler.supportedApp!);
+                                      settings.setKeyMap(actionHandler.supportedApp!);
                                     }
                                   },
                                 ),

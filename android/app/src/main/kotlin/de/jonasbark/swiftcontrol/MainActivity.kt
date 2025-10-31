@@ -12,6 +12,13 @@ class MainActivity: FlutterActivity(), GamepadsCompatibleActivity {
     var keyListener: ((KeyEvent) -> Boolean)? = null
     var motionListener: ((MotionEvent) -> Boolean)? = null
 
+    override fun isGamepadsInputDevice(device: InputDevice): Boolean {
+        return device.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+                || device.sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
+                // Some bluetooth keyboards are identified as GamePad. Check if it is ALPHABETIC keyboard.
+             //   && device.keyboardType != InputDevice.KEYBOARD_TYPE_ALPHABETIC
+    }
+
     override fun dispatchGenericMotionEvent(motionEvent: MotionEvent): Boolean {
         return motionListener?.invoke(motionEvent) ?: false
     }

@@ -58,7 +58,7 @@ Future<void> initializeActions(ConnectionType connectionType) async {
       ConnectionType.unknown => StubActions(),
     };
   }
-  actionHandler.init(settings.getSupportedApp());
+  actionHandler.init(settings.getKeyMap());
 }
 
 class SwiftPlayApp extends StatelessWidget {

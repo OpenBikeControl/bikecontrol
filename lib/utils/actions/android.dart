@@ -1,5 +1,6 @@
 import 'package:accessibility/accessibility.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -37,6 +38,8 @@ class AndroidActions extends BaseActions {
 
     if (keyPair.inGameAction != null && whooshLink.isConnected.value) {
       return whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+    } else if (keyPair.inGameAction != null && zwiftEmulator.isConnected.value) {
+      return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
     } else if (keyPair.isSpecialKey) {
       await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
         PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,

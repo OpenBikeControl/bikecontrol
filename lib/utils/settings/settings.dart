@@ -23,7 +23,7 @@ class Settings {
     }
 
     try {
-      final app = getSupportedApp();
+      final app = getKeyMap();
       actionHandler.init(app);
     } catch (e) {
       // couldn't decode, reset
@@ -49,14 +49,14 @@ class Settings {
     return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
   }
 
-  Future<void> setSupportedApp(SupportedApp app) async {
+  Future<void> setKeyMap(SupportedApp app) async {
     if (app is CustomApp) {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
     }
     await prefs.setString('app', app.name);
   }
 
-  SupportedApp? getSupportedApp() {
+  SupportedApp? getKeyMap() {
     final appName = prefs.getString('app');
     if (appName == null) {
       return null;
@@ -164,5 +164,13 @@ class Settings {
 
   Future<void> setMyWhooshLinkEnabled(bool enabled) async {
     await prefs.setBool('mywhoosh_link_enabled', enabled);
+  }
+
+  bool getZwiftEmulatorEnabled() {
+    return prefs.getBool('zwift_emulator_enabled') ?? true;
+  }
+
+  Future<void> setZwiftEmulatorEnabled(bool enabled) async {
+    await prefs.setBool('zwift_emulator_enabled', enabled);
   }
 }

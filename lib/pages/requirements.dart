@@ -175,7 +175,9 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   }
 
   void _reloadRequirements() {
-    getRequirements(settings.getLastTarget()?.connectionType ?? ConnectionType.unknown).then((req) {
+    getRequirements(
+      settings.getLastTarget()?.connectionType ?? ConnectionType.unknown,
+    ).then((req) {
       _requirements = req;
       final unresolvedIndex = req.indexWhere((req) => !req.status);
       if (unresolvedIndex != -1) {

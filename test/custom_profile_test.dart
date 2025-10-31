@@ -28,7 +28,7 @@ void main() {
 
     test('Should save and retrieve custom profile', () async {
       final customApp = CustomApp(profileName: 'Race');
-      await settings.setSupportedApp(customApp);
+      await settings.setKeyMap(customApp);
 
       final profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('Race'), true);
@@ -39,9 +39,9 @@ void main() {
       final race = CustomApp(profileName: 'Race');
       final event = CustomApp(profileName: 'Event');
 
-      await settings.setSupportedApp(workout);
-      await settings.setSupportedApp(race);
-      await settings.setSupportedApp(event);
+      await settings.setKeyMap(workout);
+      await settings.setKeyMap(race);
+      await settings.setKeyMap(event);
 
       final profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('Workout'), true);
@@ -52,7 +52,7 @@ void main() {
 
     test('Should duplicate custom profile', () async {
       final original = CustomApp(profileName: 'Original');
-      await settings.setSupportedApp(original);
+      await settings.setKeyMap(original);
 
       await settings.duplicateCustomAppProfile('Original', 'Copy');
 
@@ -64,7 +64,7 @@ void main() {
 
     test('Should delete custom profile', () async {
       final customApp = CustomApp(profileName: 'ToDelete');
-      await settings.setSupportedApp(customApp);
+      await settings.setKeyMap(customApp);
 
       var profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('ToDelete'), true);
@@ -108,7 +108,7 @@ void main() {
 
     test('Should export custom profile as JSON', () async {
       final customApp = CustomApp(profileName: 'TestProfile');
-      await settings.setSupportedApp(customApp);
+      await settings.setKeyMap(customApp);
 
       final jsonData = settings.exportCustomAppProfile('TestProfile');
       expect(jsonData, isNotNull);
@@ -120,7 +120,7 @@ void main() {
     test('Should import custom profile from JSON', () async {
       // First export a profile
       final customApp = CustomApp(profileName: 'ExportTest');
-      await settings.setSupportedApp(customApp);
+      await settings.setKeyMap(customApp);
       final jsonData = settings.exportCustomAppProfile('ExportTest');
 
       // Import with a new name

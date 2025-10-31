@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
@@ -10,6 +13,8 @@ class Biketerra extends SupportedApp {
     : super(
         name: 'Biketerra',
         packageName: "biketerra",
+        compatibleTargets: Target.values,
+        supportsZwiftEmulation: !(Platform.isIOS || Platform.isMacOS),
         keymap: Keymap(
           keyPairs: [
             KeyPair(

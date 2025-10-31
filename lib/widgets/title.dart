@@ -13,7 +13,7 @@ import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:version/version.dart';
 
-PackageInfo? _packageInfoValue;
+PackageInfo? packageInfoValue;
 bool? isFromPlayStore;
 
 class AppTitle extends StatefulWidget {
@@ -39,10 +39,10 @@ class _AppTitleState extends State<AppTitle> {
       });
     }
 
-    if (_packageInfoValue == null) {
+    if (packageInfoValue == null) {
       PackageInfo.fromPlatform().then((value) {
         setState(() {
-          _packageInfoValue = value;
+          packageInfoValue = value;
         });
         _checkForUpdate();
       });
@@ -143,9 +143,9 @@ class _AppTitleState extends State<AppTitle> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('SwiftControl', style: TextStyle(fontWeight: FontWeight.bold)),
-        if (_packageInfoValue != null)
+        if (packageInfoValue != null)
           Text(
-            'v${_packageInfoValue!.version}${_shorebirdPatch != null ? '+${_shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
+            'v${packageInfoValue!.version}${_shorebirdPatch != null ? '+${_shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
             style: TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
           )
         else
@@ -177,7 +177,7 @@ class _AppTitleState extends State<AppTitle> {
 
   void _compareVersion(String versionString) {
     final parsed = Version.parse(versionString);
-    final current = Version.parse(_packageInfoValue!.version);
+    final current = Version.parse(packageInfoValue!.version);
     if (parsed > current && mounted && !kDebugMode) {
       if (Platform.isAndroid) {
         _showUpdateSnackbar(parsed, 'https://play.google.com/store/apps/details?id=org.jonasbark.swiftcontrol');

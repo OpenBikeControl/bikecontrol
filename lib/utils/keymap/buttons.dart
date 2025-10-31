@@ -8,16 +8,25 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 enum InGameAction {
   shiftUp('Shift Up'),
   shiftDown('Shift Down'),
+  uturn('U-Turn'),
+  steerLeft('Steer Left'),
+  steerRight('Steer Right'),
+
+  // mywhoosh
+  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6]),
+  toggleUi('Toggle UI'),
   navigateLeft('Navigate Left'),
   navigateRight('Navigate Right'),
   increaseResistance('Increase Resistance'),
   decreaseResistance('Decrease Resistance'),
-  toggleUi('Toggle UI'),
-  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6]),
-  uturn('U-Turn'),
-  steerLeft('Steer Left'),
-  steerRight('Steer Right');
+
+  // zwift
+  openActionBar('Open Action Bar'),
+  usePowerUp('Use Power-Up'),
+  select('Select'),
+  back('Back'),
+  rideOnBomb('Ride On Bomb');
 
   final String title;
   final List<int>? possibleValues;

@@ -156,7 +156,7 @@ class Connection {
       _addDevices(pads);
     });
 
-    if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh) {
+    if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh && !whooshLink.isStarted.value) {
       startMyWhooshServer();
     }
   }
