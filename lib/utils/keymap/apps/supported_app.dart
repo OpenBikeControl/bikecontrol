@@ -13,12 +13,14 @@ abstract class SupportedApp {
   final String packageName;
   final String name;
   final Keymap keymap;
+  final bool supportsZwiftEmulation;
 
   const SupportedApp({
     required this.name,
     required this.packageName,
     required this.keymap,
     required this.compatibleTargets,
+    required this.supportsZwiftEmulation,
   });
 
   static final List<SupportedApp> supportedApps = [

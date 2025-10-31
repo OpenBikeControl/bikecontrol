@@ -14,6 +14,7 @@ class TrainingPeaks extends SupportedApp {
         name: 'TrainingPeaks Virtual / IndieVelo',
         packageName: "com.indieVelo.client",
         compatibleTargets: Target.values,
+        supportsZwiftEmulation: false,
         keymap: Keymap(
           keyPairs: [
             // Explicit controller-button mappings with updated touch coordinates

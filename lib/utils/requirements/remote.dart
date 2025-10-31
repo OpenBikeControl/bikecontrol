@@ -38,7 +38,7 @@ class RemoteRequirement extends PlatformRequirement {
               Target.iOS =>
                 'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
               _ =>
-                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for SwiftControl or your machines name. Pairing is required to use the remote feature.',
+                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for SwiftControl or your machines name. Pairing is required if you want to use the remote control feature.',
             },
           );
   }
@@ -302,7 +302,9 @@ class _PairWidgetState extends State<_PairWidget> {
     super.initState();
     // after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      toggle();
+      if (actionHandler.supportedApp?.supportsZwiftEmulation == false) {
+        toggle();
+      }
     });
   }
 
@@ -319,7 +321,9 @@ class _PairWidgetState extends State<_PairWidget> {
               onPressed: () async {
                 await toggle();
               },
-              child: Text(_isAdvertising ? 'Stop Pairing' : 'Start Pairing'),
+              child: Text(
+                _isAdvertising ? 'Stop Pairing' : 'Start Pairing',
+              ),
             ),
             if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
           ],
@@ -349,6 +353,24 @@ class _PairWidgetState extends State<_PairWidget> {
               ),
             ),
           ),
+        if (actionHandler.supportedApp?.supportsZwiftEmulation == true) ...[
+          Text(
+            'You can also skip pairing and directly connect to ${settings.getTrainerApp()?.name} by enabling the Zwift Controller.',
+            style: TextStyle(fontSize: 12),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (c) => DevicePage(),
+                  settings: RouteSettings(name: '/device'),
+                ),
+              );
+            },
+            child: Text('Connect to ${settings.getTrainerApp()?.name} directly as controller'),
+          ),
+        ],
         if (_isAdvertising) ...[
           TextButton(
             onPressed: () {

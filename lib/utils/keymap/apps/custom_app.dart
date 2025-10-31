@@ -22,6 +22,7 @@ class CustomApp extends SupportedApp {
           Target.android,
         ],
         packageName: "custom_$profileName",
+        supportsZwiftEmulation: !(Platform.isIOS || Platform.isMacOS),
         keymap: Keymap(keyPairs: []),
       );
 

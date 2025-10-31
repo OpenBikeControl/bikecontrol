@@ -9,10 +9,7 @@ import 'package:swift_control/bluetooth/devices/link/link_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/keymap/apps/biketerra.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
-import 'package:swift_control/utils/keymap/apps/rouvy.dart';
-import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/utils/requirements/zwift.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
@@ -67,6 +64,12 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     zwiftEmulator.isConnected.addListener(() {
       if (mounted) setState(() {});
     });
+
+    if (settings.getZwiftEmulatorEnabled() && actionHandler.supportedApp?.supportsZwiftEmulation == true) {
+      zwiftEmulator.startAdvertising(() {
+        if (mounted) setState(() {});
+      });
+    }
 
     if (actionHandler is RemoteActions && !kIsWeb && Platform.isIOS && (actionHandler as RemoteActions).isConnected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -239,9 +242,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                             if (connection.remoteDevices.isNotEmpty ||
                                 actionHandler is RemoteActions ||
                                 settings.getTrainerApp() is MyWhoosh ||
-                                settings.getTrainerApp() is Zwift ||
-                                settings.getTrainerApp() is Rouvy ||
-                                settings.getTrainerApp() is Biketerra)
+                                actionHandler.supportedApp?.supportsZwiftEmulation == true)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
                                 width: double.infinity,
@@ -266,9 +267,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (settings.getTrainerApp() is MyWhoosh && !whooshLink.isConnected.value)
                               LinkDevice('').showInformation(context),
-                            if ((settings.getTrainerApp() is Zwift && !(Platform.isIOS || Platform.isMacOS)) ||
-                                settings.getTrainerApp() is Rouvy ||
-                                settings.getTrainerApp() is Biketerra)
+                            if (actionHandler.supportedApp?.supportsZwiftEmulation == true)
                               ZwiftRequirement().build(context, () {
                                 setState(() {});
                               })!,

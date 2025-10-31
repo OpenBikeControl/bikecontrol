@@ -9,6 +9,7 @@ class Rouvy extends SupportedApp {
         name: 'Rouvy',
         packageName: "eu.virtualtraining.rouvy.android",
         compatibleTargets: Target.values,
+        supportsZwiftEmulation: true,
         keymap: Keymap(
           keyPairs: [],
         ),

@@ -12,6 +12,7 @@ class MyWhoosh extends SupportedApp {
         name: 'MyWhoosh',
         packageName: "com.mywhoosh.whooshgame",
         compatibleTargets: Target.values,
+        supportsZwiftEmulation: false,
         keymap: Keymap(
           keyPairs: [
             KeyPair(
