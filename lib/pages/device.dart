@@ -387,7 +387,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               if (actionHandler.supportedApp is! CustomApp)
                                 Text(
                                   'Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)',
-                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                  style: TextStyle(fontSize: 12),
                                 ),
                               if (actionHandler.supportedApp != null && connection.controllerDevices.isNotEmpty)
                                 KeymapExplanation(
