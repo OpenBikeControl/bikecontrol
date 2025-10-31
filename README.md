@@ -48,7 +48,9 @@ Check the compatibility matrix below!
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
 - Gamepads (beta)
-- Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta, confirmed on Android)
+- Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)
+  - works on Android
+  - on iOS it would require playing back an audio file - let me know if that is of interest to you
 
 Support for other devices can be added - check the issues tab here on GithUb. 
 

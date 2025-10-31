@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
@@ -12,7 +14,13 @@ class CustomApp extends SupportedApp {
   CustomApp({this.profileName = 'Other'})
     : super(
         name: profileName,
-        compatibleTargets: Target.values,
+        compatibleTargets: [
+          if (!Platform.isIOS) Target.thisDevice,
+          Target.macOS,
+          Target.windows,
+          Target.iOS,
+          Target.android,
+        ],
         packageName: "custom_$profileName",
         keymap: Keymap(keyPairs: []),
       );
