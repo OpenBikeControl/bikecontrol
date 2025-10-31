@@ -1,4 +1,4 @@
-### 3.3.0 (unreleased)
+### 3.3.0 (31-10-2025)
 
 **New Feature:**
 - Support for Elite Sterzo (thanks @michidk)

@@ -147,8 +147,8 @@ enum Target {
   }
 
   String? get warning {
-    if (settings.getTrainerApp() is Zwift) {
-      // no warnings for zwift
+    if (settings.getTrainerApp()?.supportsZwiftEmulation == true) {
+      // no warnings for zwift emulation
       return null;
     }
     return switch (this) {

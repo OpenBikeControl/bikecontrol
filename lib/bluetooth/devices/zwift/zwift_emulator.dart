@@ -65,8 +65,6 @@ class ZwiftEmulator {
         peripheralManager.connectionStateChanged.forEach((state) {
           print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
           if (state.state == ConnectionState.connected) {
-            _central = state.central;
-            isConnected.value = true;
           } else if (state.state == ConnectionState.disconnected) {
             _central = null;
             isConnected.value = false;
@@ -167,8 +165,10 @@ class ZwiftEmulator {
               );
 
               final handshake = [...ZwiftConstants.RIDE_ON, ...ZwiftConstants.RESPONSE_START_CLICK_V2];
+              final handshakeAlternative = ZwiftConstants.RIDE_ON; // e.g. Rouvy
 
-              if (value.contentEquals(handshake)) {
+              if (value.contentEquals(handshake) || value.contentEquals(handshakeAlternative)) {
+                print('Sending handshake');
                 await peripheralManager.notifyCharacteristic(
                   _central!,
                   syncTxCharacteristic,
