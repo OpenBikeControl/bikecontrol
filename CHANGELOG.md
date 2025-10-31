@@ -6,11 +6,13 @@
 - Support for cheap bluetooth remotes (such as [these](https://www.amazon.com/s?k=bluetooth+remote))
 - you can now customize the Keymap right from the Customize section
 - show signal strength of connected devices (thanks @michidk)
+- Android and Windows only: simulate bluetooth controllers
+  - enables gamepad and bluetooth remotes support for Zwift, Rouvy and Biketerra
 
 **Fixes:**
 - fix firmware version display for Zwift Click V2 devices
 - fix touch position on some Android devices
-- Wahoo Kickr Bike Shift can now be connected correctly
+- Wahoo Kickr Bike Shift can now be connected
 - update default keymap for TrainingPeaks
 
 ### 3.2.0 (2025-10-22)
