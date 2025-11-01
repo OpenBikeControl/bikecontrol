@@ -26,6 +26,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../utils/actions/android.dart';
 import '../utils/actions/remote.dart';
 import '../utils/keymap/apps/custom_app.dart';
 import '../utils/keymap/apps/supported_app.dart';
@@ -104,7 +105,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       });
       
       // Check if device is MIUI and using local accessibility service
-      if (actionHandler is! RemoteActions) {
+      if (actionHandler is AndroidActions) {
         _checkMiuiDevice();
       }
     }
