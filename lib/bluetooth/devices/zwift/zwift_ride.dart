@@ -5,7 +5,6 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
@@ -59,19 +58,6 @@ class ZwiftRide extends ZwiftDevice {
       print(
         '${DateTime.now().toString().split(" ").last} Received $opcode: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
       );
-    }
-
-    if (this is ZwiftClickV2 &&
-        (bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_1) ||
-            bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_2))) {
-      actionStreamInternal.add(
-        LogNotification(
-          'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once per day. Resetting the device now.',
-        ),
-      );
-      if (!kDebugMode) {
-        sendCommand(Opcode.RESET, null);
-      }
     }
 
     switch (opcode) {

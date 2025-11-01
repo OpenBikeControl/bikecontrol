@@ -31,7 +31,7 @@ on:
       build_web:
         description: 'Build for Web'
         required: false
-        default: true
+        default: false
         type: boolean
 
 env:
