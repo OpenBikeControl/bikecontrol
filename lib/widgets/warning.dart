@@ -13,7 +13,7 @@ class Warning extends StatelessWidget {
         color: Theme.of(context).colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,

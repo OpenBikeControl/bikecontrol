@@ -7,6 +7,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/menu.dart';
+import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:swift_control/widgets/title.dart';
 
 import 'device.dart';
@@ -101,7 +102,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
               ],
             ),
             _requirements.isEmpty
-                ? Center(child: CircularProgressIndicator())
+                ? Center(child: SmallProgressIndicator())
                 : Card(
                     margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     child: Stepper(

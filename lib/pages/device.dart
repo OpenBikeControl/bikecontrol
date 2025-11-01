@@ -103,7 +103,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
           _showAutoRotationWarning = !isEnabled;
         });
       });
-      
+
       // Check if device is MIUI and using local accessibility service
       if (actionHandler is AndroidActions) {
         _checkMiuiDevice();
@@ -147,12 +147,13 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       if (settings.getMiuiWarningDismissed()) {
         return;
       }
-      
+
       final deviceInfo = await DeviceInfoPlugin().androidInfo;
-      final isMiui = deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
-                      deviceInfo.brand.toLowerCase() == 'xiaomi' ||
-                      deviceInfo.brand.toLowerCase() == 'redmi' ||
-                      deviceInfo.brand.toLowerCase() == 'poco';
+      final isMiui =
+          deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
+          deviceInfo.brand.toLowerCase() == 'xiaomi' ||
+          deviceInfo.brand.toLowerCase() == 'redmi' ||
+          deviceInfo.brand.toLowerCase() == 'poco';
       if (isMiui && mounted) {
         setState(() {
           _showMiuiWarning = true;
@@ -280,10 +281,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                             },
                             icon: Icon(Icons.open_in_new),
                             label: Text('View Detailed Instructions'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                              foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-                            ),
                           ),
                         ],
                       ),
