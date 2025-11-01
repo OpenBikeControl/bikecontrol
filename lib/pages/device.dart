@@ -142,6 +142,11 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
   Future<void> _checkMiuiDevice() async {
     try {
+      // Don't show if user has dismissed the warning
+      if (settings.getMiuiWarningDismissed()) {
+        return;
+      }
+      
       final deviceInfo = await DeviceInfoPlugin().androidInfo;
       final isMiui = deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
                       deviceInfo.brand.toLowerCase() == 'xiaomi' ||
@@ -227,6 +232,18 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     color: Theme.of(context).colorScheme.error,
                                   ),
                                 ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.close),
+                                onPressed: () async {
+                                  await settings.setMiuiWarningDismissed(true);
+                                  setState(() {
+                                    _showMiuiWarning = false;
+                                  });
+                                },
+                                tooltip: 'Dismiss',
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(),
                               ),
                             ],
                           ),

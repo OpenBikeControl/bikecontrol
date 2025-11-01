@@ -173,4 +173,12 @@ class Settings {
   Future<void> setZwiftEmulatorEnabled(bool enabled) async {
     await prefs.setBool('zwift_emulator_enabled', enabled);
   }
+
+  bool getMiuiWarningDismissed() {
+    return prefs.getBool('miui_warning_dismissed') ?? false;
+  }
+
+  Future<void> setMiuiWarningDismissed(bool dismissed) async {
+    await prefs.setBool('miui_warning_dismissed', dismissed);
+  }
 }
