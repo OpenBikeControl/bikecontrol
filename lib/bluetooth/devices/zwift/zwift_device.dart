@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
@@ -32,29 +31,6 @@ abstract class ZwiftDevice extends BluetoothDevice {
       );
     }
 
-    final deviceInformationService = services.firstOrNullWhere(
-      (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID.toLowerCase(),
-    );
-    final firmwareCharacteristic = deviceInformationService?.characteristics.firstOrNullWhere(
-      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION.toLowerCase(),
-    );
-    if (firmwareCharacteristic != null) {
-      final firmwareData = await UniversalBle.read(
-        device.deviceId,
-        deviceInformationService!.uuid,
-        firmwareCharacteristic.uuid,
-      );
-      firmwareVersion = String.fromCharCodes(firmwareData);
-      connection.signalChange(this);
-      if (firmwareVersion != latestFirmwareVersion) {
-        actionStreamInternal.add(
-          LogNotification(
-            'A new firmware version is available for ${device.name ?? device.rawName}: $latestFirmwareVersion (current: $firmwareVersion). Please update it in Zwift Companion app.',
-          ),
-        );
-      }
-    }
-
     final asyncCharacteristic = customService.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID.toLowerCase(),
     );
@@ -73,6 +49,14 @@ abstract class ZwiftDevice extends BluetoothDevice {
     await UniversalBle.subscribeIndications(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
 
     await setupHandshake();
+
+    if (firmwareVersion != latestFirmwareVersion) {
+      actionStreamInternal.add(
+        LogNotification(
+          'A new firmware version is available for ${device.name ?? device.rawName}: $latestFirmwareVersion (current: $firmwareVersion). Please update it in Zwift Companion app.',
+        ),
+      );
+    }
   }
 
   Future<void> setupHandshake() async {

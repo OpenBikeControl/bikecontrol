@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
@@ -14,15 +15,17 @@ class CustomApp extends SupportedApp {
   CustomApp({this.profileName = 'Other'})
     : super(
         name: profileName,
-        compatibleTargets: [
-          if (!Platform.isIOS) Target.thisDevice,
-          Target.macOS,
-          Target.windows,
-          Target.iOS,
-          Target.android,
-        ],
+        compatibleTargets: kIsWeb
+            ? [Target.thisDevice]
+            : [
+                if (!Platform.isIOS) Target.thisDevice,
+                Target.macOS,
+                Target.windows,
+                Target.iOS,
+                Target.android,
+              ],
         packageName: "custom_$profileName",
-        supportsZwiftEmulation: !(Platform.isIOS || Platform.isMacOS),
+        supportsZwiftEmulation: !kIsWeb && !(Platform.isIOS || Platform.isMacOS),
         keymap: Keymap(keyPairs: []),
       );
 

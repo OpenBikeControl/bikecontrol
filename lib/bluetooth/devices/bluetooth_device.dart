@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
@@ -144,6 +145,41 @@ abstract class BluetoothDevice extends BaseDevice {
     }
 
     final services = await UniversalBle.discoverServices(device.deviceId);
+    final deviceInformationService = services.firstOrNullWhere(
+      (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID.toLowerCase(),
+    );
+    final firmwareCharacteristic = deviceInformationService?.characteristics.firstOrNullWhere(
+      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION.toLowerCase(),
+    );
+    if (firmwareCharacteristic != null) {
+      final firmwareData = await UniversalBle.read(
+        device.deviceId,
+        deviceInformationService!.uuid,
+        firmwareCharacteristic.uuid,
+      );
+      firmwareVersion = String.fromCharCodes(firmwareData);
+      connection.signalChange(this);
+    }
+
+    final batteryService = services.firstOrNullWhere(
+      (service) => service.uuid == BleUuid.DEVICE_BATTERY_SERVICE_UUID.toLowerCase(),
+    );
+
+    final batteryCharacteristic = batteryService?.characteristics.firstOrNullWhere(
+      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL.toLowerCase(),
+    );
+    if (batteryCharacteristic != null) {
+      final batteryData = await UniversalBle.read(
+        device.deviceId,
+        batteryService!.uuid,
+        batteryCharacteristic.uuid,
+      );
+      if (batteryData.isNotEmpty) {
+        batteryLevel = batteryData.first;
+        connection.signalChange(this);
+      }
+    }
+
     await handleServices(services);
   }
 
