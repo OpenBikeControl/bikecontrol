@@ -66,7 +66,7 @@ class Connection {
         _connectionStreams.add(existingDevice); // Notify UI of update
       }
 
-      if (_lastScanResult.none((e) => e.deviceId == result.deviceId)) {
+      if (_lastScanResult.none((e) => e.deviceId == result.deviceId && e.services.contentEquals(result.services))) {
         _lastScanResult.add(result);
 
         if (kDebugMode) {

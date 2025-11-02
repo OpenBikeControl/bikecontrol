@@ -44,6 +44,7 @@ Check the compatibility matrix below!
 - Zwift Click v2 (mostly, see issue #68)
 - Zwift Ride
 - Zwift Play
+- Shimano Di2 (D-Fly channels)
 - Wahoo Kickr Bike Shift
 - CYCPLUS BC2 Virtual Shifter
 - Elite Sterzo Smart (for steering support)

@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -126,4 +129,27 @@ abstract class BaseDevice {
   }
 
   Widget showInformation(BuildContext context);
+
+  ControllerButton? getOrAddButton(String name, ControllerButton Function() button) {
+    if (actionHandler.supportedApp is CustomApp) {
+      final allButtons = actionHandler.supportedApp!.keymap.keyPairs.expand((kp) => kp.buttons).toSet().toList();
+      if (allButtons.none((b) => b.name == name)) {
+        final newButton = button();
+        availableButtons.add(newButton);
+        actionHandler.supportedApp!.keymap.addKeyPair(
+          KeyPair(
+            touchPosition: Offset.zero,
+            buttons: [newButton],
+            physicalKey: null,
+            logicalKey: null,
+            isLongPress: false,
+          ),
+        );
+        return newButton;
+      } else {
+        return allButtons.firstWhere((b) => b.name == name);
+      }
+    }
+    return null;
+  }
 }

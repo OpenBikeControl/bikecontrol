@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -35,10 +36,10 @@ class CycplusBc2 extends BluetoothDevice {
       // - 0x01 or similar for shift up
       // - 0x02 or similar for shift down
       // - 0x00 for button release
-      
+
       if (bytes.isNotEmpty) {
         final buttonCode = bytes[0];
-        
+
         switch (buttonCode) {
           case 0x01:
             // Shift up button pressed
@@ -54,7 +55,9 @@ class CycplusBc2 extends BluetoothDevice {
             break;
           default:
             // Unknown button code - log for debugging
-            print('CYCPLUS BC2: Unknown button code: 0x${buttonCode.toRadixString(16)}');
+            actionStreamInternal.add(
+              LogNotification('CYCPLUS BC2: Unknown button code: 0x${buttonCode.toRadixString(16)}'),
+            );
             break;
         }
       }
@@ -66,10 +69,10 @@ class CycplusBc2 extends BluetoothDevice {
 class CycplusBc2Constants {
   // Nordic UART Service (NUS) - commonly used by CYCPLUS BC2
   static const String SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-  
+
   // TX Characteristic - device sends data to app
   static const String TX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
-  
+
   // RX Characteristic - app sends data to device (not used for button reading)
   static const String RX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
 }
@@ -79,14 +82,12 @@ class CycplusBc2Buttons {
     'shiftUp',
     action: InGameAction.shiftUp,
     icon: Icons.add,
-    color: Colors.green,
   );
-  
+
   static const ControllerButton shiftDown = ControllerButton(
     'shiftDown',
     action: InGameAction.shiftDown,
     icon: Icons.remove,
-    color: Colors.red,
   );
 
   static const List<ControllerButton> values = [

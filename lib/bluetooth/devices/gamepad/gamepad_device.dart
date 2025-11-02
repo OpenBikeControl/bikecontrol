@@ -7,7 +7,6 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 
 import '../../../widgets/warning.dart';
@@ -24,25 +23,9 @@ class GamepadDevice extends BaseDevice {
     Gamepads.eventsByGamepad(id).listen((event) {
       actionStreamInternal.add(LogNotification('Gamepad event: $event'));
 
-      ControllerButton? button = availableButtons.firstOrNullWhere((b) => b.name == event.key);
+      ControllerButton? button = getOrAddButton(event.key, () => ControllerButton(event.key));
 
-      if (button == null) {
-        button = ControllerButton(event.key);
-        if (actionHandler.supportedApp is CustomApp) {
-          availableButtons.add(button);
-          actionHandler.supportedApp?.keymap.addKeyPair(
-            KeyPair(
-              touchPosition: Offset.zero,
-              buttons: [button],
-              physicalKey: null,
-              logicalKey: null,
-              isLongPress: false,
-            ),
-          );
-        }
-      }
-
-      final buttonsClicked = event.value == 0.0 ? [button] : <ControllerButton>[];
+      final buttonsClicked = event.value == 0.0 && button != null ? [button] : <ControllerButton>[];
       if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
         handleButtonsClicked(buttonsClicked);
       }
