@@ -16,6 +16,7 @@ import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import 'cycplus/cycplus_bc2.dart';
 import 'elite/elite_square.dart';
 import 'elite/elite_sterzo.dart';
 
@@ -37,6 +38,7 @@ abstract class BluetoothDevice extends BaseDevice {
     SquareConstants.SERVICE_UUID,
     WahooKickrBikeShiftConstants.SERVICE_UUID,
     SterzoConstants.SERVICE_UUID,
+    CycplusBc2Constants.SERVICE_UUID,
   ];
 
   static BluetoothDevice? fromScanResult(BleDevice scanResult) {
@@ -58,6 +60,10 @@ abstract class BluetoothDevice extends BaseDevice {
       if (scanResult.name != null && scanResult.name!.toUpperCase().startsWith('STERZO')) {
         device = EliteSterzo(scanResult);
       }
+
+      if (scanResult.name != null && (scanResult.name!.toUpperCase().startsWith('CYCPLUS') || scanResult.name!.toUpperCase().contains('BC2'))) {
+        device = CycplusBc2(scanResult);
+      }
     } else {
       device = switch (scanResult.name) {
         //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
@@ -72,6 +78,8 @@ abstract class BluetoothDevice extends BaseDevice {
           device = EliteSterzo(scanResult);
         } else if (scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT')) {
           return WahooKickrBikeShift(scanResult);
+        } else if (scanResult.name!.toUpperCase().startsWith('CYCPLUS') || scanResult.name!.toUpperCase().contains('BC2')) {
+          device = CycplusBc2(scanResult);
         }
       }
     }
@@ -107,6 +115,8 @@ abstract class BluetoothDevice extends BaseDevice {
       return EliteSquare(scanResult);
     } else if (scanResult.services.contains(SterzoConstants.SERVICE_UUID)) {
       return EliteSterzo(scanResult);
+    } else if (scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase())) {
+      return CycplusBc2(scanResult);
     } else {
       return null;
     }

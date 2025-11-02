@@ -45,6 +45,7 @@ Check the compatibility matrix below!
 - Zwift Ride
 - Zwift Play
 - Wahoo Kickr Bike Shift
+- CYCPLUS BC2 Virtual Shifter
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
 - Gamepads (beta)
