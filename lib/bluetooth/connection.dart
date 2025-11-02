@@ -135,26 +135,29 @@ class Connection {
       platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
     );
 
-    _gamePadSearchTimer = Timer.periodic(Duration(seconds: 3), (_) {
+    if (!kIsWeb) {
+      _gamePadSearchTimer = Timer.periodic(Duration(seconds: 3), (_) {
+        Gamepads.list().then((list) {
+          final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
+          _addDevices(pads);
+
+          final removedDevices = gamepadDevices.where((device) => list.none((pad) => pad.id == device.id)).toList();
+          for (var device in removedDevices) {
+            devices.remove(device);
+            _streamSubscriptions[device]?.cancel();
+            _streamSubscriptions.remove(device);
+            _connectionSubscriptions[device]?.cancel();
+            _connectionSubscriptions.remove(device);
+            signalChange(device);
+          }
+        });
+      });
+
       Gamepads.list().then((list) {
         final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
         _addDevices(pads);
-
-        final removedDevices = gamepadDevices.where((device) => list.none((pad) => pad.id == device.id)).toList();
-        for (var device in removedDevices) {
-          devices.remove(device);
-          _streamSubscriptions[device]?.cancel();
-          _streamSubscriptions.remove(device);
-          _connectionSubscriptions[device]?.cancel();
-          _connectionSubscriptions.remove(device);
-          signalChange(device);
-        }
       });
-    });
-    Gamepads.list().then((list) {
-      final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
-      _addDevices(pads);
-    });
+    }
 
     if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh && !whooshLink.isStarted.value) {
       startMyWhooshServer();
