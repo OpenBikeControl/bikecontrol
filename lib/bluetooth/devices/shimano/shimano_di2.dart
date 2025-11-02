@@ -30,7 +30,7 @@ class ShimanoDi2 extends BluetoothDevice {
     }
   }
 
-  var _lastButtons = <int, int>{};
+  final _lastButtons = <int, int>{};
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {

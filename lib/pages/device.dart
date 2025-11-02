@@ -61,18 +61,20 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       _checkAndShowChangelog();
     });
 
-    whooshLink.isStarted.addListener(() {
-      if (mounted) setState(() {});
-    });
-
-    zwiftEmulator.isConnected.addListener(() {
-      if (mounted) setState(() {});
-    });
-
-    if (settings.getZwiftEmulatorEnabled() && actionHandler.supportedApp?.supportsZwiftEmulation == true) {
-      zwiftEmulator.startAdvertising(() {
+    if (!kIsWeb) {
+      whooshLink.isStarted.addListener(() {
         if (mounted) setState(() {});
       });
+
+      zwiftEmulator.isConnected.addListener(() {
+        if (mounted) setState(() {});
+      });
+
+      if (settings.getZwiftEmulatorEnabled() && actionHandler.supportedApp?.supportsZwiftEmulation == true) {
+        zwiftEmulator.startAdvertising(() {
+          if (mounted) setState(() {});
+        });
+      }
     }
 
     if (actionHandler is RemoteActions && !kIsWeb && Platform.isIOS && (actionHandler as RemoteActions).isConnected) {
