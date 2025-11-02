@@ -8,6 +8,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
+import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/button_widget.dart';
@@ -143,8 +144,8 @@ class _ButtonEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final actions = [
-      if (whooshLink.isConnected.value)
+    final actions = <PopupMenuEntry>[
+      if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh)
         PopupMenuItem<PhysicalKeyboardKey>(
           child: PopupMenuButton(
             itemBuilder: (_) => WhooshLink.supportedActions.map(
@@ -182,15 +183,20 @@ class _ButtonEditor extends StatelessWidget {
                 );
               },
             ).toList(),
-            child: Row(
-              children: [
-                Expanded(child: Text('MyWhoosh Link Action')),
-                Icon(Icons.arrow_right),
-              ],
+            child: SizedBox(
+              height: 52,
+              child: Row(
+                spacing: 14,
+                children: [
+                  Icon(Icons.link),
+                  Expanded(child: Text('MyWhoosh Link Action')),
+                  Icon(Icons.arrow_right),
+                ],
+              ),
             ),
           ),
         ),
-      if (zwiftEmulator.isConnected.value)
+      if (settings.getZwiftEmulatorEnabled() && settings.getTrainerApp()?.supportsZwiftEmulation == true)
         PopupMenuItem<PhysicalKeyboardKey>(
           child: PopupMenuButton(
             itemBuilder: (_) => ZwiftEmulator.supportedActions.map(
@@ -228,11 +234,16 @@ class _ButtonEditor extends StatelessWidget {
                 );
               },
             ).toList(),
-            child: Row(
-              children: [
-                Expanded(child: Text('Zwift Action')),
-                Icon(Icons.arrow_right),
-              ],
+            child: SizedBox(
+              height: 52,
+              child: Row(
+                spacing: 14,
+                children: [
+                  Icon(Icons.link),
+                  Expanded(child: Text('Zwift Controller Action')),
+                  Icon(Icons.arrow_right),
+                ],
+              ),
             ),
           ),
         ),
@@ -331,23 +342,28 @@ class _ButtonEditor extends StatelessWidget {
           ),
         ),
 
+      PopupMenuDivider(),
       PopupMenuItem<PhysicalKeyboardKey>(
         value: null,
         onTap: () {
           keyPair.isLongPress = !keyPair.isLongPress;
           onUpdate();
         },
-        child: ListTile(
-          title: const Text('Long Press Mode (vs. repeating)'),
-          trailing: Checkbox(
-            value: keyPair.isLongPress,
-            onChanged: (value) {
-              keyPair.isLongPress = value ?? false;
+        padding: EdgeInsets.zero,
+        child: Row(
+          spacing: 6,
+          children: [
+            Checkbox(
+              value: keyPair.isLongPress,
+              onChanged: (value) {
+                keyPair.isLongPress = value ?? false;
 
-              onUpdate();
-              Navigator.of(context).pop();
-            },
-          ),
+                onUpdate();
+                Navigator.of(context).pop();
+              },
+            ),
+            const Text('Long Press Mode (vs. repeating)'),
+          ],
         ),
       ),
       PopupMenuItem<PhysicalKeyboardKey>(
@@ -361,14 +377,20 @@ class _ButtonEditor extends StatelessWidget {
           keyPair.inGameActionValue = null;
           onUpdate();
         },
-        child: const Text('Unassign action'),
+        child: Row(
+          spacing: 14,
+          children: [
+            Icon(Icons.delete_outline),
+            const Text('Unassign action'),
+          ],
+        ),
       ),
     ];
 
     return Container(
       constraints: BoxConstraints(minHeight: kMinInteractiveDimension - 6),
       padding: EdgeInsets.only(right: actionHandler.supportedApp is CustomApp ? 4 : 0),
-      child: PopupMenuButton(
+      child: PopupMenuButton<dynamic>(
         itemBuilder: (c) => actions,
         enabled: actionHandler.supportedApp is CustomApp,
         child: Row(

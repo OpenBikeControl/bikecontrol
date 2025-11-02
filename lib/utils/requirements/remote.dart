@@ -353,7 +353,7 @@ class _PairWidgetState extends State<_PairWidget> {
               ),
             ),
           ),
-        if (actionHandler.supportedApp?.supportsZwiftEmulation == true) ...[
+        if (settings.getTrainerApp()?.supportsZwiftEmulation == true) ...[
           Text(
             'You can also skip pairing and directly connect to ${settings.getTrainerApp()?.name} by enabling the Zwift Controller.',
             style: TextStyle(fontSize: 12),

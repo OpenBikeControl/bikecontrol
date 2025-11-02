@@ -90,7 +90,7 @@ class KeyPair {
       PhysicalKeyboardKey.audioVolumeUp ||
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
       _ when physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard) => Icons.keyboard,
-      _ when inGameAction != null && whooshLink.isConnected.value => Icons.link,
+      _ when inGameAction != null => Icons.link,
       _ => Icons.touch_app,
     };
   }

@@ -152,6 +152,7 @@ class NotificationRequirement extends PlatformRequirement {
       channelGroupId,
       'Allows SwiftControl to keep running in background',
       foregroundServiceTypes: {AndroidServiceForegroundType.foregroundServiceTypeConnectedDevice},
+      startType: AndroidServiceStartType.startRedeliverIntent,
       notificationDetails: AndroidNotificationDetails(
         channelGroupId,
         'Keep Alive',
@@ -164,8 +165,7 @@ class NotificationRequirement extends PlatformRequirement {
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
   if (notificationResponse.actionId != null) {
-    AndroidFlutterLocalNotificationsPlugin().stopForegroundService().then((_) {
-      exit(0);
-    });
+    AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
+    exit(0);
   }
 }

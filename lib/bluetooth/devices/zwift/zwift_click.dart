@@ -6,14 +6,14 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import 'constants.dart';
 
 class ZwiftClick extends ZwiftDevice {
-  ZwiftClick(super.scanResult) : super(availableButtons: [ZwiftButtons.shiftUpRight, ZwiftButtons.shiftDownLeft]);
+  ZwiftClick(super.scanResult) : super(availableButtons: [ZwiftButtons.shiftUpRight, ZwiftButtons.shiftUpLeft]);
 
   @override
   List<ControllerButton> processClickNotification(Uint8List message) {
     final status = ClickKeyPadStatus.fromBuffer(message);
     final buttonsClicked = [
       if (status.buttonPlus == PlayButtonStatus.ON) ZwiftButtons.shiftUpRight,
-      if (status.buttonMinus == PlayButtonStatus.ON) ZwiftButtons.shiftDownLeft,
+      if (status.buttonMinus == PlayButtonStatus.ON) ZwiftButtons.shiftUpLeft,
     ];
     return buttonsClicked;
   }
