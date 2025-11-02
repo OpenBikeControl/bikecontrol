@@ -160,9 +160,9 @@ class _AppTitleState extends State<AppTitle> {
         content: Text('Force-close the app to use the new version'),
         duration: Duration(seconds: 10),
         action: SnackBarAction(
-          label: 'Attempt Restart',
+          label: 'Restart',
           onPressed: () {
-            if (Platform.isIOS || Platform.isAndroid) {
+            if (Platform.isIOS) {
               connection.reset();
               Restart.restartApp(delayBeforeRestart: 1000);
             } else {
