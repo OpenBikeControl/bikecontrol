@@ -212,7 +212,7 @@ abstract class BluetoothDevice extends BaseDevice {
           }),
           Text('$batteryLevel%'),
         ],
-        if (firmwareVersion != null) Text(' - Firmware: $firmwareVersion'),
+        if (firmwareVersion != null) Text(' - v$firmwareVersion'),
         if (firmwareVersion != null &&
             this is ZwiftDevice &&
             firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion) ...[

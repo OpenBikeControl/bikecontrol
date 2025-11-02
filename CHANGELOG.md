@@ -1,6 +1,10 @@
+### 3.4.0 (unreleased)
+**New Features:**
+- Support for Shimano Di2
+
 ### 3.3.0 (31-10-2025)
 
-**New Feature:**
+**New Features:**
 - Support for Elite Sterzo (thanks @michidk)
 - Support for Gamepads
 - Support for cheap bluetooth remotes (such as [these](https://www.amazon.com/s?k=bluetooth+remote))
