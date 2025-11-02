@@ -393,7 +393,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text('Customize', style: Theme.of(context).textTheme.titleMedium),
+                      child: Text(
+                        'Customize ${settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.name}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                     ),
                     Card(
                       child: Padding(

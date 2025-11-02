@@ -10,6 +10,7 @@ import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
 import '../../pages/markdown.dart';
@@ -31,16 +32,7 @@ class RemoteRequirement extends PlatformRequirement {
 
   @override
   Widget? buildDescription() {
-    return settings.getLastTarget() == null
-        ? null
-        : Text(
-            switch (settings.getLastTarget()) {
-              Target.iOS =>
-                'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
-              _ =>
-                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for SwiftControl or your machines name. Pairing is required if you want to use the remote control feature.',
-            },
-          );
+    return Text('Choose your preferred connection method');
   }
 
   Future<void> reconnect() async {
@@ -311,23 +303,9 @@ class _PairWidgetState extends State<_PairWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      spacing: 10,
+      spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          spacing: 10,
-          children: [
-            ElevatedButton(
-              onPressed: () async {
-                await toggle();
-              },
-              child: Text(
-                _isAdvertising ? 'Stop Pairing' : 'Start Pairing',
-              ),
-            ),
-            if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
-          ],
-        ),
         if (settings.getTrainerApp() is MyWhoosh)
           ElevatedButton(
             onPressed: () async {
@@ -344,20 +322,17 @@ class _PairWidgetState extends State<_PairWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Use MyWhoosh Link only'),
+                  Text('Connect via MyWhoosh Link'),
                   Text(
-                    'No pairing required, connect directly via MyWhoosh Link.',
-                    style: TextStyle(fontSize: 10, color: Colors.black87),
+                    'Most reliable way to control MyWhoosh.',
+                    style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.normal),
                   ),
                 ],
               ),
             ),
           ),
-        if (settings.getTrainerApp()?.supportsZwiftEmulation == true) ...[
-          Text(
-            'You can also skip pairing and directly connect to ${settings.getTrainerApp()?.name} by enabling the Zwift Controller.',
-            style: TextStyle(fontSize: 12),
-          ),
+
+        if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
           ElevatedButton(
             onPressed: () async {
               Navigator.push(
@@ -368,9 +343,61 @@ class _PairWidgetState extends State<_PairWidget> {
                 ),
               );
             },
-            child: Text('Connect to ${settings.getTrainerApp()?.name} directly as controller'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Connect to ${settings.getTrainerApp()?.name} as controller'),
+                  Text(
+                    'Most reliable way to control ${settings.getTrainerApp()?.name}.',
+                    style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.normal),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
+
+        Row(
+          spacing: 10,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                await toggle();
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isAdvertising ? 'Stop Pairing process' : 'Start Pairing',
+                        ),
+                        Text(
+                          'Pairing allows full customizability,\nbut may not work on all devices.',
+                          style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.normal),
+                        ),
+                      ],
+                    ),
+                    BetaPill(),
+                  ],
+                ),
+              ),
+            ),
+            if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
+          ],
+        ),
+        if (_isAdvertising)
+          Text(
+            switch (settings.getLastTarget()) {
+              Target.iOS =>
+                'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
+              _ =>
+                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for SwiftControl or your machines name. Pairing is required if you want to use the remote control feature.',
+            },
+          ),
         if (_isAdvertising) ...[
           TextButton(
             onPressed: () {
