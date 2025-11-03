@@ -620,6 +620,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  media_key_detector:
+    dependency: "direct main"
+    description:
+      name: media_key_detector
+      sha256: "397150df1e60e2a813370248bb6f55405794960e6078ddac8bd96f8a763a16d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
+  media_key_detector_linux:
+    dependency: transitive
+    description:
+      name: media_key_detector_linux
+      sha256: de4a0e898a0d045bc82902880487d05bd59783b0acd6996463fe57c90ecd0374
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
+  media_key_detector_macos:
+    dependency: transitive
+    description:
+      name: media_key_detector_macos
+      sha256: c2513c9c4cc97c8d2ce8378918c7daf3937f90976352452a640c2cdb1df4636e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
+  media_key_detector_platform_interface:
+    dependency: transitive
+    description:
+      name: media_key_detector_platform_interface
+      sha256: "081b36b74d47f21e5e03435b038434cc3b58c501e47daf7885aa4615bcaf8836"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
+  media_key_detector_windows:
+    dependency: transitive
+    description:
+      name: media_key_detector_windows
+      sha256: "3bfa26a8b24947805aa3f19ca621ce8c57d3cf2f22de2630d8fa01f064d62c8a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   meta:
     dependency: transitive
     description:
