@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -6,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/accessibility_disclosure_dialog.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 class AccessibilityRequirement extends PlatformRequirement {
   AccessibilityRequirement()
@@ -159,13 +161,23 @@ class NotificationRequirement extends PlatformRequirement {
         actions: [AndroidNotificationAction('Exit', 'Exit', cancelNotification: true, showsUserInterface: false)],
       ),
     );
+
+    final receivePort = ReceivePort();
+    IsolateNameServer.registerPortWithName(receivePort.sendPort, '_backgroundChannelKey');
+    final backgroundMessagePort = receivePort.asBroadcastStream();
+    backgroundMessagePort.listen((_) {
+      UniversalBle.onAvailabilityChange = null;
+      connection.reset();
+      //exit(0);
+    });
   }
 }
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
   if (notificationResponse.actionId != null) {
-    AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
-    exit(0);
+    final sendPort = IsolateNameServer.lookupPortByName('_backgroundChannelKey');
+    sendPort?.send('notificationResponse');
+    //exit(0);
   }
 }
