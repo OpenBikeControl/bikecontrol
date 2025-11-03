@@ -1,4 +1,4 @@
-### 3.4.0 (unreleased)
+### 3.3.1 (unreleased)
 **New Features:**
 - Support for Shimano Di2
 
