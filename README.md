@@ -52,7 +52,7 @@ Check the compatibility matrix below!
 - Gamepads (beta)
 - Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)
   - works on Android
-  - on iOS it would require playing back an audio file - let me know if that is of interest to you
+  - on iOS, macOS and Windows it would require SwiftControl to act as media player - let me know if that works for you
 
 Support for other devices can be added; check the issues tab here on GitHub. 
 
