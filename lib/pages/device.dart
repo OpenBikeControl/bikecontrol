@@ -396,7 +396,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Text(
-                        'Customize ${settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.name}',
+                        'Customize ${settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
