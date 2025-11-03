@@ -334,7 +334,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (connection.remoteDevices.isNotEmpty ||
                                 actionHandler is RemoteActions ||
-                                settings.getTrainerApp() is MyWhoosh ||
+                                whooshLink.isCompatible(settings.getLastTarget()!) ||
                                 actionHandler.supportedApp?.supportsZwiftEmulation == true)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
@@ -358,7 +358,9 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               (device) => device.showInformation(context),
                             ),
 
-                            if (settings.getTrainerApp() is MyWhoosh && !whooshLink.isConnected.value)
+                            if (settings.getTrainerApp() is MyWhoosh &&
+                                !whooshLink.isConnected.value &&
+                                whooshLink.isCompatible(settings.getLastTarget()!))
                               LinkDevice('').showInformation(context),
                             if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
                               ZwiftRequirement().build(context, () {

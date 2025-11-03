@@ -309,6 +309,7 @@ class _PairWidgetState extends State<_PairWidget> {
         if (settings.getTrainerApp() is MyWhoosh)
           ElevatedButton(
             onPressed: () async {
+              settings.setMyWhooshLinkEnabled(true);
               Navigator.push(
                 context,
                 MaterialPageRoute(

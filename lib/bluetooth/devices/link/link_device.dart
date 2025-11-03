@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -28,6 +29,9 @@ class LinkDevice extends BaseDevice {
       builder: (context, isConnected, _) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final myWhooshExplanation = actionHandler is RemoteActions
+                ? 'MyWhoosh Link allows you to do some additional features such as Emotes and turn directions.'
+                : 'MyWhoosh Link is optional, but allows you to do some additional features such as Emotes and turn directions.';
             return Row(
               children: [
                 Expanded(
@@ -49,10 +53,19 @@ class LinkDevice extends BaseDevice {
                       spacing: 12,
                       children: [
                         if (!settings.getMyWhooshLinkEnabled())
-                          Text('Disabled')
+                          Expanded(
+                            child: Text(
+                              myWhooshExplanation,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          )
                         else ...[
-                          Text(
-                            isConnected ? "Connected" : "Connecting to MyWhoosh...",
+                          Expanded(
+                            child: Text(
+                              isConnected ? "Connected" : "Connecting to MyWhoosh...\n$myWhooshExplanation",
+
+                              style: TextStyle(fontSize: 12),
+                            ),
                           ),
                           if (!isConnected) SmallProgressIndicator(),
                         ],

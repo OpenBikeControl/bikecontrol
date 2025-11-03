@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 
 class WhooshLink {
   Socket? _socket;
@@ -137,5 +138,12 @@ class WhooshLink {
     } else {
       return 'No action available for button: $action';
     }
+  }
+
+  bool isCompatible(Target target) {
+    return switch (target) {
+      Target.thisDevice => Platform.isAndroid || Platform.isWindows,
+      _ => true,
+    };
   }
 }
