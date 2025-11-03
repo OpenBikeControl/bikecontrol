@@ -5,6 +5,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../actions/base_actions.dart';
@@ -40,7 +41,14 @@ class Keymap {
   }
 
   void reset() {
-    keyPairs = [];
+    for (final keyPair in keyPairs) {
+      keyPair.physicalKey = null;
+      keyPair.logicalKey = null;
+      keyPair.touchPosition = Offset.zero;
+      keyPair.isLongPress = false;
+      keyPair.inGameAction = null;
+      keyPair.inGameActionValue = null;
+    }
     _updateStream.add(null);
   }
 
@@ -90,7 +98,11 @@ class KeyPair {
       PhysicalKeyboardKey.audioVolumeUp ||
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
       _ when physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard) => Icons.keyboard,
-      _ when inGameAction != null => Icons.link,
+      _
+          when inGameAction != null &&
+              ((settings.getTrainerApp() is MyWhoosh && settings.getMyWhooshLinkEnabled()) ||
+                  (settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled())) =>
+        Icons.link,
       _ => Icons.touch_app,
     };
   }

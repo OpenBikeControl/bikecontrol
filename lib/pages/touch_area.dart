@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
@@ -29,12 +30,12 @@ class TouchAreaSetupPage extends StatefulWidget {
 }
 
 class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
-  File? _backgroundImage;
+  Uint8List? _backgroundImage;
   final TransformationController _transformationController = TransformationController();
 
   late Rect _imageRect;
 
-  bool _showAll = false;
+  bool _showFaded = true;
 
   Future<void> _pickScreenshot() async {
     final picker = ImagePicker();
@@ -44,7 +45,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       final Directory tempDir = await getTemporaryDirectory();
       final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
       await image.copy(tempImage.path);
-      _backgroundImage = tempImage;
+      _backgroundImage = tempImage.readAsBytesSync();
       await _calculateBounds();
     }
   }
@@ -53,7 +54,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     if (_backgroundImage == null) return;
 
     // need to decode image to get its size so we can have a percentage mapping
-    final decodedImage = await decodeImageFromList(_backgroundImage!.readAsBytesSync());
+    final decodedImage = await decodeImageFromList(_backgroundImage!);
     // calculate image rectangle in the current screen, given it's boxfit contain
     final screenSize = MediaQuery.sizeOf(context);
     final imageAspectRatio = decodedImage.width / decodedImage.height;
@@ -114,7 +115,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     getTemporaryDirectory().then((tempDir) async {
       final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
       if (tempImage.existsSync()) {
-        _backgroundImage = tempImage;
+        _backgroundImage = tempImage.readAsBytesSync();
         setState(() {});
 
         // wait a bit until device rotation is done
@@ -197,41 +198,50 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       top: position.dy,
       child: Tooltip(
         message: 'Drag to reposition',
-        child: Draggable(
-          dragAnchorStrategy: (widget, context, position) {
-            final scale = _transformationController.value.getMaxScaleOnAxis();
-            final RenderBox renderObject = context.findRenderObject() as RenderBox;
-            return renderObject.globalToLocal(position).scale(scale, scale);
-          },
-          feedback: Material(
-            color: Colors.transparent,
+        child: AnimatedOpacity(
+          opacity: _showFaded && widget.keyPair != keyPair ? 0.2 : 1.0,
+          duration: Duration(milliseconds: 300),
+          child: Draggable(
+            dragAnchorStrategy: (widget, context, position) {
+              final scale = _transformationController.value.getMaxScaleOnAxis();
+              final RenderBox renderObject = context.findRenderObject() as RenderBox;
+              return renderObject.globalToLocal(position).scale(scale, scale);
+            },
+            feedback: Material(
+              color: Colors.transparent,
+              child: icon,
+            ),
+            childWhenDragging: const SizedBox.shrink(),
+            onDragStarted: () {
+              // Capture the starting position to calculate drag distance later
+              dragStartPosition = position;
+              if (keyPair != widget.keyPair && _showFaded) {
+                setState(() {
+                  _showFaded = false;
+                });
+              }
+            },
+            onDragEnd: (details) {
+              // Calculate drag distance to prevent accidental repositioning from clicks
+              // while allowing legitimate drags even with low velocity (e.g., when overlapping buttons)
+              final dragDistance = dragStartPosition != null
+                  ? (details.offset - dragStartPosition!).distance
+                  : double.infinity;
+
+              // Only update position if dragged more than 5 pixels (prevents accidental clicks)
+              if (dragDistance > 5) {
+                final matrix = Matrix4.inverted(_transformationController.value);
+                final height = 0;
+                final sceneY = details.offset.dy - height;
+                final viewportPoint = MatrixUtils.transformPoint(
+                  matrix,
+                  Offset(details.offset.dx, sceneY) + Offset(iconSize / 2, differenceInHeight + iconSize / 2),
+                );
+                setState(() => onPositionChanged(viewportPoint));
+              }
+            },
             child: icon,
           ),
-          childWhenDragging: const SizedBox.shrink(),
-          onDragStarted: () {
-            // Capture the starting position to calculate drag distance later
-            dragStartPosition = position;
-          },
-          onDragEnd: (details) {
-            // Calculate drag distance to prevent accidental repositioning from clicks
-            // while allowing legitimate drags even with low velocity (e.g., when overlapping buttons)
-            final dragDistance = dragStartPosition != null
-                ? (details.offset - dragStartPosition!).distance
-                : double.infinity;
-
-            // Only update position if dragged more than 5 pixels (prevents accidental clicks)
-            if (dragDistance > 5) {
-              final matrix = Matrix4.inverted(_transformationController.value);
-              final height = 0;
-              final sceneY = details.offset.dy - height;
-              final viewportPoint = MatrixUtils.transformPoint(
-                matrix,
-                Offset(details.offset.dx, sceneY) + Offset(iconSize / 2, differenceInHeight + iconSize / 2),
-              );
-              setState(() => onPositionChanged(viewportPoint));
-            }
-          },
-          child: icon,
         ),
       ),
     );
@@ -245,12 +255,11 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
           if (_backgroundImage == null && constraints.biggest != _imageRect.size) {
             _imageRect = Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight);
           }
-          final keyPairsToShow = _showAll
-              ? actionHandler.supportedApp?.keymap.keyPairs
-                        .where((kp) => kp.touchPosition != Offset.zero && !kp.isSpecialKey)
-                        .toList() ??
-                    []
-              : [widget.keyPair];
+          final keyPairsToShow =
+              actionHandler.supportedApp?.keymap.keyPairs
+                  .where((kp) => kp.touchPosition != Offset.zero && !kp.isSpecialKey)
+                  .toList() ??
+              [];
           return InteractiveViewer(
             transformationController: _transformationController,
             child: Stack(
@@ -259,7 +268,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   Positioned.fill(
                     child: Opacity(
                       opacity: 0.5,
-                      child: Image.file(
+                      child: Image.memory(
                         _backgroundImage!,
                         fit: BoxFit.contain,
                       ),
@@ -338,23 +347,9 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                       PopupMenuButton(
                         itemBuilder: (c) => [
                           PopupMenuItem(
-                            child: Row(
-                              children: [
-                                Checkbox(
-                                  value: _showAll,
-                                  onChanged: (_) {
-                                    setState(() {
-                                      _showAll = !_showAll;
-                                    });
-                                  },
-                                ),
-                                Text('Show all touch areas'),
-                              ],
-                            ),
+                            child: Text('Choose another screenshot'),
                             onTap: () {
-                              setState(() {
-                                _showAll = !_showAll;
-                              });
+                              _pickScreenshot();
                             },
                           ),
                           PopupMenuItem(
@@ -400,7 +395,9 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.inGameAction != null)
+        if (keyPair.inGameAction != null &&
+            ((settings.getTrainerApp() is MyWhoosh && settings.getMyWhooshLinkEnabled()) ||
+                (settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled())))
           _KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,
