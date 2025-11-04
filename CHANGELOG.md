@@ -2,6 +2,9 @@
 **New Features:**
 - Support for Shimano Di2
 
+**Fixes:**
+- fix detection of Elite Square Sterzo devices 
+
 ### 3.3.0 (31-10-2025)
 
 **New Features:**
