@@ -10,6 +10,7 @@
 .history
 .svn/
 .swiftpm/
+debug/
 migrate_working_dir/
 
 android/keystore.properties
