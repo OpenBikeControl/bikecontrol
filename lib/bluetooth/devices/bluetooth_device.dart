@@ -63,15 +63,18 @@ abstract class BluetoothDevice extends BaseDevice {
       };
     } else {
       device = switch (scanResult.name) {
+        null => null,
         //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
         // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
         'Zwift Play' => ZwiftPlay(scanResult),
         //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the left controller
-        null => null,
         _ when scanResult.name!.toUpperCase().startsWith('SQUARE') => EliteSquare(scanResult),
+        _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
         _ when scanResult.name!.toUpperCase().contains('KICKR BIKE SHIFT') => WahooKickrBikeShift(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') || scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
+        _ when scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase()) => CycplusBc2(scanResult),
+        _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase()) => ShimanoDi2(scanResult),
         // otherwise the service UUIDs will be used
         _ => null,
       };
@@ -104,14 +107,6 @@ abstract class BluetoothDevice extends BaseDevice {
         //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
         _ => null,
       };
-    } else if (scanResult.services.contains(SquareConstants.SERVICE_UUID)) {
-      return EliteSquare(scanResult);
-    } else if (scanResult.services.contains(SterzoConstants.SERVICE_UUID)) {
-      return EliteSterzo(scanResult);
-    } else if (scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase())) {
-      return CycplusBc2(scanResult);
-    } else if (scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase())) {
-      return ShimanoDi2(scanResult);
     } else {
       return null;
     }
