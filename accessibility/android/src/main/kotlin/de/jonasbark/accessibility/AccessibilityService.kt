@@ -3,10 +3,14 @@ package de.jonasbark.accessibility
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.accessibilityservice.GestureDescription.StrokeDescription
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.Context
 import android.graphics.Path
 import android.graphics.Rect
+import android.media.AudioManager
 import android.os.Build
 import android.util.Log
+import android.view.KeyEvent
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
@@ -37,7 +41,7 @@ class AccessibilityService : AccessibilityService(), Listener {
         }
         val currentPackageName = event.packageName.toString()
         val windowSize = getWindowSize()
-        Observable.fromService?.onChange(packageName = currentPackageName, window = windowSize)
+        Observable.fromServiceWindow?.onChange(packageName = currentPackageName, window = windowSize)
     }
 
     private fun getWindowSize(): Rect {
@@ -49,6 +53,31 @@ class AccessibilityService : AccessibilityService(), Listener {
 
     override fun onInterrupt() {
         Log.d("AccessibilityService", "Service Interrupted")
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        // Request key event filtering so we receive onKeyEvent for hardware/HID media keys
+        try {
+            val info = serviceInfo ?: AccessibilityServiceInfo()
+            info.flags = info.flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+            // keep other capabilities as defined in XML
+            setServiceInfo(info)
+        } catch (e: Exception) {
+            Log.w("AccessibilityService", "Failed to set service info for key events: ${e.message}")
+        }
+    }
+
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        // Handle media and volume keys from HID devices here
+        Log.d("AccessibilityService", "onKeyEvent: keyCode=${event.keyCode} action=${event.action} scanCode=${event.scanCode} flags=${event.flags}")
+
+        // Forward key events to the plugin (Flutter) and swallow them so they don't propagate.
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            Observable.fromServiceKeys?.onKeyEvent(event)
+        }
+        // Return true to indicate we've handled the event and it should be swallowed.
+        return true
     }
 
     override fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean) {

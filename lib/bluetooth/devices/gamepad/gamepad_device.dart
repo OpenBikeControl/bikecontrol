@@ -23,7 +23,10 @@ class GamepadDevice extends BaseDevice {
     Gamepads.eventsByGamepad(id).listen((event) {
       actionStreamInternal.add(LogNotification('Gamepad event: $event'));
 
-      ControllerButton? button = getOrAddButton(event.key, () => ControllerButton(event.key));
+      ControllerButton? button = actionHandler.supportedApp?.keymap.getOrAddButton(
+        event.key,
+        () => ControllerButton(event.key),
+      );
 
       final buttonsClicked = event.value == 0.0 && button != null ? [button] : <ControllerButton>[];
       if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {

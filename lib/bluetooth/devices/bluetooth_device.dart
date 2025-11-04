@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
-import 'package:swift_control/bluetooth/devices/ble_hid/ble_hid_device.dart';
 import 'package:swift_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
@@ -113,8 +112,6 @@ abstract class BluetoothDevice extends BaseDevice {
       return CycplusBc2(scanResult);
     } else if (scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase())) {
       return ShimanoDi2(scanResult);
-    } else if (scanResult.services.contains(BleHidConstants.HID_SERVICE_UUID.toLowerCase())) {
-      return BleHidDevice(scanResult);
     } else {
       return null;
     }

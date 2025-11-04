@@ -32,4 +32,5 @@ class WindowEvent {
 @EventChannelApi()
 abstract class EventChannelMethods {
   WindowEvent streamEvents();
+  String hidKeyPressed();
 }

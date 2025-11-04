@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
+import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
@@ -25,8 +26,9 @@ class Connection {
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
-  List<BaseDevice> get controllerDevices => [...bluetoothDevices, ...gamepadDevices];
-  List<BaseDevice> get remoteDevices => devices.whereNot((d) => d is BluetoothDevice || d is GamepadDevice).toList();
+  List<BaseDevice> get controllerDevices => [...bluetoothDevices, ...gamepadDevices, ...devices.whereType<HidDevice>()];
+  List<BaseDevice> get remoteDevices =>
+      devices.whereNot((d) => d is BluetoothDevice || d is GamepadDevice || d is HidDevice).toList();
 
   var _androidNotificationsSetup = false;
 
@@ -77,7 +79,7 @@ class Connection {
 
         if (scanResult != null) {
           _actionStreams.add(LogNotification('Found new device: ${scanResult.runtimeType}'));
-          _addDevices([scanResult]);
+          addDevices([scanResult]);
         } else {
           final manufacturerData = result.manufacturerDataList;
           final data = manufacturerData
@@ -124,7 +126,7 @@ class Connection {
       ).then((devices) async {
         final baseDevices = devices.mapNotNull(BluetoothDevice.fromScanResult).toList();
         if (baseDevices.isNotEmpty) {
-          _addDevices(baseDevices);
+          addDevices(baseDevices);
         }
       });
     }
@@ -139,7 +141,7 @@ class Connection {
       _gamePadSearchTimer = Timer.periodic(Duration(seconds: 3), (_) {
         Gamepads.list().then((list) {
           final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
-          _addDevices(pads);
+          addDevices(pads);
 
           final removedDevices = gamepadDevices.where((device) => list.none((pad) => pad.id == device.id)).toList();
           for (var device in removedDevices) {
@@ -155,7 +157,7 @@ class Connection {
 
       Gamepads.list().then((list) {
         final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
-        _addDevices(pads);
+        addDevices(pads);
       });
     }
 
@@ -187,7 +189,7 @@ class Connection {
     );
   }
 
-  void _addDevices(List<BaseDevice> dev) {
+  void addDevices(List<BaseDevice> dev) {
     final newDevices = dev.where((device) => !devices.contains(device)).toList();
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
