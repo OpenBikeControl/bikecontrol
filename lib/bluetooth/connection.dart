@@ -49,6 +49,8 @@ class Connection {
 
   Timer? _gamePadSearchTimer;
 
+  final _dontAllowReconnectDevices = <String>{};
+
   void initialize() {
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
@@ -190,7 +192,9 @@ class Connection {
   }
 
   void addDevices(List<BaseDevice> dev) {
-    final newDevices = dev.where((device) => !devices.contains(device)).toList();
+    final newDevices = dev
+        .where((device) => !devices.contains(device) && !_dontAllowReconnectDevices.contains(device.name))
+        .toList();
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
 
@@ -318,6 +322,9 @@ class Connection {
     if (device is! LinkDevice) {
       // keep it in the list to allow reconnect
       devices.remove(device);
+      if (forget) {
+        _dontAllowReconnectDevices.add(device.name);
+      }
     }
     if (!forget && device is BluetoothDevice) {
       _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);

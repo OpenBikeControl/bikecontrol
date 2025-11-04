@@ -15,6 +15,8 @@ import '../single_line_exception.dart';
 class AndroidActions extends BaseActions {
   WindowEvent? windowInfo;
 
+  final accessibilityHandler = Accessibility();
+
   AndroidActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.media]});
 
   @override
@@ -31,7 +33,7 @@ class AndroidActions extends BaseActions {
         final button = supportedApp.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
 
         final hidDevice = HidDevice('HID Device');
-        var availableDevice = connection.remoteDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+        var availableDevice = connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
         if (availableDevice == null) {
           connection.addDevices([hidDevice]);
           availableDevice = hidDevice;
@@ -83,5 +85,9 @@ class AndroidActions extends BaseActions {
           : "up"}";
     }
     return "No action assigned";
+  }
+
+  void ignoreHidDevices() {
+    accessibilityHandler.ignoreHidDevices();
   }
 }

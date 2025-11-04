@@ -7,6 +7,7 @@ object Observable {
     var toService: Listener? = null
     var fromServiceWindow: Receiver? = null
     var fromServiceKeys: Receiver? = null
+    var ignoreHidDevices: Boolean = false
 }
 
 interface Listener {

@@ -81,6 +81,10 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
     }
   }
 
+  override fun ignoreHidDevices() {
+    Observable.ignoreHidDevices = true
+  }
+
 }
 
 class WindowEventListener : StreamEventsStreamHandler(), Receiver {

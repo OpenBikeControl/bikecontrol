@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/accessibility_disclosure_dialog.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -23,7 +24,7 @@ class AccessibilityRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = await accessibilityHandler.hasPermission();
+    status = await (actionHandler as AndroidActions).accessibilityHandler.hasPermission();
   }
 
   Future<void> _showDisclosureDialog(BuildContext context, VoidCallback onUpdate) async {
@@ -35,7 +36,7 @@ class AccessibilityRequirement extends PlatformRequirement {
           onAccept: () {
             Navigator.of(context).pop();
             // Open accessibility settings after user consents
-            accessibilityHandler.openPermissions().then((_) {
+            (actionHandler as AndroidActions).accessibilityHandler.openPermissions().then((_) {
               onUpdate();
             });
           },

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -18,7 +17,6 @@ import 'utils/actions/base_actions.dart';
 final connection = Connection();
 final navigatorKey = GlobalKey<NavigatorState>();
 late BaseActions actionHandler;
-final accessibilityHandler = Accessibility();
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final settings = Settings();
 final whooshLink = WhooshLink();

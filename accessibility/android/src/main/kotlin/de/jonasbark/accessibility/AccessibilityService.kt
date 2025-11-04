@@ -69,15 +69,22 @@ class AccessibilityService : AccessibilityService(), Listener {
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        // Handle media and volume keys from HID devices here
-        Log.d("AccessibilityService", "onKeyEvent: keyCode=${event.keyCode} action=${event.action} scanCode=${event.scanCode} flags=${event.flags}")
+        if (!Observable.ignoreHidDevices) {
+            // Handle media and volume keys from HID devices here
+            Log.d(
+                "AccessibilityService",
+                "onKeyEvent: keyCode=${event.keyCode} action=${event.action} scanCode=${event.scanCode} flags=${event.flags}"
+            )
 
-        // Forward key events to the plugin (Flutter) and swallow them so they don't propagate.
-        if (event.action == KeyEvent.ACTION_DOWN) {
-            Observable.fromServiceKeys?.onKeyEvent(event)
+            // Forward key events to the plugin (Flutter) and swallow them so they don't propagate.
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                Observable.fromServiceKeys?.onKeyEvent(event)
+            }
+            // Return true to indicate we've handled the event and it should be swallowed.
+            return true
+        } else {
+            return false
         }
-        // Return true to indicate we've handled the event and it should be swallowed.
-        return true
     }
 
     override fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean) {

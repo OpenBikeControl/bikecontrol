@@ -168,6 +168,7 @@ interface Accessibility {
   fun openPermissions()
   fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean)
   fun controlMedia(action: MediaAction)
+  fun ignoreHidDevices()
 
   companion object {
     /** The codec used by Accessibility. */
@@ -238,6 +239,22 @@ interface Accessibility {
             val actionArg = args[0] as MediaAction
             val wrapped: List<Any?> = try {
               api.controlMedia(actionArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              AccessibilityApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.accessibility.Accessibility.ignoreHidDevices$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              api.ignoreHidDevices()
               listOf(null)
             } catch (exception: Throwable) {
               AccessibilityApiPigeonUtils.wrapError(exception)
