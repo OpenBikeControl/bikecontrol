@@ -132,6 +132,7 @@ jobs:
           allowUpdates: true
           artifacts: "build/macos/Build/Products/Release/SwiftControl.macos.zip"
           bodyFile: scripts/RELEASE_NOTES.md
+          prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
 

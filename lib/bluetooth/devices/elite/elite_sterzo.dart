@@ -66,7 +66,7 @@ class EliteSterzo extends BluetoothDevice {
     );
 
     // Subscribe to measurement notifications
-    await UniversalBle.subscribeIndications(
+    await UniversalBle.subscribeNotifications(
       device.deviceId,
       service.uuid,
       measurementChar.uuid,
