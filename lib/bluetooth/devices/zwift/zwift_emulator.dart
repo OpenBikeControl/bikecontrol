@@ -296,7 +296,7 @@ class ZwiftEmulator {
         ),
       ],
     );
-    print('Starting advertising with HID service...');
+    print('Starting advertising with Zwift service...');
 
     await peripheralManager.startAdvertising(advertisement);
     _isAdvertising = true;

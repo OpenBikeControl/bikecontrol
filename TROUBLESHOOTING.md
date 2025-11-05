@@ -37,12 +37,13 @@ switch the setting to None, then back to Single-Tap and it should work again
 ## SwiftControl crashes on Windows when searching for the device 
 You're probably running into [this](https://github.com/jonasbark/swiftcontrol/issues/70) issue. Disconnect your controller device (e.g. Zwift Play) from Windows Bluetooth settings.
 
-## Link requirement for MyWhoosh stuck at "Waiting for MyWhoosh"
+## MyWhoosh Direct Connect never connects
 The same network restrictions apply for SwiftControl as it applies to MyWhoosh Link app. Please verify with the MyWhoosh Link app if connection is possible at all.
 Here are some instructions that can help:
 
 [https://mywhoosh.com/troubleshoot/](https://mywhoosh.com/troubleshoot/)
 [https://www.facebook.com/groups/mywhoosh/posts/1323791068858873/](https://www.facebook.com/groups/mywhoosh/posts/1323791068858873/)
+[INSTRUCTIONS_IOS.md](INSTRUCTIONS_IOS.md)
 
 In essence:
 - your two devices (phone, tablet) need to be on the same WiFi network

@@ -323,7 +323,7 @@ class _PairWidgetState extends State<_PairWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Connect via MyWhoosh Link'),
+                  Text('Connect via MyWhoosh Direct Connect'),
                   Text(
                     'Most reliable way to control MyWhoosh.',
                     style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.normal),

@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 class LinkDevice extends BaseDevice {
   String identifier;
 
-  LinkDevice(this.identifier) : super('MyWhoosh Link', availableButtons: []);
+  LinkDevice(this.identifier) : super('MyWhoosh Direct Connect', availableButtons: []);
 
   @override
   Future<void> connect() async {
@@ -30,8 +30,8 @@ class LinkDevice extends BaseDevice {
         return StatefulBuilder(
           builder: (context, setState) {
             final myWhooshExplanation = actionHandler is RemoteActions
-                ? 'MyWhoosh Link allows you to do some additional features such as Emotes and turn directions.'
-                : 'MyWhoosh Link is optional, but allows you to do some additional features such as Emotes and turn directions.';
+                ? 'MyWhoosh Direct Connect allows you to do some additional features such as Emotes and turn directions.'
+                : 'MyWhoosh Direct Connect is optional, but allows you to do some additional features such as Emotes and turn directions.';
             return Row(
               children: [
                 Expanded(
@@ -48,7 +48,7 @@ class LinkDevice extends BaseDevice {
                       }
                       setState(() {});
                     },
-                    title: Text('Enable MyWhoosh Link'),
+                    title: Text('Enable MyWhoosh Direct Connect'),
                     subtitle: Row(
                       spacing: 12,
                       children: [

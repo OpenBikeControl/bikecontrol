@@ -54,6 +54,8 @@ class CustomApp extends SupportedApp {
     required LogicalKeyboardKey? logicalKey,
     bool isLongPress = false,
     Offset? touchPosition,
+    InGameAction? inGameAction,
+    int? inGameActionValue,
   }) {
     // set the key for the zwift button
     final keyPair = keymap.getKeyPair(zwiftButton);
@@ -62,6 +64,8 @@ class CustomApp extends SupportedApp {
       keyPair.logicalKey = logicalKey;
       keyPair.isLongPress = isLongPress;
       keyPair.touchPosition = touchPosition ?? Offset.zero;
+      keyPair.inGameAction = inGameAction;
+      keyPair.inGameActionValue = inGameActionValue;
     } else {
       keymap.addKeyPair(
         KeyPair(
@@ -70,6 +74,8 @@ class CustomApp extends SupportedApp {
           logicalKey: logicalKey,
           isLongPress: isLongPress,
           touchPosition: touchPosition ?? Offset.zero,
+          inGameAction: inGameAction,
+          inGameActionValue: inGameActionValue,
         ),
       );
     }

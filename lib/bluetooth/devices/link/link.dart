@@ -51,32 +51,34 @@ class WhooshLink {
     }
 
     // Accept connection
-    _server!.listen((Socket socket) {
-      _socket = socket;
-      onConnected(socket);
-      isConnected.value = true;
-      if (kDebugMode) {
-        print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
-      }
+    _server!.listen(
+      (Socket socket) {
+        _socket = socket;
+        onConnected(socket);
+        isConnected.value = true;
+        if (kDebugMode) {
+          print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
+        }
 
-      // Listen for data from the client
-      socket.listen(
-        (List<int> data) {
-          try {
-            if (kDebugMode) {
-              // TODO we could check if virtual shifting is enabled
-              final message = utf8.decode(data);
-              print('Received message: $message');
-            }
-          } catch (_) {}
-        },
-        onDone: () {
-          print('Client disconnected: $socket');
-          onDisconnected(socket);
-          isConnected.value = false;
-        },
-      );
-    });
+        // Listen for data from the client
+        socket.listen(
+          (List<int> data) {
+            try {
+              if (kDebugMode) {
+                // TODO we could check if virtual shifting is enabled
+                final message = utf8.decode(data);
+                print('Received message: $message');
+              }
+            } catch (_) {}
+          },
+          onDone: () {
+            print('Client disconnected: $socket');
+            onDisconnected(socket);
+            isConnected.value = false;
+          },
+        );
+      },
+    );
   }
 
   String sendAction(InGameAction action, int? value) {

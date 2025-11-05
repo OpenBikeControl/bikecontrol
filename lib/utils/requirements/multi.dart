@@ -136,13 +136,13 @@ enum Target {
         'Due to platform restrictions only controlling ${app?.name ?? 'the Trainer app'} on other devices is supported.',
       Target.thisDevice => 'Run ${app?.name ?? 'the Trainer app'} on this device.',
       Target.iOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Apple device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Link method' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on your Apple device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
       Target.android =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Android device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Link method' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on your Android device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
       Target.macOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Mac and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Link method' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on your Mac and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
       Target.windows =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Windows PC and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Link method' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on your Windows PC and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
     };
   }
 

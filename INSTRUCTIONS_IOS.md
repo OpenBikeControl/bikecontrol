@@ -1,8 +1,10 @@
-**Instructions for using the MyWhoosh Link method**
+**Instructions for using the MyWhoosh Direct Connect method**
 1) launch MyWhoosh on the device of your choice
 2) launch MyWhoosh Link, check if the "Link" connection works
-3) close MyWhoosh Link, open SwiftControl, follow on screen instructions
-Step 2 is not necessary after that once step 3 works
+3) close MyWhoosh Link
+4) open SwiftControl, follow on screen instructions
+
+Once you've confirmed the connection in SwiftControl you won't have to repeat step 2 and 3 again in the future. This is just to make sure the connection works in general.
 
 And here's a video with a few explanations:
 

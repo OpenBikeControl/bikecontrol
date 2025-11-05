@@ -359,7 +359,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                             ),
 
                             if (settings.getTrainerApp() is MyWhoosh &&
-                                !whooshLink.isConnected.value &&
                                 whooshLink.isCompatible(settings.getLastTarget()!))
                               LinkDevice('').showInformation(context),
                             if (settings.getTrainerApp()?.supportsZwiftEmulation == true)

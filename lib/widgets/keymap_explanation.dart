@@ -189,7 +189,7 @@ class _ButtonEditor extends StatelessWidget {
                 spacing: 14,
                 children: [
                   Icon(Icons.link),
-                  Expanded(child: Text('MyWhoosh Link Action')),
+                  Expanded(child: Text('MyWhoosh Direct Connect Action')),
                   Icon(Icons.arrow_right),
                 ],
               ),
@@ -416,7 +416,16 @@ class _ButtonEditor extends StatelessWidget {
               IconButton(
                 onPressed: () async {
                   final currentProfile = actionHandler.supportedApp!.name;
-                  await KeymapManager().duplicate(context, currentProfile);
+                  final newName = await KeymapManager().duplicate(
+                    context,
+                    currentProfile,
+                    skipName: '$currentProfile (Copy)',
+                  );
+                  if (newName != null) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Created a new custom profile: $newName')));
+                  }
                   onUpdate();
                 },
                 icon: Icon(Icons.edit),

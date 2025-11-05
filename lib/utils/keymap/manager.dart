@@ -233,8 +233,8 @@ class KeymapManager {
     );
   }
 
-  Future<String?> duplicate(BuildContext context, String currentProfile) async {
-    final newName = await _showDuplicateProfileDialog(context, currentProfile);
+  Future<String?> duplicate(BuildContext context, String currentProfile, {String? skipName}) async {
+    final newName = skipName ?? await _showDuplicateProfileDialog(context, currentProfile);
     if (newName != null && newName.isNotEmpty) {
       if (actionHandler.supportedApp is CustomApp) {
         await settings.duplicateCustomAppProfile(currentProfile, newName);
@@ -261,6 +261,8 @@ class KeymapManager {
               logicalKey: pair.logicalKey,
               isLongPress: pair.isLongPress,
               touchPosition: pair.touchPosition,
+              inGameAction: pair.inGameAction,
+              inGameActionValue: pair.inGameActionValue,
             );
           });
         });
