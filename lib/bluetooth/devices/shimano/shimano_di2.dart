@@ -32,15 +32,26 @@ class ShimanoDi2 extends BluetoothDevice {
   }
 
   final _lastButtons = <int, int>{};
+  bool _isInitialized = false;
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
     if (characteristic.toLowerCase() == ShimanoDi2Constants.D_FLY_CHANNEL_UUID) {
       final channels = bytes.sublist(1);
+      
+      // On first data reception, just initialize the state without triggering buttons
+      if (!_isInitialized) {
+        channels.forEachIndexed((int value, int index) {
+          _lastButtons[index] = value;
+        });
+        _isInitialized = true;
+        return Future.value();
+      }
+      
       final clickedButtons = <ControllerButton>[];
 
       channels.forEachIndexed((int value, int index) {
-        final didChange = !_lastButtons.containsKey(index) || _lastButtons[index] != value;
+        final didChange = _lastButtons[index] != value;
         _lastButtons[index] = value;
 
         final readableIndex = index + 1;
