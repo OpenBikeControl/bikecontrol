@@ -66,6 +66,7 @@ class KeyPair {
   final List<ControllerButton> buttons;
   PhysicalKeyboardKey? physicalKey;
   LogicalKeyboardKey? logicalKey;
+  List<ModifierKey> modifiers;
   Offset touchPosition;
   bool isLongPress;
   InGameAction? inGameAction;
@@ -75,6 +76,7 @@ class KeyPair {
     required this.buttons,
     required this.physicalKey,
     required this.logicalKey,
+    this.modifiers = const [],
     this.touchPosition = Offset.zero,
     this.isLongPress = false,
     this.inGameAction,
@@ -109,7 +111,7 @@ class KeyPair {
 
   @override
   String toString() {
-    return logicalKey?.keyLabel ??
+    final baseKey = logicalKey?.keyLabel ??
         switch (physicalKey) {
           PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
           PhysicalKeyboardKey.mediaTrackNext => 'Next Track',
@@ -119,6 +121,24 @@ class KeyPair {
           PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
           _ => 'Not assigned',
         };
+    
+    if (modifiers.isEmpty || baseKey == 'Not assigned') {
+      return baseKey;
+    }
+    
+    // Format modifiers + key (e.g., "Ctrl+Alt+R")
+    final modifierStrings = modifiers.map((m) {
+      return switch (m) {
+        ModifierKey.shiftModifier => 'Shift',
+        ModifierKey.controlModifier => 'Ctrl',
+        ModifierKey.altModifier => 'Alt',
+        ModifierKey.metaModifier => 'Meta',
+        ModifierKey.functionModifier => 'Fn',
+        _ => m.name,
+      };
+    }).toList();
+    
+    return '${modifierStrings.join('+')}+$baseKey';
   }
 
   String encode() {
@@ -128,6 +148,7 @@ class KeyPair {
       'actions': buttons.map((e) => e.name).toList(),
       if (logicalKey != null) 'logicalKey': logicalKey?.keyId.toString(),
       if (physicalKey != null) 'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
+      if (modifiers.isNotEmpty) 'modifiers': modifiers.map((e) => e.name).toList(),
       if (touchPosition != Offset.zero) 'touchPosition': {'x': touchPosition.dx, 'y': touchPosition.dy},
       'isLongPress': isLongPress,
       'inGameAction': inGameAction?.name,
@@ -156,6 +177,15 @@ class KeyPair {
     if (buttons.isEmpty) {
       return null;
     }
+    
+    // Decode modifiers if present
+    final List<ModifierKey> modifiers = decoded.containsKey('modifiers')
+        ? (decoded['modifiers'] as List)
+            .map<ModifierKey?>((e) => ModifierKey.values.firstOrNullWhere((element) => element.name == e))
+            .whereType<ModifierKey>()
+            .toList()
+        : [];
+    
     return KeyPair(
       buttons: buttons,
       logicalKey: decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
@@ -164,6 +194,7 @@ class KeyPair {
       physicalKey: decoded.containsKey('physicalKey') && int.parse(decoded['physicalKey']) != 0
           ? PhysicalKeyboardKey(int.parse(decoded['physicalKey']))
           : null,
+      modifiers: modifiers,
       touchPosition: touchPosition,
       isLongPress: decoded['isLongPress'] ?? false,
       inGameAction: decoded.containsKey('inGameAction')

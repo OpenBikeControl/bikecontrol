@@ -88,6 +88,38 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
     }
   }
 
+  // Helper function to send modifier key events
+  auto sendModifierKey = [](UINT vkCode, bool down) {
+    WORD sc = (WORD)MapVirtualKey(vkCode, MAPVK_VK_TO_VSC);
+    INPUT in = {0};
+    in.type = INPUT_KEYBOARD;
+    in.ki.wVk = 0;
+    in.ki.wScan = sc;
+    in.ki.dwFlags = KEYEVENTF_SCANCODE | (down ? 0 : KEYEVENTF_KEYUP);
+    SendInput(1, &in, sizeof(INPUT));
+  };
+
+  // Helper function to process modifiers
+  auto processModifiers = [&sendModifierKey](const std::vector<std::string>& mods, bool down) {
+    for (const std::string& modifier : mods) {
+      if (modifier == "shiftModifier") {
+        sendModifierKey(VK_SHIFT, down);
+      } else if (modifier == "controlModifier") {
+        sendModifierKey(VK_CONTROL, down);
+      } else if (modifier == "altModifier") {
+        sendModifierKey(VK_MENU, down);
+      } else if (modifier == "metaModifier") {
+        sendModifierKey(VK_LWIN, down);
+      }
+    }
+  };
+
+  // Press modifier keys first (if keyDown)
+  if (keyDown) {
+    processModifiers(modifiers, true);
+  }
+
+  // Send the main key
   WORD sc = (WORD)MapVirtualKey(keyCode, MAPVK_VK_TO_VSC);
 
   INPUT in = {0};
@@ -101,6 +133,11 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
     in.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
   }
   SendInput(1, &in, sizeof(INPUT));
+
+  // Release modifier keys (if keyUp)
+  if (!keyDown) {
+    processModifiers(modifiers, false);
+  }
 
   /*BYTE byteValue = static_cast<BYTE>(keyCode);
   keybd_event(byteValue, 0x45, keyDown ? 0 : KEYEVENTF_KEYUP, 0);*/

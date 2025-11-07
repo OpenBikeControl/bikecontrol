@@ -52,6 +52,7 @@ class CustomApp extends SupportedApp {
     ControllerButton zwiftButton, {
     required PhysicalKeyboardKey? physicalKey,
     required LogicalKeyboardKey? logicalKey,
+    List<ModifierKey> modifiers = const [],
     bool isLongPress = false,
     Offset? touchPosition,
     InGameAction? inGameAction,
@@ -62,6 +63,7 @@ class CustomApp extends SupportedApp {
     if (keyPair != null) {
       keyPair.physicalKey = physicalKey;
       keyPair.logicalKey = logicalKey;
+      keyPair.modifiers = modifiers;
       keyPair.isLongPress = isLongPress;
       keyPair.touchPosition = touchPosition ?? Offset.zero;
       keyPair.inGameAction = inGameAction;
@@ -72,6 +74,7 @@ class CustomApp extends SupportedApp {
           buttons: [zwiftButton],
           physicalKey: physicalKey,
           logicalKey: logicalKey,
+          modifiers: modifiers,
           isLongPress: isLongPress,
           touchPosition: touchPosition ?? Offset.zero,
           inGameAction: inGameAction,
