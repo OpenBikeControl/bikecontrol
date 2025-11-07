@@ -25,6 +25,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   final FocusNode _focusNode = FocusNode();
   KeyDownEvent? _pressedKey;
   ControllerButton? _pressedButton;
+  final Set<ModifierKey> _activeModifiers = {};
 
   @override
   void initState() {
@@ -52,20 +53,84 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
 
   void _onKey(KeyEvent event) {
     setState(() {
+      // Track modifier keys
       if (event is KeyDownEvent) {
-        _pressedKey = event;
-        widget.customApp.setKey(
-          _pressedButton!,
-          physicalKey: _pressedKey!.physicalKey,
-          logicalKey: _pressedKey!.logicalKey,
-          touchPosition: widget.keyPair?.touchPosition,
-        );
+        final wasModifier = _updateModifierState(event.logicalKey, add: true);
+        // Regular key pressed - record it along with active modifiers
+        if (!wasModifier) {
+          _pressedKey = event;
+          widget.customApp.setKey(
+            _pressedButton!,
+            physicalKey: _pressedKey!.physicalKey,
+            logicalKey: _pressedKey!.logicalKey,
+            modifiers: _activeModifiers.toList(),
+            touchPosition: widget.keyPair?.touchPosition,
+          );
+        }
+      } else if (event is KeyUpEvent) {
+        // Clear modifier when released
+        _updateModifierState(event.logicalKey, add: false);
       }
     });
   }
 
+  bool _updateModifierState(LogicalKeyboardKey key, {required bool add}) {
+    ModifierKey? modifier;
+    
+    if (key == LogicalKeyboardKey.shift || 
+        key == LogicalKeyboardKey.shiftLeft || 
+        key == LogicalKeyboardKey.shiftRight) {
+      modifier = ModifierKey.shiftModifier;
+    } else if (key == LogicalKeyboardKey.control || 
+               key == LogicalKeyboardKey.controlLeft || 
+               key == LogicalKeyboardKey.controlRight) {
+      modifier = ModifierKey.controlModifier;
+    } else if (key == LogicalKeyboardKey.alt || 
+               key == LogicalKeyboardKey.altLeft || 
+               key == LogicalKeyboardKey.altRight) {
+      modifier = ModifierKey.altModifier;
+    } else if (key == LogicalKeyboardKey.meta || 
+               key == LogicalKeyboardKey.metaLeft || 
+               key == LogicalKeyboardKey.metaRight) {
+      modifier = ModifierKey.metaModifier;
+    } else if (key == LogicalKeyboardKey.fn) {
+      modifier = ModifierKey.functionModifier;
+    }
+    
+    if (modifier != null) {
+      if (add) {
+        _activeModifiers.add(modifier);
+      } else {
+        _activeModifiers.remove(modifier);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  String _formatModifierName(ModifierKey m) {
+    return switch (m) {
+      ModifierKey.shiftModifier => 'Shift',
+      ModifierKey.controlModifier => 'Ctrl',
+      ModifierKey.altModifier => 'Alt',
+      ModifierKey.metaModifier => 'Meta',
+      ModifierKey.functionModifier => 'Fn',
+      _ => m.name,
+    };
+  }
+
   String _formatKey(KeyDownEvent? key) {
-    return key?.logicalKey.keyLabel ?? 'Waiting...';
+    if (key == null) {
+      return _activeModifiers.isEmpty ? 'Waiting...' : '${_activeModifiers.map(_formatModifierName).join('+')}+...';
+    }
+    
+    if (_activeModifiers.isEmpty) {
+      return key.logicalKey.keyLabel;
+    }
+    
+    final modifierStrings = _activeModifiers.map(_formatModifierName);
+    
+    return '${modifierStrings.join('+')}+${key.logicalKey.keyLabel}';
   }
 
   @override

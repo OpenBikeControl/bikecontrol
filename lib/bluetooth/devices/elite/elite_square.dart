@@ -40,11 +40,11 @@ class EliteSquare extends BluetoothDevice {
       actionStreamInternal.add(LogNotification('Received $fullValue - vs $currentValue (last: $_lastValue)'));
 
       if (_lastValue != null) {
-        final currentRelevantPart = fullValue.length >= 19
-            ? fullValue.substring(6, fullValue.length - 13)
+        final currentRelevantPart = fullValue.length >= 14
+            ? fullValue.substring(6, 14)
             : fullValue.substring(6);
-        final lastRelevantPart = _lastValue!.length >= 19
-            ? _lastValue!.substring(6, _lastValue!.length - 13)
+        final lastRelevantPart = _lastValue!.length >= 14
+            ? _lastValue!.substring(6, 14)
             : _lastValue!.substring(6);
 
         if (currentRelevantPart != lastRelevantPart) {

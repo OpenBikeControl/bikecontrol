@@ -30,14 +30,14 @@ class DesktopActions extends BaseActions {
       return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
     } else if (keyPair.physicalKey != null) {
       if (isKeyDown && isKeyUp) {
-        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
-        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
+        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
         return 'Key clicked: $keyPair';
       } else if (isKeyDown) {
-        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
+        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
         return 'Key pressed: $keyPair';
       } else {
-        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey);
+        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
         return 'Key released: $keyPair';
       }
     } else {
