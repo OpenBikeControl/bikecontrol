@@ -1,17 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
-// Helper functions matching the Elite Square implementation
+// Helper function matching the Elite Square implementation
+// Extracts the 8-character button code from positions 6-14 of the hex string
 String extractButtonCode(String hexValue) {
   if (hexValue.length >= 14) {
     return hexValue.substring(6, 14);
   }
-  return hexValue;
-}
-
-String extractRelevantPart(String fullValue) {
-  return fullValue.length >= 14
-      ? fullValue.substring(6, 14)
-      : fullValue.substring(6);
+  return hexValue.substring(6);
 }
 
 String bytesToHex(List<int> bytes) {
@@ -32,17 +27,16 @@ void main() {
     });
 
     test('Should detect button changes correctly', () {
-      // Test that relevant part extraction is consistent with button code extraction
-
+      // Test that button code extraction is consistent for comparison
       final idleState = '030153000000000318f40101';
       final buttonPressed = '030153000000020318f40101';
       
-      final idleRelevant = extractRelevantPart(idleState);
-      final pressedRelevant = extractRelevantPart(buttonPressed);
+      final idleCode = extractButtonCode(idleState);
+      final pressedCode = extractButtonCode(buttonPressed);
 
-      expect(idleRelevant, equals('00000000'));
-      expect(pressedRelevant, equals('00000002'));
-      expect(idleRelevant != pressedRelevant, isTrue);
+      expect(idleCode, equals('00000000'));
+      expect(pressedCode, equals('00000002'));
+      expect(idleCode != pressedCode, isTrue);
     });
 
     test('Should handle button release correctly', () {
@@ -53,7 +47,7 @@ void main() {
         '030153000000000318f40101', // button released (back to idle)
       ];
 
-      final parts = states.map(extractRelevantPart).toList();
+      final parts = states.map(extractButtonCode).toList();
       
       expect(parts[0], equals('00000000')); // idle
       expect(parts[1], equals('00000002')); // pressed
@@ -107,11 +101,14 @@ void main() {
 
     test('Should handle edge cases', () {
       // Test with short strings
-      expect(extractRelevantPart('0123456789'), equals('6789'));
-      expect(extractRelevantPart('012345'), equals(''));
+      expect(extractButtonCode('0123456789'), equals('6789'));
+      expect(extractButtonCode('01234567'), equals('67'));
       
-      // Test with exact length
-      expect(extractRelevantPart('01234567890123'), equals('67890123'));
+      // Test with exact length (14 chars extracts positions 6-14)
+      expect(extractButtonCode('01234567890123'), equals('67890123'));
+      
+      // Test strings shorter than 14 extract from position 6 to end
+      expect(extractButtonCode('0123456789ABC'), equals('6789ABC'));
     });
   });
 
