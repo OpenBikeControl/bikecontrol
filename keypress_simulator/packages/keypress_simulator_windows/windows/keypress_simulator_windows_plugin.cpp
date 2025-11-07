@@ -99,19 +99,24 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
     SendInput(1, &in, sizeof(INPUT));
   };
 
-  // Press modifier keys first (if keyDown)
-  if (keyDown) {
-    for (const std::string& modifier : modifiers) {
+  // Helper function to process modifiers
+  auto processModifiers = [&sendModifierKey](const std::vector<std::string>& mods, bool down) {
+    for (const std::string& modifier : mods) {
       if (modifier == "shiftModifier") {
-        sendModifierKey(VK_SHIFT, true);
+        sendModifierKey(VK_SHIFT, down);
       } else if (modifier == "controlModifier") {
-        sendModifierKey(VK_CONTROL, true);
+        sendModifierKey(VK_CONTROL, down);
       } else if (modifier == "altModifier") {
-        sendModifierKey(VK_MENU, true);
+        sendModifierKey(VK_MENU, down);
       } else if (modifier == "metaModifier") {
-        sendModifierKey(VK_LWIN, true);
+        sendModifierKey(VK_LWIN, down);
       }
     }
+  };
+
+  // Press modifier keys first (if keyDown)
+  if (keyDown) {
+    processModifiers(modifiers, true);
   }
 
   // Send the main key
@@ -131,17 +136,7 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
 
   // Release modifier keys (if keyUp)
   if (!keyDown) {
-    for (const std::string& modifier : modifiers) {
-      if (modifier == "shiftModifier") {
-        sendModifierKey(VK_SHIFT, false);
-      } else if (modifier == "controlModifier") {
-        sendModifierKey(VK_CONTROL, false);
-      } else if (modifier == "altModifier") {
-        sendModifierKey(VK_MENU, false);
-      } else if (modifier == "metaModifier") {
-        sendModifierKey(VK_LWIN, false);
-      }
-    }
+    processModifiers(modifiers, false);
   }
 
   /*BYTE byteValue = static_cast<BYTE>(keyCode);

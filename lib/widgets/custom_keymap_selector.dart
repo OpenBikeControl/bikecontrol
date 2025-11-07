@@ -55,26 +55,9 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     setState(() {
       // Track modifier keys
       if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.shift || 
-            event.logicalKey == LogicalKeyboardKey.shiftLeft || 
-            event.logicalKey == LogicalKeyboardKey.shiftRight) {
-          _activeModifiers.add(ModifierKey.shiftModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.control || 
-                   event.logicalKey == LogicalKeyboardKey.controlLeft || 
-                   event.logicalKey == LogicalKeyboardKey.controlRight) {
-          _activeModifiers.add(ModifierKey.controlModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.alt || 
-                   event.logicalKey == LogicalKeyboardKey.altLeft || 
-                   event.logicalKey == LogicalKeyboardKey.altRight) {
-          _activeModifiers.add(ModifierKey.altModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.meta || 
-                   event.logicalKey == LogicalKeyboardKey.metaLeft || 
-                   event.logicalKey == LogicalKeyboardKey.metaRight) {
-          _activeModifiers.add(ModifierKey.metaModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.fn) {
-          _activeModifiers.add(ModifierKey.functionModifier);
-        } else {
-          // Regular key pressed - record it along with active modifiers
+        _updateModifierState(event.logicalKey, add: true);
+        // Regular key pressed - record it along with active modifiers
+        if (!_isModifierKey(event.logicalKey)) {
           _pressedKey = event;
           widget.customApp.setKey(
             _pressedButton!,
@@ -86,48 +69,80 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
         }
       } else if (event is KeyUpEvent) {
         // Clear modifier when released
-        if (event.logicalKey == LogicalKeyboardKey.shift || 
-            event.logicalKey == LogicalKeyboardKey.shiftLeft || 
-            event.logicalKey == LogicalKeyboardKey.shiftRight) {
-          _activeModifiers.remove(ModifierKey.shiftModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.control || 
-                   event.logicalKey == LogicalKeyboardKey.controlLeft || 
-                   event.logicalKey == LogicalKeyboardKey.controlRight) {
-          _activeModifiers.remove(ModifierKey.controlModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.alt || 
-                   event.logicalKey == LogicalKeyboardKey.altLeft || 
-                   event.logicalKey == LogicalKeyboardKey.altRight) {
-          _activeModifiers.remove(ModifierKey.altModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.meta || 
-                   event.logicalKey == LogicalKeyboardKey.metaLeft || 
-                   event.logicalKey == LogicalKeyboardKey.metaRight) {
-          _activeModifiers.remove(ModifierKey.metaModifier);
-        } else if (event.logicalKey == LogicalKeyboardKey.fn) {
-          _activeModifiers.remove(ModifierKey.functionModifier);
-        }
+        _updateModifierState(event.logicalKey, add: false);
       }
     });
   }
 
+  bool _isModifierKey(LogicalKeyboardKey key) {
+    return key == LogicalKeyboardKey.shift || 
+           key == LogicalKeyboardKey.shiftLeft || 
+           key == LogicalKeyboardKey.shiftRight ||
+           key == LogicalKeyboardKey.control || 
+           key == LogicalKeyboardKey.controlLeft || 
+           key == LogicalKeyboardKey.controlRight ||
+           key == LogicalKeyboardKey.alt || 
+           key == LogicalKeyboardKey.altLeft || 
+           key == LogicalKeyboardKey.altRight ||
+           key == LogicalKeyboardKey.meta || 
+           key == LogicalKeyboardKey.metaLeft || 
+           key == LogicalKeyboardKey.metaRight ||
+           key == LogicalKeyboardKey.fn;
+  }
+
+  void _updateModifierState(LogicalKeyboardKey key, {required bool add}) {
+    ModifierKey? modifier;
+    
+    if (key == LogicalKeyboardKey.shift || 
+        key == LogicalKeyboardKey.shiftLeft || 
+        key == LogicalKeyboardKey.shiftRight) {
+      modifier = ModifierKey.shiftModifier;
+    } else if (key == LogicalKeyboardKey.control || 
+               key == LogicalKeyboardKey.controlLeft || 
+               key == LogicalKeyboardKey.controlRight) {
+      modifier = ModifierKey.controlModifier;
+    } else if (key == LogicalKeyboardKey.alt || 
+               key == LogicalKeyboardKey.altLeft || 
+               key == LogicalKeyboardKey.altRight) {
+      modifier = ModifierKey.altModifier;
+    } else if (key == LogicalKeyboardKey.meta || 
+               key == LogicalKeyboardKey.metaLeft || 
+               key == LogicalKeyboardKey.metaRight) {
+      modifier = ModifierKey.metaModifier;
+    } else if (key == LogicalKeyboardKey.fn) {
+      modifier = ModifierKey.functionModifier;
+    }
+    
+    if (modifier != null) {
+      if (add) {
+        _activeModifiers.add(modifier);
+      } else {
+        _activeModifiers.remove(modifier);
+      }
+    }
+  }
+
+  String _formatModifierName(ModifierKey m) {
+    return switch (m) {
+      ModifierKey.shiftModifier => 'Shift',
+      ModifierKey.controlModifier => 'Ctrl',
+      ModifierKey.altModifier => 'Alt',
+      ModifierKey.metaModifier => 'Meta',
+      ModifierKey.functionModifier => 'Fn',
+      _ => m.name,
+    };
+  }
+
   String _formatKey(KeyDownEvent? key) {
     if (key == null) {
-      return _activeModifiers.isEmpty ? 'Waiting...' : '${_activeModifiers.map((m) => m.name.replaceAll('Modifier', '')).join('+')}+...';
+      return _activeModifiers.isEmpty ? 'Waiting...' : '${_activeModifiers.map(_formatModifierName).join('+')}+...';
     }
     
     if (_activeModifiers.isEmpty) {
       return key.logicalKey.keyLabel;
     }
     
-    final modifierStrings = _activeModifiers.map((m) {
-      return switch (m) {
-        ModifierKey.shiftModifier => 'Shift',
-        ModifierKey.controlModifier => 'Ctrl',
-        ModifierKey.altModifier => 'Alt',
-        ModifierKey.metaModifier => 'Meta',
-        ModifierKey.functionModifier => 'Fn',
-        _ => m.name,
-      };
-    });
+    final modifierStrings = _activeModifiers.map(_formatModifierName);
     
     return '${modifierStrings.join('+')}+${key.logicalKey.keyLabel}';
   }
