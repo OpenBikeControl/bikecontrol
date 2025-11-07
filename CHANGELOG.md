@@ -2,9 +2,11 @@
 **New Features:**
 - Support for Shimano Di2
 - Support Keyboard shortcuts with modifier keys (Ctrl, Alt, Shift, ...)
+- Support cheap BLE HID remotes 
 
 **Fixes:**
-- fix detection of Elite Square Sterzo devices 
+- fix detection of Elite Square Sterzo devices
+- recognize cheap Bluetooth device clicks also when SwiftControl is in the background
 
 ### 3.3.0 (31-10-2025)
 

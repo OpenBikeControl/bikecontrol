@@ -6,7 +6,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
-import 'package:media_key_detector/media_key_detector.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
@@ -167,9 +166,6 @@ class Connection {
     if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh && !whooshLink.isStarted.value) {
       startMyWhooshServer();
     }
-    mediaKeyDetector.addListener((mediaKey) {
-      print('Media key pressed: $mediaKey');
-    });
   }
 
   Future<void> startMyWhooshServer() {

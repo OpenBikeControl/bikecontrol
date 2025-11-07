@@ -51,8 +51,9 @@ Check the compatibility matrix below!
 - Elite Square Smart Frame (beta)
 - Gamepads (beta)
 - Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)
+  - BLE HID devices and classic Bluetooth HID devices are supported
   - works on Android
-  - on iOS, macOS and Windows it would require SwiftControl to act as media player - let me know if that works for you
+  - on iOS and macOS requires SwiftControl to act as media player
 
 Support for other devices can be added; check the issues tab here on GitHub. 
 
