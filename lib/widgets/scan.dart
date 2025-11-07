@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
@@ -57,6 +59,28 @@ class _ScanWidgetState extends State<ScanWidget> {
                   Text(
                     'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
                   ),
+                  if (!kIsWeb && (Platform.isMacOS || Platform.isIOS || Platform.isWindows))
+                    ValueListenableBuilder(
+                      valueListenable: connection.isMediaKeyDetectionEnabled,
+                      builder: (context, value, child) {
+                        return SwitchListTile.adaptive(
+                          value: value,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          subtitle: Text(
+                            'Enable this option to allow Swift Control to detect bluetooth remotes. In order to do so SwiftControl needs to act as a media player.',
+                          ),
+                          title: Row(
+                            children: [
+                              const Text("Enable Media Key Detection"),
+                            ],
+                          ),
+                          onChanged: (change) {
+                            connection.isMediaKeyDetectionEnabled.value = change;
+                          },
+                        );
+                      },
+                    ),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
