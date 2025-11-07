@@ -122,7 +122,7 @@ abstract class BluetoothDevice extends BaseDevice {
 
   @override
   String toString() {
-    return runtimeType.toString();
+    return name + (firmwareVersion != null ? ' v$firmwareVersion' : '');
   }
 
   BleDevice get device => scanResult;

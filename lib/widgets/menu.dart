@@ -8,6 +8,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../pages/device.dart';
@@ -91,7 +92,23 @@ List<Widget> buildMenuButtons() {
               onTap: () {
                 final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
                 final suffix = isFromStore ? '' : 'ler';
-                launchUrlString('mailto:jonas.t.bark+swiftcontrol$suffix@gmail.com');
+
+                String email = Uri.encodeComponent('jonas.t.bark+swiftcontrol$suffix@gmail.com');
+                String subject = Uri.encodeComponent("Help requested for SwiftControl v${packageInfoValue?.version}");
+                String body = Uri.encodeComponent("""
+                
+                
+---
+App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
+Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
+Target: ${settings.getLastTarget()?.title}
+Trainer App: ${settings.getTrainerApp()?.name}
+Connected Controllers: ${connection.devices.map((e) => e.toString()).join(', ')}
+
+Please don't remove this information, it helps me to assist you better.""");
+                Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
+
+                launchUrl(mail);
               },
             ),
         ];

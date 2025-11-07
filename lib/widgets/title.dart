@@ -15,6 +15,7 @@ import 'package:version/version.dart';
 
 PackageInfo? packageInfoValue;
 bool? isFromPlayStore;
+Patch? shorebirdPatch;
 
 class AppTitle extends StatefulWidget {
   const AppTitle({super.key});
@@ -25,7 +26,6 @@ class AppTitle extends StatefulWidget {
 
 class _AppTitleState extends State<AppTitle> {
   final updater = ShorebirdUpdater();
-  Patch? _shorebirdPatch;
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _AppTitleState extends State<AppTitle> {
     if (updater.isAvailable) {
       updater.readCurrentPatch().then((patch) {
         setState(() {
-          _shorebirdPatch = patch;
+          shorebirdPatch = patch;
         });
       });
     }
@@ -145,7 +145,7 @@ class _AppTitleState extends State<AppTitle> {
         Text('SwiftControl', style: TextStyle(fontWeight: FontWeight.bold)),
         if (packageInfoValue != null)
           Text(
-            'v${packageInfoValue!.version}${_shorebirdPatch != null ? '+${_shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
+            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
             style: TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
           )
         else

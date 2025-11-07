@@ -32,7 +32,7 @@ abstract class BaseDevice {
 
   @override
   String toString() {
-    return runtimeType.toString();
+    return name;
   }
 
   final StreamController<BaseNotification> actionStreamInternal = StreamController<BaseNotification>.broadcast();
