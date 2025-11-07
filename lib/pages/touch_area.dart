@@ -418,7 +418,10 @@ class KeypairExplanation extends StatelessWidget {
           )
         else if (keyPair.physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
           _KeyWidget(
-            label: keyPair.logicalKey?.keyLabel ?? 'Unknown',
+            label: [
+              ...keyPair.modifiers.map((e) => e.name.replaceAll('Modifier', '')),
+              keyPair.logicalKey?.keyLabel ?? 'Unknown',
+            ].joinToString(separator: '+'),
           ),
           if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
         ] else ...[

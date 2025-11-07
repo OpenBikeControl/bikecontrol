@@ -1,6 +1,7 @@
-### 3.3.1 (unreleased)
+### 3.4.0 (unreleased)
 **New Features:**
 - Support for Shimano Di2
+- Support Keyboard shortcuts with modifier keys (Ctrl, Alt, Shift, ...)
 
 **Fixes:**
 - fix detection of Elite Square Sterzo devices 

@@ -58,6 +58,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
         final wasModifier = _updateModifierState(event.logicalKey, add: true);
         // Regular key pressed - record it along with active modifiers
         if (!wasModifier) {
+          if (_pressedKey?.logicalKey != event.logicalKey) {}
           _pressedKey = event;
           widget.customApp.setKey(
             _pressedButton!,
@@ -76,27 +77,27 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
 
   bool _updateModifierState(LogicalKeyboardKey key, {required bool add}) {
     ModifierKey? modifier;
-    
-    if (key == LogicalKeyboardKey.shift || 
-        key == LogicalKeyboardKey.shiftLeft || 
+
+    if (key == LogicalKeyboardKey.shift ||
+        key == LogicalKeyboardKey.shiftLeft ||
         key == LogicalKeyboardKey.shiftRight) {
       modifier = ModifierKey.shiftModifier;
-    } else if (key == LogicalKeyboardKey.control || 
-               key == LogicalKeyboardKey.controlLeft || 
-               key == LogicalKeyboardKey.controlRight) {
+    } else if (key == LogicalKeyboardKey.control ||
+        key == LogicalKeyboardKey.controlLeft ||
+        key == LogicalKeyboardKey.controlRight) {
       modifier = ModifierKey.controlModifier;
-    } else if (key == LogicalKeyboardKey.alt || 
-               key == LogicalKeyboardKey.altLeft || 
-               key == LogicalKeyboardKey.altRight) {
+    } else if (key == LogicalKeyboardKey.alt ||
+        key == LogicalKeyboardKey.altLeft ||
+        key == LogicalKeyboardKey.altRight) {
       modifier = ModifierKey.altModifier;
-    } else if (key == LogicalKeyboardKey.meta || 
-               key == LogicalKeyboardKey.metaLeft || 
-               key == LogicalKeyboardKey.metaRight) {
+    } else if (key == LogicalKeyboardKey.meta ||
+        key == LogicalKeyboardKey.metaLeft ||
+        key == LogicalKeyboardKey.metaRight) {
       modifier = ModifierKey.metaModifier;
     } else if (key == LogicalKeyboardKey.fn) {
       modifier = ModifierKey.functionModifier;
     }
-    
+
     if (modifier != null) {
       if (add) {
         _activeModifiers.add(modifier);
@@ -123,13 +124,13 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     if (key == null) {
       return _activeModifiers.isEmpty ? 'Waiting...' : '${_activeModifiers.map(_formatModifierName).join('+')}+...';
     }
-    
+
     if (_activeModifiers.isEmpty) {
       return key.logicalKey.keyLabel;
     }
-    
+
     final modifierStrings = _activeModifiers.map(_formatModifierName);
-    
+
     return '${modifierStrings.join('+')}+${key.logicalKey.keyLabel}';
   }
 

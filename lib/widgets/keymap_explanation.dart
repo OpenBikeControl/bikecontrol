@@ -8,7 +8,6 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/button_widget.dart';
@@ -145,7 +144,7 @@ class _ButtonEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = <PopupMenuEntry>[
-      if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh)
+      if (settings.getMyWhooshLinkEnabled() && whooshLink.isCompatible(settings.getLastTarget()!))
         PopupMenuItem<PhysicalKeyboardKey>(
           child: PopupMenuButton(
             itemBuilder: (_) => WhooshLink.supportedActions.map(
@@ -372,6 +371,7 @@ class _ButtonEditor extends StatelessWidget {
           keyPair.isLongPress = false;
           keyPair.physicalKey = null;
           keyPair.logicalKey = null;
+          keyPair.modifiers = [];
           keyPair.touchPosition = Offset.zero;
           keyPair.inGameAction = null;
           keyPair.inGameActionValue = null;
