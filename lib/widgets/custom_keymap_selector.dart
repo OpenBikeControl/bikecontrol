@@ -25,6 +25,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   final FocusNode _focusNode = FocusNode();
   KeyDownEvent? _pressedKey;
   ControllerButton? _pressedButton;
+  final Set<ModifierKey> _activeModifiers = {};
 
   @override
   void initState() {
@@ -52,20 +53,83 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
 
   void _onKey(KeyEvent event) {
     setState(() {
+      // Track modifier keys
       if (event is KeyDownEvent) {
-        _pressedKey = event;
-        widget.customApp.setKey(
-          _pressedButton!,
-          physicalKey: _pressedKey!.physicalKey,
-          logicalKey: _pressedKey!.logicalKey,
-          touchPosition: widget.keyPair?.touchPosition,
-        );
+        if (event.logicalKey == LogicalKeyboardKey.shift || 
+            event.logicalKey == LogicalKeyboardKey.shiftLeft || 
+            event.logicalKey == LogicalKeyboardKey.shiftRight) {
+          _activeModifiers.add(ModifierKey.shiftModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.control || 
+                   event.logicalKey == LogicalKeyboardKey.controlLeft || 
+                   event.logicalKey == LogicalKeyboardKey.controlRight) {
+          _activeModifiers.add(ModifierKey.controlModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.alt || 
+                   event.logicalKey == LogicalKeyboardKey.altLeft || 
+                   event.logicalKey == LogicalKeyboardKey.altRight) {
+          _activeModifiers.add(ModifierKey.altModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.meta || 
+                   event.logicalKey == LogicalKeyboardKey.metaLeft || 
+                   event.logicalKey == LogicalKeyboardKey.metaRight) {
+          _activeModifiers.add(ModifierKey.metaModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.fn) {
+          _activeModifiers.add(ModifierKey.functionModifier);
+        } else {
+          // Regular key pressed - record it along with active modifiers
+          _pressedKey = event;
+          widget.customApp.setKey(
+            _pressedButton!,
+            physicalKey: _pressedKey!.physicalKey,
+            logicalKey: _pressedKey!.logicalKey,
+            modifiers: _activeModifiers.toList(),
+            touchPosition: widget.keyPair?.touchPosition,
+          );
+        }
+      } else if (event is KeyUpEvent) {
+        // Clear modifier when released
+        if (event.logicalKey == LogicalKeyboardKey.shift || 
+            event.logicalKey == LogicalKeyboardKey.shiftLeft || 
+            event.logicalKey == LogicalKeyboardKey.shiftRight) {
+          _activeModifiers.remove(ModifierKey.shiftModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.control || 
+                   event.logicalKey == LogicalKeyboardKey.controlLeft || 
+                   event.logicalKey == LogicalKeyboardKey.controlRight) {
+          _activeModifiers.remove(ModifierKey.controlModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.alt || 
+                   event.logicalKey == LogicalKeyboardKey.altLeft || 
+                   event.logicalKey == LogicalKeyboardKey.altRight) {
+          _activeModifiers.remove(ModifierKey.altModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.meta || 
+                   event.logicalKey == LogicalKeyboardKey.metaLeft || 
+                   event.logicalKey == LogicalKeyboardKey.metaRight) {
+          _activeModifiers.remove(ModifierKey.metaModifier);
+        } else if (event.logicalKey == LogicalKeyboardKey.fn) {
+          _activeModifiers.remove(ModifierKey.functionModifier);
+        }
       }
     });
   }
 
   String _formatKey(KeyDownEvent? key) {
-    return key?.logicalKey.keyLabel ?? 'Waiting...';
+    if (key == null) {
+      return _activeModifiers.isEmpty ? 'Waiting...' : '${_activeModifiers.map((m) => m.name.replaceAll('Modifier', '')).join('+')}+...';
+    }
+    
+    if (_activeModifiers.isEmpty) {
+      return key.logicalKey.keyLabel;
+    }
+    
+    final modifierStrings = _activeModifiers.map((m) {
+      return switch (m) {
+        ModifierKey.shiftModifier => 'Shift',
+        ModifierKey.controlModifier => 'Ctrl',
+        ModifierKey.altModifier => 'Alt',
+        ModifierKey.metaModifier => 'Meta',
+        ModifierKey.functionModifier => 'Fn',
+        _ => m.name,
+      };
+    });
+    
+    return '${modifierStrings.join('+')}+${key.logicalKey.keyLabel}';
   }
 
   @override
