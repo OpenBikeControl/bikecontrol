@@ -55,9 +55,9 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     setState(() {
       // Track modifier keys
       if (event is KeyDownEvent) {
-        _updateModifierState(event.logicalKey, add: true);
+        final wasModifier = _updateModifierState(event.logicalKey, add: true);
         // Regular key pressed - record it along with active modifiers
-        if (!_isModifierKey(event.logicalKey)) {
+        if (!wasModifier) {
           _pressedKey = event;
           widget.customApp.setKey(
             _pressedButton!,
@@ -74,23 +74,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     });
   }
 
-  bool _isModifierKey(LogicalKeyboardKey key) {
-    return key == LogicalKeyboardKey.shift || 
-           key == LogicalKeyboardKey.shiftLeft || 
-           key == LogicalKeyboardKey.shiftRight ||
-           key == LogicalKeyboardKey.control || 
-           key == LogicalKeyboardKey.controlLeft || 
-           key == LogicalKeyboardKey.controlRight ||
-           key == LogicalKeyboardKey.alt || 
-           key == LogicalKeyboardKey.altLeft || 
-           key == LogicalKeyboardKey.altRight ||
-           key == LogicalKeyboardKey.meta || 
-           key == LogicalKeyboardKey.metaLeft || 
-           key == LogicalKeyboardKey.metaRight ||
-           key == LogicalKeyboardKey.fn;
-  }
-
-  void _updateModifierState(LogicalKeyboardKey key, {required bool add}) {
+  bool _updateModifierState(LogicalKeyboardKey key, {required bool add}) {
     ModifierKey? modifier;
     
     if (key == LogicalKeyboardKey.shift || 
@@ -119,7 +103,9 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
       } else {
         _activeModifiers.remove(modifier);
       }
+      return true;
     }
+    return false;
   }
 
   String _formatModifierName(ModifierKey m) {
