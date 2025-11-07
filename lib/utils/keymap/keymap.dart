@@ -60,6 +60,25 @@ class Keymap {
       settings.setKeyMap(actionHandler.supportedApp!);
     }
   }
+
+  ControllerButton getOrAddButton(String name, ControllerButton Function() button) {
+    final allButtons = keyPairs.expand((kp) => kp.buttons).toSet().toList();
+    if (allButtons.none((b) => b.name == name)) {
+      final newButton = button();
+      addKeyPair(
+        KeyPair(
+          touchPosition: Offset.zero,
+          buttons: [newButton],
+          physicalKey: null,
+          logicalKey: null,
+          isLongPress: false,
+        ),
+      );
+      return newButton;
+    } else {
+      return allButtons.firstWhere((b) => b.name == name);
+    }
+  }
 }
 
 class KeyPair {

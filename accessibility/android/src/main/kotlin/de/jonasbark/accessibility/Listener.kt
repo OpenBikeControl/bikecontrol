@@ -1,10 +1,13 @@
 package de.jonasbark.accessibility
 
 import android.graphics.Rect
+import android.view.KeyEvent
 
 object Observable {
     var toService: Listener? = null
-    var fromService: Receiver? = null
+    var fromServiceWindow: Receiver? = null
+    var fromServiceKeys: Receiver? = null
+    var ignoreHidDevices: Boolean = false
 }
 
 interface Listener {
@@ -13,4 +16,5 @@ interface Listener {
 
 interface Receiver {
     fun onChange(packageName: String, window: Rect)
+    fun onKeyEvent(event: KeyEvent)
 }

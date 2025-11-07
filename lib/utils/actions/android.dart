@@ -1,8 +1,11 @@
 import 'package:accessibility/accessibility.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
@@ -12,6 +15,8 @@ import '../single_line_exception.dart';
 class AndroidActions extends BaseActions {
   WindowEvent? windowInfo;
 
+  final accessibilityHandler = Accessibility();
+
   AndroidActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.media]});
 
   @override
@@ -20,6 +25,21 @@ class AndroidActions extends BaseActions {
     streamEvents().listen((windowEvent) {
       if (supportedApp != null) {
         windowInfo = windowEvent;
+      }
+    });
+
+    hidKeyPressed().listen((keyPressed) {
+      if (supportedApp is CustomApp) {
+        final button = supportedApp.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
+
+        final hidDevice = HidDevice('HID Device');
+        var availableDevice = connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+        if (availableDevice == null) {
+          connection.addDevices([hidDevice]);
+          availableDevice = hidDevice;
+        }
+        availableDevice.handleButtonsClicked([button]);
+        availableDevice.handleButtonsClicked([]);
       }
     });
   }
@@ -65,5 +85,9 @@ class AndroidActions extends BaseActions {
           : "up"}";
     }
     return "No action assigned";
+  }
+
+  void ignoreHidDevices() {
+    accessibilityHandler.ignoreHidDevices();
   }
 }

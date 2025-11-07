@@ -1,6 +1,7 @@
 package de.jonasbark.accessibility
 
 import Accessibility
+import HidKeyPressedStreamHandler
 import MediaAction
 import PigeonEventSink
 import StreamEventsStreamHandler
@@ -10,6 +11,7 @@ import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.provider.Settings
+import android.view.KeyEvent
 import androidx.core.content.ContextCompat.startActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodChannel
@@ -23,17 +25,21 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel : MethodChannel
   private lateinit var context: Context
-  private lateinit var eventHandler: EventListener
+  private lateinit var windowEventHandler: WindowEventListener
+  private lateinit var hidEventHandler: HidEventListener
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "accessibility")
 
-    eventHandler = EventListener()
+    windowEventHandler = WindowEventListener()
+    hidEventHandler = HidEventListener()
 
     context = flutterPluginBinding.applicationContext
     Accessibility.setUp(flutterPluginBinding.binaryMessenger, this)
-    StreamEventsStreamHandler.register(flutterPluginBinding.binaryMessenger, eventHandler)
-    Observable.fromService = eventHandler
+    StreamEventsStreamHandler.register(flutterPluginBinding.binaryMessenger, windowEventHandler)
+    HidKeyPressedStreamHandler.register(flutterPluginBinding.binaryMessenger, hidEventHandler)
+    Observable.fromServiceWindow = windowEventHandler
+    Observable.fromServiceKeys = hidEventHandler
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -59,12 +65,12 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
     val audioService = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
     when (action) {
       MediaAction.PLAY_PAUSE -> {
-          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
-          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+          audioService.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+          audioService.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
       }
       MediaAction.NEXT -> {
-          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
-          audioService.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_NEXT))
+          audioService.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT))
+          audioService.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT))
       }
       MediaAction.VOLUME_DOWN -> {
           audioService.adjustVolume(android.media.AudioManager.ADJUST_LOWER, android.media.AudioManager.FLAG_SHOW_UI)
@@ -75,16 +81,20 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
     }
   }
 
+  override fun ignoreHidDevices() {
+    Observable.ignoreHidDevices = true
+  }
+
 }
 
-class EventListener : StreamEventsStreamHandler(), Receiver {
+class WindowEventListener : StreamEventsStreamHandler(), Receiver {
   private var eventSink: PigeonEventSink<WindowEvent>? = null
 
   override fun onListen(p0: Any?, sink: PigeonEventSink<WindowEvent>) {
     eventSink = sink
   }
 
-  fun onEventsDone() {
+  override fun onCancel(p0: Any?) {
     eventSink?.endOfStream()
     eventSink = null
   }
@@ -93,4 +103,27 @@ class EventListener : StreamEventsStreamHandler(), Receiver {
     eventSink?.success(WindowEvent(packageName = packageName, right = window.right.toLong(), left = window.left.toLong(), bottom = window.bottom.toLong(), top = window.top.toLong()))
   }
 
+  override fun onKeyEvent(event: KeyEvent) {
+
+  }
+
+}
+
+
+class HidEventListener : HidKeyPressedStreamHandler(), Receiver {
+
+  private var keyEventSink: PigeonEventSink<String>? = null
+
+  override fun onListen(p0: Any?, sink: PigeonEventSink<String>) {
+    keyEventSink = sink
+  }
+
+  override fun onChange(packageName: String, window: Rect) {
+
+  }
+
+  override fun onKeyEvent(event: KeyEvent) {
+    val keyString = KeyEvent.keyCodeToString(event.keyCode)
+    keyEventSink?.success(keyString)
+  }
 }
