@@ -1,16 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 
+// Helper functions matching the Elite Square implementation
+String extractButtonCode(String hexValue) {
+  if (hexValue.length >= 14) {
+    return hexValue.substring(6, 14);
+  }
+  return hexValue;
+}
+
+String extractRelevantPart(String fullValue) {
+  return fullValue.length >= 14
+      ? fullValue.substring(6, 14)
+      : fullValue.substring(6);
+}
+
+String bytesToHex(List<int> bytes) {
+  return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+}
+
 void main() {
   group('Elite Square Button Detection Tests', () {
     test('Should extract correct button code from hex string', () {
-      // Test button code extraction
-      String extractButtonCode(String hexValue) {
-        if (hexValue.length >= 14) {
-          return hexValue.substring(6, 14);
-        }
-        return hexValue;
-      }
-
       // Test with actual dump data
       expect(extractButtonCode('030153000000020318f40101'), equals('00000002'));
       expect(extractButtonCode('030153000000010318f40101'), equals('00000001'));
@@ -23,11 +33,6 @@ void main() {
 
     test('Should detect button changes correctly', () {
       // Test that relevant part extraction is consistent with button code extraction
-      String extractRelevantPart(String fullValue) {
-        return fullValue.length >= 14
-            ? fullValue.substring(6, 14)
-            : fullValue.substring(6);
-      }
 
       final idleState = '030153000000000318f40101';
       final buttonPressed = '030153000000020318f40101';
@@ -41,12 +46,6 @@ void main() {
     });
 
     test('Should handle button release correctly', () {
-      String extractRelevantPart(String fullValue) {
-        return fullValue.length >= 14
-            ? fullValue.substring(6, 14)
-            : fullValue.substring(6);
-      }
-
       // Simulate button press and release
       final states = [
         '030153000000000318f40101', // idle
@@ -98,10 +97,6 @@ void main() {
     });
 
     test('Should convert bytes to hex correctly', () {
-      String bytesToHex(List<int> bytes) {
-        return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
-      }
-
       // Test with sample data from the dump
       // 030153000000020318f40101 = [0x03, 0x01, 0x53, 0x00, 0x00, 0x00, 0x02, 0x03, 0x18, 0xf4, 0x01, 0x01]
       final bytes = [0x03, 0x01, 0x53, 0x00, 0x00, 0x00, 0x02, 0x03, 0x18, 0xf4, 0x01, 0x01];
@@ -111,12 +106,6 @@ void main() {
     });
 
     test('Should handle edge cases', () {
-      String extractRelevantPart(String fullValue) {
-        return fullValue.length >= 14
-            ? fullValue.substring(6, 14)
-            : fullValue.substring(6);
-      }
-
       // Test with short strings
       expect(extractRelevantPart('0123456789'), equals('6789'));
       expect(extractRelevantPart('012345'), equals(''));
