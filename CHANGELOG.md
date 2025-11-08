@@ -3,6 +3,7 @@
 - Support for Shimano Di2
 - Support Keyboard shortcuts with modifier keys (Ctrl, Alt, Shift, ...)
 - Support cheap BLE HID remotes 
+- add Keymap for Rouvy, supporting the new keyboard shortcuts for virtual shifting
 
 **Fixes:**
 - fix detection of Elite Square Sterzo devices
