@@ -1,4 +1,4 @@
-### 3.4.0 (unreleased)
+### 3.4.0 (08-11-2025)
 **New Features:**
 - Support for Shimano Di2
 - Support Keyboard shortcuts with modifier keys (Ctrl, Alt, Shift, ...)
