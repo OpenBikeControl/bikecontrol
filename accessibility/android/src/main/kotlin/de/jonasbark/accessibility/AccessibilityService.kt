@@ -10,6 +10,7 @@ import android.graphics.Rect
 import android.media.AudioManager
 import android.os.Build
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
@@ -69,7 +70,7 @@ class AccessibilityService : AccessibilityService(), Listener {
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        if (!Observable.ignoreHidDevices) {
+        if (!Observable.ignoreHidDevices && isBleRemote(event)) {
             // Handle media and volume keys from HID devices here
             Log.d(
                 "AccessibilityService",
@@ -84,6 +85,15 @@ class AccessibilityService : AccessibilityService(), Listener {
             return true
         } else {
             return false
+        }
+    }
+
+    private fun isBleRemote(event: KeyEvent): Boolean {
+        val dev = InputDevice.getDevice(event.deviceId) ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            dev.isExternal
+        } else {
+            true
         }
     }
 
