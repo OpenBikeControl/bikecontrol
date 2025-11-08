@@ -91,19 +91,19 @@ enum Target {
     icon: Icons.devices,
   ),
   iOS(
-    title: 'iPhone / iPad / Apple TV',
+    title: 'another iPhone / iPad / Apple TV',
     icon: Icons.settings_remote_outlined,
   ),
   android(
-    title: 'Android Device',
+    title: 'another Android Device',
     icon: Icons.settings_remote_outlined,
   ),
   macOS(
-    title: 'Mac',
+    title: 'another Mac',
     icon: Icons.settings_remote_outlined,
   ),
   windows(
-    title: 'Windows PC',
+    title: 'another Windows PC',
     icon: Icons.settings_remote_outlined,
   );
 
@@ -136,13 +136,13 @@ enum Target {
         'Due to platform restrictions only controlling ${app?.name ?? 'the Trainer app'} on other devices is supported.',
       Target.thisDevice => 'Run ${app?.name ?? 'the Trainer app'} on this device.',
       Target.iOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Apple device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on an Apple device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
       Target.android =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Android device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on an Android device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
       Target.macOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Mac and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on a Mac and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
       Target.windows =>
-        'Run ${app?.name ?? 'the Trainer app'} on your Windows PC and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on a Windows PC and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
     };
   }
 
@@ -232,6 +232,9 @@ class TargetRequirement extends PlatformRequirement {
                 whooshLink.stopServer();
               }
               settings.setTrainerApp(selectedApp!);
+              if (settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
+                await settings.setLastTarget(Target.thisDevice);
+              }
               if (actionHandler.supportedApp == null ||
                   (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
                 actionHandler.init(selectedApp);
@@ -251,7 +254,7 @@ class TargetRequirement extends PlatformRequirement {
                 value: target,
                 label: target.title,
                 enabled: target.isCompatible,
-                trailingIcon: Icon(target.icon),
+                leadingIcon: Icon(target.icon),
                 labelWidget: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Column(
@@ -259,23 +262,19 @@ class TargetRequirement extends PlatformRequirement {
                     children: [
                       Row(
                         children: [
-                          Text(target.title, style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            target.title,
+                            style: TextStyle(
+                              fontWeight: target == Target.thisDevice && target.isCompatible ? FontWeight.bold : null,
+                            ),
+                          ),
                           if (target.isBeta) BetaPill(),
                         ],
                       ),
                       Text(
                         target.getDescription(settings.getTrainerApp()),
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(fontSize: 10, color: Colors.grey),
                       ),
-                      if (target == Target.thisDevice)
-                        Container(
-                          margin: EdgeInsets.only(top: 12),
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).dividerColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -283,6 +282,7 @@ class TargetRequirement extends PlatformRequirement {
             }).toList(),
             hintText: 'Select Target device',
             initialSelection: settings.getLastTarget(),
+            enabled: settings.getTrainerApp() != null,
             onSelected: (target) async {
               if (target != null) {
                 await settings.setLastTarget(target);
