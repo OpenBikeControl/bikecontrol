@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -25,10 +24,6 @@ class ShimanoDi2 extends BluetoothDevice {
     );
 
     await UniversalBle.subscribeIndications(device.deviceId, service.uuid, characteristic.uuid);
-
-    if (actionHandler.supportedApp is! CustomApp) {
-      actionStreamInternal.add(LogNotification('Use a custom keymap to support ${scanResult.name}'));
-    }
   }
 
   final _lastButtons = <int, int>{};
@@ -88,6 +83,11 @@ class ShimanoDi2 extends BluetoothDevice {
           'Make sure to set your Di2 buttons to D-Fly channels in the Shimano E-TUBE app.',
           style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
+        if (actionHandler.supportedApp is! CustomApp)
+          Text(
+            'Use a custom keymap to support ${scanResult.name}',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
       ],
     );
   }
