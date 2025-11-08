@@ -1,0 +1,18 @@
+name: media_key_detector_platform_interface
+description: A common platform interface for the media_key_detector plugin.
+version: 0.0.2
+homepage: https://github.com/holotrek/media_key_detector
+
+environment:
+  sdk: "^3.3.0"
+  flutter: ">=3.19.3"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^5.1.0

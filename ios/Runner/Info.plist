@@ -24,21 +24,22 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSLocalNetworkUsageDescription</key>
-    <string>This app connects to your trainer app on your local network.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>SwiftControl uses Bluetooth to connect to accessories.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app connects to your trainer app on your local network.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-peripheral</string>
 		<string>bluetooth-central</string>
+		<string>audio</string>
 	</array>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

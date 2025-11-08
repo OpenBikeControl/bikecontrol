@@ -1,0 +1,27 @@
+name: media_key_detector_ios
+description: iOS implementation of the media_key_detector plugin
+version: 0.0.2
+homepage: https://github.com/holotrek/media_key_detector
+
+environment:
+  sdk: "^3.3.0"
+  flutter: ">=3.19.3"
+
+flutter:
+  plugin:
+    implements: media_key_detector
+    platforms:
+      ios:
+        pluginClass: MediaKeyDetectorPlugin
+        dartPluginClass: MediaKeyDetectorIOS
+
+dependencies:
+  flutter:
+    sdk: flutter
+  media_key_detector_platform_interface:
+    path: ../media_key_detector_platform_interface
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^5.1.0

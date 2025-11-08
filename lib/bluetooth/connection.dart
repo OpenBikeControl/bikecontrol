@@ -6,11 +6,13 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
+import 'package:media_key_detector/media_key_detector.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -46,12 +48,23 @@ class Connection {
   final _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
+  final ValueNotifier<bool> isMediaKeyDetectionEnabled = ValueNotifier(false);
 
   Timer? _gamePadSearchTimer;
 
   final _dontAllowReconnectDevices = <String>{};
 
   void initialize() {
+    isMediaKeyDetectionEnabled.addListener(() {
+      if (!isMediaKeyDetectionEnabled.value) {
+        mediaKeyDetector.setIsPlaying(isPlaying: false);
+        mediaKeyDetector.removeListener(_onMediaKeyDetectedListener);
+      } else {
+        mediaKeyDetector.addListener(_onMediaKeyDetectedListener);
+        mediaKeyDetector.setIsPlaying(isPlaying: true);
+      }
+    });
+
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb) {
@@ -334,5 +347,20 @@ class Connection {
       _connectionSubscriptions.remove(device);
     }
     signalChange(device);
+  }
+
+  void _onMediaKeyDetectedListener(MediaKey mediaKey) {
+    final hidDevice = HidDevice('HID Device');
+    final keyPressed = mediaKey.name;
+
+    final button = actionHandler.supportedApp!.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
+
+    var availableDevice = connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+    if (availableDevice == null) {
+      connection.addDevices([hidDevice]);
+      availableDevice = hidDevice;
+    }
+    availableDevice.handleButtonsClicked([button]);
+    availableDevice.handleButtonsClicked([]);
   }
 }

@@ -1,0 +1,42 @@
+name: media_key_detector
+description: Triggers events when keyboard media keys are pressed.
+version: 0.0.2
+homepage: https://github.com/holotrek/media_key_detector
+
+environment:
+  sdk: "^3.3.0"
+  flutter: ">=3.19.3"
+
+flutter:
+  plugin:
+    platforms:
+      linux:
+        default_package: media_key_detector_linux
+      macos:
+        default_package: media_key_detector_macos
+      ios:
+        default_package: media_key_detector_ios
+      windows:
+        default_package: media_key_detector_windows
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  media_key_detector_ios:
+    path: ../media_key_detector_ios
+  media_key_detector_linux:
+    path: ../media_key_detector_linux
+  media_key_detector_macos:
+    path: ../media_key_detector_macos
+  media_key_detector_platform_interface:
+    path: ../media_key_detector_platform_interface
+  media_key_detector_windows:
+    path: ../media_key_detector_windows
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.3
+  plugin_platform_interface: ^2.1.8
+  very_good_analysis: ^5.1.0

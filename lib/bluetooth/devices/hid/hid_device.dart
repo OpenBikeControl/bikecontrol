@@ -24,6 +24,8 @@ class HidDevice extends BaseDevice {
                 connection.disconnect(this, forget: true);
                 if (actionHandler is AndroidActions) {
                   (actionHandler as AndroidActions).ignoreHidDevices();
+                } else if (connection.isMediaKeyDetectionEnabled.value) {
+                  connection.isMediaKeyDetectionEnabled.value = false;
                 }
               },
             ),
