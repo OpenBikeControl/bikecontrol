@@ -143,9 +143,11 @@ class WhooshLink {
   }
 
   bool isCompatible(Target target) {
-    return switch (target) {
-      Target.thisDevice => Platform.isAndroid || Platform.isWindows,
-      _ => true,
-    };
+    return kIsWeb
+        ? false
+        : switch (target) {
+            Target.thisDevice => Platform.isAndroid || Platform.isWindows,
+            _ => true,
+          };
   }
 }

@@ -12,6 +12,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/zwift.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -334,7 +335,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (connection.remoteDevices.isNotEmpty ||
                                 actionHandler is RemoteActions ||
-                                whooshLink.isCompatible(settings.getLastTarget()!) ||
+                                whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) ||
                                 actionHandler.supportedApp?.supportsZwiftEmulation == true)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 8.0),
@@ -392,125 +393,129 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     ),
 
                     SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(
-                        'Customize ${settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    Card(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 16.0,
-                          right: 16,
-                          top: 16,
-                          bottom: canVibrate ? 0 : 12,
+                    if (!kIsWeb) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(
+                          'Customize ${settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
-                        child: Column(
-                          spacing: 12,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              spacing: 8,
-                              children: [
-                                Expanded(
-                                  child: DropdownMenu<SupportedApp?>(
-                                    controller: controller,
-                                    dropdownMenuEntries: [
-                                      ..._getAllApps().map(
-                                        (app) => DropdownMenuEntry<SupportedApp>(
-                                          value: app,
-                                          label: app.name,
-                                          labelWidget: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(app.name),
-                                              if (app is CustomApp) BetaPill(text: 'CUSTOM'),
-                                            ],
+                      ),
+                      Card(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: 16.0,
+                            right: 16,
+                            top: 16,
+                            bottom: canVibrate ? 0 : 12,
+                          ),
+                          child: Column(
+                            spacing: 12,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                spacing: 8,
+                                children: [
+                                  Expanded(
+                                    child: DropdownMenu<SupportedApp?>(
+                                      controller: controller,
+                                      dropdownMenuEntries: [
+                                        ..._getAllApps().map(
+                                          (app) => DropdownMenuEntry<SupportedApp>(
+                                            value: app,
+                                            label: app.name,
+                                            labelWidget: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(app.name),
+                                                if (app is CustomApp) BetaPill(text: 'CUSTOM'),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      DropdownMenuEntry(
-                                        value: CustomApp(profileName: 'New'),
-                                        label: 'Create new keymap',
-                                        labelWidget: Text('Create new keymap'),
-                                        leadingIcon: Icon(Icons.add),
-                                      ),
-                                    ],
-                                    label: Text('Select Keymap'),
-                                    onSelected: (app) async {
-                                      if (app == null) {
-                                        return;
-                                      } else if (app.name == 'New') {
-                                        final profileName = await KeymapManager().showNewProfileDialog(context);
-                                        if (profileName != null && profileName.isNotEmpty) {
-                                          final customApp = CustomApp(profileName: profileName);
-                                          actionHandler.init(customApp);
-                                          await settings.setKeyMap(customApp);
-                                          controller.text = profileName;
+                                        DropdownMenuEntry(
+                                          value: CustomApp(profileName: 'New'),
+                                          label: 'Create new keymap',
+                                          labelWidget: Text('Create new keymap'),
+                                          leadingIcon: Icon(Icons.add),
+                                        ),
+                                      ],
+                                      label: Text('Select Keymap'),
+                                      onSelected: (app) async {
+                                        if (app == null) {
+                                          return;
+                                        } else if (app.name == 'New') {
+                                          final profileName = await KeymapManager().showNewProfileDialog(context);
+                                          if (profileName != null && profileName.isNotEmpty) {
+                                            final customApp = CustomApp(profileName: profileName);
+                                            actionHandler.init(customApp);
+                                            await settings.setKeyMap(customApp);
+                                            controller.text = profileName;
+                                            setState(() {});
+                                          }
+                                        } else {
+                                          controller.text = app.name ?? '';
+                                          actionHandler.supportedApp = app;
+                                          await settings.setKeyMap(app);
                                           setState(() {});
                                         }
-                                      } else {
-                                        controller.text = app.name ?? '';
-                                        actionHandler.supportedApp = app;
-                                        await settings.setKeyMap(app);
-                                        setState(() {});
-                                      }
-                                    },
-                                    initialSelection: actionHandler.supportedApp,
-                                    hintText: 'Select your Keymap',
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    KeymapManager().getManageProfileDialog(
-                                      context,
-                                      actionHandler.supportedApp is CustomApp ? actionHandler.supportedApp?.name : null,
-                                      onDone: () {
-                                        setState(() {});
-                                        controller.text = actionHandler.supportedApp?.name ?? '';
                                       },
+                                      initialSelection: actionHandler.supportedApp,
+                                      hintText: 'Select your Keymap',
                                     ),
-                                  ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      KeymapManager().getManageProfileDialog(
+                                        context,
+                                        actionHandler.supportedApp is CustomApp
+                                            ? actionHandler.supportedApp?.name
+                                            : null,
+                                        onDone: () {
+                                          setState(() {});
+                                          controller.text = actionHandler.supportedApp?.name ?? '';
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              if (actionHandler.supportedApp is! CustomApp)
+                                Text(
+                                  'Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              if (actionHandler.supportedApp != null && connection.controllerDevices.isNotEmpty)
+                                KeymapExplanation(
+                                  key: Key(actionHandler.supportedApp!.keymap.runtimeType.toString()),
+                                  keymap: actionHandler.supportedApp!.keymap,
+                                  onUpdate: () {
+                                    setState(() {});
+                                    controller.text = actionHandler.supportedApp?.name ?? '';
+
+                                    if (actionHandler.supportedApp is CustomApp) {
+                                      settings.setKeyMap(actionHandler.supportedApp!);
+                                    }
+                                  },
+                                ),
+                              if (canVibrate) ...[
+                                SwitchListTile(
+                                  title: Text('Enable vibration feedback when shifting gears'),
+                                  value: settings.getVibrationEnabled(),
+                                  contentPadding: EdgeInsets.zero,
+                                  onChanged: (value) async {
+                                    await settings.setVibrationEnabled(value);
+                                    setState(() {});
+                                  },
                                 ),
                               ],
-                            ),
-                            if (actionHandler.supportedApp is! CustomApp)
-                              Text(
-                                'Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            if (actionHandler.supportedApp != null && connection.controllerDevices.isNotEmpty)
-                              KeymapExplanation(
-                                key: Key(actionHandler.supportedApp!.keymap.runtimeType.toString()),
-                                keymap: actionHandler.supportedApp!.keymap,
-                                onUpdate: () {
-                                  setState(() {});
-                                  controller.text = actionHandler.supportedApp?.name ?? '';
-
-                                  if (actionHandler.supportedApp is CustomApp) {
-                                    settings.setKeyMap(actionHandler.supportedApp!);
-                                  }
-                                },
-                              ),
-                            if (canVibrate) ...[
-                              SwitchListTile(
-                                title: Text('Enable vibration feedback when shifting gears'),
-                                value: settings.getVibrationEnabled(),
-                                contentPadding: EdgeInsets.zero,
-                                onChanged: (value) async {
-                                  await settings.setVibrationEnabled(value);
-                                  setState(() {});
-                                },
-                              ),
                             ],
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                     SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
