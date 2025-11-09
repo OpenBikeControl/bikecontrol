@@ -4,24 +4,20 @@
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-CHANGELOG_FILE="$PROJECT_ROOT/CHANGELOG.md"
 RELEASE_NOTES_FILE="$SCRIPT_DIR/RELEASE_NOTES.md"
-
-if [ ! -f "$CHANGELOG_FILE" ]; then
-    echo "Error: CHANGELOG.md not found at $CHANGELOG_FILE"
-    exit 1
-fi
 
 if [ ! -f "$RELEASE_NOTES_FILE" ]; then
     echo "Error: RELEASE_NOTES.md not found at $RELEASE_NOTES_FILE"
     exit 1
 fi
 
-# Extract the first changelog entry (between first ### and second ###)
-LATEST_CHANGELOG=$(awk '/^### / {if (count++) exit} count' "$CHANGELOG_FILE" | sed 's/^- /• /')
+# Extract the first changelog entry using get_latest_changelog.sh
+# For GitHub releases, we want to include the version header
+VERSION_HEADER=$(awk '/^### / {print; exit}' "$SCRIPT_DIR/../CHANGELOG.md")
+LATEST_CHANGELOG=$("$SCRIPT_DIR/get_latest_changelog.sh")
 
 # Combine changelog with release notes
+echo "$VERSION_HEADER"
 echo "$LATEST_CHANGELOG"
 echo ""
 echo "---"
