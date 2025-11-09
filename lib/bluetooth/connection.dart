@@ -40,6 +40,7 @@ class Connection {
   final Map<BaseDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
+  List<({DateTime date, String entry})> lastLogEntries = [];
 
   final Map<BaseDevice, StreamSubscription<bool>> _connectionSubscriptions = {};
   final StreamController<BaseDevice> _connectionStreams = StreamController<BaseDevice>.broadcast();
@@ -55,6 +56,11 @@ class Connection {
   final _dontAllowReconnectDevices = <String>{};
 
   void initialize() {
+    actionStream.listen((log) {
+      lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
+      lastLogEntries = lastLogEntries.takeLast(20).toList();
+    });
+
     isMediaKeyDetectionEnabled.addListener(() {
       if (!isMediaKeyDetectionEnabled.value) {
         mediaKeyDetector.setIsPlaying(isPlaying: false);

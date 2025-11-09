@@ -30,7 +30,12 @@ class ChangelogDialog extends StatelessWidget {
         constraints: BoxConstraints(minWidth: 460),
         child: MarkdownWidget(markdown: latestVersion),
       ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Got it!'))],
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Got it!'),
+        ),
+      ],
     );
   }
 
