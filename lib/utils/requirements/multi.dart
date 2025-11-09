@@ -287,7 +287,6 @@ class TargetRequirement extends PlatformRequirement {
               onSelected: (target) async {
                 if (target != null) {
                   await settings.setLastTarget(target);
-                  initializeActions(target.connectionType);
                   if (target.warning != null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -301,7 +300,7 @@ class TargetRequirement extends PlatformRequirement {
               },
             ),
           ),
-          if (settings.getLastTarget() != Target.thisDevice) ...[
+          if (settings.getLastTarget() != null && settings.getLastTarget() != Target.thisDevice) ...[
             SizedBox(height: 8),
             Text(
               'Select the other device where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',

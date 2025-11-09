@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
@@ -44,7 +45,16 @@ class LinkDevice extends BaseDevice {
                         disconnect();
                         connection.disconnect(this, forget: true);
                       } else if (value) {
-                        connection.startMyWhooshServer();
+                        connection.startMyWhooshServer().catchError((e) {
+                          actionStreamInternal.add(
+                            LogNotification('Error starting MyWhoosh Direct Connect server: $e'),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('There was a problem starting the connection. Try restarting your device.'),
+                            ),
+                          );
+                        });
                       }
                       setState(() {});
                     },

@@ -144,6 +144,7 @@ class Settings {
 
   Future<void> setLastTarget(Target target) async {
     await prefs.setString('last_target', target.name);
+    initializeActions(target.connectionType);
   }
 
   Future<void> setLastSeenVersion(String version) async {

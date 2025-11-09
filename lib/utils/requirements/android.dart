@@ -159,7 +159,14 @@ class NotificationRequirement extends PlatformRequirement {
       notificationDetails: AndroidNotificationDetails(
         channelGroupId,
         'Keep Alive',
-        actions: [AndroidNotificationAction('Exit', 'Exit', cancelNotification: true, showsUserInterface: false)],
+        actions: [
+          AndroidNotificationAction(
+            'Disconnect Devices',
+            'Disconnect Devices',
+            cancelNotification: true,
+            showsUserInterface: false,
+          ),
+        ],
       ),
     );
 

@@ -1,3 +1,7 @@
+### 3.5.0 (unreleased)
+**New Features:**
+- Dark mode support
+
 ### 3.4.0 (08-11-2025)
 **New Features:**
 - Support for Shimano Di2

@@ -183,7 +183,9 @@ class Connection {
     }
 
     if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh && !whooshLink.isStarted.value) {
-      startMyWhooshServer();
+      startMyWhooshServer().catchError((e) {
+        _actionStreams.add(LogNotification('Error starting MyWhoosh Direct Connect server: $e'));
+      });
     }
   }
 
