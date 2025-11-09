@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
@@ -90,20 +91,24 @@ enum Target {
     title: 'This Device',
     icon: Icons.devices,
   ),
+  otherDevice(
+    title: 'Other Device',
+    icon: Icons.settings_remote_outlined,
+  ),
   iOS(
-    title: 'another iPhone / iPad / Apple TV',
+    title: 'iPhone / iPad / Apple TV',
     icon: Icons.settings_remote_outlined,
   ),
   android(
-    title: 'another Android Device',
+    title: 'Android Device',
     icon: Icons.settings_remote_outlined,
   ),
   macOS(
-    title: 'another Mac',
+    title: 'Mac',
     icon: Icons.settings_remote_outlined,
   ),
   windows(
-    title: 'another Windows PC',
+    title: 'Windows PC',
     icon: Icons.settings_remote_outlined,
   );
 
@@ -143,6 +148,8 @@ enum Target {
         'Run ${app?.name ?? 'the Trainer app'} on a Mac and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
       Target.windows =>
         'Run ${app?.name ?? 'the Trainer app'} on a Windows PC and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+      Target.otherDevice =>
+        'Run ${app?.name ?? 'the Trainer app'} on another device and control it remotely from this device.',
     };
   }
 
@@ -158,9 +165,9 @@ enum Target {
         "Select 'This device' unless you want to control another macOS device. Are you sure?",
       Target.windows when Platform.isWindows =>
         "Select 'This device' unless you want to control another Windows device. Are you sure?",
-      Target.android => "Download and use SwiftControl on that Android device.",
-      Target.macOS => "Download and use SwiftControl on that macOS device.",
-      Target.windows => "Download and use SwiftControl on that Windows device.",
+      Target.android => "We highly recommended to download and use SwiftControl on that Android device.",
+      Target.macOS => "We highly recommended to download and use SwiftControl on that macOS device.",
+      Target.windows => "We highly recommended to download and use SwiftControl on that Windows device.",
       _ => null,
     };
   }
@@ -199,106 +206,168 @@ class TargetRequirement extends PlatformRequirement {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Select Trainer App', style: TextStyle(fontWeight: FontWeight.bold)),
-          DropdownMenu<SupportedApp>(
-            dropdownMenuEntries: SupportedApp.supportedApps.map((app) {
-              return DropdownMenuEntry(
-                value: app,
-                label: app.name,
-                labelWidget: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(app.name),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'When running SwiftControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 400),
+            child: DropdownMenu<SupportedApp>(
+              dropdownMenuEntries: SupportedApp.supportedApps.map((app) {
+                return DropdownMenuEntry(
+                  value: app,
+                  label: app.name,
+                  labelWidget: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(app.name),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'When running SwiftControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  ),
                                 ),
-                              ),
-                              Icon(Icons.warning_amber),
-                            ],
-                          ),
-                        ],
-                      )
-                    : null,
-              );
-            }).toList(),
-            hintText: 'Select Trainer app',
-            initialSelection: settings.getTrainerApp(),
-            onSelected: (selectedApp) async {
-              if (settings.getTrainerApp() is MyWhoosh && selectedApp is! MyWhoosh && whooshLink.isStarted.value) {
-                whooshLink.stopServer();
-              }
-              settings.setTrainerApp(selectedApp!);
-              if (settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
-                await settings.setLastTarget(Target.thisDevice);
-              }
-              if (actionHandler.supportedApp == null ||
-                  (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
-                actionHandler.init(selectedApp);
-                settings.setKeyMap(selectedApp);
-              }
-              setState(() {});
-            },
+                                Icon(Icons.warning_amber),
+                              ],
+                            ),
+                          ],
+                        )
+                      : null,
+                );
+              }).toList(),
+              hintText: 'Select Trainer app',
+              initialSelection: settings.getTrainerApp(),
+              onSelected: (selectedApp) async {
+                if (settings.getTrainerApp() is MyWhoosh && selectedApp is! MyWhoosh && whooshLink.isStarted.value) {
+                  whooshLink.stopServer();
+                }
+                settings.setTrainerApp(selectedApp!);
+                if (settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
+                  await settings.setLastTarget(Target.thisDevice);
+                }
+                if (actionHandler.supportedApp == null ||
+                    (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
+                  actionHandler.init(selectedApp);
+                  settings.setKeyMap(selectedApp);
+                }
+                setState(() {});
+              },
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Select Target where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          DropdownMenu<Target>(
-            dropdownMenuEntries: Target.values.map((target) {
-              return DropdownMenuEntry(
-                value: target,
-                label: target.title,
-                enabled: target.isCompatible,
-                leadingIcon: Icon(target.icon),
-                labelWidget: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            target.title,
-                            style: TextStyle(
-                              fontWeight: target == Target.thisDevice && target.isCompatible ? FontWeight.bold : null,
-                            ),
-                          ),
-                          if (target.isBeta) BetaPill(),
-                        ],
-                      ),
-                      Text(
-                        target.getDescription(settings.getTrainerApp()),
-                        style: TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-            hintText: 'Select Target device',
-            initialSelection: settings.getLastTarget(),
-            enabled: settings.getTrainerApp() != null,
-            onSelected: (target) async {
-              if (target != null) {
-                await settings.setLastTarget(target);
-                initializeActions(target.connectionType);
-                if (target.warning != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(target.warning!),
-                      duration: Duration(seconds: 10),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 400),
+            child: DropdownMenu<Target>(
+              dropdownMenuEntries: [Target.thisDevice, Target.otherDevice].map((target) {
+                return DropdownMenuEntry(
+                  value: target,
+                  label: target.title,
+                  leadingIcon: Icon(target.icon),
+                  labelWidget: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(target.title),
+                        Text(
+                          target.getDescription(settings.getTrainerApp()),
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                      ],
                     ),
-                  );
+                  ),
+                );
+              }).toList(),
+              hintText: 'Select Target device',
+              initialSelection: settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
+              enabled: settings.getTrainerApp() != null,
+              onSelected: (target) async {
+                if (target != null) {
+                  await settings.setLastTarget(target);
+                  initializeActions(target.connectionType);
+                  if (target.warning != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(target.warning!),
+                        duration: Duration(seconds: 10),
+                      ),
+                    );
+                  }
+                  setState(() {});
                 }
-                setState(() {});
-              }
-            },
+              },
+            ),
           ),
+          if (settings.getLastTarget() != Target.thisDevice) ...[
+            SizedBox(height: 8),
+            Text(
+              'Select the other device where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 400),
+              child: DropdownMenu<Target>(
+                dropdownMenuEntries: Target.values
+                    .whereNot((e) => [Target.thisDevice, Target.otherDevice].contains(e))
+                    .map((target) {
+                      return DropdownMenuEntry(
+                        value: target,
+                        label: target.title,
+                        enabled: target.isCompatible,
+                        leadingIcon: Icon(target.icon),
+                        labelWidget: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    target.title,
+                                    style: TextStyle(
+                                      fontWeight: target == Target.thisDevice && target.isCompatible
+                                          ? FontWeight.bold
+                                          : null,
+                                    ),
+                                  ),
+                                  if (target.isBeta) BetaPill(),
+                                ],
+                              ),
+                              Text(
+                                target.getDescription(settings.getTrainerApp()),
+                                style: TextStyle(fontSize: 10, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    })
+                    .toList(),
+                hintText: 'Select Target device',
+                initialSelection: settings.getLastTarget(),
+                enabled: settings.getTrainerApp() != null,
+                onSelected: (target) async {
+                  if (target != null) {
+                    await settings.setLastTarget(target);
+                    initializeActions(target.connectionType);
+                    if (target.warning != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(target.warning!),
+                          duration: Duration(seconds: 10),
+                        ),
+                      );
+                    }
+                    setState(() {});
+                  }
+                },
+              ),
+            ),
+          ],
+          SizedBox(height: 8),
           ElevatedButton(
             onPressed: settings.getTrainerApp() != null && settings.getLastTarget() != null
                 ? () {
