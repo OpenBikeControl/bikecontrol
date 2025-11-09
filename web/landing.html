@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SwiftControl - Control your favorite trainer app using Zwift Click, Zwift Ride, Zwift Play, and other devices">
+    <title>SwiftControl - Control Your Virtual Cycling Experience</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .main-content {
+            display: grid;
+            gap: 30px;
+            grid-template-columns: 1fr;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .store-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .store-badge {
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .store-badge:hover {
+            transform: translateY(-5px);
+        }
+
+        .store-badge img {
+            height: 60px;
+            width: auto;
+        }
+
+        .compatibility-tool {
+            margin-top: 30px;
+        }
+
+        .dropdown-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:hover {
+            border-color: #667eea;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select option:disabled {
+            color: #999;
+        }
+
+        .compatibility-result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .compatibility-result.show {
+            display: block;
+        }
+
+        .result-compatible {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .result-limited {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .result-incompatible {
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .result-icon {
+            font-size: 1.5em;
+        }
+
+        .result-description {
+            line-height: 1.8;
+        }
+
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .beta-badge {
+            display: inline-block;
+            background-color: #ffc107;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-item {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .supported-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .supported-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .supported-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 40px;
+            color: white;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .logo {
+                width: 70px;
+                height: 70px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="logo.png" alt="SwiftControl Logo" class="logo">
+                <div>
+                    <h1>SwiftControl</h1>
+                    <p class="tagline">Control your favorite trainer app with Zwift devices and more</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Download Section -->
+            <div class="card">
+                <h2>📱 Download SwiftControl</h2>
+                <p style="margin-bottom: 20px;">Get started by downloading SwiftControl for your platform. Use the compatibility checker below to find the right setup for you!</p>
+                <div class="store-links">
+                    <a href="https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol" class="store-badge" target="_blank" rel="noopener">
+                        <img src="https://github.com/user-attachments/assets/a059d5a1-2efb-4f65-8117-ef6a99823b21" alt="Get it on Google Play">
+                    </a>
+                    <a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone" class="store-badge" target="_blank" rel="noopener">
+                        <img src="https://github.com/user-attachments/assets/c23f977a-48f6-4951-811e-ae530dbfa014" alt="Download on the App Store">
+                    </a>
+                    <a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac" class="store-badge" target="_blank" rel="noopener">
+                        <img src="https://github.com/user-attachments/assets/b3552436-409c-43b0-ba7d-b6a72ae30ff1" alt="Download on the Mac App Store">
+                    </a>
+                    <a href="https://apps.microsoft.com/detail/9NP42GS03Z26" class="store-badge" target="_blank" rel="noopener">
+                        <img src="https://github.com/user-attachments/assets/7a8a3cd6-ec26-4678-a850-732eedd27c48" alt="Get it from Microsoft">
+                    </a>
+                </div>
+            </div>
+
+            <!-- Compatibility Checker -->
+            <div class="card">
+                <h2>🔍 Compatibility Checker</h2>
+                <p style="margin-bottom: 20px;">Select your trainer app and where you want to run it to check compatibility and get download recommendations.</p>
+                
+                <div class="compatibility-tool">
+                    <div class="dropdown-group">
+                        <label for="trainer-app">1. Select Your Trainer App</label>
+                        <select id="trainer-app">
+                            <option value="">-- Choose a trainer app --</option>
+                            <option value="mywhoosh">MyWhoosh</option>
+                            <option value="zwift">Zwift</option>
+                            <option value="trainingpeaks">TrainingPeaks Virtual / IndieVelo</option>
+                            <option value="biketerra">Biketerra</option>
+                            <option value="rouvy">Rouvy</option>
+                            <option value="custom">Custom / Other App</option>
+                        </select>
+                    </div>
+
+                    <div class="dropdown-group">
+                        <label for="target-platform">2. Where Do You Want to Run the Trainer App?</label>
+                        <select id="target-platform" disabled>
+                            <option value="">-- Select trainer app first --</option>
+                        </select>
+                    </div>
+
+                    <div id="compatibility-result" class="compatibility-result">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="card">
+                <h2>✨ What Can SwiftControl Do?</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <h3>Virtual Gear Shifting</h3>
+                        <p>Control your virtual gears seamlessly</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Steering & Turning</h3>
+                        <p>Navigate your virtual routes with precision</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Workout Intensity</h3>
+                        <p>Adjust workout intensity on the fly</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Music Control</h3>
+                        <p>Control music playback while you ride</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supported Devices & Apps -->
+            <div class="card">
+                <h2>🎮 Supported Devices & Apps</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <h3>Devices</h3>
+                        <ul class="supported-list">
+                            <li>Zwift Click & Click v2</li>
+                            <li>Zwift Ride</li>
+                            <li>Zwift Play</li>
+                            <li>Shimano Di2</li>
+                            <li>Wahoo Kickr Bike Shift</li>
+                            <li>Elite Sterzo Smart</li>
+                            <li>Gamepads</li>
+                        </ul>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Trainer Apps</h3>
+                        <ul class="supported-list">
+                            <li>MyWhoosh</li>
+                            <li>Zwift</li>
+                            <li>TrainingPeaks Virtual</li>
+                            <li>IndieVelo</li>
+                            <li>Biketerra</li>
+                            <li>Rouvy</li>
+                            <li>Custom apps via mapping</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ for cyclists | <a href="https://github.com/jonasbark/swiftcontrol" target="_blank">View on GitHub</a></p>
+            <p style="margin-top: 10px;"><a href="https://paypal.me/boni" target="_blank">Support Development via PayPal</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Compatibility data structure based on the app code
+        const trainerApps = {
+            mywhoosh: {
+                name: 'MyWhoosh',
+                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
+                supportsZwiftEmulation: false
+            },
+            zwift: {
+                name: 'Zwift',
+                compatibleTargets: ['android', 'windows', 'macos', 'ios'],
+                supportsZwiftEmulation: true, // Only on Android/Windows
+                restrictions: {
+                    ios: 'Due to platform restrictions, only on-screen controls are available (no virtual shifting).',
+                    macos: 'Due to platform restrictions, only on-screen controls are available (no virtual shifting).'
+                }
+            },
+            trainingpeaks: {
+                name: 'TrainingPeaks Virtual / IndieVelo',
+                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
+                supportsZwiftEmulation: false
+            },
+            biketerra: {
+                name: 'Biketerra',
+                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
+                supportsZwiftEmulation: true
+            },
+            rouvy: {
+                name: 'Rouvy',
+                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
+                supportsZwiftEmulation: true
+            },
+            custom: {
+                name: 'Custom / Other App',
+                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
+                supportsZwiftEmulation: false
+            }
+        };
+
+        const targetPlatforms = {
+            thisDevice: {
+                title: 'This Device (where you install SwiftControl)',
+                description: 'Run the trainer app on the same device as SwiftControl',
+                isBeta: false
+            },
+            ios: {
+                title: 'Another iPhone / iPad / Apple TV',
+                description: 'Control a trainer app running on an Apple device',
+                isBeta: true,
+                note: 'You can use MyWhoosh Direct Connect for MyWhoosh'
+            },
+            android: {
+                title: 'Another Android Device',
+                description: 'Control a trainer app running on an Android device',
+                isBeta: true
+            },
+            macos: {
+                title: 'Another Mac',
+                description: 'Control a trainer app running on a Mac',
+                isBeta: true
+            },
+            windows: {
+                title: 'Another Windows PC',
+                description: 'Control a trainer app running on a Windows PC',
+                isBeta: true
+            }
+        };
+
+        const platformStoreLinks = {
+            android: {
+                name: 'Android',
+                link: 'https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol'
+            },
+            ios: {
+                name: 'iOS',
+                link: 'https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone'
+            },
+            macos: {
+                name: 'macOS',
+                link: 'https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac'
+            },
+            windows: {
+                name: 'Windows',
+                link: 'https://apps.microsoft.com/detail/9NP42GS03Z26'
+            }
+        };
+
+        const trainerAppSelect = document.getElementById('trainer-app');
+        const targetPlatformSelect = document.getElementById('target-platform');
+        const resultDiv = document.getElementById('compatibility-result');
+
+        trainerAppSelect.addEventListener('change', function() {
+            const selectedApp = this.value;
+            
+            if (!selectedApp) {
+                targetPlatformSelect.disabled = true;
+                targetPlatformSelect.innerHTML = '<option value="">-- Select trainer app first --</option>';
+                resultDiv.classList.remove('show');
+                return;
+            }
+
+            const app = trainerApps[selectedApp];
+            targetPlatformSelect.disabled = false;
+            targetPlatformSelect.innerHTML = '<option value="">-- Choose where to run ' + app.name + ' --</option>';
+
+            // Populate target platforms based on compatibility
+            Object.keys(targetPlatforms).forEach(key => {
+                const platform = targetPlatforms[key];
+                const isCompatible = app.compatibleTargets.includes(key);
+                
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = platform.title + (platform.isBeta ? ' (Beta)' : '');
+                option.disabled = !isCompatible;
+                if (!isCompatible) {
+                    option.textContent += ' - Not Compatible';
+                }
+                targetPlatformSelect.appendChild(option);
+            });
+
+            resultDiv.classList.remove('show');
+        });
+
+        targetPlatformSelect.addEventListener('change', function() {
+            const selectedApp = trainerAppSelect.value;
+            const selectedTarget = this.value;
+
+            if (!selectedApp || !selectedTarget) {
+                resultDiv.classList.remove('show');
+                return;
+            }
+
+            showCompatibilityResult(selectedApp, selectedTarget);
+        });
+
+        function showCompatibilityResult(appKey, targetKey) {
+            const app = trainerApps[appKey];
+            const target = targetPlatforms[targetKey];
+            const isCompatible = app.compatibleTargets.includes(targetKey);
+
+            resultDiv.className = 'compatibility-result show';
+            
+            if (!isCompatible) {
+                resultDiv.classList.add('result-incompatible');
+                resultDiv.innerHTML = `
+                    <div class="result-header">
+                        <span class="result-icon">❌</span>
+                        <span>Not Compatible</span>
+                    </div>
+                    <div class="result-description">
+                        <p><strong>${app.name}</strong> cannot be controlled on <strong>${target.title}</strong>.</p>
+                        <p style="margin-top: 10px;">Please select a different combination from the dropdowns above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Check for restrictions
+            const hasRestrictions = app.restrictions && app.restrictions[targetKey];
+            const resultClass = hasRestrictions ? 'result-limited' : 'result-compatible';
+            const resultIcon = hasRestrictions ? '⚠️' : '✅';
+            const resultTitle = hasRestrictions ? 'Compatible with Limitations' : 'Fully Compatible';
+
+            let html = `
+                <div class="result-header">
+                    <span class="result-icon">${resultIcon}</span>
+                    <span>${resultTitle}</span>
+                </div>
+                <div class="result-description">
+                    <p><strong>${app.name}</strong> on <strong>${target.title}</strong></p>
+                    <p style="margin-top: 10px;">${target.description}</p>
+            `;
+
+            // Add restrictions warning if any
+            if (hasRestrictions) {
+                html += `
+                    <div class="warning-box">
+                        <strong>⚠️ Important:</strong> ${app.restrictions[targetKey]}
+                    </div>
+                `;
+            }
+
+            // Add download recommendation
+            if (targetKey === 'thisDevice') {
+                html += `
+                    <div class="info-box">
+                        <strong>📥 Download SwiftControl:</strong><br>
+                        Install SwiftControl on the device where you'll run ${app.name}. Use the download links at the top of this page.
+                    </div>
+                `;
+            } else {
+                const remoteNote = target.note ? `<br><small>${target.note}</small>` : '';
+                html += `
+                    <div class="info-box">
+                        <strong>📥 Setup Required:</strong><br>
+                        1. Install SwiftControl on your current device (use download links above)<br>
+                        2. Your current device will connect to your controller devices (Zwift Click, etc.)<br>
+                        3. SwiftControl will send controls to ${app.name} running on ${target.title}${remoteNote}
+                    </div>
+                `;
+            }
+
+            // Add special notes for specific combinations
+            if (appKey === 'zwift' && targetKey === 'thisDevice') {
+                html += `
+                    <div class="info-box">
+                        <strong>ℹ️ Zwift Special Note:</strong><br>
+                        For full Zwift functionality (virtual shifting as a "Controllable"), you need to run SwiftControl on Android or Windows.
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            
+            resultDiv.classList.add(resultClass);
+            resultDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
