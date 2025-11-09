@@ -102,8 +102,8 @@ List<Widget> buildMenuButtons() {
 ---
 App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
 Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
-Target: ${settings.getLastTarget()?.title}
-Trainer App: ${settings.getTrainerApp()?.name}
+Target: ${settings.getLastTarget()?.title ?? '-'}
+Trainer App: ${settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${connection.devices.map((e) => e.toString()).join(', ')}
 Logs: 
 ${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
