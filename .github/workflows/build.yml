@@ -152,6 +152,12 @@ jobs:
           mkdir -p whatsnew
           ./scripts/get_latest_changelog.sh | head -c 500 > whatsnew/whatsnew-en-US
 
+      - name: Generate release body
+        if: inputs.build_github
+        run: |
+          chmod +x scripts/generate_release_body.sh
+          ./scripts/generate_release_body.sh > /tmp/release_body.md
+
       - name: 🚀 Shorebird Release iOS
         if: inputs.build_ios
         uses: shorebirdtech/shorebird-release@v1
@@ -248,7 +254,7 @@ jobs:
           artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
           allowUpdates: true
           prerelease: true
-          bodyFile: scripts/RELEASE_NOTES.md
+          bodyFile: /tmp/release_body.md
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
 
@@ -340,13 +346,19 @@ jobs:
           }
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
+      - name: Generate release body (Windows)
+        shell: bash
+        run: |
+          chmod +x scripts/generate_release_body.sh
+          ./scripts/generate_release_body.sh > /tmp/release_body.md
+
 
       - name: Update Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip,build/windows/x64/runner/Release/SwiftControl.windows.msix"
-          bodyFile: scripts/RELEASE_NOTES.md
+          bodyFile: /tmp/release_body.md
           prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}

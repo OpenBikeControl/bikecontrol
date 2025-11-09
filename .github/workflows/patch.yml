@@ -125,13 +125,18 @@ jobs:
           path: |
             build/macos/Build/Products/Release/SwiftControl.macos.zip
 
+      - name: Generate release body
+        run: |
+          chmod +x scripts/generate_release_body.sh
+          ./scripts/generate_release_body.sh > /tmp/release_body.md
+
       # add artifact to release
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifacts: "build/macos/Build/Products/Release/SwiftControl.macos.zip"
-          bodyFile: scripts/RELEASE_NOTES.md
+          bodyFile: /tmp/release_body.md
           prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
