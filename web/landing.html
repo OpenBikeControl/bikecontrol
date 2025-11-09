@@ -17,7 +17,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0E74B7;
             min-height: 100vh;
         }
 
@@ -50,7 +50,7 @@
         }
 
         h1 {
-            color: #667eea;
+            color: #000;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
@@ -75,7 +75,7 @@
         }
 
         .card h2 {
-            color: #667eea;
+            color: #000;
             margin-bottom: 20px;
             font-size: 1.8em;
             display: flex;
@@ -133,13 +133,13 @@
         }
 
         select:hover {
-            border-color: #667eea;
+            border-color: #0E74B7;
         }
 
         select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #0E74B7;
+            box-shadow: 0 0 0 3px rgba(14, 116, 183, 0.1);
         }
 
         select option:disabled {
@@ -227,11 +227,11 @@
             padding: 15px;
             background-color: #f8f9fa;
             border-radius: 8px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #0E74B7;
         }
 
         .feature-item h3 {
-            color: #667eea;
+            color: #0E74B7;
             margin-bottom: 10px;
             font-size: 1.1em;
         }
@@ -323,11 +323,24 @@
             <!-- Compatibility Checker -->
             <div class="card">
                 <h2>🔍 Compatibility Checker</h2>
-                <p style="margin-bottom: 20px;">Select your trainer app and where you want to run it to check compatibility and get download recommendations.</p>
+                <p style="margin-bottom: 20px;">Find out which platform you need to download SwiftControl on based on where you want to run your trainer app.</p>
                 
                 <div class="compatibility-tool">
                     <div class="dropdown-group">
-                        <label for="trainer-app">1. Select Your Trainer App</label>
+                        <label for="trainer-platform">1. Where Do You Want to Run Your Trainer App?</label>
+                        <select id="trainer-platform">
+                            <option value="">-- Choose a platform --</option>
+                            <option value="android">Android</option>
+                            <option value="ipad">iPad</option>
+                            <option value="windows">Windows</option>
+                            <option value="macos">macOS</option>
+                            <option value="iphone">iPhone</option>
+                            <option value="appletv">Apple TV</option>
+                        </select>
+                    </div>
+
+                    <div class="dropdown-group">
+                        <label for="trainer-app">2. Select Your Trainer App (Optional)</label>
                         <select id="trainer-app">
                             <option value="">-- Choose a trainer app --</option>
                             <option value="mywhoosh">MyWhoosh</option>
@@ -336,13 +349,6 @@
                             <option value="biketerra">Biketerra</option>
                             <option value="rouvy">Rouvy</option>
                             <option value="custom">Custom / Other App</option>
-                        </select>
-                    </div>
-
-                    <div class="dropdown-group">
-                        <label for="target-platform">2. Where Do You Want to Run the Trainer App?</label>
-                        <select id="target-platform" disabled>
-                            <option value="">-- Select trainer app first --</option>
                         </select>
                     </div>
 
@@ -405,6 +411,29 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Instructions Section -->
+            <div class="card">
+                <h2>📖 Instructions & Help</h2>
+                <p style="margin-bottom: 20px;">Need help getting started? Check out these resources:</p>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <h3>📄 General Instructions</h3>
+                        <p>Complete guide to using SwiftControl with all supported platforms and trainer apps.</p>
+                        <a href="https://github.com/jonasbark/swiftcontrol/blob/main/README.md" target="_blank" style="color: #0E74B7; text-decoration: none; font-weight: 600;">View README →</a>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🍎 iOS Instructions</h3>
+                        <p>Special instructions for using MyWhoosh Direct Connect on iOS devices.</p>
+                        <a href="https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md" target="_blank" style="color: #0E74B7; text-decoration: none; font-weight: 600;">View iOS Guide →</a>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🔧 Troubleshooting</h3>
+                        <p>Having issues? Check our troubleshooting guide for common problems and solutions.</p>
+                        <a href="https://github.com/jonasbark/swiftcontrol/blob/main/TROUBLESHOOTING.md" target="_blank" style="color: #0E74B7; text-decoration: none; font-weight: 600;">View Troubleshooting →</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <footer>
@@ -414,221 +443,265 @@
     </div>
 
     <script>
-        // Compatibility data structure based on the app code
+        // Platform information from README compatibility matrix
+        const platformInfo = {
+            android: {
+                name: 'Android',
+                supported: true,
+                storeLink: 'https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol',
+                storeName: 'Google Play Store',
+                swiftControlPlatforms: ['android'],
+                info: 'You can run SwiftControl on the same Android device where your trainer app runs.',
+                restrictions: {}
+            },
+            ipad: {
+                name: 'iPad',
+                supported: true,
+                storeLink: 'https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone',
+                storeName: 'App Store',
+                swiftControlPlatforms: ['ios', 'android'],
+                info: 'You will need to use SwiftControl as a "remote" to control the trainer app on your iPad. Typically, you would use an iPhone or an Android phone for that.',
+                restrictions: {}
+            },
+            windows: {
+                name: 'Windows',
+                supported: true,
+                storeLink: 'https://apps.microsoft.com/detail/9NP42GS03Z26',
+                storeName: 'Microsoft Store',
+                swiftControlPlatforms: ['windows'],
+                info: 'You can run SwiftControl on the same Windows PC where your trainer app runs.',
+                restrictions: {
+                    general: 'Windows may flag the app as virus. It likely does so because the app controls the mouse and keyboard. Bluetooth connection unstable? You may need to use an external Bluetooth adapter.'
+                }
+            },
+            macos: {
+                name: 'macOS',
+                supported: true,
+                storeLink: 'https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac',
+                storeName: 'Mac App Store',
+                swiftControlPlatforms: ['macos'],
+                info: 'You can run SwiftControl on the same Mac where your trainer app runs.',
+                restrictions: {}
+            },
+            iphone: {
+                name: 'iPhone',
+                supported: 'limited',
+                storeLink: 'https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone',
+                storeName: 'App Store',
+                swiftControlPlatforms: ['ios', 'android'],
+                info: 'Note that you can\'t run SwiftControl and your trainer app on the same iPhone due to iOS limitations, but you could use the Link method on another device to control MyWhoosh (and only MyWhoosh) on an iPhone.',
+                restrictions: {
+                    mywhoosh: 'Only MyWhoosh is supported using the Link method. You will need another device to run SwiftControl.'
+                }
+            },
+            appletv: {
+                name: 'Apple TV',
+                supported: 'limited',
+                swiftControlPlatforms: ['ios', 'android'],
+                info: 'Only MyWhoosh using the Link method is supported - but you cannot also use MyWhoosh Link at the same time.',
+                restrictions: {
+                    mywhoosh: 'Only MyWhoosh is supported using the Link method. You will need another device to run SwiftControl.'
+                }
+            }
+        };
+
+        // Trainer app specific information
         const trainerApps = {
             mywhoosh: {
                 name: 'MyWhoosh',
-                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
-                supportsZwiftEmulation: false
+                supportedPlatforms: ['android', 'ipad', 'windows', 'macos', 'iphone', 'appletv']
             },
             zwift: {
                 name: 'Zwift',
-                compatibleTargets: ['android', 'windows', 'macos', 'ios'],
-                supportsZwiftEmulation: true, // Only on Android/Windows
+                supportedPlatforms: ['android', 'ipad', 'windows', 'macos'],
                 restrictions: {
-                    ios: 'Due to platform restrictions, only on-screen controls are available (no virtual shifting).',
-                    macos: 'Due to platform restrictions, only on-screen controls are available (no virtual shifting).'
+                    android: 'Running SwiftControl on Android is required to act as a "Controllable" in Zwift.',
+                    windows: 'Running SwiftControl on Windows is required to act as a "Controllable" in Zwift.',
+                    ipad: 'iOS and macOS are not able to act as a "Controllable" in Zwift, only on-screen controls available.',
+                    macos: 'iOS and macOS are not able to act as a "Controllable" in Zwift, only on-screen controls available.'
                 }
             },
             trainingpeaks: {
                 name: 'TrainingPeaks Virtual / IndieVelo',
-                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
-                supportsZwiftEmulation: false
+                supportedPlatforms: ['android', 'ipad', 'windows', 'macos']
             },
             biketerra: {
                 name: 'Biketerra',
-                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
-                supportsZwiftEmulation: true
+                supportedPlatforms: ['android', 'ipad', 'windows', 'macos']
             },
             rouvy: {
                 name: 'Rouvy',
-                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
-                supportsZwiftEmulation: true
+                supportedPlatforms: ['android', 'ipad', 'windows', 'macos']
             },
             custom: {
                 name: 'Custom / Other App',
-                compatibleTargets: ['thisDevice', 'ios', 'android', 'macos', 'windows'],
-                supportsZwiftEmulation: false
+                supportedPlatforms: ['android', 'ipad', 'windows', 'macos']
             }
         };
 
-        const targetPlatforms = {
-            thisDevice: {
-                title: 'This Device (where you install SwiftControl)',
-                description: 'Run the trainer app on the same device as SwiftControl',
-                isBeta: false
-            },
-            ios: {
-                title: 'Another iPhone / iPad / Apple TV',
-                description: 'Control a trainer app running on an Apple device',
-                isBeta: true,
-                note: 'You can use MyWhoosh Direct Connect for MyWhoosh'
-            },
-            android: {
-                title: 'Another Android Device',
-                description: 'Control a trainer app running on an Android device',
-                isBeta: true
-            },
-            macos: {
-                title: 'Another Mac',
-                description: 'Control a trainer app running on a Mac',
-                isBeta: true
-            },
-            windows: {
-                title: 'Another Windows PC',
-                description: 'Control a trainer app running on a Windows PC',
-                isBeta: true
-            }
-        };
-
-        const platformStoreLinks = {
-            android: {
-                name: 'Android',
-                link: 'https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol'
-            },
-            ios: {
-                name: 'iOS',
-                link: 'https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=iphone'
-            },
-            macos: {
-                name: 'macOS',
-                link: 'https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac'
-            },
-            windows: {
-                name: 'Windows',
-                link: 'https://apps.microsoft.com/detail/9NP42GS03Z26'
-            }
-        };
-
+        const trainerPlatformSelect = document.getElementById('trainer-platform');
         const trainerAppSelect = document.getElementById('trainer-app');
-        const targetPlatformSelect = document.getElementById('target-platform');
         const resultDiv = document.getElementById('compatibility-result');
 
+        trainerPlatformSelect.addEventListener('change', function() {
+            updateCompatibility();
+        });
+
         trainerAppSelect.addEventListener('change', function() {
-            const selectedApp = this.value;
-            
-            if (!selectedApp) {
-                targetPlatformSelect.disabled = true;
-                targetPlatformSelect.innerHTML = '<option value="">-- Select trainer app first --</option>';
-                resultDiv.classList.remove('show');
-                return;
-            }
-
-            const app = trainerApps[selectedApp];
-            targetPlatformSelect.disabled = false;
-            targetPlatformSelect.innerHTML = '<option value="">-- Choose where to run ' + app.name + ' --</option>';
-
-            // Populate target platforms based on compatibility
-            Object.keys(targetPlatforms).forEach(key => {
-                const platform = targetPlatforms[key];
-                const isCompatible = app.compatibleTargets.includes(key);
-                
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = platform.title + (platform.isBeta ? ' (Beta)' : '');
-                option.disabled = !isCompatible;
-                if (!isCompatible) {
-                    option.textContent += ' - Not Compatible';
-                }
-                targetPlatformSelect.appendChild(option);
-            });
-
-            resultDiv.classList.remove('show');
+            updateCompatibility();
         });
 
-        targetPlatformSelect.addEventListener('change', function() {
+        function updateCompatibility() {
+            const selectedPlatform = trainerPlatformSelect.value;
             const selectedApp = trainerAppSelect.value;
-            const selectedTarget = this.value;
 
-            if (!selectedApp || !selectedTarget) {
+            if (!selectedPlatform) {
                 resultDiv.classList.remove('show');
                 return;
             }
 
-            showCompatibilityResult(selectedApp, selectedTarget);
-        });
+            const platform = platformInfo[selectedPlatform];
+            const app = selectedApp ? trainerApps[selectedApp] : null;
 
-        function showCompatibilityResult(appKey, targetKey) {
-            const app = trainerApps[appKey];
-            const target = targetPlatforms[targetKey];
-            const isCompatible = app.compatibleTargets.includes(targetKey);
-
-            resultDiv.className = 'compatibility-result show';
-            
-            if (!isCompatible) {
-                resultDiv.classList.add('result-incompatible');
-                resultDiv.innerHTML = `
-                    <div class="result-header">
-                        <span class="result-icon">❌</span>
-                        <span>Not Compatible</span>
-                    </div>
-                    <div class="result-description">
-                        <p><strong>${app.name}</strong> cannot be controlled on <strong>${target.title}</strong>.</p>
-                        <p style="margin-top: 10px;">Please select a different combination from the dropdowns above.</p>
-                    </div>
-                `;
+            // Check if platform is supported
+            if (!platform.supported || platform.supported === 'limited') {
+                showLimitedSupport(platform, app, selectedPlatform);
                 return;
             }
 
-            // Check for restrictions
-            const hasRestrictions = app.restrictions && app.restrictions[targetKey];
-            const resultClass = hasRestrictions ? 'result-limited' : 'result-compatible';
-            const resultIcon = hasRestrictions ? '⚠️' : '✅';
-            const resultTitle = hasRestrictions ? 'Compatible with Limitations' : 'Fully Compatible';
+            // Check app-specific compatibility
+            if (app && !app.supportedPlatforms.includes(selectedPlatform)) {
+                showIncompatible(platform, app, selectedPlatform);
+                return;
+            }
+
+            // Show compatible result
+            showCompatible(platform, app, selectedPlatform);
+        }
+
+        function showCompatible(platform, app, platformKey) {
+            resultDiv.className = 'compatibility-result show result-compatible';
+
+            const appName = app ? app.name : 'your trainer app';
+            const appRestrictions = app && app.restrictions && app.restrictions[platformKey];
+            const hasRestrictions = appRestrictions || (platform.restrictions && platform.restrictions.general);
 
             let html = `
                 <div class="result-header">
-                    <span class="result-icon">${resultIcon}</span>
-                    <span>${resultTitle}</span>
+                    <span class="result-icon">${hasRestrictions ? '⚠️' : '✅'}</span>
+                    <span>${hasRestrictions ? 'Compatible with Limitations' : 'Fully Compatible'}</span>
                 </div>
                 <div class="result-description">
-                    <p><strong>${app.name}</strong> on <strong>${target.title}</strong></p>
-                    <p style="margin-top: 10px;">${target.description}</p>
+                    <p><strong>${appName}</strong> on <strong>${platform.name}</strong></p>
+                    <p style="margin-top: 10px;">${platform.info}</p>
             `;
 
-            // Add restrictions warning if any
-            if (hasRestrictions) {
+            // Show app restrictions if any
+            if (appRestrictions) {
                 html += `
                     <div class="warning-box">
-                        <strong>⚠️ Important:</strong> ${app.restrictions[targetKey]}
+                        <strong>⚠️ Important:</strong> ${appRestrictions}
                     </div>
                 `;
             }
 
-            // Add download recommendation
-            if (targetKey === 'thisDevice') {
+            // Show platform restrictions if any
+            if (platform.restrictions && platform.restrictions.general) {
+                html += `
+                    <div class="warning-box">
+                        <strong>⚠️ Note:</strong> ${platform.restrictions.general}
+                    </div>
+                `;
+            }
+
+            // Show download recommendation
+            if (platform.swiftControlPlatforms.length === 1 && platform.swiftControlPlatforms[0] === platform.name.toLowerCase()) {
+                // Same device
                 html += `
                     <div class="info-box">
                         <strong>📥 Download SwiftControl:</strong><br>
-                        Install SwiftControl on the device where you'll run ${app.name}. Use the download links at the top of this page.
+                        Install SwiftControl on your <strong>${platform.name}</strong> device using the <strong>${platform.storeName}</strong> (use download links at the top of this page).
                     </div>
                 `;
             } else {
-                const remoteNote = target.note ? `<br><small>${target.note}</small>` : '';
-                html += `
-                    <div class="info-box">
-                        <strong>📥 Setup Required:</strong><br>
-                        1. Install SwiftControl on your current device (use download links above)<br>
-                        2. Your current device will connect to your controller devices (Zwift Click, etc.)<br>
-                        3. SwiftControl will send controls to ${app.name} running on ${target.title}${remoteNote}
-                    </div>
-                `;
-            }
+                // Remote control scenario
+                const platformsList = platform.swiftControlPlatforms.map(p => {
+                    if (p === 'android') return 'Android';
+                    if (p === 'ios') return 'iPhone/iPad';
+                    if (p === 'macos') return 'macOS';
+                    if (p === 'windows') return 'Windows';
+                    return p;
+                }).join(' or ');
 
-            // Add special notes for specific combinations
-            if (appKey === 'zwift' && targetKey === 'thisDevice') {
                 html += `
                     <div class="info-box">
-                        <strong>ℹ️ Zwift Special Note:</strong><br>
-                        For full Zwift functionality (virtual shifting as a "Controllable"), you need to run SwiftControl on Android or Windows.
+                        <strong>📥 Download SwiftControl:</strong><br>
+                        Install SwiftControl on a <strong>${platformsList}</strong> device (use download links at the top of this page).<br>
+                        <br>
+                        <strong>Setup:</strong><br>
+                        1. Run SwiftControl on your ${platformsList} device<br>
+                        2. Connect your controller devices (Zwift Click, etc.) to SwiftControl<br>
+                        3. SwiftControl will remotely control ${appName} running on your ${platform.name}
+                `;
+
+                if (app && app.name === 'MyWhoosh') {
+                    html += `<br><br><small>💡 Tip: You can use MyWhoosh Direct Connect for a seamless experience. <a href="https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md" target="_blank" style="color: #0E74B7;">See instructions</a></small>`;
+                }
+
+                html += `
                     </div>
                 `;
             }
 
             html += `</div>`;
-            
-            resultDiv.classList.add(resultClass);
             resultDiv.innerHTML = html;
+
+            if (hasRestrictions) {
+                resultDiv.classList.remove('result-compatible');
+                resultDiv.classList.add('result-limited');
+            }
+        }
+
+        function showLimitedSupport(platform, app, platformKey) {
+            resultDiv.className = 'compatibility-result show result-limited';
+
+            const appName = app ? app.name : 'trainer apps';
+            
+            let html = `
+                <div class="result-header">
+                    <span class="result-icon">⚠️</span>
+                    <span>Limited Support</span>
+                </div>
+                <div class="result-description">
+                    <p><strong>${appName}</strong> on <strong>${platform.name}</strong></p>
+                    <p style="margin-top: 10px;">${platform.info}</p>
+            `;
+
+            if (app && platform.restrictions && platform.restrictions[app]) {
+                html += `
+                    <div class="warning-box">
+                        <strong>⚠️ Important:</strong> ${platform.restrictions[app]}
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            resultDiv.innerHTML = html;
+        }
+
+        function showIncompatible(platform, app, platformKey) {
+            resultDiv.className = 'compatibility-result show result-incompatible';
+            
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <span class="result-icon">❌</span>
+                    <span>Not Supported</span>
+                </div>
+                <div class="result-description">
+                    <p><strong>${app.name}</strong> is not supported on <strong>${platform.name}</strong>.</p>
+                    <p style="margin-top: 10px;">Please select a different platform or trainer app.</p>
+                </div>
+            `;
         }
     </script>
 </body>
