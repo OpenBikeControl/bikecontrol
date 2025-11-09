@@ -54,7 +54,9 @@ class _ChangelogPageState extends State<MarkdownPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.assetPath.replaceAll('.md', '').toLowerCase().capitalize),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme.brightnessOf(context) == Brightness.light
+            ? Theme.of(context).colorScheme.inversePrimary
+            : null,
       ),
       body: _error != null
           ? Center(child: Text(_error!))
@@ -68,7 +70,10 @@ class _ChangelogPageState extends State<MarkdownPage> {
                     child: MarkdownWidget(
                       markdown: _markdown!,
                       theme: MarkdownThemeData(
-                        textStyle: TextStyle(fontSize: 14.0, color: Colors.black87),
+                        textStyle: TextStyle(
+                          fontSize: 14.0,
+                          color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
+                        ),
                         onLinkTap: (title, url) {
                           launchUrlString(url);
                         },

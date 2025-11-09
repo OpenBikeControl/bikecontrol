@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -91,9 +92,9 @@ List<Widget> buildMenuButtons() {
               child: Text('Get Support'),
               onTap: () {
                 final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
-                final suffix = isFromStore ? '' : 'ler';
+                final suffix = isFromStore ? '' : '-sw';
 
-                String email = Uri.encodeComponent('jonas.t.bark+swiftcontrol$suffix@gmail.com');
+                String email = Uri.encodeComponent('support$suffix@swiftcontrol.app');
                 String subject = Uri.encodeComponent("Help requested for SwiftControl v${packageInfoValue?.version}");
                 String body = Uri.encodeComponent("""
                 
@@ -104,6 +105,8 @@ Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
 Target: ${settings.getLastTarget()?.title}
 Trainer App: ${settings.getTrainerApp()?.name}
 Connected Controllers: ${connection.devices.map((e) => e.toString()).join(', ')}
+Logs: 
+${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 
 Please don't remove this information, it helps me to assist you better.""");
                 Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");

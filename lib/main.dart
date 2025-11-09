@@ -70,7 +70,7 @@ class SwiftPlayApp extends StatelessWidget {
       title: 'SwiftControl',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.system,
       home: const RequirementsPage(),
     );
   }

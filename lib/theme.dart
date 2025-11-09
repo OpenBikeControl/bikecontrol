@@ -30,6 +30,9 @@ abstract final class AppTheme {
       FlexThemeData.dark(
         // Using FlexColorScheme built-in FlexScheme enum based colors.
         scheme: FlexScheme.redM3,
+        primary: Color(0xFF0E74B7),
+        primaryContainer: Color(0x7C0E9297),
+        onPrimaryContainer: Colors.white,
         // Component theme configurations for dark mode.
         subThemesData: const FlexSubThemesData(
           interactionEffects: true,
@@ -45,9 +48,11 @@ abstract final class AppTheme {
         visualDensity: FlexColorScheme.comfortablePlatformDensity,
         cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
       ).copyWith(
-        scaffoldBackgroundColor: Color(0xff0b1623),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFF0E74B7),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white24,
         ),
       );
 }

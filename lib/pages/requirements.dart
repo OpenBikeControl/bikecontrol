@@ -62,8 +62,10 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
     return Scaffold(
       appBar: AppBar(
         title: AppTitle(),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: buildMenuButtons(),
+        backgroundColor: Theme.brightnessOf(context) == Brightness.light
+            ? Theme.of(context).colorScheme.inversePrimary
+            : null,
       ),
       body: SingleChildScrollView(
         child: Column(

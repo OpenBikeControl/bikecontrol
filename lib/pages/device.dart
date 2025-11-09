@@ -204,7 +204,9 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
               appBar: AppBar(
                 title: AppTitle(),
                 actions: buildMenuButtons(),
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                backgroundColor: Theme.brightnessOf(context) == Brightness.light
+                    ? Theme.of(context).colorScheme.inversePrimary
+                    : null,
               ),
               body: SingleChildScrollView(
                 padding: EdgeInsets.only(
