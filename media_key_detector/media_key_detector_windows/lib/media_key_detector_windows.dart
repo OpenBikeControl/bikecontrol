@@ -5,6 +5,7 @@ import 'package:media_key_detector_platform_interface/media_key_detector_platfor
 /// The Windows implementation of [MediaKeyDetectorPlatform].
 class MediaKeyDetectorWindows extends MediaKeyDetectorPlatform {
   bool _isPlaying = false;
+  final _eventChannel = const EventChannel('media_key_detector_windows_events');
 
   /// The method channel used to interact with the native platform.
   @visibleForTesting
@@ -17,7 +18,16 @@ class MediaKeyDetectorWindows extends MediaKeyDetectorPlatform {
 
   @override
   void initialize() {
-    ServicesBinding.instance.keyboard.addHandler(defaultHandler);
+    _eventChannel.receiveBroadcastStream().listen((event) {
+      final keyIdx = event as int;
+      MediaKey? key;
+      if (keyIdx > -1 && keyIdx < MediaKey.values.length) {
+        key = MediaKey.values[keyIdx];
+      }
+      if (key != null) {
+        triggerListeners(key);
+      }
+    });
   }
 
   @override
@@ -27,11 +37,13 @@ class MediaKeyDetectorWindows extends MediaKeyDetectorPlatform {
 
   @override
   Future<bool> getIsPlaying() async {
-    return _isPlaying;
+    final isPlaying = await methodChannel.invokeMethod<bool>('getIsPlaying');
+    return isPlaying ?? _isPlaying;
   }
 
   @override
   Future<void> setIsPlaying({required bool isPlaying}) async {
     _isPlaying = isPlaying;
+    await methodChannel.invokeMethod<void>('setIsPlaying', <String, dynamic>{'isPlaying': isPlaying});
   }
 }
