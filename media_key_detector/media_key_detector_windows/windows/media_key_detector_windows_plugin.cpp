@@ -147,13 +147,19 @@ void MediaKeyDetectorWindows::RegisterHotkeys() {
   
   // Register global hotkeys for media keys
   // MOD_NOREPEAT prevents the hotkey from repeating when held down
-  bool success = true;
-  success &= RegisterHotKey(hwnd, HOTKEY_PLAY_PAUSE, MOD_NOREPEAT, VK_MEDIA_PLAY_PAUSE);
-  success &= RegisterHotKey(hwnd, HOTKEY_NEXT_TRACK, MOD_NOREPEAT, VK_MEDIA_NEXT_TRACK);
-  success &= RegisterHotKey(hwnd, HOTKEY_PREV_TRACK, MOD_NOREPEAT, VK_MEDIA_PREV_TRACK);
+  bool play_pause_ok = RegisterHotKey(hwnd, HOTKEY_PLAY_PAUSE, MOD_NOREPEAT, VK_MEDIA_PLAY_PAUSE);
+  bool next_ok = RegisterHotKey(hwnd, HOTKEY_NEXT_TRACK, MOD_NOREPEAT, VK_MEDIA_NEXT_TRACK);
+  bool prev_ok = RegisterHotKey(hwnd, HOTKEY_PREV_TRACK, MOD_NOREPEAT, VK_MEDIA_PREV_TRACK);
   
-  if (success) {
+  // If all registrations succeeded, mark as registered
+  // If any failed, unregister the successful ones to maintain consistent state
+  if (play_pause_ok && next_ok && prev_ok) {
     hotkeys_registered_ = true;
+  } else {
+    // Clean up any successful registrations
+    if (play_pause_ok) UnregisterHotKey(hwnd, HOTKEY_PLAY_PAUSE);
+    if (next_ok) UnregisterHotKey(hwnd, HOTKEY_NEXT_TRACK);
+    if (prev_ok) UnregisterHotKey(hwnd, HOTKEY_PREV_TRACK);
   }
 }
 
