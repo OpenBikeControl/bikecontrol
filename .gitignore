@@ -49,3 +49,4 @@ app.*.map.json
 
 service-account.json
 .env
+_codeql_detected_source_root
