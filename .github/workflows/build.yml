@@ -158,6 +158,16 @@ jobs:
           chmod +x scripts/generate_release_body.sh
           ./scripts/generate_release_body.sh > /tmp/release_body.md
 
+      - name: Package screenshots for App Stores
+        if: inputs.build_github
+        run: |
+          mkdir -p build/screenshots
+          cp -r playstoreassets/* build/screenshots/
+          cd build/screenshots
+          zip -r ../SwiftControl.screenshots.zip .
+          cd ../..
+          echo "Screenshots packaged successfully"
+
       - name: 🚀 Shorebird Release iOS
         if: inputs.build_ios
         uses: shorebirdtech/shorebird-release@v1
@@ -238,6 +248,15 @@ jobs:
           path: |
             build/macos/Build/Products/Release/SwiftControl.macos.zip
 
+      - name: Upload Screenshots Artifacts
+        if: inputs.build_github
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Releases
+          path: |
+            build/SwiftControl.screenshots.zip
+
         #10 Extract Version
       - name: Extract version from pubspec.yaml
         if: inputs.build_github
@@ -251,7 +270,7 @@ jobs:
         if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip"
+          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip,build/SwiftControl.screenshots.zip"
           allowUpdates: true
           prerelease: true
           bodyFile: /tmp/release_body.md
