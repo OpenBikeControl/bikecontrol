@@ -192,7 +192,7 @@ abstract class BluetoothDevice extends BaseDevice {
     return Row(
       children: [
         Text(
-          device.name?.screenshot ?? device.runtimeType.toString(),
+          device.name?.screenshot ?? runtimeType.toString(),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         if (isBeta) BetaPill(),
