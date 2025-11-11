@@ -158,15 +158,23 @@ jobs:
           chmod +x scripts/generate_release_body.sh
           ./scripts/generate_release_body.sh > /tmp/release_body.md
 
-      - name: Package screenshots for App Stores
+      - name: Set Up Flutter for Screenshots
+        if: inputs.build_github
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Generate screenshots for App Stores
         if: inputs.build_github
         run: |
           mkdir -p build/screenshots
-          cp -r playstoreassets/* build/screenshots/
+          flutter pub get
+          flutter test integration_test/screenshot_test.dart --driver=test_driver/integration_test.dart
           cd build/screenshots
           zip -r ../SwiftControl.screenshots.zip .
           cd ../..
-          echo "Screenshots packaged successfully"
+          echo "Screenshots generated successfully"
 
       - name: 🚀 Shorebird Release iOS
         if: inputs.build_ios
