@@ -15,6 +15,11 @@ class Settings {
 
   Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
+
+    if (screenshotMode) {
+      await prefs.clear();
+    }
+
     initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
     if (actionHandler is DesktopActions) {
@@ -28,7 +33,6 @@ class Settings {
     } catch (e) {
       // couldn't decode, reset
       await prefs.clear();
-      rethrow;
     }
   }
 

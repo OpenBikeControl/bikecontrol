@@ -236,23 +236,26 @@ class Connection {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
       _actionStreams.add(LogNotification('Connecting to: ${device.name}'));
-      _connect(device)
-          .then((_) {
-            _handlingConnectionQueue = false;
-            _actionStreams.add(LogNotification('Connection finished: ${device.name}'));
-            if (_connectionQueue.isNotEmpty) {
-              _handleConnectionQueue();
-            }
-          })
-          .catchError((e) {
-            _handlingConnectionQueue = false;
-            _actionStreams.add(
-              LogNotification('Connection failed: ${device.name} - $e'),
-            );
-            if (_connectionQueue.isNotEmpty) {
-              _handleConnectionQueue();
-            }
-          });
+
+      if (!screenshotMode) {
+        _connect(device)
+            .then((_) {
+              _handlingConnectionQueue = false;
+              _actionStreams.add(LogNotification('Connection finished: ${device.name}'));
+              if (_connectionQueue.isNotEmpty) {
+                _handleConnectionQueue();
+              }
+            })
+            .catchError((e) {
+              _handlingConnectionQueue = false;
+              _actionStreams.add(
+                LogNotification('Connection failed: ${device.name} - $e'),
+              );
+              if (_connectionQueue.isNotEmpty) {
+                _handleConnectionQueue();
+              }
+            });
+      }
     }
   }
 
