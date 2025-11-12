@@ -115,10 +115,10 @@ abstract class BluetoothDevice extends BaseDevice {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is BluetoothDevice && runtimeType == other.runtimeType && scanResult == other.scanResult;
+      other is BluetoothDevice && runtimeType == other.runtimeType && scanResult.deviceId == other.scanResult.deviceId;
 
   @override
-  int get hashCode => scanResult.hashCode;
+  int get hashCode => scanResult.deviceId.hashCode;
 
   @override
   String toString() {

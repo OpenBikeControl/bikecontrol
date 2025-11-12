@@ -326,7 +326,11 @@ class _PairWidgetState extends State<_PairWidget> {
                   Text('Connect via MyWhoosh Direct Connect'),
                   Text(
                     'Most reliable way to control MyWhoosh.',
-                    style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.normal),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
                 ],
               ),
@@ -352,7 +356,11 @@ class _PairWidgetState extends State<_PairWidget> {
                   Text('Connect to ${settings.getTrainerApp()?.name} as controller'),
                   Text(
                     'Most reliable way to control ${settings.getTrainerApp()?.name}.',
-                    style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.normal),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
                 ],
               ),
@@ -378,7 +386,11 @@ class _PairWidgetState extends State<_PairWidget> {
                         ),
                         Text(
                           'Pairing allows full customizability,\nbut may not work on all devices.',
-                          style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.normal),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
+                            fontWeight: FontWeight.normal,
+                          ),
                         ),
                       ],
                     ),
