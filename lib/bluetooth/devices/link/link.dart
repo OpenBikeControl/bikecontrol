@@ -38,13 +38,22 @@ class WhooshLink {
     required void Function(Socket socket) onConnected,
     required void Function(Socket socket) onDisconnected,
   }) async {
-    // Create and bind server socket
-    _server = await ServerSocket.bind(
-      InternetAddress.anyIPv6,
-      21587,
-      shared: true,
-      v6Only: false,
-    );
+    try {
+      // Create and bind server socket
+      _server = await ServerSocket.bind(
+        InternetAddress.anyIPv6,
+        21587,
+        shared: true,
+        v6Only: false,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to start server: $e');
+      }
+      isConnected.value = false;
+      isStarted.value = false;
+      rethrow;
+    }
     isStarted.value = true;
     if (kDebugMode) {
       print('Server started on port ${_server!.port}');

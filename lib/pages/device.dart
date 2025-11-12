@@ -6,14 +6,14 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:swift_control/bluetooth/devices/link/link_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/utils/requirements/zwift.dart';
+import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
+import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/beta_pill.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/logviewer.dart';
@@ -363,18 +363,20 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
                             if (settings.getTrainerApp() is MyWhoosh &&
                                 whooshLink.isCompatible(settings.getLastTarget()!))
-                              LinkDevice('').showInformation(context),
+                              MyWhooshLinkTile(),
                             if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
-                              ZwiftRequirement().build(context, () {
-                                setState(() {});
-                              })!,
+                              ZwiftTile(
+                                onUpdate: () {
+                                  setState(() {});
+                                },
+                              ),
 
                             if (actionHandler is RemoteActions)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected'}',
+                                    'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected (optional)'}',
                                   ),
                                   PopupMenuButton(
                                     itemBuilder: (_) => [
