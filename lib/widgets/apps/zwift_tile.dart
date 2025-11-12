@@ -1,31 +1,22 @@
-import 'package:flutter/material.dart' hide ConnectionState;
+import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/rouvy.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
-import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
 
-class ZwiftRequirement extends PlatformRequirement {
-  ZwiftRequirement()
-    : super(
-        'Pair SwiftControl with Zwift',
-      );
+class ZwiftTile extends StatefulWidget {
+  final VoidCallback onUpdate;
+
+  const ZwiftTile({super.key, required this.onUpdate});
 
   @override
-  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
+  State<ZwiftTile> createState() => _ZwiftTileState();
+}
 
+class _ZwiftTileState extends State<ZwiftTile> {
   @override
-  Widget? buildDescription() {
-    return settings.getLastTarget() == null
-        ? null
-        : Text(
-            'In Zwift on your ${settings.getLastTarget()?.title} go into the Pairing settings and select SwiftControl from the list of available controllers.',
-          );
-  }
-
-  @override
-  Widget? build(BuildContext context, VoidCallback onUpdate) {
+  Widget build(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: zwiftEmulator.isConnected,
       builder: (context, isConnected, _) {
@@ -39,7 +30,7 @@ class ZwiftRequirement extends PlatformRequirement {
                 if (!value) {
                   zwiftEmulator.stopAdvertising();
                 } else if (value) {
-                  zwiftEmulator.startAdvertising(onUpdate);
+                  zwiftEmulator.startAdvertising(widget.onUpdate);
                 }
                 setState(() {});
               },
@@ -74,10 +65,5 @@ class ZwiftRequirement extends PlatformRequirement {
         );
       },
     );
-  }
-
-  @override
-  Future<void> getStatus() async {
-    status = zwiftEmulator.isConnected.value || screenshotMode;
   }
 }

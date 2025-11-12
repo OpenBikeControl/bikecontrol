@@ -19,7 +19,6 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../utils/keymap/apps/my_whoosh.dart';
 import 'devices/base_device.dart';
-import 'devices/link/link_device.dart';
 import 'devices/zwift/constants.dart';
 import 'messages/notification.dart';
 
@@ -182,33 +181,24 @@ class Connection {
       });
     }
 
-    if (settings.getMyWhooshLinkEnabled() && settings.getTrainerApp() is MyWhoosh && !whooshLink.isStarted.value) {
+    if (settings.getMyWhooshLinkEnabled() &&
+        settings.getTrainerApp() is MyWhoosh &&
+        !whooshLink.isStarted.value &&
+        whooshLink.isCompatible(settings.getLastTarget()!)) {
       startMyWhooshServer().catchError((e) {
-        _actionStreams.add(LogNotification('Error starting MyWhoosh Direct Connect server: $e'));
+        _actionStreams.add(
+          LogNotification(
+            'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.\n$e',
+          ),
+        );
       });
     }
   }
 
   Future<void> startMyWhooshServer() {
     return whooshLink.startServer(
-      onConnected: (socket) {
-        final existing = remoteDevices.firstOrNullWhere(
-          (e) => e is LinkDevice && e.identifier == socket.remoteAddress.address,
-        );
-        if (existing != null) {
-          existing.isConnected = true;
-          signalChange(existing);
-        }
-      },
-      onDisconnected: (socket) {
-        final device = devices.firstOrNullWhere(
-          (device) => device is LinkDevice && device.identifier == socket.remoteAddress.address,
-        );
-        if (device != null) {
-          devices.remove(device);
-          signalChange(device);
-        }
-      },
+      onConnected: (socket) {},
+      onDisconnected: (socket) {},
     );
   }
 
@@ -339,13 +329,6 @@ class Connection {
   Future<void> disconnect(BaseDevice device, {required bool forget}) async {
     if (device.isConnected) {
       await device.disconnect();
-    }
-    if (device is! LinkDevice) {
-      // keep it in the list to allow reconnect
-      devices.remove(device);
-      if (forget) {
-        _dontAllowReconnectDevices.add(device.name);
-      }
     }
     if (!forget && device is BluetoothDevice) {
       _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
