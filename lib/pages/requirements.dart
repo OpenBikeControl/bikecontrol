@@ -172,38 +172,55 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   }
 
   void _callRequirement(PlatformRequirement req, BuildContext context, VoidCallback onUpdate) {
-    req.call(context, onUpdate).then((_) {
-      _reloadRequirements();
-    });
+    req
+        .call(context, onUpdate)
+        .then((_) {
+          _reloadRequirements();
+        })
+        .catchError((e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error handling requirement "${req.name}": $e'),
+            ),
+          );
+        });
   }
 
   void _reloadRequirements() {
     getRequirements(
-      settings.getLastTarget()?.connectionType ?? ConnectionType.unknown,
-    ).then((req) {
-      _requirements = req;
-      final unresolvedIndex = req.indexWhere((req) => !req.status);
-      if (unresolvedIndex != -1) {
-        _currentStep = unresolvedIndex;
-      } else if (mounted) {
-        String? currentPath;
-        navigatorKey.currentState?.popUntil((route) {
-          currentPath = route.settings.name;
-          return true;
-        });
-        if (currentPath == '/') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (c) => DevicePage(),
-              settings: RouteSettings(name: '/device'),
+          settings.getLastTarget()?.connectionType ?? ConnectionType.unknown,
+        )
+        .then((req) {
+          _requirements = req;
+          final unresolvedIndex = req.indexWhere((req) => !req.status);
+          if (unresolvedIndex != -1) {
+            _currentStep = unresolvedIndex;
+          } else if (mounted) {
+            String? currentPath;
+            navigatorKey.currentState?.popUntil((route) {
+              currentPath = route.settings.name;
+              return true;
+            });
+            if (currentPath == '/') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (c) => DevicePage(),
+                  settings: RouteSettings(name: '/device'),
+                ),
+              );
+            }
+          }
+          if (mounted) {
+            setState(() {});
+          }
+        })
+        .catchError((e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error loading requirements: $e'),
             ),
           );
-        }
-      }
-      if (mounted) {
-        setState(() {});
-      }
-    });
+        });
   }
 }
