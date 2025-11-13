@@ -264,7 +264,7 @@ class Connection {
           device.isConnected = state;
           _connectionStreams.add(device);
           if (!device.isConnected) {
-            disconnect(device, forget: true);
+            disconnect(device, forget: false);
             // try reconnect
             performScanning();
           }
@@ -338,18 +338,26 @@ class Connection {
     if (device.isConnected) {
       await device.disconnect();
     }
-    if (forget && device is BluetoothDevice) {
-      // Add device to ignored list when forgetting
-      await settings.addIgnoredDevice(device.device.deviceId, device.name);
-      _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
-    }
-    if (!forget && device is BluetoothDevice) {
+    
+    if (device is BluetoothDevice) {
+      if (forget) {
+        // Add device to ignored list when forgetting
+        await settings.addIgnoredDevice(device.device.deviceId, device.name);
+        _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
+      }
+      
+      // Clean up subscriptions and scan results for reconnection
       _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
+      
+      // Remove device from the list
+      devices.remove(device);
+      hasDevices.value = devices.isNotEmpty;
     }
+    
     signalChange(device);
   }
 

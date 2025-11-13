@@ -178,16 +178,9 @@ class MenuButton extends StatelessWidget {
         PopupMenuItem(
           child: Text('Ignored Devices'),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (c) => Scaffold(
-                  appBar: AppBar(),
-                  body: Center(
-                    child: IgnoredDevicesDialog(),
-                  ),
-                ),
-              ),
+            showDialog(
+              context: context,
+              builder: (context) => IgnoredDevicesDialog(),
             );
           },
         ),
