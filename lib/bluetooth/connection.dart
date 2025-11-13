@@ -52,8 +52,6 @@ class Connection {
 
   Timer? _gamePadSearchTimer;
 
-  final _dontAllowReconnectDevices = <String>{};
-
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
@@ -203,9 +201,19 @@ class Connection {
   }
 
   void addDevices(List<BaseDevice> dev) {
-    final newDevices = dev
-        .where((device) => !devices.contains(device) && !_dontAllowReconnectDevices.contains(device.name))
-        .toList();
+    final ignoredDeviceIds = settings.getIgnoredDeviceIds();
+    final newDevices = dev.where((device) {
+      if (devices.contains(device)) return false;
+      
+      // Check if device is in the ignored list
+      if (device is BluetoothDevice) {
+        if (ignoredDeviceIds.contains(device.device.deviceId)) {
+          return false;
+        }
+      }
+      
+      return true;
+    }).toList();
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
 
@@ -329,6 +337,11 @@ class Connection {
   Future<void> disconnect(BaseDevice device, {required bool forget}) async {
     if (device.isConnected) {
       await device.disconnect();
+    }
+    if (forget && device is BluetoothDevice) {
+      // Add device to ignored list when forgetting
+      await settings.addIgnoredDevice(device.device.deviceId, device.name);
+      _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
     }
     if (!forget && device is BluetoothDevice) {
       _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);

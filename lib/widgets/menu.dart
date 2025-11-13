@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../pages/device.dart';
+import 'ignored_devices_dialog.dart';
 
 List<Widget> buildMenuButtons() {
   return [
@@ -174,7 +175,22 @@ class MenuButton extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
           },
         ),
-
+        PopupMenuItem(
+          child: Text('Ignored Devices'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (c) => Scaffold(
+                  appBar: AppBar(),
+                  body: Center(
+                    child: IgnoredDevicesDialog(),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
         PopupMenuItem(
           child: Text('License'),
           onTap: () {
