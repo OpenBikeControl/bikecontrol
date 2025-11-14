@@ -14,15 +14,15 @@ class Settings {
   late final SharedPreferences prefs;
 
   Future<void> init() async {
-    prefs = await SharedPreferences.getInstance();
-    initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
-
-    if (actionHandler is DesktopActions) {
-      // Must add this line.
-      await windowManager.ensureInitialized();
-    }
-
     try {
+      prefs = await SharedPreferences.getInstance();
+      initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
+
+      if (actionHandler is DesktopActions) {
+        // Must add this line.
+        await windowManager.ensureInitialized();
+      }
+
       final app = getKeyMap();
       actionHandler.init(app);
     } catch (e) {

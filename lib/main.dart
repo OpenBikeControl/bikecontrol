@@ -24,7 +24,7 @@ const screenshotMode = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await settings.init();
   runApp(const SwiftPlayApp());
 }
 
