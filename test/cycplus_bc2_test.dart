@@ -1,106 +1,129 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:swift_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
+import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 void main() {
   group('CYCPLUS BC2 Virtual Shifter Tests', () {
-    test('Should recognize shift up button code', () {
-      // Test button code recognition
-      const shiftUpCode = 0x01;
-      const shiftDownCode = 0x02;
-      const releaseCode = 0x00;
-      
-      expect(shiftUpCode, equals(0x01));
-      expect(shiftDownCode, equals(0x02));
-      expect(releaseCode, equals(0x00));
-    });
+    test('Test some sequences', () {
+      actionHandler = StubActions();
 
-    test('Should handle button press and release cycle', () {
-      // Test button state transitions
-      final states = [0x01, 0x00, 0x02, 0x00];
-      
-      expect(states[0], equals(0x01)); // Shift up pressed
-      expect(states[1], equals(0x00)); // Button released
-      expect(states[2], equals(0x02)); // Shift down pressed
-      expect(states[3], equals(0x00)); // Button released
-    });
+      final stubActions = actionHandler as StubActions;
 
-    test('Should validate UART service UUID format', () {
-      // Nordic UART Service UUID
-      const serviceUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-      
-      expect(serviceUuid.length, equals(36));
-      expect(serviceUuid.contains('-'), isTrue);
-      expect(serviceUuid.toLowerCase(), equals(serviceUuid));
-    });
+      // convert from hex to uint8list
 
-    test('Should validate TX characteristic UUID format', () {
-      // TX Characteristic UUID (device to app)
-      const txCharUuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
-      
-      expect(txCharUuid.length, equals(36));
-      expect(txCharUuid.contains('-'), isTrue);
-      expect(txCharUuid.toLowerCase(), equals(txCharUuid));
-    });
+      final device = CycplusBc2(BleDevice(deviceId: 'deviceId', name: 'name'));
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE0206010397565E000155'),
+      );
+      expect(stubActions.performedActions.single, CycplusBc2Buttons.shiftUp);
+      stubActions.performedActions.clear();
 
-    test('Should validate RX characteristic UUID format', () {
-      // RX Characteristic UUID (app to device)
-      const rxCharUuid = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
-      
-      expect(rxCharUuid.length, equals(36));
-      expect(rxCharUuid.contains('-'), isTrue);
-      expect(rxCharUuid.toLowerCase(), equals(rxCharUuid));
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE0206030398565E000158'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE0206030198575E000157'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE0206030398585E00015A'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE0206010399585E000159'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603039A585E00015C'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603019A595E00015B'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603039A5A5E00015E'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020601039B5A5E00015D'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603039C5A5E000160'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603019C5B5E00015F'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603039C5C5E000162'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020601039D5C5E000161'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603039E5C5D000163'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603019E5D5D000162'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020603039E5E5D000165'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE020601039F5E5D000164'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE02060303A05E5D000167'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE02060301A05F5D000166'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE02060302A0605D000168'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE02060102A1605D000167'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE02060302A2605D00016A'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE02060301A2615D00016A'),
+      );
+      device.processCharacteristic(
+        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
+        _hexToUint8List('FEEFFFEE02060303A2625D00016D'),
+      );
     });
   });
+}
 
-  group('CYCPLUS BC2 Button Code Tests', () {
-    test('Should differentiate between shift up and shift down', () {
-      const shiftUpCode = 0x01;
-      const shiftDownCode = 0x02;
-      
-      expect(shiftUpCode != shiftDownCode, isTrue);
-      expect(shiftUpCode < shiftDownCode, isTrue);
-    });
-
-    test('Should recognize release code as different from press codes', () {
-      const releaseCode = 0x00;
-      const shiftUpCode = 0x01;
-      const shiftDownCode = 0x02;
-      
-      expect(releaseCode != shiftUpCode, isTrue);
-      expect(releaseCode != shiftDownCode, isTrue);
-      expect(releaseCode < shiftUpCode, isTrue);
-      expect(releaseCode < shiftDownCode, isTrue);
-    });
-  });
-
-  group('CYCPLUS BC2 Device Name Recognition Tests', () {
-    test('Should recognize CYCPLUS device name', () {
-      const deviceName1 = 'CYCPLUS BC2';
-      const deviceName2 = 'Cycplus BC2';
-      const deviceName3 = 'CYCPLUS';
-      
-      expect(deviceName1.toUpperCase().startsWith('CYCPLUS'), isTrue);
-      expect(deviceName2.toUpperCase().startsWith('CYCPLUS'), isTrue);
-      expect(deviceName3.toUpperCase().startsWith('CYCPLUS'), isTrue);
-    });
-
-    test('Should recognize BC2 in device name', () {
-      const deviceName1 = 'CYCPLUS BC2';
-      const deviceName2 = 'BC2 Shifter';
-      const deviceName3 = 'Virtual BC2';
-      
-      expect(deviceName1.toUpperCase().contains('BC2'), isTrue);
-      expect(deviceName2.toUpperCase().contains('BC2'), isTrue);
-      expect(deviceName3.toUpperCase().contains('BC2'), isTrue);
-    });
-
-    test('Should not match non-CYCPLUS devices', () {
-      const deviceName1 = 'Zwift Click';
-      const deviceName2 = 'Elite Sterzo';
-      const deviceName3 = 'Wahoo KICKR';
-      
-      expect(deviceName1.toUpperCase().startsWith('CYCPLUS'), isFalse);
-      expect(deviceName2.toUpperCase().startsWith('CYCPLUS'), isFalse);
-      expect(deviceName3.toUpperCase().startsWith('CYCPLUS'), isFalse);
-    });
-  });
+Uint8List _hexToUint8List(String seq) {
+  return Uint8List.fromList(
+    List.generate(
+      seq.length ~/ 2,
+      (i) => int.parse(seq.substring(i * 2, i * 2 + 2), radix: 16),
+    ),
+  );
 }
