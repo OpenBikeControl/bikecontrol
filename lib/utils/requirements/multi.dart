@@ -84,6 +84,20 @@ class UnsupportedPlatform extends PlatformRequirement {
   Future<void> getStatus() async {}
 }
 
+class ErrorRequirement extends PlatformRequirement {
+  ErrorRequirement(super.name) {
+    status = false;
+  }
+
+  @override
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
+    onUpdate();
+  }
+
+  @override
+  Future<void> getStatus() async {}
+}
+
 typedef BoolFunction = bool Function();
 
 enum Target {

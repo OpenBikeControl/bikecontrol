@@ -193,6 +193,14 @@ class Connection {
         );
       });
     }
+
+    if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
+      _androidNotificationsSetup = true;
+      // start foreground service only when app is in foreground
+      NotificationRequirement.setup().catchError((e) {
+        _actionStreams.add(LogNotification(e.toString()));
+      });
+    }
   }
 
   Future<void> startMyWhooshServer() {
@@ -212,12 +220,6 @@ class Connection {
     _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
-    if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
-      _androidNotificationsSetup = true;
-      NotificationRequirement.setup().catchError((e) {
-        _actionStreams.add(LogNotification(e.toString()));
-      });
-    }
   }
 
   void _handleConnectionQueue() {

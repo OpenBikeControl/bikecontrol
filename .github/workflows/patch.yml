@@ -9,6 +9,7 @@ env:
 
 jobs:
   build:
+    if: false
     name: Patch iOS, Android & macOS
     runs-on: macos-latest
 
@@ -149,13 +150,6 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-        #2 Setup Java
-      - name: Set Up Java
-        uses: actions/setup-java@v3.12.0
-        with:
-          distribution: 'oracle'
-          java-version: '17'
 
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
