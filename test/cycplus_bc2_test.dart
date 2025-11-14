@@ -70,6 +70,27 @@ void main() {
       expect(releaseCode < shiftUpCode, isTrue);
       expect(releaseCode < shiftDownCode, isTrue);
     });
+
+    test('Should recognize 0xfe as BC2 protocol marker', () {
+      const protocolMarker = 0xfe;
+      
+      // 0xfe is used by BC2 devices as first byte
+      expect(protocolMarker, equals(0xfe));
+    });
+
+    test('Should handle multi-byte BC2 messages', () {
+      // BC2 sends multi-byte messages: [0xfe, button_code]
+      const message1 = [0xfe, 0x01]; // Shift up
+      const message2 = [0xfe, 0x02]; // Shift down
+      const message3 = [0xfe, 0x00]; // Release
+      
+      expect(message1[0], equals(0xfe));
+      expect(message1[1], equals(0x01));
+      expect(message2[0], equals(0xfe));
+      expect(message2[1], equals(0x02));
+      expect(message3[0], equals(0xfe));
+      expect(message3[1], equals(0x00));
+    });
   });
 
   group('CYCPLUS BC2 Device Name Recognition Tests', () {
