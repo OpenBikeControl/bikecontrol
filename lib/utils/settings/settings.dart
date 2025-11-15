@@ -183,17 +183,17 @@ class Settings {
     await prefs.setBool('miui_warning_dismissed', dismissed);
   }
 
-  List<String> getIgnoredDeviceIds() {
+  List<String> _getIgnoredDeviceIds() {
     return prefs.getStringList('ignored_device_ids') ?? [];
   }
 
-  List<String> getIgnoredDeviceNames() {
+  List<String> _getIgnoredDeviceNames() {
     return prefs.getStringList('ignored_device_names') ?? [];
   }
 
   Future<void> addIgnoredDevice(String deviceId, String deviceName) async {
-    final ids = getIgnoredDeviceIds();
-    final names = getIgnoredDeviceNames();
+    final ids = _getIgnoredDeviceIds();
+    final names = _getIgnoredDeviceNames();
     
     if (!ids.contains(deviceId)) {
       ids.add(deviceId);
@@ -204,8 +204,8 @@ class Settings {
   }
 
   Future<void> removeIgnoredDevice(String deviceId) async {
-    final ids = getIgnoredDeviceIds();
-    final names = getIgnoredDeviceNames();
+    final ids = _getIgnoredDeviceIds();
+    final names = _getIgnoredDeviceNames();
     
     final index = ids.indexOf(deviceId);
     if (index != -1) {
@@ -217,8 +217,8 @@ class Settings {
   }
 
   List<({String id, String name})> getIgnoredDevices() {
-    final ids = getIgnoredDeviceIds();
-    final names = getIgnoredDeviceNames();
+    final ids = _getIgnoredDeviceIds();
+    final names = _getIgnoredDeviceNames();
     
     final result = <({String id, String name})>[];
     for (int i = 0; i < ids.length && i < names.length; i++) {

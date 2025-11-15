@@ -201,7 +201,8 @@ class Connection {
   }
 
   void addDevices(List<BaseDevice> dev) {
-    final ignoredDeviceIds = settings.getIgnoredDeviceIds();
+    final ignoredDevices = settings.getIgnoredDevices();
+    final ignoredDeviceIds = ignoredDevices.map((d) => d.id).toSet();
     final newDevices = dev.where((device) {
       if (devices.contains(device)) return false;
       
