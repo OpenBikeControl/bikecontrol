@@ -8,113 +8,110 @@ import 'package:universal_ble/universal_ble.dart';
 
 void main() {
   group('CYCPLUS BC2 Virtual Shifter Tests', () {
-    test('Test some sequences', () {
+    test('Test state machine with full sequence', () {
       actionHandler = StubActions();
 
       final stubActions = actionHandler as StubActions;
 
-      // convert from hex to uint8list
-
       final device = CycplusBc2(BleDevice(deviceId: 'deviceId', name: 'name'));
+      
+      // Packet 0: [6]=01 [7]=03 -> No trigger (lock state)
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
         _hexToUint8List('FEEFFFEE0206010397565E000155'),
       );
-      expect(stubActions.performedActions.single, CycplusBc2Buttons.shiftUp);
-      stubActions.performedActions.clear();
-
+      expect(stubActions.performedActions.isEmpty, true);
+      
+      // Packet 1: [6]=03 [7]=03 -> Trigger: shiftUp
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
         _hexToUint8List('FEEFFFEE0206030398565E000158'),
       );
+      expect(stubActions.performedActions.length, 1);
+      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftUp);
+      stubActions.performedActions.clear();
+      
+      // Packet 2: [6]=03 [7]=01 -> Trigger: shiftDown
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
         _hexToUint8List('FEEFFFEE0206030198575E000157'),
       );
+      expect(stubActions.performedActions.length, 1);
+      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftDown);
+      stubActions.performedActions.clear();
+      
+      // Packet 3: [6]=03 [7]=03 -> No trigger (lock state)
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
         _hexToUint8List('FEEFFFEE0206030398585E00015A'),
       );
+      expect(stubActions.performedActions.isEmpty, true);
+      
+      // Packet 4: [6]=01 [7]=03 -> Trigger: shiftUp
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
         _hexToUint8List('FEEFFFEE0206010399585E000159'),
       );
+      expect(stubActions.performedActions.length, 1);
+      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftUp);
+      stubActions.performedActions.clear();
+    });
+
+    test('Test release and re-press behavior', () {
+      actionHandler = StubActions();
+      final stubActions = actionHandler as StubActions;
+      final device = CycplusBc2(BleDevice(deviceId: 'deviceId', name: 'name'));
+      
+      // Press: lock state
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603039A585E00015C'),
+        _hexToUint8List('FEEFFFEE0206010300005E000100'),
       );
+      expect(stubActions.performedActions.isEmpty, true);
+      
+      // Release: reset state
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603019A595E00015B'),
+        _hexToUint8List('FEEFFFEE0206000000005E000100'),
       );
+      expect(stubActions.performedActions.isEmpty, true);
+      
+      // Press again: lock state (no trigger since we reset)
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603039A5A5E00015E'),
+        _hexToUint8List('FEEFFFEE0206020300005E000100'),
       );
+      expect(stubActions.performedActions.isEmpty, true);
+      
+      // Change to different pressed value: trigger
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020601039B5A5E00015D'),
+        _hexToUint8List('FEEFFFEE0206010300005E000100'),
       );
+      expect(stubActions.performedActions.length, 1);
+      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftUp);
+    });
+    
+    test('Test both buttons can trigger simultaneously', () {
+      actionHandler = StubActions();
+      final stubActions = actionHandler as StubActions;
+      final device = CycplusBc2(BleDevice(deviceId: 'deviceId', name: 'name'));
+      
+      // Lock both states
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603039C5A5E000160'),
+        _hexToUint8List('FEEFFFEE0206010100005E000100'),
       );
+      expect(stubActions.performedActions.isEmpty, true);
+      
+      // Change both: trigger both
       device.processCharacteristic(
         CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603019C5B5E00015F'),
+        _hexToUint8List('FEEFFFEE0206020200005E000100'),
       );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603039C5C5E000162'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020601039D5C5E000161'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603039E5C5D000163'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603019E5D5D000162'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020603039E5E5D000165'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE020601039F5E5D000164'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE02060303A05E5D000167'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE02060301A05F5D000166'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE02060302A0605D000168'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE02060102A1605D000167'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE02060302A2605D00016A'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE02060301A2615D00016A'),
-      );
-      device.processCharacteristic(
-        CycplusBc2Constants.TX_CHARACTERISTIC_UUID,
-        _hexToUint8List('FEEFFFEE02060303A2625D00016D'),
-      );
+      expect(stubActions.performedActions.length, 2);
+      expect(stubActions.performedActions.contains(CycplusBc2Buttons.shiftUp), true);
+      expect(stubActions.performedActions.contains(CycplusBc2Buttons.shiftDown), true);
     });
   });
 }
