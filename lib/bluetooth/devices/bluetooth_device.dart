@@ -56,7 +56,7 @@ abstract class BluetoothDevice extends BaseDevice {
         null => null,
         _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT') => WahooKickrBikeShift(scanResult),
-        _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') || scanResult.name!.toUpperCase().contains('BC2') =>
+        _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') && scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('RDR') => ShimanoDi2(scanResult),
         _ => null,
@@ -71,7 +71,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.name!.toUpperCase().startsWith('SQUARE') => EliteSquare(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
         _ when scanResult.name!.toUpperCase().contains('KICKR BIKE SHIFT') => WahooKickrBikeShift(scanResult),
-        _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') || scanResult.name!.toUpperCase().contains('BC2') =>
+        _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') && scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
         _ when scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase()) => CycplusBc2(scanResult),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase()) => ShimanoDi2(scanResult),
