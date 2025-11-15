@@ -52,8 +52,6 @@ class Connection {
 
   Timer? _gamePadSearchTimer;
 
-  final _dontAllowReconnectDevices = <String>{};
-
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
@@ -211,9 +209,20 @@ class Connection {
   }
 
   void addDevices(List<BaseDevice> dev) {
-    final newDevices = dev
-        .where((device) => !devices.contains(device) && !_dontAllowReconnectDevices.contains(device.name))
-        .toList();
+    final ignoredDevices = settings.getIgnoredDevices();
+    final ignoredDeviceIds = ignoredDevices.map((d) => d.id).toSet();
+    final newDevices = dev.where((device) {
+      if (devices.contains(device)) return false;
+      
+      // Check if device is in the ignored list
+      if (device is BluetoothDevice) {
+        if (ignoredDeviceIds.contains(device.device.deviceId)) {
+          return false;
+        }
+      }
+      
+      return true;
+    }).toList();
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
 
@@ -258,7 +267,7 @@ class Connection {
           device.isConnected = state;
           _connectionStreams.add(device);
           if (!device.isConnected) {
-            disconnect(device, forget: true);
+            disconnect(device, forget: false);
             // try reconnect
             performScanning();
           }
@@ -332,13 +341,26 @@ class Connection {
     if (device.isConnected) {
       await device.disconnect();
     }
-    if (!forget && device is BluetoothDevice) {
+    
+    if (device is BluetoothDevice) {
+      if (forget) {
+        // Add device to ignored list when forgetting
+        await settings.addIgnoredDevice(device.device.deviceId, device.name);
+        _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
+      }
+      
+      // Clean up subscriptions and scan results for reconnection
       _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
+      
+      // Remove device from the list
+      devices.remove(device);
+      hasDevices.value = devices.isNotEmpty;
     }
+    
     signalChange(device);
   }
 
