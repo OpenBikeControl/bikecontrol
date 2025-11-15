@@ -27,8 +27,7 @@ class Settings {
       actionHandler.init(app);
     } catch (e) {
       // couldn't decode, reset
-      await prefs.clear();
-      rethrow;
+      await reset();
     }
   }
 

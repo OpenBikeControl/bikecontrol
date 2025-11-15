@@ -112,14 +112,26 @@ class Connection {
       }
     };
 
-    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) {
+    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) async {
       final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
       if (device == null) {
         _actionStreams.add(LogNotification('Device not found: $deviceId'));
         UniversalBle.disconnect(deviceId);
         return;
       } else {
-        device.processCharacteristic(characteristicUuid, value);
+        try {
+          await device.processCharacteristic(characteristicUuid, value);
+        } catch (e, backtrace) {
+          _actionStreams.add(
+            LogNotification(
+              "Error processing characteristic for device ${device.name} and char: $characteristicUuid: $e\n$backtrace",
+            ),
+          );
+          if (kDebugMode) {
+            print(e);
+            print("backtrace: $backtrace");
+          }
+        }
       }
     };
 
