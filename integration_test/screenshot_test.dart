@@ -16,9 +16,11 @@ void main() {
   group('Screenshot Tests', () {
     testWidgets('Requirements', (WidgetTester tester) async {
       // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-      binding.window.physicalSizeTestValue = const Size(600, 800);
+      binding.window.physicalSizeTestValue = const Size(1280, 800);
       binding.window.devicePixelRatioTestValue = 1.0;
 
+      await settings.init();
+      await settings.reset();
       screenshotMode = true;
       await tester.pumpWidget(
         Screenshotter(
@@ -39,55 +41,57 @@ void main() {
       binding.window.clearPhysicalSizeTestValue();
       binding.window.clearDevicePixelRatioTestValue();
     });
-  });
-  testWidgets('Requirements', (WidgetTester tester) async {
-    // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-    binding.window.physicalSizeTestValue = const Size(500, 1000);
-    binding.window.devicePixelRatioTestValue = 1.0;
+    testWidgets('Device', (WidgetTester tester) async {
+      // Set phone screen size (typical Android phone - 1140x2616 to match existing)
+      binding.window.physicalSizeTestValue = const Size(1280, 800);
+      binding.window.devicePixelRatioTestValue = 1.0;
 
-    screenshotMode = true;
+      screenshotMode = true;
 
-    settings.setTrainerApp(MyWhoosh());
-    settings.setKeyMap(MyWhoosh());
-    settings.setLastTarget(Target.thisDevice);
+      await settings.init();
+      await settings.reset();
+      settings.setTrainerApp(MyWhoosh());
+      settings.setKeyMap(MyWhoosh());
+      settings.setLastTarget(Target.thisDevice);
 
-    connection.addDevices([
-      ZwiftRide(
-          BleDevice(
-            name: 'Controller',
-            deviceId: '00:11:22:33:44:55',
+      connection.addDevices([
+        ZwiftRide(
+            BleDevice(
+              name: 'Controller',
+              deviceId: '00:11:22:33:44:55',
+            ),
+          )
+          ..firmwareVersion = '1.2.0'
+          ..rssi = -51
+          ..batteryLevel = 81,
+      ]);
+
+      await tester.pumpWidget(
+        Screenshotter(
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            debugShowCheckedModeBanner: false,
+            title: 'SwiftControl',
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: ThemeMode.system,
+            home: const DevicePage(),
           ),
-        )
-        ..firmwareVersion = '1.2.0'
-        ..rssi = -51
-        ..batteryLevel = 81,
-    ]);
-
-    await tester.pumpWidget(
-      Screenshotter(
-        child: MaterialApp(
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          title: 'SwiftControl',
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: ThemeMode.system,
-          home: const DevicePage(),
         ),
-      ),
-    );
+      );
 
-    const wait = 3;
+      const wait = 3;
 
-    try {
-      await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
-    } catch (e) {
-      // Ignore timeout errors
-    }
+      try {
+        await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
+      } catch (e) {
+        // Ignore timeout errors
+      }
 
-    await tester.screenshot(path: 'device.png');
-    // Reset
-    binding.window.clearPhysicalSizeTestValue();
-    binding.window.clearDevicePixelRatioTestValue();
+      await tester.screenshot(path: 'device.png');
+      // Reset
+      binding.window.clearPhysicalSizeTestValue();
+      binding.window.clearDevicePixelRatioTestValue();
+    });
   });
 }

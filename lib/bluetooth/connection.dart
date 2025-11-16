@@ -245,7 +245,7 @@ class Connection {
 
   void _handleConnectionQueue() {
     // windows apparently has issues when connecting to multiple devices at once, so don't
-    if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue) {
+    if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
       _actionStreams.add(LogNotification('Connecting to: ${device.name}'));
