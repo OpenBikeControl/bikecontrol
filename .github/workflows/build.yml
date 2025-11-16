@@ -41,6 +41,7 @@ env:
 jobs:
   build:
     name: Build & Release
+    if: false
     runs-on: macos-latest
 
     permissions:
@@ -269,6 +270,26 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+
+      - name: Extract version from pubspec.yaml (Windows)
+        shell: pwsh
+        run: |
+          $version = Select-String '^version: ' pubspec.yaml | ForEach-Object {
+            ($_ -split ' ')[1].Trim()
+          }
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Generate release body (Windows)
+        shell: bash
+        run: |
+          dos2unix scripts/generate_release_body.sh
+          bash scripts/generate_release_body.sh > /tmp/release_body.md
+
+      - name: print contents of release_body.md (Windows)
+        shell: pwsh
+        run: |
+          Get-Content /tmp/release_body.md
+
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
         with:
@@ -337,21 +358,6 @@ jobs:
           path: |
             build/windows/x64/runner/Release/SwiftControl.windows.zip
             build/windows/x64/runner/Release/SwiftControl.windows.msix
-
-      - name: Extract version from pubspec.yaml (Windows)
-        shell: pwsh
-        run: |
-          $version = Select-String '^version: ' pubspec.yaml | ForEach-Object {
-            ($_ -split ' ')[1].Trim()
-          }
-          echo "VERSION=$version" >> $env:GITHUB_ENV
-
-      - name: Generate release body (Windows)
-        shell: bash
-        run: |
-          chmod +x scripts/generate_release_body.sh
-          ./scripts/generate_release_body.sh > /tmp/release_body.md
-
 
       - name: Update Release
         uses: ncipollo/release-action@v1
