@@ -9,7 +9,6 @@ env:
 
 jobs:
   build:
-    if: false
     name: Patch iOS, Android & macOS
     runs-on: macos-latest
 
@@ -105,9 +104,11 @@ jobs:
 
       # shorebird struggles with the app from GitHub
       - name: Build macOS
+        if: false
         run: flutter build macos --release;
 
       - name: Sign macOS build
+        if: false
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
         run: |
@@ -119,6 +120,7 @@ jobs:
 
       #9 Upload Artifacts
       - name: Upload Artifacts
+        if: false
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
@@ -127,12 +129,14 @@ jobs:
             build/macos/Build/Products/Release/SwiftControl.macos.zip
 
       - name: Generate release body
+        if: false
         run: |
           chmod +x scripts/generate_release_body.sh
           ./scripts/generate_release_body.sh > /tmp/release_body.md
 
       # add artifact to release
       - name: Create Release
+        if: false
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
