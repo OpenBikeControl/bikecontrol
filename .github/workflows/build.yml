@@ -41,7 +41,6 @@ env:
 jobs:
   build:
     name: Build & Release
-    if: false
     runs-on: macos-latest
 
     permissions:
