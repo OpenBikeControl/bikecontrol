@@ -52,8 +52,6 @@ class Connection {
 
   Timer? _gamePadSearchTimer;
 
-  final _dontAllowReconnectDevices = <String>{};
-
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
@@ -112,14 +110,26 @@ class Connection {
       }
     };
 
-    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) {
+    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) async {
       final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
       if (device == null) {
         _actionStreams.add(LogNotification('Device not found: $deviceId'));
         UniversalBle.disconnect(deviceId);
         return;
       } else {
-        device.processCharacteristic(characteristicUuid, value);
+        try {
+          await device.processCharacteristic(characteristicUuid, value);
+        } catch (e, backtrace) {
+          _actionStreams.add(
+            LogNotification(
+              "Error processing characteristic for device ${device.name} and char: $characteristicUuid: $e\n$backtrace",
+            ),
+          );
+          if (kDebugMode) {
+            print(e);
+            print("backtrace: $backtrace");
+          }
+        }
       }
     };
 
@@ -193,6 +203,14 @@ class Connection {
         );
       });
     }
+
+    if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
+      _androidNotificationsSetup = true;
+      // start foreground service only when app is in foreground
+      NotificationRequirement.setup().catchError((e) {
+        _actionStreams.add(LogNotification(e.toString()));
+      });
+    }
   }
 
   Future<void> startMyWhooshServer() {
@@ -203,21 +221,26 @@ class Connection {
   }
 
   void addDevices(List<BaseDevice> dev) {
-    final newDevices = dev
-        .where((device) => !devices.contains(device) && !_dontAllowReconnectDevices.contains(device.name))
-        .toList();
+    final ignoredDevices = settings.getIgnoredDevices();
+    final ignoredDeviceIds = ignoredDevices.map((d) => d.id).toSet();
+    final newDevices = dev.where((device) {
+      if (devices.contains(device)) return false;
+
+      // Check if device is in the ignored list
+      if (device is BluetoothDevice) {
+        if (ignoredDeviceIds.contains(device.device.deviceId)) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
 
     _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
-    if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
-      _androidNotificationsSetup = true;
-      NotificationRequirement.setup().catchError((e) {
-        _actionStreams.add(LogNotification(e.toString()));
-      });
-    }
   }
 
   void _handleConnectionQueue() {
@@ -226,26 +249,23 @@ class Connection {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
       _actionStreams.add(LogNotification('Connecting to: ${device.name}'));
-
-      if (!screenshotMode) {
-        _connect(device)
-            .then((_) {
-              _handlingConnectionQueue = false;
-              _actionStreams.add(LogNotification('Connection finished: ${device.name}'));
-              if (_connectionQueue.isNotEmpty) {
-                _handleConnectionQueue();
-              }
-            })
-            .catchError((e) {
-              _handlingConnectionQueue = false;
-              _actionStreams.add(
-                LogNotification('Connection failed: ${device.name} - $e'),
-              );
-              if (_connectionQueue.isNotEmpty) {
-                _handleConnectionQueue();
-              }
-            });
-      }
+      _connect(device)
+          .then((_) {
+            _handlingConnectionQueue = false;
+            _actionStreams.add(LogNotification('Connection finished: ${device.name}'));
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          })
+          .catchError((e) {
+            _handlingConnectionQueue = false;
+            _actionStreams.add(
+              LogNotification('Connection failed: ${device.name} - $e'),
+            );
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          });
     }
   }
 
@@ -259,7 +279,7 @@ class Connection {
           device.isConnected = state;
           _connectionStreams.add(device);
           if (!device.isConnected) {
-            disconnect(device, forget: true);
+            disconnect(device, forget: false);
             // try reconnect
             performScanning();
           }
@@ -333,13 +353,26 @@ class Connection {
     if (device.isConnected) {
       await device.disconnect();
     }
-    if (!forget && device is BluetoothDevice) {
+
+    if (device is BluetoothDevice) {
+      if (forget) {
+        // Add device to ignored list when forgetting
+        await settings.addIgnoredDevice(device.device.deviceId, device.name);
+        _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
+      }
+
+      // Clean up subscriptions and scan results for reconnection
       _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
+
+      // Remove device from the list
+      devices.remove(device);
+      hasDevices.value = devices.isNotEmpty;
     }
+
     signalChange(device);
   }
 

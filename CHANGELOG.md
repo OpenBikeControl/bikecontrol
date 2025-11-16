@@ -1,6 +1,11 @@
-### 3.5.0 (unreleased)
+### 3.5.0 (16-11-2025)
 **New Features:**
 - Dark mode support
+- Cycplus BC2 support (thanks @schneewoehner)
+- Ignored devices now persist across app restarts - remove them from ignored devices via the menu
+
+**Fixes:**
+- resolve issues during app start
 
 ### 3.4.0 (08-11-2025)
 **New Features:**

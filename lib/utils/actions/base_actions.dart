@@ -99,8 +99,11 @@ abstract class BaseActions {
 class StubActions extends BaseActions {
   StubActions({super.supportedModes = const []});
 
+  final List<ControllerButton> performedActions = [];
+
   @override
   Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
+    performedActions.add(action);
     return Future.value(action.name);
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -31,16 +32,14 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
 
     // call after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      settings.init().then((_) {
-        if (!kIsWeb && Platform.isMacOS) {
-          // add more delay due to CBManagerStateUnknown
-          Future.delayed(const Duration(seconds: 2), () {
-            _reloadRequirements();
-          });
-        } else {
+      if (!kIsWeb && Platform.isMacOS) {
+        // add more delay due to CBManagerStateUnknown
+        Future.delayed(const Duration(seconds: 2), () {
           _reloadRequirements();
-        }
-      });
+        });
+      } else {
+        _reloadRequirements();
+      }
     });
   }
 
@@ -108,6 +107,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                 : Card(
                     margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     child: Stepper(
+                      key: ObjectKey(_requirements.length),
                       physics: NeverScrollableScrollPhysics(),
                       currentStep: _currentStep,
                       connectorColor: WidgetStateProperty.resolveWith<Color>(
@@ -172,16 +172,28 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   }
 
   void _callRequirement(PlatformRequirement req, BuildContext context, VoidCallback onUpdate) {
-    req.call(context, onUpdate).then((_) {
-      _reloadRequirements();
-    });
+    req
+        .call(context, onUpdate)
+        .then((_) {
+          return _reloadRequirements();
+        })
+        .catchError((e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error handling requirement "${req.name}": $e'),
+            ),
+          );
+        });
   }
 
-  void _reloadRequirements() {
-    getRequirements(
-      settings.getLastTarget()?.connectionType ?? ConnectionType.unknown,
-    ).then((req) {
+  void _reloadRequirements() async {
+    try {
+      final req = await getRequirements(
+        settings.getLastTarget()?.connectionType ?? ConnectionType.unknown,
+      );
       _requirements = req;
+      _currentStep = _currentStep >= _requirements.length ? 0 : _currentStep;
+      setState(() {});
       final unresolvedIndex = req.indexWhere((req) => !req.status);
       if (unresolvedIndex != -1) {
         _currentStep = unresolvedIndex;
@@ -201,9 +213,16 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
           );
         }
       }
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    } catch (e) {
+      connection.signalNotification(LogNotification('Error loading requirements: $e'));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading requirements: $e'),
+        ),
+      );
+      _currentStep = 0;
+      _requirements = [ErrorRequirement('Error loading requirements: $e')];
+      setState(() {});
+    }
   }
 }

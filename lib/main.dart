@@ -24,8 +24,8 @@ var screenshotMode = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  runApp(const SwiftPlayApp());
+  final error = await settings.init();
+  runApp(SwiftPlayApp(error: error));
 }
 
 enum ConnectionType {
@@ -60,7 +60,8 @@ Future<void> initializeActions(ConnectionType connectionType) async {
 }
 
 class SwiftPlayApp extends StatelessWidget {
-  const SwiftPlayApp({super.key});
+  final String? error;
+  const SwiftPlayApp({super.key, this.error});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +72,9 @@ class SwiftPlayApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const RequirementsPage(),
+      home: error != null
+          ? Text('There was an error starting the App. Please contact support:\n$error')
+          : const RequirementsPage(),
     );
   }
 }

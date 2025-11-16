@@ -60,6 +60,7 @@ Support for other devices can be added; check the issues tab here on GitHub.
 ## Supported Platforms
 
 Follow the "Get Started" button over at [swiftcontrol.app](https://swiftcontrol.app) to understand on which platform you want to run SwiftControl.
+You can even try it out in your [Browser](https://jonasbark.github.io/swiftcontrol/), if it supports Bluetooth connections. No controlling possible, though.
 
 ## Troubleshooting
 Check the troubleshooting guide [here](TROUBLESHOOTING.md).
@@ -71,9 +72,9 @@ The app connects to your Controller devices (such as Zwift ones) automatically. 
 - **iOS**: use SwiftControl as a "remote control" for other devices, such as an iPad. Example scenario:
   - your phone (Android/iOS) runs SwiftControl and connects to your Controller devices
   - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
-  - If you want to use MyWhoosh, you can use the Link method to directly connect to MyWhoosh
+  - If you want to use MyWhoosh, you can use the Link method to connect to MyWhoosh directly
   - For other trainer apps, you need to pair SwiftControl to your iPad / tablet via Bluetooth, and your phone will send the button presses to your iPad / tablet
-- **macOS** / **Windows** a keyboard or mouse click is used to trigger the action. 
+- **macOS** / **Windows** A keyboard or mouse click is used to trigger the action. 
   - There are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - You can also create your own Keymaps for any other app
   - You can also use the mouse to click on a certain part of the screen, or use keyboard shortcuts

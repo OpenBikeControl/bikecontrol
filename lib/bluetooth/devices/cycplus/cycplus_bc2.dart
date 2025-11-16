@@ -27,42 +27,73 @@ class CycplusBc2 extends BluetoothDevice {
     await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
   }
 
+  // Track last state for index 6 and 7
+  int _lastStateIndex6 = 0x00;
+  int _lastStateIndex7 = 0x00;
+
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
     if (characteristic.toLowerCase() == CycplusBc2Constants.TX_CHARACTERISTIC_UUID.toLowerCase()) {
-      // Process CYCPLUS BC2 data
-      // The BC2 typically sends button press data as simple byte values
-      // Common patterns for virtual shifters:
-      // - 0x01 or similar for shift up
-      // - 0x02 or similar for shift down
-      // - 0x00 for button release
+      if (bytes.length > 7) {
+        final buttonsToPress = <ControllerButton>[];
 
-      if (bytes.isNotEmpty) {
-        final buttonCode = bytes[0];
-
-        switch (buttonCode) {
-          case 0x01:
-            // Shift up button pressed
-            handleButtonsClicked([CycplusBc2Buttons.shiftUp]);
-            break;
-          case 0x02:
-            // Shift down button pressed
-            handleButtonsClicked([CycplusBc2Buttons.shiftDown]);
-            break;
-          case 0x00:
-            // Button released
-            handleButtonsClicked([]);
-            break;
-          default:
-            // Unknown button code - log for debugging
-            actionStreamInternal.add(
-              LogNotification('CYCPLUS BC2: Unknown button code: 0x${buttonCode.toRadixString(16)}'),
-            );
-            break;
+        // Process index 6 (shift up)
+        final currentByte6 = bytes[6];
+        if (_shouldTriggerShift(currentByte6, _lastStateIndex6)) {
+          buttonsToPress.add(CycplusBc2Buttons.shiftUp);
+          _lastStateIndex6 = 0x00; // Reset after successful press
+        } else {
+          _updateState(currentByte6, (val) => _lastStateIndex6 = val);
         }
+
+        // Process index 7 (shift down)
+        final currentByte7 = bytes[7];
+        if (_shouldTriggerShift(currentByte7, _lastStateIndex7)) {
+          buttonsToPress.add(CycplusBc2Buttons.shiftDown);
+          _lastStateIndex7 = 0x00; // Reset after successful press
+        } else {
+          _updateState(currentByte7, (val) => _lastStateIndex7 = val);
+        }
+
+        handleButtonsClicked(buttonsToPress);
+      } else {
+        actionStreamInternal.add(
+          LogNotification(
+            'CYCPLUS BC2 received unexpected packet: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join()}',
+          ),
+        );
+        handleButtonsClicked([]);
       }
     }
     return Future.value();
+  }
+
+  // Check if we should trigger a shift based on current and last state
+  bool _shouldTriggerShift(int currentByte, int lastByte) {
+    const pressedValues = {0x01, 0x02, 0x03};
+
+    // State change from one pressed value to another different pressed value
+    // This is the ONLY time we trigger a shift
+    if (pressedValues.contains(currentByte) && pressedValues.contains(lastByte) && currentByte != lastByte) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Update state tracking
+  void _updateState(int currentByte, void Function(int) setState) {
+    const pressedValues = {0x01, 0x02, 0x03};
+    const releaseValue = 0x00;
+
+    // Button released: current is 0x00 and last was pressed
+    if (currentByte == releaseValue) {
+      setState(releaseValue);
+    }
+    // Lock the new pressed state
+    else if (pressedValues.contains(currentByte)) {
+      setState(currentByte);
+    }
   }
 }
 
