@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dartx/dartx.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_windows/shared_preferences_windows.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:window_manager/window_manager.dart';
@@ -13,7 +17,7 @@ import '../keymap/apps/custom_app.dart';
 class Settings {
   late final SharedPreferences prefs;
 
-  Future<void> init() async {
+  Future<String?> init({bool retried = false}) async {
     try {
       prefs = await SharedPreferences.getInstance();
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
@@ -25,9 +29,28 @@ class Settings {
 
       final app = getKeyMap();
       actionHandler.init(app);
-    } catch (e) {
-      // couldn't decode, reset
-      await reset();
+      return null;
+    } catch (e, s) {
+      if (!retried) {
+        if (Platform.isWindows) {
+          // delete settings file
+          final fs = SharedPreferencesWindows.instance.fs;
+
+          final pathProvider = PathProviderWindows();
+          final String? directory = await pathProvider.getApplicationSupportPath();
+          if (directory == null) {
+            return null;
+          }
+          final String fileLocation = path.join(directory, 'shared_preferences.json');
+          final file = fs.file(fileLocation);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        }
+        return init(retried: true);
+      } else {
+        return '$e\n$s';
+      }
     }
   }
 
@@ -193,7 +216,7 @@ class Settings {
   Future<void> addIgnoredDevice(String deviceId, String deviceName) async {
     final ids = _getIgnoredDeviceIds();
     final names = _getIgnoredDeviceNames();
-    
+
     if (!ids.contains(deviceId)) {
       ids.add(deviceId);
       names.add(deviceName);
@@ -205,7 +228,7 @@ class Settings {
   Future<void> removeIgnoredDevice(String deviceId) async {
     final ids = _getIgnoredDeviceIds();
     final names = _getIgnoredDeviceNames();
-    
+
     final index = ids.indexOf(deviceId);
     if (index != -1) {
       ids.removeAt(index);
@@ -218,7 +241,7 @@ class Settings {
   List<({String id, String name})> getIgnoredDevices() {
     final ids = _getIgnoredDeviceIds();
     final names = _getIgnoredDeviceNames();
-    
+
     final result = <({String id, String name})>[];
     for (int i = 0; i < ids.length && i < names.length; i++) {
       result.add((id: ids[i], name: names[i]));
