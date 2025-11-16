@@ -36,7 +36,7 @@ class CycplusBc2 extends BluetoothDevice {
     if (characteristic.toLowerCase() == CycplusBc2Constants.TX_CHARACTERISTIC_UUID.toLowerCase()) {
       if (bytes.length > 7) {
         final buttonsToPress = <ControllerButton>[];
-        
+
         // Process index 6 (shift up)
         final currentByte6 = bytes[6];
         if (_shouldTriggerShift(currentByte6, _lastStateIndex6)) {
@@ -45,7 +45,7 @@ class CycplusBc2 extends BluetoothDevice {
         } else {
           _updateState(currentByte6, (val) => _lastStateIndex6 = val);
         }
-        
+
         // Process index 7 (shift down)
         final currentByte7 = bytes[7];
         if (_shouldTriggerShift(currentByte7, _lastStateIndex7)) {
@@ -54,16 +54,15 @@ class CycplusBc2 extends BluetoothDevice {
         } else {
           _updateState(currentByte7, (val) => _lastStateIndex7 = val);
         }
-        
-        if (buttonsToPress.isNotEmpty) {
-          handleButtonsClicked(buttonsToPress);
-        }
+
+        handleButtonsClicked(buttonsToPress);
       } else {
         actionStreamInternal.add(
           LogNotification(
             'CYCPLUS BC2 received unexpected packet: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join()}',
           ),
         );
+        handleButtonsClicked([]);
       }
     }
     return Future.value();
@@ -72,15 +71,13 @@ class CycplusBc2 extends BluetoothDevice {
   // Check if we should trigger a shift based on current and last state
   bool _shouldTriggerShift(int currentByte, int lastByte) {
     const pressedValues = {0x01, 0x02, 0x03};
-    
+
     // State change from one pressed value to another different pressed value
     // This is the ONLY time we trigger a shift
-    if (pressedValues.contains(currentByte) && 
-        pressedValues.contains(lastByte) && 
-        currentByte != lastByte) {
+    if (pressedValues.contains(currentByte) && pressedValues.contains(lastByte) && currentByte != lastByte) {
       return true;
     }
-    
+
     return false;
   }
 
@@ -88,7 +85,7 @@ class CycplusBc2 extends BluetoothDevice {
   void _updateState(int currentByte, void Function(int) setState) {
     const pressedValues = {0x01, 0x02, 0x03};
     const releaseValue = 0x00;
-    
+
     // Button released: current is 0x00 and last was pressed
     if (currentByte == releaseValue) {
       setState(releaseValue);
