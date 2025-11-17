@@ -56,7 +56,9 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     super.initState();
 
     // keep screen on - this is required for iOS to keep the bluetooth connection alive
-    WakelockPlus.enable();
+    if (!screenshotMode) {
+      WakelockPlus.enable();
+    }
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -3,6 +3,8 @@ import 'package:file/local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
@@ -13,13 +15,22 @@ import 'package:test_screenshot/test_screenshot.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {
-  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  PackageInfo.setMockInitialValues(
+    appName: 'SwiftControl',
+    packageName: 'de.jonasbark.swiftcontrol',
+    version: '3.5.0',
+    buildNumber: '1',
+    buildSignature: '',
+  );
+  SharedPreferences.setMockInitialValues({});
 
   group('Screenshot Tests', () {
     testWidgets('Requirements', (WidgetTester tester) async {
+      await tester.loadFonts();
       // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-      binding.window.physicalSizeTestValue = const Size(1280, 800);
-      binding.window.devicePixelRatioTestValue = 1.0;
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1;
 
       await settings.init();
       await settings.reset();
@@ -29,24 +40,17 @@ void main() {
           child: SwiftPlayApp(),
         ),
       );
+      await tester.pumpAndSettle();
 
-      const wait = 3;
-
-      try {
-        await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
-      } catch (e) {
-        // Ignore timeout errors
-      }
       await _takeScreenshot(tester, 'screenshot.png');
 
       // Reset
-      binding.window.clearPhysicalSizeTestValue();
-      binding.window.clearDevicePixelRatioTestValue();
     });
     testWidgets('Device', (WidgetTester tester) async {
+      await tester.loadFonts();
       // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-      binding.window.physicalSizeTestValue = const Size(1280, 800);
-      binding.window.devicePixelRatioTestValue = 1.0;
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1;
 
       screenshotMode = true;
 
@@ -82,7 +86,7 @@ void main() {
         ),
       );
 
-      const wait = 3;
+      const wait = 1;
 
       try {
         await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
@@ -92,8 +96,6 @@ void main() {
 
       await _takeScreenshot(tester, 'device.png');
       // Reset
-      binding.window.clearPhysicalSizeTestValue();
-      binding.window.clearDevicePixelRatioTestValue();
     });
   });
 }

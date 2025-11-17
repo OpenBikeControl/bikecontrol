@@ -454,7 +454,7 @@ class _KeyWidget extends StatelessWidget {
           child: Text(
             label.splitByUpperCase(),
             style: TextStyle(
-              fontFamily: 'monospace',
+              fontFamily: screenshotMode ? null : 'monospace',
               fontSize: 12,
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),

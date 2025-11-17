@@ -66,7 +66,9 @@ class BluetoothTurnedOn extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    final currentState = await UniversalBle.getBluetoothAvailabilityState();
+    final currentState = screenshotMode
+        ? AvailabilityState.poweredOn
+        : await UniversalBle.getBluetoothAvailabilityState();
     status = currentState == AvailabilityState.poweredOn || screenshotMode;
   }
 }

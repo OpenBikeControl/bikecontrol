@@ -36,7 +36,7 @@ class ZwiftEmulator {
   bool get isAdvertising => _isAdvertising;
   bool get isLoading => _isLoading;
 
-  final peripheralManager = PeripheralManager();
+  late final _peripheralManager = PeripheralManager();
   bool _isAdvertising = false;
   bool _isLoading = false;
   bool _isServiceAdded = false;
@@ -45,8 +45,8 @@ class ZwiftEmulator {
   GATTCharacteristic? _asyncCharacteristic;
 
   Future<void> reconnect() async {
-    await peripheralManager.stopAdvertising();
-    await peripheralManager.removeAllServices();
+    await _peripheralManager.stopAdvertising();
+    await _peripheralManager.removeAllServices();
     _isServiceAdded = false;
     _isAdvertising = false;
     startAdvertising(() {});
@@ -56,13 +56,13 @@ class ZwiftEmulator {
     _isLoading = true;
     onUpdate();
 
-    peripheralManager.stateChanged.forEach((state) {
+    _peripheralManager.stateChanged.forEach((state) {
       print('Peripheral manager state: ${state.state}');
     });
 
     if (!kIsWeb && Platform.isAndroid) {
       if (Platform.isAndroid) {
-        peripheralManager.connectionStateChanged.forEach((state) {
+        _peripheralManager.connectionStateChanged.forEach((state) {
           print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
           if (state.state == ConnectionState.connected) {
           } else if (state.state == ConnectionState.disconnected) {
@@ -82,7 +82,7 @@ class ZwiftEmulator {
       }
     }
 
-    while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
+    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
       print('Waiting for peripheral manager to be powered on...');
       if (settings.getLastTarget() == Target.thisDevice) {
         return;
@@ -116,7 +116,7 @@ class ZwiftEmulator {
 
       if (!_isSubscribedToEvents) {
         _isSubscribedToEvents = true;
-        peripheralManager.characteristicReadRequested.forEach((eventArgs) async {
+        _peripheralManager.characteristicReadRequested.forEach((eventArgs) async {
           print('Read request for characteristic: ${eventArgs.characteristic.uuid}');
 
           switch (eventArgs.characteristic.uuid.toString().toUpperCase()) {
@@ -124,7 +124,7 @@ class ZwiftEmulator {
               print('Handling read request for SYNC TX characteristic');
               break;
             case BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL:
-              await peripheralManager.respondReadRequestWithValue(
+              await _peripheralManager.respondReadRequestWithValue(
                 eventArgs.request,
                 value: Uint8List.fromList([100]),
               );
@@ -135,19 +135,19 @@ class ZwiftEmulator {
 
           final request = eventArgs.request;
           final trimmedValue = Uint8List.fromList([]);
-          await peripheralManager.respondReadRequestWithValue(
+          await _peripheralManager.respondReadRequestWithValue(
             request,
             value: trimmedValue,
           );
           // You can respond to read requests here if needed
         });
 
-        peripheralManager.characteristicNotifyStateChanged.forEach((char) {
+        _peripheralManager.characteristicNotifyStateChanged.forEach((char) {
           print(
             'Notify state changed for characteristic: ${char.characteristic.uuid}: ${char.state}',
           );
         });
-        peripheralManager.characteristicWriteRequested.forEach((eventArgs) async {
+        _peripheralManager.characteristicWriteRequested.forEach((eventArgs) async {
           _central = eventArgs.central;
           isConnected.value = true;
 
@@ -169,7 +169,7 @@ class ZwiftEmulator {
 
               if (value.contentEquals(handshake) || value.contentEquals(handshakeAlternative)) {
                 print('Sending handshake');
-                await peripheralManager.notifyCharacteristic(
+                await _peripheralManager.notifyCharacteristic(
                   _central!,
                   syncTxCharacteristic,
                   value: ZwiftConstants.RIDE_ON,
@@ -181,12 +181,12 @@ class ZwiftEmulator {
               print('Unhandled write request for characteristic: ${eventArgs.characteristic.uuid}');
           }
 
-          await peripheralManager.respondWriteRequest(request);
+          await _peripheralManager.respondWriteRequest(request);
         });
       }
 
       // Device Information
-      await peripheralManager.addService(
+      await _peripheralManager.addService(
         GATTService(
           uuid: UUID.fromString('180A'),
           isPrimary: true,
@@ -217,7 +217,7 @@ class ZwiftEmulator {
       );
 
       // Battery Service
-      await peripheralManager.addService(
+      await _peripheralManager.addService(
         GATTService(
           uuid: UUID.fromString('180F'),
           isPrimary: true,
@@ -239,7 +239,7 @@ class ZwiftEmulator {
       );
 
       // Unknown Service
-      await peripheralManager.addService(
+      await _peripheralManager.addService(
         GATTService(
           uuid: UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT),
           isPrimary: true,
@@ -298,14 +298,14 @@ class ZwiftEmulator {
     );
     print('Starting advertising with Zwift service...');
 
-    await peripheralManager.startAdvertising(advertisement);
+    await _peripheralManager.startAdvertising(advertisement);
     _isAdvertising = true;
     _isLoading = false;
     onUpdate();
   }
 
   Future<void> stopAdvertising() async {
-    await peripheralManager.stopAdvertising();
+    await _peripheralManager.stopAdvertising();
     _isAdvertising = false;
     _isLoading = false;
   }
@@ -340,10 +340,10 @@ class ZwiftEmulator {
       ...bytes,
     ]);
 
-    peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: commandProto);
+    _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: commandProto);
 
     final zero = Uint8List.fromList([0x23, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
-    peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
+    _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
     return 'Sent action: ${inGameAction.name}';
   }
 }

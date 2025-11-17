@@ -168,8 +168,8 @@ jobs:
       - name: Generate screenshots for App Stores
         if: inputs.build_github
         run: |
-          flutter --no-color test --machine --start-paused --plain-name Requirements -d macos integration_test/screenshot_test.dart
-          zip -r SwiftControl.storeassets.zip ~/Library/Containers/de.jonasbark.swiftcontrol.darwin/Data/screenshots
+          flutter test test/screenshot_test.dart
+          zip -r SwiftControl.storeassets.zip screenshots
           echo "Screenshots generated successfully"
 
       - name: 🚀 Shorebird Release iOS
@@ -259,7 +259,7 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            ~/Library/Containers/de.jonasbark.swiftcontrol.darwin/Data/screenshots/screenshot.png
+            screenshots/screenshot.png
             build/SwiftControl.storeassets.zip
 
         #10 Extract Version
