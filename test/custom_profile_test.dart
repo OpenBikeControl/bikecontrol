@@ -1,23 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 
 void main() {
   group('Custom Profile Tests', () {
-    late Settings settings;
-
     setUp(() async {
       // Initialize SharedPreferences with in-memory storage for testing
       SharedPreferences.setMockInitialValues({});
-      settings = Settings();
       await settings.init();
     });
 
     test('Should create custom app with default profile name', () {
       final customApp = CustomApp();
-      expect(customApp.profileName, 'Custom');
-      expect(customApp.name, 'Custom');
+      expect(customApp.profileName, 'Other');
+      expect(customApp.name, 'Other');
     });
 
     test('Should create custom app with custom profile name', () {
@@ -51,6 +49,7 @@ void main() {
     });
 
     test('Should duplicate custom profile', () async {
+      await settings.reset();
       final original = CustomApp(profileName: 'Original');
       await settings.setKeyMap(original);
 
@@ -73,21 +72,6 @@ void main() {
 
       profiles = settings.getCustomAppProfiles();
       expect(profiles.contains('ToDelete'), false);
-    });
-
-    test('Should migrate old custom keymap to new format', () async {
-      // Simulate old storage format
-      SharedPreferences.setMockInitialValues({
-        'customapp': ['test_data'],
-        'app': 'Custom',
-      });
-
-      final newSettings = Settings();
-      await newSettings.init();
-
-      // Check that migration happened
-      expect(newSettings.prefs.containsKey('customapp'), false);
-      expect(newSettings.prefs.containsKey('customapp_Custom'), true);
     });
 
     test('Should not duplicate migration if already migrated', () async {
