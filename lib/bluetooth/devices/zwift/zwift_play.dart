@@ -29,6 +29,9 @@ class ZwiftPlay extends ZwiftDevice {
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_PLAY;
 
   @override
+  bool get canVibrate => true;
+
+  @override
   List<ControllerButton> processClickNotification(Uint8List message) {
     final status = PlayKeyPadStatus.fromBuffer(message);
 

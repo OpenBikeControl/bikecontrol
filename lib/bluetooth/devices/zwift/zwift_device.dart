@@ -4,8 +4,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -22,6 +20,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   String get latestFirmwareVersion;
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK;
   String get customServiceId => ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID;
+  bool get canVibrate => false;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -159,7 +158,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
         settings.getVibrationEnabled() &&
-        (this is ZwiftPlay || this is ZwiftRide)) {
+        canVibrate) {
       await _vibrate();
     }
     return super.performClick(buttonsClicked);

@@ -1,8 +1,6 @@
 import 'dart:ui';
 
 import 'package:keypress_simulator/keypress_simulator.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -23,11 +21,10 @@ class DesktopActions extends BaseActions {
       return ('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     }
 
-    // Handle regular key press mode (existing behavior)
-    if (keyPair.inGameAction != null && whooshLink.isConnected.value) {
-      return whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
-    } else if (keyPair.inGameAction != null && zwiftEmulator.isConnected.value) {
-      return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+    final directConnectHandled = await handleDirectConnect(keyPair);
+
+    if (directConnectHandled != null) {
+      return directConnectHandled;
     } else if (keyPair.physicalKey != null) {
       if (isKeyDown && isKeyUp) {
         await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);

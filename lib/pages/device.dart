@@ -6,6 +6,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
@@ -187,7 +188,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final canVibrate = connection.bluetoothDevices.any(
-      (device) => (device.device.name == 'Zwift Ride' || device.device.name == 'Zwift Play') && device.isConnected,
+      (device) => device.isConnected && device is ZwiftDevice && device.canVibrate,
     );
 
     final paddingMultiplicator = actionHandler is DesktopActions ? 2.5 : 1.0;

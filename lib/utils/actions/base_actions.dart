@@ -6,6 +6,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
@@ -94,6 +95,17 @@ abstract class BaseActions {
   }
 
   Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false});
+
+  Future<String>? handleDirectConnect(KeyPair keyPair) {
+    if (keyPair.inGameAction != null) {
+      if (whooshLink.isConnected.value) {
+        return Future.value(whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
+      } else if (zwiftEmulator.isConnected.value) {
+        return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+      }
+    }
+    return null;
+  }
 }
 
 class StubActions extends BaseActions {
