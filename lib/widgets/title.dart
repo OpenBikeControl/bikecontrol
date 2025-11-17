@@ -50,7 +50,9 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _checkForUpdate() async {
-    if (updater.isAvailable) {
+    if (screenshotMode) {
+      return;
+    } else if (updater.isAvailable) {
       final updateStatus = await updater.checkForUpdate();
       if (updateStatus == UpdateStatus.outdated) {
         updater

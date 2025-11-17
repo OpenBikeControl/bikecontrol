@@ -1,3 +1,5 @@
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -35,8 +37,8 @@ void main() {
       } catch (e) {
         // Ignore timeout errors
       }
+      await _takeScreenshot(tester, 'screenshot.png');
 
-      await tester.screenshot(path: 'screenshot.png');
       // Reset
       binding.window.clearPhysicalSizeTestValue();
       binding.window.clearDevicePixelRatioTestValue();
@@ -74,7 +76,7 @@ void main() {
             title: 'SwiftControl',
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.system,
+            themeMode: ThemeMode.light,
             home: const DevicePage(),
           ),
         ),
@@ -88,10 +90,21 @@ void main() {
         // Ignore timeout errors
       }
 
-      await tester.screenshot(path: 'device.png');
+      await _takeScreenshot(tester, 'device.png');
       // Reset
       binding.window.clearPhysicalSizeTestValue();
       binding.window.clearDevicePixelRatioTestValue();
     });
   });
+}
+
+Future<void> _takeScreenshot(WidgetTester tester, String path) async {
+  const FileSystem fs = LocalFileSystem();
+  final file = fs.file('screenshots/$path');
+  await fs.directory('screenshots').create();
+  print('File path: ${file.absolute.path}');
+
+  await tester.screenshot(path: 'screenshots/$path');
+  final decodedImage = await decodeImageFromList(file.readAsBytesSync());
+  print(decodedImage);
 }
