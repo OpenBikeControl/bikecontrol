@@ -259,7 +259,7 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            screenshots/screenshot.png
+            screenshots/device-GitHub-600x900.png
             build/SwiftControl.storeassets.zip
 
         #10 Extract Version

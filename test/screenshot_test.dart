@@ -26,78 +26,91 @@ void main() {
   SharedPreferences.setMockInitialValues({});
 
   group('Screenshot Tests', () {
+    final List<(String type, Size size)> sizes = [('macOS', Size(1280, 800)), ('GitHub', Size(600, 900))];
+
     testWidgets('Requirements', (WidgetTester tester) async {
       await tester.loadFonts();
-      // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-      tester.view.physicalSize = const Size(1280, 800);
-      tester.view.devicePixelRatio = 1;
-
-      await settings.init();
-      await settings.reset();
-      screenshotMode = true;
-      await tester.pumpWidget(
-        Screenshotter(
-          child: SwiftPlayApp(),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await _takeScreenshot(tester, 'screenshot.png');
+      for (final size in sizes) {
+        await _createRequirementScreenshot(tester, size);
+      }
 
       // Reset
     });
     testWidgets('Device', (WidgetTester tester) async {
       await tester.loadFonts();
-      // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-      tester.view.physicalSize = const Size(1280, 800);
-      tester.view.devicePixelRatio = 1;
-
-      screenshotMode = true;
-
-      await settings.init();
-      await settings.reset();
-      settings.setTrainerApp(MyWhoosh());
-      settings.setKeyMap(MyWhoosh());
-      settings.setLastTarget(Target.thisDevice);
-
-      connection.addDevices([
-        ZwiftRide(
-            BleDevice(
-              name: 'Controller',
-              deviceId: '00:11:22:33:44:55',
-            ),
-          )
-          ..firmwareVersion = '1.2.0'
-          ..rssi = -51
-          ..batteryLevel = 81,
-      ]);
-
-      await tester.pumpWidget(
-        Screenshotter(
-          child: MaterialApp(
-            navigatorKey: navigatorKey,
-            debugShowCheckedModeBanner: false,
-            title: 'SwiftControl',
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.light,
-            home: const DevicePage(),
-          ),
-        ),
-      );
-
-      const wait = 1;
-
-      try {
-        await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
-      } catch (e) {
-        // Ignore timeout errors
+      for (final size in sizes) {
+        await _createDeviceScreenshot(tester, size);
       }
-
-      await _takeScreenshot(tester, 'device.png');
-      // Reset
     });
   });
+}
+
+Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size size) spec) async {
+  // Set phone screen size (typical Android phone - 1140x2616 to match existing)
+  tester.view.physicalSize = spec.$2;
+  tester.view.devicePixelRatio = 1;
+
+  screenshotMode = true;
+
+  await settings.init();
+  await settings.reset();
+  settings.setTrainerApp(MyWhoosh());
+  settings.setKeyMap(MyWhoosh());
+  settings.setLastTarget(Target.thisDevice);
+
+  connection.addDevices([
+    ZwiftRide(
+        BleDevice(
+          name: 'Controller',
+          deviceId: '00:11:22:33:44:55',
+        ),
+      )
+      ..firmwareVersion = '1.2.0'
+      ..rssi = -51
+      ..batteryLevel = 81,
+  ]);
+
+  await tester.pumpWidget(
+    Screenshotter(
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        title: 'SwiftControl',
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.light,
+        home: const DevicePage(),
+      ),
+    ),
+  );
+
+  const wait = 1;
+
+  try {
+    await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
+  } catch (e) {
+    // Ignore timeout errors
+  }
+
+  await _takeScreenshot(tester, 'device-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png');
+}
+
+Future<void> _createRequirementScreenshot(WidgetTester tester, (String type, Size size) spec) async {
+  // Set phone screen size (typical Android phone - 1140x2616 to match existing)
+  tester.view.physicalSize = spec.$2;
+  tester.view.devicePixelRatio = 1;
+
+  await settings.init();
+  await settings.reset();
+  screenshotMode = true;
+  await tester.pumpWidget(
+    Screenshotter(
+      child: SwiftPlayApp(),
+    ),
+  );
+  await tester.pumpAndSettle();
+
+  await _takeScreenshot(tester, 'screenshot-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png');
 }
 
 Future<void> _takeScreenshot(WidgetTester tester, String path) async {
