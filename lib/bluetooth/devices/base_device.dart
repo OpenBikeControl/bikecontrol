@@ -39,6 +39,16 @@ abstract class BaseDevice {
   Future<void> connect();
 
   Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked) async {
+    try {
+      await _handleButtonsClickedInternal(buttonsClicked);
+    } catch (e, st) {
+      actionStreamInternal.add(
+        LogNotification('Error handling button clicks: $e\n$st'),
+      );
+    }
+  }
+
+  Future<void> _handleButtonsClickedInternal(List<ControllerButton>? buttonsClicked) async {
     if (buttonsClicked == null) {
       // ignore, no changes
     } else if (buttonsClicked.isEmpty) {

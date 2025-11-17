@@ -4,15 +4,15 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../pages/device.dart';
 import 'ignored_devices_dialog.dart';
 
 List<Widget> buildMenuButtons() {
@@ -143,10 +143,8 @@ class MenuButton extends StatelessWidget {
                         child: Text(e.name),
                         onTap: () {
                           Future.delayed(Duration(seconds: 2)).then((_) {
-                            connection.signalNotification(
-                              ButtonNotification(buttonsClicked: [e]),
-                            );
                             connection.devices.firstOrNull?.handleButtonsClicked([e]);
+                            connection.devices.firstOrNull?.handleButtonsClicked([]);
                           });
                         },
                       ),
@@ -158,7 +156,18 @@ class MenuButton extends StatelessWidget {
           PopupMenuItem(
             child: Text('Continue'),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
+              //Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
+              connection.addDevices([
+                ZwiftClick(
+                    BleDevice(
+                      name: 'Controller',
+                      deviceId: '00:11:22:33:44:55',
+                    ),
+                  )
+                  ..firmwareVersion = '1.2.0'
+                  ..rssi = -51
+                  ..batteryLevel = 81,
+              ]);
             },
           ),
           PopupMenuItem(

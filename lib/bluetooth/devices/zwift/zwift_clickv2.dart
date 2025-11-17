@@ -31,6 +31,9 @@ class ZwiftClickV2 extends ZwiftRide {
   String get latestFirmwareVersion => '1.1.0';
 
   @override
+  bool get canVibrate => false;
+
+  @override
   Future<void> setupHandshake() async {
     super.setupHandshake();
     await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));

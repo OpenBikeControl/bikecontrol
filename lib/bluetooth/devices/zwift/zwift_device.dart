@@ -20,6 +20,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   String get latestFirmwareVersion;
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK;
   String get customServiceId => ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID;
+  bool get canVibrate => false;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -156,7 +157,8 @@ abstract class ZwiftDevice extends BluetoothDevice {
   @override
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
-        settings.getVibrationEnabled()) {
+        settings.getVibrationEnabled() &&
+        canVibrate) {
       await _vibrate();
     }
     return super.performClick(buttonsClicked);

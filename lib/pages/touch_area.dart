@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
@@ -396,7 +396,8 @@ class KeypairExplanation extends StatelessWidget {
         else
           Icon(keyPair.icon),
         if (keyPair.inGameAction != null &&
-            ((settings.getTrainerApp() is MyWhoosh && settings.getMyWhooshLinkEnabled()) ||
+            ((whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
+                    settings.getMyWhooshLinkEnabled()) ||
                 (settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled())))
           _KeyWidget(
             label: [
