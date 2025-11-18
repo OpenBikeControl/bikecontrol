@@ -23,15 +23,15 @@ class Rouvy extends SupportedApp {
             KeyPair(
               buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
               inGameAction: InGameAction.shiftDown,
-              physicalKey: null,
-              logicalKey: null,
+              physicalKey: PhysicalKeyboardKey.comma,
+              logicalKey: LogicalKeyboardKey.comma,
               touchPosition: Offset(94, 80),
             ),
             KeyPair(
               buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
               inGameAction: InGameAction.shiftUp,
-              physicalKey: null,
-              logicalKey: null,
+              physicalKey: PhysicalKeyboardKey.period,
+              logicalKey: LogicalKeyboardKey.period,
               touchPosition: Offset(94, 72),
             ),
             // like escape

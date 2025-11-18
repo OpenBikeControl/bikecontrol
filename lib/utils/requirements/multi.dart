@@ -7,7 +7,6 @@ import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
-import 'package:swift_control/utils/keymap/apps/rouvy.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -230,25 +229,7 @@ class TargetRequirement extends PlatformRequirement {
                 return DropdownMenuEntry(
                   value: app,
                   label: app.name,
-                  labelWidget: app is Rouvy
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(app.name),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Make sure you\'ve enabled the "On-screen virtual shifting" in the Rouvy settings.',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                                  ),
-                                ),
-                                Icon(Icons.warning_amber),
-                              ],
-                            ),
-                          ],
-                        )
-                      : app is Zwift && !(Platform.isWindows || Platform.isAndroid)
+                  labelWidget: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
