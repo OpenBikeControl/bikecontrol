@@ -1,7 +1,7 @@
-## Click device cannot be found
+## Click / Ride device cannot be found
 You may need to update the firmware in Zwift Companion app.
 
-## Click device does not send any data
+## Click / Ride device does not send any data
 You may need to update the firmware in Zwift Companion app.
 
 ## My Click v2 disconnects after a minute
