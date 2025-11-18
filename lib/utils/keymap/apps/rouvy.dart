@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
@@ -13,21 +16,23 @@ class Rouvy extends SupportedApp {
         name: 'Rouvy',
         packageName: "eu.virtualtraining.rouvy.android",
         compatibleTargets: Target.values,
-        supportsZwiftEmulation: true,
+        supportsZwiftEmulation: !kIsWeb && Platform.isAndroid,
         keymap: Keymap(
           keyPairs: [
             // https://support.rouvy.com/hc/de/articles/32452137189393-Virtuelles-Schalten#h_01K5GMVG4KVYZ0Y6W7RBRZC9MA
             KeyPair(
               buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
               inGameAction: InGameAction.shiftDown,
-              physicalKey: PhysicalKeyboardKey.numpadSubtract,
-              logicalKey: LogicalKeyboardKey.numpadSubtract,
+              physicalKey: null,
+              logicalKey: null,
+              touchPosition: Offset(94, 80),
             ),
             KeyPair(
               buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
               inGameAction: InGameAction.shiftUp,
-              physicalKey: PhysicalKeyboardKey.numpadAdd,
-              logicalKey: LogicalKeyboardKey.numpadAdd,
+              physicalKey: null,
+              logicalKey: null,
+              touchPosition: Offset(94, 72),
             ),
             // like escape
             KeyPair(

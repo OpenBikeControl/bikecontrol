@@ -1,3 +1,7 @@
+### 3.5.1 (unreleased)
+**Fixes:**
+- Update Rouvy keymap to support virtual shifting in their latest version 
+
 ### 3.5.0 (16-11-2025)
 **New Features:**
 - Dark mode support
