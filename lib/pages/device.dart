@@ -56,7 +56,9 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     super.initState();
 
     // keep screen on - this is required for iOS to keep the bluetooth connection alive
-    WakelockPlus.enable();
+    if (!screenshotMode) {
+      WakelockPlus.enable();
+    }
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -402,7 +404,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: Text(
-                          'Customize ${settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
+                          'Customize ${screenshotMode ? 'Trainer app' : settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -430,7 +432,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                         ..._getAllApps().map(
                                           (app) => DropdownMenuEntry<SupportedApp>(
                                             value: app,
-                                            label: app.name,
+                                            label: screenshotMode ? 'Trainer app' : app.name,
                                             labelWidget: Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [

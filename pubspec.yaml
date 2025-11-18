@@ -57,7 +57,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
 
+  test_screenshot: 0.0.8
   flutter_lints: ^6.0.0
   msix: ^3.16.12
 

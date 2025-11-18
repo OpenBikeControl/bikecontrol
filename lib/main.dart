@@ -20,7 +20,7 @@ late BaseActions actionHandler;
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final settings = Settings();
 final whooshLink = WhooshLink();
-const screenshotMode = false;
+var screenshotMode = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

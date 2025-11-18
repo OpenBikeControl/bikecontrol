@@ -50,7 +50,9 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _checkForUpdate() async {
-    if (updater.isAvailable) {
+    if (screenshotMode) {
+      return;
+    } else if (updater.isAvailable) {
       final updateStatus = await updater.checkForUpdate();
       if (updateStatus == UpdateStatus.outdated) {
         updater
@@ -146,7 +148,9 @@ class _AppTitleState extends State<AppTitle> {
         if (packageInfoValue != null)
           Text(
             'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
-            style: TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
+            style: screenshotMode
+                ? TextStyle(fontSize: 12)
+                : TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
           )
         else
           SmallProgressIndicator(),

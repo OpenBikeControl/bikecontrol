@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
@@ -32,7 +33,7 @@ class ButtonWidget extends StatelessWidget {
               : Text(
                   button.name.splitByUpperCase(),
                   style: TextStyle(
-                    fontFamily: 'monospace',
+                    fontFamily: screenshotMode ? null : 'monospace',
                     fontSize: big && button.color != null ? 20 : 12,
                     fontWeight: button.color != null ? FontWeight.bold : null,
                     color: button.color != null ? Colors.white : Theme.of(context).colorScheme.onPrimaryContainer,

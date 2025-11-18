@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
+import 'package:swift_control/main.dart';
 
 class ChangelogDialog extends StatelessWidget {
   final Markdown entry;
@@ -41,7 +42,7 @@ class ChangelogDialog extends StatelessWidget {
 
   static Future<void> showIfNeeded(BuildContext context, String currentVersion, String? lastSeenVersion) async {
     // Show dialog if this is a new version
-    if (lastSeenVersion != currentVersion) {
+    if (lastSeenVersion != currentVersion && !screenshotMode) {
       try {
         final entry = await rootBundle.loadString('CHANGELOG.md');
         if (context.mounted) {
