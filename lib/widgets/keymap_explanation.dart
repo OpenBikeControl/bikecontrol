@@ -12,6 +12,7 @@ import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
+import 'package:swift_control/widgets/predefined_action_selector.dart';
 
 import '../bluetooth/devices/link/link.dart';
 import '../pages/touch_area.dart';
@@ -246,6 +247,30 @@ class _ButtonEditor extends StatelessWidget {
             ),
           ),
         ),
+      PopupMenuItem<PhysicalKeyboardKey>(
+        value: null,
+        child: ListTile(
+          leading: Icon(Icons.file_copy_outlined),
+          title: const Text('Use predefined action'),
+        ),
+        onTap: () async {
+          final selectedKeyPair = await showDialog<KeyPair>(
+            context: context,
+            builder: (c) => PredefinedActionSelectorDialog(),
+          );
+          if (selectedKeyPair != null) {
+            // Copy all properties from the selected predefined action
+            keyPair.physicalKey = selectedKeyPair.physicalKey;
+            keyPair.logicalKey = selectedKeyPair.logicalKey;
+            keyPair.modifiers = List.from(selectedKeyPair.modifiers);
+            keyPair.touchPosition = selectedKeyPair.touchPosition;
+            keyPair.isLongPress = selectedKeyPair.isLongPress;
+            keyPair.inGameAction = selectedKeyPair.inGameAction;
+            keyPair.inGameActionValue = selectedKeyPair.inGameActionValue;
+            onUpdate();
+          }
+        },
+      ),
       if (actionHandler.supportedModes.contains(SupportedMode.keyboard))
         PopupMenuItem<PhysicalKeyboardKey>(
           value: null,
