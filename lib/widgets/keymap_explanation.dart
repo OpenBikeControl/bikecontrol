@@ -12,7 +12,6 @@ import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
-import 'package:swift_control/widgets/predefined_action_selector.dart';
 
 import '../bluetooth/devices/link/link.dart';
 import '../pages/touch_area.dart';
@@ -247,30 +246,46 @@ class _ButtonEditor extends StatelessWidget {
             ),
           ),
         ),
-      PopupMenuItem<PhysicalKeyboardKey>(
-        value: null,
-        child: ListTile(
-          leading: Icon(Icons.file_copy_outlined),
-          title: const Text('Use predefined action'),
+      if (settings.getTrainerApp() != null && settings.getTrainerApp() is! CustomApp)
+        PopupMenuItem<PhysicalKeyboardKey>(
+          child: PopupMenuButton(
+            itemBuilder: (_) {
+              // Get actions from the current trainer app's keymap that have inGameAction
+              final trainerApp = settings.getTrainerApp()!;
+              final actionsWithInGameAction = trainerApp.keymap.keyPairs
+                  .where((kp) => kp.inGameAction != null)
+                  .toList();
+              
+              return actionsWithInGameAction.map((keyPairAction) {
+                return PopupMenuItem(
+                  child: Text(_formatActionDescription(keyPairAction)),
+                  onTap: () {
+                    // Copy all properties from the selected predefined action
+                    keyPair.physicalKey = keyPairAction.physicalKey;
+                    keyPair.logicalKey = keyPairAction.logicalKey;
+                    keyPair.modifiers = List.from(keyPairAction.modifiers);
+                    keyPair.touchPosition = keyPairAction.touchPosition;
+                    keyPair.isLongPress = keyPairAction.isLongPress;
+                    keyPair.inGameAction = keyPairAction.inGameAction;
+                    keyPair.inGameActionValue = keyPairAction.inGameActionValue;
+                    onUpdate();
+                  },
+                );
+              }).toList();
+            },
+            child: SizedBox(
+              height: 52,
+              child: Row(
+                spacing: 14,
+                children: [
+                  Icon(Icons.file_copy_outlined),
+                  Expanded(child: Text('${settings.getTrainerApp()?.name} action')),
+                  Icon(Icons.arrow_right),
+                ],
+              ),
+            ),
+          ),
         ),
-        onTap: () async {
-          final selectedKeyPair = await showDialog<KeyPair>(
-            context: context,
-            builder: (c) => PredefinedActionSelectorDialog(),
-          );
-          if (selectedKeyPair != null) {
-            // Copy all properties from the selected predefined action
-            keyPair.physicalKey = selectedKeyPair.physicalKey;
-            keyPair.logicalKey = selectedKeyPair.logicalKey;
-            keyPair.modifiers = List.from(selectedKeyPair.modifiers);
-            keyPair.touchPosition = selectedKeyPair.touchPosition;
-            keyPair.isLongPress = selectedKeyPair.isLongPress;
-            keyPair.inGameAction = selectedKeyPair.inGameAction;
-            keyPair.inGameActionValue = selectedKeyPair.inGameActionValue;
-            onUpdate();
-          }
-        },
-      ),
       if (actionHandler.supportedModes.contains(SupportedMode.keyboard))
         PopupMenuItem<PhysicalKeyboardKey>(
           value: null,
@@ -461,6 +476,31 @@ class _ButtonEditor extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatActionDescription(KeyPair keyPairAction) {
+    final parts = <String>[];
+    
+    if (keyPairAction.inGameAction != null) {
+      parts.add(keyPairAction.inGameAction!.toString());
+      if (keyPairAction.inGameActionValue != null) {
+        parts.add('(${keyPairAction.inGameActionValue})');
+      }
+    }
+    
+    if (keyPairAction.physicalKey != null || keyPairAction.logicalKey != null) {
+      parts.add('Key: ${keyPairAction.toString()}');
+    }
+    
+    if (keyPairAction.touchPosition != Offset.zero) {
+      parts.add('Touch: (${keyPairAction.touchPosition.dx.toStringAsFixed(1)}, ${keyPairAction.touchPosition.dy.toStringAsFixed(1)})');
+    }
+    
+    if (keyPairAction.isLongPress) {
+      parts.add('[Long Press]');
+    }
+    
+    return parts.isNotEmpty ? parts.join(' • ') : 'Action';
   }
 }
 
