@@ -143,6 +143,7 @@ class _ButtonEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trainerApp = settings.getTrainerApp();
     final actions = <PopupMenuEntry>[
       if (settings.getMyWhooshLinkEnabled() && whooshLink.isCompatible(settings.getLastTarget()!))
         PopupMenuItem<PhysicalKeyboardKey>(
@@ -246,12 +247,11 @@ class _ButtonEditor extends StatelessWidget {
             ),
           ),
         ),
-      if (settings.getTrainerApp() != null && settings.getTrainerApp() is! CustomApp)
+      if (trainerApp != null && trainerApp is! CustomApp)
         PopupMenuItem<PhysicalKeyboardKey>(
           child: PopupMenuButton(
             itemBuilder: (_) {
               // Get actions from the current trainer app's keymap that have inGameAction
-              final trainerApp = settings.getTrainerApp()!;
               final actionsWithInGameAction = trainerApp.keymap.keyPairs
                   .where((kp) => kp.inGameAction != null)
                   .toList();
@@ -288,7 +288,7 @@ class _ButtonEditor extends StatelessWidget {
                 spacing: 14,
                 children: [
                   Icon(Icons.file_copy_outlined),
-                  Expanded(child: Text('${settings.getTrainerApp()?.name} action')),
+                  Expanded(child: Text('${trainerApp.name} action')),
                   Icon(Icons.arrow_right),
                 ],
               ),
