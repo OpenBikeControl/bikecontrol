@@ -143,6 +143,7 @@ class _ButtonEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trainerApp = settings.getTrainerApp();
     final actions = <PopupMenuEntry>[
       if (settings.getMyWhooshLinkEnabled() && whooshLink.isCompatible(settings.getLastTarget()!))
         PopupMenuItem<PhysicalKeyboardKey>(
@@ -240,6 +241,54 @@ class _ButtonEditor extends StatelessWidget {
                 children: [
                   Icon(Icons.link),
                   Expanded(child: Text('Zwift Controller Action')),
+                  Icon(Icons.arrow_right),
+                ],
+              ),
+            ),
+          ),
+        ),
+      if (trainerApp != null && trainerApp is! CustomApp)
+        PopupMenuItem<PhysicalKeyboardKey>(
+          child: PopupMenuButton(
+            itemBuilder: (_) {
+              // Get actions from the current trainer app's keymap that have inGameAction
+              final actionsWithInGameAction = trainerApp.keymap.keyPairs
+                  .where((kp) => kp.inGameAction != null)
+                  .toList();
+              
+              if (actionsWithInGameAction.isEmpty) {
+                return [
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Text('No predefined actions available'),
+                  ),
+                ];
+              }
+              
+              return actionsWithInGameAction.map((keyPairAction) {
+                return PopupMenuItem(
+                  child: Text(_formatActionDescription(keyPairAction)),
+                  onTap: () {
+                    // Copy all properties from the selected predefined action
+                    keyPair.physicalKey = keyPairAction.physicalKey;
+                    keyPair.logicalKey = keyPairAction.logicalKey;
+                    keyPair.modifiers = List.of(keyPairAction.modifiers);
+                    keyPair.touchPosition = keyPairAction.touchPosition;
+                    keyPair.isLongPress = keyPairAction.isLongPress;
+                    keyPair.inGameAction = keyPairAction.inGameAction;
+                    keyPair.inGameActionValue = keyPairAction.inGameActionValue;
+                    onUpdate();
+                  },
+                );
+              }).toList();
+            },
+            child: SizedBox(
+              height: 52,
+              child: Row(
+                spacing: 14,
+                children: [
+                  Icon(Icons.file_copy_outlined),
+                  Expanded(child: Text('${trainerApp.name} action')),
                   Icon(Icons.arrow_right),
                 ],
               ),
@@ -436,6 +485,33 @@ class _ButtonEditor extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatActionDescription(KeyPair keyPairAction) {
+    final parts = <String>[];
+    
+    if (keyPairAction.inGameAction != null) {
+      parts.add(keyPairAction.inGameAction!.toString());
+      if (keyPairAction.inGameActionValue != null) {
+        parts.add('(${keyPairAction.inGameActionValue})');
+      }
+    }
+    
+    // Use KeyPair's toString() which formats the key with modifiers (e.g., "Ctrl+Alt+R")
+    final keyLabel = keyPairAction.toString();
+    if (keyLabel != 'Not assigned') {
+      parts.add('Key: $keyLabel');
+    }
+    
+    if (keyPairAction.touchPosition != Offset.zero) {
+      parts.add('Touch: (${keyPairAction.touchPosition.dx.toStringAsFixed(1)}, ${keyPairAction.touchPosition.dy.toStringAsFixed(1)})');
+    }
+    
+    if (keyPairAction.isLongPress) {
+      parts.add('[Long Press]');
+    }
+    
+    return parts.isNotEmpty ? parts.join(' • ') : 'Action';
   }
 }
 
