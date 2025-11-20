@@ -263,7 +263,7 @@ class _ButtonEditor extends StatelessWidget {
                     // Copy all properties from the selected predefined action
                     keyPair.physicalKey = keyPairAction.physicalKey;
                     keyPair.logicalKey = keyPairAction.logicalKey;
-                    keyPair.modifiers = List.from(keyPairAction.modifiers);
+                    keyPair.modifiers = List.of(keyPairAction.modifiers);
                     keyPair.touchPosition = keyPairAction.touchPosition;
                     keyPair.isLongPress = keyPairAction.isLongPress;
                     keyPair.inGameAction = keyPairAction.inGameAction;
@@ -489,7 +489,11 @@ class _ButtonEditor extends StatelessWidget {
     }
     
     if (keyPairAction.physicalKey != null || keyPairAction.logicalKey != null) {
-      parts.add('Key: ${keyPairAction.toString()}');
+      // Use KeyPair's toString() which formats the key with modifiers (e.g., "Ctrl+Alt+R")
+      final keyLabel = keyPairAction.toString();
+      if (keyLabel != 'Not assigned') {
+        parts.add('Key: $keyLabel');
+      }
     }
     
     if (keyPairAction.touchPosition != Offset.zero) {
