@@ -255,7 +255,7 @@ class _ButtonEditor extends StatelessWidget {
               final actionsWithInGameAction = trainerApp.keymap.keyPairs
                   .where((kp) => kp.inGameAction != null)
                   .toList();
-              
+
               if (actionsWithInGameAction.isEmpty) {
                 return [
                   PopupMenuItem(
@@ -264,10 +264,20 @@ class _ButtonEditor extends StatelessWidget {
                   ),
                 ];
               }
-              
+
               return actionsWithInGameAction.map((keyPairAction) {
                 return PopupMenuItem(
-                  child: Text(_formatActionDescription(keyPairAction)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(_formatActionDescription(keyPairAction).split(' = ').first),
+                      Text(
+                        _formatActionDescription(keyPairAction).split(' = ').last,
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                   onTap: () {
                     // Copy all properties from the selected predefined action
                     keyPair.physicalKey = keyPairAction.physicalKey;
@@ -489,29 +499,31 @@ class _ButtonEditor extends StatelessWidget {
 
   String _formatActionDescription(KeyPair keyPairAction) {
     final parts = <String>[];
-    
+
     if (keyPairAction.inGameAction != null) {
       parts.add(keyPairAction.inGameAction!.toString());
       if (keyPairAction.inGameActionValue != null) {
         parts.add('(${keyPairAction.inGameActionValue})');
       }
     }
-    
+
     // Use KeyPair's toString() which formats the key with modifiers (e.g., "Ctrl+Alt+R")
     final keyLabel = keyPairAction.toString();
     if (keyLabel != 'Not assigned') {
       parts.add('Key: $keyLabel');
     }
-    
+
     if (keyPairAction.touchPosition != Offset.zero) {
-      parts.add('Touch: (${keyPairAction.touchPosition.dx.toStringAsFixed(1)}, ${keyPairAction.touchPosition.dy.toStringAsFixed(1)})');
+      parts.add(
+        'Touch: (${keyPairAction.touchPosition.dx.toStringAsFixed(1)}, ${keyPairAction.touchPosition.dy.toStringAsFixed(1)})',
+      );
     }
-    
+
     if (keyPairAction.isLongPress) {
       parts.add('[Long Press]');
     }
-    
-    return parts.isNotEmpty ? parts.join(' • ') : 'Action';
+
+    return parts.isNotEmpty ? [parts.first, ' = ', parts.skip(1).join(' • ')].join() : 'Action';
   }
 }
 
