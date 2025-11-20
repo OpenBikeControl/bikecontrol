@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
@@ -13,7 +16,9 @@ class TrainingPeaks extends SupportedApp {
     : super(
         name: 'TrainingPeaks Virtual / IndieVelo',
         packageName: "com.indieVelo.client",
-        compatibleTargets: Target.values,
+        compatibleTargets: !kIsWeb && Platform.isIOS
+            ? Target.values.filterNot((e) => e == Target.thisDevice).toList()
+            : Target.values,
         supportsZwiftEmulation: false,
         keymap: Keymap(
           keyPairs: [

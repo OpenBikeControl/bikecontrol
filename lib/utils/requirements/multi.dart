@@ -282,6 +282,7 @@ class TargetRequirement extends PlatformRequirement {
                   value: target,
                   label: target.title,
                   leadingIcon: Icon(target.icon),
+                  enabled: target.isCompatible,
                   labelWidget: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Column(
