@@ -24,7 +24,7 @@ class _PredefinedActionSelectorDialogState extends State<PredefinedActionSelecto
         .toList();
 
     return AlertDialog(
-      title: Text('Select Predefined Action'),
+      title: Text('Select predefined action'),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -38,7 +38,7 @@ class _PredefinedActionSelectorDialogState extends State<PredefinedActionSelecto
             SizedBox(height: 16),
             // App selector dropdown
             DropdownButtonFormField<SupportedApp>(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Trainer App',
                 border: OutlineInputBorder(),
               ),
@@ -94,7 +94,7 @@ class _PredefinedActionSelectorDialogState extends State<PredefinedActionSelecto
                         subtitle: keyPair.buttons.isNotEmpty
                             ? Text(
                                 'Buttons: ${keyPair.buttons.map((b) => b.name).join(', ')}',
-                                style: TextStyle(fontSize: 12),
+                                style: const TextStyle(fontSize: 12),
                               )
                             : null,
                         dense: true,
@@ -110,13 +110,13 @@ class _PredefinedActionSelectorDialogState extends State<PredefinedActionSelecto
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: _selectedKeyPair != null
               ? () => Navigator.pop(context, _selectedKeyPair)
               : null,
-          child: Text('Select'),
+          child: const Text('Select'),
         ),
       ],
     );
