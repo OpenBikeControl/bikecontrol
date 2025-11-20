@@ -1,5 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
@@ -19,7 +20,7 @@ class _PredefinedActionSelectorDialogState extends State<PredefinedActionSelecto
   Widget build(BuildContext context) {
     // Get all supported apps except CustomApp
     final availableApps = SupportedApp.supportedApps
-        .where((app) => app.runtimeType.toString() != 'CustomApp')
+        .where((app) => app is! CustomApp)
         .toList();
 
     return AlertDialog(
@@ -75,10 +76,7 @@ class _PredefinedActionSelectorDialogState extends State<PredefinedActionSelecto
                     itemBuilder: (context, index) {
                       final keyPair = _selectedApp!.keymap.keyPairs[index];
                       // Only show keypairs that have some action configured
-                      if (keyPair.physicalKey == null &&
-                          keyPair.logicalKey == null &&
-                          keyPair.touchPosition == Offset.zero &&
-                          keyPair.inGameAction == null) {
+                      if (!_hasAnyAction(keyPair)) {
                         return SizedBox.shrink();
                       }
 
@@ -122,6 +120,13 @@ class _PredefinedActionSelectorDialogState extends State<PredefinedActionSelecto
         ),
       ],
     );
+  }
+
+  bool _hasAnyAction(KeyPair keyPair) {
+    return keyPair.physicalKey != null ||
+        keyPair.logicalKey != null ||
+        keyPair.touchPosition != Offset.zero ||
+        keyPair.inGameAction != null;
   }
 
   String _getActionDescription(KeyPair keyPair) {
