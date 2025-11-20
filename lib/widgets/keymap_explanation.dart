@@ -256,6 +256,15 @@ class _ButtonEditor extends StatelessWidget {
                   .where((kp) => kp.inGameAction != null)
                   .toList();
               
+              if (actionsWithInGameAction.isEmpty) {
+                return [
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Text('No predefined actions available'),
+                  ),
+                ];
+              }
+              
               return actionsWithInGameAction.map((keyPairAction) {
                 return PopupMenuItem(
                   child: Text(_formatActionDescription(keyPairAction)),
@@ -488,12 +497,10 @@ class _ButtonEditor extends StatelessWidget {
       }
     }
     
-    if (keyPairAction.physicalKey != null || keyPairAction.logicalKey != null) {
-      // Use KeyPair's toString() which formats the key with modifiers (e.g., "Ctrl+Alt+R")
-      final keyLabel = keyPairAction.toString();
-      if (keyLabel != 'Not assigned') {
-        parts.add('Key: $keyLabel');
-      }
+    // Use KeyPair's toString() which formats the key with modifiers (e.g., "Ctrl+Alt+R")
+    final keyLabel = keyPairAction.toString();
+    if (keyLabel != 'Not assigned') {
+      parts.add('Key: $keyLabel');
     }
     
     if (keyPairAction.touchPosition != Offset.zero) {
