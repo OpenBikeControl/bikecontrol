@@ -50,12 +50,12 @@ class ZwiftClickV2 extends ZwiftRide {
           Warning(
             children: [
               Text(
-                '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that SwiftControl will need to reconnect every minute.
+                '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that BikeControl will need to reconnect every minute.
 
 1. Open Zwift app
 2. Log in (subscription not required) and open the device connection screen
 3. Connect your Trainer, then connect the Zwift Click V2
-4. Close the Zwift app again and connect again in SwiftControl''',
+4. Close the Zwift app again and connect again in BikeControl''',
               ),
               Row(
                 children: [

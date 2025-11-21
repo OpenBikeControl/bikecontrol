@@ -23,7 +23,7 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'SwiftControl needs to use Android\'s AccessibilityService API to function properly.',
+                'BikeControl needs to use Android\'s AccessibilityService API to function properly.',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
@@ -34,16 +34,16 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
               Text('• To enable you to control apps like MyWhoosh, IndieVelo, and others using your Zwift devices'),
               SizedBox(height: 16),
               Text(
-                'How does SwiftControl use this permission?',
+                'How does BikeControl use this permission?',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 8),
-              Text('• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, SwiftControl simulates touch gestures at specific screen locations'),
+              Text('• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, BikeControl simulates touch gestures at specific screen locations'),
               Text('• The app monitors which training app window is active to ensure gestures are sent to the correct app'),
               Text('• No personal data is accessed or collected through this service'),
               SizedBox(height: 16),
               Text(
-                'SwiftControl will only access your screen to perform the gestures you configure. No other accessibility features or personal information will be accessed.',
+                'BikeControl will only access your screen to perform the gestures you configure. No other accessibility features or personal information will be accessed.',
                 style: TextStyle(fontStyle: FontStyle.italic),
               ),
               SizedBox(height: 16),

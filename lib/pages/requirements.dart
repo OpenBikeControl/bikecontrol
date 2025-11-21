@@ -79,7 +79,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Welcome to SwiftControl!', style: Theme.of(context).textTheme.titleMedium),
+                    Text('Welcome to BikeControl!', style: Theme.of(context).textTheme.titleMedium),
                     Container(
                       constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 140),
 
