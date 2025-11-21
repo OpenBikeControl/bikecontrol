@@ -68,7 +68,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                           subtitle: Text(
-                            'Enable this option to allow Swift Control to detect bluetooth remotes. In order to do so SwiftControl needs to act as a media player.',
+                            'Enable this option to allow BikeControl to detect bluetooth remotes. In order to do so BikeControl needs to act as a media player.',
                           ),
                           title: Row(
                             children: [

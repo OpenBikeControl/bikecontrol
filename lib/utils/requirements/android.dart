@@ -14,7 +14,7 @@ class AccessibilityRequirement extends PlatformRequirement {
   AccessibilityRequirement()
     : super(
         'Allow Accessibility Service',
-        description: 'SwiftControl needs accessibility permission to control your training apps.',
+        description: 'BikeControl needs accessibility permission to control your training apps.',
       );
 
   @override
@@ -130,7 +130,7 @@ class NotificationRequirement extends PlatformRequirement {
       },
     );
 
-    const String channelGroupId = 'SwiftControl';
+    const String channelGroupId = 'BikeControl';
     // create the group first
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()!
@@ -153,7 +153,7 @@ class NotificationRequirement extends PlatformRequirement {
     await AndroidFlutterLocalNotificationsPlugin().startForegroundService(
       1,
       channelGroupId,
-      'Allows SwiftControl to keep running in background',
+      'Allows BikeControl to keep running in background',
       foregroundServiceTypes: {AndroidServiceForegroundType.foregroundServiceTypeConnectedDevice},
       startType: AndroidServiceStartType.startRedeliverIntent,
       notificationDetails: AndroidNotificationDetails(

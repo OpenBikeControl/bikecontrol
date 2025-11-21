@@ -264,15 +264,15 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            'To ensure SwiftControl works properly:',
+                            'To ensure BikeControl works properly:',
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                           ),
                           Text(
-                            '• Disable battery optimization for SwiftControl',
+                            '• Disable battery optimization for BikeControl',
                             style: TextStyle(fontSize: 14),
                           ),
                           Text(
-                            '• Enable autostart for SwiftControl',
+                            '• Enable autostart for BikeControl',
                             style: TextStyle(fontSize: 14),
                           ),
                           Text(

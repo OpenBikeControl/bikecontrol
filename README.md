@@ -1,15 +1,15 @@
-# SwiftControl
+# BikeControl
 
-<img src="logo.png" alt="SwiftControl Logo"/>
+<img src="logo.png" alt="BikeControl Logo"/>
 
 ## Description
 
-With SwiftControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride, Zwift Play, or other similar devices. Here's what you can do with it, depending on your configuration:
+With BikeControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride, Zwift Play, or other similar devices. Here's what you can do with it, depending on your configuration:
 - Virtual Gear shifting
 - Steering/turning
 - adjust workout intensity
 - control music on your device
-- more? If you can do it via keyboard, mouse, or touch, you can do it with SwiftControl
+- more? If you can do it via keyboard, mouse, or touch, you can do it with BikeControl
 
 
 https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
 
 
 ## Downloads
-Best follow our landing page and the "Get Started" button: [swiftcontrol.app](https://swiftcontrol.app/) to understand on which platform you want to run SwiftControl.
+Best follow our landing page and the "Get Started" button: [swiftcontrol.app](https://swiftcontrol.app/) to understand on which platform you want to run BikeControl.
 
 <a href="https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol"><img width="270" height="80" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/a059d5a1-2efb-4f65-8117-ef6a99823b21" /></a>
 
@@ -34,7 +34,7 @@ Best follow our landing page and the "Get Started" button: [swiftcontrol.app](ht
 - Biketerra.com
 - Rouvy
 - Zwift 
-  - running SwiftControl on Android or Windows is required to act as a "Controllable" in Zwift - iOS and macOS are not able to do so
+  - running BikeControl on Android or Windows is required to act as a "Controllable" in Zwift - iOS and macOS are not able to do so
 - any other!
   - You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
 
@@ -53,14 +53,14 @@ Best follow our landing page and the "Get Started" button: [swiftcontrol.app](ht
 - Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)
   - BLE HID devices and classic Bluetooth HID devices are supported
   - works on Android
-  - on iOS and macOS requires SwiftControl to act as media player
+  - on iOS and macOS requires BikeControl to act as media player
 
 Support for other devices can be added; check the issues tab here on GitHub. 
 
 ## Supported Platforms
 
-Follow the "Get Started" button over at [swiftcontrol.app](https://swiftcontrol.app) to understand on which platform you want to run SwiftControl.
-You can even try it out in your [Browser](https://jonasbark.github.io/swiftcontrol/), if it supports Bluetooth connections. No controlling possible, though.
+Follow the "Get Started" button over at [swiftcontrol.app](https://swiftcontrol.app) to understand on which platform you want to run BikeControl.
+You can even try it out in your [Browser](https://OpenBikeControl.github.io/bikecontrol/), if it supports Bluetooth connections. No controlling possible, though.
 
 ## Troubleshooting
 Check the troubleshooting guide [here](TROUBLESHOOTING.md).
@@ -68,12 +68,12 @@ Check the troubleshooting guide [here](TROUBLESHOOTING.md).
 ## How does it work?
 The app connects to your Controller devices (such as Zwift ones) automatically. It does not connect to your trainer itself.
 
-- **Android**: SwiftControl uses the AccessibilityService API to simulate touch gestures on specific parts of your screen to trigger actions in training apps. The service monitors which training app window is currently active to ensure gestures are sent to the correct app.
-- **iOS**: use SwiftControl as a "remote control" for other devices, such as an iPad. Example scenario:
-  - your phone (Android/iOS) runs SwiftControl and connects to your Controller devices
-  - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
+- **Android**: BikeControl uses the AccessibilityService API to simulate touch gestures on specific parts of your screen to trigger actions in training apps. The service monitors which training app window is currently active to ensure gestures are sent to the correct app.
+- **iOS**: use BikeControl as a "remote control" for other devices, such as an iPad. Example scenario:
+  - your phone (Android/iOS) runs BikeControl and connects to your Controller devices
+  - your iPad or other tablet runs e.g. MyWhoosh (does not need to have BikeControl installed)
   - If you want to use MyWhoosh, you can use the Link method to connect to MyWhoosh directly
-  - For other trainer apps, you need to pair SwiftControl to your iPad / tablet via Bluetooth, and your phone will send the button presses to your iPad / tablet
+  - For other trainer apps, you need to pair BikeControl to your iPad / tablet via Bluetooth, and your phone will send the button presses to your iPad / tablet
 - **macOS** / **Windows** A keyboard or mouse click is used to trigger the action. 
   - There are predefined Keymaps for MyWhoosh, indieVelo / Training Peaks, and others
   - You can also create your own Keymaps for any other app

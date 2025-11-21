@@ -1,5 +1,5 @@
 name: swift_control
-description: "SwiftControl - Control your virtual riding"
+description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 3.5.1+41
 
@@ -77,7 +77,7 @@ flutter:
     - icon.png
 
 msix_config:
-  display_name: SwiftControl
+  display_name: BikeControl
   publisher_display_name: Jonas Bark
   identity_name: JonasBark.SwiftControl
   publisher: CN=EDA6D86E-3E52-4054-9F3A-4277AFCCB2C4

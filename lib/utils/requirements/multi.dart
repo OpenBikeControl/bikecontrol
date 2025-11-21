@@ -22,7 +22,7 @@ class KeyboardRequirement extends PlatformRequirement {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Enable keyboard access in the following screen for SwiftControl. If you don\'t see SwiftControl, please add it manually.',
+          'Enable keyboard access in the following screen for BikeControl. If you don\'t see BikeControl, please add it manually.',
         ),
       ),
     );
@@ -181,9 +181,9 @@ enum Target {
         "Select 'This device' unless you want to control another macOS device. Are you sure?",
       Target.windows when Platform.isWindows =>
         "Select 'This device' unless you want to control another Windows device. Are you sure?",
-      Target.android => "We highly recommended to download and use SwiftControl on that Android device.",
-      Target.macOS => "We highly recommended to download and use SwiftControl on that macOS device.",
-      Target.windows => "We highly recommended to download and use SwiftControl on that Windows device.",
+      Target.android => "We highly recommended to download and use BikeControl on that Android device.",
+      Target.macOS => "We highly recommended to download and use BikeControl on that macOS device.",
+      Target.windows => "We highly recommended to download and use BikeControl on that Windows device.",
       _ => null,
     };
   }
@@ -238,7 +238,7 @@ class TargetRequirement extends PlatformRequirement {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'When running SwiftControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
+                                    'When running BikeControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
                                     style: TextStyle(fontSize: 12, color: Colors.grey),
                                   ),
                                 ),

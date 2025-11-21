@@ -251,7 +251,7 @@ class RemoteRequirement extends PlatformRequirement {
 
     final advertisement = Advertisement(
       name:
-          'SwiftControl ${Platform.isIOS
+          'BikeControl ${Platform.isIOS
               ? 'iOS'
               : Platform.isAndroid
               ? 'Android'
@@ -408,7 +408,7 @@ class _PairWidgetState extends State<_PairWidget> {
               Target.iOS =>
                 'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
               _ =>
-                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for SwiftControl or your machines name. Pairing is required if you want to use the remote control feature.',
+                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
             },
           ),
         if (_isAdvertising) ...[
