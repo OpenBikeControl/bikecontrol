@@ -1,4 +1,7 @@
 ### 3.5.1 (unreleased)
+**Features:**
+- show a list of predefined keymaps for the selected trainer app when using a custom keymap
+
 **Fixes:**
 - Update Rouvy keymap to support virtual shifting in their latest version 
 
