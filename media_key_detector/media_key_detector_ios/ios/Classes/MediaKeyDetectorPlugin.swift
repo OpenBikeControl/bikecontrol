@@ -50,8 +50,8 @@ public class MediaKeyDetectorPlugin: NSObject, FlutterPlugin {
 
         // 2) Seed Now Playing info
         var info: [String: Any] = [
-            MPMediaItemPropertyTitle: "SwiftControl",
-            MPMediaItemPropertyArtist: "SwiftControl",
+            MPMediaItemPropertyTitle: "BikeControl",
+            MPMediaItemPropertyArtist: "BikeControl",
             MPNowPlayingInfoPropertyElapsedPlaybackTime: 0,
             MPMediaItemPropertyPlaybackDuration: 1337,        // nonzero duration helps
             MPNowPlayingInfoPropertyPlaybackRate: 1         // paused

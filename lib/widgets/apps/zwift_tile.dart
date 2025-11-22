@@ -48,7 +48,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
                       child: Text(
                         isConnected
                             ? "Connected"
-                            : "Waiting for connection. Choose SwiftControl in ${settings.getTrainerApp()?.name}'s controller pairing menu.",
+                            : "Waiting for connection. Choose BikeControl in ${settings.getTrainerApp()?.name}'s controller pairing menu.",
                       ),
                     ),
                     if (!isConnected) SmallProgressIndicator(),

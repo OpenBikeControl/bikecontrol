@@ -1,11 +1,11 @@
 {
-    "name": "SwiftControl",
-    "short_name": "SwiftControl",
+    "name": "BikeControl",
+    "short_name": "BikeControl",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
-    "description": "SwiftControl - Control your virtual riding",
+    "description": "BikeControl - Control your virtual riding",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

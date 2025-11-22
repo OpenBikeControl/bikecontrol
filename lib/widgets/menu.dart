@@ -85,7 +85,7 @@ List<Widget> buildMenuButtons() {
           PopupMenuItem(
             child: Text('Provide Feedback'),
             onTap: () {
-              launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
+              launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
             },
           ),
           if (!kIsWeb)
@@ -96,7 +96,7 @@ List<Widget> buildMenuButtons() {
                 final suffix = isFromStore ? '' : '-sw';
 
                 String email = Uri.encodeComponent('jonas$suffix@swiftcontrol.app');
-                String subject = Uri.encodeComponent("Help requested for SwiftControl v${packageInfoValue?.version}");
+                String subject = Uri.encodeComponent("Help requested for BikeControl v${packageInfoValue?.version}");
                 String body = Uri.encodeComponent("""
                 
                 

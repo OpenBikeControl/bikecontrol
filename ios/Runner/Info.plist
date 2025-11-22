@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>SwiftControl</string>
+	<string>BikeControl</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -29,7 +29,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>SwiftControl uses Bluetooth to connect to accessories.</string>
+	<string>BikeControl uses Bluetooth to connect to accessories.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>This app connects to your trainer app on your local network.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

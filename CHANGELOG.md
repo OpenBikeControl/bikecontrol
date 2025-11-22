@@ -23,7 +23,7 @@
 
 **Fixes:**
 - fix detection of Elite Square Sterzo devices
-- recognize cheap Bluetooth device clicks also when SwiftControl is in the background
+- recognize cheap Bluetooth device clicks also when BikeControl is in the background
 
 ### 3.3.0 (31-10-2025)
 
@@ -45,7 +45,7 @@
 ### 3.2.0 (2025-10-22)
 - a brand-new way of controlling MyWhoosh:
   - device pairing no longer required as mouse emulation is no longer needed  
-  - SwiftControl can now stay in the background
+  - BikeControl can now stay in the background
   - more devices can be controlled
   - do more, such as define Emotes, Camera angles and steering
 
@@ -55,16 +55,16 @@
 - support for Wahook Kickr Bike Shift (thanks @MattW2)
 - initial support for Elite Square Smart Frame
 - reconnects to your device automatically when connection is lost
-- SwiftControl now warns you if your device firmware is outdated
-- SwiftControl is now available in Microsoft Store: https://apps.microsoft.com/detail/9NP42GS03Z26
+- BikeControl now warns you if your device firmware is outdated
+- BikeControl is now available in Microsoft Store: https://apps.microsoft.com/detail/9NP42GS03Z26
 
 ### 3.0.3 (2025-10-12)
-- SwiftControl now supports iOS!
-  - Note that you can't run SwiftControl and your trainer app on the same iPhone due to iOS limitations but...:
-- You can now use SwiftControl as "remote control" for other devices, such as an iPad. Example scenario:
-    - your phone (Android/iOS) runs SwiftControl and connects to your Click devices
-    - your iPad or other tablet runs e.g. MyWhoosh (does not need to have SwiftControl installed)
-    - after pairing SwiftControl to your iPad / tablet via Bluetooth your phone will send the button presses to your iPad / tablet
+- BikeControl now supports iOS!
+  - Note that you can't run BikeControl and your trainer app on the same iPhone due to iOS limitations but...:
+- You can now use BikeControl as "remote control" for other devices, such as an iPad. Example scenario:
+    - your phone (Android/iOS) runs BikeControl and connects to your Click devices
+    - your iPad or other tablet runs e.g. MyWhoosh (does not need to have BikeControl installed)
+    - after pairing BikeControl to your iPad / tablet via Bluetooth your phone will send the button presses to your iPad / tablet
 - Ride: analog paddles are now supported thanks to contributor @jmoro
 - you can now zoom in and out in the Keymap customization screen
 
@@ -84,8 +84,8 @@
 
 ### 2.5.0 (2025-09-25)
 - Improve usability
-- SwiftControl is now available via the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol
-  - SwiftControl will continue to be available to download for free on GitHub
+- BikeControl is now available via the Play Store: https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol
+  - BikeControl will continue to be available to download for free on GitHub
   - contact me if you already donated and I'll get a voucher for you :)
 
 ### 2.4.0+1 (2025-09-17)

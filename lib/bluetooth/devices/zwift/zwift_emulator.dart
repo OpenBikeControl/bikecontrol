@@ -193,7 +193,7 @@ class ZwiftEmulator {
           characteristics: [
             GATTCharacteristic.immutable(
               uuid: UUID.fromString('2A29'),
-              value: Uint8List.fromList('SwiftControl'.codeUnits),
+              value: Uint8List.fromList('BikeControl'.codeUnits),
               descriptors: [],
             ),
             GATTCharacteristic.immutable(
@@ -284,7 +284,7 @@ class ZwiftEmulator {
     }
 
     final advertisement = Advertisement(
-      name: 'SwiftControl',
+      name: 'BikeControl',
       serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
       serviceData: {
         UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),
