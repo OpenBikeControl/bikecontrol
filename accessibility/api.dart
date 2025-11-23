@@ -10,6 +10,8 @@ abstract class Accessibility {
 
   void controlMedia(MediaAction action);
 
+  bool isRunning();
+
   void ignoreHidDevices();
 }
 

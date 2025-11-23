@@ -95,7 +95,7 @@ class ZwiftClickV2 extends ZwiftRide {
                     },
                     child: Text('Troubleshooting'),
                   ),
-                  if (kDebugMode)
+                  if (kDebugMode && false)
                     TextButton(
                       onPressed: () {
                         test();

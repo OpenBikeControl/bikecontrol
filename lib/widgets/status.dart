@@ -1,9 +1,14 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class StatusWidget extends StatefulWidget {
   const StatusWidget({super.key});
@@ -13,6 +18,20 @@ class StatusWidget extends StatefulWidget {
 }
 
 class _StatusWidgetState extends State<StatusWidget> {
+  bool? _isRunningAndroidService = null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb && Platform.isAndroid) {
+      (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
+        setState(() {
+          _isRunningAndroidService = isRunning;
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -32,7 +51,11 @@ class _StatusWidgetState extends State<StatusWidget> {
             if (whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
                 settings.getMyWhooshLinkEnabled())
               _Status(
-                color: whooshLink.isConnected.value ? Colors.green : Colors.red,
+                color: whooshLink.isConnected.value
+                    ? Colors.green
+                    : Platform.isAndroid
+                    ? Colors.yellow
+                    : Colors.red,
                 text: 'MyWhoosh Direct Connect ${whooshLink.isConnected.value ? "connected" : "not connected"}',
               ),
 
@@ -46,6 +69,38 @@ class _StatusWidgetState extends State<StatusWidget> {
                 color: zwiftEmulator.isConnected.value ? Colors.green : Colors.red,
                 text: 'Zwift Emulation ${zwiftEmulator.isConnected.value ? "connected" : "not connected"}',
               ),
+            if (_isRunningAndroidService != null)
+              _Status(
+                color: _isRunningAndroidService! ? Colors.green : Colors.red,
+                text: 'Accessibility service is ${_isRunningAndroidService! ? 'available' : 'not available'}',
+                trailing: !_isRunningAndroidService!
+                    ? Row(
+                        spacing: 8,
+                        children: [
+                          Text('Follow instructions at'),
+                          Expanded(
+                            child: TextButton(
+                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size(0, 0)),
+                              child: Text('https://dontkillmyapp.com/'),
+                              onPressed: () {
+                                launchUrlString('https://dontkillmyapp.com/');
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
+                                setState(() {
+                                  _isRunningAndroidService = isRunning;
+                                });
+                              });
+                            },
+                            icon: Icon(Icons.refresh),
+                          ),
+                        ],
+                      )
+                    : null,
+              ),
           ],
         ),
       ),
@@ -56,15 +111,26 @@ class _StatusWidgetState extends State<StatusWidget> {
 class _Status extends StatelessWidget {
   final Color color;
   final String text;
-  const _Status({super.key, required this.color, required this.text});
+  final Widget? trailing;
+  const _Status({super.key, required this.color, required this.text, this.trailing});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Icon(Icons.circle, color: color, size: 16),
-        const SizedBox(width: 8),
-        Text(text),
+        Row(
+          children: [
+            Icon(Icons.circle, color: color, size: 16),
+            const SizedBox(width: 8),
+            Text(text),
+          ],
+        ),
+        if (trailing != null) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 16 + 8.0),
+            child: trailing!,
+          ),
+        ],
       ],
     );
   }

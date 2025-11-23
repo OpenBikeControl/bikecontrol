@@ -235,6 +235,9 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                           SizedBox(height: 8),
                           TextButton(
                             onPressed: () {
+                              setState(() {
+                                _showNameChangeWarning = false;
+                              });
                               launchUrlString('https://openbikecontrol.org');
                             },
                             child: Text('More information'),
@@ -243,6 +246,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                       ),
                     if (_showAutoRotationWarning)
                       Warning(
+                        important: false,
                         children: [
                           Text('Enable auto-rotation on your device to make sure the app works correctly.'),
                         ],

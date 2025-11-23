@@ -8,7 +8,7 @@ class Warning extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 6),
+      margin: EdgeInsets.all(4),
       width: double.infinity,
       decoration: BoxDecoration(
         color: important

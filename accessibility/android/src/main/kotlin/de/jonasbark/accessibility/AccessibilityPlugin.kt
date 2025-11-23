@@ -51,6 +51,10 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
     return enabledServices != null && enabledServices.contains(context.packageName)
   }
 
+  override fun isRunning(): Boolean {
+    return Observable.toService != null
+  }
+
   override fun openPermissions() {
     startActivity(context, Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
       flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

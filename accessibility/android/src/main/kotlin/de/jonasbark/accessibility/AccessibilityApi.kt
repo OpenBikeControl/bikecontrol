@@ -168,6 +168,7 @@ interface Accessibility {
   fun openPermissions()
   fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean)
   fun controlMedia(action: MediaAction)
+  fun isRunning(): Boolean
   fun ignoreHidDevices()
 
   companion object {
@@ -240,6 +241,21 @@ interface Accessibility {
             val wrapped: List<Any?> = try {
               api.controlMedia(actionArg)
               listOf(null)
+            } catch (exception: Throwable) {
+              AccessibilityApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.accessibility.Accessibility.isRunning$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.isRunning())
             } catch (exception: Throwable) {
               AccessibilityApiPigeonUtils.wrapError(exception)
             }
