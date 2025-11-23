@@ -10,6 +10,7 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/title.dart';
@@ -310,7 +311,7 @@ class ZwiftEmulator {
     _isLoading = false;
   }
 
-  Future<String> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
+  Future<ActionResult> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
     final button = switch (inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
@@ -326,7 +327,7 @@ class ZwiftEmulator {
     };
 
     if (button == null) {
-      return 'Action ${inGameAction.name} not supported by Zwift Emulator';
+      return Error('Action ${inGameAction.name} not supported by Zwift Emulator');
     }
 
     final status = RideKeyPadStatus()
@@ -344,7 +345,7 @@ class ZwiftEmulator {
 
     final zero = Uint8List.fromList([0x23, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
     _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
-    return 'Sent action: ${inGameAction.name}';
+    return Success('Sent action: ${inGameAction.name}');
   }
 }
 

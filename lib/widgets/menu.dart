@@ -143,8 +143,12 @@ class MenuButton extends StatelessWidget {
                         child: Text(e.name),
                         onTap: () {
                           Future.delayed(Duration(seconds: 2)).then((_) {
-                            connection.devices.firstOrNull?.handleButtonsClicked([e]);
-                            connection.devices.firstOrNull?.handleButtonsClicked([]);
+                            if (connection.devices.isNotEmpty) {
+                              connection.devices.firstOrNull?.handleButtonsClicked([e]);
+                              connection.devices.firstOrNull?.handleButtonsClicked([]);
+                            } else {
+                              actionHandler.performAction(e);
+                            }
                           });
                         },
                       ),

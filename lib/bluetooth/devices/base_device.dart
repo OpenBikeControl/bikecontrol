@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 
 import '../../utils/keymap/buttons.dart';
@@ -103,24 +104,27 @@ abstract class BaseDevice {
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
       // For repeated actions, don't trigger key down/up events (useful for long press)
+      final result = await actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
       actionStreamInternal.add(
-        LogNotification(await actionHandler.performAction(action, isKeyDown: true, isKeyUp: false)),
+        ActionNotification(result),
       );
     }
   }
 
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
+      final result = await actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
       actionStreamInternal.add(
-        LogNotification(await actionHandler.performAction(action, isKeyDown: true, isKeyUp: true)),
+        ActionNotification(result),
       );
     }
   }
 
   Future<void> performRelease(List<ControllerButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
+      final result = await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
       actionStreamInternal.add(
-        LogNotification(await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true)),
+        ActionNotification(result),
       );
     }
   }

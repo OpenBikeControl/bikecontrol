@@ -1,4 +1,5 @@
 import 'package:dartx/dartx.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
@@ -45,4 +46,15 @@ class ButtonNotification extends BaseNotification {
 
   @override
   int get hashCode => buttonsClicked.hashCode;
+}
+
+class ActionNotification extends BaseNotification {
+  final ActionResult result;
+
+  ActionNotification(this.result);
+
+  @override
+  String toString() {
+    return result.message;
+  }
 }

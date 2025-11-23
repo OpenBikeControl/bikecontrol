@@ -11,14 +11,14 @@ class DesktopActions extends BaseActions {
   // Track keys that are currently held down in long press mode
 
   @override
-  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
-      return ('Supported app is not set');
+      return Error('Supported app is not set');
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair == null) {
-      return ('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
+      return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     }
 
     final directConnectHandled = await handleDirectConnect(keyPair);
@@ -29,13 +29,13 @@ class DesktopActions extends BaseActions {
       if (isKeyDown && isKeyUp) {
         await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
         await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
-        return 'Key clicked: $keyPair';
+        return Success('Key clicked: $keyPair');
       } else if (isKeyDown) {
         await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
-        return 'Key pressed: $keyPair';
+        return Success('Key pressed: $keyPair');
       } else {
         await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
-        return 'Key released: $keyPair';
+        return Success('Key released: $keyPair');
       }
     } else {
       final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: null);
@@ -44,16 +44,16 @@ class DesktopActions extends BaseActions {
           await keyPressSimulator.simulateMouseClickDown(point);
           // slight move to register clicks on some apps, see issue #116
           await keyPressSimulator.simulateMouseClickUp(point);
-          return 'Mouse clicked at: ${point.dx.toInt()} ${point.dy.toInt()}';
+          return Success('Mouse clicked at: ${point.dx.toInt()} ${point.dy.toInt()}');
         } else if (isKeyDown) {
           await keyPressSimulator.simulateMouseClickDown(point);
-          return 'Mouse down at: ${point.dx.toInt()} ${point.dy.toInt()}';
+          return Success('Mouse down at: ${point.dx.toInt()} ${point.dy.toInt()}');
         } else {
           await keyPressSimulator.simulateMouseClickUp(point);
-          return 'Mouse up at: ${point.dx.toInt()} ${point.dy.toInt()}';
+          return Success('Mouse up at: ${point.dx.toInt()} ${point.dy.toInt()}');
         }
       } else {
-        return 'No action assigned';
+        return Error('No action assigned for ${action.toString().splitByUpperCase()}');
       }
     }
   }

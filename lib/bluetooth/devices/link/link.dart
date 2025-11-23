@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
@@ -90,7 +91,7 @@ class WhooshLink {
     );
   }
 
-  String sendAction(InGameAction action, int? value) {
+  ActionResult sendAction(InGameAction action, int? value) {
     final jsonObject = switch (action) {
       InGameAction.shiftUp => {
         'MessageType': 'Controls',
@@ -145,9 +146,9 @@ class WhooshLink {
     if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
       _socket?.writeln(jsonString);
-      return 'Sent action to MyWhoosh: $action ${value ?? ''}';
+      return Success('Sent action to MyWhoosh: $action ${value ?? ''}');
     } else {
-      return 'No action available for button: $action';
+      return Error('No action available for button: $action');
     }
   }
 

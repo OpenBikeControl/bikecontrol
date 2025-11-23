@@ -17,14 +17,14 @@ class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch]});
 
   @override
-  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
-      return 'Supported app is not set';
+      return Error('Supported app is not set');
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair == null) {
-      return 'Keymap entry not found for action: ${action.toString().splitByUpperCase()}';
+      return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     }
 
     final directConnectHandled = await handleDirectConnect(keyPair);
@@ -32,11 +32,11 @@ class RemoteActions extends BaseActions {
     if (directConnectHandled != null) {
       return directConnectHandled;
     } else if (!(actionHandler as RemoteActions).isConnected) {
-      return 'Not connected to a ${settings.getLastTarget()?.name ?? 'remote'} device';
+      return Error('Not connected to a ${settings.getLastTarget()?.name ?? 'remote'} device');
     }
 
     if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {
-      return ('Physical key actions are not supported, yet');
+      return Error('Physical key actions are not supported, yet');
     } else {
       final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: null);
       final point2 = point; //Offset(100, 99.0);
@@ -44,7 +44,7 @@ class RemoteActions extends BaseActions {
       await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
       await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
 
-      return 'Mouse clicked at: ${point2.dx.toInt()} ${point2.dy.toInt()}';
+      return Success('Mouse clicked at: ${point2.dx.toInt()} ${point2.dy.toInt()}');
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/actions/base_actions.dart' as actions;
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/button_widget.dart';
@@ -54,7 +55,9 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   final List<_TouchSample> _history = <_TouchSample>[];
 
   // ----- Keyboard tracking -----
+  // ----- Keyboard tracking -----
   final List<_KeySample> _keys = <_KeySample>[];
+  final List<_ActionSample> _actions = <_ActionSample>[];
 
   // Focus to receive key events without stealing focus from inputs.
   late final FocusNode _focusNode;
@@ -104,6 +107,17 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
           }
         }
         setState(() {});
+      } else if (data is ActionNotification) {
+        final sample = _ActionSample(
+          text: data.result.message,
+          timestamp: DateTime.now(),
+          isError: data.result is actions.Error,
+        );
+        _actions.insert(0, sample);
+        if (_actions.length > widget.maxKeyboardEvents) {
+          _actions.removeLast();
+        }
+        setState(() {});
       }
     });
 
@@ -112,6 +126,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
       final now = DateTime.now();
       _history.removeWhere((s) => now.difference(s.timestamp) > widget.touchRevealDuration);
       _keys.removeWhere((k) => now.difference(k.timestamp) > widget.keyboardRevealDuration);
+      _actions.removeWhere((k) => now.difference(k.timestamp) > widget.keyboardRevealDuration);
 
       if (mounted) setState(() {});
     })..start();
@@ -230,6 +245,19 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
                 child: IgnorePointer(
                   child: _KeyboardOverlay(
                     items: _keys,
+                    duration: widget.keyboardRevealDuration,
+                    badgeColor: widget.keyboardBadgeColor,
+                    textStyle: widget.keyboardTextStyle,
+                  ),
+                ),
+              ),
+            if (widget.showKeyboard)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: IgnorePointer(
+                  child: _ActionOverlay(
+                    items: _actions,
                     duration: widget.keyboardRevealDuration,
                     badgeColor: widget.keyboardBadgeColor,
                     textStyle: widget.keyboardTextStyle,
@@ -386,6 +414,87 @@ class _KeyboardToast extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
           child: item.button != null ? ButtonWidget(button: item.button!) : Text(item.text, style: textStyle),
+        ),
+      ),
+    );
+  }
+}
+
+// ===== Action overlay =====
+
+class _ActionSample {
+  _ActionSample({required this.text, required this.timestamp, required this.isError});
+  final String text;
+  final DateTime timestamp;
+  final bool isError;
+}
+
+class _ActionOverlay extends StatelessWidget {
+  const _ActionOverlay({
+    super.key,
+    required this.items,
+    required this.duration,
+    required this.badgeColor,
+    required this.textStyle,
+  });
+
+  final List<_ActionSample> items;
+  final Duration duration;
+  final Color badgeColor;
+  final TextStyle textStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        for (final item in items)
+          _ActionToast(
+            item: item,
+            age: now.difference(item.timestamp),
+            duration: duration,
+            badgeColor: badgeColor,
+            textStyle: textStyle,
+          ),
+      ],
+    );
+  }
+}
+
+class _ActionToast extends StatelessWidget {
+  const _ActionToast({
+    required this.item,
+    required this.age,
+    required this.duration,
+    required this.badgeColor,
+    required this.textStyle,
+  });
+
+  final _ActionSample item;
+  final Duration age;
+  final Duration duration;
+  final Color badgeColor;
+  final TextStyle textStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = (age.inMilliseconds / duration.inMilliseconds.clamp(1, 1 << 30)).clamp(0.0, 1.0);
+    final fade = 1.0 - t;
+
+    return Material(
+      color: Colors.transparent,
+      child: Opacity(
+        opacity: fade,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: item.isError ? Colors.red.withOpacity(0.8) : badgeColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(item.text, style: textStyle),
         ),
       ),
     );

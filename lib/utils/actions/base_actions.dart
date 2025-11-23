@@ -17,6 +17,19 @@ import '../keymap/apps/supported_app.dart';
 
 enum SupportedMode { keyboard, touch, media }
 
+sealed class ActionResult {
+  final String message;
+  const ActionResult(this.message);
+}
+
+class Success extends ActionResult {
+  const Success(super.message);
+}
+
+class Error extends ActionResult {
+  const Error(super.message);
+}
+
 abstract class BaseActions {
   final List<SupportedMode> supportedModes;
 
@@ -94,9 +107,9 @@ abstract class BaseActions {
     return Offset.zero;
   }
 
-  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false});
+  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false});
 
-  Future<String>? handleDirectConnect(KeyPair keyPair) {
+  Future<ActionResult>? handleDirectConnect(KeyPair keyPair) {
     if (keyPair.inGameAction != null) {
       if (whooshLink.isConnected.value) {
         return Future.value(whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
@@ -114,8 +127,8 @@ class StubActions extends BaseActions {
   final List<ControllerButton> performedActions = [];
 
   @override
-  Future<String> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
+  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
     performedActions.add(action);
-    return Future.value(action.name);
+    return Future.value(Success(action.name));
   }
 }

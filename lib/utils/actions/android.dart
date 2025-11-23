@@ -44,15 +44,15 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<String> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
     if (supportedApp == null) {
-      return ("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
+      return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(button);
 
     if (keyPair == null) {
-      return ("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
+      return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
     }
 
     final directConnectHandled = await handleDirectConnect(keyPair);
@@ -67,7 +67,7 @@ class AndroidActions extends BaseActions {
         PhysicalKeyboardKey.audioVolumeDown => MediaAction.volumeDown,
         _ => throw SingleLineException("No action for key: ${keyPair.physicalKey}"),
       });
-      return "Key pressed: ${keyPair.toString()}";
+      return Success("Key pressed: ${keyPair.toString()}");
     }
 
     final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: windowInfo);
@@ -75,15 +75,17 @@ class AndroidActions extends BaseActions {
       try {
         await accessibilityHandler.performTouch(point.dx, point.dy, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
       } on PlatformException catch (e) {
-        return "Accessibility Service not working. Follow instructions at https://dontkillmyapp.com/";
+        return Error("Accessibility Service not working. Follow instructions at https://dontkillmyapp.com/");
       }
-      return "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()} -> ${isKeyDown && isKeyUp
-          ? "click"
-          : isKeyDown
-          ? "down"
-          : "up"}";
+      return Success(
+        "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()} -> ${isKeyDown && isKeyUp
+            ? "click"
+            : isKeyDown
+            ? "down"
+            : "up"}",
+      );
     }
-    return "No action assigned";
+    return Error('No action assigned for ${button.toString().splitByUpperCase()}');
   }
 
   void ignoreHidDevices() {
