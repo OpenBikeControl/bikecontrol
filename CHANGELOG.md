@@ -4,6 +4,7 @@ SwiftControl is now called BikeControl!
 
 **Features:**
 - show a list of predefined keymaps for the selected trainer app when using a custom keymap
+- status icons so it's clear what's missing
 
 **Fixes:**
 - Update Rouvy keymap to support virtual shifting in their latest version 
