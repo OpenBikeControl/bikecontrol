@@ -23,7 +23,7 @@ class _StatusWidgetState extends State<StatusWidget> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb && Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid && actionHandler is AndroidActions) {
       (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
         setState(() {
           _isRunningAndroidService = isRunning;
@@ -34,6 +34,8 @@ class _StatusWidgetState extends State<StatusWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isRemote = actionHandler is RemoteActions && isAdvertisingPeripheral;
+    final isZwift = settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -59,15 +61,20 @@ class _StatusWidgetState extends State<StatusWidget> {
                 text: 'MyWhoosh Direct Connect ${whooshLink.isConnected.value ? "connected" : "not connected"}',
               ),
 
-            if (actionHandler is RemoteActions && isAdvertisingPeripheral)
+            if (isRemote)
               _Status(
                 color: (actionHandler as RemoteActions).isConnected ? Colors.green : Colors.red,
                 text: 'Remote ${(actionHandler as RemoteActions).isConnected ? "connected" : "not connected"}',
               ),
-            if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
+            if (isZwift)
               _Status(
                 color: zwiftEmulator.isConnected.value ? Colors.green : Colors.red,
                 text: 'Zwift Emulation ${zwiftEmulator.isConnected.value ? "connected" : "not connected"}',
+              ),
+            if (!isRemote && !isZwift)
+              _Status(
+                color: Colors.red,
+                text: 'Not connected to a remote device',
               ),
             if (_isRunningAndroidService != null)
               _Status(
@@ -89,7 +96,9 @@ class _StatusWidgetState extends State<StatusWidget> {
                           ),
                           IconButton(
                             onPressed: () {
-                              (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
+                              (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((
+                                isRunning,
+                              ) {
                                 setState(() {
                                   _isRunningAndroidService = isRunning;
                                 });

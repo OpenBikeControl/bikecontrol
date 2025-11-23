@@ -60,7 +60,7 @@ Support for other devices can be added; check the issues tab here on GitHub.
 ## Supported Platforms
 
 Follow the "Get Started" button over at [swiftcontrol.app](https://swiftcontrol.app) to understand on which platform you want to run BikeControl.
-You can even try it out in your [Browser](https://OpenBikeControl.github.io/bikecontrol/), if it supports Bluetooth connections. No controlling possible, though.
+You can even try it out in your [Browser](https://jonasbark.github.io/swiftcontrol/), if it supports Bluetooth connections. No controlling possible, though.
 
 ## Troubleshooting
 Check the troubleshooting guide [here](TROUBLESHOOTING.md).

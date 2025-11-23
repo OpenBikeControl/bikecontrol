@@ -16,6 +16,7 @@ class Zwift extends SupportedApp {
         supportsZwiftEmulation: !(Platform.isIOS || Platform.isMacOS),
         compatibleTargets: [
           if (!Platform.isIOS) Target.thisDevice,
+          if (Platform.isAndroid) Target.otherDevice,
           Target.macOS,
           Target.windows,
           Target.iOS,

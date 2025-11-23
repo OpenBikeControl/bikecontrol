@@ -452,28 +452,9 @@ class _ButtonEditor extends StatelessWidget {
       child: PopupMenuButton<dynamic>(
         itemBuilder: (c) => actions,
         enabled: actionHandler.supportedApp is CustomApp,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          spacing: 6,
-          children: [
-            if (keyPair.buttons.isNotEmpty &&
-                (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
-              Expanded(
-                child: KeypairExplanation(
-                  keyPair: keyPair,
-                ),
-              )
-            else
-              Expanded(
-                child: Text(
-                  'No action assigned',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-
-            if (actionHandler.supportedApp is! CustomApp)
-              IconButton(
-                onPressed: () async {
+        child: InkWell(
+          onTap: actionHandler.supportedApp is! CustomApp
+              ? () async {
                   final currentProfile = actionHandler.supportedApp!.name;
                   final newName = await KeymapManager().duplicate(
                     context,
@@ -486,12 +467,29 @@ class _ButtonEditor extends StatelessWidget {
                     ).showSnackBar(SnackBar(content: Text('Created a new custom profile: $newName')));
                   }
                   onUpdate();
-                },
-                icon: Icon(Icons.edit),
-              )
-            else
+                }
+              : null,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            spacing: 6,
+            children: [
+              if (keyPair.buttons.isNotEmpty &&
+                  (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
+                Expanded(
+                  child: KeypairExplanation(
+                    keyPair: keyPair,
+                  ),
+                )
+              else
+                Expanded(
+                  child: Text(
+                    'No action assigned',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
               Icon(Icons.edit, size: 14),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -230,7 +230,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                         important: false,
                         children: [
                           Text(
-                            'SwiftControl is now BikeControl! It is now part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
+                            'SwiftControl is now BikeControl! It is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
                           ),
                           SizedBox(height: 8),
                           TextButton(
@@ -240,7 +240,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                               });
                               launchUrlString('https://openbikecontrol.org');
                             },
-                            child: Text('More information'),
+                            child: Text('More Information'),
                           ),
                         ],
                       ),
@@ -390,7 +390,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                 },
                               ),
 
-                            if (actionHandler is RemoteActions)
+                            if (actionHandler is RemoteActions && isAdvertisingPeripheral)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -409,7 +409,9 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                     ],
                                   ),
                                 ],
-                              ),
+                              )
+                            else
+                              SizedBox(height: 8),
                           ],
                         ),
                       ),
