@@ -71,7 +71,7 @@ class _StatusWidgetState extends State<StatusWidget> {
                 color: zwiftEmulator.isConnected.value ? Colors.green : Colors.red,
                 text: 'Zwift Emulation ${zwiftEmulator.isConnected.value ? "connected" : "not connected"}',
               ),
-            if (!isRemote && !isZwift)
+            if (!isRemote && !isZwift && !screenshotMode)
               _Status(
                 color: Colors.red,
                 text: 'Not connected to a remote device',

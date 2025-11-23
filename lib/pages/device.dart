@@ -225,12 +225,12 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_showNameChangeWarning)
+                    if (_showNameChangeWarning && !screenshotMode)
                       Warning(
                         important: false,
                         children: [
                           Text(
-                            'SwiftControl is now BikeControl! It is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
+                            'SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
                           ),
                           SizedBox(height: 8),
                           TextButton(

@@ -26,7 +26,11 @@ void main() {
   SharedPreferences.setMockInitialValues({});
 
   group('Screenshot Tests', () {
-    final List<(String type, Size size)> sizes = [('macOS', Size(1280, 800)), ('GitHub', Size(600, 900))];
+    final List<(String type, Size size)> sizes = [
+      ('Phone', Size(400, 800)),
+      ('macOS', Size(1280, 800)),
+      ('GitHub', Size(600, 900)),
+    ];
 
     testWidgets('Requirements', (WidgetTester tester) async {
       await tester.loadFonts();
