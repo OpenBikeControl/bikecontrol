@@ -28,6 +28,7 @@ void main() {
   group('Screenshot Tests', () {
     final List<(String type, Size size)> sizes = [
       ('Phone', Size(400, 800)),
+      ('iPhone', Size(410, 887)),
       ('macOS', Size(1280, 800)),
       ('GitHub', Size(600, 900)),
     ];
@@ -96,7 +97,7 @@ Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size siz
     // Ignore timeout errors
   }
 
-  await _takeScreenshot(tester, 'device-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png');
+  await _takeScreenshot(tester, 'device-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png', spec.$2);
 }
 
 Future<void> _createRequirementScreenshot(WidgetTester tester, (String type, Size size) spec) async {
@@ -114,16 +115,19 @@ Future<void> _createRequirementScreenshot(WidgetTester tester, (String type, Siz
   );
   await tester.pumpAndSettle();
 
-  await _takeScreenshot(tester, 'screenshot-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png');
+  await _takeScreenshot(
+    tester,
+    'screenshot-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png',
+    spec.$2,
+  );
 }
 
-Future<void> _takeScreenshot(WidgetTester tester, String path) async {
+Future<void> _takeScreenshot(WidgetTester tester, String path, Size size) async {
   const FileSystem fs = LocalFileSystem();
   final file = fs.file('screenshots/$path');
   await fs.directory('screenshots').create();
   print('File path: ${file.absolute.path}');
 
   await tester.screenshot(path: 'screenshots/$path');
-  final decodedImage = await decodeImageFromList(file.readAsBytesSync());
-  print(decodedImage);
+  // resize image
 }
