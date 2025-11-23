@@ -28,7 +28,7 @@ void main() {
   group('Screenshot Tests', () {
     final List<(String type, Size size)> sizes = [
       ('Phone', Size(400, 800)),
-      ('iPhone', Size(410, 887)),
+      ('iPhone', Size(1242, 2688)),
       ('macOS', Size(1280, 800)),
       ('GitHub', Size(600, 900)),
     ];
@@ -129,5 +129,6 @@ Future<void> _takeScreenshot(WidgetTester tester, String path, Size size) async 
   print('File path: ${file.absolute.path}');
 
   await tester.screenshot(path: 'screenshots/$path');
+  final decodedImage = await decodeImageFromList(file.readAsBytesSync());
   // resize image
 }

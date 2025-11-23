@@ -49,3 +49,4 @@ app.*.map.json
 
 service-account.json
 .env
+/screenshots/

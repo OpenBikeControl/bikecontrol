@@ -219,7 +219,7 @@ jobs:
       - name: Handle Android archives
         if: inputs.build_android && inputs.build_github
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/SwiftControl.android.apk
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/BikeControl.android.apk
 
       - name: Code Signing of macOS app
         if: inputs.build_mac && inputs.build_github
@@ -275,7 +275,7 @@ jobs:
         if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/SwiftControl.android.apk,build/macos/Build/Products/Release/SwiftControl.macos.zip,build/SwiftControl.screenshots.zip"
+          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip"
           allowUpdates: true
           prerelease: true
           bodyFile: /tmp/release_body.md
@@ -283,7 +283,6 @@ jobs:
           token: ${{ secrets.TOKEN }}
 
   windows:
-    needs: build
     if: inputs.build_windows
     name: Build & Release on Windows
     runs-on: windows-latest
@@ -375,7 +374,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/SwiftControl.windows.zip,build/windows/x64/runner/Release/SwiftControl.windows.msix"
+          artifacts: "build/windows/x64/runner/Release/BikeControl.windows.zip,build/windows/x64/runner/Release/BikeControl.windows.msix"
           prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
