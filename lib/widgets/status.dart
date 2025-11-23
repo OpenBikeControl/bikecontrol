@@ -18,7 +18,7 @@ class StatusWidget extends StatefulWidget {
 }
 
 class _StatusWidgetState extends State<StatusWidget> {
-  bool? _isRunningAndroidService = null;
+  bool? _isRunningAndroidService;
 
   @override
   void initState() {

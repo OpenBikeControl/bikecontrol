@@ -295,6 +295,60 @@ class _PairWidgetState extends State<_PairWidget> {
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          spacing: 10,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                await toggle();
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isAdvertisingPeripheral
+                              ? 'Stop Pairing process'
+                              : 'Start connecting to ${settings.getLastTarget()?.name ?? 'remote'} device',
+                        ),
+                        Text(
+                          'Pairing allows full customizability,\nbut may not work on all devices.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                    BetaPill(),
+                  ],
+                ),
+              ),
+            ),
+            if (isAdvertisingPeripheral || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
+          ],
+        ),
+        if (isAdvertisingPeripheral)
+          Text(
+            switch (settings.getLastTarget()) {
+              Target.iOS =>
+                'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
+              _ =>
+                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
+            },
+          ),
+        if (isAdvertisingPeripheral) ...[
+          TextButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')));
+            },
+            child: Text('Check the troubleshooting guide'),
+          ),
+        ],
         if (settings.getTrainerApp() is MyWhoosh)
           ElevatedButton(
             onPressed: () async {
@@ -355,59 +409,6 @@ class _PairWidgetState extends State<_PairWidget> {
               ),
             ),
           ),
-
-        Row(
-          spacing: 10,
-          children: [
-            ElevatedButton(
-              onPressed: () async {
-                await toggle();
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isAdvertisingPeripheral ? 'Stop Pairing process' : 'Start Pairing',
-                        ),
-                        Text(
-                          'Pairing allows full customizability,\nbut may not work on all devices.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                    BetaPill(),
-                  ],
-                ),
-              ),
-            ),
-            if (isAdvertisingPeripheral || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
-          ],
-        ),
-        if (isAdvertisingPeripheral)
-          Text(
-            switch (settings.getLastTarget()) {
-              Target.iOS =>
-                'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
-              _ =>
-                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
-            },
-          ),
-        if (isAdvertisingPeripheral) ...[
-          TextButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')));
-            },
-            child: Text('Check the troubleshooting guide'),
-          ),
-        ],
       ],
     );
   }

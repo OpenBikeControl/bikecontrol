@@ -419,28 +419,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     StatusWidget(),
                     SizedBox(height: 20),
                     if (!kIsWeb) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Text(
-                          'Customize ${screenshotMode ? 'Trainer app' : settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-
-                      if (settings.getLastTarget()?.warning != null) ...[
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.warning_amber,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                            Text(
-                              settings.getLastTarget()!.warning!,
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      ],
                       Card(
                         child: Padding(
                           padding: EdgeInsets.only(
@@ -454,6 +432,39 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 8.0),
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Theme.of(context).colorScheme.primaryContainer,
+                                    ),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Text(
+                                    'Customize ${screenshotMode ? 'Trainer app' : settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+
+                              if (settings.getLastTarget()?.warning != null) ...[
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.warning_amber,
+                                      color: Theme.of(context).colorScheme.error,
+                                    ),
+                                    Text(
+                                      settings.getLastTarget()!.warning!,
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ],
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 spacing: 8,
