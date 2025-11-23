@@ -115,8 +115,8 @@ jobs:
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r');
           echo "VERSION=$version" >> $GITHUB_ENV;
           cd build/macos/Build/Products/Release/;
-          /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v;
-          zip -r SwiftControl.macos.zip SwiftControl.app/;
+          /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime BikeControl.app -v;
+          zip -r BikeControl.macos.zip BikeControl.app/;
 
       #9 Upload Artifacts
       - name: Upload Artifacts
@@ -126,7 +126,7 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            build/macos/Build/Products/Release/SwiftControl.macos.zip
+            build/macos/Build/Products/Release/BikeControl.macos.zip
 
       - name: Generate release body
         if: false
@@ -140,7 +140,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/macos/Build/Products/Release/SwiftControl.macos.zip"
+          artifacts: "build/macos/Build/Products/Release/BikeControl.macos.zip"
           bodyFile: /tmp/release_body.md
           prerelease: true
           tag: v${{ env.VERSION }}

@@ -1,4 +1,7 @@
-### 3.5.1 (unreleased)
+### 3.6.0 (23-11-2025)
+
+SwiftControl is now called BikeControl!
+
 **Features:**
 - show a list of predefined keymaps for the selected trainer app when using a custom keymap
 

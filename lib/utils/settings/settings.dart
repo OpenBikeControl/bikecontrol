@@ -71,6 +71,12 @@ class Settings {
     return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
   }
 
+  bool knowsAboutNameChange() {
+    final knows = prefs.getBool('name_change') == true;
+    prefs.setBool('name_change', true);
+    return knows;
+  }
+
   Future<void> setKeyMap(SupportedApp app) async {
     if (app is CustomApp) {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());

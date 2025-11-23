@@ -169,7 +169,7 @@ jobs:
         if: inputs.build_github
         run: |
           flutter test test/screenshot_test.dart
-          zip -r SwiftControl.storeassets.zip screenshots
+          zip -r BikeControl.storeassets.zip screenshots
           echo "Screenshots generated successfully"
 
       - name: 🚀 Shorebird Release iOS
@@ -205,8 +205,8 @@ jobs:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
         run: |
-          productbuild --component "build/macos/Build/Products/Release/SwiftControl.app" /Applications "SwiftControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
-          xcrun altool --upload-app -f SwiftControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
+          productbuild --component "build/macos/Build/Products/Release/BikeControl.app" /Applications "BikeControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
+          xcrun altool --upload-app -f BikeControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
 
       - name: Upload to iOS App Store
         if: inputs.build_ios
@@ -223,7 +223,7 @@ jobs:
 
       - name: Code Signing of macOS app
         if: inputs.build_mac && inputs.build_github
-        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime SwiftControl.app -v
+        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime BikeControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
@@ -232,7 +232,7 @@ jobs:
         if: inputs.build_mac && inputs.build_github
         run: |
           cd build/macos/Build/Products/Release/
-          zip -r SwiftControl.macos.zip SwiftControl.app/
+          zip -r BikeControl.macos.zip BikeControl.app/
 
       - name: Upload Android Artifacts
         if: inputs.build_android && inputs.build_github
@@ -241,7 +241,7 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            build/app/outputs/flutter-apk/SwiftControl.android.apk
+            build/app/outputs/flutter-apk/BikeControl.android.apk
 
       - name: Upload macOS Artifacts
         if: inputs.build_mac && inputs.build_github
@@ -250,7 +250,7 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            build/macos/Build/Products/Release/SwiftControl.macos.zip
+            build/macos/Build/Products/Release/BikeControl.macos.zip
 
       - name: Upload Screenshots Artifacts
         if: inputs.build_github
@@ -260,7 +260,7 @@ jobs:
           name: Releases
           path: |
             screenshots/device-GitHub-600x900.png
-            build/SwiftControl.storeassets.zip
+            build/BikeControl.storeassets.zip
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
@@ -335,7 +335,7 @@ jobs:
               Write-Warning "$dll not found in $source"
             }
           }
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/SwiftControl.windows.zip"
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/BikeControl.windows.zip"
 
       - uses: microsoft/setup-msstore-cli@v1
         if: false
@@ -357,10 +357,10 @@ jobs:
         if: false
         run: msstore publish -v "build/windows/x64/runner/Release/"
 
-      - name: Rename swift_control.msix to SwiftControl.windows.msix
+      - name: Rename swift_control.msix to BikeControl.windows.msix
         shell: pwsh
         run: |
-          Rename-Item -Path "build/windows/x64/runner/Release/swift_control.msix" -NewName "SwiftControl.windows.msix"
+          Rename-Item -Path "build/windows/x64/runner/Release/swift_control.msix" -NewName "BikeControl.windows.msix"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -368,8 +368,8 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            build/windows/x64/runner/Release/SwiftControl.windows.zip
-            build/windows/x64/runner/Release/SwiftControl.windows.msix
+            build/windows/x64/runner/Release/BikeControl.windows.zip
+            build/windows/x64/runner/Release/BikeControl.windows.msix
 
       - name: Update Release
         uses: ncipollo/release-action@v1

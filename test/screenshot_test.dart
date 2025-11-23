@@ -17,7 +17,7 @@ import 'package:universal_ble/universal_ble.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   PackageInfo.setMockInitialValues(
-    appName: 'SwiftControl',
+    appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
     version: '3.5.0',
     buildNumber: '1',
@@ -75,7 +75,7 @@ Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size siz
       child: MaterialApp(
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        title: 'SwiftControl',
+        title: 'BikeControl',
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.light,

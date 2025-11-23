@@ -95,7 +95,7 @@ List<Widget> buildMenuButtons() {
                 final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
                 final suffix = isFromStore ? '' : '-sw';
 
-                String email = Uri.encodeComponent('jonas$suffix@swiftcontrol.app');
+                String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
                 String subject = Uri.encodeComponent("Help requested for BikeControl v${packageInfoValue?.version}");
                 String body = Uri.encodeComponent("""
                 

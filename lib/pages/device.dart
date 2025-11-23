@@ -25,6 +25,7 @@ import 'package:swift_control/widgets/title.dart';
 import 'package:swift_control/widgets/warning.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../bluetooth/devices/base_device.dart';
@@ -49,6 +50,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   final _snackBarMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _showAutoRotationWarning = false;
   bool _showMiuiWarning = false;
+  bool _showNameChangeWarning = false;
   StreamSubscription<bool>? _autoRotateStream;
 
   @override
@@ -59,6 +61,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     if (!screenshotMode) {
       WakelockPlus.enable();
     }
+    _showNameChangeWarning = !settings.knowsAboutNameChange();
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -221,6 +224,22 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_showNameChangeWarning)
+                      Warning(
+                        important: false,
+                        children: [
+                          Text(
+                            'SwiftControl is now BikeControl! It is now part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
+                          ),
+                          SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () {
+                              launchUrlString('https://openbikecontrol.org');
+                            },
+                            child: Text('More information'),
+                          ),
+                        ],
+                      ),
                     if (_showAutoRotationWarning)
                       Warning(
                         children: [
