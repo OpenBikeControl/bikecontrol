@@ -53,6 +53,8 @@ class AndroidActions extends BaseActions {
 
     if (keyPair == null) {
       return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
+    } else if (keyPair.hasNoAction) {
+      return Error('No action assigned for ${button.toString().splitByUpperCase()}');
     }
 
     final directConnectHandled = await handleDirectConnect(keyPair);

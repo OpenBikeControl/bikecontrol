@@ -128,9 +128,13 @@ class KeyPair {
     };
   }
 
+  bool get hasNoAction =>
+      logicalKey == null && physicalKey == null && touchPosition == Offset.zero && inGameAction == null;
+
   @override
   String toString() {
-    final baseKey = logicalKey?.keyLabel ??
+    final baseKey =
+        logicalKey?.keyLabel ??
         switch (physicalKey) {
           PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
           PhysicalKeyboardKey.mediaTrackNext => 'Next Track',
@@ -140,11 +144,11 @@ class KeyPair {
           PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
           _ => 'Not assigned',
         };
-    
+
     if (modifiers.isEmpty || baseKey == 'Not assigned') {
       return baseKey;
     }
-    
+
     // Format modifiers + key (e.g., "Ctrl+Alt+R")
     final modifierStrings = modifiers.map((m) {
       return switch (m) {
@@ -156,7 +160,7 @@ class KeyPair {
         _ => m.name,
       };
     }).toList();
-    
+
     return '${modifierStrings.join('+')}+$baseKey';
   }
 
@@ -196,15 +200,15 @@ class KeyPair {
     if (buttons.isEmpty) {
       return null;
     }
-    
+
     // Decode modifiers if present
     final List<ModifierKey> modifiers = decoded.containsKey('modifiers')
         ? (decoded['modifiers'] as List)
-            .map<ModifierKey?>((e) => ModifierKey.values.firstOrNullWhere((element) => element.name == e))
-            .whereType<ModifierKey>()
-            .toList()
+              .map<ModifierKey?>((e) => ModifierKey.values.firstOrNullWhere((element) => element.name == e))
+              .whereType<ModifierKey>()
+              .toList()
         : [];
-    
+
     return KeyPair(
       buttons: buttons,
       logicalKey: decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0

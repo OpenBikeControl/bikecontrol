@@ -25,6 +25,8 @@ class RemoteActions extends BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (keyPair == null) {
       return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
+    } else if (keyPair.hasNoAction) {
+      return Error('No action assigned for ${action.toString().splitByUpperCase()}');
     }
 
     final directConnectHandled = await handleDirectConnect(keyPair);
