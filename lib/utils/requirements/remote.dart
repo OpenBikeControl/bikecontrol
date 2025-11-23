@@ -16,7 +16,7 @@ import 'package:swift_control/widgets/small_progress_indicator.dart';
 import '../../pages/markdown.dart';
 
 final peripheralManager = PeripheralManager();
-bool _isAdvertising = false;
+bool isAdvertisingPeripheral = false;
 bool _isLoading = false;
 bool _isServiceAdded = false;
 bool _isSubscribedToEvents = false;
@@ -39,7 +39,7 @@ class RemoteRequirement extends PlatformRequirement {
     await peripheralManager.stopAdvertising();
     await peripheralManager.removeAllServices();
     _isServiceAdded = false;
-    _isAdvertising = false;
+    isAdvertisingPeripheral = false;
     (actionHandler as RemoteActions).setConnectedCentral(null, null);
     startAdvertising(() {});
   }
@@ -81,7 +81,7 @@ class RemoteRequirement extends PlatformRequirement {
       final status = await Permission.bluetoothAdvertise.request();
       if (!status.isGranted) {
         print('Bluetooth advertise permission not granted');
-        _isAdvertising = false;
+        isAdvertisingPeripheral = false;
         onUpdate();
         return;
       }
@@ -264,7 +264,7 @@ class RemoteRequirement extends PlatformRequirement {
     print('Starting advertising with HID service...');
 
     await peripheralManager.startAdvertising(advertisement);
-    _isAdvertising = true;
+    isAdvertisingPeripheral = true;
     onUpdate();
   }
 
@@ -289,17 +289,6 @@ class _PairWidget extends StatefulWidget {
 }
 
 class _PairWidgetState extends State<_PairWidget> {
-  @override
-  void initState() {
-    super.initState();
-    // after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (actionHandler.supportedApp?.supportsZwiftEmulation == false) {
-        toggle();
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -382,7 +371,7 @@ class _PairWidgetState extends State<_PairWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _isAdvertising ? 'Stop Pairing process' : 'Start Pairing',
+                          isAdvertisingPeripheral ? 'Stop Pairing process' : 'Start Pairing',
                         ),
                         Text(
                           'Pairing allows full customizability,\nbut may not work on all devices.',
@@ -399,10 +388,10 @@ class _PairWidgetState extends State<_PairWidget> {
                 ),
               ),
             ),
-            if (_isAdvertising || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
+            if (isAdvertisingPeripheral || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
           ],
         ),
-        if (_isAdvertising)
+        if (isAdvertisingPeripheral)
           Text(
             switch (settings.getLastTarget()) {
               Target.iOS =>
@@ -411,7 +400,7 @@ class _PairWidgetState extends State<_PairWidget> {
                 'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
             },
           ),
-        if (_isAdvertising) ...[
+        if (isAdvertisingPeripheral) ...[
           TextButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')));
@@ -424,9 +413,9 @@ class _PairWidgetState extends State<_PairWidget> {
   }
 
   Future<void> toggle() async {
-    if (_isAdvertising) {
+    if (isAdvertisingPeripheral) {
       await peripheralManager.stopAdvertising();
-      _isAdvertising = false;
+      isAdvertisingPeripheral = false;
       (actionHandler as RemoteActions).setConnectedCentral(null, null);
       widget.onUpdate();
       _isLoading = false;

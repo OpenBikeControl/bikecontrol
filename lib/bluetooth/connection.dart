@@ -28,8 +28,6 @@ class Connection {
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
   List<BaseDevice> get controllerDevices => [...bluetoothDevices, ...gamepadDevices, ...devices.whereType<HidDevice>()];
-  List<BaseDevice> get remoteDevices =>
-      devices.whereNot((d) => d is BluetoothDevice || d is GamepadDevice || d is HidDevice).toList();
 
   var _androidNotificationsSetup = false;
 

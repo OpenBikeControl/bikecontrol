@@ -20,6 +20,7 @@ import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/scan.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
+import 'package:swift_control/widgets/status.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:swift_control/widgets/warning.dart';
@@ -311,10 +312,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                           ),
                         ],
                       ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text('Connected Devices', style: Theme.of(context).textTheme.titleMedium),
-                    ),
                     Card(
                       child: Padding(
                         padding: EdgeInsets.only(
@@ -357,8 +354,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                 (device) => device.showInformation(context),
                               ),
 
-                            if (connection.remoteDevices.isNotEmpty ||
-                                actionHandler is RemoteActions ||
+                            if (actionHandler is RemoteActions ||
                                 whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) ||
                                 actionHandler.supportedApp?.supportsZwiftEmulation == true)
                               Container(
@@ -379,9 +375,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                                   ),
                                 ),
                               ),
-                            ...connection.remoteDevices.map(
-                              (device) => device.showInformation(context),
-                            ),
 
                             if (settings.getTrainerApp() is MyWhoosh &&
                                 whooshLink.isCompatible(settings.getLastTarget()!))
@@ -419,6 +412,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     ),
 
                     SizedBox(height: 20),
+                    StatusWidget(),
+                    SizedBox(height: 20),
                     if (!kIsWeb) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -427,6 +422,21 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
+
+                      if (settings.getLastTarget()?.warning != null) ...[
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            Text(
+                              settings.getLastTarget()!.warning!,
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ],
                       Card(
                         child: Padding(
                           padding: EdgeInsets.only(
@@ -543,11 +553,16 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                       ),
                     ],
                     SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text('Logs', style: Theme.of(context).textTheme.titleMedium),
+                    ExpansionTile(
+                      title: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text('Logs', style: Theme.of(context).textTheme.titleMedium),
+                      ),
+                      maintainState: true,
+                      children: [
+                        SizedBox(height: 500, child: LogViewer()),
+                      ],
                     ),
-                    LogViewer(),
                   ],
                 ),
               ),

@@ -254,4 +254,12 @@ class Settings {
     }
     return result;
   }
+
+  bool getShowZwiftClickV2ReconnectWarning() {
+    return prefs.getBool('zwift_click_v2_reconnect_warning') ?? true;
+  }
+
+  Future<void> setShowZwiftClickV2ReconnectWarning(bool show) async {
+    await prefs.setBool('zwift_click_v2_reconnect_warning', show);
+  }
 }

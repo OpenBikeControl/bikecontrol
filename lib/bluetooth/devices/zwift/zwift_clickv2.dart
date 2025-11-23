@@ -1,8 +1,11 @@
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/widgets/warning.dart';
 
@@ -24,6 +27,8 @@ class ZwiftClickV2 extends ZwiftRide {
         ],
       );
 
+  bool _noLongerSendsEvents = false;
+
   @override
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;
 
@@ -40,13 +45,27 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   @override
+  Future<void> processData(Uint8List bytes) {
+    if (bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_1) ||
+        bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_2)) {
+      _noLongerSendsEvents = true;
+      actionStreamInternal.add(
+        LogNotification(
+          'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once each session.',
+        ),
+      );
+    }
+    return super.processData(bytes);
+  }
+
+  @override
   Widget showInformation(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         super.showInformation(context),
 
-        if (isConnected)
+        if (isConnected && _noLongerSendsEvents && settings.getShowZwiftClickV2ReconnectWarning())
           Warning(
             children: [
               Text(
@@ -83,6 +102,13 @@ class ZwiftClickV2 extends ZwiftRide {
                       },
                       child: Text('Test'),
                     ),
+                  Expanded(child: SizedBox()),
+                  TextButton(
+                    onPressed: () {
+                      settings.setShowZwiftClickV2ReconnectWarning(false);
+                    },
+                    child: Text('Dismiss'),
+                  ),
                 ],
               ),
             ],
