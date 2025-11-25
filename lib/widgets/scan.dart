@@ -59,7 +59,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                   Text(
                     'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
                   ),
-                  if (!kIsWeb && (Platform.isMacOS || Platform.isIOS || Platform.isWindows))
+                  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
                     ValueListenableBuilder(
                       valueListenable: connection.isMediaKeyDetectionEnabled,
                       builder: (context, value, child) {

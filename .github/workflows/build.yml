@@ -260,7 +260,7 @@ jobs:
           name: Releases
           path: |
             screenshots/device-GitHub-600x900.png
-            build/BikeControl.storeassets.zip
+            build/BikeControl.screenshots.zip
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
@@ -275,7 +275,7 @@ jobs:
         if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip"
+          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip,screenshots/device-GitHub-600x900.png"
           allowUpdates: true
           prerelease: true
           bodyFile: /tmp/release_body.md

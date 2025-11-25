@@ -312,7 +312,7 @@ class _PairWidgetState extends State<_PairWidget> {
                         Text(
                           isAdvertisingPeripheral
                               ? 'Stop Pairing process'
-                              : 'Start connecting to ${settings.getLastTarget()?.name ?? 'remote'} device',
+                              : 'Start connecting to\n${settings.getLastTarget()?.title ?? 'remote'} device',
                         ),
                         Text(
                           'Pairing allows full customizability,\nbut may not work on all devices.',
