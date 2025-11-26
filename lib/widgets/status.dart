@@ -58,7 +58,12 @@ class _StatusWidgetState extends State<StatusWidget> {
                     : Platform.isAndroid
                     ? Colors.yellow
                     : Colors.red,
-                text: 'MyWhoosh Direct Connect ${whooshLink.isConnected.value ? "connected" : "not connected"}',
+                text:
+                    'MyWhoosh Direct Connect ${whooshLink.isConnected.value
+                        ? "connected"
+                        : Platform.isAndroid
+                        ? "not connected (optional)"
+                        : "not connected"}',
               ),
 
             if (isRemote)

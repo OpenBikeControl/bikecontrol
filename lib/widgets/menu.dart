@@ -4,15 +4,14 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
-import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../pages/device.dart';
 import 'ignored_devices_dialog.dart';
 
 List<Widget> buildMenuButtons() {
@@ -98,17 +97,9 @@ List<Widget> buildMenuButtons() {
                 String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
                 String subject = Uri.encodeComponent("Help requested for BikeControl v${packageInfoValue?.version}");
                 String body = Uri.encodeComponent("""
+                ${debugText()}
                 
-                
----
-App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
-Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
-Target: ${settings.getLastTarget()?.title ?? '-'}
-Trainer App: ${settings.getTrainerApp()?.name ?? '-'}
-Connected Controllers: ${connection.devices.map((e) => e.toString()).join(', ')}
-Logs: 
-${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
-
+Please also attach the file ${File('${Directory.current.path}/app.logs').path}, if it exists.
 Please don't remove this information, it helps me to assist you better.""");
                 Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
 
@@ -123,6 +114,20 @@ Please don't remove this information, it helps me to assist you better.""");
     const MenuButton(),
     SizedBox(width: 8),
   ];
+}
+
+String debugText() {
+  return '''
+                
+---
+App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
+Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
+Target: ${settings.getLastTarget()?.title ?? '-'}
+Trainer App: ${settings.getTrainerApp()?.name ?? '-'}
+Connected Controllers: ${connection.devices.map((e) => e.toString()).join(', ')}
+Logs: 
+${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
+''';
 }
 
 class MenuButton extends StatelessWidget {
