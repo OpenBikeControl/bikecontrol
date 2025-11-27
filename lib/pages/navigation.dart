@@ -29,7 +29,7 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
-  bool _needsPermissions = false;
+  bool? _needsPermissions;
   var _selectedPage = BCPage.configuration;
 
   @override
@@ -55,6 +55,7 @@ class _NavigationState extends State<Navigation> {
         ),
         Divider(),
       ],
+      loadingProgressIndeterminate: _needsPermissions == null,
       footers: _isMobile ? [_buildNavigationBar()] : [],
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,38 +64,39 @@ class _NavigationState extends State<Navigation> {
             _buildNavigationMenu(),
             VerticalDivider(),
           ],
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
-              child: switch (_selectedPage) {
-                BCPage.permissions => RequirementsPage(
-                  onUpdate: () {
-                    _reloadRequirements();
-                  },
-                ),
-                BCPage.devices => DevicePage(),
-                BCPage.customization => CustomizePage(),
-                BCPage.configuration => TargetPage(
-                  onUpdate: () {
-                    _reloadRequirements();
-                  },
-                ),
-              },
+          if (_needsPermissions != null)
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: Duration(milliseconds: 200),
+                child: switch (_selectedPage) {
+                  BCPage.permissions => RequirementsPage(
+                    onUpdate: () {
+                      _reloadRequirements();
+                    },
+                  ),
+                  BCPage.devices => DevicePage(),
+                  BCPage.customization => CustomizePage(),
+                  BCPage.configuration => TargetPage(
+                    onUpdate: () {
+                      _reloadRequirements();
+                    },
+                  ),
+                },
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
   List<BCPage> get _tabPages =>
-      _needsPermissions ? BCPage.values : BCPage.values.where((page) => page != BCPage.permissions).toList();
+      _needsPermissions == true ? BCPage.values : BCPage.values.where((page) => page != BCPage.permissions).toList();
 
   Widget _buildNavigationMenu() {
     return NavigationSidebar(
       onSelected: (int index) {
         setState(() {
-          _selectedPage = BCPage.values[index];
+          _selectedPage = _tabPages[index];
         });
       },
       children: _tabPages.map((page) {
@@ -136,7 +138,7 @@ class _NavigationState extends State<Navigation> {
       labelType: NavigationLabelType.all,
       onSelected: (int index) {
         setState(() {
-          _selectedPage = BCPage.values[index];
+          _selectedPage = _tabPages[index];
         });
       },
       children: _tabPages.map((page) {
@@ -154,7 +156,7 @@ class _NavigationState extends State<Navigation> {
     return switch (page) {
       BCPage.configuration => true,
       BCPage.permissions => settings.getTrainerApp() != null,
-      _ => settings.getTrainerApp() != null && !_needsPermissions,
+      _ => settings.getTrainerApp() != null && _needsPermissions == false,
     };
   }
 
