@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
@@ -12,6 +12,7 @@ import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 
 import '../bluetooth/devices/link/link.dart';
 import '../pages/touch_area.dart';
@@ -56,7 +57,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   @override
   Widget build(BuildContext context) {
     final availableKeypairs = widget.keymap.keyPairs;
-    final allAvailableButtons = connection.devices.flatMap((d) => d.availableButtons);
+    final allAvailableButtons = IterableFlatMap(connection.devices).flatMap((d) => d.availableButtons);
 
     return ValueListenableBuilder(
       valueListenable: whooshLink.isConnected,
@@ -66,45 +67,30 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         spacing: 8,
         children: [
           Table(
-            border: TableBorder.symmetric(
-              borderRadius: BorderRadius.circular(9),
-              inside: BorderSide(
-                color: Theme.of(context).colorScheme.primaryContainer,
-              ),
-              outside: BorderSide(
-                color: Theme.of(context).colorScheme.primaryContainer,
-              ),
-            ),
-            children: [
-              TableRow(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(6),
+            rows: [
+              TableHeader(
+                cells: [
+                  TableCell(
                     child: Text(
                       'Button on your ${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Text(
-                      'Action',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
+                  TableCell(
+                    child: Text('Action'),
                   ),
                 ],
               ),
               for (final keyPair in availableKeypairs) ...[
                 TableRow(
-                  children: [
+                  cells: [
                     TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Container(
-                        padding: const EdgeInsets.all(6),
+                        constraints: BoxConstraints(minHeight: 52),
                         child: Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           crossAxisAlignment: WrapCrossAlignment.center,
+                          runAlignment: WrapAlignment.center,
                           children: [
                             if (actionHandler.supportedApp is! CustomApp)
                               if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
@@ -119,11 +105,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                       ),
                     ),
                     TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
-                      ),
+                      child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
                     ),
                   ],
                 ),
@@ -144,176 +126,123 @@ class _ButtonEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trainerApp = settings.getTrainerApp();
-    final actions = <PopupMenuEntry>[
+
+    final actionsWithInGameAction = trainerApp?.keymap.keyPairs.where((kp) => kp.inGameAction != null).toList();
+
+    final actions = <MenuItem>[
       if (settings.getMyWhooshLinkEnabled() && whooshLink.isCompatible(settings.getLastTarget()!))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton(
-            itemBuilder: (_) => WhooshLink.supportedActions.map(
-              (ingame) {
-                return PopupMenuItem(
-                  value: ingame,
-                  child: ingame.possibleValues != null
-                      ? PopupMenuButton(
-                          itemBuilder: (c) => ingame.possibleValues!
-                              .map(
-                                (value) => PopupMenuItem(
-                                  value: value,
-                                  child: Text(value.toString()),
-                                  onTap: () {
-                                    keyPair.inGameAction = ingame;
-                                    keyPair.inGameActionValue = value;
-                                    onUpdate();
-                                  },
-                                ),
-                              )
-                              .toList(),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(ingame.toString())),
-                              Icon(Icons.arrow_right),
-                            ],
-                          ),
-                        )
-                      : Text(ingame.toString()),
-                  onTap: () {
-                    keyPair.inGameAction = ingame;
-                    keyPair.inGameActionValue = null;
-                    onUpdate();
-                  },
-                );
-              },
-            ).toList(),
-            child: SizedBox(
-              height: 52,
-              child: Row(
-                spacing: 14,
-                children: [
-                  Icon(Icons.link),
-                  Expanded(child: Text('MyWhoosh Direct Connect Action')),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-            ),
+        MenuButton(
+          subMenu: WhooshLink.supportedActions.map(
+            (ingame) {
+              return MenuButton(
+                subMenu: ingame.possibleValues
+                    ?.map(
+                      (value) => MenuButton(
+                        child: Text(value.toString()),
+                        onPressed: (_) {
+                          keyPair.inGameAction = ingame;
+                          keyPair.inGameActionValue = value;
+                          onUpdate();
+                        },
+                      ),
+                    )
+                    .toList(),
+                child: Text(ingame.toString()),
+                onPressed: (_) {
+                  keyPair.inGameAction = ingame;
+                  keyPair.inGameActionValue = null;
+                  onUpdate();
+                },
+              );
+            },
+          ).toList(),
+          child: _Item(
+            icon: Icons.link,
+            title: 'MyWhoosh Direct Connect Action',
+            isActive: keyPair.inGameAction != null,
           ),
         ),
       if (settings.getZwiftEmulatorEnabled() && settings.getTrainerApp()?.supportsZwiftEmulation == true)
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton(
-            itemBuilder: (_) => ZwiftEmulator.supportedActions.map(
-              (ingame) {
-                return PopupMenuItem(
-                  value: ingame,
-                  child: ingame.possibleValues != null
-                      ? PopupMenuButton(
-                          itemBuilder: (c) => ingame.possibleValues!
-                              .map(
-                                (value) => PopupMenuItem(
-                                  value: value,
-                                  child: Text(value.toString()),
-                                  onTap: () {
-                                    keyPair.inGameAction = ingame;
-                                    keyPair.inGameActionValue = value;
-                                    onUpdate();
-                                  },
-                                ),
-                              )
-                              .toList(),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(ingame.toString())),
-                              Icon(Icons.arrow_right),
-                            ],
-                          ),
-                        )
-                      : Text(ingame.toString()),
-                  onTap: () {
-                    keyPair.inGameAction = ingame;
-                    keyPair.inGameActionValue = null;
-                    onUpdate();
-                  },
-                );
-              },
-            ).toList(),
-            child: SizedBox(
-              height: 52,
-              child: Row(
-                spacing: 14,
-                children: [
-                  Icon(Icons.link),
-                  Expanded(child: Text('Zwift Controller Action')),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-            ),
+        MenuButton(
+          subMenu: ZwiftEmulator.supportedActions.map(
+            (ingame) {
+              return MenuButton(
+                subMenu: ingame.possibleValues
+                    ?.map(
+                      (value) => MenuButton(
+                        child: Text(value.toString()),
+                        onPressed: (_) {
+                          keyPair.inGameAction = ingame;
+                          keyPair.inGameActionValue = value;
+                          onUpdate();
+                        },
+                      ),
+                    )
+                    .toList(),
+                child: Text(ingame.toString()),
+                onPressed: (_) {
+                  keyPair.inGameAction = ingame;
+                  keyPair.inGameActionValue = null;
+                  onUpdate();
+                },
+              );
+            },
+          ).toList(),
+          child: _Item(
+            icon: Icons.link,
+            title: 'Zwift Controller Action',
+            isActive: keyPair.inGameAction != null,
           ),
         ),
       if (trainerApp != null && trainerApp is! CustomApp)
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton(
-            itemBuilder: (_) {
-              // Get actions from the current trainer app's keymap that have inGameAction
-              final actionsWithInGameAction = trainerApp.keymap.keyPairs
-                  .where((kp) => kp.inGameAction != null)
-                  .toList();
-
-              if (actionsWithInGameAction.isEmpty) {
-                return [
-                  PopupMenuItem(
+        MenuButton(
+          subMenu: (actionsWithInGameAction?.isEmpty == true)
+              ? <MenuItem>[
+                  MenuButton(
                     enabled: false,
                     child: Text('No predefined actions available'),
                   ),
-                ];
-              }
-
-              return actionsWithInGameAction.map((keyPairAction) {
-                return PopupMenuItem(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(_formatActionDescription(keyPairAction).split(' = ').first),
-                      Text(
-                        _formatActionDescription(keyPairAction).split(' = ').last,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    // Copy all properties from the selected predefined action
-                    keyPair.physicalKey = keyPairAction.physicalKey;
-                    keyPair.logicalKey = keyPairAction.logicalKey;
-                    keyPair.modifiers = List.of(keyPairAction.modifiers);
-                    keyPair.touchPosition = keyPairAction.touchPosition;
-                    keyPair.isLongPress = keyPairAction.isLongPress;
-                    keyPair.inGameAction = keyPairAction.inGameAction;
-                    keyPair.inGameActionValue = keyPairAction.inGameActionValue;
-                    onUpdate();
-                  },
-                );
-              }).toList();
-            },
-            child: SizedBox(
-              height: 52,
-              child: Row(
-                spacing: 14,
-                children: [
-                  Icon(Icons.file_copy_outlined),
-                  Expanded(child: Text('${trainerApp.name} action')),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-            ),
+                ]
+              : actionsWithInGameAction?.map((keyPairAction) {
+                  return MenuButton(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(_formatActionDescription(keyPairAction).split(' = ').first),
+                        Text(
+                          _formatActionDescription(keyPairAction).split(' = ').last,
+                          style: TextStyle(fontSize: 12, color: Colors.gray),
+                        ),
+                      ],
+                    ),
+                    onPressed: (_) {
+                      // Copy all properties from the selected predefined action
+                      keyPair.physicalKey = keyPairAction.physicalKey;
+                      keyPair.logicalKey = keyPairAction.logicalKey;
+                      keyPair.modifiers = List.of(keyPairAction.modifiers);
+                      keyPair.touchPosition = keyPairAction.touchPosition;
+                      keyPair.isLongPress = keyPairAction.isLongPress;
+                      keyPair.inGameAction = keyPairAction.inGameAction;
+                      keyPair.inGameActionValue = keyPairAction.inGameActionValue;
+                      onUpdate();
+                    },
+                  );
+                }).toList(),
+          child: _Item(
+            icon: Icons.file_copy_outlined,
+            title: '${trainerApp.name} action',
+            isActive: false,
           ),
         ),
       if (actionHandler.supportedModes.contains(SupportedMode.keyboard))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          value: null,
-          child: ListTile(
-            leading: Icon(Icons.keyboard_alt_outlined),
-            title: const Text('Simulate Keyboard shortcut'),
-            trailing: keyPair.physicalKey != null ? Checkbox(value: true, onChanged: null) : null,
+        MenuButton(
+          child: _Item(
+            icon: Icons.keyboard_alt_outlined,
+            title: 'Simulate Keyboard shortcut',
+            isActive: keyPair.physicalKey != null,
           ),
-          onTap: () async {
+          onPressed: (context) async {
             await showDialog<void>(
               context: context,
               barrierDismissible: false, // enable Escape key
@@ -324,16 +253,13 @@ class _ButtonEditor extends StatelessWidget {
           },
         ),
       if (actionHandler.supportedModes.contains(SupportedMode.touch))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          value: null,
-          child: ListTile(
-            title: const Text('Simulate Touch'),
-            leading: Icon(Icons.touch_app_outlined),
-            trailing: keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero
-                ? Checkbox(value: true, onChanged: null)
-                : null,
+        MenuButton(
+          child: _Item(
+            title: 'Simulate Touch',
+            icon: Icons.touch_app_outlined,
+            isActive: keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero,
           ),
-          onTap: () async {
+          onPressed: (context) async {
             if (keyPair.touchPosition == Offset.zero) {
               keyPair.touchPosition = Offset(50, 50);
             }
@@ -351,82 +277,86 @@ class _ButtonEditor extends StatelessWidget {
         ),
 
       if (actionHandler.supportedModes.contains(SupportedMode.media))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton<PhysicalKeyboardKey>(
-            padding: EdgeInsets.zero,
-            itemBuilder: (context) => [
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaPlayPause,
-                child: const Text('Media: Play/Pause'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaStop,
-                child: const Text('Media: Stop'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaTrackPrevious,
-                child: const Text('Media: Previous'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaTrackNext,
-                child: const Text('Media: Next'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.audioVolumeUp,
-                child: const Text('Media: Volume Up'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.audioVolumeDown,
-                child: const Text('Media: Volume Down'),
-              ),
-            ],
-            onSelected: (key) {
-              keyPair.physicalKey = key;
-              keyPair.logicalKey = null;
+        MenuButton(
+          subMenu: [
+            MenuButton(
+              child: const Text('Play/Pause'),
+              onPressed: (c) {
+                keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
+                keyPair.logicalKey = null;
 
-              onUpdate();
-            },
-            child: ListTile(
-              leading: Icon(Icons.music_note_outlined),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (keyPair.isSpecialKey) Checkbox(value: true, onChanged: null),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-              title: Text('Simulate Media key'),
+                onUpdate();
+              },
             ),
+            MenuButton(
+              child: const Text('Stop'),
+              onPressed: (c) {
+                keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
+                keyPair.logicalKey = null;
+
+                onUpdate();
+              },
+            ),
+            MenuButton(
+              child: const Text('Previous'),
+
+              onPressed: (c) {
+                keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
+                keyPair.logicalKey = null;
+
+                onUpdate();
+              },
+            ),
+            MenuButton(
+              child: const Text('Next'),
+              onPressed: (c) {
+                keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
+                keyPair.logicalKey = null;
+
+                onUpdate();
+              },
+            ),
+            MenuButton(
+              onPressed: (c) {
+                keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
+                keyPair.logicalKey = null;
+
+                onUpdate();
+              },
+              child: const Text('Volume Up'),
+            ),
+            MenuButton(
+              child: const Text('Volume Down'),
+              onPressed: (c) {
+                keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
+                keyPair.logicalKey = null;
+
+                onUpdate();
+              },
+            ),
+          ],
+
+          child: _Item(
+            icon: Icons.music_note_outlined,
+            isActive: keyPair.isSpecialKey,
+            title: 'Simulate Media key',
           ),
         ),
 
-      PopupMenuDivider(),
-      PopupMenuItem<PhysicalKeyboardKey>(
-        value: null,
-        onTap: () {
+      MenuDivider(),
+      MenuButton(
+        onPressed: (_) {
           keyPair.isLongPress = !keyPair.isLongPress;
           onUpdate();
         },
-        padding: EdgeInsets.zero,
-        child: Row(
-          spacing: 6,
-          children: [
-            Checkbox(
-              value: keyPair.isLongPress,
-              onChanged: (value) {
-                keyPair.isLongPress = value ?? false;
-
-                onUpdate();
-                Navigator.of(context).pop();
-              },
-            ),
-            const Text('Long Press Mode (vs. repeating)'),
-          ],
+        child: _Item(
+          icon: keyPair.isLongPress ? Icons.check_box : Icons.check_box_outline_blank,
+          title: 'Long Press Mode (vs. repeating)',
+          isActive: keyPair.isLongPress,
         ),
       ),
-      PopupMenuItem<PhysicalKeyboardKey>(
-        value: null,
-        onTap: () {
+      MenuButton(
+        onPressed: (_) {
           keyPair.isLongPress = false;
           keyPair.physicalKey = null;
           keyPair.logicalKey = null;
@@ -436,61 +366,57 @@ class _ButtonEditor extends StatelessWidget {
           keyPair.inGameActionValue = null;
           onUpdate();
         },
-        child: Row(
-          spacing: 14,
-          children: [
-            Icon(Icons.delete_outline),
-            const Text('Unassign action'),
-          ],
+        child: _Item(
+          icon: Icons.delete_outline,
+          title: 'Unassign action',
+          isActive: false,
         ),
       ),
     ];
 
-    return Container(
-      constraints: BoxConstraints(minHeight: kMinInteractiveDimension - 6),
-      padding: EdgeInsets.only(right: actionHandler.supportedApp is CustomApp ? 4 : 0),
-      child: PopupMenuButton<dynamic>(
-        itemBuilder: (c) => actions,
-        enabled: actionHandler.supportedApp is CustomApp,
-        child: InkWell(
-          onTap: actionHandler.supportedApp is! CustomApp
-              ? () async {
-                  final currentProfile = actionHandler.supportedApp!.name;
-                  final newName = await KeymapManager().duplicate(
-                    context,
-                    currentProfile,
-                    skipName: '$currentProfile (Copy)',
-                  );
-                  if (newName != null) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Created a new custom profile: $newName')));
-                  }
-                  onUpdate();
-                }
-              : null,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            spacing: 6,
-            children: [
-              if (keyPair.buttons.isNotEmpty &&
-                  (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
-                Expanded(
-                  child: KeypairExplanation(
-                    keyPair: keyPair,
-                  ),
-                )
-              else
-                Expanded(
-                  child: Text(
-                    'No action assigned',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              Icon(Icons.edit, size: 14),
-            ],
-          ),
-        ),
+    return TextButton(
+      onPressed: () async {
+        if (actionHandler.supportedApp is! CustomApp) {
+          final currentProfile = actionHandler.supportedApp!.name;
+          final newName = await KeymapManager().duplicate(
+            context,
+            currentProfile,
+            skipName: '$currentProfile (Copy)',
+          );
+          if (newName != null) {
+            showToast(
+              context: context,
+              builder: (c, overlay) => buildToast(context, overlay, title: 'Created a new custom profile: $newName'),
+            );
+          }
+          onUpdate();
+        } else {
+          showDropdown(
+            context: context,
+            builder: (c) => DropdownMenu(children: actions),
+          );
+        }
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        spacing: 6,
+        children: [
+          if (keyPair.buttons.isNotEmpty &&
+              (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
+            Expanded(
+              child: KeypairExplanation(
+                keyPair: keyPair,
+              ),
+            )
+          else
+            Expanded(
+              child: Text(
+                'No action assigned',
+                style: TextStyle(color: Colors.gray),
+              ),
+            ),
+          Icon(Icons.edit, size: 14),
+        ],
       ),
     );
   }
@@ -513,7 +439,7 @@ class _ButtonEditor extends StatelessWidget {
 
     if (keyPairAction.touchPosition != Offset.zero) {
       parts.add(
-        'Touch: (${keyPairAction.touchPosition.dx.toStringAsFixed(1)}, ${keyPairAction.touchPosition.dy.toStringAsFixed(1)})',
+        'Touch: ${keyPairAction.touchPosition.dx.toInt()}, ${keyPairAction.touchPosition.dy.toInt()}',
       );
     }
 
@@ -528,5 +454,45 @@ class _ButtonEditor extends StatelessWidget {
 extension SplitByUppercase on String {
   String splitByUpperCase() {
     return replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (match) => '${match.group(1)} ${match.group(2)}').capitalize();
+  }
+}
+
+class _Item extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool isActive;
+  const _Item({super.key, required this.title, required this.icon, required this.isActive});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: Basic(
+        leading: Stack(
+          children: [
+            Icon(
+              icon,
+              color: icon == Icons.delete_outline ? Theme.of(context).colorScheme.destructive : null,
+            ),
+            if (isActive)
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Icon(
+                  Icons.check_circle,
+                  size: 12,
+                  color: Colors.green,
+                ),
+              ),
+          ],
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: icon == Icons.delete_outline ? Theme.of(context).colorScheme.destructive : null,
+          ),
+        ),
+      ),
+    );
   }
 }

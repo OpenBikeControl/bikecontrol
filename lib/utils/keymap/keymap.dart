@@ -121,6 +121,7 @@ class KeyPair {
       _ when physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard) => Icons.keyboard,
       _
           when inGameAction != null &&
+              touchPosition == Offset.zero &&
               ((settings.getTrainerApp() is MyWhoosh && settings.getMyWhooshLinkEnabled()) ||
                   (settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled())) =>
         Icons.link,
