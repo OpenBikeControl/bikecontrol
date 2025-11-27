@@ -2,117 +2,133 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show showLicensePage;
 import 'package:intl/intl.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
-import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../bluetooth/devices/zwift/zwift_click.dart';
+import '../pages/device.dart';
 import 'ignored_devices_dialog.dart';
 
-List<Widget> buildMenuButtons() {
+List<Widget> buildMenuButtons(BuildContext context) {
   return [
     if (kIsWeb || (!Platform.isIOS && !Platform.isMacOS)) ...[
-      PopupMenuButton(
-        itemBuilder: (BuildContext context) {
-          return [
-            PopupMenuItem(
-              child: Text('via Credit Card, Google Pay, Apple Pay and others'),
-              onTap: () {
-                final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
-                final link = switch (currency.currencyName) {
-                  'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
-                  _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
-                };
-                launchUrlString(link);
-              },
+      OutlineButton(
+        onPressed: () {
+          showDropdown(
+            context: context,
+            builder: (c) => DropdownMenu(
+              children: [
+                MenuButton(
+                  child: Text('via Credit Card, Google Pay, Apple Pay and others'),
+                  onPressed: (c) {
+                    final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
+                    final link = switch (currency.currencyName) {
+                      'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
+                      _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
+                    };
+                    launchUrlString(link);
+                  },
+                ),
+                if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
+                  MenuButton(
+                    child: Text('by buying the app from Play Store'),
+                    onPressed: (c) {
+                      launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
+                    },
+                  ),
+                MenuButton(
+                  child: Text('via PayPal'),
+                  onPressed: (c) {
+                    launchUrlString('https://paypal.me/boni');
+                  },
+                ),
+              ],
             ),
-            if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
-              PopupMenuItem(
-                child: Text('by buying the app from Play Store'),
-                onTap: () {
-                  launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
-                },
-              ),
-            PopupMenuItem(
-              child: Text('via PayPal'),
-              onTap: () {
-                launchUrlString('https://paypal.me/boni');
-              },
-            ),
-          ];
+          );
         },
-        icon: Text(
+        child: Text(
           'Donate ♥',
           style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
         ),
       ),
       SizedBox(width: 8),
     ],
-    PopupMenuButton(
-      itemBuilder: (BuildContext context) {
-        return [
-          PopupMenuItem(
-            child: Text('Instructions'),
-            onTap: () {
-              final instructions = Platform.isAndroid
-                  ? 'INSTRUCTIONS_ANDROID.md'
-                  : Platform.isIOS
-                  ? 'INSTRUCTIONS_IOS.md'
-                  : Platform.isMacOS
-                  ? 'INSTRUCTIONS_MACOS.md'
-                  : 'INSTRUCTIONS_WINDOWS.md';
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: instructions)),
-              );
-            },
-          ),
-          PopupMenuItem(
-            child: Text('Troubleshooting Guide'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-              );
-            },
-          ),
-          PopupMenuItem(
-            child: Text('Provide Feedback'),
-            onTap: () {
-              launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
-            },
-          ),
-          if (!kIsWeb)
-            PopupMenuItem(
-              child: Text('Get Support'),
-              onTap: () {
-                final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
-                final suffix = isFromStore ? '' : '-sw';
+    Builder(
+      builder: (context) {
+        return OutlineButton(
+          onPressed: () {
+            showDropdown(
+              context: context,
+              builder: (c) => DropdownMenu(
+                children: [
+                  MenuButton(
+                    child: Text('Instructions'),
+                    onPressed: (c) {
+                      final instructions = Platform.isAndroid
+                          ? 'INSTRUCTIONS_ANDROID.md'
+                          : Platform.isIOS
+                          ? 'INSTRUCTIONS_IOS.md'
+                          : Platform.isMacOS
+                          ? 'INSTRUCTIONS_MACOS.md'
+                          : 'INSTRUCTIONS_WINDOWS.md';
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: instructions)),
+                      );
+                    },
+                  ),
+                  MenuButton(
+                    child: Text('Troubleshooting Guide'),
+                    onPressed: (c) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                      );
+                    },
+                  ),
+                  MenuButton(
+                    child: Text('Provide Feedback'),
+                    onPressed: (c) {
+                      launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
+                    },
+                  ),
+                  if (!kIsWeb)
+                    MenuButton(
+                      child: Text('Get Support'),
+                      onPressed: (c) {
+                        final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
+                        final suffix = isFromStore ? '' : '-sw';
 
-                String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
-                String subject = Uri.encodeComponent("Help requested for BikeControl v${packageInfoValue?.version}");
-                String body = Uri.encodeComponent("""
+                        String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
+                        String subject = Uri.encodeComponent(
+                          "Help requested for BikeControl v${packageInfoValue?.version}",
+                        );
+                        String body = Uri.encodeComponent("""
                 ${debugText()}
-                
+
 Please also attach the file ${File('${Directory.current.path}/app.logs').path}, if it exists.
 Please don't remove this information, it helps me to assist you better.""");
-                Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
+                        Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
 
-                launchUrl(mail);
-              },
-            ),
-        ];
+                        launchUrl(mail);
+                      },
+                    ),
+                ],
+              ),
+            );
+          },
+          child: Icon(Icons.help_outline),
+        );
       },
-      icon: Icon(Icons.help_outline),
     ),
     SizedBox(width: 8),
-    const MenuButton(),
+    const BKMenuButton(),
     SizedBox(width: 8),
   ];
 }
@@ -131,49 +147,53 @@ ${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e
 ''';
 }
 
-class MenuButton extends StatelessWidget {
-  const MenuButton({super.key});
+class BKMenuButton extends StatelessWidget {
+  const BKMenuButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton(
-      itemBuilder: (c) => [
-        if (kDebugMode) ...[
-          PopupMenuItem(
-            child: PopupMenuButton(
-              child: Text("Simulate buttons"),
-              itemBuilder: (_) {
-                return ControllerButton.values
+    return OutlineButton(
+      child: Icon(Icons.more_vert),
+      onPressed: () => showDropdown(
+        context: context,
+        builder: (c) => DropdownMenu(
+          children: [
+            if (kDebugMode) ...[
+              MenuButton(
+                subMenu: ControllerButton.values
                     .map(
-                      (e) => PopupMenuItem(
+                      (e) => MenuButton(
                         child: Text(e.name),
-                        onTap: () {
-                          Future.delayed(Duration(seconds: 2)).then((_) {
+                        onPressed: (c) {
+                          Future.delayed(Duration(seconds: 2)).then((_) async {
                             if (connection.devices.isNotEmpty) {
                               connection.devices.firstOrNull?.handleButtonsClicked([e]);
                               connection.devices.firstOrNull?.handleButtonsClicked([]);
                             } else {
                               actionHandler.performAction(e);
+                              /*final point = Offset(300, 300);
+                              await keyPressSimulator.simulateMouseClickDown(point);
+                              // slight move to register clicks on some apps, see issue #116
+                              await keyPressSimulator.simulateMouseClickUp(point);*/
                             }
                           });
                         },
                       ),
                     )
-                    .toList();
-              },
-            ),
-          ),
-          PopupMenuItem(
-            child: Text('Continue'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (c) => DevicePage(),
-                  settings: RouteSettings(name: '/device'),
-                ),
-              );
-              /*connection.addDevices([
+                    .toList(),
+                child: Text('Simulate buttons'),
+              ),
+              MenuButton(
+                child: Text('Continue'),
+                onPressed: (c) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (c) => DevicePage(),
+                      settings: RouteSettings(name: '/device'),
+                    ),
+                  );
+                  /*connection.addDevices([
                 ZwiftClick(
                     BleDevice(
                       name: 'Controller',
@@ -184,38 +204,40 @@ class MenuButton extends StatelessWidget {
                   ..rssi = -51
                   ..batteryLevel = 81,
               ]);*/
-            },
-          ),
-          PopupMenuItem(
-            child: Text('Reset'),
-            onTap: () async {
-              await settings.reset();
-            },
-          ),
-          PopupMenuItem(child: PopupMenuDivider()),
-        ],
-        PopupMenuItem(
-          child: Text('Changelog'),
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
-          },
+                },
+              ),
+              MenuButton(
+                child: Text('Reset'),
+                onPressed: (c) async {
+                  await settings.reset();
+                },
+              ),
+              MenuDivider(),
+            ],
+            MenuButton(
+              child: Text('Changelog'),
+              onPressed: (c) {
+                Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
+              },
+            ),
+            MenuButton(
+              child: Text('Ignored Devices'),
+              onPressed: (c) {
+                showDialog(
+                  context: context,
+                  builder: (context) => IgnoredDevicesDialog(),
+                );
+              },
+            ),
+            MenuButton(
+              child: Text('License'),
+              onPressed: (c) {
+                showLicensePage(context: context);
+              },
+            ),
+          ],
         ),
-        PopupMenuItem(
-          child: Text('Ignored Devices'),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => IgnoredDevicesDialog(),
-            );
-          },
-        ),
-        PopupMenuItem(
-          child: Text('License'),
-          onTap: () {
-            showLicensePage(context: context);
-          },
-        ),
-      ],
+      ),
     );
   }
 }

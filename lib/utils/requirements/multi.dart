@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
@@ -12,6 +12,7 @@ import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
@@ -19,11 +20,13 @@ class KeyboardRequirement extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Enable keyboard access in the following screen for BikeControl. If you don\'t see BikeControl, please add it manually.',
-        ),
+    showToast(
+      context: context,
+      builder: (c, overlay) => buildToast(
+        context,
+        overlay,
+        title:
+            'Enable keyboard access in the following screen for BikeControl. If you don\'t see BikeControl, please add it manually.',
       ),
     );
     await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
@@ -56,7 +59,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
 
   @override
   Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return ElevatedButton(
+    return OutlineButton(
       onPressed: () {
         call(context, onUpdate);
       },
@@ -222,100 +225,87 @@ class TargetRequirement extends PlatformRequirement {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Select Trainer App', style: TextStyle(fontWeight: FontWeight.bold)),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 400),
-            child: DropdownMenu<SupportedApp>(
-              dropdownMenuEntries: SupportedApp.supportedApps.map((app) {
-                return DropdownMenuEntry(
-                  value: app,
-                  label: app.name,
-                  labelWidget: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(app.name),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'When running BikeControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                                  ),
-                                ),
-                                Icon(Icons.warning_amber),
-                              ],
-                            ),
-                          ],
-                        )
-                      : null,
-                );
-              }).toList(),
-              hintText: 'Select Trainer app',
-              initialSelection: settings.getTrainerApp(),
-              onSelected: (selectedApp) async {
-                if (settings.getTrainerApp() is MyWhoosh && selectedApp is! MyWhoosh && whooshLink.isStarted.value) {
-                  whooshLink.stopServer();
-                }
-                settings.setTrainerApp(selectedApp!);
-                if (settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
-                  await settings.setLastTarget(Target.thisDevice);
-                }
-                if (actionHandler.supportedApp == null ||
-                    (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
-                  actionHandler.init(selectedApp);
-                  settings.setKeyMap(selectedApp);
-                }
-                setState(() {});
-              },
-            ),
+          Select<SupportedApp>(
+            constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
+            itemBuilder: (c, app) => Text(app.name),
+            popup: SelectPopup(
+              items: SelectItemList(
+                children: SupportedApp.supportedApps.map((app) {
+                  return SelectItemButton(
+                    value: app,
+                    child: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
+                        ? Basic(
+                            title: Text(app.name),
+                            trailing: Icon(Icons.warning_amber),
+                            trailingAlignment: Alignment.centerRight,
+                            subtitle: Text(
+                              'When running BikeControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
+                            ).xSmall.muted,
+                          )
+                        : Text(app.name),
+                  );
+                }).toList(),
+              ),
+            ).call,
+            placeholder: Text('Select Trainer app'),
+            value: settings.getTrainerApp(),
+            onChanged: (selectedApp) async {
+              if (settings.getTrainerApp() is MyWhoosh && selectedApp is! MyWhoosh && whooshLink.isStarted.value) {
+                whooshLink.stopServer();
+              }
+              settings.setTrainerApp(selectedApp!);
+              if (settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
+                await settings.setLastTarget(Target.thisDevice);
+              }
+              if (actionHandler.supportedApp == null ||
+                  (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
+                actionHandler.init(selectedApp);
+                settings.setKeyMap(selectedApp);
+              }
+              setState(() {});
+            },
           ),
           SizedBox(height: 8),
           Text(
             'Select Target where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 400),
-            child: DropdownMenu<Target>(
-              dropdownMenuEntries: [Target.thisDevice, Target.otherDevice].map((target) {
-                return DropdownMenuEntry(
-                  value: target,
-                  label: target.title,
-                  leadingIcon: Icon(target.icon),
-                  enabled: target.isCompatible,
-                  labelWidget: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(target.title),
-                        Text(
-                          target.getDescription(settings.getTrainerApp()),
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
-                        ),
-                      ],
+          Select<Target>(
+            constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
+            itemBuilder: (c, app) => Text(app.title),
+            popup: SelectPopup(
+              items: SelectItemList(
+                children: [Target.thisDevice, Target.otherDevice].map((target) {
+                  return SelectItemButton(
+                    value: target,
+                    enabled: target.isCompatible,
+                    child: Basic(
+                      leading: Icon(target.icon),
+                      leadingAlignment: Alignment.centerLeft,
+                      subtitle: Text(
+                        target.getDescription(settings.getTrainerApp()),
+                      ).xSmall.muted,
+                      title: Text(target.title),
                     ),
-                  ),
-                );
-              }).toList(),
-              hintText: 'Select Target device',
-              initialSelection: settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
-              enabled: settings.getTrainerApp() != null,
-              onSelected: (target) async {
-                if (target != null) {
-                  await settings.setLastTarget(target);
-                  if (target.warning != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(target.warning!),
-                        duration: Duration(seconds: 10),
-                      ),
-                    );
-                  }
-                  setState(() {});
+                  );
+                }).toList(),
+              ),
+            ).call,
+            placeholder: Text('Select Target device'),
+            value: settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
+            enabled: settings.getTrainerApp() != null,
+            onChanged: (target) async {
+              if (target != null) {
+                await settings.setLastTarget(target);
+                if (target.warning != null) {
+                  showToast(
+                    context: context,
+                    builder: (c, overlay) => buildToast(context, overlay, title: target.warning),
+                  );
                 }
-              },
-            ),
+                setState(() {});
+              }
+            },
           ),
           if (settings.getLastTarget() != null && settings.getLastTarget() != Target.thisDevice) ...[
             SizedBox(height: 8),
@@ -323,18 +313,20 @@ class TargetRequirement extends PlatformRequirement {
               'Select the other device where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 400),
-              child: DropdownMenu<Target>(
-                dropdownMenuEntries: Target.values
-                    .whereNot((e) => [Target.thisDevice, Target.otherDevice].contains(e))
-                    .map((target) {
-                      return DropdownMenuEntry(
-                        value: target,
-                        label: target.title,
-                        enabled: target.isCompatible,
-                        leadingIcon: Icon(target.icon),
-                        labelWidget: Padding(
+            Select<Target>(
+              constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
+              itemBuilder: (c, app) => Text(app.name),
+              popup: SelectPopup(
+                items: SelectItemList(
+                  children: Target.values.whereNot((e) => [Target.thisDevice, Target.otherDevice].contains(e)).map((
+                    target,
+                  ) {
+                    return SelectItemButton(
+                      value: target,
+                      enabled: target.isCompatible,
+                      child: Basic(
+                        leading: Icon(target.icon),
+                        title: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,37 +346,35 @@ class TargetRequirement extends PlatformRequirement {
                               ),
                               Text(
                                 target.getDescription(settings.getTrainerApp()),
-                                style: TextStyle(fontSize: 10, color: Colors.grey),
-                              ),
+                              ).small,
                             ],
                           ),
                         ),
-                      );
-                    })
-                    .toList(),
-                hintText: 'Select Target device',
-                initialSelection: settings.getLastTarget(),
-                enabled: settings.getTrainerApp() != null,
-                onSelected: (target) async {
-                  if (target != null) {
-                    await settings.setLastTarget(target);
-                    initializeActions(target.connectionType);
-                    if (target.warning != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(target.warning!),
-                          duration: Duration(seconds: 10),
-                        ),
-                      );
-                    }
-                    setState(() {});
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ).call,
+              placeholder: Text('Select Target device'),
+              value: settings.getLastTarget(),
+              enabled: settings.getTrainerApp() != null,
+              onChanged: (target) async {
+                if (target != null) {
+                  await settings.setLastTarget(target);
+                  initializeActions(target.connectionType);
+                  if (target.warning != null) {
+                    showToast(
+                      context: context,
+                      builder: (c, overlay) => buildToast(context, overlay, title: target.warning),
+                    );
                   }
-                },
-              ),
+                  setState(() {});
+                }
+              },
             ),
           ],
           SizedBox(height: 8),
-          ElevatedButton(
+          PrimaryButton(
             onPressed: settings.getTrainerApp() != null && settings.getLastTarget() != null
                 ? () {
                     onUpdate();

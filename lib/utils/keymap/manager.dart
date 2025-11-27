@@ -1,7 +1,8 @@
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 
 import 'apps/custom_app.dart';
 
@@ -25,7 +26,7 @@ class KeymapManager {
         title: Text('New Custom Profile'),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(labelText: 'Profile Name', hintText: 'e.g., Workout, Race, Event'),
+          hintText: 'Profile name',
           autofocus: true,
         ),
         actions: [
@@ -36,106 +37,109 @@ class KeymapManager {
     );
   }
 
-  PopupMenuButton<String> getManageProfileDialog(
+  Widget getManageProfileDialog(
     BuildContext context,
     String? currentProfile, {
     required VoidCallback onDone,
   }) {
-    return PopupMenuButton(
-      itemBuilder: (context) => [
-        if (currentProfile != null && actionHandler.supportedApp is CustomApp)
-          PopupMenuItem(
-            child: Text('Rename'),
-            onTap: () async {
-              final newName = await _showRenameProfileDialog(
-                context,
-                currentProfile,
-              );
-              if (newName != null && newName.isNotEmpty && newName != currentProfile) {
-                await settings.duplicateCustomAppProfile(currentProfile, newName);
-                await settings.deleteCustomAppProfile(currentProfile);
-                final customApp = CustomApp(profileName: newName);
-                final savedKeymap = settings.getCustomAppKeymap(newName);
-                if (savedKeymap != null) {
-                  customApp.decodeKeymap(savedKeymap);
-                }
-                actionHandler.supportedApp = customApp;
-                await settings.setKeyMap(customApp);
-              }
-              onDone();
-            },
-          ),
-        if (currentProfile != null)
-          PopupMenuItem(
-            child: Text('Duplicate'),
-            onTap: () async {
-              final newName = await duplicate(
-                context,
-                currentProfile,
-              );
-              onDone();
-            },
-          ),
-        PopupMenuItem(
-          child: Text('Import'),
-          onTap: () async {
-            final jsonData = await _showImportDialog(context);
-            if (jsonData != null && jsonData.isNotEmpty) {
-              final success = await settings.importCustomAppProfile(jsonData);
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Profile imported successfully'),
-                    duration: Duration(seconds: 5),
+    return Builder(
+      builder: (context) {
+        return OutlineButton(
+          child: Icon(Icons.more_vert),
+          onPressed: () => showDropdown(
+            context: context,
+            builder: (c) => DropdownMenu(
+              children: [
+                if (currentProfile != null && actionHandler.supportedApp is CustomApp)
+                  MenuButton(
+                    child: Text('Rename'),
+                    onPressed: (c) async {
+                      final newName = await _showRenameProfileDialog(
+                        context,
+                        currentProfile,
+                      );
+                      if (newName != null && newName.isNotEmpty && newName != currentProfile) {
+                        await settings.duplicateCustomAppProfile(currentProfile, newName);
+                        await settings.deleteCustomAppProfile(currentProfile);
+                        final customApp = CustomApp(profileName: newName);
+                        final savedKeymap = settings.getCustomAppKeymap(newName);
+                        if (savedKeymap != null) {
+                          customApp.decodeKeymap(savedKeymap);
+                        }
+                        actionHandler.supportedApp = customApp;
+                        await settings.setKeyMap(customApp);
+                      }
+                      onDone();
+                    },
                   ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to import profile. Invalid format.'),
-                    duration: Duration(seconds: 5),
-                    backgroundColor: Colors.red,
+                if (currentProfile != null)
+                  MenuButton(
+                    child: Text('Duplicate'),
+                    onPressed: (c) async {
+                      final newName = await duplicate(
+                        context,
+                        currentProfile,
+                      );
+                      onDone();
+                    },
                   ),
-                );
-              }
-            }
-          },
-        ),
-        if (currentProfile != null)
-          PopupMenuItem(
-            child: Text('Export'),
-            onTap: () {
-              final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
-              final jsonData = settings.exportCustomAppProfile(currentProfile);
-              if (jsonData != null) {
-                Clipboard.setData(ClipboardData(text: jsonData));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Profile "$currentProfile" exported to clipboard',
-                    ),
-                    duration: Duration(seconds: 5),
+                MenuButton(
+                  child: Text('Import'),
+                  onPressed: (c) async {
+                    final jsonData = await _showImportDialog(context);
+                    if (jsonData != null && jsonData.isNotEmpty) {
+                      final success = await settings.importCustomAppProfile(jsonData);
+                      if (success) {
+                        showToast(
+                          context: context,
+                          builder: (c, overlay) => buildToast(context, overlay, title: 'Profile imported successfully'),
+                        );
+                      } else {
+                        showToast(
+                          context: context,
+                          builder: (c, overlay) =>
+                              buildToast(context, overlay, title: 'Failed to import profile. Invalid format.'),
+                        );
+                      }
+                    }
+                  },
+                ),
+                if (currentProfile != null)
+                  MenuButton(
+                    child: Text('Export'),
+                    onPressed: (c) {
+                      final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
+                      final jsonData = settings.exportCustomAppProfile(currentProfile);
+                      if (jsonData != null) {
+                        Clipboard.setData(ClipboardData(text: jsonData));
+
+                        showToast(
+                          context: context,
+                          builder: (c, overlay) =>
+                              buildToast(context, overlay, title: 'Profile "$currentProfile" exported to clipboard'),
+                        );
+                      }
+                    },
                   ),
-                );
-              }
-            },
+                if (currentProfile != null)
+                  MenuButton(
+                    onPressed: (c) async {
+                      final confirmed = await _showDeleteConfirmDialog(
+                        context,
+                        currentProfile,
+                      );
+                      if (confirmed == true) {
+                        await settings.deleteCustomAppProfile(currentProfile);
+                      }
+                      onDone();
+                    },
+                    child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.destructive)),
+                  ),
+              ],
+            ),
           ),
-        if (currentProfile != null)
-          PopupMenuItem(
-            value: 'delete',
-            onTap: () async {
-              final confirmed = await _showDeleteConfirmDialog(
-                context,
-                currentProfile,
-              );
-              if (confirmed == true) {
-                await settings.deleteCustomAppProfile(currentProfile);
-              }
-              onDone();
-            },
-            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ),
-      ],
+        );
+      },
     );
   }
 
@@ -147,7 +151,7 @@ class KeymapManager {
         title: Text('Rename Profile'),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(labelText: 'Profile Name'),
+          hintText: 'Profile Name',
           autofocus: true,
         ),
         actions: [
@@ -166,7 +170,8 @@ class KeymapManager {
         title: Text('Create new custom profile by duplicating "$currentName"'),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(labelText: 'New Profile Name'),
+          placeholder: Text('New Profile name'),
+          hintText: 'New Profile Name',
           autofocus: true,
         ),
         actions: [
@@ -185,10 +190,9 @@ class KeymapManager {
         content: Text('Are you sure you want to delete "$profileName"? This action cannot be undone.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-          TextButton(
+          DestructiveButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('Delete'),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
           ),
         ],
       ),
@@ -219,7 +223,8 @@ class KeymapManager {
             SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: InputDecoration(labelText: 'JSON Data', border: OutlineInputBorder()),
+              hintText: 'JSON Data',
+              border: Border(),
               maxLines: 5,
               autofocus: true,
             ),

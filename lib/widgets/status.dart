@@ -37,86 +37,83 @@ class _StatusWidgetState extends State<StatusWidget> {
     final isRemote = actionHandler is RemoteActions && isAdvertisingPeripheral;
     final isZwift = settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled();
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          spacing: 8,
-          children: [
-            if (connection.controllerDevices.isEmpty)
-              _Status(color: Colors.red, text: 'No connected controllers')
-            else
-              _Status(
-                color: Colors.green,
-                text:
-                    '${connection.controllerDevices.length == 1 ? 'Controller connected' : '${connection.controllerDevices.length} controllers connected'} ',
-              ),
-            if (whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
-                settings.getMyWhooshLinkEnabled() &&
-                !isZwift)
-              _Status(
-                color: whooshLink.isConnected.value
-                    ? Colors.green
-                    : Platform.isAndroid
-                    ? Colors.yellow
-                    : Colors.red,
-                text:
-                    'MyWhoosh Direct Connect ${whooshLink.isConnected.value
-                        ? "connected"
-                        : Platform.isAndroid
-                        ? "not connected (optional)"
-                        : "not connected"}',
-              ),
+      child: Column(
+        spacing: 8,
+        children: [
+          if (connection.controllerDevices.isEmpty)
+            _Status(color: Colors.red, text: 'No connected controllers')
+          else
+            _Status(
+              color: Colors.green,
+              text:
+                  '${connection.controllerDevices.length == 1 ? 'Controller connected' : '${connection.controllerDevices.length} controllers connected'} ',
+            ),
+          if (whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
+              settings.getMyWhooshLinkEnabled() &&
+              !isZwift)
+            _Status(
+              color: whooshLink.isConnected.value
+                  ? Colors.green
+                  : Platform.isAndroid
+                  ? Colors.yellow
+                  : Colors.red,
+              text:
+                  'MyWhoosh Direct Connect ${whooshLink.isConnected.value
+                      ? "connected"
+                      : Platform.isAndroid
+                      ? "not connected (optional)"
+                      : "not connected"}',
+            ),
 
-            if (isRemote)
-              _Status(
-                color: (actionHandler as RemoteActions).isConnected ? Colors.green : Colors.red,
-                text: 'Remote ${(actionHandler as RemoteActions).isConnected ? "connected" : "not connected"}',
-              ),
-            if (isZwift)
-              _Status(
-                color: zwiftEmulator.isConnected.value ? Colors.green : Colors.red,
-                text: 'Zwift Emulation ${zwiftEmulator.isConnected.value ? "connected" : "not connected"}',
-              ),
-            if (!isRemote && !isZwift && !screenshotMode && settings.getLastTarget() != Target.thisDevice)
-              _Status(
-                color: Colors.red,
-                text: 'Not connected to a remote device',
-              ),
-            if (_isRunningAndroidService != null)
-              _Status(
-                color: _isRunningAndroidService! ? Colors.green : Colors.red,
-                text: 'Accessibility service is ${_isRunningAndroidService! ? 'available' : 'not available'}',
-                trailing: !_isRunningAndroidService!
-                    ? Row(
-                        spacing: 8,
-                        children: [
-                          Text('Follow instructions at'),
-                          Expanded(
-                            child: LinkButton(
-                              child: Text('https://dontkillmyapp.com/'),
-                              onPressed: () {
-                                launchUrlString('https://dontkillmyapp.com/');
-                              },
-                            ),
-                          ),
-                          IconButton.secondary(
+          if (isRemote)
+            _Status(
+              color: (actionHandler as RemoteActions).isConnected ? Colors.green : Colors.red,
+              text: 'Remote ${(actionHandler as RemoteActions).isConnected ? "connected" : "not connected"}',
+            ),
+          if (isZwift)
+            _Status(
+              color: zwiftEmulator.isConnected.value ? Colors.green : Colors.red,
+              text: 'Zwift Emulation ${zwiftEmulator.isConnected.value ? "connected" : "not connected"}',
+            ),
+          if (!isRemote && !isZwift && !screenshotMode && settings.getLastTarget() != Target.thisDevice)
+            _Status(
+              color: Colors.red,
+              text: 'Not connected to a remote device',
+            ),
+          if (_isRunningAndroidService != null)
+            _Status(
+              color: _isRunningAndroidService! ? Colors.green : Colors.red,
+              text: 'Accessibility service is ${_isRunningAndroidService! ? 'available' : 'not available'}',
+              trailing: !_isRunningAndroidService!
+                  ? Row(
+                      spacing: 8,
+                      children: [
+                        Text('Follow instructions at'),
+                        Expanded(
+                          child: LinkButton(
+                            child: Text('https://dontkillmyapp.com/'),
                             onPressed: () {
-                              (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((
-                                isRunning,
-                              ) {
-                                setState(() {
-                                  _isRunningAndroidService = isRunning;
-                                });
-                              });
+                              launchUrlString('https://dontkillmyapp.com/');
                             },
-                            icon: Icon(Icons.refresh),
                           ),
-                        ],
-                      )
-                    : null,
-              ),
-          ],
-        ),
+                        ),
+                        IconButton.secondary(
+                          onPressed: () {
+                            (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((
+                              isRunning,
+                            ) {
+                              setState(() {
+                                _isRunningAndroidService = isRunning;
+                              });
+                            });
+                          },
+                          icon: Icon(Icons.refresh),
+                        ),
+                      ],
+                    )
+                  : null,
+            ),
+        ],
       ),
     );
   }

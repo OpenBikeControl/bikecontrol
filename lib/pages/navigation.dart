@@ -1,9 +1,9 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/requirements.dart';
-import 'package:swift_control/pages/target.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
@@ -51,7 +51,7 @@ class _NavigationState extends State<Navigation> {
       headers: [
         AppBar(
           title: AppTitle(),
-          trailing: buildMenuButtons(),
+          trailing: buildMenuButtons(context),
         ),
         Divider(),
       ],
@@ -68,20 +68,24 @@ class _NavigationState extends State<Navigation> {
             Expanded(
               child: AnimatedSwitcher(
                 duration: Duration(milliseconds: 200),
-                child: switch (_selectedPage) {
-                  BCPage.permissions => RequirementsPage(
-                    onUpdate: () {
-                      _reloadRequirements();
-                    },
-                  ),
-                  BCPage.devices => DevicePage(),
-                  BCPage.customization => CustomizePage(),
-                  BCPage.configuration => TargetPage(
-                    onUpdate: () {
-                      _reloadRequirements();
-                    },
-                  ),
-                },
+                child: Container(
+                  alignment: Alignment.topLeft,
+                  padding: EdgeInsets.all(16),
+                  child: switch (_selectedPage) {
+                    BCPage.permissions => RequirementsPage(
+                      onUpdate: () {
+                        _reloadRequirements();
+                      },
+                    ),
+                    BCPage.devices => DevicePage(),
+                    BCPage.customization => CustomizePage(),
+                    BCPage.configuration => ConfigurationPage(
+                      onUpdate: () {
+                        _reloadRequirements();
+                      },
+                    ),
+                  },
+                ),
               ),
             ),
         ],
@@ -127,9 +131,33 @@ class _NavigationState extends State<Navigation> {
           ),
           enabled: _isPageEnabled(page),
           label: Text(page.title),
-          child: Icon(page.icon),
+          child: _buildIcon(page),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildIcon(BCPage page) {
+    final needsAttention = _needsAttention(page);
+    return Stack(
+      children: [
+        Icon(page.icon),
+        if (needsAttention) ...[
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -146,7 +174,7 @@ class _NavigationState extends State<Navigation> {
           selected: _selectedPage == page,
           enabled: _isPageEnabled(page),
           label: Text(page.title),
-          child: Icon(page.icon),
+          child: _buildIcon(page),
         );
       }).toList(),
     );
@@ -157,6 +185,15 @@ class _NavigationState extends State<Navigation> {
       BCPage.configuration => true,
       BCPage.permissions => settings.getTrainerApp() != null,
       _ => settings.getTrainerApp() != null && _needsPermissions == false,
+    };
+  }
+
+  bool _needsAttention(BCPage page) {
+    return switch (page) {
+      BCPage.configuration => settings.getTrainerApp() == null,
+      BCPage.permissions => true,
+      BCPage.devices => connection.controllerDevices.isEmpty,
+      BCPage.customization => false,
     };
   }
 

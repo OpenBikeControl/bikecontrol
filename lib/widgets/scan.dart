@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
@@ -53,36 +52,34 @@ class _ScanWidgetState extends State<ScanWidget> {
           builder: (context, isScanning, widget) {
             if (isScanning) {
               return Column(
-                spacing: 12,
+                spacing: 22,
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
-                  ),
+                  ).small.muted,
                   if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
                     ValueListenableBuilder(
                       valueListenable: connection.isMediaKeyDetectionEnabled,
                       builder: (context, value, child) {
-                        return SwitchListTile.adaptive(
-                          value: value,
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          subtitle: Text(
-                            'Enable this option to allow BikeControl to detect bluetooth remotes. In order to do so BikeControl needs to act as a media player.',
+                        return Tooltip(
+                          tooltip: (c) => TooltipContainer(
+                            child: Text(
+                              'Enable this option to allow BikeControl to detect bluetooth remotes.\nIn order to do so BikeControl needs to act as a media player.',
+                            ),
                           ),
-                          title: Row(
-                            children: [
-                              const Text("Enable Media Key Detection"),
-                            ],
+                          child: Checkbox(
+                            state: value ? CheckboxState.checked : CheckboxState.unchecked,
+                            trailing: Text("Enable Media Key Detection"),
+                            onChanged: (change) {
+                              connection.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
+                            },
                           ),
-                          onChanged: (change) {
-                            connection.isMediaKeyDetectionEnabled.value = change;
-                          },
                         );
                       },
                     ),
-                  LinkButton(
+                  OutlineButton(
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -91,13 +88,12 @@ class _ScanWidgetState extends State<ScanWidget> {
                     },
                     child: const Text("Show Troubleshooting Guide"),
                   ),
-                  SizedBox(),
                 ],
               );
             } else {
               return Row(
                 children: [
-                  ElevatedButton(
+                  PrimaryButton(
                     onPressed: () {
                       connection.performScanning();
                     },

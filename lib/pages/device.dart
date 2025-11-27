@@ -8,7 +8,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
@@ -180,221 +179,190 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final paddingMultiplicator = actionHandler is DesktopActions ? 2.5 : 1.0;
-
-    return PopScope(
-      onPopInvokedWithResult: (hello, _) {
-        connection.reset();
-      },
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          top: 16,
-          left: 8.0 * paddingMultiplicator,
-          right: 8 * paddingMultiplicator,
-          bottom: 8,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_showNameChangeWarning && !screenshotMode)
-              Warning(
-                important: false,
-                children: [
-                  Text(
-                    'SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
-                  ),
-                  SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _showNameChangeWarning = false;
-                      });
-                      launchUrlString('https://openbikecontrol.org');
-                    },
-                    child: Text('More Information'),
-                  ),
-                ],
-              ),
-            if (_showAutoRotationWarning)
-              Warning(
-                important: false,
-                children: [
-                  Text('Enable auto-rotation on your device to make sure the app works correctly.'),
-                ],
-              ),
-            if (_showMiuiWarning)
-              Warning(
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'MIUI Device Detected',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      IconButton.destructive(
-                        icon: Icon(Icons.close),
-                        onPressed: () async {
-                          await settings.setMiuiWarningDismissed(true);
-                          setState(() {
-                            _showMiuiWarning = false;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'To ensure BikeControl works properly:',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    '• Disable battery optimization for BikeControl',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  Text(
-                    '• Enable autostart for BikeControl',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  Text(
-                    '• Lock the app in recent apps',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  SizedBox(height: 12),
-                  IconButton.secondary(
-                    onPressed: () async {
-                      final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    icon: Icon(Icons.open_in_new),
-                    trailing: Text('View Detailed Instructions'),
-                  ),
-                ],
-              ),
-            Card(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 16.0,
-                  right: 16,
-                  top: 16,
-                  bottom: actionHandler is RemoteActions ? 0 : 12,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_showNameChangeWarning && !screenshotMode)
+            Warning(
+              important: false,
+              children: [
+                Text(
+                  'SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showNameChangeWarning = false;
+                    });
+                    launchUrlString('https://openbikecontrol.org');
+                  },
+                  child: Text('More Information'),
+                ),
+              ],
+            ),
+          if (_showAutoRotationWarning)
+            Warning(
+              important: false,
+              children: [
+                Text('Enable auto-rotation on your device to make sure the app works correctly.'),
+              ],
+            ),
+          if (_showMiuiWarning)
+            Warning(
+              children: [
+                Row(
                   children: [
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8.0),
-                      width: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Connected Controllers',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            if (connection.controllerDevices.isEmpty) SmallProgressIndicator(),
-                          ],
+                    Icon(Icons.warning_amber),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'MIUI Device Detected',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    if (connection.controllerDevices.isEmpty)
-                      ScanWidget()
-                    else
-                      ...connection.controllerDevices.map(
-                        (device) => device.showInformation(context),
-                      ),
-
-                    if (actionHandler is RemoteActions ||
-                        whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) ||
-                        actionHandler.supportedApp?.supportsZwiftEmulation == true)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 8.0),
-                        width: double.infinity,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            'Remote Connections',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-
-                    if (settings.getTrainerApp() is MyWhoosh && whooshLink.isCompatible(settings.getLastTarget()!))
-                      MyWhooshLinkTile(),
-                    if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
-                      ZwiftTile(
-                        onUpdate: () {
-                          setState(() {});
-                        },
-                      ),
-
-                    if (actionHandler is RemoteActions && isAdvertisingPeripheral)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected (optional)'}',
-                          ),
-                          IconButton.secondary(
-                            icon: Icon(Icons.more_vert),
-                            onPressed: () {
-                              showDropdown(
-                                context: context,
-                                builder: (context) {
-                                  return DropdownMenu(
-                                    children: [
-                                      MenuButton(
-                                        child: const Text('Reconnect'),
-                                        onPressed: (c) async {
-                                          final requirement = RemoteRequirement();
-                                          await requirement.reconnect();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      )
-                    else
-                      SizedBox(height: 8),
+                    IconButton.destructive(
+                      icon: Icon(Icons.close),
+                      onPressed: () async {
+                        await settings.setMiuiWarningDismissed(true);
+                        setState(() {
+                          _showMiuiWarning = false;
+                        });
+                      },
+                    ),
                   ],
                 ),
-              ),
-            ),
-
-            SizedBox(height: 20),
-            StatusWidget(),
-            SizedBox(height: 20),
-            Collapsible(
-              children: [
-                CollapsibleTrigger(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text('Logs'),
-                  ),
+                SizedBox(height: 8),
+                Text(
+                  'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
+                  style: TextStyle(fontSize: 14),
                 ),
-                CollapsibleContent(child: SizedBox(height: 500, width: 500, child: LogViewer())),
+                SizedBox(height: 8),
+                Text(
+                  'To ensure BikeControl works properly:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '• Disable battery optimization for BikeControl',
+                  style: TextStyle(fontSize: 14),
+                ),
+                Text(
+                  '• Enable autostart for BikeControl',
+                  style: TextStyle(fontSize: 14),
+                ),
+                Text(
+                  '• Lock the app in recent apps',
+                  style: TextStyle(fontSize: 14),
+                ),
+                SizedBox(height: 12),
+                IconButton.secondary(
+                  onPressed: () async {
+                    final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: Icon(Icons.open_in_new),
+                  trailing: Text('View Detailed Instructions'),
+                ),
               ],
             ),
-          ],
-        ),
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8.0),
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Connected Controllers',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        if (connection.controllerDevices.isEmpty) SmallProgressIndicator(),
+                      ],
+                    ),
+                  ),
+                ),
+                if (connection.controllerDevices.isEmpty)
+                  ScanWidget()
+                else
+                  ...connection.controllerDevices.map(
+                    (device) => device.showInformation(context),
+                  ),
+
+                if (actionHandler is RemoteActions ||
+                    whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) ||
+                    actionHandler.supportedApp?.supportsZwiftEmulation == true)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8.0),
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        'Remote Connections',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+
+                if (settings.getTrainerApp() is MyWhoosh && whooshLink.isCompatible(settings.getLastTarget()!))
+                  MyWhooshLinkTile(),
+                if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
+                  ZwiftTile(
+                    onUpdate: () {
+                      setState(() {});
+                    },
+                  ),
+
+                if (actionHandler is RemoteActions && isAdvertisingPeripheral)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected (optional)'}',
+                      ),
+                      IconButton.secondary(
+                        icon: Icon(Icons.more_vert),
+                        onPressed: () {
+                          showDropdown(
+                            context: context,
+                            builder: (context) {
+                              return DropdownMenu(
+                                children: [
+                                  MenuButton(
+                                    child: const Text('Reconnect'),
+                                    onPressed: (c) async {
+                                      final requirement = RemoteRequirement();
+                                      await requirement.reconnect();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  )
+                else
+                  SizedBox(height: 8),
+              ],
+            ),
+          ),
+
+          SizedBox(height: 20),
+          StatusWidget(),
+          SizedBox(height: 20),
+          SizedBox(height: 500, child: LogViewer()),
+        ],
       ),
     );
   }
