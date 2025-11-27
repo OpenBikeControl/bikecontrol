@@ -8,10 +8,11 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../pages/device.dart';
+import '../bluetooth/devices/zwift/zwift_click.dart';
 import 'ignored_devices_dialog.dart';
 
 List<Widget> buildMenuButtons() {
