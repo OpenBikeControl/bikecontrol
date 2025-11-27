@@ -36,6 +36,9 @@ class _NavigationState extends State<Navigation> {
   void initState() {
     super.initState();
     _reloadRequirements();
+    connection.actionStream.listen((_) {
+      setState(() {});
+    });
   }
 
   @override

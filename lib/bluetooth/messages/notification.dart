@@ -1,4 +1,6 @@
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -8,7 +10,11 @@ class BaseNotification {}
 class LogNotification extends BaseNotification {
   final String message;
 
-  LogNotification(this.message);
+  LogNotification(this.message) {
+    if (kDebugMode) {
+      print('LogNotification: $message');
+    }
+  }
 
   @override
   String toString() {
@@ -56,5 +62,17 @@ class ActionNotification extends BaseNotification {
   @override
   String toString() {
     return result.message;
+  }
+}
+
+class AlertNotification extends LogNotification {
+  final LogLevel level;
+  final String alertMessage;
+
+  AlertNotification(this.level, this.alertMessage) : super(alertMessage);
+
+  @override
+  String toString() {
+    return 'Warning: $alertMessage';
   }
 }

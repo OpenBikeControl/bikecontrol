@@ -119,6 +119,17 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
           _actions.removeLast();
         }
         setState(() {});
+      } else if (data is AlertNotification) {
+        showToast(
+          context: context,
+          location: ToastLocation.bottomLeft,
+          builder: (c, overlay) => buildToast(
+            context,
+            overlay,
+            level: data.level,
+            title: data.alertMessage,
+          ),
+        );
       }
     });
 

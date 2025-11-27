@@ -270,92 +270,81 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 ),
               ],
             ),
-          Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (connection.controllerDevices.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SmallProgressIndicator(),
+                ),
+              if (connection.controllerDevices.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ScanWidget(),
+                )
+              else
+                ...connection.controllerDevices.map(
+                  (device) => Card(child: device.showInformation(context)),
+                ),
+
+              if (actionHandler is RemoteActions ||
+                  whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) ||
+                  actionHandler.supportedApp?.supportsZwiftEmulation == true)
                 Container(
                   margin: const EdgeInsets.only(bottom: 8.0),
                   width: double.infinity,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Connected Controllers',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        if (connection.controllerDevices.isEmpty) SmallProgressIndicator(),
-                      ],
+                    child: Text(
+                      'Remote Connections',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-                if (connection.controllerDevices.isEmpty)
-                  ScanWidget()
-                else
-                  ...connection.controllerDevices.map(
-                    (device) => device.showInformation(context),
-                  ),
 
-                if (actionHandler is RemoteActions ||
-                    whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) ||
-                    actionHandler.supportedApp?.supportsZwiftEmulation == true)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 8.0),
-                    width: double.infinity,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        'Remote Connections',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+              if (settings.getTrainerApp() is MyWhoosh && whooshLink.isCompatible(settings.getLastTarget()!))
+                MyWhooshLinkTile(),
+              if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
+                ZwiftTile(
+                  onUpdate: () {
+                    setState(() {});
+                  },
+                ),
+
+              if (actionHandler is RemoteActions && isAdvertisingPeripheral)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected (optional)'}',
                     ),
-                  ),
-
-                if (settings.getTrainerApp() is MyWhoosh && whooshLink.isCompatible(settings.getLastTarget()!))
-                  MyWhooshLinkTile(),
-                if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
-                  ZwiftTile(
-                    onUpdate: () {
-                      setState(() {});
-                    },
-                  ),
-
-                if (actionHandler is RemoteActions && isAdvertisingPeripheral)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected (optional)'}',
-                      ),
-                      IconButton.secondary(
-                        icon: Icon(Icons.more_vert),
-                        onPressed: () {
-                          showDropdown(
-                            context: context,
-                            builder: (context) {
-                              return DropdownMenu(
-                                children: [
-                                  MenuButton(
-                                    child: const Text('Reconnect'),
-                                    onPressed: (c) async {
-                                      final requirement = RemoteRequirement();
-                                      await requirement.reconnect();
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  )
-                else
-                  SizedBox(height: 8),
-              ],
-            ),
+                    IconButton.secondary(
+                      icon: Icon(Icons.more_vert),
+                      onPressed: () {
+                        showDropdown(
+                          context: context,
+                          builder: (context) {
+                            return DropdownMenu(
+                              children: [
+                                MenuButton(
+                                  child: const Text('Reconnect'),
+                                  onPressed: (c) async {
+                                    final requirement = RemoteRequirement();
+                                    await requirement.reconnect();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                )
+              else
+                SizedBox(height: 8),
+            ],
           ),
 
           SizedBox(height: 20),

@@ -5,14 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../pages/device.dart';
 import 'ignored_devices_dialog.dart';
 
 List<Widget> buildMenuButtons(BuildContext context) {
@@ -186,24 +187,17 @@ class BKMenuButton extends StatelessWidget {
               MenuButton(
                 child: Text('Continue'),
                 onPressed: (c) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (c) => DevicePage(),
-                      settings: RouteSettings(name: '/device'),
-                    ),
-                  );
-                  /*connection.addDevices([
-                ZwiftClick(
-                    BleDevice(
-                      name: 'Controller',
-                      deviceId: '00:11:22:33:44:55',
-                    ),
-                  )
-                  ..firmwareVersion = '1.2.0'
-                  ..rssi = -51
-                  ..batteryLevel = 81,
-              ]);*/
+                  connection.addDevices([
+                    ZwiftClickV2(
+                        BleDevice(
+                          name: 'Controller',
+                          deviceId: '00:11:22:33:44:55',
+                        ),
+                      )
+                      ..firmwareVersion = '1.2.0'
+                      ..rssi = -51
+                      ..batteryLevel = 81,
+                  ]);
                 },
               ),
               MenuButton(

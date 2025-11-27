@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -27,6 +28,12 @@ abstract class ZwiftDevice extends BluetoothDevice {
     final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId.toLowerCase());
 
     if (customService == null) {
+      actionStreamInternal.add(
+        AlertNotification(
+          LogLevel.LOGLEVEL_ERROR,
+          'You may need to update the firmware of ${scanResult.name} in Zwift Companion app',
+        ),
+      );
       throw Exception(
         'Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
       );
@@ -53,7 +60,8 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
     if (firmwareVersion != latestFirmwareVersion) {
       actionStreamInternal.add(
-        LogNotification(
+        AlertNotification(
+          LogLevel.LOGLEVEL_WARNING,
           'A new firmware version is available for ${device.name ?? device.rawName}: $latestFirmwareVersion (current: $firmwareVersion). Please update it in Zwift Companion app.',
         ),
       );

@@ -50,7 +50,8 @@ class ZwiftClickV2 extends ZwiftRide {
         bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_2)) {
       _noLongerSendsEvents = true;
       actionStreamInternal.add(
-        LogNotification(
+        AlertNotification(
+          LogLevel.LOGLEVEL_WARNING,
           'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once each session.',
         ),
       );

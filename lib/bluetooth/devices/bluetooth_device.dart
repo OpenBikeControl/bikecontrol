@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/devices/shimano/shimano_di2.dart';
@@ -153,6 +153,7 @@ abstract class BluetoothDevice extends BaseDevice {
         firmwareCharacteristic.uuid,
       );
       firmwareVersion = String.fromCharCodes(firmwareData);
+
       connection.signalChange(this);
     }
 
@@ -189,60 +190,99 @@ abstract class BluetoothDevice extends BaseDevice {
 
   @override
   Widget showInformation(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          device.name?.screenshot ?? runtimeType.toString(),
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        if (isBeta) BetaPill(),
-        if (batteryLevel != null) ...[
-          Icon(switch (batteryLevel!) {
-            >= 80 => Icons.battery_full,
-            >= 60 => Icons.battery_6_bar,
-            >= 50 => Icons.battery_5_bar,
-            >= 25 => Icons.battery_4_bar,
-            >= 10 => Icons.battery_2_bar,
-            _ => Icons.battery_alert,
-          }),
-          Text('$batteryLevel%'),
-        ],
-        if (firmwareVersion != null) Text(' - v$firmwareVersion'),
-        if (firmwareVersion != null &&
-            this is ZwiftDevice &&
-            firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion) ...[
-          SizedBox(width: 8),
-          Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
-          Text(
-            ' (latest: ${(this as ZwiftDevice).latestFirmwareVersion})',
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
-        if (rssi != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Tooltip(
-              message: 'Signal Strength: $rssi dBm',
-              child: Icon(
-                switch (rssi!) {
-                  >= -50 => Icons.signal_cellular_4_bar,
-                  >= -60 => Icons.signal_cellular_alt_2_bar,
-                  >= -70 => Icons.signal_cellular_alt_1_bar,
-                  _ => Icons.signal_cellular_alt,
-                },
-                size: 18,
-              ),
+        Row(
+          children: [
+            Text(
+              device.name?.screenshot ?? runtimeType.toString(),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-          ),
-        Expanded(child: SizedBox()),
-        PopupMenuButton(
-          itemBuilder: (c) => [
-            PopupMenuItem(
-              child: Text('Disconnect and Forget'),
-              onTap: () {
-                connection.disconnect(this, forget: true);
+            if (isBeta) BetaPill(),
+            Expanded(child: SizedBox()),
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  variance: ButtonVariance.outline,
+                  icon: Icon(Icons.clear),
+                  onPressed: () {
+                    showDropdown(
+                      context: context,
+                      builder: (c) => DropdownMenu(
+                        children: [
+                          MenuButton(
+                            child: Text('Disconnect and Forget'),
+                            onPressed: (_) {
+                              connection.disconnect(this, forget: true);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
               },
             ),
+          ],
+        ),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            if (batteryLevel != null)
+              Card(
+                child: Basic(
+                  title: Text('Battery Level'),
+                  trailingAlignment: Alignment.centerRight,
+                  trailing: Icon(switch (batteryLevel!) {
+                    >= 80 => Icons.battery_full,
+                    >= 60 => Icons.battery_6_bar,
+                    >= 50 => Icons.battery_5_bar,
+                    >= 25 => Icons.battery_4_bar,
+                    >= 10 => Icons.battery_2_bar,
+                    _ => Icons.battery_alert,
+                  }),
+                  subtitle: Text('$batteryLevel%'),
+                ),
+              ),
+            if (firmwareVersion != null)
+              Card(
+                child: Basic(
+                  title: Text('Firmware Version'),
+                  subtitle: Row(
+                    children: [
+                      Text('$firmwareVersion'),
+                      if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+                        Text(
+                          ' (latest: ${(this as ZwiftDevice).latestFirmwareVersion})',
+                          style: TextStyle(color: Theme.of(context).colorScheme.destructive),
+                        ),
+                    ],
+                  ),
+                  trailingAlignment: Alignment.centerRight,
+                  trailing: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
+                      ? Icon(Icons.warning, color: Theme.of(context).colorScheme.destructive)
+                      : Icon(Icons.text_fields_sharp),
+                ),
+              ),
+            if (rssi != null)
+              Card(
+                child: Basic(
+                  title: Text('Signal Strength'),
+                  trailingAlignment: Alignment.centerRight,
+                  trailing: Icon(
+                    switch (rssi!) {
+                      >= -50 => Icons.signal_cellular_4_bar,
+                      >= -60 => Icons.signal_cellular_alt_2_bar,
+                      >= -70 => Icons.signal_cellular_alt_1_bar,
+                      _ => Icons.signal_cellular_alt,
+                    },
+                    size: 18,
+                  ),
+                  subtitle: Text('$rssi dBm'),
+                ),
+              ),
           ],
         ),
       ],

@@ -10,6 +10,7 @@ import 'package:media_key_detector/media_key_detector.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -199,6 +200,12 @@ class Connection {
             'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.\n$e',
           ),
         );
+        _actionStreams.add(
+          AlertNotification(
+            LogLevel.LOGLEVEL_ERROR,
+            'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
+          ),
+        );
       });
     }
 
@@ -246,11 +253,11 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      _actionStreams.add(LogNotification('Connecting to: ${device.name}'));
+      _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.name}'));
       _connect(device)
           .then((_) {
             _handlingConnectionQueue = false;
-            _actionStreams.add(LogNotification('Connection finished: ${device.name}'));
+            _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.name}'));
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }
@@ -258,7 +265,7 @@ class Connection {
           .catchError((e) {
             _handlingConnectionQueue = false;
             _actionStreams.add(
-              LogNotification('Connection failed: ${device.name} - $e'),
+              AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.name} - $e'),
             );
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
