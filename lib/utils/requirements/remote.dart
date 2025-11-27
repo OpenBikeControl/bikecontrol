@@ -10,8 +10,8 @@ import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/widgets/beta_pill.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
+import 'package:swift_control/widgets/ui/beta_pill.dart';
+import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 
 import '../../pages/markdown.dart';
 

@@ -2,14 +2,15 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Stepper, Card, Step, StepState;
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide Scaffold, AppBar, Theme;
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/menu.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 
 import 'device.dart';
 
@@ -21,9 +22,8 @@ class RequirementsPage extends StatefulWidget {
 }
 
 class _RequirementsPageState extends State<RequirementsPage> with WidgetsBindingObserver {
-  int _currentStep = 0;
-
   List<PlatformRequirement> _requirements = [];
+  final StepperController _controller = StepperController();
 
   @override
   void initState() {
@@ -46,6 +46,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
   @override
   dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
     super.dispose();
   }
 
@@ -105,15 +106,12 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
             _requirements.isEmpty
                 ? Center(child: SmallProgressIndicator())
                 : Card(
-                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     child: Stepper(
+                      controller: _controller,
+                      direction: Axis.vertical,
                       key: ObjectKey(_requirements.length),
-                      physics: NeverScrollableScrollPhysics(),
-                      currentStep: _currentStep,
-                      connectorColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
-                      ),
-                      onStepContinue: _currentStep < _requirements.length
+
+                      /*onStepContinue: _currentStep < _requirements.length
                           ? () {
                               setState(() {
                                 _currentStep += 1;
@@ -133,19 +131,28 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                         setState(() {
                           _currentStep = step;
                         });
-                      },
-                      controlsBuilder: (context, details) => Container(),
+                      },*/
                       steps: _requirements
                           .mapIndexed(
                             (index, req) => Step(
                               title: Text(req.name, style: TextStyle(fontWeight: FontWeight.w600)),
-                              subtitle:
-                                  req.buildDescription() ?? (req.description != null ? Text(req.description!) : null),
-                              content: Container(
+                              icon: StepNumber(
+                                icon: Icon(
+                                  req.status
+                                      ? Icons.check
+                                      : (index == _controller.value.currentStep
+                                            ? Icons.info
+                                            : Icons.radio_button_unchecked),
+                                  size: 18,
+                                ),
+                              ),
+                              /*subtitle:
+                                  req.buildDescription() ?? (req.description != null ? Text(req.description!) : null),*/
+                              contentBuilder: (context) => Container(
                                 padding: const EdgeInsets.only(top: 16.0),
                                 alignment: Alignment.centerLeft,
                                 child:
-                                    (index == _currentStep
+                                    (index == _controller.value.currentStep
                                         ? req.build(context, () {
                                             _reloadRequirements();
                                           })
@@ -159,7 +166,6 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                                       child: Text(req.name),
                                     ),
                               ),
-                              state: req.status ? StepState.complete : StepState.indexed,
                             ),
                           )
                           .toList(),
@@ -192,11 +198,12 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
         settings.getLastTarget()?.connectionType ?? ConnectionType.unknown,
       );
       _requirements = req;
-      _currentStep = _currentStep >= _requirements.length ? 0 : _currentStep;
+      _controller.jumpToStep(_controller.value.currentStep >= _requirements.length ? 0 : _controller.value.currentStep);
+
       setState(() {});
       final unresolvedIndex = req.indexWhere((req) => !req.status);
       if (unresolvedIndex != -1) {
-        _currentStep = unresolvedIndex;
+        _controller.jumpToStep(unresolvedIndex);
       } else if (mounted) {
         String? currentPath;
         navigatorKey.currentState?.popUntil((route) {
@@ -220,7 +227,7 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
           content: Text('Error loading requirements: $e'),
         ),
       );
-      _currentStep = 0;
+      _controller.jumpToStep(0);
       _requirements = [ErrorRequirement('Error loading requirements: $e')];
       setState(() {});
     }

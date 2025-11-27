@@ -11,9 +11,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
+import 'package:swift_control/widgets/ui/button_widget.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../utils/actions/base_actions.dart';

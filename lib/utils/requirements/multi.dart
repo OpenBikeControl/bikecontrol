@@ -11,7 +11,7 @@ import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
-import 'package:swift_control/widgets/beta_pill.dart';
+import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class KeyboardRequirement extends PlatformRequirement {

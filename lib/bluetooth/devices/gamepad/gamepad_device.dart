@@ -7,9 +7,9 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/beta_pill.dart';
+import 'package:swift_control/widgets/ui/beta_pill.dart';
 
-import '../../../widgets/warning.dart';
+import '../../../widgets/ui/warning.dart';
 
 class GamepadDevice extends BaseDevice {
   final String id;

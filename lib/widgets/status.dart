@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -91,15 +91,14 @@ class _StatusWidgetState extends State<StatusWidget> {
                         children: [
                           Text('Follow instructions at'),
                           Expanded(
-                            child: TextButton(
-                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size(0, 0)),
+                            child: LinkButton(
                               child: Text('https://dontkillmyapp.com/'),
                               onPressed: () {
                                 launchUrlString('https://dontkillmyapp.com/');
                               },
                             ),
                           ),
-                          IconButton(
+                          IconButton.secondary(
                             onPressed: () {
                               (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((
                                 isRunning,

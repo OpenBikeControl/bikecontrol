@@ -53,6 +53,7 @@ dependencies:
   package_info_plus: ^9.0.0
   in_app_update: ^4.2.5
   http: ^1.3.0
+  shadcn_flutter: ^0.0.47
 
 dev_dependencies:
   flutter_test:

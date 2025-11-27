@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 
@@ -81,7 +82,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                         );
                       },
                     ),
-                  TextButton(
+                  LinkButton(
                     onPressed: () {
                       Navigator.push(
                         context,

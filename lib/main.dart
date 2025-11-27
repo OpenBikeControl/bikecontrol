@@ -3,10 +3,9 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/pages/requirements.dart';
-import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/remote.dart';
@@ -159,12 +158,10 @@ class SwiftPlayApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ShadcnApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'BikeControl',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
       home: error != null
           ? Text('There was an error starting the App. Please contact support:\n$error')

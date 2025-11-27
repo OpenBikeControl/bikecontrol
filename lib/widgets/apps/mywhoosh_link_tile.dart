@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
-import '../small_progress_indicator.dart';
 
 class MyWhooshLinkTile extends StatefulWidget {
   const MyWhooshLinkTile({super.key});

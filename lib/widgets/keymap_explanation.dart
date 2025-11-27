@@ -10,8 +10,8 @@ import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
-import 'package:swift_control/widgets/button_widget.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
+import 'package:swift_control/widgets/ui/button_widget.dart';
 
 import '../bluetooth/devices/link/link.dart';
 import '../pages/touch_area.dart';

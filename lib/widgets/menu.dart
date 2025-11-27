@@ -165,8 +165,14 @@ class MenuButton extends StatelessWidget {
           PopupMenuItem(
             child: Text('Continue'),
             onTap: () {
-              //Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
-              connection.addDevices([
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (c) => DevicePage(),
+                  settings: RouteSettings(name: '/device'),
+                ),
+              );
+              /*connection.addDevices([
                 ZwiftClick(
                     BleDevice(
                       name: 'Controller',
@@ -176,7 +182,7 @@ class MenuButton extends StatelessWidget {
                   ..firmwareVersion = '1.2.0'
                   ..rssi = -51
                   ..batteryLevel = 81,
-              ]);
+              ]);*/
             },
           ),
           PopupMenuItem(

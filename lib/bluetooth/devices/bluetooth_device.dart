@@ -15,7 +15,7 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/widgets/beta_pill.dart';
+import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'cycplus/cycplus_bc2.dart';

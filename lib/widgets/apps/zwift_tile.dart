@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
+import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 
 class ZwiftTile extends StatefulWidget {
   final VoidCallback onUpdate;

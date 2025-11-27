@@ -9,7 +9,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart' as actions;
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/button_widget.dart';
+import 'package:swift_control/widgets/ui/button_widget.dart';
 
 import '../bluetooth/messages/notification.dart';
 
