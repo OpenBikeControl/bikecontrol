@@ -8,14 +8,11 @@ import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/widgets/menu.dart';
-import 'package:swift_control/widgets/title.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 
-import 'device.dart';
-
 class RequirementsPage extends StatefulWidget {
-  const RequirementsPage({super.key});
+  final VoidCallback onUpdate;
+  const RequirementsPage({super.key, required this.onUpdate});
 
   @override
   State<RequirementsPage> createState() => _RequirementsPageState();
@@ -59,59 +56,20 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: AppTitle(),
-        actions: buildMenuButtons(),
-        backgroundColor: Theme.brightnessOf(context) == Brightness.light
-            ? Theme.of(context).colorScheme.inversePrimary
-            : null,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          spacing: 12,
-          children: [
-            SizedBox(height: 12),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 12,
-              children: [
-                Image.asset('icon.png', width: 64, height: 64),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Welcome to BikeControl!', style: Theme.of(context).textTheme.titleMedium),
-                    Container(
-                      constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 140),
+    return SingleChildScrollView(
+      child: Column(
+        spacing: 12,
+        children: [
+          SizedBox(height: 12),
+          _requirements.isEmpty
+              ? Center(child: SmallProgressIndicator())
+              : Card(
+                  child: Stepper(
+                    controller: _controller,
+                    direction: Axis.vertical,
+                    key: ObjectKey(_requirements.length),
 
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(text: 'Need help? Click on the '),
-                            WidgetSpan(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                                child: Icon(Icons.help_outline),
-                              ),
-                            ),
-                            TextSpan(text: ' button on top and don\'t hesitate to contact us.'),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            _requirements.isEmpty
-                ? Center(child: SmallProgressIndicator())
-                : Card(
-                    child: Stepper(
-                      controller: _controller,
-                      direction: Axis.vertical,
-                      key: ObjectKey(_requirements.length),
-
-                      /*onStepContinue: _currentStep < _requirements.length
+                    /*onStepContinue: _currentStep < _requirements.length
                           ? () {
                               setState(() {
                                 _currentStep += 1;
@@ -132,47 +90,46 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                           _currentStep = step;
                         });
                       },*/
-                      steps: _requirements
-                          .mapIndexed(
-                            (index, req) => Step(
-                              title: Text(req.name, style: TextStyle(fontWeight: FontWeight.w600)),
-                              icon: StepNumber(
-                                icon: Icon(
-                                  req.status
-                                      ? Icons.check
-                                      : (index == _controller.value.currentStep
-                                            ? Icons.info
-                                            : Icons.radio_button_unchecked),
-                                  size: 18,
-                                ),
-                              ),
-                              /*subtitle:
-                                  req.buildDescription() ?? (req.description != null ? Text(req.description!) : null),*/
-                              contentBuilder: (context) => Container(
-                                padding: const EdgeInsets.only(top: 16.0),
-                                alignment: Alignment.centerLeft,
-                                child:
-                                    (index == _controller.value.currentStep
-                                        ? req.build(context, () {
-                                            _reloadRequirements();
-                                          })
-                                        : null) ??
-                                    ElevatedButton(
-                                      onPressed: req.status
-                                          ? null
-                                          : () => _callRequirement(req, context, () {
-                                              _reloadRequirements();
-                                            }),
-                                      child: Text(req.name),
-                                    ),
+                    steps: _requirements
+                        .mapIndexed(
+                          (index, req) => Step(
+                            title: Text(req.name, style: TextStyle(fontWeight: FontWeight.w600)),
+                            icon: StepNumber(
+                              icon: Icon(
+                                req.status
+                                    ? Icons.check
+                                    : (index == _controller.value.currentStep
+                                          ? Icons.info
+                                          : Icons.radio_button_unchecked),
+                                size: 18,
                               ),
                             ),
-                          )
-                          .toList(),
-                    ),
+                            /*subtitle:
+                                  req.buildDescription() ?? (req.description != null ? Text(req.description!) : null),*/
+                            contentBuilder: (context) => Container(
+                              padding: const EdgeInsets.only(top: 16.0),
+                              alignment: Alignment.centerLeft,
+                              child:
+                                  (index == _controller.value.currentStep
+                                      ? req.build(context, () {
+                                          _reloadRequirements();
+                                        })
+                                      : null) ??
+                                  ElevatedButton(
+                                    onPressed: req.status
+                                        ? null
+                                        : () => _callRequirement(req, context, () {
+                                            _reloadRequirements();
+                                          }),
+                                    child: Text(req.name),
+                                  ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
-          ],
-        ),
+                ),
+        ],
       ),
     );
   }
@@ -204,22 +161,8 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
       final unresolvedIndex = req.indexWhere((req) => !req.status);
       if (unresolvedIndex != -1) {
         _controller.jumpToStep(unresolvedIndex);
-      } else if (mounted) {
-        String? currentPath;
-        navigatorKey.currentState?.popUntil((route) {
-          currentPath = route.settings.name;
-          return true;
-        });
-        if (currentPath == '/') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (c) => DevicePage(),
-              settings: RouteSettings(name: '/device'),
-            ),
-          );
-        }
       }
+      widget.onUpdate();
     } catch (e) {
       connection.signalNotification(LogNotification('Error loading requirements: $e'));
       ScaffoldMessenger.of(context).showSnackBar(

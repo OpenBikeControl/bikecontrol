@@ -40,7 +40,6 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
     }
   } else if (Platform.isMacOS) {
     list = [
-      TargetRequirement(),
       BluetoothTurnedOn(),
       switch (connectionType) {
         ConnectionType.local => KeyboardRequirement(),
@@ -50,7 +49,6 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
     ];
   } else if (Platform.isIOS) {
     list = [
-      TargetRequirement(),
       BluetoothTurnedOn(),
       switch (connectionType) {
         ConnectionType.local => RemoteRequirement(),
@@ -60,7 +58,6 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
     ];
   } else if (Platform.isWindows) {
     list = [
-      TargetRequirement(),
       BluetoothTurnedOn(),
       switch (connectionType) {
         ConnectionType.local => KeyboardRequirement(),
@@ -72,7 +69,6 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
     final deviceInfoPlugin = DeviceInfoPlugin();
     final deviceInfo = await deviceInfoPlugin.androidInfo;
     list = [
-      TargetRequirement(),
       BluetoothTurnedOn(),
       NotificationRequirement(),
       if (deviceInfo.version.sdkInt <= 30)
