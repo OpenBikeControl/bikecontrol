@@ -51,7 +51,8 @@ class _StatusWidgetState extends State<StatusWidget> {
                     '${connection.controllerDevices.length == 1 ? 'Controller connected' : '${connection.controllerDevices.length} controllers connected'} ',
               ),
             if (whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
-                settings.getMyWhooshLinkEnabled())
+                settings.getMyWhooshLinkEnabled() &&
+                !isZwift)
               _Status(
                 color: whooshLink.isConnected.value
                     ? Colors.green
