@@ -65,7 +65,13 @@ class _CustomizeState extends State<CustomizePage> {
                       ..._getAllApps().map(
                         (a) => SelectItemButton(
                           value: a,
-                          child: Text(a.name),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(a.name),
+                              if (a is CustomApp) BetaPill(text: 'CUSTOM'),
+                            ],
+                          ),
                         ),
                       ),
                       SelectItemButton(

@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
@@ -300,7 +301,12 @@ class TargetRequirement extends PlatformRequirement {
                 if (target.warning != null) {
                   showToast(
                     context: context,
-                    builder: (c, overlay) => buildToast(context, overlay, title: target.warning),
+                    builder: (c, overlay) => buildToast(
+                      context,
+                      overlay,
+                      title: target.warning,
+                      level: LogLevel.LOGLEVEL_WARNING,
+                    ),
                   );
                 }
                 setState(() {});
@@ -315,7 +321,7 @@ class TargetRequirement extends PlatformRequirement {
             ),
             Select<Target>(
               constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-              itemBuilder: (c, app) => Text(app.name),
+              itemBuilder: (c, app) => Text(app.title),
               popup: SelectPopup(
                 items: SelectItemList(
                   children: Target.values.whereNot((e) => [Target.thisDevice, Target.otherDevice].contains(e)).map((
@@ -326,30 +332,27 @@ class TargetRequirement extends PlatformRequirement {
                       enabled: target.isCompatible,
                       child: Basic(
                         leading: Icon(target.icon),
-                        title: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    target.title,
-                                    style: TextStyle(
-                                      fontWeight: target == Target.thisDevice && target.isCompatible
-                                          ? FontWeight.bold
-                                          : null,
-                                    ),
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  target.title,
+                                  style: TextStyle(
+                                    fontWeight: target == Target.thisDevice && target.isCompatible
+                                        ? FontWeight.bold
+                                        : null,
                                   ),
-                                  if (target.isBeta) BetaPill(),
-                                ],
-                              ),
-                              Text(
-                                target.getDescription(settings.getTrainerApp()),
-                              ).small,
-                            ],
-                          ),
+                                ),
+                                if (target.isBeta) BetaPill(),
+                              ],
+                            ),
+                          ],
                         ),
+                        subtitle: Text(
+                          target.getDescription(settings.getTrainerApp()),
+                        ).small,
                       ),
                     );
                   }).toList(),
@@ -365,7 +368,12 @@ class TargetRequirement extends PlatformRequirement {
                   if (target.warning != null) {
                     showToast(
                       context: context,
-                      builder: (c, overlay) => buildToast(context, overlay, title: target.warning),
+                      builder: (c, overlay) => buildToast(
+                        context,
+                        overlay,
+                        title: target.warning,
+                        level: LogLevel.LOGLEVEL_WARNING,
+                      ),
                     );
                   }
                   setState(() {});
