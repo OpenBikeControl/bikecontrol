@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 abstract class PlatformRequirement {
@@ -39,31 +38,15 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
       list = [BluetoothTurnedOn()];
     }
   } else if (Platform.isMacOS) {
-    list = [
-      BluetoothTurnedOn(),
-      switch (connectionType) {
-        ConnectionType.local => KeyboardRequirement(),
-        ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.unknown => PlaceholderRequirement(),
-      },
-    ];
+    list = [BluetoothTurnedOn(), if (connectionType == ConnectionType.local) KeyboardRequirement()];
   } else if (Platform.isIOS) {
     list = [
       BluetoothTurnedOn(),
-      switch (connectionType) {
-        ConnectionType.local => RemoteRequirement(),
-        ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.unknown => PlaceholderRequirement(),
-      },
     ];
   } else if (Platform.isWindows) {
     list = [
       BluetoothTurnedOn(),
-      switch (connectionType) {
-        ConnectionType.local => KeyboardRequirement(),
-        ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.unknown => PlaceholderRequirement(),
-      },
+      if (connectionType == ConnectionType.local) KeyboardRequirement(),
     ];
   } else if (Platform.isAndroid) {
     final deviceInfoPlugin = DeviceInfoPlugin();
@@ -77,11 +60,7 @@ Future<List<PlatformRequirement>> getRequirements(ConnectionType connectionType)
         BluetoothScanRequirement(),
         BluetoothConnectRequirement(),
       ],
-      switch (connectionType) {
-        ConnectionType.local => AccessibilityRequirement(),
-        ConnectionType.remote => RemoteRequirement(),
-        ConnectionType.unknown => PlaceholderRequirement(),
-      },
+      if (connectionType == ConnectionType.local) AccessibilityRequirement(),
     ];
   } else {
     list = [UnsupportedPlatform()];

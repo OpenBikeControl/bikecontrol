@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
@@ -11,7 +12,6 @@ import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -47,7 +47,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
     final currentState = await UniversalBle.getBluetoothAvailabilityState();
     if (!kIsWeb && Platform.isIOS) {
       // on iOS we cannot programmatically enable Bluetooth, just open settings
-      await peripheralManager.showAppSettings();
+      await PeripheralManager().showAppSettings();
     } else if (currentState == AvailabilityState.poweredOff) {
       await UniversalBle.enableBluetooth();
     } else {

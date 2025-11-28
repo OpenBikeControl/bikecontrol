@@ -4,6 +4,7 @@ import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/requirements.dart';
+import 'package:swift_control/pages/trainer.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
@@ -11,8 +12,9 @@ import 'package:swift_control/widgets/title.dart';
 enum BCPage {
   configuration('Configuration', Icons.settings),
   permissions('Permissions', Icons.security),
-  devices('Devices', Icons.devices),
-  customization('Customization', Icons.color_lens);
+  devices('Controllers', Icons.gamepad),
+  trainer('Trainer', Icons.pedal_bike),
+  customization('Adjust', Icons.color_lens);
 
   final String title;
   final IconData icon;
@@ -81,6 +83,7 @@ class _NavigationState extends State<Navigation> {
                       },
                     ),
                     BCPage.devices => DevicePage(),
+                    BCPage.trainer => TrainerPage(),
                     BCPage.customization => CustomizePage(),
                     BCPage.configuration => ConfigurationPage(
                       onUpdate: () {
@@ -133,7 +136,7 @@ class _NavigationState extends State<Navigation> {
             },
           ),
           enabled: _isPageEnabled(page),
-          label: Text(page.title),
+          label: Text(page == BCPage.trainer ? settings.getTrainerApp()?.name ?? page.title : page.title),
           child: _buildIcon(page),
         );
       }).toList(),
@@ -176,7 +179,7 @@ class _NavigationState extends State<Navigation> {
         return NavigationItem(
           selected: _selectedPage == page,
           enabled: _isPageEnabled(page),
-          label: Text(page.title),
+          label: Text(page == BCPage.trainer ? settings.getTrainerApp()?.name ?? page.title : page.title),
           child: _buildIcon(page),
         );
       }).toList(),
@@ -197,6 +200,7 @@ class _NavigationState extends State<Navigation> {
       BCPage.permissions => true,
       BCPage.devices => connection.controllerDevices.isEmpty,
       BCPage.customization => false,
+      BCPage.trainer => false,
     };
   }
 

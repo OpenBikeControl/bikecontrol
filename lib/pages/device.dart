@@ -8,10 +8,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
-import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/scan.dart';
 import 'package:swift_control/widgets/status.dart';
@@ -287,63 +283,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 ...connection.controllerDevices.map(
                   (device) => Card(child: device.showInformation(context)),
                 ),
-
-              if (actionHandler is RemoteActions ||
-                  whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) ||
-                  actionHandler.supportedApp?.supportsZwiftEmulation == true)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 8.0),
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      'Remote Connections',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-
-              if (settings.getTrainerApp() is MyWhoosh && whooshLink.isCompatible(settings.getLastTarget()!))
-                MyWhooshLinkTile(),
-              if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
-                ZwiftTile(
-                  onUpdate: () {
-                    setState(() {});
-                  },
-                ),
-
-              if (actionHandler is RemoteActions && isAdvertisingPeripheral)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Remote Control Mode: ${(actionHandler as RemoteActions).isConnected ? 'Connected' : 'Not connected (optional)'}',
-                    ),
-                    IconButton.secondary(
-                      icon: Icon(Icons.more_vert),
-                      onPressed: () {
-                        showDropdown(
-                          context: context,
-                          builder: (context) {
-                            return DropdownMenu(
-                              children: [
-                                MenuButton(
-                                  child: const Text('Reconnect'),
-                                  onPressed: (c) async {
-                                    final requirement = RemoteRequirement();
-                                    await requirement.reconnect();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                )
-              else
-                SizedBox(height: 8),
             ],
           ),
 

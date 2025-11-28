@@ -2,24 +2,23 @@ import 'dart:io';
 
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState;
 import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/remote.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
+import 'package:swift_control/widgets/ui/warning.dart';
 
 import '../../pages/markdown.dart';
 
-final peripheralManager = PeripheralManager();
 bool isAdvertisingPeripheral = false;
 bool _isLoading = false;
 bool _isServiceAdded = false;
 bool _isSubscribedToEvents = false;
+final peripheralManager = PeripheralManager();
 
 class RemoteRequirement extends PlatformRequirement {
   RemoteRequirement()
@@ -293,53 +292,57 @@ class _PairWidgetState extends State<_PairWidget> {
   Widget build(BuildContext context) {
     return Column(
       spacing: 16,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          spacing: 10,
-          children: [
-            ElevatedButton(
-              onPressed: () async {
-                await toggle();
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isAdvertisingPeripheral
-                              ? 'Stop Pairing process'
-                              : 'Start connecting to\n${settings.getLastTarget()?.title ?? 'remote'} device',
+        Checkbox(
+          state: isAdvertisingPeripheral ? CheckboxState.checked : CheckboxState.unchecked,
+          trailing: Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isAdvertisingPeripheral
+                            ? 'Stop Pairing process'
+                            : 'Start connecting to ${settings.getLastTarget()?.title ?? 'remote'} device',
+                      ),
+                      Text(
+                        'Pairing allows full customizability, but may not work on all devices.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.normal,
                         ),
-                        Text(
-                          'Pairing allows full customizability,\nbut may not work on all devices.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                    BetaPill(),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                BetaPill(),
+                if (isAdvertisingPeripheral || _isLoading)
+                  SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
+              ],
             ),
-            if (isAdvertisingPeripheral || _isLoading) SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
-          ],
+          ),
+          onChanged: (value) async {
+            await toggle();
+            setState(() {});
+          },
         ),
         if (isAdvertisingPeripheral)
-          Text(
-            switch (settings.getLastTarget()) {
-              Target.iOS =>
-                'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
-              _ =>
-                'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
-            },
+          Warning(
+            children: [
+              Text(
+                switch (settings.getLastTarget()) {
+                  Target.iOS =>
+                    'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
+                  _ =>
+                    'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
+                },
+              ).small,
+            ],
           ),
         if (isAdvertisingPeripheral) ...[
           TextButton(
@@ -349,73 +352,13 @@ class _PairWidgetState extends State<_PairWidget> {
             child: Text('Check the troubleshooting guide'),
           ),
         ],
-        if (settings.getTrainerApp() is MyWhoosh)
-          ElevatedButton(
-            onPressed: () async {
-              settings.setMyWhooshLinkEnabled(true);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (c) => DevicePage(),
-                  settings: RouteSettings(name: '/device'),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Connect via MyWhoosh Direct Connect'),
-                  Text(
-                    'Most reliable way to control MyWhoosh.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-        if (settings.getTrainerApp()?.supportsZwiftEmulation == true)
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (c) => DevicePage(),
-                  settings: RouteSettings(name: '/device'),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Connect to ${settings.getTrainerApp()?.name} as controller'),
-                  Text(
-                    'Most reliable way to control ${settings.getTrainerApp()?.name}.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
       ],
     );
   }
 
   Future<void> toggle() async {
     if (isAdvertisingPeripheral) {
-      await peripheralManager.stopAdvertising();
+      peripheralManager.stopAdvertising();
       isAdvertisingPeripheral = false;
       (actionHandler as RemoteActions).setConnectedCentral(null, null);
       widget.onUpdate();
