@@ -3,15 +3,12 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/pages/trainer.dart';
-import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
 
 enum BCPage {
   configuration('Configuration', Icons.settings),
-  permissions('Permissions', Icons.security),
   devices('Controllers', Icons.gamepad),
   trainer('Trainer', Icons.pedal_bike),
   customization('Adjust', Icons.color_lens);
@@ -31,13 +28,11 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
-  bool? _needsPermissions;
   var _selectedPage = BCPage.configuration;
 
   @override
   void initState() {
     super.initState();
-    _reloadRequirements();
     connection.actionStream.listen((_) {
       setState(() {});
     });
@@ -60,7 +55,6 @@ class _NavigationState extends State<Navigation> {
         ),
         Divider(),
       ],
-      loadingProgressIndeterminate: _needsPermissions == null,
       footers: _isMobile ? [_buildNavigationBar()] : [],
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,47 +63,40 @@ class _NavigationState extends State<Navigation> {
             _buildNavigationMenu(),
             VerticalDivider(),
           ],
-          if (_needsPermissions != null)
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 200),
-                child: Container(
-                  alignment: Alignment.topLeft,
-                  padding: EdgeInsets.all(16),
-                  child: switch (_selectedPage) {
-                    BCPage.permissions => RequirementsPage(
-                      onUpdate: () {
-                        _reloadRequirements();
-                      },
-                    ),
-                    BCPage.devices => DevicePage(),
-                    BCPage.trainer => TrainerPage(),
-                    BCPage.customization => CustomizePage(),
-                    BCPage.configuration => ConfigurationPage(
-                      onUpdate: () {
-                        _reloadRequirements();
-                      },
-                    ),
-                  },
-                ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 200),
+              child: Container(
+                alignment: Alignment.topLeft,
+                padding: EdgeInsets.all(16),
+                child: switch (_selectedPage) {
+                  BCPage.devices => DevicePage(),
+                  BCPage.trainer => TrainerPage(),
+                  BCPage.customization => CustomizePage(),
+                  BCPage.configuration => ConfigurationPage(
+                    onUpdate: () {
+                      setState(() {
+                        _selectedPage = BCPage.devices;
+                      });
+                    },
+                  ),
+                },
               ),
             ),
+          ),
         ],
       ),
     );
   }
 
-  List<BCPage> get _tabPages =>
-      _needsPermissions == true ? BCPage.values : BCPage.values.where((page) => page != BCPage.permissions).toList();
-
   Widget _buildNavigationMenu() {
     return NavigationSidebar(
       onSelected: (int index) {
         setState(() {
-          _selectedPage = _tabPages[index];
+          _selectedPage = BCPage.values[index];
         });
       },
-      children: _tabPages.map((page) {
+      children: BCPage.values.map((page) {
         return NavigationItem(
           selected: _selectedPage == page,
           selectedStyle: ButtonStyle.primary(size: ButtonSize(1.1)).copyWith(
@@ -172,10 +159,10 @@ class _NavigationState extends State<Navigation> {
       labelType: NavigationLabelType.all,
       onSelected: (int index) {
         setState(() {
-          _selectedPage = _tabPages[index];
+          _selectedPage = BCPage.values[index];
         });
       },
-      children: _tabPages.map((page) {
+      children: BCPage.values.map((page) {
         return NavigationItem(
           selected: _selectedPage == page,
           enabled: _isPageEnabled(page),
@@ -189,39 +176,16 @@ class _NavigationState extends State<Navigation> {
   bool _isPageEnabled(BCPage page) {
     return switch (page) {
       BCPage.configuration => true,
-      BCPage.permissions => settings.getTrainerApp() != null,
-      _ => settings.getTrainerApp() != null && _needsPermissions == false,
+      _ => settings.getTrainerApp() != null,
     };
   }
 
   bool _needsAttention(BCPage page) {
     return switch (page) {
       BCPage.configuration => settings.getTrainerApp() == null,
-      BCPage.permissions => true,
       BCPage.devices => connection.controllerDevices.isEmpty,
       BCPage.customization => false,
       BCPage.trainer => false,
     };
-  }
-
-  void _reloadRequirements() {
-    getRequirements(
-      settings.getLastTarget()?.connectionType ?? ConnectionType.unknown,
-    ).then((reqs) => reqs.any((req) => !req.status)).then((needsPermissions) {
-      setState(() {
-        if (_needsPermissions == true && needsPermissions == false) {
-          if (_selectedPage == BCPage.permissions) {
-            _selectedPage = BCPage.devices;
-          } else if (_selectedPage == BCPage.configuration) {
-            _selectedPage = BCPage.devices;
-          }
-        } else if (needsPermissions == true && settings.getTrainerApp() != null) {
-          _selectedPage = BCPage.permissions;
-        } else if (settings.getTrainerApp() != null) {
-          _selectedPage = BCPage.devices;
-        }
-        _needsPermissions = needsPermissions;
-      });
-    });
   }
 }

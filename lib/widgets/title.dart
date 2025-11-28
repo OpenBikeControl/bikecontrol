@@ -148,7 +148,8 @@ class _AppTitleState extends State<AppTitle> {
         if (packageInfoValue != null)
           Text(
             'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
-          ).mono.xSmall.muted
+            style: TextStyle(fontSize: 12),
+          ).mono.muted
         else
           SmallProgressIndicator(),
       ],

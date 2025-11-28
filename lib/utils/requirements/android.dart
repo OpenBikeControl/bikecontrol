@@ -19,7 +19,8 @@ class AccessibilityRequirement extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    _showDisclosureDialog(context, onUpdate);
+    await _showDisclosureDialog(context, onUpdate);
+    await getStatus();
   }
 
   @override
@@ -36,11 +37,13 @@ class AccessibilityRequirement extends PlatformRequirement {
           onAccept: () {
             Navigator.of(context).pop();
             // Open accessibility settings after user consents
-            (actionHandler as AndroidActions).accessibilityHandler.openPermissions().then((_) {
+            (actionHandler as AndroidActions).accessibilityHandler.openPermissions().then((_) async {
+              await getStatus();
               onUpdate();
             });
           },
-          onDeny: () {
+          onDeny: () async {
+            await getStatus();
             Navigator.of(context).pop();
             // User denied, no action taken
           },
@@ -56,6 +59,7 @@ class BluetoothScanRequirement extends PlatformRequirement {
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await Permission.bluetoothScan.request();
+    await getStatus();
   }
 
   @override
@@ -71,6 +75,7 @@ class LocationRequirement extends PlatformRequirement {
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await Permission.locationWhenInUse.request();
+    await getStatus();
   }
 
   @override
@@ -86,6 +91,7 @@ class BluetoothConnectRequirement extends PlatformRequirement {
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     await Permission.bluetoothConnect.request();
+    await getStatus();
   }
 
   @override
@@ -104,6 +110,7 @@ class NotificationRequirement extends PlatformRequirement {
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+    await getStatus();
     return;
   }
 

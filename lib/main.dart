@@ -162,6 +162,8 @@ class SwiftPlayApp extends StatelessWidget {
     return ShadcnApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
+      menuHandler: PopoverOverlayHandler(),
+      popoverHandler: PopoverOverlayHandler(),
       title: 'BikeControl',
       themeMode: ThemeMode.system,
       home: error != null

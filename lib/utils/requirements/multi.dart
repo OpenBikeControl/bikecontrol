@@ -266,53 +266,55 @@ class TargetRequirement extends PlatformRequirement {
               setState(() {});
             },
           ),
-          SizedBox(height: 8),
-          Text(
-            'Select Target where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Select<Target>(
-            constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-            itemBuilder: (c, app) => Text(app.title),
-            popup: SelectPopup(
-              items: SelectItemList(
-                children: [Target.thisDevice, Target.otherDevice].map((target) {
-                  return SelectItemButton(
-                    value: target,
-                    enabled: target.isCompatible,
-                    child: Basic(
-                      leading: Icon(target.icon),
-                      leadingAlignment: Alignment.centerLeft,
-                      subtitle: Text(
-                        target.getDescription(settings.getTrainerApp()),
-                      ).xSmall.muted,
-                      title: Text(target.title),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ).call,
-            placeholder: Text('Select Target device'),
-            value: settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
-            enabled: settings.getTrainerApp() != null,
-            onChanged: (target) async {
-              if (target != null) {
-                await settings.setLastTarget(target);
-                if (target.warning != null) {
-                  showToast(
-                    context: context,
-                    builder: (c, overlay) => buildToast(
-                      context,
-                      overlay,
-                      title: target.warning,
-                      level: LogLevel.LOGLEVEL_WARNING,
-                    ),
-                  );
+          if (settings.getTrainerApp() != null) ...[
+            SizedBox(height: 8),
+            Text(
+              'Select Target where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Select<Target>(
+              constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
+              itemBuilder: (c, app) => Text(app.title),
+              popup: SelectPopup(
+                items: SelectItemList(
+                  children: [Target.thisDevice, Target.otherDevice].map((target) {
+                    return SelectItemButton(
+                      value: target,
+                      enabled: target.isCompatible,
+                      child: Basic(
+                        leading: Icon(target.icon),
+                        leadingAlignment: Alignment.centerLeft,
+                        subtitle: Text(
+                          target.getDescription(settings.getTrainerApp()),
+                        ).xSmall.muted,
+                        title: Text(target.title),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ).call,
+              placeholder: Text('Select Target device'),
+              value: settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
+              enabled: settings.getTrainerApp() != null,
+              onChanged: (target) async {
+                if (target != null) {
+                  await settings.setLastTarget(target);
+                  if (target.warning != null) {
+                    showToast(
+                      context: context,
+                      builder: (c, overlay) => buildToast(
+                        context,
+                        overlay,
+                        title: target.warning,
+                        level: LogLevel.LOGLEVEL_WARNING,
+                      ),
+                    );
+                  }
+                  setState(() {});
                 }
-                setState(() {});
-              }
-            },
-          ),
+              },
+            ),
+          ],
           if (settings.getLastTarget() != null && settings.getLastTarget() != Target.thisDevice) ...[
             SizedBox(height: 8),
             Text(
@@ -365,7 +367,7 @@ class TargetRequirement extends PlatformRequirement {
                 if (target != null) {
                   await settings.setLastTarget(target);
                   initializeActions(target.connectionType);
-                  if (target.warning != null) {
+                  if (target.warning != null && context.mounted) {
                     showToast(
                       context: context,
                       builder: (c, overlay) => buildToast(

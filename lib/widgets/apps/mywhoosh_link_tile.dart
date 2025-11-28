@@ -26,6 +26,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
               description: actionHandler is RemoteActions
                   ? 'MyWhoosh Direct Connect allows you to do some additional features such as Emotes and turn directions.'
                   : 'MyWhoosh Direct Connect is optional, but allows you to do some additional features such as Emotes and turn directions.',
+              requirements: [],
               onChange: (value) {
                 settings.setMyWhooshLinkEnabled(value);
                 if (!value) {

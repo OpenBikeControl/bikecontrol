@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/theme.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:test_screenshot/test_screenshot.dart';
@@ -81,8 +80,6 @@ Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size siz
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         title: 'BikeControl',
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
         themeMode: ThemeMode.light,
         home: const DevicePage(),
       ),

@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
+import 'package:swift_control/widgets/ui/connection_method.dart';
 
 class TrainerPage extends StatefulWidget {
   const TrainerPage({super.key});
@@ -21,6 +25,17 @@ class _TrainerPageState extends State<TrainerPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 12,
       children: [
+        if (settings.getLastTarget()?.connectionType == ConnectionType.local &&
+            (Platform.isMacOS || Platform.isWindows || Platform.isAndroid))
+          Card(
+            child: ConnectionMethod(
+              title: 'Control ${settings.getTrainerApp()?.name} using Keyboard / Mouse / Touch',
+              description:
+                  'Enable keyboard and mouse control for better interaction with ${settings.getTrainerApp()?.name}.',
+              requirements: [Platform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()],
+              onChange: (value) {},
+            ),
+          ),
         if (settings.getTrainerApp() is MyWhoosh && whooshLink.isCompatible(settings.getLastTarget()!))
           Card(child: MyWhooshLinkTile()),
         if (settings.getTrainerApp()?.supportsZwiftEmulation == true)

@@ -298,6 +298,9 @@ class _PairWidgetState extends State<_PairWidget> {
           title: 'Enable Pairing Process',
           description: 'Pairing allows full customizability, but may not work on all devices.',
           isConnected: (actionHandler as RemoteActions).isConnected,
+          requirements: [
+            BluetoothTurnedOn(),
+          ],
           onChange: (value) async {
             await toggle();
             setState(() {});

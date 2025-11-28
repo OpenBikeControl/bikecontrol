@@ -1,4 +1,4 @@
-import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
@@ -53,7 +53,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.assetPath.replaceAll('.md', '').toLowerCase().capitalize),
+        title: Text(widget.assetPath.replaceAll('.md', '').toLowerCase().capitalize()),
         backgroundColor: Theme.brightnessOf(context) == Brightness.light
             ? Theme.of(context).colorScheme.inversePrimary
             : null,

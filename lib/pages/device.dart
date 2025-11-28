@@ -10,7 +10,6 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/scan.dart';
-import 'package:swift_control/widgets/status.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
@@ -286,8 +285,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
             ],
           ),
 
-          SizedBox(height: 20),
-          StatusWidget(),
           SizedBox(height: 20),
           SizedBox(height: 500, child: LogViewer()),
         ],
