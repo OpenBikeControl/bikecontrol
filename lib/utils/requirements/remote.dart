@@ -8,11 +8,8 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/widgets/ui/beta_pill.dart';
-import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
+import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
-
-import '../../pages/markdown.dart';
 
 bool isAdvertisingPeripheral = false;
 bool _isLoading = false;
@@ -296,37 +293,12 @@ class _PairWidgetState extends State<_PairWidget> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Checkbox(
-          state: isAdvertisingPeripheral ? CheckboxState.checked : CheckboxState.unchecked,
-          trailing: Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isAdvertisingPeripheral
-                            ? 'Stop Pairing process'
-                            : 'Start connecting to ${settings.getLastTarget()?.title ?? 'remote'} device',
-                      ),
-                      Text(
-                        'Pairing allows full customizability, but may not work on all devices.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                BetaPill(),
-                if (isAdvertisingPeripheral || _isLoading)
-                  SizedBox(height: 20, width: 20, child: SmallProgressIndicator()),
-              ],
-            ),
-          ),
-          onChanged: (value) async {
+        ConnectionMethod(
+          isStarted: isAdvertisingPeripheral,
+          title: 'Enable Pairing Process',
+          description: 'Pairing allows full customizability, but may not work on all devices.',
+          isConnected: (actionHandler as RemoteActions).isConnected,
+          onChange: (value) async {
             await toggle();
             setState(() {});
           },
@@ -344,14 +316,6 @@ class _PairWidgetState extends State<_PairWidget> {
               ).small,
             ],
           ),
-        if (isAdvertisingPeripheral) ...[
-          TextButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')));
-            },
-            child: Text('Check the troubleshooting guide'),
-          ),
-        ],
       ],
     );
   }
