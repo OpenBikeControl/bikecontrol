@@ -64,6 +64,13 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   msix: ^3.16.12
 
+dependency_overrides:
+  gamepads_windows:
+    git:
+      url: https://github.com/lea108/gamepads.git
+      ref: windows-api-rework
+      path: packages/gamepads_windows
+
 flutter:
   uses-material-design: true
   assets:
