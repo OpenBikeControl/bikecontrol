@@ -1,7 +1,7 @@
 name: swift_control
 description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 3.6.0+44
+version: 3.6.1+45
 
 environment:
   sdk: ^3.9.0
@@ -64,6 +64,13 @@ dev_dependencies:
   test_screenshot: 0.0.8
   flutter_lints: ^6.0.0
   msix: ^3.16.12
+
+dependency_overrides:
+  gamepads_windows:
+    git:
+      url: https://github.com/lea108/gamepads.git
+      ref: windows-api-rework
+      path: packages/gamepads_windows
 
 flutter:
   uses-material-design: true
