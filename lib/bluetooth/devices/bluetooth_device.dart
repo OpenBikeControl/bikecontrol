@@ -133,7 +133,12 @@ abstract class BluetoothDevice extends BaseDevice {
       print("Received message: $message");
     });
 
-    await UniversalBle.connect(device.deviceId);
+    try {
+      await UniversalBle.connect(device.deviceId);
+    } catch (e) {
+      isConnected = false;
+      rethrow;
+    }
 
     if (!kIsWeb) {
       await UniversalBle.requestMtu(device.deviceId, 517);
@@ -212,6 +217,12 @@ abstract class BluetoothDevice extends BaseDevice {
                       builder: (c) => DropdownMenu(
                         children: [
                           MenuButton(
+                            child: Text('Disconnect and Forget for this session'),
+                            onPressed: (_) {
+                              connection.disconnect(this, forget: false);
+                            },
+                          ),
+                          MenuButton(
                             child: Text('Disconnect and Forget'),
                             onPressed: (_) {
                               connection.disconnect(this, forget: true);
@@ -230,6 +241,17 @@ abstract class BluetoothDevice extends BaseDevice {
           spacing: 12,
           runSpacing: 12,
           children: [
+            Card(
+              child: Basic(
+                title: Text('Connection Status'),
+                trailingAlignment: Alignment.centerRight,
+                trailing: Icon(switch (isConnected) {
+                  true => Icons.bluetooth_connected_outlined,
+                  false => Icons.bluetooth_disabled_outlined,
+                }),
+                subtitle: Text(isConnected ? 'Connected' : 'Disconnected'),
+              ),
+            ),
             if (batteryLevel != null)
               Card(
                 child: Basic(

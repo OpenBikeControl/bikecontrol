@@ -1,3 +1,4 @@
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/configuration.dart';
@@ -6,6 +7,8 @@ import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/trainer.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
+
+import '../widgets/changelog_dialog.dart';
 
 enum BCPage {
   configuration('Configuration', Icons.settings),
@@ -36,6 +39,10 @@ class _NavigationState extends State<Navigation> {
     connection.actionStream.listen((_) {
       setState(() {});
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowChangelog();
+    });
   }
 
   @override
@@ -43,6 +50,23 @@ class _NavigationState extends State<Navigation> {
     super.didChangeDependencies();
 
     _isMobile = MediaQuery.sizeOf(context).width < 600;
+  }
+
+  Future<void> _checkAndShowChangelog() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+      final lastSeenVersion = settings.getLastSeenVersion();
+
+      if (mounted) {
+        await ChangelogDialog.showIfNeeded(context, currentVersion, lastSeenVersion);
+      }
+
+      // Update last seen version
+      await settings.setLastSeenVersion(currentVersion);
+    } catch (e) {
+      print('Failed to check changelog: $e');
+    }
   }
 
   @override

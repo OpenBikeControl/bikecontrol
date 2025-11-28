@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
@@ -22,7 +21,6 @@ import '../bluetooth/devices/base_device.dart';
 import '../utils/actions/android.dart';
 import '../utils/actions/remote.dart';
 import '../utils/requirements/remote.dart';
-import '../widgets/changelog_dialog.dart';
 
 class DevicePage extends StatefulWidget {
   const DevicePage({super.key});
@@ -48,10 +46,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     }
     _showNameChangeWarning = !settings.knowsAboutNameChange();
     WidgetsBinding.instance.addObserver(this);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndShowChangelog();
-    });
 
     if (!kIsWeb) {
       whooshLink.isStarted.addListener(() {
@@ -152,23 +146,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       }
     } catch (e) {
       // Silently fail if device info is not available
-    }
-  }
-
-  Future<void> _checkAndShowChangelog() async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
-      final lastSeenVersion = settings.getLastSeenVersion();
-
-      if (mounted) {
-        await ChangelogDialog.showIfNeeded(context, currentVersion, lastSeenVersion);
-      }
-
-      // Update last seen version
-      await settings.setLastSeenVersion(currentVersion);
-    } catch (e) {
-      print('Failed to check changelog: $e');
     }
   }
 

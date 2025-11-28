@@ -165,7 +165,8 @@ class SwiftPlayApp extends StatelessWidget {
       menuHandler: PopoverOverlayHandler(),
       popoverHandler: PopoverOverlayHandler(),
       title: 'BikeControl',
-      themeMode: ThemeMode.system,
+      darkTheme: ThemeData(colorScheme: ColorSchemes.darkDefaultColor),
+      theme: ThemeData(colorScheme: ColorSchemes.lightDefaultColor),
       home: error != null
           ? Text('There was an error starting the App. Please contact support:\n$error')
           : Stack(

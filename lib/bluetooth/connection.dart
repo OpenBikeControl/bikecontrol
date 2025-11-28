@@ -263,10 +263,17 @@ class Connection {
             }
           })
           .catchError((e) {
+            device.isConnected = false;
             _handlingConnectionQueue = false;
-            _actionStreams.add(
-              AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.name} - $e'),
-            );
+            if (e is TimeoutException) {
+              _actionStreams.add(
+                AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.name}: Timeout'),
+              );
+            } else {
+              _actionStreams.add(
+                AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.name} - $e'),
+              );
+            }
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }

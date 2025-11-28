@@ -1,8 +1,9 @@
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show BackButton;
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
 import 'package:http/http.dart' as http;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class MarkdownPage extends StatefulWidget {
@@ -52,13 +53,15 @@ class _ChangelogPageState extends State<MarkdownPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.assetPath.replaceAll('.md', '').toLowerCase().capitalize()),
-        backgroundColor: Theme.brightnessOf(context) == Brightness.light
-            ? Theme.of(context).colorScheme.inversePrimary
-            : null,
-      ),
-      body: _error != null
+      headers: [
+        AppBar(
+          leading: [
+            BackButton(),
+          ],
+          title: Text(widget.assetPath.replaceAll('.md', '').toLowerCase().capitalize()),
+        ),
+      ],
+      child: _error != null
           ? Center(child: Text(_error!))
           : _markdown == null
           ? Center(child: CircularProgressIndicator())
@@ -72,7 +75,9 @@ class _ChangelogPageState extends State<MarkdownPage> {
                       theme: MarkdownThemeData(
                         textStyle: TextStyle(
                           fontSize: 14.0,
-                          color: Theme.brightnessOf(context) == Brightness.dark ? Colors.white70 : Colors.black87,
+                          color: Theme.of(context).colorScheme.brightness == Brightness.dark
+                              ? Colors.white.withAlpha(255 * 70)
+                              : Colors.black.withAlpha(87 * 255),
                         ),
                         onLinkTap: (title, url) {
                           launchUrlString(url);
