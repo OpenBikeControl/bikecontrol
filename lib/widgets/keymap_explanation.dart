@@ -68,16 +68,17 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           spacing: 8,
           children: [
             Table(
+              columnWidths: {0: FlexTableSize(flex: 2), 1: FlexTableSize(flex: 3)},
               rows: [
                 TableHeader(
                   cells: [
                     TableCell(
                       child: Text(
                         '${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)} button',
-                      ),
+                      ).small,
                     ),
                     TableCell(
-                      child: Text('Action'),
+                      child: Text('Action').small,
                     ),
                   ],
                 ),
@@ -416,8 +417,7 @@ class _ButtonEditor extends StatelessWidget {
             Expanded(
               child: Text(
                 'No action assigned',
-                style: TextStyle(color: Colors.gray),
-              ),
+              ).muted.xSmall,
             ),
           Icon(Icons.edit, size: 14),
         ],

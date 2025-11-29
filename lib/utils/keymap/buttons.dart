@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_sterzo.dart';
+import 'package:swift_control/bluetooth/devices/openbikeprotocol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 
@@ -42,6 +43,7 @@ enum InGameAction {
 
 class ControllerButton {
   final String name;
+  final int? identifier;
   final InGameAction? action;
   final Color? color;
   final IconData? icon;
@@ -50,6 +52,7 @@ class ControllerButton {
     this.name, {
     this.color,
     this.icon,
+    this.identifier,
     this.action,
   });
 
@@ -64,12 +67,13 @@ class ControllerButton {
       other is ControllerButton &&
           runtimeType == other.runtimeType &&
           name == other.name &&
+          identifier == other.identifier &&
           action == other.action &&
           color == other.color &&
           icon == other.icon;
 
   @override
-  int get hashCode => Object.hash(name, action, color, icon);
+  int get hashCode => Object.hash(name, action, identifier, color, icon);
 
   static List<ControllerButton> get values => [
     ...SterzoButtons.values,
@@ -77,5 +81,6 @@ class ControllerButton {
     ...EliteSquareButtons.values,
     ...WahooKickrShiftButtons.values,
     ...CycplusBc2Buttons.values,
+    ...OpenBikeProtocolParser.BUTTON_NAMES.values,
   ].distinct().toList();
 }

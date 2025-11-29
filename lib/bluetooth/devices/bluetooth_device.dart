@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/openbikeprotocol/openbikeprotocol_device.dart';
 import 'package:swift_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
@@ -44,6 +45,7 @@ abstract class BluetoothDevice extends BaseDevice {
     SterzoConstants.SERVICE_UUID,
     CycplusBc2Constants.SERVICE_UUID,
     ShimanoDi2Constants.SERVICE_UUID,
+    OpenBikeProtocolConstants.SERVICE_UUID,
   ];
 
   static BluetoothDevice? fromScanResult(BleDevice scanResult) {
@@ -55,6 +57,7 @@ abstract class BluetoothDevice extends BaseDevice {
         'Zwift Play' => ZwiftPlay(scanResult),
         'Zwift Click' => ZwiftClickV2(scanResult),
         'SQUARE' => EliteSquare(scanResult),
+        'OpenBike' => OpenBikeProtocolDevice(scanResult),
         null => null,
         _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT') => WahooKickrBikeShift(scanResult),
@@ -77,6 +80,8 @@ abstract class BluetoothDevice extends BaseDevice {
           CycplusBc2(scanResult),
         _ when scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase()) => CycplusBc2(scanResult),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase()) => ShimanoDi2(scanResult),
+        _ when scanResult.services.contains(OpenBikeProtocolConstants.SERVICE_UUID.toLowerCase()) =>
+          OpenBikeProtocolDevice(scanResult),
         // otherwise the service UUIDs will be used
         _ => null,
       };
@@ -252,6 +257,8 @@ abstract class BluetoothDevice extends BaseDevice {
           runSpacing: 12,
           children: [
             Card(
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.background,
               child: Basic(
                 title: Text('Connection Status'),
                 trailingAlignment: Alignment.centerRight,
@@ -264,6 +271,8 @@ abstract class BluetoothDevice extends BaseDevice {
             ),
             if (batteryLevel != null)
               Card(
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
                   title: Text('Battery Level'),
                   trailingAlignment: Alignment.centerRight,
@@ -280,6 +289,8 @@ abstract class BluetoothDevice extends BaseDevice {
               ),
             if (firmwareVersion != null)
               Card(
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
                   title: Text('Firmware Version'),
                   subtitle: Row(
@@ -300,6 +311,8 @@ abstract class BluetoothDevice extends BaseDevice {
               ),
             if (rssi != null)
               Card(
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
                   title: Text('Signal Strength'),
                   trailingAlignment: Alignment.centerRight,
