@@ -411,12 +411,13 @@ packages:
     source: hosted
     version: "0.1.2+1"
   gamepads_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: gamepads_windows
-      sha256: "454320638b8ad73890530545a2f788d83a752471010edade0f00b1636c1b382d"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/gamepads_windows"
+      ref: windows-api-rework
+      resolved-ref: a4b8ded91b14d799ef0998a738b1f2031fef0bd2
+      url: "https://github.com/lea108/gamepads.git"
+    source: git
     version: "0.1.4+1"
   get_it:
     dependency: transitive

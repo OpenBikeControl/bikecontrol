@@ -285,7 +285,7 @@ jobs:
   windows:
     if: inputs.build_windows
     name: Build & Release on Windows
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
       #1 Checkout Repository
