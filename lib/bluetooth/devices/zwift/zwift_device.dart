@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_pro.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
@@ -72,7 +73,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    if (kDebugMode || kIsWeb) {
+    if (kDebugMode || this is WahooKickrBikePro) {
       actionStreamInternal.add(
         LogNotification(
           "${DateTime.now().toString().split(" ").last} Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
