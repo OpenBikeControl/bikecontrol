@@ -78,7 +78,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
         if (mounted) setState(() {});
       });
 
-      if (settings.getZwiftEmulatorEnabled() && actionHandler.supportedApp?.supportsZwiftEmulation == true) {
+      if (settings.getZwiftEmulatorEnabled() && settings.getTrainerApp()?.supportsZwiftEmulation == true) {
         zwiftEmulator.startAdvertising(() {
           if (mounted) setState(() {});
         });
