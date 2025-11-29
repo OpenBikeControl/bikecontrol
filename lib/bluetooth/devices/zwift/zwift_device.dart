@@ -72,9 +72,11 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    if (kDebugMode) {
-      print(
-        "${DateTime.now().toString().split(" ").last} Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
+    if (kDebugMode || kIsWeb) {
+      actionStreamInternal.add(
+        LogNotification(
+          "${DateTime.now().toString().split(" ").last} Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
+        ),
       );
     }
     if (bytes.isEmpty) {
