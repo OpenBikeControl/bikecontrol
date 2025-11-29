@@ -111,7 +111,24 @@ class _LogviewerState extends State<LogViewer> {
                   ),
                 ),
               ),
-        SelectableText('Logs are also available at\n${File('${Directory.current.path}/app.logs').path}').muted.small,
+        Text('Logs are also at').muted.small,
+        CodeSnippet(
+          code: SelectableText(File('${Directory.current.path}/app.logs').path),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.copy),
+              variance: ButtonVariance.outline,
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
+
+                showToast(
+                  context: context,
+                  builder: (c, overlay) => buildToast(context, overlay, title: 'Path has been copied to clipboard'),
+                );
+              },
+            ),
+          ],
+        ),
       ],
     );
   }
