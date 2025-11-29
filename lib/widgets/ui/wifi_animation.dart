@@ -1,15 +1,14 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-class WifiAnimation extends StatefulWidget {
-  const WifiAnimation({super.key});
+class SmoothWifiAnimation extends StatefulWidget {
+  const SmoothWifiAnimation({super.key});
 
   @override
-  State<WifiAnimation> createState() => _WifiAnimationState();
+  State<SmoothWifiAnimation> createState() => _SmoothWifiAnimationState();
 }
 
-class _WifiAnimationState extends State<WifiAnimation> with SingleTickerProviderStateMixin {
+class _SmoothWifiAnimationState extends State<SmoothWifiAnimation> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<int> _index;
 
   final _animationIcons = [
     Icons.wifi_1_bar,
@@ -17,17 +16,27 @@ class _WifiAnimationState extends State<WifiAnimation> with SingleTickerProvider
     Icons.wifi,
   ];
 
+  int _currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
 
-    _index = IntTween(begin: 0, end: _animationIcons.length - 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.linear),
-    );
+    _controller =
+        AnimationController(
+          duration: const Duration(milliseconds: 600),
+          vsync: this,
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.completed) {
+            _controller.reverse();
+          } else if (status == AnimationStatus.dismissed) {
+            _currentIndex = (_currentIndex + 1) % _animationIcons.length;
+            setState(() {});
+            _controller.forward();
+          }
+        });
+
+    _controller.forward();
   }
 
   @override
@@ -38,14 +47,15 @@ class _WifiAnimationState extends State<WifiAnimation> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _index,
-      builder: (_, __) {
-        return Icon(
-          _animationIcons[_index.value],
-          color: Colors.gray,
-        );
-      },
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+      child: Icon(
+        _animationIcons[_currentIndex],
+        color: Colors.gray,
+        key: ValueKey(_currentIndex),
+        size: 26,
+      ),
     );
   }
 }

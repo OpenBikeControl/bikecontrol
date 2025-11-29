@@ -1,24 +1,13 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/scan.dart';
-import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
-import 'package:universal_ble/universal_ble.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../bluetooth/devices/base_device.dart';
-import '../utils/actions/android.dart';
-import '../utils/actions/remote.dart';
-import '../utils/requirements/remote.dart';
 import '../widgets/ignored_devices_dialog.dart';
 
 class DevicePage extends StatefulWidget {
@@ -31,114 +20,28 @@ class DevicePage extends StatefulWidget {
 
 class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
-  bool _showAutoRotationWarning = false;
-  bool _showMiuiWarning = false;
   bool _showNameChangeWarning = false;
-  StreamSubscription<bool>? _autoRotateStream;
 
   @override
   void initState() {
     super.initState();
 
-    // keep screen on - this is required for iOS to keep the bluetooth connection alive
-    if (!screenshotMode) {
-      WakelockPlus.enable();
-    }
     _showNameChangeWarning = !core.settings.knowsAboutNameChange();
-    WidgetsBinding.instance.addObserver(this);
-
-    if (core.actionHandler is RemoteActions &&
-        !kIsWeb &&
-        Platform.isIOS &&
-        (core.actionHandler as RemoteActions).isConnected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // show snackbar to inform user that the app needs to stay in foreground
-        showToast(
-          builder: (c, overlay) =>
-              buildToast(c, overlay, title: 'To simulate touches the app needs to stay in the foreground.'),
-          context: context,
-        );
-      });
-    }
     _connectionStateSubscription = core.connection.connectionStream.listen((state) async {
       setState(() {});
     });
-
-    if (!kIsWeb && Platform.isAndroid) {
-      DeviceAutoRotateChecker.checkAutoRotate().then((isEnabled) {
-        if (!isEnabled) {
-          setState(() {
-            _showAutoRotationWarning = true;
-          });
-        }
-      });
-      _autoRotateStream = DeviceAutoRotateChecker.autoRotateStream.listen((isEnabled) {
-        setState(() {
-          _showAutoRotationWarning = !isEnabled;
-        });
-      });
-
-      // Check if device is MIUI and using local accessibility service
-      if (core.actionHandler is AndroidActions) {
-        _checkMiuiDevice();
-      }
-    }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-
-    _autoRotateStream?.cancel();
     _connectionStateSubscription.cancel();
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (core.actionHandler is RemoteActions && Platform.isIOS && (core.actionHandler as RemoteActions).isConnected) {
-        UniversalBle.getBluetoothAvailabilityState().then((state) {
-          if (state == AvailabilityState.poweredOn && mounted) {
-            final requirement = RemoteRequirement();
-            requirement.reconnect();
-            showToast(
-              builder: (c, overlay) =>
-                  buildToast(c, overlay, title: 'To simulate touches the app needs to stay in the foreground.'),
-              context: context,
-            );
-          }
-        });
-      }
-    }
-  }
-
-  Future<void> _checkMiuiDevice() async {
-    try {
-      // Don't show if user has dismissed the warning
-      if (core.settings.getMiuiWarningDismissed()) {
-        return;
-      }
-
-      final deviceInfo = await DeviceInfoPlugin().androidInfo;
-      final isMiui =
-          deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
-          deviceInfo.brand.toLowerCase() == 'xiaomi' ||
-          deviceInfo.brand.toLowerCase() == 'redmi' ||
-          deviceInfo.brand.toLowerCase() == 'poco';
-      if (isMiui && mounted) {
-        setState(() {
-          _showMiuiWarning = true;
-        });
-      }
-    } catch (e) {
-      // Silently fail if device info is not available
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 12,
@@ -159,74 +62,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     launchUrlString('https://openbikecontrol.org');
                   },
                   child: Text('More Information'),
-                ),
-              ],
-            ),
-          if (_showAutoRotationWarning)
-            Warning(
-              important: false,
-              children: [
-                Text('Enable auto-rotation on your device to make sure the app works correctly.'),
-              ],
-            ),
-          if (_showMiuiWarning)
-            Warning(
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.warning_amber),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'MIUI Device Detected',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    IconButton.destructive(
-                      icon: Icon(Icons.close),
-                      onPressed: () async {
-                        await core.settings.setMiuiWarningDismissed(true);
-                        setState(() {
-                          _showMiuiWarning = false;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
-                  style: TextStyle(fontSize: 14),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'To ensure BikeControl works properly:',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  '• Disable battery optimization for BikeControl',
-                  style: TextStyle(fontSize: 14),
-                ),
-                Text(
-                  '• Enable autostart for BikeControl',
-                  style: TextStyle(fontSize: 14),
-                ),
-                Text(
-                  '• Lock the app in recent apps',
-                  style: TextStyle(fontSize: 14),
-                ),
-                SizedBox(height: 12),
-                IconButton.secondary(
-                  onPressed: () async {
-                    final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                  icon: Icon(Icons.open_in_new),
-                  trailing: Text('View Detailed Instructions'),
                 ),
               ],
             ),

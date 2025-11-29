@@ -45,7 +45,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             setState(() {
               _isStarted = allDone;
             });
-            widget.onChange(true);
+            widget.onChange(allDone);
           }
         });
       }
@@ -226,7 +226,7 @@ class _PermissionListState extends State<_PermissionList> with WidgetsBindingObs
         spacing: 18,
         children: [
           Text(
-            'Please complete the following requirements before enabling this connection method:',
+            'The following permissions are required:',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           ...widget.requirements.map(

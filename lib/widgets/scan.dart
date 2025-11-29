@@ -84,7 +84,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                             'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
                           ).small.muted,
                         ),
-                        WifiAnimation(),
+                        SmoothWifiAnimation(),
                       ],
                     ),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))

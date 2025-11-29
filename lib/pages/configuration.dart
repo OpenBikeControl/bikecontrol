@@ -15,39 +15,42 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 26,
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(text: 'Need help? Click on the '),
-              WidgetSpan(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Icon(Icons.help_outline),
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        spacing: 26,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(text: 'Need help? Click on the '),
+                WidgetSpan(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Icon(Icons.help_outline),
+                  ),
                 ),
-              ),
-              TextSpan(text: ' button on top and don\'t hesitate to contact us.'),
-            ],
+                TextSpan(text: ' button on top and don\'t hesitate to contact us.'),
+              ],
+            ),
+          ).small.muted,
+          Card(
+            child: requirement.build(context, () {
+              setState(() {});
+            })!,
           ),
-        ).small.muted,
-        Card(
-          child: requirement.build(context, () {
-            setState(() {});
-          })!,
-        ),
-        PrimaryButton(
-          onPressed: core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null
-              ? () {
-                  widget.onUpdate();
-                }
-              : null,
-          child: Text('Continue'),
-        ),
-      ],
+          PrimaryButton(
+            onPressed: core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null
+                ? () {
+                    widget.onUpdate();
+                  }
+                : null,
+            child: Text('Continue'),
+          ),
+        ],
+      ),
     );
   }
 }

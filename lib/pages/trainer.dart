@@ -1,19 +1,29 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
+import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
+import 'package:universal_ble/universal_ble.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
+import 'package:wakelock_plus/wakelock_plus.dart';
+
+import '../utils/actions/android.dart';
 
 class TrainerPage extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -23,13 +33,34 @@ class TrainerPage extends StatefulWidget {
   State<TrainerPage> createState() => _TrainerPageState();
 }
 
-class _TrainerPageState extends State<TrainerPage> {
+class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
   bool? _isRunningAndroidService;
+  bool _showAutoRotationWarning = false;
+  bool _showMiuiWarning = false;
+  StreamSubscription<bool>? _autoRotateStream;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // keep screen on - this is required for iOS to keep the bluetooth connection alive
+    if (!screenshotMode) {
+      WakelockPlus.enable();
+    }
+
     if (!kIsWeb) {
+      if (core.logic.showForegroundMessage) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // show snackbar to inform user that the app needs to stay in foreground
+          showToast(
+            builder: (c, overlay) =>
+                buildToast(c, overlay, title: 'To simulate touches the app needs to stay in the foreground.'),
+            context: context,
+          );
+        });
+      }
+
       core.whooshLink.isStarted.addListener(() {
         if (mounted) setState(() {});
       });
@@ -38,100 +69,248 @@ class _TrainerPageState extends State<TrainerPage> {
         if (mounted) setState(() {});
       });
 
-      if (core.settings.getZwiftEmulatorEnabled() && core.settings.getTrainerApp()?.supportsZwiftEmulation == true) {
+      if (core.logic.shouldStartZwiftEmulator) {
         core.zwiftEmulator.startAdvertising(() {
           if (mounted) setState(() {});
         });
       }
-      if (Platform.isAndroid && core.actionHandler is AndroidActions) {
-        (core.actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
+      if (core.logic.canRunAndroidService) {
+        core.logic.isAndroidServiceRunning().then((isRunning) {
+          core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
           setState(() {
             _isRunningAndroidService = isRunning;
           });
         });
       }
+
+      if (Platform.isAndroid) {
+        DeviceAutoRotateChecker.checkAutoRotate().then((isEnabled) {
+          if (!isEnabled) {
+            setState(() {
+              _showAutoRotationWarning = true;
+            });
+          }
+        });
+        _autoRotateStream = DeviceAutoRotateChecker.autoRotateStream.listen((isEnabled) {
+          setState(() {
+            _showAutoRotationWarning = !isEnabled;
+          });
+        });
+
+        // Check if device is MIUI and using local accessibility service
+        if (core.actionHandler is AndroidActions) {
+          _checkMiuiDevice();
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
+    _autoRotateStream?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (core.logic.showForegroundMessage) {
+        UniversalBle.getBluetoothAvailabilityState().then((state) {
+          if (state == AvailabilityState.poweredOn && mounted) {
+            final requirement = RemoteRequirement();
+            requirement.reconnect();
+            showToast(
+              builder: (c, overlay) =>
+                  buildToast(c, overlay, title: 'To simulate touches the app needs to stay in the foreground.'),
+              context: context,
+            );
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _checkMiuiDevice() async {
+    try {
+      // Don't show if user has dismissed the warning
+      if (core.settings.getMiuiWarningDismissed()) {
+        return;
+      }
+
+      final deviceInfo = await DeviceInfoPlugin().androidInfo;
+      final isMiui =
+          deviceInfo.manufacturer.toLowerCase() == 'xiaomi' ||
+          deviceInfo.brand.toLowerCase() == 'xiaomi' ||
+          deviceInfo.brand.toLowerCase() == 'redmi' ||
+          deviceInfo.brand.toLowerCase() == 'poco';
+      if (isMiui && mounted) {
+        setState(() {
+          _showMiuiWarning = true;
+        });
+      }
+    } catch (e) {
+      // Silently fail if device info is not available
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 12,
-      children: [
-        if (core.settings.getLastTarget()?.connectionType == ConnectionType.local &&
-            (Platform.isMacOS || Platform.isWindows || Platform.isAndroid))
-          Card(
-            child: ConnectionMethod(
-              title: 'Control ${core.settings.getTrainerApp()?.name} using Keyboard / Mouse / Touch',
-              description:
-                  'Enable keyboard and mouse control for better interaction with ${core.settings.getTrainerApp()?.name}.',
-              requirements: [Platform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()],
-              isStarted: _isRunningAndroidService == true,
-              onChange: (value) {
-                if (Platform.isAndroid && core.actionHandler is AndroidActions) {
-                  (core.actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
-                    setState(() {
-                      _isRunningAndroidService = isRunning;
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
+        children: [
+          if (_showAutoRotationWarning)
+            Warning(
+              important: false,
+              children: [
+                Text('Enable auto-rotation on your device to make sure the app works correctly.'),
+              ],
+            ),
+          if (_showMiuiWarning)
+            Warning(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.warning_amber),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text('MIUI Device Detected').bold,
+                    ),
+                    IconButton.destructive(
+                      icon: Icon(Icons.close),
+                      onPressed: () async {
+                        await core.settings.setMiuiWarningDismissed(true);
+                        setState(() {
+                          _showMiuiWarning = false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
+                  style: TextStyle(fontSize: 14),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'To ensure BikeControl works properly:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '• Disable battery optimization for BikeControl',
+                  style: TextStyle(fontSize: 14),
+                ),
+                Text(
+                  '• Enable autostart for BikeControl',
+                  style: TextStyle(fontSize: 14),
+                ),
+                Text(
+                  '• Lock the app in recent apps',
+                  style: TextStyle(fontSize: 14),
+                ),
+                SizedBox(height: 12),
+                IconButton.secondary(
+                  onPressed: () async {
+                    final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: Icon(Icons.open_in_new),
+                  trailing: Text('View Detailed Instructions'),
+                ),
+              ],
+            ),
+          if (core.logic.showLocalControl)
+            Card(
+              child: ConnectionMethod(
+                title:
+                    'Control ${core.settings.getTrainerApp()?.name} using ${core.actionHandler.supportedModes.joinToString(transform: (e) => e.name)}',
+                description:
+                    'Enable keyboard and mouse control for better interaction with ${core.settings.getTrainerApp()?.name}.',
+                requirements: [Platform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()],
+                isStarted: core.logic.canRunAndroidService ? _isRunningAndroidService == true : null,
+                onChange: (value) {
+                  if (core.logic.canRunAndroidService) {
+                    core.logic.canRunAndroidService.then((isRunning) {
+                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                      setState(() {
+                        _isRunningAndroidService = isRunning;
+                      });
                     });
-                  });
-                }
-              },
-              additionalChild: _isRunningAndroidService == false
-                  ? Warning(
-                      children: [
-                        Text('Accessibility Service is not running.\nFollow instructions at').xSmall,
-                        Row(
-                          spacing: 8,
-                          children: [
-                            Expanded(
-                              child: LinkButton(
-                                child: Text('dontkillmyapp.com'),
-                                onPressed: () {
-                                  launchUrlString('https://dontkillmyapp.com/');
-                                },
+                  }
+                },
+                additionalChild: _isRunningAndroidService == false
+                    ? Warning(
+                        children: [
+                          Text('Accessibility Service is not running.\nFollow instructions at').xSmall,
+                          Row(
+                            spacing: 8,
+                            children: [
+                              Expanded(
+                                child: LinkButton(
+                                  child: Text('dontkillmyapp.com'),
+                                  onPressed: () {
+                                    launchUrlString('https://dontkillmyapp.com/');
+                                  },
+                                ),
                               ),
-                            ),
-                            IconButton.secondary(
-                              onPressed: () {
-                                (core.actionHandler as AndroidActions).accessibilityHandler.isRunning().then((
-                                  isRunning,
-                                ) {
-                                  setState(() {
-                                    _isRunningAndroidService = isRunning;
+                              IconButton.secondary(
+                                onPressed: () {
+                                  core.logic.isAndroidServiceRunning().then((
+                                    isRunning,
+                                  ) {
+                                    core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                                    setState(() {
+                                      _isRunningAndroidService = isRunning;
+                                    });
                                   });
-                                });
-                              },
-                              icon: Icon(Icons.refresh),
-                            ),
-                          ],
-                        ),
-                      ],
-                    )
-                  : null,
+                                },
+                                icon: Icon(Icons.refresh),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                    : null,
+              ),
             ),
-          ),
-        if (core.settings.getTrainerApp() is MyWhoosh && core.whooshLink.isCompatible(core.settings.getLastTarget()!))
-          Card(child: MyWhooshLinkTile()),
-        if (core.settings.getTrainerApp()?.supportsZwiftEmulation == true)
-          Card(
-            child: ZwiftTile(
-              onUpdate: () {
-                setState(() {});
-              },
+          if (core.logic.showMyWhooshLink) Card(child: MyWhooshLinkTile()),
+          if (core.logic.showZwiftEmulator)
+            Card(
+              child: ZwiftTile(
+                onUpdate: () {
+                  core.connection.signalNotification(
+                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                  );
+                  setState(() {});
+                },
+              ),
             ),
+
+          if (core.logic.showRemote)
+            Card(
+              child: RemoteRequirement().build(context, () {
+                core.connection.signalNotification(
+                  LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
+                );
+              })!,
+            ),
+
+          PrimaryButton(
+            child: Text('Adjust Controller Buttons'),
+            onPressed: () {
+              widget.onUpdate();
+            },
           ),
-
-        if (core.settings.getLastTarget() != Target.thisDevice) Card(child: RemoteRequirement().build(context, () {})!),
-
-        PrimaryButton(
-          child: Text('Adjust Controller Buttons'),
-          onPressed: () {
-            widget.onUpdate();
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -243,7 +243,7 @@ abstract class BluetoothDevice extends BaseDevice {
                     }
                   },
                   renderChild: (isLoading, tap) => IconButton(
-                    variance: ButtonVariance.outline,
+                    variance: ButtonVariance.muted,
                     icon: isLoading ? SmallProgressIndicator() : Icon(Icons.clear),
                     onPressed: tap,
                   ),
@@ -260,7 +260,7 @@ abstract class BluetoothDevice extends BaseDevice {
               filled: true,
               fillColor: Theme.of(context).colorScheme.background,
               child: Basic(
-                title: Text('Connection Status'),
+                title: Text('Connection'),
                 trailingAlignment: Alignment.centerRight,
                 trailing: Icon(switch (isConnected) {
                   true => Icons.bluetooth_connected_outlined,
@@ -274,7 +274,7 @@ abstract class BluetoothDevice extends BaseDevice {
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
-                  title: Text('Battery Level'),
+                  title: Text('Battery'),
                   trailingAlignment: Alignment.centerRight,
                   trailing: Icon(switch (batteryLevel!) {
                     >= 80 => Icons.battery_full,
@@ -292,7 +292,7 @@ abstract class BluetoothDevice extends BaseDevice {
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
-                  title: Text('Firmware Version'),
+                  title: Text('Firmware'),
                   subtitle: Row(
                     children: [
                       Text('$firmwareVersion'),
@@ -314,7 +314,7 @@ abstract class BluetoothDevice extends BaseDevice {
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
-                  title: Text('Signal Strength'),
+                  title: Text('Signal'),
                   trailingAlignment: Alignment.centerRight,
                   trailing: Icon(
                     switch (rssi!) {

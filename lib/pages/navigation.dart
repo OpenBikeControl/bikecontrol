@@ -41,12 +41,23 @@ class _NavigationState extends State<Navigation> {
   void initState() {
     super.initState();
     core.connection.actionStream.listen((_) {
+      _updateTrainerConnectionStatus();
       setState(() {});
     });
+    _updateTrainerConnectionStatus();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowChangelog();
     });
+  }
+
+  void _updateTrainerConnectionStatus() async {
+    final isConnected = await core.logic.isTrainerConnected();
+    if (mounted) {
+      setState(() {
+        _isTrainerConnected = isConnected;
+      });
+    }
   }
 
   @override
@@ -74,6 +85,8 @@ class _NavigationState extends State<Navigation> {
   }
 
   final List<BCPage> _tabs = BCPage.values.whereNot((e) => e == BCPage.logs).toList();
+
+  bool _isTrainerConnected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +124,6 @@ class _NavigationState extends State<Navigation> {
           Expanded(
             child: Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.all(16),
               child: AnimatedSwitcher(
                 duration: Duration(milliseconds: 200),
                 child: switch (_selectedPage) {
@@ -268,7 +280,7 @@ class _NavigationState extends State<Navigation> {
       BCPage.configuration => core.settings.getTrainerApp() == null,
       BCPage.devices => core.connection.controllerDevices.isEmpty,
       BCPage.customization => false,
-      BCPage.trainer => false,
+      BCPage.trainer => !_isTrainerConnected,
       BCPage.logs => false,
     };
   }

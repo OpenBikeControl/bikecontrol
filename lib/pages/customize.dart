@@ -25,6 +25,7 @@ class _CustomizeState extends State<CustomizePage> {
     );
 
     return SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
         spacing: 12,
         mainAxisAlignment: MainAxisAlignment.start,
