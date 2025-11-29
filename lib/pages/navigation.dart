@@ -1,11 +1,11 @@
 import 'package:dartx/dartx.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/trainer.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
@@ -40,7 +40,7 @@ class _NavigationState extends State<Navigation> {
   @override
   void initState() {
     super.initState();
-    connection.actionStream.listen((_) {
+    core.connection.actionStream.listen((_) {
       setState(() {});
     });
 
@@ -60,14 +60,14 @@ class _NavigationState extends State<Navigation> {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
-      final lastSeenVersion = settings.getLastSeenVersion();
+      final lastSeenVersion = core.settings.getLastSeenVersion();
 
       if (mounted) {
         await ChangelogDialog.showIfNeeded(context, currentVersion, lastSeenVersion);
       }
 
       // Update last seen version
-      await settings.setLastSeenVersion(currentVersion);
+      await core.settings.setLastSeenVersion(currentVersion);
     } catch (e) {
       print('Failed to check changelog: $e');
     }
@@ -185,7 +185,7 @@ class _NavigationState extends State<Navigation> {
                     },
                   ),
                   enabled: _isPageEnabled(page),
-                  label: Text(page == BCPage.trainer ? settings.getTrainerApp()?.name ?? page.title : page.title),
+                  label: Text(page == BCPage.trainer ? core.settings.getTrainerApp()?.name ?? page.title : page.title),
                   child: _buildIcon(page),
                 );
               }),
@@ -249,7 +249,7 @@ class _NavigationState extends State<Navigation> {
         return NavigationItem(
           selected: _selectedPage == page,
           enabled: _isPageEnabled(page),
-          label: Text(page == BCPage.trainer ? settings.getTrainerApp()?.name ?? page.title : page.title),
+          label: Text(page == BCPage.trainer ? core.settings.getTrainerApp()?.name ?? page.title : page.title),
           child: _buildIcon(page),
         );
       }).toList(),
@@ -259,14 +259,14 @@ class _NavigationState extends State<Navigation> {
   bool _isPageEnabled(BCPage page) {
     return switch (page) {
       BCPage.configuration => true,
-      _ => settings.getTrainerApp() != null,
+      _ => core.settings.getTrainerApp() != null,
     };
   }
 
   bool _needsAttention(BCPage page) {
     return switch (page) {
-      BCPage.configuration => settings.getTrainerApp() == null,
-      BCPage.devices => connection.controllerDevices.isEmpty,
+      BCPage.configuration => core.settings.getTrainerApp() == null,
+      BCPage.devices => core.connection.controllerDevices.isEmpty,
       BCPage.customization => false,
       BCPage.trainer => false,
       BCPage.logs => false,

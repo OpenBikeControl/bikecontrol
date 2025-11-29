@@ -5,8 +5,8 @@ import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/scan.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
@@ -44,26 +44,13 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     if (!screenshotMode) {
       WakelockPlus.enable();
     }
-    _showNameChangeWarning = !settings.knowsAboutNameChange();
+    _showNameChangeWarning = !core.settings.knowsAboutNameChange();
     WidgetsBinding.instance.addObserver(this);
 
-    if (!kIsWeb) {
-      whooshLink.isStarted.addListener(() {
-        if (mounted) setState(() {});
-      });
-
-      zwiftEmulator.isConnected.addListener(() {
-        if (mounted) setState(() {});
-      });
-
-      if (settings.getZwiftEmulatorEnabled() && actionHandler.supportedApp?.supportsZwiftEmulation == true) {
-        zwiftEmulator.startAdvertising(() {
-          if (mounted) setState(() {});
-        });
-      }
-    }
-
-    if (actionHandler is RemoteActions && !kIsWeb && Platform.isIOS && (actionHandler as RemoteActions).isConnected) {
+    if (core.actionHandler is RemoteActions &&
+        !kIsWeb &&
+        Platform.isIOS &&
+        (core.actionHandler as RemoteActions).isConnected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // show snackbar to inform user that the app needs to stay in foreground
         showToast(
@@ -73,7 +60,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
         );
       });
     }
-    _connectionStateSubscription = connection.connectionStream.listen((state) async {
+    _connectionStateSubscription = core.connection.connectionStream.listen((state) async {
       setState(() {});
     });
 
@@ -92,7 +79,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
       });
 
       // Check if device is MIUI and using local accessibility service
-      if (actionHandler is AndroidActions) {
+      if (core.actionHandler is AndroidActions) {
         _checkMiuiDevice();
       }
     }
@@ -110,7 +97,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (actionHandler is RemoteActions && Platform.isIOS && (actionHandler as RemoteActions).isConnected) {
+      if (core.actionHandler is RemoteActions && Platform.isIOS && (core.actionHandler as RemoteActions).isConnected) {
         UniversalBle.getBluetoothAvailabilityState().then((state) {
           if (state == AvailabilityState.poweredOn && mounted) {
             final requirement = RemoteRequirement();
@@ -129,7 +116,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   Future<void> _checkMiuiDevice() async {
     try {
       // Don't show if user has dismissed the warning
-      if (settings.getMiuiWarningDismissed()) {
+      if (core.settings.getMiuiWarningDismissed()) {
         return;
       }
 
@@ -200,7 +187,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     IconButton.destructive(
                       icon: Icon(Icons.close),
                       onPressed: () async {
-                        await settings.setMiuiWarningDismissed(true);
+                        await core.settings.setMiuiWarningDismissed(true);
                         setState(() {
                           _showMiuiWarning = false;
                         });
@@ -245,11 +232,11 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
             ),
 
           ScanWidget(),
-          ...connection.controllerDevices.map(
+          ...core.connection.controllerDevices.map(
             (device) => Card(child: device.showInformation(context)),
           ),
 
-          if (settings.getIgnoredDevices().isNotEmpty)
+          if (core.settings.getIgnoredDevices().isNotEmpty)
             OutlineButton(
               child: Text('Manage Ignored Devices'),
               onPressed: () async {
@@ -261,7 +248,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
               },
             ),
 
-          if (connection.controllerDevices.isNotEmpty)
+          if (core.connection.controllerDevices.isNotEmpty)
             PrimaryButton(
               child: Text('Continue'),
               onPressed: () {

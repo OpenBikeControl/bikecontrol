@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
 import '../bluetooth/messages/notification.dart';
-import '../main.dart';
 
 class LogViewer extends StatefulWidget {
   const LogViewer({super.key});
@@ -24,7 +24,7 @@ class _LogviewerState extends State<LogViewer> {
   void initState() {
     super.initState();
 
-    _actionSubscription = connection.actionStream.listen((data) {
+    _actionSubscription = core.connection.actionStream.listen((data) {
       if (mounted) {
         setState(() {});
         if (_scrollController.hasClients) {
@@ -59,7 +59,7 @@ class _LogviewerState extends State<LogViewer> {
             OutlineButton(
               child: Text('Share'),
               onPressed: () {
-                final logText = connection.lastLogEntries
+                final logText = core.connection.lastLogEntries
                     .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
                     .join('\n');
                 Clipboard.setData(ClipboardData(text: logText));
@@ -72,7 +72,7 @@ class _LogviewerState extends State<LogViewer> {
             ),
           ],
         ),
-        connection.lastLogEntries.isEmpty
+        core.connection.lastLogEntries.isEmpty
             ? Container()
             : Expanded(
                 child: Card(
@@ -80,7 +80,7 @@ class _LogviewerState extends State<LogViewer> {
                     child: ListView(
                       controller: _scrollController,
                       reverse: true,
-                      children: connection.lastLogEntries
+                      children: core.connection.lastLogEntries
                           .map(
                             (action) => Text.rich(
                               TextSpan(

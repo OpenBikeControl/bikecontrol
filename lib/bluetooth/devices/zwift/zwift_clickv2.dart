@@ -5,8 +5,8 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
@@ -66,7 +66,7 @@ class ZwiftClickV2 extends ZwiftRide {
       children: [
         super.showInformation(context),
 
-        if (isConnected && _noLongerSendsEvents && settings.getShowZwiftClickV2ReconnectWarning())
+        if (isConnected && _noLongerSendsEvents && core.settings.getShowZwiftClickV2ReconnectWarning())
           Warning(
             children: [
               Text(
@@ -106,7 +106,7 @@ class ZwiftClickV2 extends ZwiftRide {
                   Expanded(child: SizedBox()),
                   TextButton(
                     onPressed: () {
-                      settings.setShowZwiftClickV2ReconnectWarning(false);
+                      core.settings.setShowZwiftClickV2ReconnectWarning(false);
                     },
                     child: Text('Dismiss'),
                   ),

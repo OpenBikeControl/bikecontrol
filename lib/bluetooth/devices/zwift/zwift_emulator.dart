@@ -9,15 +9,13 @@ import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/title.dart';
 
 import 'protocol/zwift.pb.dart' show RideKeyPadStatus;
-
-final zwiftEmulator = ZwiftEmulator();
 
 class ZwiftEmulator {
   static final List<InGameAction> supportedActions = [
@@ -85,7 +83,7 @@ class ZwiftEmulator {
 
     while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
       print('Waiting for peripheral manager to be powered on...');
-      if (settings.getLastTarget() == Target.thisDevice) {
+      if (core.settings.getLastTarget() == Target.thisDevice) {
         return;
       }
       await Future.delayed(Duration(seconds: 1));
@@ -355,7 +353,7 @@ class ZwiftEmulatorInformation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: zwiftEmulator.isConnected,
+      valueListenable: core.zwiftEmulator.isConnected,
       builder: (context, isConnected, _) {
         return StatefulBuilder(
           builder: (context, setState) {

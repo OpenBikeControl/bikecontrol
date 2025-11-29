@@ -7,7 +7,7 @@ import 'package:swift_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -149,7 +149,7 @@ class ZwiftRide extends ZwiftDevice {
         final notification = BatteryNotification.fromBuffer(message);
         if (batteryLevel != notification.newPercLevel) {
           batteryLevel = notification.newPercLevel;
-          connection.signalChange(this);
+          core.connection.signalChange(this);
         }
         break;
       case Opcode.CONTROLLER_NOTIFICATION:

@@ -9,6 +9,7 @@ import 'package:restart_app/restart_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/gradient_text.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
@@ -166,10 +167,10 @@ class _AppTitleState extends State<AppTitle> {
         closeTitle: 'Restart',
         onClose: () {
           if (Platform.isIOS) {
-            connection.reset();
+            core.connection.reset();
             Restart.restartApp(delayBeforeRestart: 1000);
           } else {
-            connection.reset();
+            core.connection.reset();
             exit(0);
           }
         },

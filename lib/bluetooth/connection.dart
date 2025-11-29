@@ -13,6 +13,7 @@ import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/android.dart';
@@ -190,10 +191,10 @@ class Connection {
       });
     }
 
-    if (settings.getMyWhooshLinkEnabled() &&
-        settings.getTrainerApp() is MyWhoosh &&
-        !whooshLink.isStarted.value &&
-        whooshLink.isCompatible(settings.getLastTarget()!)) {
+    if (core.settings.getMyWhooshLinkEnabled() &&
+        core.settings.getTrainerApp() is MyWhoosh &&
+        !core.whooshLink.isStarted.value &&
+        core.whooshLink.isCompatible(core.settings.getLastTarget()!)) {
       startMyWhooshServer().catchError((e) {
         _actionStreams.add(
           LogNotification(
@@ -219,14 +220,14 @@ class Connection {
   }
 
   Future<void> startMyWhooshServer() {
-    return whooshLink.startServer(
+    return core.whooshLink.startServer(
       onConnected: (socket) {},
       onDisconnected: (socket) {},
     );
   }
 
   void addDevices(List<BaseDevice> dev) {
-    final ignoredDevices = settings.getIgnoredDevices();
+    final ignoredDevices = core.settings.getIgnoredDevices();
     final ignoredDeviceIds = ignoredDevices.map((d) => d.id).toSet();
     final newDevices = dev.where((device) {
       if (devices.contains(device)) return false;
@@ -303,10 +304,10 @@ class Connection {
       signalChange(device);
 
       final newButtons = device.availableButtons.filter(
-        (button) => actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
+        (button) => core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
       );
       for (final button in newButtons) {
-        actionHandler.supportedApp?.keymap.addKeyPair(
+        core.actionHandler.supportedApp?.keymap.addKeyPair(
           KeyPair(
             touchPosition: Offset.zero,
             buttons: [button],
@@ -330,7 +331,7 @@ class Connection {
 
   Future<void> reset() async {
     _actionStreams.add(LogNotification('Disconnecting all devices'));
-    if (actionHandler is AndroidActions) {
+    if (core.actionHandler is AndroidActions) {
       AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
       _androidNotificationsSetup = false;
     }
@@ -369,7 +370,7 @@ class Connection {
     if (device is BluetoothDevice) {
       if (persistForget) {
         // Add device to ignored list when forgetting
-        await settings.addIgnoredDevice(device.device.deviceId, device.name);
+        await core.settings.addIgnoredDevice(device.device.deviceId, device.name);
         _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
       }
       if (!forget) {
@@ -395,11 +396,14 @@ class Connection {
     final hidDevice = HidDevice('HID Device');
     final keyPressed = mediaKey.name;
 
-    final button = actionHandler.supportedApp!.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
+    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(
+      keyPressed,
+      () => ControllerButton(keyPressed),
+    );
 
-    var availableDevice = connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+    var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
     if (availableDevice == null) {
-      connection.addDevices([hidDevice]);
+      core.connection.addDevices([hidDevice]);
       availableDevice = hidDevice;
     }
     availableDevice.handleButtonsClicked([button]);

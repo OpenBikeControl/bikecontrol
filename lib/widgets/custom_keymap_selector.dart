@@ -4,7 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
@@ -31,7 +31,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   void initState() {
     super.initState();
     _pressedButton = widget.keyPair?.buttons.firstOrNull;
-    _actionSubscription = connection.actionStream.listen((data) {
+    _actionSubscription = core.connection.actionStream.listen((data) {
       if (!mounted || widget.keyPair != null) {
         return;
       }

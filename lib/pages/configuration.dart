@@ -1,10 +1,10 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
 class ConfigurationPage extends StatefulWidget {
   final VoidCallback onUpdate;
-  ConfigurationPage({super.key, required this.onUpdate});
+  const ConfigurationPage({super.key, required this.onUpdate});
 
   @override
   State<ConfigurationPage> createState() => _ConfigurationPageState();
@@ -40,7 +40,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
           })!,
         ),
         PrimaryButton(
-          onPressed: settings.getTrainerApp() != null && settings.getLastTarget() != null
+          onPressed: core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null
               ? () {
                   widget.onUpdate();
                 }

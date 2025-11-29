@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -23,8 +23,8 @@ class _StatusWidgetState extends State<StatusWidget> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb && Platform.isAndroid && actionHandler is AndroidActions) {
-      (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
+    if (!kIsWeb && Platform.isAndroid && core.actionHandler is AndroidActions) {
+      (core.actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
         setState(() {
           _isRunningAndroidService = isRunning;
         });
@@ -34,31 +34,32 @@ class _StatusWidgetState extends State<StatusWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isRemote = actionHandler is RemoteActions && isAdvertisingPeripheral;
-    final isZwift = settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled();
+    final isRemote = core.actionHandler is RemoteActions && isAdvertisingPeripheral;
+    final isZwift =
+        core.settings.getTrainerApp()?.supportsZwiftEmulation == true && core.settings.getZwiftEmulatorEnabled();
     return Card(
       child: Column(
         spacing: 8,
         children: [
-          if (connection.controllerDevices.isEmpty)
+          if (core.connection.controllerDevices.isEmpty)
             _Status(color: Colors.red, text: 'No connected controllers')
           else
             _Status(
               color: Colors.green,
               text:
-                  '${connection.controllerDevices.length == 1 ? 'Controller connected' : '${connection.controllerDevices.length} controllers connected'} ',
+                  '${core.connection.controllerDevices.length == 1 ? 'Controller connected' : '${core.connection.controllerDevices.length} controllers connected'} ',
             ),
-          if (whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
-              settings.getMyWhooshLinkEnabled() &&
+          if (core.whooshLink.isCompatible(core.settings.getLastTarget() ?? Target.thisDevice) &&
+              core.settings.getMyWhooshLinkEnabled() &&
               !isZwift)
             _Status(
-              color: whooshLink.isConnected.value
+              color: core.whooshLink.isConnected.value
                   ? Colors.green
                   : Platform.isAndroid
                   ? Colors.yellow
                   : Colors.red,
               text:
-                  'MyWhoosh Direct Connect ${whooshLink.isConnected.value
+                  'MyWhoosh Direct Connect ${core.whooshLink.isConnected.value
                       ? "connected"
                       : Platform.isAndroid
                       ? "not connected (optional)"
@@ -67,15 +68,15 @@ class _StatusWidgetState extends State<StatusWidget> {
 
           if (isRemote)
             _Status(
-              color: (actionHandler as RemoteActions).isConnected ? Colors.green : Colors.red,
-              text: 'Remote ${(actionHandler as RemoteActions).isConnected ? "connected" : "not connected"}',
+              color: (core.actionHandler as RemoteActions).isConnected ? Colors.green : Colors.red,
+              text: 'Remote ${(core.actionHandler as RemoteActions).isConnected ? "connected" : "not connected"}',
             ),
           if (isZwift)
             _Status(
-              color: zwiftEmulator.isConnected.value ? Colors.green : Colors.red,
-              text: 'Zwift Emulation ${zwiftEmulator.isConnected.value ? "connected" : "not connected"}',
+              color: core.zwiftEmulator.isConnected.value ? Colors.green : Colors.red,
+              text: 'Zwift Emulation ${core.zwiftEmulator.isConnected.value ? "connected" : "not connected"}',
             ),
-          if (!isRemote && !isZwift && !screenshotMode && settings.getLastTarget() != Target.thisDevice)
+          if (!isRemote && !isZwift && !screenshotMode && core.settings.getLastTarget() != Target.thisDevice)
             _Status(
               color: Colors.red,
               text: 'Not connected to a remote device',
@@ -99,7 +100,7 @@ class _StatusWidgetState extends State<StatusWidget> {
                         ),
                         IconButton.secondary(
                           onPressed: () {
-                            (actionHandler as AndroidActions).accessibilityHandler.isRunning().then((
+                            (core.actionHandler as AndroidActions).accessibilityHandler.isRunning().then((
                               isRunning,
                             ) {
                               setState(() {

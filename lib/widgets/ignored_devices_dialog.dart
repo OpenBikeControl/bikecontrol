@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 
 class IgnoredDevicesDialog extends StatefulWidget {
   const IgnoredDevicesDialog({super.key});
@@ -19,12 +19,12 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
 
   void _loadIgnoredDevices() {
     setState(() {
-      _ignoredDevices = settings.getIgnoredDevices();
+      _ignoredDevices = core.settings.getIgnoredDevices();
     });
   }
 
   Future<void> _removeDevice(String deviceId) async {
-    await settings.removeIgnoredDevice(deviceId);
+    await core.settings.removeIgnoredDevice(deviceId);
     _loadIgnoredDevices();
   }
 

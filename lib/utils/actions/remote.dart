@@ -4,8 +4,8 @@ import 'package:accessibility/accessibility.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -33,8 +33,8 @@ class RemoteActions extends BaseActions {
 
     if (directConnectHandled != null) {
       return directConnectHandled;
-    } else if (!(actionHandler as RemoteActions).isConnected) {
-      return Error('Not connected to a ${settings.getLastTarget()?.name ?? 'remote'} device');
+    } else if (!(core.actionHandler as RemoteActions).isConnected) {
+      return Error('Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device');
     }
 
     if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {
@@ -84,7 +84,7 @@ class RemoteActions extends BaseActions {
     connectedCentral = central;
     connectedCharacteristic = gattCharacteristic;
 
-    connection.signalChange(ZwiftClick(BleDevice(deviceId: 'deviceId', name: 'name')));
+    core.connection.signalChange(ZwiftClick(BleDevice(deviceId: 'deviceId', name: 'name')));
   }
 
   bool get isConnected => connectedCentral != null;

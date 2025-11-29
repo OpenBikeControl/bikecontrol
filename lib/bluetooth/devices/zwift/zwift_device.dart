@@ -6,7 +6,7 @@ import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -126,7 +126,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
       case ZwiftConstants.BATTERY_LEVEL_TYPE:
         if (batteryLevel != message[1]) {
           batteryLevel = message[1];
-          connection.signalChange(this);
+          core.connection.signalChange(this);
         }
         break;
       case ZwiftConstants.CLICK_NOTIFICATION_MESSAGE_TYPE:
@@ -156,7 +156,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   @override
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
-        settings.getVibrationEnabled()) {
+        core.settings.getVibrationEnabled()) {
       await _vibrate();
     }
     return super.performDown(buttonsClicked);
@@ -165,7 +165,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   @override
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
-        settings.getVibrationEnabled() &&
+        core.settings.getVibrationEnabled() &&
         canVibrate) {
       await _vibrate();
     }

@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState;
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -36,7 +37,7 @@ class RemoteRequirement extends PlatformRequirement {
     await peripheralManager.removeAllServices();
     _isServiceAdded = false;
     isAdvertisingPeripheral = false;
-    (actionHandler as RemoteActions).setConnectedCentral(null, null);
+    (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
     startAdvertising(() {});
   }
 
@@ -68,7 +69,7 @@ class RemoteRequirement extends PlatformRequirement {
             //peripheralManager.stopAdvertising();
             onUpdate();*/
           } else if (state.state == ConnectionState.disconnected) {
-            (actionHandler as RemoteActions).setConnectedCentral(null, null);
+            (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
             onUpdate();
           }
         });
@@ -89,7 +90,7 @@ class RemoteRequirement extends PlatformRequirement {
 
     while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
       print('Waiting for peripheral manager to be powered on... ${peripheralManager.state}');
-      if (settings.getLastTarget() == Target.thisDevice) {
+      if (core.settings.getLastTarget() == Target.thisDevice) {
         return;
       }
       await Future.delayed(Duration(seconds: 1));
@@ -214,9 +215,9 @@ class RemoteRequirement extends PlatformRequirement {
         peripheralManager.characteristicNotifyStateChanged.forEach((char) {
           if (char.characteristic.uuid == inputReport.uuid) {
             if (char.state) {
-              (actionHandler as RemoteActions).setConnectedCentral(char.central, char.characteristic);
+              (core.actionHandler as RemoteActions).setConnectedCentral(char.central, char.characteristic);
             } else {
-              (actionHandler as RemoteActions).setConnectedCentral(null, null);
+              (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
             }
             onUpdate();
           }
@@ -271,7 +272,8 @@ class RemoteRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = (actionHandler is RemoteActions && (actionHandler as RemoteActions).isConnected) || screenshotMode;
+    status =
+        (core.actionHandler is RemoteActions && (core.actionHandler as RemoteActions).isConnected) || screenshotMode;
   }
 }
 
@@ -297,7 +299,7 @@ class _PairWidgetState extends State<_PairWidget> {
           isStarted: isAdvertisingPeripheral,
           title: 'Enable Pairing Process',
           description: 'Pairing allows full customizability, but may not work on all devices.',
-          isConnected: (actionHandler as RemoteActions).isConnected,
+          isConnected: (core.actionHandler as RemoteActions).isConnected,
           requirements: [
             BluetoothTurnedOn(),
           ],
@@ -310,11 +312,11 @@ class _PairWidgetState extends State<_PairWidget> {
           Warning(
             children: [
               Text(
-                switch (settings.getLastTarget()) {
+                switch (core.settings.getLastTarget()) {
                   Target.iOS =>
                     'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
                   _ =>
-                    'On your ${settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
+                    'On your ${core.settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
                 },
               ).small,
             ],
@@ -327,7 +329,7 @@ class _PairWidgetState extends State<_PairWidget> {
     if (isAdvertisingPeripheral) {
       peripheralManager.stopAdvertising();
       isAdvertisingPeripheral = false;
-      (actionHandler as RemoteActions).setConnectedCentral(null, null);
+      (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
       widget.onUpdate();
       _isLoading = false;
       setState(() {});

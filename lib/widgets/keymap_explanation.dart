@@ -4,9 +4,9 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
@@ -57,11 +57,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   @override
   Widget build(BuildContext context) {
     final availableKeypairs = widget.keymap.keyPairs;
-    final allAvailableButtons = IterableFlatMap(connection.devices).flatMap((d) => d.availableButtons);
+    final allAvailableButtons = IterableFlatMap(core.connection.devices).flatMap((d) => d.availableButtons);
 
     return Card(
       child: ValueListenableBuilder(
-        valueListenable: whooshLink.isConnected,
+        valueListenable: core.whooshLink.isConnected,
         builder: (c, _, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -74,7 +74,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                   cells: [
                     TableCell(
                       child: Text(
-                        '${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)} button',
+                        '${core.connection.devices.isEmpty ? 'Device' : core.connection.devices.joinToString(transform: (d) => d.name.screenshot)} button',
                       ).small,
                     ),
                     TableCell(
@@ -94,7 +94,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             runAlignment: WrapAlignment.center,
                             children: [
-                              if (actionHandler.supportedApp is! CustomApp)
+                              if (core.actionHandler.supportedApp is! CustomApp)
                                 if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
                                   Text('No button assigned for your connected device')
                                 else
@@ -129,12 +129,12 @@ class _ButtonEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trainerApp = settings.getTrainerApp();
+    final trainerApp = core.settings.getTrainerApp();
 
     final actionsWithInGameAction = trainerApp?.keymap.keyPairs.where((kp) => kp.inGameAction != null).toList();
 
     final actions = <MenuItem>[
-      if (settings.getMyWhooshLinkEnabled() && whooshLink.isCompatible(settings.getLastTarget()!))
+      if (core.settings.getMyWhooshLinkEnabled() && core.whooshLink.isCompatible(core.settings.getLastTarget()!))
         MenuButton(
           subMenu: WhooshLink.supportedActions.map(
             (ingame) {
@@ -166,7 +166,7 @@ class _ButtonEditor extends StatelessWidget {
             isActive: keyPair.inGameAction != null,
           ),
         ),
-      if (settings.getZwiftEmulatorEnabled() && settings.getTrainerApp()?.supportsZwiftEmulation == true)
+      if (core.settings.getZwiftEmulatorEnabled() && core.settings.getTrainerApp()?.supportsZwiftEmulation == true)
         MenuButton(
           subMenu: ZwiftEmulator.supportedActions.map(
             (ingame) {
@@ -239,7 +239,7 @@ class _ButtonEditor extends StatelessWidget {
             isActive: false,
           ),
         ),
-      if (actionHandler.supportedModes.contains(SupportedMode.keyboard))
+      if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
         MenuButton(
           child: _Item(
             icon: Icons.keyboard_alt_outlined,
@@ -251,12 +251,12 @@ class _ButtonEditor extends StatelessWidget {
               context: context,
               barrierDismissible: false, // enable Escape key
               builder: (c) =>
-                  HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
+                  HotKeyListenerDialog(customApp: core.actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
             );
             onUpdate();
           },
         ),
-      if (actionHandler.supportedModes.contains(SupportedMode.touch))
+      if (core.actionHandler.supportedModes.contains(SupportedMode.touch))
         MenuButton(
           child: _Item(
             title: 'Simulate Touch',
@@ -280,7 +280,7 @@ class _ButtonEditor extends StatelessWidget {
           },
         ),
 
-      if (actionHandler.supportedModes.contains(SupportedMode.media))
+      if (core.actionHandler.supportedModes.contains(SupportedMode.media))
         MenuButton(
           subMenu: [
             MenuButton(
@@ -380,8 +380,8 @@ class _ButtonEditor extends StatelessWidget {
 
     return TextButton(
       onPressed: () async {
-        if (actionHandler.supportedApp is! CustomApp) {
-          final currentProfile = actionHandler.supportedApp!.name;
+        if (core.actionHandler.supportedApp is! CustomApp) {
+          final currentProfile = core.actionHandler.supportedApp!.name;
           final newName = await KeymapManager().duplicate(
             context,
             currentProfile,

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:window_manager/window_manager.dart';
@@ -22,13 +23,13 @@ class Settings {
       prefs = await SharedPreferences.getInstance();
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
-      if (actionHandler is DesktopActions) {
+      if (core.actionHandler is DesktopActions) {
         // Must add this line.
         await windowManager.ensureInitialized();
       }
 
       final app = getKeyMap();
-      actionHandler.init(app);
+      core.actionHandler.init(app);
       return null;
     } catch (e, s) {
       if (!retried) {
@@ -56,7 +57,7 @@ class Settings {
 
   Future<void> reset() async {
     await prefs.clear();
-    actionHandler.init(null);
+    core.actionHandler.init(null);
   }
 
   void setTrainerApp(SupportedApp app) {
@@ -117,7 +118,7 @@ class Settings {
     await prefs.remove('customapp_$profileName');
     // If the current app is the one being deleted, reset
     if (prefs.getString('app') == profileName) {
-      actionHandler.init(null);
+      core.actionHandler.init(null);
       await prefs.remove('app');
     }
   }

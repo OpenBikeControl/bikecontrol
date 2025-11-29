@@ -6,8 +6,8 @@ import 'package:flutter/material.dart' show showLicensePage;
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -148,11 +148,11 @@ String debugText() {
 ---
 App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
 Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
-Target: ${settings.getLastTarget()?.title ?? '-'}
-Trainer App: ${settings.getTrainerApp()?.name ?? '-'}
-Connected Controllers: ${connection.devices.map((e) => e.toString()).join(', ')}
+Target: ${core.settings.getLastTarget()?.title ?? '-'}
+Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
+Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Logs: 
-${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
+${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
 }
 
@@ -177,11 +177,11 @@ class BKMenuButton extends StatelessWidget {
                         child: Text(e.name),
                         onPressed: (c) {
                           Future.delayed(Duration(seconds: 2)).then((_) async {
-                            if (connection.devices.isNotEmpty) {
-                              connection.devices.firstOrNull?.handleButtonsClicked([e]);
-                              connection.devices.firstOrNull?.handleButtonsClicked([]);
+                            if (core.connection.devices.isNotEmpty) {
+                              core.connection.devices.firstOrNull?.handleButtonsClicked([e]);
+                              core.connection.devices.firstOrNull?.handleButtonsClicked([]);
                             } else {
-                              actionHandler.performAction(e);
+                              core.actionHandler.performAction(e);
                               /*final point = Offset(300, 300);
                               await keyPressSimulator.simulateMouseClickDown(point);
                               // slight move to register clicks on some apps, see issue #116
@@ -197,7 +197,7 @@ class BKMenuButton extends StatelessWidget {
               MenuButton(
                 child: Text('Continue'),
                 onPressed: (c) {
-                  connection.addDevices([
+                  core.connection.addDevices([
                     ZwiftClickV2(
                         BleDevice(
                           name: 'Controller',
@@ -213,7 +213,7 @@ class BKMenuButton extends StatelessWidget {
               MenuButton(
                 child: Text('Reset'),
                 onPressed: (c) async {
-                  await settings.reset();
+                  await core.settings.reset();
                 },
               ),
               MenuDivider(),

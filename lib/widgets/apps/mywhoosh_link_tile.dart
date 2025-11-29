@@ -1,6 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
@@ -15,24 +15,24 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: whooshLink.isStarted,
+      valueListenable: core.whooshLink.isStarted,
       builder: (context, isStarted, _) {
         return ValueListenableBuilder(
-          valueListenable: whooshLink.isConnected,
+          valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
               title: 'Enable MyWhoosh Direct Connect',
               instructionLink: 'https://www.youtube.com/watch?v=p8sgQhuufeI',
-              description: actionHandler is RemoteActions
+              description: core.actionHandler is RemoteActions
                   ? 'MyWhoosh Direct Connect allows you to do some additional features such as Emotes and turn directions.'
                   : 'MyWhoosh Direct Connect is optional, but allows you to do some additional features such as Emotes and turn directions.',
               requirements: [],
               onChange: (value) {
-                settings.setMyWhooshLinkEnabled(value);
+                core.settings.setMyWhooshLinkEnabled(value);
                 if (!value) {
-                  whooshLink.stopServer();
+                  core.whooshLink.stopServer();
                 } else if (value) {
-                  connection.startMyWhooshServer().catchError((e) {
+                  core.connection.startMyWhooshServer().catchError((e) {
                     showToast(
                       context: context,
                       builder: (c, overlay) => buildToast(

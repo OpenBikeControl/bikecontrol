@@ -4,8 +4,8 @@ import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/wifi_animation.dart';
@@ -28,7 +28,7 @@ class _ScanWidgetState extends State<ScanWidget> {
   void initState() {
     super.initState();
 
-    connection.initialize();
+    core.connection.initialize();
 
     _checkRequirements();
   }
@@ -68,7 +68,7 @@ class _ScanWidgetState extends State<ScanWidget> {
           )
         else
           ValueListenableBuilder(
-            valueListenable: connection.isScanning,
+            valueListenable: core.connection.isScanning,
             builder: (context, isScanning, widget) {
               if (isScanning) {
                 return Column(
@@ -89,7 +89,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                     ),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
                       ValueListenableBuilder(
-                        valueListenable: connection.isMediaKeyDetectionEnabled,
+                        valueListenable: core.connection.isMediaKeyDetectionEnabled,
                         builder: (context, value, child) {
                           return Tooltip(
                             tooltip: (c) => TooltipContainer(
@@ -101,7 +101,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                               state: value ? CheckboxState.checked : CheckboxState.unchecked,
                               trailing: Text("Enable Media Key Detection"),
                               onChanged: (change) {
-                                connection.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
+                                core.connection.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
                               },
                             ),
                           );
@@ -123,7 +123,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                   children: [
                     PrimaryButton(
                       onPressed: () {
-                        connection.performScanning();
+                        core.connection.performScanning();
                       },
                       child: const Text("SCAN"),
                     ),
@@ -177,7 +177,7 @@ class _ScanWidgetState extends State<ScanWidget> {
       _needsPermissions = list.where((e) => !e.status).toList();
       if (_needsPermissions!.isEmpty) {
         if (!kIsWeb) {
-          connection.performScanning().catchError((e, s) {
+          core.connection.performScanning().catchError((e, s) {
             print("Error during scanning: $e\n$s");
           });
         }

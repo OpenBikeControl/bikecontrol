@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
+import 'package:swift_control/utils/core.dart' show core;
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:test_screenshot/test_screenshot.dart';
@@ -56,13 +57,13 @@ Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size siz
 
   screenshotMode = true;
 
-  await settings.init();
-  await settings.reset();
-  settings.setTrainerApp(MyWhoosh());
-  settings.setKeyMap(MyWhoosh());
-  settings.setLastTarget(Target.thisDevice);
+  await core.settings.init();
+  await core.settings.reset();
+  core.settings.setTrainerApp(MyWhoosh());
+  core.settings.setKeyMap(MyWhoosh());
+  core.settings.setLastTarget(Target.thisDevice);
 
-  connection.addDevices([
+  core.connection.addDevices([
     ZwiftRide(
         BleDevice(
           name: 'Controller',
@@ -104,8 +105,8 @@ Future<void> _createRequirementScreenshot(WidgetTester tester, (String type, Siz
   tester.view.physicalSize = spec.$2;
   tester.view.devicePixelRatio = 1;
 
-  await settings.init();
-  await settings.reset();
+  await core.settings.init();
+  await core.settings.reset();
   screenshotMode = true;
   await tester.pumpWidget(
     Screenshotter(

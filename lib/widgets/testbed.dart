@@ -5,8 +5,8 @@ import 'dart:ui';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart' as actions;
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
@@ -68,7 +68,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _focusNode = FocusNode(debugLabel: 'TestbedFocus', canRequestFocus: true, skipTraversal: true);
-    _actionSubscription = connection.actionStream.listen((data) async {
+    _actionSubscription = core.connection.actionStream.listen((data) async {
       if (!mounted) {
         return;
       }
@@ -83,8 +83,8 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
               title: '🔘 ${button.name}',
             ),
           );
-          if (actionHandler.supportedApp is! CustomApp &&
-              actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
+          if (core.actionHandler.supportedApp is! CustomApp &&
+              core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
             showToast(
               context: context,
               builder: (c, overlay) => buildToast(

@@ -14,8 +14,8 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/loading_widget.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
@@ -166,7 +166,7 @@ abstract class BluetoothDevice extends BaseDevice {
       );
       firmwareVersion = String.fromCharCodes(firmwareData);
 
-      connection.signalChange(this);
+      core.connection.signalChange(this);
     }
 
     final batteryService = services.firstOrNullWhere(
@@ -184,7 +184,7 @@ abstract class BluetoothDevice extends BaseDevice {
       );
       if (batteryData.isNotEmpty) {
         batteryLevel = batteryData.first;
-        connection.signalChange(this);
+        core.connection.signalChange(this);
       }
     }
 
@@ -239,7 +239,7 @@ abstract class BluetoothDevice extends BaseDevice {
 
                     final persist = await completer.future;
                     if (persist != null) {
-                      await connection.disconnect(this, forget: true, persistForget: persist);
+                      await core.connection.disconnect(this, forget: true, persistForget: persist);
                     }
                   },
                   renderChild: (isLoading, tap) => IconButton(

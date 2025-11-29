@@ -2,8 +2,8 @@ import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -32,9 +32,9 @@ class AndroidActions extends BaseActions {
         final button = supportedApp.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
 
         final hidDevice = HidDevice('HID Device');
-        var availableDevice = connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+        var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
         if (availableDevice == null) {
-          connection.addDevices([hidDevice]);
+          core.connection.addDevices([hidDevice]);
           availableDevice = hidDevice;
         }
         availableDevice.handleButtonsClicked([button]);

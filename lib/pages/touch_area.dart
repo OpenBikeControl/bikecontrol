@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
@@ -43,7 +44,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     if (result != null) {
       final image = File(result.path);
       final Directory tempDir = await getTemporaryDirectory();
-      final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
+      final tempImage = File('${tempDir.path}/${core.actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
       await image.copy(tempImage.path);
       _backgroundImage = tempImage.readAsBytesSync();
       await _calculateBounds();
@@ -113,7 +114,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       windowManager.setFullScreen(true);
     }
     getTemporaryDirectory().then((tempDir) async {
-      final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
+      final tempImage = File('${tempDir.path}/${core.actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
       if (tempImage.existsSync()) {
         _backgroundImage = tempImage.readAsBytesSync();
         setState(() {});
@@ -256,7 +257,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
             _imageRect = Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight);
           }
           final keyPairsToShow =
-              actionHandler.supportedApp?.keymap.keyPairs
+              core.actionHandler.supportedApp?.keymap.keyPairs
                   .where((kp) => kp.touchPosition != Offset.zero && !kp.isSpecialKey)
                   .toList() ??
               [];
@@ -357,7 +358,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                             onTap: () {
                               _backgroundImage = null;
 
-                              actionHandler.supportedApp?.keymap.reset();
+                              core.actionHandler.supportedApp?.keymap.reset();
                               setState(() {});
                             },
                           ),
@@ -396,16 +397,17 @@ class KeypairExplanation extends StatelessWidget {
         else
           Icon(keyPair.icon),
         if (keyPair.inGameAction != null &&
-            ((whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
-                    settings.getMyWhooshLinkEnabled()) ||
-                (settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled())))
+            ((core.whooshLink.isCompatible(core.settings.getLastTarget() ?? Target.thisDevice) &&
+                    core.settings.getMyWhooshLinkEnabled()) ||
+                (core.settings.getTrainerApp()?.supportsZwiftEmulation == true &&
+                    core.settings.getZwiftEmulatorEnabled())))
           _KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,
               if (keyPair.inGameActionValue != null) ': ${keyPair.inGameActionValue}',
             ].joinToString(separator: ''),
           )
-        else if (keyPair.isSpecialKey && actionHandler.supportedModes.contains(SupportedMode.media))
+        else if (keyPair.isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
           _KeyWidget(
             label: switch (keyPair.physicalKey) {
               PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
@@ -417,7 +419,7 @@ class KeypairExplanation extends StatelessWidget {
               _ => 'Unknown',
             },
           )
-        else if (keyPair.physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
+        else if (keyPair.physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
           _KeyWidget(
             label: [
               ...keyPair.modifiers.map((e) => e.name.replaceAll('Modifier', '')),

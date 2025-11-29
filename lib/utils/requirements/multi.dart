@@ -7,6 +7,7 @@ import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
@@ -140,11 +141,11 @@ enum Target {
   const Target({required this.title, required this.icon});
 
   bool get isCompatible {
-    return settings.getTrainerApp()?.compatibleTargets.contains(this) == true;
+    return core.settings.getTrainerApp()?.compatibleTargets.contains(this) == true;
   }
 
   bool get isBeta {
-    final supportedApp = settings.getTrainerApp();
+    final supportedApp = core.settings.getTrainerApp();
 
     if (supportedApp is Zwift && !(Platform.isIOS || Platform.isMacOS)) {
       // everything is supported, this device is not compatible anyway
@@ -176,7 +177,7 @@ enum Target {
   }
 
   String? get warning {
-    if (settings.getTrainerApp()?.supportsZwiftEmulation == true) {
+    if (core.settings.getTrainerApp()?.supportsZwiftEmulation == true) {
       // no warnings for zwift emulation
       return null;
     }
@@ -216,7 +217,7 @@ class TargetRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = settings.getLastTarget() != null && settings.getTrainerApp() != null;
+    status = core.settings.getLastTarget() != null && core.settings.getTrainerApp() != null;
   }
 
   @override
@@ -251,28 +252,30 @@ class TargetRequirement extends PlatformRequirement {
               ),
             ).call,
             placeholder: Text('Select Trainer app'),
-            value: settings.getTrainerApp(),
+            value: core.settings.getTrainerApp(),
             onChanged: (selectedApp) async {
-              if (settings.getTrainerApp() is MyWhoosh && selectedApp is! MyWhoosh && whooshLink.isStarted.value) {
-                whooshLink.stopServer();
+              if (core.settings.getTrainerApp() is MyWhoosh &&
+                  selectedApp is! MyWhoosh &&
+                  core.whooshLink.isStarted.value) {
+                core.whooshLink.stopServer();
               }
-              settings.setTrainerApp(selectedApp!);
-              if (settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
-                await settings.setLastTarget(Target.thisDevice);
+              core.settings.setTrainerApp(selectedApp!);
+              if (core.settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
+                await core.settings.setLastTarget(Target.thisDevice);
               }
-              if (actionHandler.supportedApp == null ||
-                  (actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
-                actionHandler.init(selectedApp);
-                settings.setKeyMap(selectedApp);
+              if (core.actionHandler.supportedApp == null ||
+                  (core.actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
+                core.actionHandler.init(selectedApp);
+                core.settings.setKeyMap(selectedApp);
               }
               setState(() {});
               onUpdate();
             },
           ),
-          if (settings.getTrainerApp() != null) ...[
+          if (core.settings.getTrainerApp() != null) ...[
             SizedBox(height: 8),
             Text(
-              'Select Target where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
+              'Select Target where ${core.settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             Select<Target>(
@@ -288,7 +291,7 @@ class TargetRequirement extends PlatformRequirement {
                         leading: Icon(target.icon),
                         leadingAlignment: Alignment.centerLeft,
                         subtitle: Text(
-                          target.getDescription(settings.getTrainerApp()),
+                          target.getDescription(core.settings.getTrainerApp()),
                         ).xSmall.muted,
                         title: Text(target.title),
                       ),
@@ -297,11 +300,11 @@ class TargetRequirement extends PlatformRequirement {
                 ),
               ).call,
               placeholder: Text('Select Target device'),
-              value: settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
-              enabled: settings.getTrainerApp() != null,
+              value: core.settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
+              enabled: core.settings.getTrainerApp() != null,
               onChanged: (target) async {
                 if (target != null) {
-                  await settings.setLastTarget(target);
+                  await core.settings.setLastTarget(target);
                   if (target.warning != null) {
                     showToast(
                       context: context,
@@ -320,10 +323,10 @@ class TargetRequirement extends PlatformRequirement {
             ),
           ],
 
-          if (settings.getLastTarget() != null && settings.getLastTarget() != Target.thisDevice) ...[
+          if (core.settings.getLastTarget() != null && core.settings.getLastTarget() != Target.thisDevice) ...[
             SizedBox(height: 8),
             Text(
-              'Select the other device where ${settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
+              'Select the other device where ${core.settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             Select<Target>(
@@ -358,7 +361,7 @@ class TargetRequirement extends PlatformRequirement {
                           ],
                         ),
                         subtitle: Text(
-                          target.getDescription(settings.getTrainerApp()),
+                          target.getDescription(core.settings.getTrainerApp()),
                         ).small,
                       ),
                     );
@@ -366,11 +369,11 @@ class TargetRequirement extends PlatformRequirement {
                 ),
               ).call,
               placeholder: Text('Select Target device'),
-              value: settings.getLastTarget(),
-              enabled: settings.getTrainerApp() != null,
+              value: core.settings.getLastTarget(),
+              enabled: core.settings.getTrainerApp() != null,
               onChanged: (target) async {
                 if (target != null) {
-                  await settings.setLastTarget(target);
+                  await core.settings.setLastTarget(target);
                   initializeActions(target.connectionType);
                   if (target.warning != null && context.mounted) {
                     showToast(
@@ -389,12 +392,12 @@ class TargetRequirement extends PlatformRequirement {
               },
             ),
 
-            if (settings.getLastTarget()?.warning != null) ...[
+            if (core.settings.getLastTarget()?.warning != null) ...[
               Warning(
                 children: [
                   Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.primaryForeground),
                   Text(
-                    settings.getLastTarget()!.warning!,
+                    core.settings.getLastTarget()!.warning!,
                     style: TextStyle(color: Theme.of(context).colorScheme.primaryForeground),
                   ),
                 ],
@@ -408,8 +411,8 @@ class TargetRequirement extends PlatformRequirement {
 
   @override
   Widget? buildDescription() {
-    final trainer = settings.getTrainerApp();
-    final target = settings.getLastTarget();
+    final trainer = core.settings.getTrainerApp();
+    final target = core.settings.getLastTarget();
 
     if (target != null && trainer != null) {
       if (target.warning != null) {
@@ -419,7 +422,7 @@ class TargetRequirement extends PlatformRequirement {
             Icon(Icons.warning, color: Colors.red, size: 16),
             Expanded(
               child: Text(
-                settings.getLastTarget()!.warning!,
+                core.settings.getLastTarget()!.warning!,
                 style: TextStyle(color: Colors.red),
               ),
             ),

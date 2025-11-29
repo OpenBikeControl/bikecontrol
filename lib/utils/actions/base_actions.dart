@@ -6,10 +6,9 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
@@ -42,7 +41,7 @@ abstract class BaseActions {
     print('Supported app: ${supportedApp?.name ?? "None"}');
 
     if (supportedApp != null) {
-      final allButtons = connection.devices.map((e) => e.availableButtons).flatten().distinct();
+      final allButtons = core.connection.devices.map((e) => e.availableButtons).flatten().distinct();
 
       final newButtons = allButtons.filter(
         (button) => supportedApp.keymap.getKeyPair(button) == null,
@@ -111,13 +110,13 @@ abstract class BaseActions {
 
   Future<ActionResult>? handleDirectConnect(KeyPair keyPair) {
     if (keyPair.inGameAction != null) {
-      if (whooshLink.isConnected.value) {
-        return Future.value(whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
-      } else if (whooshLink.isStarted.value) {
+      if (core.whooshLink.isConnected.value) {
+        return Future.value(core.whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
+      } else if (core.whooshLink.isStarted.value) {
         return Future.value(Error('MyWhoosh Direct Connect not connected'));
-      } else if (zwiftEmulator.isConnected.value) {
-        return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
-      } else if (zwiftEmulator.isAdvertising) {
+      } else if (core.zwiftEmulator.isConnected.value) {
+        return core.zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+      } else if (core.zwiftEmulator.isAdvertising) {
         return Future.value(Error('Zwift Emulator not connected'));
       }
     }

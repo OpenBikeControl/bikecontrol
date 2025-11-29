@@ -3,26 +3,18 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/remote.dart';
-import 'package:swift_control/utils/settings/settings.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
 
-import 'bluetooth/connection.dart';
-import 'bluetooth/devices/link/link.dart';
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
+import 'utils/core.dart';
 
-final connection = Connection();
 final navigatorKey = GlobalKey<NavigatorState>();
-late BaseActions actionHandler;
-final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-final settings = Settings();
-final whooshLink = WhooshLink();
 var screenshotMode = false;
 
 void main() async {
@@ -56,7 +48,7 @@ void main() async {
 
       WidgetsFlutterBinding.ensureInitialized();
 
-      final error = await settings.init();
+      final error = await core.settings.init();
 
       runApp(SwiftPlayApp(error: error));
     },
@@ -119,7 +111,7 @@ Future<void> _persistCrash({
     }
 
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
-    connection.lastLogEntries.add((date: DateTime.now(), entry: 'App crashed: $error'));
+    core.connection.lastLogEntries.add((date: DateTime.now(), entry: 'App crashed: $error'));
   } catch (_) {
     // Avoid throwing from the crash logger
   }
@@ -140,27 +132,27 @@ enum ConnectionType {
 
 Future<void> initializeActions(ConnectionType connectionType) async {
   if (kIsWeb) {
-    actionHandler = StubActions();
+    core.actionHandler = StubActions();
   } else if (Platform.isAndroid) {
-    actionHandler = switch (connectionType) {
+    core.actionHandler = switch (connectionType) {
       ConnectionType.local => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else if (Platform.isIOS) {
-    actionHandler = switch (connectionType) {
+    core.actionHandler = switch (connectionType) {
       ConnectionType.local => StubActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else {
-    actionHandler = switch (connectionType) {
+    core.actionHandler = switch (connectionType) {
       ConnectionType.local => DesktopActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   }
-  actionHandler.init(settings.getKeyMap());
+  core.actionHandler.init(core.settings.getKeyMap());
 }
 
 class SwiftPlayApp extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 
@@ -9,7 +9,7 @@ void main() {
     setUp(() async {
       // Initialize SharedPreferences with in-memory storage for testing
       SharedPreferences.setMockInitialValues({});
-      await settings.init();
+      await core.settings.init();
     });
 
     test('Should create custom app with default profile name', () {
@@ -26,9 +26,9 @@ void main() {
 
     test('Should save and retrieve custom profile', () async {
       final customApp = CustomApp(profileName: 'Race');
-      await settings.setKeyMap(customApp);
+      await core.settings.setKeyMap(customApp);
 
-      final profiles = settings.getCustomAppProfiles();
+      final profiles = core.settings.getCustomAppProfiles();
       expect(profiles.contains('Race'), true);
     });
 
@@ -37,11 +37,11 @@ void main() {
       final race = CustomApp(profileName: 'Race');
       final event = CustomApp(profileName: 'Event');
 
-      await settings.setKeyMap(workout);
-      await settings.setKeyMap(race);
-      await settings.setKeyMap(event);
+      await core.settings.setKeyMap(workout);
+      await core.settings.setKeyMap(race);
+      await core.settings.setKeyMap(event);
 
-      final profiles = settings.getCustomAppProfiles();
+      final profiles = core.settings.getCustomAppProfiles();
       expect(profiles.contains('Workout'), true);
       expect(profiles.contains('Race'), true);
       expect(profiles.contains('Event'), true);
@@ -49,13 +49,13 @@ void main() {
     });
 
     test('Should duplicate custom profile', () async {
-      await settings.reset();
+      await core.settings.reset();
       final original = CustomApp(profileName: 'Original');
-      await settings.setKeyMap(original);
+      await core.settings.setKeyMap(original);
 
-      await settings.duplicateCustomAppProfile('Original', 'Copy');
+      await core.settings.duplicateCustomAppProfile('Original', 'Copy');
 
-      final profiles = settings.getCustomAppProfiles();
+      final profiles = core.settings.getCustomAppProfiles();
       expect(profiles.contains('Original'), true);
       expect(profiles.contains('Copy'), true);
       expect(profiles.length, 2);
@@ -63,14 +63,14 @@ void main() {
 
     test('Should delete custom profile', () async {
       final customApp = CustomApp(profileName: 'ToDelete');
-      await settings.setKeyMap(customApp);
+      await core.settings.setKeyMap(customApp);
 
-      var profiles = settings.getCustomAppProfiles();
+      var profiles = core.settings.getCustomAppProfiles();
       expect(profiles.contains('ToDelete'), true);
 
-      await settings.deleteCustomAppProfile('ToDelete');
+      await core.settings.deleteCustomAppProfile('ToDelete');
 
-      profiles = settings.getCustomAppProfiles();
+      profiles = core.settings.getCustomAppProfiles();
       expect(profiles.contains('ToDelete'), false);
     });
 
@@ -92,9 +92,9 @@ void main() {
 
     test('Should export custom profile as JSON', () async {
       final customApp = CustomApp(profileName: 'TestProfile');
-      await settings.setKeyMap(customApp);
+      await core.settings.setKeyMap(customApp);
 
-      final jsonData = settings.exportCustomAppProfile('TestProfile');
+      final jsonData = core.settings.exportCustomAppProfile('TestProfile');
       expect(jsonData, isNotNull);
       expect(jsonData, contains('version'));
       expect(jsonData, contains('profileName'));
@@ -104,25 +104,25 @@ void main() {
     test('Should import custom profile from JSON', () async {
       // First export a profile
       final customApp = CustomApp(profileName: 'ExportTest');
-      await settings.setKeyMap(customApp);
-      final jsonData = settings.exportCustomAppProfile('ExportTest');
+      await core.settings.setKeyMap(customApp);
+      final jsonData = core.settings.exportCustomAppProfile('ExportTest');
 
       // Import with a new name
-      final success = await settings.importCustomAppProfile(jsonData!, newProfileName: 'ImportTest');
+      final success = await core.settings.importCustomAppProfile(jsonData!, newProfileName: 'ImportTest');
 
       expect(success, true);
-      final profiles = settings.getCustomAppProfiles();
+      final profiles = core.settings.getCustomAppProfiles();
       expect(profiles.contains('ImportTest'), true);
     });
 
     test('Should fail to import invalid JSON', () async {
-      final success = await settings.importCustomAppProfile('invalid json');
+      final success = await core.settings.importCustomAppProfile('invalid json');
       expect(success, false);
     });
 
     test('Should fail to import JSON with missing fields', () async {
       final invalidJson = '{"version": 1}';
-      final success = await settings.importCustomAppProfile(invalidJson);
+      final success = await core.settings.importCustomAppProfile(invalidJson);
       expect(success, false);
     });
   });

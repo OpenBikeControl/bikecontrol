@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' show SwitchListTile;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
@@ -19,7 +20,7 @@ class CustomizePage extends StatefulWidget {
 class _CustomizeState extends State<CustomizePage> {
   @override
   Widget build(BuildContext context) {
-    final canVibrate = connection.bluetoothDevices.any(
+    final canVibrate = core.connection.bluetoothDevices.any(
       (device) => device.isConnected && device is ZwiftDevice && device.canVibrate,
     );
 
@@ -35,22 +36,22 @@ class _CustomizeState extends State<CustomizePage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Text(
-                'Customize ${screenshotMode ? 'Trainer app' : settings.getTrainerApp()?.name} on ${settings.getLastTarget()?.title}',
+                'Customize ${screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name} on ${core.settings.getLastTarget()?.title}',
               ).bold,
             ),
           ),
 
-          if (settings.getLastTarget()?.warning != null) ...[
+          if (core.settings.getLastTarget()?.warning != null) ...[
             Warning(
               children: [
                 Icon(Icons.warning_amber),
-                Text(settings.getLastTarget()!.warning!),
+                Text(core.settings.getLastTarget()!.warning!),
               ],
             ),
           ],
           Select<SupportedApp?>(
             constraints: BoxConstraints(minWidth: 300),
-            value: actionHandler.supportedApp,
+            value: core.actionHandler.supportedApp,
             popup: SelectPopup(
               items: SelectItemList(
                 children: [
@@ -101,13 +102,13 @@ class _CustomizeState extends State<CustomizePage> {
                 final profileName = await KeymapManager().showNewProfileDialog(context);
                 if (profileName != null && profileName.isNotEmpty) {
                   final customApp = CustomApp(profileName: profileName);
-                  actionHandler.init(customApp);
-                  await settings.setKeyMap(customApp);
+                  core.actionHandler.init(customApp);
+                  await core.settings.setKeyMap(customApp);
                   setState(() {});
                 }
               } else {
-                actionHandler.supportedApp = app;
-                await settings.setKeyMap(app);
+                core.actionHandler.supportedApp = app;
+                await core.settings.setKeyMap(app);
                 setState(() {});
               }
             },
@@ -115,38 +116,38 @@ class _CustomizeState extends State<CustomizePage> {
 
           KeymapManager().getManageProfileDialog(
             context,
-            actionHandler.supportedApp is CustomApp ? actionHandler.supportedApp?.name : null,
+            core.actionHandler.supportedApp is CustomApp ? core.actionHandler.supportedApp?.name : null,
             onDone: () {
               setState(() {});
             },
           ),
-          if (actionHandler.supportedApp is! CustomApp)
+          if (core.actionHandler.supportedApp is! CustomApp)
             Text(
               'Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)',
               style: TextStyle(fontSize: 12),
             ),
           Gap(12),
-          if (actionHandler.supportedApp != null && connection.controllerDevices.isNotEmpty)
+          if (core.actionHandler.supportedApp != null && core.connection.controllerDevices.isNotEmpty)
             KeymapExplanation(
-              key: Key(actionHandler.supportedApp!.keymap.runtimeType.toString()),
-              keymap: actionHandler.supportedApp!.keymap,
+              key: Key(core.actionHandler.supportedApp!.keymap.runtimeType.toString()),
+              keymap: core.actionHandler.supportedApp!.keymap,
               onUpdate: () {
                 setState(() {});
 
-                if (actionHandler.supportedApp is CustomApp) {
-                  settings.setKeyMap(actionHandler.supportedApp!);
+                if (core.actionHandler.supportedApp is CustomApp) {
+                  core.settings.setKeyMap(core.actionHandler.supportedApp!);
                 }
               },
             )
-          else if (connection.controllerDevices.isEmpty)
+          else if (core.connection.controllerDevices.isEmpty)
             Text('Connect a controller device to preview and customize the keymap.').small,
           if (canVibrate) ...[
             SwitchListTile(
               title: Text('Enable vibration feedback when shifting gears'),
-              value: settings.getVibrationEnabled(),
+              value: core.settings.getVibrationEnabled(),
               contentPadding: EdgeInsets.zero,
               onChanged: (value) async {
-                await settings.setVibrationEnabled(value);
+                await core.settings.setVibrationEnabled(value);
                 setState(() {});
               },
             ),
@@ -157,12 +158,12 @@ class _CustomizeState extends State<CustomizePage> {
   }
 
   List<SupportedApp> _getAllApps() {
-    final baseApp = settings.getTrainerApp();
-    final customProfiles = settings.getCustomAppProfiles();
+    final baseApp = core.settings.getTrainerApp();
+    final customProfiles = core.settings.getCustomAppProfiles();
 
     final customApps = customProfiles.map((profile) {
       final customApp = CustomApp(profileName: profile);
-      final savedKeymap = settings.getCustomAppKeymap(profile);
+      final savedKeymap = core.settings.getCustomAppKeymap(profile);
       if (savedKeymap != null) {
         customApp.decodeKeymap(savedKeymap);
       }

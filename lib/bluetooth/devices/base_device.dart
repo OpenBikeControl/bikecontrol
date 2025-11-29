@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/core.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -60,7 +59,7 @@ abstract class BaseDevice {
       final buttonsReleased = _previouslyPressedButtons.toList();
       final isLongPress =
           buttonsReleased.singleOrNull != null &&
-          actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && isLongPress) {
         await performRelease(buttonsReleased);
       }
@@ -72,14 +71,14 @@ abstract class BaseDevice {
       final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
       final wasLongPress =
           buttonsReleased.singleOrNull != null &&
-          actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && wasLongPress) {
         await performRelease(buttonsReleased);
       }
 
       final isLongPress =
           buttonsClicked.singleOrNull != null &&
-          actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
+          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
 
       if (!isLongPress &&
           !(buttonsClicked.singleOrNull == ZwiftButtons.onOffLeft ||
@@ -104,7 +103,7 @@ abstract class BaseDevice {
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
       // For repeated actions, don't trigger key down/up events (useful for long press)
-      final result = await actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
+      final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
       actionStreamInternal.add(
         ActionNotification(result),
       );
@@ -113,7 +112,7 @@ abstract class BaseDevice {
 
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
-      final result = await actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
+      final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
       actionStreamInternal.add(
         ActionNotification(result),
       );
@@ -122,7 +121,7 @@ abstract class BaseDevice {
 
   Future<void> performRelease(List<ControllerButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
-      final result = await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
+      final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
       actionStreamInternal.add(
         ActionNotification(result),
       );
@@ -132,8 +131,8 @@ abstract class BaseDevice {
   Future<void> disconnect() async {
     _longPressTimer?.cancel();
     // Release any held keys in long press mode
-    if (actionHandler is DesktopActions) {
-      await (actionHandler as DesktopActions).releaseAllHeldKeys(_previouslyPressedButtons.toList());
+    if (core.actionHandler is DesktopActions) {
+      await (core.actionHandler as DesktopActions).releaseAllHeldKeys(_previouslyPressedButtons.toList());
     }
     _previouslyPressedButtons.clear();
     isConnected = false;

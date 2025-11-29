@@ -4,8 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/accessibility_disclosure_dialog.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -25,7 +25,7 @@ class AccessibilityRequirement extends PlatformRequirement {
 
   @override
   Future<void> getStatus() async {
-    status = await (actionHandler as AndroidActions).accessibilityHandler.hasPermission();
+    status = await (core.actionHandler as AndroidActions).accessibilityHandler.hasPermission();
   }
 
   Future<void> _showDisclosureDialog(BuildContext context, VoidCallback onUpdate) async {
@@ -37,7 +37,7 @@ class AccessibilityRequirement extends PlatformRequirement {
           onAccept: () {
             Navigator.of(context).pop();
             // Open accessibility settings after user consents
-            (actionHandler as AndroidActions).accessibilityHandler.openPermissions().then((_) async {
+            (core.actionHandler as AndroidActions).accessibilityHandler.openPermissions().then((_) async {
               await getStatus();
               onUpdate();
             });
@@ -107,7 +107,7 @@ class NotificationRequirement extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    await flutterLocalNotificationsPlugin
+    await core.flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
     await getStatus();
@@ -117,7 +117,7 @@ class NotificationRequirement extends PlatformRequirement {
   @override
   Future<void> getStatus() async {
     final bool granted =
-        await flutterLocalNotificationsPlugin
+        await core.flutterLocalNotificationsPlugin
             .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
             ?.areNotificationsEnabled() ??
         false;
@@ -129,7 +129,7 @@ class NotificationRequirement extends PlatformRequirement {
       '@mipmap/ic_launcher',
     );
 
-    await flutterLocalNotificationsPlugin.initialize(
+    await core.flutterLocalNotificationsPlugin.initialize(
       InitializationSettings(android: initializationSettingsAndroid),
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       onDidReceiveNotificationResponse: (n) {
@@ -139,14 +139,14 @@ class NotificationRequirement extends PlatformRequirement {
 
     const String channelGroupId = 'BikeControl';
     // create the group first
-    await flutterLocalNotificationsPlugin
+    await core.flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()!
         .createNotificationChannelGroup(
           AndroidNotificationChannelGroup(channelGroupId, channelGroupId, description: 'Keep Alive'),
         );
 
     // create channels associated with the group
-    await flutterLocalNotificationsPlugin
+    await core.flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()!
         .createNotificationChannel(
           const AndroidNotificationChannel(
@@ -182,7 +182,7 @@ class NotificationRequirement extends PlatformRequirement {
     final backgroundMessagePort = receivePort.asBroadcastStream();
     backgroundMessagePort.listen((_) {
       UniversalBle.onAvailabilityChange = null;
-      connection.reset();
+      core.connection.reset();
       //exit(0);
     });
   }

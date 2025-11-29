@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
@@ -56,8 +56,8 @@ class Keymap {
     keyPairs.add(keyPair);
     _updateStream.add(null);
 
-    if (actionHandler.supportedApp is CustomApp) {
-      settings.setKeyMap(actionHandler.supportedApp!);
+    if (core.actionHandler.supportedApp is CustomApp) {
+      core.settings.setKeyMap(core.actionHandler.supportedApp!);
     }
   }
 
@@ -118,12 +118,14 @@ class KeyPair {
       PhysicalKeyboardKey.mediaTrackNext ||
       PhysicalKeyboardKey.audioVolumeUp ||
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
-      _ when physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard) => Icons.keyboard,
+      _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
+        Icons.keyboard,
       _
           when inGameAction != null &&
               touchPosition == Offset.zero &&
-              ((settings.getTrainerApp() is MyWhoosh && settings.getMyWhooshLinkEnabled()) ||
-                  (settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled())) =>
+              ((core.settings.getTrainerApp() is MyWhoosh && core.settings.getMyWhooshLinkEnabled()) ||
+                  (core.settings.getTrainerApp()?.supportsZwiftEmulation == true &&
+                      core.settings.getZwiftEmulatorEnabled())) =>
         Icons.link,
       _ => Icons.touch_app,
     };

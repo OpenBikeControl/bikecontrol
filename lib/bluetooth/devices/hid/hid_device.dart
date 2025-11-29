@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
+import 'package:swift_control/utils/core.dart';
 
 class HidDevice extends BaseDevice {
   HidDevice(super.name, {super.availableButtons = const []});
@@ -21,11 +21,11 @@ class HidDevice extends BaseDevice {
             PopupMenuItem(
               child: Text('Ignore'),
               onTap: () {
-                connection.disconnect(this, forget: true, persistForget: true);
-                if (actionHandler is AndroidActions) {
-                  (actionHandler as AndroidActions).ignoreHidDevices();
-                } else if (connection.isMediaKeyDetectionEnabled.value) {
-                  connection.isMediaKeyDetectionEnabled.value = false;
+                core.connection.disconnect(this, forget: true, persistForget: true);
+                if (core.actionHandler is AndroidActions) {
+                  (core.actionHandler as AndroidActions).ignoreHidDevices();
+                } else if (core.connection.isMediaKeyDetectionEnabled.value) {
+                  core.connection.isMediaKeyDetectionEnabled.value = false;
                 }
               },
             ),

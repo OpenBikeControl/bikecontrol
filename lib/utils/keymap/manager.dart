@@ -1,7 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
 import 'apps/custom_app.dart';
@@ -50,7 +50,7 @@ class KeymapManager {
             context: context,
             builder: (c) => DropdownMenu(
               children: [
-                if (currentProfile != null && actionHandler.supportedApp is CustomApp)
+                if (currentProfile != null && core.actionHandler.supportedApp is CustomApp)
                   MenuButton(
                     child: Text('Rename'),
                     onPressed: (c) async {
@@ -59,15 +59,15 @@ class KeymapManager {
                         currentProfile,
                       );
                       if (newName != null && newName.isNotEmpty && newName != currentProfile) {
-                        await settings.duplicateCustomAppProfile(currentProfile, newName);
-                        await settings.deleteCustomAppProfile(currentProfile);
+                        await core.settings.duplicateCustomAppProfile(currentProfile, newName);
+                        await core.settings.deleteCustomAppProfile(currentProfile);
                         final customApp = CustomApp(profileName: newName);
-                        final savedKeymap = settings.getCustomAppKeymap(newName);
+                        final savedKeymap = core.settings.getCustomAppKeymap(newName);
                         if (savedKeymap != null) {
                           customApp.decodeKeymap(savedKeymap);
                         }
-                        actionHandler.supportedApp = customApp;
-                        await settings.setKeyMap(customApp);
+                        core.actionHandler.supportedApp = customApp;
+                        await core.settings.setKeyMap(customApp);
                       }
                       onDone();
                     },
@@ -88,7 +88,7 @@ class KeymapManager {
                   onPressed: (c) async {
                     final jsonData = await _showImportDialog(context);
                     if (jsonData != null && jsonData.isNotEmpty) {
-                      final success = await settings.importCustomAppProfile(jsonData);
+                      final success = await core.settings.importCustomAppProfile(jsonData);
                       if (success) {
                         showToast(
                           context: context,
@@ -108,8 +108,8 @@ class KeymapManager {
                   MenuButton(
                     child: Text('Export'),
                     onPressed: (c) {
-                      final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
-                      final jsonData = settings.exportCustomAppProfile(currentProfile);
+                      final currentProfile = (core.actionHandler.supportedApp as CustomApp).profileName;
+                      final jsonData = core.settings.exportCustomAppProfile(currentProfile);
                       if (jsonData != null) {
                         Clipboard.setData(ClipboardData(text: jsonData));
 
@@ -129,7 +129,7 @@ class KeymapManager {
                         currentProfile,
                       );
                       if (confirmed == true) {
-                        await settings.deleteCustomAppProfile(currentProfile);
+                        await core.settings.deleteCustomAppProfile(currentProfile);
                       }
                       onDone();
                     },
@@ -241,21 +241,21 @@ class KeymapManager {
   Future<String?> duplicate(BuildContext context, String currentProfile, {String? skipName}) async {
     final newName = skipName ?? await _showDuplicateProfileDialog(context, currentProfile);
     if (newName != null && newName.isNotEmpty) {
-      if (actionHandler.supportedApp is CustomApp) {
-        await settings.duplicateCustomAppProfile(currentProfile, newName);
+      if (core.actionHandler.supportedApp is CustomApp) {
+        await core.settings.duplicateCustomAppProfile(currentProfile, newName);
         final customApp = CustomApp(profileName: newName);
-        final savedKeymap = settings.getCustomAppKeymap(newName);
+        final savedKeymap = core.settings.getCustomAppKeymap(newName);
         if (savedKeymap != null) {
           customApp.decodeKeymap(savedKeymap);
         }
-        actionHandler.supportedApp = customApp;
-        await settings.setKeyMap(customApp);
+        core.actionHandler.supportedApp = customApp;
+        await core.settings.setKeyMap(customApp);
         return newName;
       } else {
         final customApp = CustomApp(profileName: newName);
 
-        final connectedDevice = connection.devices.firstOrNull;
-        actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
+        final connectedDevice = core.connection.devices.firstOrNull;
+        core.actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
           pair.buttons.filter((button) => connectedDevice?.availableButtons.contains(button) == true).forEachIndexed((
             button,
             indexB,
@@ -272,8 +272,8 @@ class KeymapManager {
           });
         });
 
-        actionHandler.supportedApp = customApp;
-        await settings.setKeyMap(customApp);
+        core.actionHandler.supportedApp = customApp;
+        await core.settings.setKeyMap(customApp);
         return newName;
       }
     }

@@ -2,16 +2,16 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swift_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {
   group('CYCPLUS BC2 Virtual Shifter Tests', () {
     test('Test state machine with full sequence', () {
-      actionHandler = StubActions();
+      core.actionHandler = StubActions();
 
-      final stubActions = actionHandler as StubActions;
+      final stubActions = core.actionHandler as StubActions;
 
       final device = CycplusBc2(BleDevice(deviceId: 'deviceId', name: 'name'));
 
@@ -58,8 +58,8 @@ void main() {
     });
 
     test('Test release and re-press behavior', () {
-      actionHandler = StubActions();
-      final stubActions = actionHandler as StubActions;
+      core.actionHandler = StubActions();
+      final stubActions = core.actionHandler as StubActions;
       final device = CycplusBc2(BleDevice(deviceId: 'deviceId', name: 'name'));
 
       // Press: lock state
@@ -93,8 +93,8 @@ void main() {
     });
 
     test('Test both buttons can trigger simultaneously', () {
-      actionHandler = StubActions();
-      final stubActions = actionHandler as StubActions;
+      core.actionHandler = StubActions();
+      final stubActions = core.actionHandler as StubActions;
       final device = CycplusBc2(BleDevice(deviceId: 'deviceId', name: 'name'));
 
       // Lock both states
