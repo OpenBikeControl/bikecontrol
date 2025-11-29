@@ -7,7 +7,7 @@ import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pbenum.dart' hide RideButtonMask;
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
@@ -15,7 +15,7 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/title.dart';
 
-import 'protocol/zwift.pb.dart' show RideKeyPadStatus;
+import 'protocol/zwift.pb.dart' show PlayKeyPadStatus;
 
 class ZwiftEmulator {
   static final List<InGameAction> supportedActions = [
@@ -240,7 +240,7 @@ class ZwiftEmulator {
       // Unknown Service
       await _peripheralManager.addService(
         GATTService(
-          uuid: UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT),
+          uuid: UUID.fromString(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID),
           isPrimary: true,
           characteristics: [
             _asyncCharacteristic!,
@@ -283,9 +283,9 @@ class ZwiftEmulator {
     }
 
     final advertisement = Advertisement(
-      name: 'BikeControl',
+      name: 'KICKR BIKE PRO 61DD',
       serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
-      serviceData: {
+      /*serviceData: {
         UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),
       },
       manufacturerSpecificData: [
@@ -293,7 +293,7 @@ class ZwiftEmulator {
           id: 0x094A,
           data: Uint8List.fromList([ZwiftConstants.CLICK_V2_LEFT_SIDE, 0x13, 0x37]),
         ),
-      ],
+      ],*/
     );
     print('Starting advertising with Zwift service...');
 
@@ -328,7 +328,7 @@ class ZwiftEmulator {
       return Error('Action ${inGameAction.name} not supported by Zwift Emulator');
     }
 
-    final status = RideKeyPadStatus()
+    /*final status = RideKeyPadStatus()
       ..buttonMap = (~button.mask) & 0xFFFFFFFF
       ..analogPaddles.clear();
 
@@ -337,12 +337,29 @@ class ZwiftEmulator {
     final commandProto = Uint8List.fromList([
       Opcode.CONTROLLER_NOTIFICATION.value,
       ...bytes,
+    ]);*/
+
+    final status = PlayKeyPadStatus()
+      ..rightPad = PlayButtonStatus.OFF
+      ..buttonARight = PlayButtonStatus.ON;
+    final commandProto = Uint8List.fromList([
+      ZwiftConstants.PLAY_NOTIFICATION_MESSAGE_TYPE,
+      ...status.writeToBuffer(),
     ]);
 
     _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: commandProto);
 
-    final zero = Uint8List.fromList([0x23, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
+    final zero = Uint8List.fromList([
+      ZwiftConstants.PLAY_NOTIFICATION_MESSAGE_TYPE,
+      0x08,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0x0F,
+    ]);
     _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
+    print('Sent action ${inGameAction.name} to Zwift Emulator');
     return Success('Sent action: ${inGameAction.name}');
   }
 }
