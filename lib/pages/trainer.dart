@@ -70,11 +70,13 @@ class _TrainerPageState extends State<TrainerPage> {
               requirements: [Platform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()],
               isStarted: _isRunningAndroidService == true,
               onChange: (value) {
-                (core.actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
-                  setState(() {
-                    _isRunningAndroidService = isRunning;
+                if (Platform.isAndroid && core.actionHandler is AndroidActions) {
+                  (core.actionHandler as AndroidActions).accessibilityHandler.isRunning().then((isRunning) {
+                    setState(() {
+                      _isRunningAndroidService = isRunning;
+                    });
                   });
-                });
+                }
               },
               additionalChild: _isRunningAndroidService == false
                   ? Warning(

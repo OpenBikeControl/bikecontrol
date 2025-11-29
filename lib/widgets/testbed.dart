@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/utils/actions/base_actions.dart' as actions;
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
@@ -109,16 +110,17 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
         }
         setState(() {});
       } else if (data is ActionNotification) {
-        final sample = _ActionSample(
-          text: data.result.message,
-          timestamp: DateTime.now(),
-          isError: data.result is actions.Error,
+        showToast(
+          context: context,
+          location: ToastLocation.topRight,
+          builder: (c, overlay) => buildToast(
+            context,
+            overlay,
+            level: data.result is actions.Error ? LogLevel.LOGLEVEL_WARNING : LogLevel.LOGLEVEL_INFO,
+            title: data.result.message,
+            duration: Duration(seconds: 1),
+          ),
         );
-        _actions.insert(0, sample);
-        if (_actions.length > widget.maxKeyboardEvents) {
-          _actions.removeLast();
-        }
-        setState(() {});
       } else if (data is AlertNotification) {
         showToast(
           context: context,

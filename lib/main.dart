@@ -178,7 +178,7 @@ class SwiftPlayApp extends StatelessWidget {
           ? Text('There was an error starting the App. Please contact support:\n$error')
           : ToastLayer(
               key: ValueKey('Test'),
-              padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24) : null,
+              padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
               child: Stack(
                 children: [
                   Navigation(),
