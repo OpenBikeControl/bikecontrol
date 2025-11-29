@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:swift_control/widgets/ui/colors.dart';
 
 class GradientText extends StatelessWidget {
   const GradientText(
     this.text, {
     super.key,
     this.gradient = const LinearGradient(
-      colors: [Color(0xFF0E74B7), Color(0xFF0E9297)],
+      colors: [BKColor.main, BKColor.mainEnd],
     ),
     this.style,
   });

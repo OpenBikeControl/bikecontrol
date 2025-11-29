@@ -266,6 +266,7 @@ class TargetRequirement extends PlatformRequirement {
                 settings.setKeyMap(selectedApp);
               }
               setState(() {});
+              onUpdate();
             },
           ),
           if (settings.getTrainerApp() != null) ...[
@@ -313,6 +314,7 @@ class TargetRequirement extends PlatformRequirement {
                     );
                   }
                   setState(() {});
+                  onUpdate();
                 }
               },
             ),
@@ -382,6 +384,7 @@ class TargetRequirement extends PlatformRequirement {
                     );
                   }
                   setState(() {});
+                  onUpdate();
                 }
               },
             ),
@@ -398,15 +401,6 @@ class TargetRequirement extends PlatformRequirement {
               ),
             ],
           ],
-          SizedBox(height: 8),
-          PrimaryButton(
-            onPressed: settings.getTrainerApp() != null && settings.getLastTarget() != null
-                ? () {
-                    onUpdate();
-                  }
-                : null,
-            child: Text('Continue'),
-          ),
         ],
       ),
     );

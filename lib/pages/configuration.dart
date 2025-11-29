@@ -1,10 +1,16 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
-class ConfigurationPage extends StatelessWidget {
+class ConfigurationPage extends StatefulWidget {
   final VoidCallback onUpdate;
   ConfigurationPage({super.key, required this.onUpdate});
 
+  @override
+  State<ConfigurationPage> createState() => _ConfigurationPageState();
+}
+
+class _ConfigurationPageState extends State<ConfigurationPage> {
   final requirement = TargetRequirement();
 
   @override
@@ -27,9 +33,19 @@ class ConfigurationPage extends StatelessWidget {
               TextSpan(text: ' button on top and don\'t hesitate to contact us.'),
             ],
           ),
-        ),
+        ).small.muted,
         Card(
-          child: requirement.build(context, onUpdate)!,
+          child: requirement.build(context, () {
+            setState(() {});
+          })!,
+        ),
+        PrimaryButton(
+          onPressed: settings.getTrainerApp() != null && settings.getLastTarget() != null
+              ? () {
+                  widget.onUpdate();
+                }
+              : null,
+          child: Text('Continue'),
         ),
       ],
     );

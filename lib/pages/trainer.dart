@@ -11,7 +11,8 @@ import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 
 class TrainerPage extends StatefulWidget {
-  const TrainerPage({super.key});
+  final VoidCallback onUpdate;
+  const TrainerPage({super.key, required this.onUpdate});
 
   @override
   State<TrainerPage> createState() => _TrainerPageState();
@@ -48,6 +49,13 @@ class _TrainerPageState extends State<TrainerPage> {
           ),
 
         if (settings.getLastTarget() != Target.thisDevice) Card(child: RemoteRequirement().build(context, () {})!),
+
+        PrimaryButton(
+          child: Text('Adjust Controller Buttons'),
+          onPressed: () {
+            widget.onUpdate();
+          },
+        ),
       ],
     );
   }

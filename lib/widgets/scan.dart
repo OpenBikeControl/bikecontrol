@@ -8,6 +8,7 @@ import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
+import 'package:swift_control/widgets/ui/wifi_animation.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../utils/requirements/android.dart';
@@ -75,9 +76,17 @@ class _ScanWidgetState extends State<ScanWidget> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
-                    ).small.muted,
+                    Row(
+                      spacing: 12,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
+                          ).small.muted,
+                        ),
+                        WifiAnimation(),
+                      ],
+                    ),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
                       ValueListenableBuilder(
                         valueListenable: connection.isMediaKeyDetectionEnabled,

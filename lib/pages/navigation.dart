@@ -9,6 +9,7 @@ import 'package:swift_control/pages/trainer.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
+import 'package:swift_control/widgets/ui/colors.dart';
 
 import '../widgets/changelog_dialog.dart';
 
@@ -79,12 +80,27 @@ class _NavigationState extends State<Navigation> {
     return Scaffold(
       headers: [
         AppBar(
+          backgroundColor: Theme.of(context).colorScheme.background,
           title: AppTitle(),
-          trailing: buildMenuButtons(context),
+          trailing: buildMenuButtons(
+            context,
+            _isMobile
+                ? () {
+                    setState(() {
+                      _selectedPage = BCPage.logs;
+                    });
+                  }
+                : null,
+          ),
         ),
         Divider(),
       ],
-      footers: _isMobile ? [_buildNavigationBar()] : [],
+      footers: _isMobile
+          ? [
+              Divider(),
+              _buildNavigationBar(),
+            ]
+          : [],
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -93,11 +109,11 @@ class _NavigationState extends State<Navigation> {
             VerticalDivider(),
           ],
           Expanded(
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
-              child: Container(
-                alignment: Alignment.topLeft,
-                padding: EdgeInsets.all(16),
+            child: Container(
+              alignment: Alignment.topLeft,
+              padding: EdgeInsets.all(16),
+              child: AnimatedSwitcher(
+                duration: Duration(milliseconds: 200),
                 child: switch (_selectedPage) {
                   BCPage.devices => DevicePage(
                     onUpdate: () {
@@ -106,7 +122,13 @@ class _NavigationState extends State<Navigation> {
                       });
                     },
                   ),
-                  BCPage.trainer => TrainerPage(),
+                  BCPage.trainer => TrainerPage(
+                    onUpdate: () {
+                      setState(() {
+                        _selectedPage = BCPage.customization;
+                      });
+                    },
+                  ),
                   BCPage.customization => CustomizePage(),
                   BCPage.configuration => ConfigurationPage(
                     onUpdate: () {
@@ -143,7 +165,7 @@ class _NavigationState extends State<Navigation> {
                     decoration: (context, states, value) {
                       return BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF0E74B7), Color(0xFF0E9297)],
+                          colors: [BKColor.main, BKColor.mainEnd],
                         ),
                         borderRadius: BorderRadius.circular(8),
                       );
@@ -216,10 +238,11 @@ class _NavigationState extends State<Navigation> {
 
   Widget _buildNavigationBar() {
     return NavigationBar(
-      labelType: NavigationLabelType.all,
+      backgroundColor: Theme.of(context).colorScheme.background,
+      labelType: NavigationLabelType.tooltip,
       onSelected: (int index) {
         setState(() {
-          _selectedPage = BCPage.values[index];
+          _selectedPage = _tabs[index];
         });
       },
       children: _tabs.map((page) {

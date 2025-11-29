@@ -169,6 +169,7 @@ class SwiftPlayApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     return ShadcnApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
@@ -176,14 +177,22 @@ class SwiftPlayApp extends StatelessWidget {
       popoverHandler: PopoverOverlayHandler(),
       title: 'BikeControl',
       darkTheme: ThemeData(colorScheme: ColorSchemes.darkDefaultColor),
-      theme: ThemeData(colorScheme: ColorSchemes.lightDefaultColor),
+      theme: ThemeData(
+        colorScheme: ColorSchemes.lightDefaultColor.copyWith(
+          card: () => Color(0xFFF8F8F8),
+        ),
+      ),
       home: error != null
           ? Text('There was an error starting the App. Please contact support:\n$error')
-          : Stack(
-              children: [
-                Navigation(),
-                Positioned.fill(child: Testbed()),
-              ],
+          : ToastLayer(
+              key: ValueKey('Test'),
+              padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24) : null,
+              child: Stack(
+                children: [
+                  Navigation(),
+                  Positioned.fill(child: Testbed()),
+                ],
+              ),
             ),
     );
   }

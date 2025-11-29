@@ -73,7 +73,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                   cells: [
                     TableCell(
                       child: Text(
-                        'Button on your ${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)}',
+                        '${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)} button',
                       ),
                     ),
                     TableCell(

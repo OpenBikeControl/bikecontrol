@@ -446,9 +446,8 @@ class _KeyWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         constraints: BoxConstraints(minWidth: 30),
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).colorScheme.primary),
+          border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(100)),
           borderRadius: BorderRadius.circular(4),
-          color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: Center(
           child: Text(

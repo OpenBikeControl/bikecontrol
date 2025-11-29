@@ -74,8 +74,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> {
                     final notDone = widget.requirements.filter((e) => !e.status).toList();
                     if (notDone.isEmpty) {
                       widget.onChange(value == CheckboxState.checked);
-
-                      setState(() {});
+                      setState(() {
+                        _isStarted = true;
+                      });
                     } else {
                       await openPermissionSheet(context, notDone);
                       setState(() {});
@@ -142,52 +143,94 @@ Future openPermissionSheet(BuildContext context, List<PlatformRequirement> notDo
   return openSheet(
     context: context,
     draggable: true,
-    builder: (context) => Container(
-      padding: EdgeInsets.all(16),
-      height: 120 + notDone.length * 70,
-      child: StatefulBuilder(
-        builder: (context, setState) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 18,
-          children: [
-            Text(
-              'Please complete the following requirements before enabling this connection method:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            ...notDone.map(
-              (e) => Row(
-                children: [
-                  Expanded(
-                    child: Basic(
-                      title: Text(e.name),
-                      subtitle: e.description != null ? Text(e.description!) : null,
-                      trailing: Button(
-                        style: e.status ? ButtonStyle.secondary() : ButtonStyle.primary(),
-                        onPressed: e.status
-                            ? null
-                            : () {
-                                e
-                                    .call(context, () {
-                                      setState(() {});
-                                    })
-                                    .then((_) {
-                                      setState(() {});
-                                      if (notDone.all((e) => e.status)) {
-                                        closeSheet(context);
-                                      }
-                                    });
-                              },
-                        child: e.status ? Text('Granted') : Text('Grant'),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
+    builder: (context) => _PermissionList(requirements: notDone),
     position: OverlayPosition.bottom,
   );
+}
+
+class _PermissionList extends StatefulWidget {
+  final List<PlatformRequirement> requirements;
+  const _PermissionList({super.key, required this.requirements});
+
+  @override
+  State<_PermissionList> createState() => _PermissionListState();
+}
+
+class _PermissionListState extends State<_PermissionList> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (widget.requirements.isNotEmpty) {
+      if (state == AppLifecycleState.resumed) {
+        Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
+          final allDone = widget.requirements.every((e) => e.status);
+          if (allDone && context.mounted) {
+            closeSheet(context);
+          } else if (context.mounted) {
+            setState(() {});
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      height: 120 + widget.requirements.length * 70,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 18,
+        children: [
+          Text(
+            'Please complete the following requirements before enabling this connection method:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          ...widget.requirements.map(
+            (e) => Row(
+              children: [
+                Expanded(
+                  child: Basic(
+                    title: Text(e.name),
+                    subtitle: e.description != null ? Text(e.description!) : null,
+                    trailing: Button(
+                      style: e.status ? ButtonStyle.secondary() : ButtonStyle.primary(),
+                      onPressed: e.status
+                          ? null
+                          : () {
+                              e
+                                  .call(context, () {
+                                    setState(() {});
+                                  })
+                                  .then((_) {
+                                    setState(() {});
+                                    if (widget.requirements.all((e) => e.status)) {
+                                      closeSheet(context);
+                                    }
+                                  });
+                            },
+                      child: e.status ? Text('Granted') : Text('Grant'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

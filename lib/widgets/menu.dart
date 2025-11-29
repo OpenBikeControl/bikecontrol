@@ -14,12 +14,13 @@ import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-List<Widget> buildMenuButtons(BuildContext context) {
+List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
   return [
     if (kIsWeb || (!Platform.isIOS && !Platform.isMacOS)) ...[
       Builder(
         builder: (context) {
-          return OutlineButton(
+          return IconButton(
+            variance: ButtonVariance.outline,
             onPressed: () {
               showDropdown(
                 context: context,
@@ -54,17 +55,19 @@ List<Widget> buildMenuButtons(BuildContext context) {
                 ),
               );
             },
-            child: Text(
+            icon: Text(
               '♥',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-            ),
+              style: TextStyle(color: Colors.red),
+            ).bold,
           );
         },
       ),
+      Gap(4),
     ],
     Builder(
       builder: (context) {
-        return OutlineButton(
+        return IconButton(
+          variance: ButtonVariance.outline,
           onPressed: () {
             showDropdown(
               context: context,
@@ -98,9 +101,10 @@ List<Widget> buildMenuButtons(BuildContext context) {
                   MenuButton(
                     child: Text('Provide Feedback'),
                     onPressed: (c) {
-                      launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
+                      launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
                     },
                   ),
+                  MenuDivider(),
                   if (!kIsWeb)
                     MenuButton(
                       child: Text('Get Support'),
@@ -126,11 +130,15 @@ Please don't remove this information, it helps me to assist you better.""");
               ),
             );
           },
-          child: Icon(Icons.help_outline),
+          icon: Icon(
+            Icons.help_outline,
+            size: 18,
+          ),
         );
       },
     ),
-    const BKMenuButton(),
+    Gap(4),
+    BKMenuButton(openLogs: openLogs),
   ];
 }
 
@@ -149,12 +157,14 @@ ${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e
 }
 
 class BKMenuButton extends StatelessWidget {
-  const BKMenuButton({super.key});
+  final VoidCallback? openLogs;
+  const BKMenuButton({super.key, this.openLogs});
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      child: Icon(Icons.more_vert),
+    return IconButton(
+      variance: ButtonVariance.outline,
+      icon: Icon(Icons.more_vert, size: 18),
       onPressed: () => showDropdown(
         context: context,
         builder: (c) => DropdownMenu(
@@ -208,6 +218,13 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
+            if (openLogs != null)
+              MenuButton(
+                child: Text('Logs'),
+                onPressed: (c) {
+                  openLogs!();
+                },
+              ),
             MenuButton(
               child: Text('Changelog'),
               onPressed: (c) {
