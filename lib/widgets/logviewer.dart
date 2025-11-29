@@ -48,88 +48,91 @@ class _LogviewerState extends State<LogViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 12,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Log Viewer').bold,
-            OutlineButton(
-              child: Text('Share'),
-              onPressed: () {
-                final logText = core.connection.lastLogEntries
-                    .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
-                    .join('\n');
-                Clipboard.setData(ClipboardData(text: logText));
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Log Viewer').bold,
+              OutlineButton(
+                child: Text('Share'),
+                onPressed: () {
+                  final logText = core.connection.lastLogEntries
+                      .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
+                      .join('\n');
+                  Clipboard.setData(ClipboardData(text: logText));
 
-                showToast(
-                  context: context,
-                  builder: (c, overlay) => buildToast(context, overlay, title: 'Logs have been copied to clipboard'),
-                );
-              },
-            ),
-          ],
-        ),
-        core.connection.lastLogEntries.isEmpty
-            ? Container()
-            : Expanded(
-                child: Card(
-                  child: SelectionArea(
-                    child: ListView(
-                      controller: _scrollController,
-                      reverse: true,
-                      children: core.connection.lastLogEntries
-                          .map(
-                            (action) => Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: action.date.toString().split(" ").last,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontFeatures: [FontFeature.tabularFigures()],
-                                      fontFamily: "monospace",
-                                      fontFamilyFallback: <String>["Courier"],
+                  showToast(
+                    context: context,
+                    builder: (c, overlay) => buildToast(context, overlay, title: 'Logs have been copied to clipboard'),
+                  );
+                },
+              ),
+            ],
+          ),
+          core.connection.lastLogEntries.isEmpty
+              ? Container()
+              : Expanded(
+                  child: Card(
+                    child: SelectionArea(
+                      child: ListView(
+                        controller: _scrollController,
+                        reverse: true,
+                        children: core.connection.lastLogEntries
+                            .map(
+                              (action) => Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: action.date.toString().split(" ").last,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFeatures: [FontFeature.tabularFigures()],
+                                        fontFamily: "monospace",
+                                        fontFamilyFallback: <String>["Courier"],
+                                      ),
                                     ),
-                                  ),
-                                  TextSpan(
-                                    text: "  ${action.entry}",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontFeatures: [FontFeature.tabularFigures()],
-                                      fontWeight: FontWeight.bold,
+                                    TextSpan(
+                                      text: "  ${action.entry}",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFeatures: [FontFeature.tabularFigures()],
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
-                          .toList(),
+                            )
+                            .toList(),
+                      ),
                     ),
                   ),
                 ),
-              ),
-        Text('Logs are also at').muted.small,
-        CodeSnippet(
-          code: SelectableText(File('${Directory.current.path}/app.logs').path),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.copy),
-              variance: ButtonVariance.outline,
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
+          Text('Logs are also at').muted.small,
+          CodeSnippet(
+            code: SelectableText(File('${Directory.current.path}/app.logs').path),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.copy),
+                variance: ButtonVariance.outline,
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
 
-                showToast(
-                  context: context,
-                  builder: (c, overlay) => buildToast(context, overlay, title: 'Path has been copied to clipboard'),
-                );
-              },
-            ),
-          ],
-        ),
-      ],
+                  showToast(
+                    context: context,
+                    builder: (c, overlay) => buildToast(context, overlay, title: 'Path has been copied to clipboard'),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -121,24 +121,17 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(widget.title),
-                      if (_isStarted && widget.isConnected != null)
-                        Text(
-                          (widget.isConnected ?? false) ? "Connected" : "Connecting...",
-
-                          style: TextStyle(fontSize: 12),
-                        )
-                      else
-                        Text(
-                          widget.description,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                          ),
+                      Text(
+                        widget.description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.normal,
                         ),
+                      ),
                     ],
                   ),
                 ),
-                if (_isStarted && (widget.isConnected ?? false)) SmallProgressIndicator(),
+                if (_isStarted && (widget.isConnected == false)) SmallProgressIndicator(),
               ],
             ),
           ),

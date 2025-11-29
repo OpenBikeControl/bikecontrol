@@ -14,6 +14,7 @@ import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
+import 'package:swift_control/widgets/apps/openbikeprotocol_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
@@ -226,6 +227,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                   trailing: Text('View Detailed Instructions'),
                 ),
               ],
+            ),
+
+          if (core.logic.showObpMdnsEmulator)
+            Card(
+              child: OpenBikeProtocolTile(),
             ),
           if (core.logic.showLocalControl)
             Card(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:swift_control/bluetooth/devices/openbikeprotocol/obp_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -21,10 +22,11 @@ class Core {
   late BaseActions actionHandler;
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   final settings = Settings();
-  final whooshLink = WhooshLink();
   final connection = Connection();
 
+  final whooshLink = WhooshLink();
   final zwiftEmulator = ZwiftEmulator();
+  final obpMdnsEmulator = OpenBikeProtocolMdnsEmulator();
 
   final logic = CoreLogic();
 }
@@ -54,6 +56,10 @@ class CoreLogic {
     return core.settings.getTrainerApp()?.supportsZwiftEmulation == true;
   }
 
+  bool get showObpMdnsEmulator {
+    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true || kDebugMode;
+  }
+
   bool get showMyWhooshLink =>
       core.settings.getTrainerApp() is MyWhoosh && core.whooshLink.isCompatible(core.settings.getLastTarget()!);
 
@@ -73,7 +79,9 @@ class CoreLogic {
         return await keyPressSimulator.isAccessAllowed();
       }
     } else if (showMyWhooshLink) {
-      return core.whooshLink.isStarted.value;
+      return core.whooshLink.isConnected.value;
+    } else if (showObpMdnsEmulator) {
+      return core.obpMdnsEmulator.isConnected.value != null;
     } else if (showZwiftEmulator) {
       return core.zwiftEmulator.isConnected.value;
     } else if (showRemote && core.actionHandler is RemoteActions) {
