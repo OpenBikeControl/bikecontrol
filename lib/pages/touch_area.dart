@@ -11,7 +11,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
@@ -396,11 +395,7 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.inGameAction != null &&
-            ((core.whooshLink.isCompatible(core.settings.getLastTarget() ?? Target.thisDevice) &&
-                    core.settings.getMyWhooshLinkEnabled()) ||
-                (core.settings.getTrainerApp()?.supportsZwiftEmulation == true &&
-                    core.settings.getZwiftEmulatorEnabled())))
+        if (keyPair.inGameAction != null && core.logic.emulatorConnected && keyPair.touchPosition == Offset.zero)
           _KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,

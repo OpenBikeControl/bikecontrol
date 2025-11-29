@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_sterzo.dart';
-import 'package:swift_control/bluetooth/devices/openbikeprotocol/protocol_parser.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 

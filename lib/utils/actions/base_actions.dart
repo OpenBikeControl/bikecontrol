@@ -108,9 +108,13 @@ abstract class BaseActions {
 
   Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false});
 
-  Future<ActionResult>? handleDirectConnect(KeyPair keyPair) {
+  Future<ActionResult>? handleDirectConnect(KeyPair keyPair, ControllerButton button) {
     if (keyPair.inGameAction != null) {
-      if (core.whooshLink.isConnected.value) {
+      if (core.obpBluetoothEmulator.isConnected.value != null) {
+        return core.obpBluetoothEmulator.sendButtonPress([button]);
+      } else if (core.obpMdnsEmulator.isConnected.value != null) {
+        return Future.value(core.obpMdnsEmulator.sendButtonPress([button]));
+      } else if (core.whooshLink.isConnected.value) {
         return Future.value(core.whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
       } else if (core.whooshLink.isStarted.value) {
         return Future.value(Error('MyWhoosh Direct Connect not connected'));

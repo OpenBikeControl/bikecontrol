@@ -4,6 +4,7 @@ import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
@@ -39,6 +40,20 @@ class KeyboardRequirement extends PlatformRequirement {
   @override
   Future<void> getStatus() async {
     status = await keyPressSimulator.isAccessAllowed();
+  }
+}
+
+class BluetoothAdvertiseRequirement extends PlatformRequirement {
+  BluetoothAdvertiseRequirement() : super('Bluetooth Advertise access');
+
+  @override
+  Future<void> call(BuildContext context, VoidCallback onUpdate) async {
+    await Permission.bluetoothAdvertise.request();
+  }
+
+  @override
+  Future<void> getStatus() async {
+    status = await Permission.bluetoothAdvertise.status == PermissionStatus.granted;
   }
 }
 

@@ -134,7 +134,33 @@ class _ButtonEditor extends StatelessWidget {
     final actionsWithInGameAction = trainerApp?.keymap.keyPairs.where((kp) => kp.inGameAction != null).toList();
 
     final actions = <MenuItem>[
-      if (core.settings.getMyWhooshLinkEnabled() && core.whooshLink.isCompatible(core.settings.getLastTarget()!))
+      if (core.settings.getObpBleEnabled() && core.logic.showObpEmulator && core.logic.obpConnectedApp != null) ...[
+        MenuLabel(child: Text('OpenBikeConnect actions')),
+        MenuButton(
+          subMenu: core.logic.obpConnectedApp!.supportedButtons
+              .map(
+                (button) => MenuButton(
+                  child: Text(button.name),
+                  onPressed: (_) {
+                    keyPair.touchPosition = Offset.zero;
+                    keyPair.physicalKey = null;
+                    keyPair.logicalKey = null;
+                    keyPair.inGameAction = button.action!;
+                    keyPair.inGameActionValue = null;
+                    onUpdate();
+                  },
+                ),
+              )
+              .toList(),
+          child: _Item(
+            icon: Icons.link,
+            title: '${core.logic.obpConnectedApp!.appId} actions',
+            isActive: keyPair.inGameAction != null,
+          ),
+        ),
+      ],
+
+      if (core.settings.getMyWhooshLinkEnabled() && core.logic.showMyWhooshLink)
         MenuButton(
           subMenu: WhooshLink.supportedActions.map(
             (ingame) {
@@ -198,7 +224,11 @@ class _ButtonEditor extends StatelessWidget {
             isActive: keyPair.inGameAction != null,
           ),
         ),
-      if (trainerApp != null && trainerApp is! CustomApp)
+      if (core.settings.getMyWhooshLinkEnabled() && core.whooshLink.isCompatible(core.settings.getLastTarget()!) ||
+          (core.settings.getZwiftEmulatorEnabled() && core.settings.getTrainerApp()?.supportsZwiftEmulation == true))
+        MenuDivider(),
+      MenuLabel(child: Text('Custom')),
+      if (trainerApp != null && trainerApp is! CustomApp) ...[
         MenuButton(
           subMenu: (actionsWithInGameAction?.isEmpty == true)
               ? <MenuItem>[
@@ -235,10 +265,11 @@ class _ButtonEditor extends StatelessWidget {
                 }).toList(),
           child: _Item(
             icon: Icons.file_copy_outlined,
-            title: '${trainerApp.name} action',
+            title: 'Predefined ${trainerApp.name} action',
             isActive: false,
           ),
         ),
+      ],
       if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
         MenuButton(
           child: _Item(
@@ -348,6 +379,7 @@ class _ButtonEditor extends StatelessWidget {
         ),
 
       MenuDivider(),
+      MenuLabel(child: Text('Setting')),
       MenuButton(
         onPressed: (_) {
           keyPair.isLongPress = !keyPair.isLongPress;

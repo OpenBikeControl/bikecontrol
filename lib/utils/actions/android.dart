@@ -57,7 +57,7 @@ class AndroidActions extends BaseActions {
       return Error('No action assigned for ${button.toString().splitByUpperCase()}');
     }
 
-    final directConnectHandled = await handleDirectConnect(keyPair);
+    final directConnectHandled = await handleDirectConnect(keyPair, button);
 
     if (directConnectHandled != null) {
       return directConnectHandled;

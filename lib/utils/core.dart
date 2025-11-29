@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
-import 'package:swift_control/bluetooth/devices/openbikeprotocol/obp_mdns_emulator.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_ble_emulator.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_mdns_emulator.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -24,9 +26,10 @@ class Core {
   final settings = Settings();
   final connection = Connection();
 
-  final whooshLink = WhooshLink();
-  final zwiftEmulator = ZwiftEmulator();
-  final obpMdnsEmulator = OpenBikeProtocolMdnsEmulator();
+  late final whooshLink = WhooshLink();
+  late final zwiftEmulator = ZwiftEmulator();
+  late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
+  late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
 
   final logic = CoreLogic();
 }
@@ -56,7 +59,7 @@ class CoreLogic {
     return core.settings.getTrainerApp()?.supportsZwiftEmulation == true;
   }
 
-  bool get showObpMdnsEmulator {
+  bool get showObpEmulator {
     return core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true || kDebugMode;
   }
 
@@ -71,6 +74,14 @@ class CoreLogic {
       Platform.isIOS &&
       (core.actionHandler as RemoteActions).isConnected;
 
+  AppInfo? get obpConnectedApp => core.obpMdnsEmulator.isConnected.value ?? core.obpBluetoothEmulator.isConnected.value;
+
+  bool get emulatorConnected =>
+      (core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) ||
+      (core.settings.getZwiftEmulatorEnabled() && showZwiftEmulator) ||
+      (core.settings.getObpBleEnabled() && showObpEmulator) ||
+      (core.settings.getObpMdnsEnabled() && showObpEmulator);
+
   Future<bool> isTrainerConnected() async {
     if (showLocalControl) {
       if (canRunAndroidService) {
@@ -80,8 +91,8 @@ class CoreLogic {
       }
     } else if (showMyWhooshLink) {
       return core.whooshLink.isConnected.value;
-    } else if (showObpMdnsEmulator) {
-      return core.obpMdnsEmulator.isConnected.value != null;
+    } else if (showObpEmulator) {
+      return core.obpMdnsEmulator.isConnected.value != null || core.obpBluetoothEmulator.isConnected.value != null;
     } else if (showZwiftEmulator) {
       return core.zwiftEmulator.isConnected.value;
     } else if (showRemote && core.actionHandler is RemoteActions) {

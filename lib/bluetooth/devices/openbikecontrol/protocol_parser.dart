@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:dartx/dartx.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 class ProtocolParseException implements Exception {
@@ -221,14 +222,16 @@ class OpenBikeProtocolParser {
     if (idx + buttonCount > data.length) throw ProtocolParseException('Button count exceeds buffer', data);
     final buttonIds = data.sublist(idx, idx + buttonCount).toList();
 
-    return AppInfo(appId: appId, appVersion: appVersion, supportedButtons: buttonIds);
+    final controllerButtons = buttonIds.mapNotNull((id) => BUTTON_NAMES[id]).toList();
+
+    return AppInfo(appId: appId, appVersion: appVersion, supportedButtons: controllerButtons);
   }
 }
 
 class AppInfo {
   final String appId;
   final String appVersion;
-  final List<int> supportedButtons;
+  final List<ControllerButton> supportedButtons;
 
   AppInfo({required this.appId, required this.appVersion, required this.supportedButtons});
 

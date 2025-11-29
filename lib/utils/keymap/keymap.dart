@@ -5,7 +5,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 import '../actions/base_actions.dart';
@@ -120,13 +119,7 @@ class KeyPair {
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         Icons.keyboard,
-      _
-          when inGameAction != null &&
-              touchPosition == Offset.zero &&
-              ((core.settings.getTrainerApp() is MyWhoosh && core.settings.getMyWhooshLinkEnabled()) ||
-                  (core.settings.getTrainerApp()?.supportsZwiftEmulation == true &&
-                      core.settings.getZwiftEmulatorEnabled())) =>
-        Icons.link,
+      _ when inGameAction != null && touchPosition == Offset.zero && core.logic.emulatorConnected => Icons.link,
       _ => Icons.touch_app,
     };
   }
@@ -136,35 +129,7 @@ class KeyPair {
 
   @override
   String toString() {
-    final baseKey =
-        logicalKey?.keyLabel ??
-        switch (physicalKey) {
-          PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
-          PhysicalKeyboardKey.mediaTrackNext => 'Next Track',
-          PhysicalKeyboardKey.mediaTrackPrevious => 'Previous Track',
-          PhysicalKeyboardKey.mediaStop => 'Stop',
-          PhysicalKeyboardKey.audioVolumeUp => 'Volume Up',
-          PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
-          _ => 'Not assigned',
-        };
-
-    if (modifiers.isEmpty || baseKey == 'Not assigned') {
-      return baseKey;
-    }
-
-    // Format modifiers + key (e.g., "Ctrl+Alt+R")
-    final modifierStrings = modifiers.map((m) {
-      return switch (m) {
-        ModifierKey.shiftModifier => 'Shift',
-        ModifierKey.controlModifier => 'Ctrl',
-        ModifierKey.altModifier => 'Alt',
-        ModifierKey.metaModifier => 'Meta',
-        ModifierKey.functionModifier => 'Fn',
-        _ => m.name,
-      };
-    }).toList();
-
-    return '${modifierStrings.join('+')}+$baseKey';
+    return encode();
   }
 
   String encode() {

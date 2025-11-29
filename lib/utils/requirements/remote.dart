@@ -297,6 +297,7 @@ class _PairWidgetState extends State<_PairWidget> {
       children: [
         ConnectionMethod(
           isStarted: isAdvertisingPeripheral,
+          showTroubleshooting: true,
           title: 'Enable Pairing Process',
           description: 'Pairing allows full customizability, but may not work on all devices.',
           isConnected: (core.actionHandler as RemoteActions).isConnected,

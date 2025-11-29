@@ -12,6 +12,7 @@ class ConnectionMethod extends StatefulWidget {
   final Widget? additionalChild;
   final bool? isConnected;
   final bool? isStarted;
+  final bool showTroubleshooting;
   final List<PlatformRequirement> requirements;
   final Function(bool) onChange;
 
@@ -21,6 +22,7 @@ class ConnectionMethod extends StatefulWidget {
     this.additionalChild,
     required this.description,
     this.instructionLink,
+    this.showTroubleshooting = false,
     required this.onChange,
     required this.requirements,
     this.isConnected,
@@ -145,18 +147,19 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             },
             child: Text('Video Instructions'),
           ),
-        OutlineButton(
-          leading: Icon(Icons.help_outline),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-              ),
-            );
-          },
-          child: Text('Troubleshooting Guide'),
-        ),
+        if (widget.showTroubleshooting)
+          OutlineButton(
+            leading: Icon(Icons.help_outline),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                ),
+              );
+            },
+            child: Text('Troubleshooting Guide'),
+          ),
       ],
     );
   }

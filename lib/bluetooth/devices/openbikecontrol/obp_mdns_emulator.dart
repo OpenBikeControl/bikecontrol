@@ -1,16 +1,18 @@
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mdns_dart/mdns_dart.dart';
-import 'package:swift_control/bluetooth/devices/openbikeprotocol/openbikeprotocol_device.dart';
-import 'package:swift_control/bluetooth/devices/openbikeprotocol/protocol_parser.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
-class OpenBikeProtocolMdnsEmulator {
+class OpenBikeControlMdnsEmulator {
   late ServerSocket _server;
   late MDNSServer _mDNSServer;
 
@@ -54,7 +56,7 @@ class OpenBikeProtocolMdnsEmulator {
         'version=1',
         'id=1337',
         'name=BikeControl',
-        'service-uuids=${OpenBikeProtocolConstants.SERVICE_UUID}',
+        'service-uuids=${OpenBikeControlConstants.SERVICE_UUID}',
         'manufacturer=OpenBikeControl',
         'model=BikeControl app',
       ],
@@ -66,7 +68,7 @@ class OpenBikeProtocolMdnsEmulator {
     _mDNSServer = MDNSServer(
       MDNSServerConfig(
         zone: service,
-        reusePort: true,
+        reusePort: !Platform.isAndroid,
         logger: (log) {},
       ),
     );
@@ -142,14 +144,23 @@ class OpenBikeProtocolMdnsEmulator {
     );
   }
 
-  void sendButtonPress(List<ControllerButton> buttons) {
+  ActionResult sendButtonPress(List<ControllerButton> buttons) {
     if (_socket == null) {
       print('No client connected, cannot send button press');
-      return;
+      return Error('No client connected');
+    } else if (isConnected.value == null) {
+      return Error('No app info received from central');
+    } else if (!isConnected.value!.supportedButtons.containsAll(buttons)) {
+      return Error('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 
     final responseData = OpenBikeProtocolParser.encodeButtonState(buttons.map((b) => ButtonState(b, 1)).toList());
     _write(_socket!, responseData);
+    final responseDataReleased = OpenBikeProtocolParser.encodeButtonState(
+      buttons.map((b) => ButtonState(b, 0)).toList(),
+    );
+    _write(_socket!, responseDataReleased);
+    return Success('Sent ${buttons.map((b) => b.name).join(', ')} button press');
   }
 
   void _write(Socket socket, List<int> responseData) {

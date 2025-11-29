@@ -196,6 +196,22 @@ class Settings {
     await prefs.setBool('mywhoosh_link_enabled', enabled);
   }
 
+  bool getObpMdnsEnabled() {
+    return prefs.getBool('openbikeprotocol_mdns_enabled') ?? true;
+  }
+
+  Future<void> setObpMdnsEnabled(bool enabled) async {
+    await prefs.setBool('openbikeprotocol_mdns_enabled', enabled);
+  }
+
+  bool getObpBleEnabled() {
+    return prefs.getBool('openbikeprotocol_ble_enabled') ?? true;
+  }
+
+  Future<void> setObpBleEnabled(bool enabled) async {
+    await prefs.setBool('openbikeprotocol_ble_enabled', enabled);
+  }
+
   bool getZwiftEmulatorEnabled() {
     return prefs.getBool('zwift_emulator_enabled') ?? true;
   }

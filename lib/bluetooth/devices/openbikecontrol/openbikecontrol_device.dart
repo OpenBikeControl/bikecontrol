@@ -8,8 +8,8 @@ import 'package:universal_ble/universal_ble.dart';
 import '../bluetooth_device.dart';
 import 'protocol_parser.dart';
 
-class OpenBikeProtocolDevice extends BluetoothDevice {
-  OpenBikeProtocolDevice(super.scanResult)
+class OpenBikeControlDevice extends BluetoothDevice {
+  OpenBikeControlDevice(super.scanResult)
     : super(
         availableButtons: OpenBikeProtocolParser.BUTTON_NAMES.values.toList(),
       );
@@ -17,22 +17,22 @@ class OpenBikeProtocolDevice extends BluetoothDevice {
   @override
   Future<void> handleServices(List<BleService> services) async {
     final service = services.firstWhere(
-      (e) => e.uuid.toLowerCase() == OpenBikeProtocolConstants.SERVICE_UUID.toLowerCase(),
-      orElse: () => throw Exception('Service not found: ${OpenBikeProtocolConstants.SERVICE_UUID}'),
+      (e) => e.uuid.toLowerCase() == OpenBikeControlConstants.SERVICE_UUID.toLowerCase(),
+      orElse: () => throw Exception('Service not found: ${OpenBikeControlConstants.SERVICE_UUID}'),
     );
 
     final characteristic = service.characteristics.firstWhere(
-      (e) => e.uuid.toLowerCase() == OpenBikeProtocolConstants.BUTTON_STATE_CHARACTERISTIC_UUID.toLowerCase(),
+      (e) => e.uuid.toLowerCase() == OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID.toLowerCase(),
       orElse: () =>
-          throw Exception('Characteristic not found: ${OpenBikeProtocolConstants.BUTTON_STATE_CHARACTERISTIC_UUID}'),
+          throw Exception('Characteristic not found: ${OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID}'),
     );
 
     await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
 
     final appInfoCharacteristic = service.characteristics.firstWhere(
-      (e) => e.uuid.toLowerCase() == OpenBikeProtocolConstants.APPINFO_CHARACTERISTIC_UUID.toLowerCase(),
+      (e) => e.uuid.toLowerCase() == OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID.toLowerCase(),
       orElse: () =>
-          throw Exception('Characteristic not found: ${OpenBikeProtocolConstants.APPINFO_CHARACTERISTIC_UUID}'),
+          throw Exception('Characteristic not found: ${OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID}'),
     );
 
     await UniversalBle.write(
@@ -51,11 +51,11 @@ class OpenBikeProtocolDevice extends BluetoothDevice {
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     final charLower = characteristic.toLowerCase();
 
-    if (charLower == OpenBikeProtocolConstants.BUTTON_STATE_CHARACTERISTIC_UUID.toLowerCase()) {
+    if (charLower == OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID.toLowerCase()) {
       try {
         final parsed = OpenBikeProtocolParser.parseButtonState(bytes);
 
-        final buttonsToPress = parsed.where((e) => e.state == 0).map((e) => e.button).toList();
+        final buttonsToPress = parsed.where((e) => e.state == 1).map((e) => e.button).toList();
 
         await handleButtonsClicked(buttonsToPress);
       } catch (e) {
@@ -65,7 +65,7 @@ class OpenBikeProtocolDevice extends BluetoothDevice {
   }
 }
 
-class OpenBikeProtocolConstants {
+class OpenBikeControlConstants {
   // OpenBikeControl BLE service and characteristic UUIDs (see BLE.md)
   static const String SERVICE_UUID = 'd273f680-d548-419d-b9d1-fa0472345229';
 

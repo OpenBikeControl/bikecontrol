@@ -1,35 +1,38 @@
+import 'dart:io';
+
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
-class OpenBikeProtocolTile extends StatefulWidget {
-  const OpenBikeProtocolTile({super.key});
+class OpenBikeProtocolBluetoothTile extends StatefulWidget {
+  const OpenBikeProtocolBluetoothTile({super.key});
 
   @override
-  State<OpenBikeProtocolTile> createState() => _OpenBikeProtocolTileState();
+  State<OpenBikeProtocolBluetoothTile> createState() => _OpenBikeProtocolTileState();
 }
 
-class _OpenBikeProtocolTileState extends State<OpenBikeProtocolTile> {
+class _OpenBikeProtocolTileState extends State<OpenBikeProtocolBluetoothTile> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: core.obpMdnsEmulator.isStarted,
+      valueListenable: core.obpBluetoothEmulator.isStarted,
       builder: (context, isStarted, _) {
         return ValueListenableBuilder(
-          valueListenable: core.obpMdnsEmulator.isConnected,
+          valueListenable: core.obpBluetoothEmulator.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
-              title: 'Enable OpenBikeProtocol',
+              title: 'Enable OpenBikeProtocol (Bluetooth)',
               description: isConnected != null
                   ? 'Connected to ${isConnected.appId}'
-                  : 'OpenBikeProtocol allows compatible apps to connect directly to your trainer over the Network or Bluetooth.',
-              requirements: [],
+                  : 'OpenBikeProtocol allows compatible apps to connect directly to your trainer using Bluetooth.',
+              requirements: [if (Platform.isAndroid) BluetoothAdvertiseRequirement()],
               onChange: (value) {
                 if (!value) {
-                  core.obpMdnsEmulator.stopServer();
+                  core.obpBluetoothEmulator.stopServer();
                 } else if (value) {
-                  core.obpMdnsEmulator.startServer().catchError((e) {
+                  core.obpBluetoothEmulator.startServer().catchError((e) {
                     showToast(
                       context: context,
                       builder: (c, overlay) => buildToast(

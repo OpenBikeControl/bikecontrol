@@ -29,7 +29,7 @@ class RemoteActions extends BaseActions {
       return Error('No action assigned for ${action.toString().splitByUpperCase()}');
     }
 
-    final directConnectHandled = await handleDirectConnect(keyPair);
+    final directConnectHandled = await handleDirectConnect(keyPair, action);
 
     if (directConnectHandled != null) {
       return directConnectHandled;

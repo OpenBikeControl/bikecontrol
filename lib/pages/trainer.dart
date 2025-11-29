@@ -14,7 +14,7 @@ import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
-import 'package:swift_control/widgets/apps/openbikeprotocol_tile.dart';
+import 'package:swift_control/widgets/apps/openbikeprotocol_ble_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
@@ -25,6 +25,7 @@ import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../utils/actions/android.dart';
+import '../widgets/apps/openbikeprotocol_mdns_tile.dart';
 
 class TrainerPage extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -229,13 +230,18 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ],
             ),
 
-          if (core.logic.showObpMdnsEmulator)
+          if (core.logic.showObpEmulator) ...[
             Card(
-              child: OpenBikeProtocolTile(),
+              child: OpenBikeProtocolMdnsTile(),
             ),
+            Card(
+              child: OpenBikeProtocolBluetoothTile(),
+            ),
+          ],
           if (core.logic.showLocalControl)
             Card(
               child: ConnectionMethod(
+                showTroubleshooting: true,
                 title:
                     'Control ${core.settings.getTrainerApp()?.name} using ${core.actionHandler.supportedModes.joinToString(transform: (e) => e.name)}',
                 description:
