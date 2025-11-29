@@ -5,9 +5,13 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
+
+import '../../messages/notification.dart' show AlertNotification;
 
 class OpenBikeControlBluetoothEmulator {
   late final _peripheralManager = PeripheralManager();
@@ -31,6 +35,9 @@ class OpenBikeControlBluetoothEmulator {
         print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
         if (state.state == ConnectionState.connected) {
         } else if (state.state == ConnectionState.disconnected) {
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${isConnected.value?.appId}'),
+          );
           isConnected.value = null;
           _central = null;
         }
@@ -92,6 +99,9 @@ class OpenBikeControlBluetoothEmulator {
               try {
                 final appInfo = OpenBikeProtocolParser.parseAppInfo(value);
                 isConnected.value = appInfo;
+                core.connection.signalNotification(
+                  AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+                );
                 print('Parsed App Info: $appInfo');
               } catch (e) {
                 print('Error parsing App Info: $e');

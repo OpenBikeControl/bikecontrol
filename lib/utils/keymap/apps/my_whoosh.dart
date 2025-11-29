@@ -18,6 +18,7 @@ class MyWhoosh extends SupportedApp {
             ? Target.values.filterNot((e) => e == Target.thisDevice).toList()
             : Target.values,
         supportsZwiftEmulation: false,
+        supportsOpenBikeProtocol: kDebugMode,
         keymap: Keymap(
           keyPairs: [
             KeyPair(

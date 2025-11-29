@@ -59,8 +59,13 @@ class CoreLogic {
     return core.settings.getTrainerApp()?.supportsZwiftEmulation == true;
   }
 
-  bool get showObpEmulator {
-    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true || kDebugMode;
+  bool get showObpMdnsEmulator {
+    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true;
+  }
+
+  bool get showObpBluetoothEmulator {
+    return (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true) &&
+        core.settings.getLastTarget() != Target.thisDevice;
   }
 
   bool get showMyWhooshLink =>
@@ -79,8 +84,17 @@ class CoreLogic {
   bool get emulatorConnected =>
       (core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) ||
       (core.settings.getZwiftEmulatorEnabled() && showZwiftEmulator) ||
-      (core.settings.getObpBleEnabled() && showObpEmulator) ||
-      (core.settings.getObpMdnsEnabled() && showObpEmulator);
+      (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
+      (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
+
+  bool get showObpActions =>
+      core.settings.getObpBleEnabled() &&
+      (showObpMdnsEmulator || showObpBluetoothEmulator) &&
+      core.logic.obpConnectedApp != null;
+
+  bool get ignoreWarnings =>
+      core.settings.getTrainerApp()?.supportsZwiftEmulation == true ||
+      core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true;
 
   Future<bool> isTrainerConnected() async {
     if (showLocalControl) {
@@ -91,8 +105,10 @@ class CoreLogic {
       }
     } else if (showMyWhooshLink) {
       return core.whooshLink.isConnected.value;
-    } else if (showObpEmulator) {
-      return core.obpMdnsEmulator.isConnected.value != null || core.obpBluetoothEmulator.isConnected.value != null;
+    } else if (showObpMdnsEmulator) {
+      return core.obpMdnsEmulator.isConnected.value != null;
+    } else if (showObpBluetoothEmulator) {
+      return core.obpBluetoothEmulator.isConnected.value != null;
     } else if (showZwiftEmulator) {
       return core.zwiftEmulator.isConnected.value;
     } else if (showRemote && core.actionHandler is RemoteActions) {

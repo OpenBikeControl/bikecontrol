@@ -169,30 +169,37 @@ enum Target {
 
     return switch (this) {
       Target.thisDevice => false,
-      _ => true,
+      _ => supportedApp == null || supportedApp.supportsOpenBikeProtocol == false,
     };
   }
 
   String getDescription(SupportedApp? app) {
+    final preferredConnectionMethod = app?.supportsOpenBikeProtocol == true
+        ? ' e.g. by using OpenBikeConnect connection'
+        : app is MyWhoosh
+        ? ' e.g. by using MyWhoosh Direct Connect'
+        : '';
+
     return switch (this) {
       Target.thisDevice when !isCompatible =>
         'Due to platform restrictions only controlling ${app?.name ?? 'the Trainer app'} on other devices is supported.',
+      Target.otherDevice when !isCompatible => 'Due to platform restrictions this scenario is not supported.',
       Target.thisDevice => 'Run ${app?.name ?? 'the Trainer app'} on this device.',
       Target.iOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on an Apple device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on an Apple device and control it remotely from this device$preferredConnectionMethod.',
       Target.android =>
-        'Run ${app?.name ?? 'the Trainer app'} on an Android device and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on an Android device and control it remotely from this device$preferredConnectionMethod.',
       Target.macOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on a Mac and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on a Mac and control it remotely from this device$preferredConnectionMethod.',
       Target.windows =>
-        'Run ${app?.name ?? 'the Trainer app'} on a Windows PC and control it remotely from this device${app is MyWhoosh ? ', e.g. by using MyWhoosh Direct Connect' : ''}.',
+        'Run ${app?.name ?? 'the Trainer app'} on a Windows PC and control it remotely from this device$preferredConnectionMethod.',
       Target.otherDevice =>
         'Run ${app?.name ?? 'the Trainer app'} on another device and control it remotely from this device.',
     };
   }
 
   String? get warning {
-    if (core.settings.getTrainerApp()?.supportsZwiftEmulation == true) {
+    if (core.logic.ignoreWarnings) {
       // no warnings for zwift emulation
       return null;
     }

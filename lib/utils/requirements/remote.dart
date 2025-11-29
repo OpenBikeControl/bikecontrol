@@ -298,6 +298,7 @@ class _PairWidgetState extends State<_PairWidget> {
         ConnectionMethod(
           isStarted: isAdvertisingPeripheral,
           showTroubleshooting: true,
+          badge: 'BETA',
           title: 'Enable Pairing Process',
           description: 'Pairing allows full customizability, but may not work on all devices.',
           isConnected: (core.actionHandler as RemoteActions).isConnected,
@@ -305,12 +306,13 @@ class _PairWidgetState extends State<_PairWidget> {
             BluetoothTurnedOn(),
           ],
           onChange: (value) async {
-            await toggle();
+            await toggle(value);
             setState(() {});
           },
         ),
         if (isAdvertisingPeripheral)
           Warning(
+            important: false,
             children: [
               Text(
                 switch (core.settings.getLastTarget()) {
@@ -326,15 +328,15 @@ class _PairWidgetState extends State<_PairWidget> {
     );
   }
 
-  Future<void> toggle() async {
-    if (isAdvertisingPeripheral) {
+  Future<void> toggle(bool enable) async {
+    if (isAdvertisingPeripheral && !enable) {
       peripheralManager.stopAdvertising();
       isAdvertisingPeripheral = false;
       (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
       widget.onUpdate();
       _isLoading = false;
       setState(() {});
-    } else {
+    } else if (!isAdvertisingPeripheral && enable) {
       _isLoading = true;
       setState(() {});
       await widget.requirement.startAdvertising(widget.onUpdate);

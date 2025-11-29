@@ -197,7 +197,11 @@ class _NavigationState extends State<Navigation> {
                     },
                   ),
                   enabled: _isPageEnabled(page),
-                  label: Text(page == BCPage.trainer ? core.settings.getTrainerApp()?.name ?? page.title : page.title),
+                  label: Text(
+                    page == BCPage.trainer
+                        ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.title
+                        : page.title,
+                  ),
                   child: _buildIcon(page),
                 );
               }),

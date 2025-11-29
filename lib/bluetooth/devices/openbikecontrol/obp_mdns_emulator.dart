@@ -128,14 +128,18 @@ class OpenBikeControlMdnsEmulator {
               case OpenBikeProtocolParser.MSG_TYPE_APP_INFO:
                 final appInfo = OpenBikeProtocolParser.parseAppInfo(Uint8List.fromList(data));
                 isConnected.value = appInfo;
-                core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
+                core.connection.signalNotification(
+                  AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+                );
                 break;
               default:
                 print('Unknown message type: $messageType');
             }
           },
           onDone: () {
-            print('Client disconnected: $socket');
+            core.connection.signalNotification(
+              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${isConnected.value?.appId}'),
+            );
             isConnected.value = null;
             _socket = null;
           },

@@ -134,7 +134,7 @@ class _ButtonEditor extends StatelessWidget {
     final actionsWithInGameAction = trainerApp?.keymap.keyPairs.where((kp) => kp.inGameAction != null).toList();
 
     final actions = <MenuItem>[
-      if (core.settings.getObpBleEnabled() && core.logic.showObpEmulator && core.logic.obpConnectedApp != null) ...[
+      if (core.logic.showObpActions) ...[
         MenuLabel(child: Text('OpenBikeConnect actions')),
         MenuButton(
           subMenu: core.logic.obpConnectedApp!.supportedButtons

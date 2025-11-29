@@ -2,6 +2,7 @@ import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -9,6 +10,7 @@ class ConnectionMethod extends StatefulWidget {
   final String title;
   final String description;
   final String? instructionLink;
+  final String? badge;
   final Widget? additionalChild;
   final bool? isConnected;
   final bool? isStarted;
@@ -19,6 +21,7 @@ class ConnectionMethod extends StatefulWidget {
   const ConnectionMethod({
     super.key,
     required this.title,
+    this.badge,
     this.additionalChild,
     required this.description,
     this.instructionLink,
@@ -122,7 +125,12 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(widget.title),
+                      Row(
+                        children: [
+                          Expanded(child: Text(widget.title)),
+                          if (widget.badge != null) BetaPill(text: widget.badge!),
+                        ],
+                      ),
                       Text(
                         widget.description,
                         style: TextStyle(

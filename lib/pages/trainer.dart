@@ -230,14 +230,14 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ],
             ),
 
-          if (core.logic.showObpEmulator) ...[
+          if (core.logic.showObpMdnsEmulator)
             Card(
               child: OpenBikeProtocolMdnsTile(),
             ),
+          if (core.logic.showObpBluetoothEmulator)
             Card(
               child: OpenBikeProtocolBluetoothTile(),
             ),
-          ],
           if (core.logic.showLocalControl)
             Card(
               child: ConnectionMethod(

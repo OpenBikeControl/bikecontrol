@@ -20,6 +20,7 @@ class TrainingPeaks extends SupportedApp {
             ? Target.values.filterNot((e) => e == Target.thisDevice).toList()
             : Target.values,
         supportsZwiftEmulation: false,
+        supportsOpenBikeProtocol: kDebugMode,
         keymap: Keymap(
           keyPairs: [
             // Explicit controller-button mappings with updated touch coordinates
