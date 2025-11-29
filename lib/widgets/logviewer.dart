@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show SelectionArea;
+import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 
 import '../bluetooth/messages/notification.dart';
 import '../main.dart';
@@ -16,8 +17,6 @@ class LogViewer extends StatefulWidget {
 }
 
 class _LogviewerState extends State<LogViewer> {
-  List<({DateTime date, String entry})> _actions = [];
-
   late StreamSubscription<BaseNotification> _actionSubscription;
   final ScrollController _scrollController = ScrollController();
 
@@ -27,15 +26,7 @@ class _LogviewerState extends State<LogViewer> {
 
     _actionSubscription = connection.actionStream.listen((data) {
       if (mounted) {
-        if (data is BluetoothAvailabilityNotification) {
-          if (!data.isAvailable && Navigator.canPop(context)) {
-            Navigator.popUntil(context, (route) => route.isFirst);
-          }
-        }
-        setState(() {
-          _actions.add((date: DateTime.now(), entry: data.toString()));
-          _actions = _actions.takeLast(kIsWeb ? 1000 : 60).toList();
-        });
+        setState(() {});
         if (_scrollController.hasClients) {
           // scroll to the bottom
           _scrollController.animateTo(
@@ -57,51 +48,71 @@ class _LogviewerState extends State<LogViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return _actions.isEmpty
-        ? Container()
-        : Card(
-            child: SelectionArea(
-              child: GestureDetector(
-                onLongPress: () {
-                  setState(() {
-                    _actions = [];
-                  });
-                },
-                child: ListView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: _scrollController,
-                  shrinkWrap: true,
-                  reverse: true,
-                  children: _actions
-                      .map(
-                        (action) => Text.rich(
-                          TextSpan(
-                            children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Log Viewer').bold,
+            OutlineButton(
+              child: Text('Share'),
+              onPressed: () {
+                final logText = connection.lastLogEntries
+                    .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
+                    .join('\n');
+                Clipboard.setData(ClipboardData(text: logText));
+
+                showToast(
+                  context: context,
+                  builder: (c, overlay) => buildToast(context, overlay, title: 'Logs have been copied to clipboard'),
+                );
+              },
+            ),
+          ],
+        ),
+        connection.lastLogEntries.isEmpty
+            ? Container()
+            : Expanded(
+                child: Card(
+                  child: SelectionArea(
+                    child: ListView(
+                      controller: _scrollController,
+                      reverse: true,
+                      children: connection.lastLogEntries
+                          .map(
+                            (action) => Text.rich(
                               TextSpan(
-                                text: action.date.toString().split(" ").last,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontFeatures: [FontFeature.tabularFigures()],
-                                  fontFamily: "monospace",
-                                  fontFamilyFallback: <String>["Courier"],
-                                ),
+                                children: [
+                                  TextSpan(
+                                    text: action.date.toString().split(" ").last,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFeatures: [FontFeature.tabularFigures()],
+                                      fontFamily: "monospace",
+                                      fontFamilyFallback: <String>["Courier"],
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: "  ${action.entry}",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFeatures: [FontFeature.tabularFigures()],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              TextSpan(
-                                text: "  ${action.entry}",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontFeatures: [FontFeature.tabularFigures()],
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          );
+        SelectableText('Logs are also available at\n${File('${Directory.current.path}/app.logs').path}').muted.small,
+      ],
+    );
   }
 }

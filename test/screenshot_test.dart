@@ -81,7 +81,9 @@ Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size siz
         debugShowCheckedModeBanner: false,
         title: 'BikeControl',
         themeMode: ThemeMode.light,
-        home: const DevicePage(),
+        home: DevicePage(
+          onUpdate: () {},
+        ),
       ),
     ),
   );

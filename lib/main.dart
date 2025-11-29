@@ -109,7 +109,17 @@ Future<void> _persistCrash({
 
     final directory = await _getLogDirectory();
     final file = File('${directory.path}/app.logs');
+    final fileLength = await file.length();
+    if (fileLength > 5 * 1024 * 1024) {
+      // If log file exceeds 5MB, truncate it
+      final lines = await file.readAsLines();
+      final half = lines.length ~/ 2;
+      final truncatedLines = lines.sublist(half);
+      await file.writeAsString(truncatedLines.join('\n'));
+    }
+
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
+    connection.lastLogEntries.add((date: DateTime.now(), entry: 'App crashed: $error'));
   } catch (_) {
     // Avoid throwing from the crash logger
   }

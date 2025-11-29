@@ -14,22 +14,18 @@ class ConfigurationPage extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Basic(
-          leading: Image.asset('icon.png', width: 64, height: 64),
-          title: Text('Welcome to BikeControl!'),
-          subtitle: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(text: 'Need help? Click on the '),
-                WidgetSpan(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
-                    child: Icon(Icons.help_outline),
-                  ),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: 'Need help? Click on the '),
+              WidgetSpan(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Icon(Icons.help_outline),
                 ),
-                TextSpan(text: ' button on top and don\'t hesitate to contact us.'),
-              ],
-            ),
+              ),
+              TextSpan(text: ' button on top and don\'t hesitate to contact us.'),
+            ],
           ),
         ),
         Card(

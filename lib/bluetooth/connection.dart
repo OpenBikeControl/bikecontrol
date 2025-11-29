@@ -54,7 +54,7 @@ class Connection {
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
-      lastLogEntries = lastLogEntries.takeLast(20).toList();
+      lastLogEntries = lastLogEntries.takeLast(kIsWeb ? 1000 : 60).toList();
     });
 
     isMediaKeyDetectionEnabled.addListener(() {
@@ -291,7 +291,7 @@ class Connection {
           device.isConnected = state;
           _connectionStreams.add(device);
           if (!device.isConnected) {
-            disconnect(device, forget: false);
+            disconnect(device, forget: false, persistForget: false);
             // try reconnect
             performScanning();
           }
@@ -361,20 +361,23 @@ class Connection {
     _connectionStreams.add(baseDevice);
   }
 
-  Future<void> disconnect(BaseDevice device, {required bool forget}) async {
+  Future<void> disconnect(BaseDevice device, {required bool persistForget, required bool forget}) async {
     if (device.isConnected) {
       await device.disconnect();
     }
 
     if (device is BluetoothDevice) {
-      if (forget) {
+      if (persistForget) {
         // Add device to ignored list when forgetting
         await settings.addIgnoredDevice(device.device.deviceId, device.name);
         _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
       }
+      if (!forget) {
+        // allow reconnection
+        _lastScanResult.removeWhere((d) => d.deviceId == device.device.deviceId);
+      }
 
       // Clean up subscriptions and scan results for reconnection
-      _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();

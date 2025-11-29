@@ -16,6 +16,8 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
+import 'package:swift_control/widgets/ui/loading_widget.dart';
+import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'cycplus/cycplus_bc2.dart';
@@ -208,30 +210,38 @@ abstract class BluetoothDevice extends BaseDevice {
             Expanded(child: SizedBox()),
             Builder(
               builder: (context) {
-                return IconButton(
-                  variance: ButtonVariance.outline,
-                  icon: Icon(Icons.clear),
-                  onPressed: () {
-                    showDropdown(
+                return LoadingWidget(
+                  futureCallback: () async {
+                    final completer = showDropdown<bool>(
                       context: context,
                       builder: (c) => DropdownMenu(
                         children: [
                           MenuButton(
                             child: Text('Disconnect and Forget for this session'),
-                            onPressed: (_) {
-                              connection.disconnect(this, forget: false);
+                            onPressed: (context) {
+                              closeOverlay(context, false);
                             },
                           ),
                           MenuButton(
                             child: Text('Disconnect and Forget'),
-                            onPressed: (_) {
-                              connection.disconnect(this, forget: true);
+                            onPressed: (context) {
+                              closeOverlay(context, true);
                             },
                           ),
                         ],
                       ),
                     );
+
+                    final persist = await completer.future;
+                    if (persist != null) {
+                      await connection.disconnect(this, forget: true, persistForget: persist);
+                    }
                   },
+                  renderChild: (isLoading, tap) => IconButton(
+                    variance: ButtonVariance.outline,
+                    icon: isLoading ? SmallProgressIndicator() : Icon(Icons.clear),
+                    onPressed: tap,
+                  ),
                 );
               },
             ),

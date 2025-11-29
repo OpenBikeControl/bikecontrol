@@ -45,7 +45,7 @@ class KeymapManager {
     return Builder(
       builder: (context) {
         return OutlineButton(
-          child: Icon(Icons.more_vert),
+          child: Text('Manage Profile'),
           onPressed: () => showDropdown(
             context: context,
             builder: (c) => DropdownMenu(

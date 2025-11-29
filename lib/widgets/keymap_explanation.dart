@@ -59,60 +59,63 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final availableKeypairs = widget.keymap.keyPairs;
     final allAvailableButtons = IterableFlatMap(connection.devices).flatMap((d) => d.availableButtons);
 
-    return ValueListenableBuilder(
-      valueListenable: whooshLink.isConnected,
-      builder: (c, _, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        spacing: 8,
-        children: [
-          Table(
-            rows: [
-              TableHeader(
-                cells: [
-                  TableCell(
-                    child: Text(
-                      'Button on your ${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)}',
-                    ),
-                  ),
-                  TableCell(
-                    child: Text('Action'),
-                  ),
-                ],
-              ),
-              for (final keyPair in availableKeypairs) ...[
-                TableRow(
+    return Card(
+      child: ValueListenableBuilder(
+        valueListenable: whooshLink.isConnected,
+        builder: (c, _, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            Table(
+              rows: [
+                TableHeader(
                   cells: [
                     TableCell(
-                      child: Container(
-                        constraints: BoxConstraints(minHeight: 52),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          runAlignment: WrapAlignment.center,
-                          children: [
-                            if (actionHandler.supportedApp is! CustomApp)
-                              if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
-                                Text('No button assigned for your connected device')
-                              else
-                                for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                                  IntrinsicWidth(child: ButtonWidget(button: button))
-                            else
-                              for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
-                          ],
-                        ),
+                      child: Text(
+                        'Button on your ${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)}',
                       ),
                     ),
                     TableCell(
-                      child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
+                      child: Text('Action'),
                     ),
                   ],
                 ),
+                for (final keyPair in availableKeypairs) ...[
+                  TableRow(
+                    cells: [
+                      TableCell(
+                        child: Container(
+                          constraints: BoxConstraints(minHeight: 52),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runAlignment: WrapAlignment.center,
+                            children: [
+                              if (actionHandler.supportedApp is! CustomApp)
+                                if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
+                                  Text('No button assigned for your connected device')
+                                else
+                                  for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                                    IntrinsicWidth(child: ButtonWidget(button: button))
+                              else
+                                for (final button in keyPair.buttons)
+                                  IntrinsicWidth(child: ButtonWidget(button: button)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      TableCell(
+                        child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
+                      ),
+                    ],
+                  ),
+                ],
               ],
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

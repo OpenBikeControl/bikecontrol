@@ -7,9 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/scan.dart';
-import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -21,9 +19,11 @@ import '../bluetooth/devices/base_device.dart';
 import '../utils/actions/android.dart';
 import '../utils/actions/remote.dart';
 import '../utils/requirements/remote.dart';
+import '../widgets/ignored_devices_dialog.dart';
 
 class DevicePage extends StatefulWidget {
-  const DevicePage({super.key});
+  final VoidCallback onUpdate;
+  const DevicePage({super.key, required this.onUpdate});
 
   @override
   State<DevicePage> createState() => _DevicePageState();
@@ -154,6 +154,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
         children: [
           if (_showNameChangeWarning && !screenshotMode)
             Warning(
@@ -242,28 +243,31 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 ),
               ],
             ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (connection.controllerDevices.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SmallProgressIndicator(),
-                ),
-              if (connection.controllerDevices.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ScanWidget(),
-                )
-              else
-                ...connection.controllerDevices.map(
-                  (device) => Card(child: device.showInformation(context)),
-                ),
-            ],
+
+          ScanWidget(),
+          ...connection.controllerDevices.map(
+            (device) => Card(child: device.showInformation(context)),
           ),
 
-          SizedBox(height: 20),
-          SizedBox(height: 500, child: LogViewer()),
+          if (settings.getIgnoredDevices().isNotEmpty)
+            OutlineButton(
+              child: Text('Manage Ignored Devices'),
+              onPressed: () async {
+                await showDialog(
+                  context: context,
+                  builder: (context) => IgnoredDevicesDialog(),
+                );
+                setState(() {});
+              },
+            ),
+
+          if (connection.controllerDevices.isNotEmpty)
+            PrimaryButton(
+              child: Text('Continue'),
+              onPressed: () {
+                widget.onUpdate();
+              },
+            ),
         ],
       ),
     );

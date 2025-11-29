@@ -1,3 +1,4 @@
+import 'package:dartx/dartx.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
@@ -5,6 +6,7 @@ import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/trainer.dart';
+import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
 
@@ -14,7 +16,8 @@ enum BCPage {
   configuration('Configuration', Icons.settings),
   devices('Controllers', Icons.gamepad),
   trainer('Trainer', Icons.pedal_bike),
-  customization('Adjust', Icons.color_lens);
+  customization('Adjust', Icons.color_lens),
+  logs('Logs', Icons.article);
 
   final String title;
   final IconData icon;
@@ -69,6 +72,8 @@ class _NavigationState extends State<Navigation> {
     }
   }
 
+  final List<BCPage> _tabs = BCPage.values.whereNot((e) => e == BCPage.logs).toList();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +99,13 @@ class _NavigationState extends State<Navigation> {
                 alignment: Alignment.topLeft,
                 padding: EdgeInsets.all(16),
                 child: switch (_selectedPage) {
-                  BCPage.devices => DevicePage(),
+                  BCPage.devices => DevicePage(
+                    onUpdate: () {
+                      setState(() {
+                        _selectedPage = BCPage.trainer;
+                      });
+                    },
+                  ),
                   BCPage.trainer => TrainerPage(),
                   BCPage.customization => CustomizePage(),
                   BCPage.configuration => ConfigurationPage(
@@ -104,6 +115,7 @@ class _NavigationState extends State<Navigation> {
                       });
                     },
                   ),
+                  BCPage.logs => LogViewer(),
                 },
               ),
             ),
@@ -114,43 +126,67 @@ class _NavigationState extends State<Navigation> {
   }
 
   Widget _buildNavigationMenu() {
-    return NavigationSidebar(
-      onSelected: (int index) {
-        setState(() {
-          _selectedPage = BCPage.values[index];
-        });
-      },
-      children: BCPage.values.map((page) {
-        return NavigationItem(
-          selected: _selectedPage == page,
-          selectedStyle: ButtonStyle.primary(size: ButtonSize(1.1)).copyWith(
-            decoration: (context, states, value) {
-              return BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0E74B7), Color(0xFF0E9297)],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              );
+    return Column(
+      children: [
+        Expanded(
+          child: NavigationSidebar(
+            onSelected: (int index) {
+              setState(() {
+                _selectedPage = BCPage.values[index];
+              });
             },
-            padding: (context, states, value) {
-              return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-            },
+            children: [
+              ..._tabs.map((page) {
+                return NavigationItem(
+                  selected: _selectedPage == page,
+                  selectedStyle: ButtonStyle.primary(size: ButtonSize(1.1)).copyWith(
+                    decoration: (context, states, value) {
+                      return BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0E74B7), Color(0xFF0E9297)],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      );
+                    },
+                    padding: (context, states, value) {
+                      return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+                    },
+                  ),
+                  style: ButtonStyle.ghost(density: ButtonDensity.icon, size: ButtonSize(1.1)).copyWith(
+                    decoration: (context, states, value) {
+                      return BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                      );
+                    },
+                    padding: (context, states, value) {
+                      return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+                    },
+                  ),
+                  enabled: _isPageEnabled(page),
+                  label: Text(page == BCPage.trainer ? settings.getTrainerApp()?.name ?? page.title : page.title),
+                  child: _buildIcon(page),
+                );
+              }),
+            ],
           ),
-          style: ButtonStyle.ghost(density: ButtonDensity.icon, size: ButtonSize(1.1)).copyWith(
-            decoration: (context, states, value) {
-              return BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-              );
-            },
-            padding: (context, states, value) {
-              return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-            },
-          ),
-          enabled: _isPageEnabled(page),
-          label: Text(page == BCPage.trainer ? settings.getTrainerApp()?.name ?? page.title : page.title),
-          child: _buildIcon(page),
-        );
-      }).toList(),
+        ),
+
+        NavigationSidebar(
+          onSelected: (int index) {
+            setState(() {
+              _selectedPage = BCPage.logs;
+            });
+          },
+          children: [
+            NavigationDivider(),
+            NavigationItem(
+              label: Text(BCPage.logs.title),
+              selected: _selectedPage == BCPage.logs,
+              child: _buildIcon(BCPage.logs),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -186,7 +222,7 @@ class _NavigationState extends State<Navigation> {
           _selectedPage = BCPage.values[index];
         });
       },
-      children: BCPage.values.map((page) {
+      children: _tabs.map((page) {
         return NavigationItem(
           selected: _selectedPage == page,
           enabled: _isPageEnabled(page),
@@ -210,6 +246,7 @@ class _NavigationState extends State<Navigation> {
       BCPage.devices => connection.controllerDevices.isEmpty,
       BCPage.customization => false,
       BCPage.trainer => false,
+      BCPage.logs => false,
     };
   }
 }

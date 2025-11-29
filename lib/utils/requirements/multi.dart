@@ -16,6 +16,8 @@ import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../../widgets/ui/warning.dart';
+
 class KeyboardRequirement extends PlatformRequirement {
   KeyboardRequirement() : super('Keyboard access');
 
@@ -315,6 +317,7 @@ class TargetRequirement extends PlatformRequirement {
               },
             ),
           ],
+
           if (settings.getLastTarget() != null && settings.getLastTarget() != Target.thisDevice) ...[
             SizedBox(height: 8),
             Text(
@@ -382,6 +385,18 @@ class TargetRequirement extends PlatformRequirement {
                 }
               },
             ),
+
+            if (settings.getLastTarget()?.warning != null) ...[
+              Warning(
+                children: [
+                  Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.primaryForeground),
+                  Text(
+                    settings.getLastTarget()!.warning!,
+                    style: TextStyle(color: Theme.of(context).colorScheme.primaryForeground),
+                  ),
+                ],
+              ),
+            ],
           ],
           SizedBox(height: 8),
           PrimaryButton(

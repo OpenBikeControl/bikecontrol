@@ -21,7 +21,7 @@ class HidDevice extends BaseDevice {
             PopupMenuItem(
               child: Text('Ignore'),
               onTap: () {
-                connection.disconnect(this, forget: true);
+                connection.disconnect(this, forget: true, persistForget: true);
                 if (actionHandler is AndroidActions) {
                   (actionHandler as AndroidActions).ignoreHidDevices();
                 } else if (connection.isMediaKeyDetectionEnabled.value) {

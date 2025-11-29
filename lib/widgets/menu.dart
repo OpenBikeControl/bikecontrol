@@ -14,8 +14,6 @@ import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import 'ignored_devices_dialog.dart';
-
 List<Widget> buildMenuButtons(BuildContext context) {
   return [
     if (kIsWeb || (!Platform.isIOS && !Platform.isMacOS)) ...[
@@ -214,15 +212,6 @@ class BKMenuButton extends StatelessWidget {
               child: Text('Changelog'),
               onPressed: (c) {
                 Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
-              },
-            ),
-            MenuButton(
-              child: Text('Ignored Devices'),
-              onPressed: (c) {
-                showDialog(
-                  context: context,
-                  builder: (context) => IgnoredDevicesDialog(),
-                );
               },
             ),
             MenuButton(
