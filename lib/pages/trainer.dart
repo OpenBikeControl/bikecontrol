@@ -38,7 +38,7 @@ class _TrainerPageState extends State<TrainerPage> {
         if (mounted) setState(() {});
       });
 
-      if (core.settings.getZwiftEmulatorEnabled() && core.actionHandler.supportedApp?.supportsZwiftEmulation == true) {
+      if (core.settings.getZwiftEmulatorEnabled() && core.settings.getTrainerApp()?.supportsZwiftEmulation == true) {
         core.zwiftEmulator.startAdvertising(() {
           if (mounted) setState(() {});
         });
