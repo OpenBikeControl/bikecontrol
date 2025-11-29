@@ -1,5 +1,10 @@
-import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 
-class WahooKickrBikePro extends ZwiftPlay {
+import '../zwift/constants.dart';
+
+class WahooKickrBikePro extends ZwiftRide {
   WahooKickrBikePro(super.scanResult) : super();
+
+  @override
+  String get customServiceId => ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID;
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../bluetooth/messages/notification.dart';
 import '../main.dart';
@@ -62,47 +63,66 @@ class _LogviewerState extends State<LogViewer> {
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: SelectionArea(
-                  child: GestureDetector(
-                    onLongPress: () {
-                      setState(() {
-                        _actions = [];
-                      });
-                    },
-                    child: ListView(
-                      physics: const NeverScrollableScrollPhysics(),
-                      controller: _scrollController,
-                      shrinkWrap: true,
-                      reverse: true,
-                      children: _actions
-                          .map(
-                            (action) => Text.rich(
-                              TextSpan(
-                                children: [
+                child: Stack(
+                  children: [
+                    SelectionArea(
+                      child: GestureDetector(
+                        onLongPress: () {
+                          setState(() {
+                            _actions = [];
+                          });
+                        },
+                        child: ListView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          controller: _scrollController,
+                          shrinkWrap: true,
+                          reverse: true,
+                          children: _actions
+                              .map(
+                                (action) => Text.rich(
                                   TextSpan(
-                                    text: action.date.toString().split(" ").last,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontFeatures: [FontFeature.tabularFigures()],
-                                      fontFamily: "monospace",
-                                      fontFamilyFallback: <String>["Courier"],
-                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: action.date.toString().split(" ").last,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontFeatures: [FontFeature.tabularFigures()],
+                                          fontFamily: "monospace",
+                                          fontFamilyFallback: <String>["Courier"],
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: "  ${action.entry}",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontFeatures: [FontFeature.tabularFigures()],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  TextSpan(
-                                    text: "  ${action.entry}",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontFeatures: [FontFeature.tabularFigures()],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                          .toList(),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
                     ),
-                  ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        onPressed: () {
+                          final logText = _actions
+                              .map((e) => "${e.date.toString().split(" ").last}  ${e.entry}")
+                              .join("\n");
+                          Clipboard.setData(ClipboardData(text: logText));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Log copied to clipboard')),
+                          );
+                        },
+                        icon: Icon(Icons.copy),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
