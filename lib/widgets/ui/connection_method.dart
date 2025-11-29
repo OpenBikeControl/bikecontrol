@@ -9,6 +9,7 @@ class ConnectionMethod extends StatefulWidget {
   final String title;
   final String description;
   final String? instructionLink;
+  final Widget? additionalChild;
   final bool? isConnected;
   final bool? isStarted;
   final List<PlatformRequirement> requirements;
@@ -17,6 +18,7 @@ class ConnectionMethod extends StatefulWidget {
   const ConnectionMethod({
     super.key,
     required this.title,
+    this.additionalChild,
     required this.description,
     this.instructionLink,
     required this.onChange,
@@ -29,12 +31,37 @@ class ConnectionMethod extends StatefulWidget {
   State<ConnectionMethod> createState() => _ConnectionMethodState();
 }
 
-class _ConnectionMethodState extends State<ConnectionMethod> {
+class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBindingObserver {
   bool _isStarted = false;
 
   @override
-  initState() {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (widget.requirements.isNotEmpty) {
+      if (state == AppLifecycleState.resumed) {
+        Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
+          final allDone = widget.requirements.every((e) => e.status);
+
+          if (context.mounted) {
+            setState(() {
+              _isStarted = allDone;
+            });
+            widget.onChange(true);
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.isStarted != null) {
       _isStarted = widget.isStarted!;
     } else if (widget.requirements.isNotEmpty) {
@@ -45,6 +72,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> {
           setState(() {
             _isStarted = true;
           });
+        } else {
+          widget.onChange(false);
         }
       });
     }
@@ -114,6 +143,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> {
             ),
           ),
         ),
+        if (_isStarted) ?widget.additionalChild,
         if (widget.instructionLink != null)
           OutlineButton(
             leading: Icon(Icons.play_circle_outline_outlined),
