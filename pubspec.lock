@@ -684,6 +684,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  mdns_dart:
+    dependency: "direct main"
+    description:
+      name: mdns_dart
+      sha256: "5a8fae933ea51a5ff3da78dbec8442e7167bf1423f71069d767ff9be68054f55"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   media_key_detector:
     dependency: "direct main"
     description:

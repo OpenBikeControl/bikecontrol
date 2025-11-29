@@ -28,6 +28,7 @@ dependencies:
   flutter_md: ^0.0.7
   permission_handler: ^12.0.1
   dartx: any
+  mdns_dart: any
   image_picker: ^1.1.2
   window_manager: ^0.5.1
   device_info_plus: ^12.1.0
