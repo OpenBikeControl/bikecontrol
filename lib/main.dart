@@ -21,14 +21,16 @@ void main() async {
   // setup crash reporting
 
   // Catch errors that happen in other isolates
-  Isolate.current.addErrorListener(
-    RawReceivePort((dynamic pair) {
-      final List<dynamic> errorAndStack = pair as List<dynamic>;
-      final error = errorAndStack.first;
-      final stack = errorAndStack.last as StackTrace?;
-      _recordError(error, stack, context: 'Isolate');
-    }).sendPort,
-  );
+  if (!kIsWeb) {
+    Isolate.current.addErrorListener(
+      RawReceivePort((dynamic pair) {
+        final List<dynamic> errorAndStack = pair as List<dynamic>;
+        final error = errorAndStack.first;
+        final stack = errorAndStack.last as StackTrace?;
+        _recordError(error, stack, context: 'Isolate');
+      }).sendPort,
+    );
+  }
 
   runZonedGuarded<Future<void>>(
     () async {
