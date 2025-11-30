@@ -1,7 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/apps/zwift.dart';
-import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:swift_control/widgets/ui/connection_method.dart';
 
 class ZwiftTile extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -20,10 +22,9 @@ class _ZwiftTileState extends State<ZwiftTile> {
       builder: (context, isConnected, _) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              value: core.settings.getZwiftEmulatorEnabled(),
-              onChanged: (value) {
+            return ConnectionMethod(
+              isStarted: core.zwiftEmulator.isAdvertising,
+              onChange: (value) {
                 core.settings.setZwiftEmulatorEnabled(value);
                 if (!value) {
                   core.zwiftEmulator.stopAdvertising();
@@ -32,28 +33,13 @@ class _ZwiftTileState extends State<ZwiftTile> {
                 }
                 setState(() {});
               },
-              title: Text('Enable Zwift Controller'),
-              subtitle: Row(
-                spacing: 12,
-                children: [
-                  if (!core.settings.getZwiftEmulatorEnabled())
-                    Expanded(
-                      child: Text(
-                        'Disabled. ${core.settings.getTrainerApp() is Zwift ? 'Virtual shifting and on screen navigation will not work.' : ''}',
-                      ),
-                    )
-                  else ...[
-                    Expanded(
-                      child: Text(
-                        isConnected
-                            ? "Connected"
-                            : "Waiting for connection. Choose BikeControl in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
-                      ),
-                    ),
-                    if (!isConnected) SmallProgressIndicator(),
-                  ],
-                ],
-              ),
+              title: 'Enable Zwift Controller (Bluetooth)',
+              description: !core.zwiftEmulator.isAdvertising
+                  ? 'Enables BikeControl to act as a Zwift-compatible controller.'
+                  : isConnected
+                  ? "Connected"
+                  : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
+              requirements: [if (Platform.isAndroid) BluetoothAdvertiseRequirement()],
             );
           },
         );

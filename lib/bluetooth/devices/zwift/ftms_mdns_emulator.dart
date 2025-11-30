@@ -1,21 +1,26 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dartx/dartx.dart';
 import 'package:mdns_dart/mdns_dart.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' show RideKeyPadStatus;
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 class FtmsMdnsEmulator {
-  late ServerSocket _server;
+  ServerSocket? _tcpServer;
+  MDNSServer? _server;
 
   Socket? _socket;
   var lastMessageId = 0;
 
-  Future<void> init() async {
+  bool get isConnected => _socket != null;
+  bool get isStarted => _server != null;
+
+  Future<void> startServer() async {
     print('Starting mDNS server...');
 
     // Get local IP
@@ -41,7 +46,7 @@ class FtmsMdnsEmulator {
 
     // Create service
     final service = await MDNSService.create(
-      instance: 'KICKR BIKE SHIFT B84D',
+      instance: 'KICKR BIKE PRO 61DD',
       service: '_wahoo-fitness-tnp._tcp',
       port: 36867,
       //hostName: 'KICKR BIKE SHIFT B84D.local',
@@ -56,7 +61,7 @@ class FtmsMdnsEmulator {
     print('Service: ${service.instance} at ${localIP.address}:${service.port}');
 
     // Start server
-    final server = MDNSServer(
+    _server = MDNSServer(
       MDNSServerConfig(
         zone: service,
         reusePort: true,
@@ -64,18 +69,22 @@ class FtmsMdnsEmulator {
       ),
     );
 
-    try {
-      await server.start();
-      print('Server started - advertising service!');
-    } finally {
-      await server.stop();
-      print('Server stopped');
-    }
+    await _server!.start();
+    print('Server started - advertising service!');
+  }
+
+  void stop() {
+    _tcpServer?.close();
+    _server?.stop();
+    _tcpServer = null;
+    _server = null;
+    _socket = null;
+    print('Stopped FtmsMdnsEmulator');
   }
 
   Future<void> _createTcpServer() async {
     try {
-      _server = await ServerSocket.bind(
+      _tcpServer = await ServerSocket.bind(
         InternetAddress.anyIPv6,
         36867,
         shared: true,
@@ -88,11 +97,11 @@ class FtmsMdnsEmulator {
       rethrow;
     }
     if (true) {
-      print('Server started on port ${_server.port}');
+      print('Server started on port ${_tcpServer!.port}');
     }
 
     // Accept connection
-    _server.listen(
+    _tcpServer!.listen(
       (Socket socket) {
         _socket = socket;
         if (true) {
@@ -206,35 +215,35 @@ class FtmsMdnsEmulator {
 
                   _write(socket, responseData);
 
-                  if (characteristicUUID == ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID.toLowerCase()) {
-                    final rideOnCommand = ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;
-                    if (characteristicData.contentEquals(rideOnCommand)) {
-                      print('Got RIDE ON command!');
+                  final response = core.zwiftEmulator.handleWriteRequest(
+                    characteristicUUID,
+                    Uint8List.fromList(characteristicData),
+                  );
 
-                      final seqNum = (lastMessageId + 1) % 256;
-                      lastMessageId = seqNum;
+                  if (response != null) {
+                    final seqNum = (lastMessageId + 1) % 256;
+                    lastMessageId = seqNum;
 
-                      final responseBody = [
-                        ...hexToBytes(ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID.toLowerCase().toNonDash()),
-                        ...rideOnCommand,
-                      ];
-                      final responseData = [
-                        // header
-                        ...Uint8List.fromList([
-                          msgVersion,
-                          FtmsMdnsConstants.DC_MESSAGE_CHARACTERISTIC_NOTIFICATION,
-                          seqNum,
-                          FtmsMdnsConstants.DC_RC_REQUEST_COMPLETED_SUCCESSFULLY,
-                          (responseBody.length >> 8) & 0xFF,
-                          responseBody.length & 0xFF,
-                        ]),
-                        // body
-                        ...responseBody,
-                      ];
+                    final responseBody = [
+                      ...hexToBytes(ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID.toLowerCase().toNonDash()),
+                      ...response,
+                    ];
+                    final responseData = [
+                      // header
+                      ...Uint8List.fromList([
+                        msgVersion,
+                        FtmsMdnsConstants.DC_MESSAGE_CHARACTERISTIC_NOTIFICATION,
+                        seqNum,
+                        FtmsMdnsConstants.DC_RC_REQUEST_COMPLETED_SUCCESSFULLY,
+                        (responseBody.length >> 8) & 0xFF,
+                        responseBody.length & 0xFF,
+                      ]),
+                      // body
+                      ...responseBody,
+                    ];
 
-                      // 0106050000180000000419ca465186e5fa29dcdd09d1526964654f6e0203
-                      _write(socket, responseData);
-                    }
+                    // 0106050000180000000419ca465186e5fa29dcdd09d1526964654f6e0203
+                    _write(socket, responseData);
                   }
                   return;
                 case FtmsMdnsConstants.DC_MESSAGE_ENABLE_CHARACTERISTIC_NOTIFICATIONS:
@@ -286,7 +295,7 @@ class FtmsMdnsEmulator {
     return res;
   }
 
-  Future<String> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
+  Future<ActionResult> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
     final button = switch (inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
@@ -302,7 +311,7 @@ class FtmsMdnsEmulator {
     };
 
     if (button == null) {
-      return 'Action ${inGameAction.name} not supported by Zwift Emulator';
+      return Error('Action ${inGameAction.name} not supported by Zwift Emulator');
     }
 
     final status = RideKeyPadStatus()
@@ -320,22 +329,21 @@ class FtmsMdnsEmulator {
 
     _write(_socket!, commandProto);
 
-    //final zero = _buildButtonNotify(Uint8List.fromList([0x23, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]));
-    //_write(_socket!, zero);
+    final zero = _buildButtonNotify(
+      Uint8List.fromList([
+        Opcode.CONTROLLER_NOTIFICATION.value,
+        0x08,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0x0F,
+      ]),
+    );
 
-    /*final data = ClickKeyPadStatus()
-      ..buttonMinus = PlayButtonStatus.ON
-      ..buttonPlus = PlayButtonStatus.OFF;
-
-    _write(_socket!, _buildButtonNotify([ZwiftConstants.CLICK_NOTIFICATION_MESSAGE_TYPE, ...data.writeToBuffer()]));*/
-
-    /*final data = PlayKeyPadStatus()
-      ..buttonShift = PlayButtonStatus.ON
-      ..rightPad = PlayButtonStatus.ON;
-
-    _write(_socket!, _buildButtonNotify([ZwiftConstants.PLAY_NOTIFICATION_MESSAGE_TYPE, ...data.writeToBuffer()]));*/
-
-    return 'Sent action: ${inGameAction.name}';
+    _write(_socket!, zero);
+    print('Sent action ${inGameAction.name} to Zwift Emulator');
+    return Success('Sent action: ${inGameAction.name}');
   }
 
   List<int> _buildButtonNotify(final List<int> data) {

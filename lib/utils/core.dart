@@ -6,6 +6,7 @@ import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_ble_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -28,6 +29,7 @@ class Core {
 
   late final whooshLink = WhooshLink();
   late final zwiftEmulator = ZwiftEmulator();
+  late final zwiftMdnsEmulator = FtmsMdnsEmulator();
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
 

@@ -118,6 +118,8 @@ abstract class BaseActions {
         return Future.value(core.whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
       } else if (core.whooshLink.isStarted.value) {
         return Future.value(Error('MyWhoosh Direct Connect not connected'));
+      } else if (core.zwiftMdnsEmulator.isConnected) {
+        return core.zwiftMdnsEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
       } else if (core.zwiftEmulator.isConnected.value) {
         return core.zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
       } else if (core.zwiftEmulator.isAdvertising) {
