@@ -1,21 +1,20 @@
 import 'dart:io';
 
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pbserver.dart' hide RideButtonMask;
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/title.dart';
-
-import 'protocol/zwift.pb.dart' show RideKeyPadStatus;
 
 class ZwiftEmulator {
   static final List<InGameAction> supportedActions = [
@@ -150,34 +149,15 @@ class ZwiftEmulator {
           _central = eventArgs.central;
           isConnected.value = true;
 
-          final characteristic = eventArgs.characteristic;
           final request = eventArgs.request;
-          final value = request.value;
-          print(
-            'Write request for characteristic: ${characteristic.uuid}',
-          );
-
-          switch (eventArgs.characteristic.uuid.toString().toUpperCase()) {
-            case ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID:
-              print(
-                'Handling write request for SYNC RX characteristic, value: ${value.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}\n${String.fromCharCodes(value)}',
-              );
-
-              final handshake = [...ZwiftConstants.RIDE_ON, ...ZwiftConstants.RESPONSE_START_CLICK_V2];
-              final handshakeAlternative = ZwiftConstants.RIDE_ON; // e.g. Rouvy
-
-              if (value.contentEquals(handshake) || value.contentEquals(handshakeAlternative)) {
-                print('Sending handshake');
-                await _peripheralManager.notifyCharacteristic(
-                  _central!,
-                  syncTxCharacteristic,
-                  value: ZwiftConstants.RIDE_ON,
-                );
-                onUpdate();
-              }
-              break;
-            default:
-              print('Unhandled write request for characteristic: ${eventArgs.characteristic.uuid}');
+          final response = handleWriteRequest(eventArgs.characteristic.uuid.toString(), request.value);
+          if (response != null) {
+            await _peripheralManager.notifyCharacteristic(
+              _central!,
+              syncTxCharacteristic,
+              value: response,
+            );
+            onUpdate();
           }
 
           await _peripheralManager.respondWriteRequest(request);
@@ -240,7 +220,7 @@ class ZwiftEmulator {
       // Unknown Service
       await _peripheralManager.addService(
         GATTService(
-          uuid: UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT),
+          uuid: UUID.fromString(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID),
           isPrimary: true,
           characteristics: [
             _asyncCharacteristic!,
@@ -283,9 +263,9 @@ class ZwiftEmulator {
     }
 
     final advertisement = Advertisement(
-      name: 'BikeControl',
+      name: 'KICKR BIKE PRO 61DD',
       serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
-      serviceData: {
+      /*serviceData: {
         UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),
       },
       manufacturerSpecificData: [
@@ -293,7 +273,7 @@ class ZwiftEmulator {
           id: 0x094A,
           data: Uint8List.fromList([ZwiftConstants.CLICK_V2_LEFT_SIDE, 0x13, 0x37]),
         ),
-      ],
+      ],*/
     );
     print('Starting advertising with Zwift service...');
 
@@ -339,11 +319,124 @@ class ZwiftEmulator {
       ...bytes,
     ]);
 
-    _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: commandProto);
+    _peripheralManager.notifyCharacteristic(
+      _central!,
+      _asyncCharacteristic!,
+      value: commandProto,
+    );
 
-    final zero = Uint8List.fromList([0x23, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
+    final zero = Uint8List.fromList([
+      Opcode.CONTROLLER_NOTIFICATION.value,
+      0x08,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0x0F,
+    ]);
     _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
+    print('Sent action ${inGameAction.name} to Zwift Emulator');
     return Success('Sent action: ${inGameAction.name}');
+  }
+
+  Uint8List? handleWriteRequest(String characteristic, Uint8List value) {
+    print(
+      'Write request for characteristic: $characteristic',
+    );
+
+    switch (characteristic.toUpperCase()) {
+      case ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID:
+        print(
+          'Handling write request for SYNC RX characteristic, value: ${value.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}\n${String.fromCharCodes(value)}',
+        );
+
+        Opcode? opcode = Opcode.valueOf(value[0]);
+        Uint8List message = value.sublist(1);
+
+        switch (opcode) {
+          case Opcode.RIDE_ON:
+            print('Sending handshake');
+            return ZwiftConstants.RIDE_ON;
+          case Opcode.GET:
+            final response = Get.fromBuffer(message);
+            final dataObjectType = DO.valueOf(response.dataObjectId);
+            print('Received GET for data object: $dataObjectType');
+            switch (dataObjectType) {
+              case DO.PAGE_DEV_INFO:
+                /*final devInfo = DevInfoPage(
+                        deviceName: 'Zwift Click'.codeUnits,
+                        deviceUid: '0B-58D15ABB4363'.codeUnits,
+                        manufacturerId: 0x01,
+                        serialNumber: '58D15ABB4363'.codeUnits,
+                        protocolVersion: 515,
+                        systemFwVersion: [0, 0, 1, 1],
+                        productId: 11,
+                        systemHwRevision: 'B.0'.codeUnits,
+                        deviceCapabilities: [DevInfoPage_DeviceCapabilities(deviceType: 2, capabilities: 1)],
+                      );
+                      final serverInfoResponse = Uint8List.fromList([
+                        Opcode.GET_RESPONSE.value,
+                        ...GetResponse(
+                          dataObjectId: DO.PAGE_DEV_INFO.value,
+                          dataObjectData: devInfo.writeToBuffer(),
+                        ).writeToBuffer(),
+                      ]);*/
+                // 3C080012460A440883041204000001011A0B5A7769667420436C69636B320F30422D3538443135414242343336333A03422E304204080210014801500B5A0C353844313541424234333633
+                final expected = Uint8List.fromList(
+                  hexToBytes(
+                    '3C080012460A440883041204000001011A0B5A7769667420436C69636B320F30422D3538443135414242343336333A03422E304204080210014801500B5A0C353844313541424234333633',
+                  ),
+                );
+                return expected;
+              case DO.PAGE_CLIENT_SERVER_CONFIGURATION:
+                final response = Uint8List.fromList([
+                  Opcode.GET_RESPONSE.value,
+                  ...GetResponse(
+                    dataObjectId: DO.PAGE_CLIENT_SERVER_CONFIGURATION.value,
+                    dataObjectData: ClientServerCfgPage(
+                      notifications: 0,
+                    ).writeToBuffer(),
+                  ).writeToBuffer(),
+                ]);
+                return response;
+              case DO.PAGE_CONTROLLER_INPUT_CONFIG:
+                final response = Uint8List.fromList([
+                  Opcode.GET_RESPONSE.value,
+                  ...GetResponse(
+                    dataObjectId: DO.PAGE_CONTROLLER_INPUT_CONFIG.value,
+                    dataObjectData: ControllerInputConfigPage(
+                      supportedDigitalInputs: 4607,
+                      supportedAnalogInputs: 0,
+                      analogDeadZone: [],
+                      analogInputRange: [],
+                    ).writeToBuffer(),
+                  ).writeToBuffer(),
+                ]);
+                return response;
+              case DO.BATTERY_STATE:
+                final response = Uint8List.fromList([
+                  Opcode.GET_RESPONSE.value,
+                  ...GetResponse(
+                    dataObjectId: DO.BATTERY_STATE.value,
+                    dataObjectData: BatteryStatus(
+                      chgState: ChargingState.CHARGING_IDLE,
+                      percLevel: 50,
+                      timeToEmpty: 0,
+                      timeToFull: 0,
+                    ).writeToBuffer(),
+                  ).writeToBuffer(),
+                ]);
+                return response;
+              default:
+                print('Unhandled data object type for GET: $dataObjectType');
+            }
+            break;
+        }
+        break;
+      default:
+        print('Unhandled write request for characteristic: $characteristic $value');
+    }
+    return null;
   }
 }
 

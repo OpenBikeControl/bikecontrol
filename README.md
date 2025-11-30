@@ -30,11 +30,10 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 
 ## Supported Apps
 - MyWhoosh
+- Zwift
 - TrainingPeaks Virtual / indieVelo
 - Biketerra.com
 - Rouvy
-- Zwift 
-  - running BikeControl on Android or Windows is required to act as a "Controllable" in Zwift - iOS and macOS are not able to do so
 - any other!
   - You can add custom mapping and adjust touch points or keyboard shortcuts to your liking
 
@@ -46,6 +45,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Shimano Di2
   - Configure your levers to use D-Fly channels with Shimano E-Tube app
 - Wahoo Kickr Bike Shift
+- Wahoo Kickr Bike Pro
 - CYCPLUS BC2 Virtual Shifter
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)

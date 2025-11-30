@@ -162,7 +162,7 @@ enum Target {
   bool get isBeta {
     final supportedApp = core.settings.getTrainerApp();
 
-    if (supportedApp is Zwift && !(Platform.isIOS || Platform.isMacOS)) {
+    if (supportedApp is Zwift) {
       // everything is supported, this device is not compatible anyway
       return false;
     }

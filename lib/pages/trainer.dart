@@ -294,7 +294,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
             ),
           if (core.logic.showMyWhooshLink) Card(child: MyWhooshLinkTile()),
-          if (core.logic.showZwiftEmulator)
+          if (core.logic.showZwiftEmulator) ...[
             Card(
               child: ZwiftTile(
                 onUpdate: () {
@@ -305,6 +305,27 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 },
               ),
             ),
+            Card(
+              child: ConnectionMethod(
+                title: 'Enable Zwift Controller (Network)',
+                description: !core.zwiftMdnsEmulator.isStarted
+                    ? 'Enables BikeControl to act as a Zwift-compatible controller.'
+                    : core.zwiftMdnsEmulator.isConnected
+                    ? "Connected"
+                    : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
+                isStarted: core.zwiftMdnsEmulator.isStarted,
+                onChange: (start) {
+                  if (start) {
+                    core.zwiftMdnsEmulator.startServer();
+                  } else {
+                    core.zwiftMdnsEmulator.stop();
+                  }
+                  setState(() {});
+                },
+                requirements: [],
+              ),
+            ),
+          ],
 
           if (core.logic.showRemote)
             Card(

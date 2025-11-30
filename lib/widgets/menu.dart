@@ -6,9 +6,9 @@ import 'package:flutter/material.dart' show showLicensePage;
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:swift_control/pages/button_simulator.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -171,27 +171,14 @@ class BKMenuButton extends StatelessWidget {
           children: [
             if (kDebugMode) ...[
               MenuButton(
-                subMenu: ControllerButton.values
-                    .map(
-                      (e) => MenuButton(
-                        child: Text(e.name),
-                        onPressed: (c) {
-                          Future.delayed(Duration(seconds: 2)).then((_) async {
-                            if (core.connection.devices.isNotEmpty) {
-                              core.connection.devices.firstOrNull?.handleButtonsClicked([e]);
-                              core.connection.devices.firstOrNull?.handleButtonsClicked([]);
-                            } else {
-                              core.actionHandler.performAction(e);
-                              /*final point = Offset(300, 300);
-                              await keyPressSimulator.simulateMouseClickDown(point);
-                              // slight move to register clicks on some apps, see issue #116
-                              await keyPressSimulator.simulateMouseClickUp(point);*/
-                            }
-                          });
-                        },
-                      ),
-                    )
-                    .toList(),
+                onPressed: (_) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (c) => ButtonSimulator(),
+                    ),
+                  );
+                },
                 child: Text('Simulate buttons'),
               ),
               MenuButton(
