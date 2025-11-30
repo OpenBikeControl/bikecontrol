@@ -112,7 +112,7 @@ class CoreLogic {
     } else if (showObpBluetoothEmulator) {
       return core.obpBluetoothEmulator.isConnected.value != null;
     } else if (showZwiftEmulator) {
-      return core.zwiftEmulator.isConnected.value;
+      return core.zwiftEmulator.isConnected.value || core.zwiftMdnsEmulator.isConnected;
     } else if (showRemote && core.actionHandler is RemoteActions) {
       return (core.actionHandler as RemoteActions).isConnected;
     } else {
