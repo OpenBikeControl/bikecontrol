@@ -113,12 +113,8 @@ abstract class BaseActions {
     if (keyPair.inGameAction != null) {
       if (whooshLink.isConnected.value) {
         return Future.value(whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
-      } else if (whooshLink.isStarted.value) {
-        return Future.value(Error('MyWhoosh Direct Connect not connected'));
       } else if (zwiftEmulator.isConnected.value) {
         return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
-      } else if (zwiftEmulator.isAdvertising) {
-        return Future.value(Error('Zwift Emulator not connected'));
       }
     }
     return null;
