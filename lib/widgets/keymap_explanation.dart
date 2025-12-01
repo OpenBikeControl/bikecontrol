@@ -4,7 +4,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
@@ -78,7 +77,9 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                       child: Text(
                         core.connection.devices.isEmpty
                             ? context.i18n.deviceButton('Device')
-                            : context.i18n.deviceButton(core.connection.devices.joinToString(transform: (d) => d.name.screenshot)),
+                            : context.i18n.deviceButton(
+                                core.connection.devices.joinToString(transform: (d) => d.name.screenshot),
+                              ),
                       ).small,
                     ),
                     TableCell(

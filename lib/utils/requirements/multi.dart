@@ -7,7 +7,7 @@ import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
-import 'package:swift_control/gen/app_localizations.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
@@ -94,7 +94,11 @@ class BluetoothTurnedOn extends PlatformRequirement {
 
 class UnsupportedPlatform extends PlatformRequirement {
   UnsupportedPlatform()
-    : super(kIsWeb ? AppLocalizations.current.browserNotSupported : AppLocalizations.current.platformNotSupported('platform')) {
+    : super(
+        kIsWeb
+            ? AppLocalizations.current.browserNotSupported
+            : AppLocalizations.current.platformNotSupported('platform'),
+      ) {
     status = false;
   }
 
@@ -183,20 +187,26 @@ enum Target {
         : '';
 
     return switch (this) {
-      Target.thisDevice when !isCompatible =>
-        AppLocalizations.current.platformRestrictionOtherDevicesOnly(appName),
+      Target.thisDevice when !isCompatible => AppLocalizations.current.platformRestrictionOtherDevicesOnly(appName),
       Target.otherDevice when !isCompatible => AppLocalizations.current.platformRestrictionNotSupported,
       Target.thisDevice => AppLocalizations.current.runAppOnThisDevice(appName),
-      Target.iOS =>
-        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'an Apple device', preferredConnectionMethod),
-      Target.android =>
-        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'an Android device', preferredConnectionMethod),
-      Target.macOS =>
-        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'a Mac', preferredConnectionMethod),
-      Target.windows =>
-        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'a Windows PC', preferredConnectionMethod),
-      Target.otherDevice =>
-        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'another device', ''),
+      Target.iOS => AppLocalizations.current.runAppOnPlatformRemotely(
+        appName,
+        'an Apple device',
+        preferredConnectionMethod,
+      ),
+      Target.android => AppLocalizations.current.runAppOnPlatformRemotely(
+        appName,
+        'an Android device',
+        preferredConnectionMethod,
+      ),
+      Target.macOS => AppLocalizations.current.runAppOnPlatformRemotely(appName, 'a Mac', preferredConnectionMethod),
+      Target.windows => AppLocalizations.current.runAppOnPlatformRemotely(
+        appName,
+        'a Windows PC',
+        preferredConnectionMethod,
+      ),
+      Target.otherDevice => AppLocalizations.current.runAppOnPlatformRemotely(appName, 'another device', ''),
     };
   }
 
@@ -206,12 +216,9 @@ enum Target {
       return null;
     }
     return switch (this) {
-      Target.android when Platform.isAndroid =>
-        AppLocalizations.current.selectThisDeviceWarning('Android'),
-      Target.macOS when Platform.isMacOS =>
-        AppLocalizations.current.selectThisDeviceWarning('macOS'),
-      Target.windows when Platform.isWindows =>
-        AppLocalizations.current.selectThisDeviceWarning('Windows'),
+      Target.android when Platform.isAndroid => AppLocalizations.current.selectThisDeviceWarning('Android'),
+      Target.macOS when Platform.isMacOS => AppLocalizations.current.selectThisDeviceWarning('macOS'),
+      Target.windows when Platform.isWindows => AppLocalizations.current.selectThisDeviceWarning('Windows'),
       Target.android => AppLocalizations.current.recommendDownloadBikeControl('Android'),
       Target.macOS => AppLocalizations.current.recommendDownloadBikeControl('macOS'),
       Target.windows => AppLocalizations.current.recommendDownloadBikeControl('Windows'),
@@ -445,7 +452,10 @@ class TargetRequirement extends PlatformRequirement {
           ],
         );
       } else {
-        return Builder(builder: (context) => Text(AppLocalizations.current.appNameOnTargetName(trainer.name, target.getTitle(context))));
+        return Builder(
+          builder: (context) =>
+              Text(AppLocalizations.current.appNameOnTargetName(trainer.name, target.getTitle(context))),
+        );
       }
     } else {
       return null;

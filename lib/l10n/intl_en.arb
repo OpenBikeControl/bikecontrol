@@ -1,16 +1,14 @@
 {
   "@@locale": "en",
-  
-  "appName": "BikeControl",
-  
+
   "controllers": "Controllers",
   "trainer": "Trainer",
   "configuration": "Configuration",
   "logs": "Logs",
-  
+
   "connectControllers": "Connect Controllers",
   "connectedControllers": "Connected Controllers",
-  
+
   "scanningForDevices": "Scanning for devices... Make sure they are powered on and in range and not connected to another device.",
   "scan": "SCAN",
   "enablePermissions": "Enable Permissions",
@@ -20,18 +18,18 @@
   "troubleshootingGuide": "Troubleshooting Guide",
   "enableMediaKeyDetection": "Enable Media Key Detection",
   "mediaKeyDetectionTooltip": "Enable this option to allow BikeControl to detect bluetooth remotes.\nIn order to do so BikeControl needs to act as a media player.",
-  
+
   "nameChangeNotice": "SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!",
   "moreInformation": "More Information",
-  
+
   "manageIgnoredDevices": "Manage Ignored Devices",
   "ignoredDevices": "Ignored Devices",
   "noIgnoredDevices": "No ignored devices.",
   "removeFromIgnoredList": "Remove from ignored list",
   "close": "Close",
-  
+
   "connectToTrainerApp": "Connect to Trainer app",
-  
+
   "trainerSetup": "Trainer setup: {appName} on {targetName}",
   "@trainerSetup": {
     "placeholders": {
@@ -41,7 +39,7 @@
   },
   "setupTrainer": "Setup Trainer",
   "adjust": "Adjust",
-  
+
   "selectTrainerApp": "Select Trainer App",
   "selectTrainerAppPlaceholder": "Select Trainer app",
   "selectTargetDevice": "Select Target device",
@@ -57,14 +55,14 @@
       "appName": { "type": "String" }
     }
   },
-  
+
   "targetThisDevice": "This Device",
   "targetOtherDevice": "Other Device",
   "targetIOS": "iPhone / iPad / Apple TV",
   "targetAndroid": "Android Device",
   "targetMacOS": "Mac",
   "targetWindows": "Windows PC",
-  
+
   "runAppOnThisDevice": "Run {appName} on this device.",
   "@runAppOnThisDevice": {
     "placeholders": {
@@ -86,7 +84,7 @@
     }
   },
   "platformRestrictionNotSupported": "Due to platform restrictions this scenario is not supported.",
-  
+
   "selectThisDeviceWarning": "Select 'This device' unless you want to control another {platform} device. Are you sure?",
   "@selectThisDeviceWarning": {
     "placeholders": {
@@ -99,10 +97,10 @@
       "platform": { "type": "String" }
     }
   },
-  
+
   "errorStartingOpenBikeControlServer": "Error starting OpenBikeControl server.",
   "errorStartingOpenBikeControlBluetoothServer": "Error starting OpenBikeControl Bluetooth server.",
-  
+
   "enableAutoRotation": "Enable auto-rotation on your device to make sure the app works correctly.",
   "miuiDeviceDetected": "MIUI Device Detected",
   "miuiWarningDescription": "Your device is running MIUI, which is known to aggressively kill background services and accessibility services.",
@@ -111,10 +109,10 @@
   "miuiEnableAutostart": "• Enable autostart for BikeControl",
   "miuiLockInRecentApps": "• Lock the app in recent apps",
   "viewDetailedInstructions": "View Detailed Instructions",
-  
+
   "recommendedConnectionMethods": "Recommended Connection Methods",
   "otherConnectionMethods": "Other Connection Methods",
-  
+
   "connectUsingBluetooth": "Connect using Bluetooth",
   "connectedTo": "Connected to {appId}",
   "@connectedTo": {
@@ -129,7 +127,7 @@
       "appName": { "type": "String" }
     }
   },
-  
+
   "connectDirectlyOverNetwork": "Connect directly over Network",
   "letsAppConnectOverNetwork": "Lets {appName} connect directly over the Network. Choose BikeControl in the connection screen.",
   "@letsAppConnectOverNetwork": {
@@ -137,14 +135,14 @@
       "appName": { "type": "String" }
     }
   },
-  
+
   "connectUsingMyWhooshLink": "Connect using MyWhoosh \"Link\"",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" connected",
   "checkMyWhooshConnectionScreen": "Check the connection screen in MyWhoosh to see if \"Link\" is connected.",
   "myWhooshLinkDescriptionRemote": "Allows you to connect to MyWhoosh over the network, using the \"Link\" connection. The MyWhoosh Link companion app must NOT be running at the same time.",
   "myWhooshLinkDescriptionLocal": "Optional - allows you to do some additional features such as Emotes and turn directions. The MyWhoosh Link companion app must NOT be running at the same time.",
   "errorStartingMyWhooshLink": "Error starting MyWhoosh Link server. Please make sure the \"MyWhoosh Link\" app is not already running on this device.",
-  
+
   "enableZwiftControllerBluetooth": "Enable Zwift Controller (Bluetooth)",
   "enableZwiftControllerNetwork": "Enable Zwift Controller (Network)",
   "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
@@ -155,7 +153,7 @@
       "appName": { "type": "String" }
     }
   },
-  
+
   "controlAppUsingModes": "Control {appName} using {modes}",
   "@controlAppUsingModes": {
     "placeholders": {
@@ -170,7 +168,7 @@
     }
   },
   "accessibilityServiceNotRunning": "Accessibility Service is not running.\nFollow instructions at",
-  
+
   "enablePairingProcess": "Enable Pairing Process",
   "pairingDescription": "Pairing allows full customizability, but may not work on all devices.",
   "pairingInstructionsIOS": "On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.",
@@ -180,9 +178,9 @@
       "targetName": { "type": "String" }
     }
   },
-  
+
   "adjustControllerButtons": "Adjust Controller Buttons",
-  
+
   "customizeControllerButtons": "Customize Controller buttons for {appName}",
   "@customizeControllerButtons": {
     "placeholders": {
@@ -194,7 +192,7 @@
   "customizeKeymapHint": "Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)",
   "connectControllerToPreview": "Connect a controller device to preview and customize the keymap.",
   "enableVibrationFeedback": "Enable vibration feedback when shifting gears",
-  
+
   "deviceButton": "{deviceName} button",
   "@deviceButton": {
     "placeholders": {
@@ -204,7 +202,7 @@
   "action": "Action",
   "noButtonAssigned": "No button assigned for your connected device",
   "noActionAssigned": "No action assigned",
-  
+
   "openBikeControlActions": "OpenBikeControl actions",
   "appIdActions": "{appId} actions",
   "@appIdActions": {
@@ -228,21 +226,21 @@
   "setting": "Setting",
   "longPressMode": "Long Press Mode (vs. repeating)",
   "unassignAction": "Unassign action",
-  
+
   "playPause": "Play/Pause",
   "stop": "Stop",
   "previous": "Previous",
   "next": "Next",
   "volumeUp": "Volume Up",
   "volumeDown": "Volume Down",
-  
+
   "createdNewCustomProfile": "Created a new custom profile: {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": { "type": "String" }
     }
   },
-  
+
   "manageProfile": "Manage Profile",
   "rename": "Rename",
   "duplicate": "Duplicate",
@@ -251,7 +249,7 @@
   "delete": "Delete",
   "cancel": "Cancel",
   "create": "Create",
-  
+
   "newCustomProfile": "New Custom Profile",
   "profileName": "Profile name",
   "renameProfile": "Rename Profile",
@@ -280,7 +278,7 @@
       "profileName": { "type": "String" }
     }
   },
-  
+
   "pressButtonOnClickDevice": "Press a button on your Click device",
   "pressKeyToAssign": "Press a key on your keyboard to assign to {buttonName}",
   "@pressKeyToAssign": {
@@ -290,7 +288,7 @@
   },
   "ok": "OK",
   "waiting": "Waiting...",
-  
+
   "touchAreaInstructions": "1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation\n2. Load the screenshot with the button below\n3. The app is automatically set to landscape orientation for accurate mapping\n4. Press a button on your Click device to create a touch area\n5. Drag the touch areas to the desired position on the screenshot\n6. Save and close this screen",
   "loadScreenshotForPlacement": "Load in-game screenshot for placement",
   "save": "Save",
@@ -298,19 +296,19 @@
   "reset": "Reset",
   "dragToReposition": "Drag to reposition",
   "longPress": "long\npress",
-  
+
   "videoInstructions": "Video Instructions",
   "theFollowingPermissionsRequired": "The following permissions are required:",
   "granted": "Granted",
   "grant": "Grant",
   "choosePreferredConnectionMethod": "Choose your preferred connection method",
-  
+
   "showDonation": "Show your appreciation by donating",
   "donateViaCreditCard": "via Credit Card, Google Pay, Apple Pay and others",
   "donateByBuyingFromPlayStore": "by buying the app from Play Store",
   "donateViaPaypal": "via PayPal",
   "leaveAReview": "Leave a Review",
-  
+
   "provideFeedback": "Provide Feedback",
   "getSupport": "Get Support",
   "helpRequested": "Help requested for BikeControl v{version}",
@@ -325,13 +323,13 @@
       "logPath": { "type": "String" }
     }
   },
-  
+
   "simulateButtons": "Simulate buttons",
   "continueAction": "Continue",
-  
+
   "changelog": "Changelog",
   "license": "License",
-  
+
   "whatsNew": "What's New",
   "version": "Version {version}",
   "@version": {
@@ -340,20 +338,20 @@
     }
   },
   "gotIt": "Got it!",
-  
+
   "logViewer": "Log Viewer",
   "share": "Share",
   "logsHaveBeenCopiedToClipboard": "Logs have been copied to clipboard",
   "logsAreAlsoAt": "Logs are also at",
   "pathCopiedToClipboard": "Path has been copied to clipboard",
-  
+
   "appStartError": "There was an error starting the App. Please contact support:\n{error}",
   "@appStartError": {
     "placeholders": {
       "error": { "type": "String" }
     }
   },
-  
+
   "sideloaded": "(sideloaded)",
   "newVersionAvailable": "New version available",
   "newVersionAvailableWithVersion": "New version available: {version}",
@@ -372,7 +370,7 @@
       "error": { "type": "String" }
     }
   },
-  
+
   "connection": "Connection",
   "disconnected": "Disconnected",
   "battery": "Battery",
@@ -384,7 +382,7 @@
     }
   },
   "signal": "Signal",
-  
+
   "accessibilityServicePermissionRequired": "Accessibility Service Permission Required",
   "accessibilityServiceExplanation": "BikeControl needs to use Android's AccessibilityService API to function properly.",
   "whyPermissionNeeded": "Why is this permission needed?",
@@ -399,7 +397,7 @@
   "mustChooseAllowOrDeny": "You must choose to either Allow or Deny this permission to continue.",
   "deny": "Deny",
   "allow": "Allow",
-  
+
   "allowAccessibilityService": "Allow Accessibility Service",
   "accessibilityDescription": "BikeControl needs accessibility permission to control your training apps.",
   "allowBluetoothScan": "Allow Bluetooth Scan",
@@ -409,7 +407,7 @@
   "notificationDescription": "This keeps the app alive in background",
   "allowsRunningInBackground": "Allows BikeControl to keep running in background",
   "disconnectDevices": "Disconnect Devices",
-  
+
   "keyboardAccess": "Keyboard access",
   "enableKeyboardAccessMessage": "Enable keyboard access in the following screen for BikeControl. If you don't see BikeControl, please add it manually.",
   "bluetoothAdvertiseAccess": "Bluetooth Advertise access",
@@ -425,15 +423,15 @@
   "selectTrainerAppAndTarget": "Select Trainer App & Target Device",
   "selectTargetDeviceDescription": "Select your Target Device where you want to run your trainer app on",
   "requirement": "Requirement",
-  
+
   "needHelpClickHelp": "Need help? Click on the",
   "needHelpDontHesitate": "button on top and don't hesitate to contact us.",
-  
+
   "touchSimulationForegroundMessage": "To simulate touches the app needs to stay in the foreground.",
-  
+
   "useCustomKeymapForButton": "Use a custom keymap to support the",
   "button": "button.",
-  
+
   "openBikeControlConnection": " e.g. by using OpenBikeControl connection",
   "myWhooshDirectConnection": " e.g. by using MyWhoosh Direct Connect",
 

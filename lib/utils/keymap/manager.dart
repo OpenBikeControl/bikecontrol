@@ -1,7 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
@@ -124,7 +123,10 @@ class KeymapManager {
                       }
                       onDone();
                     },
-                    child: Text(context.i18n.delete, style: TextStyle(color: Theme.of(context).colorScheme.destructive)),
+                    child: Text(
+                      context.i18n.delete,
+                      style: TextStyle(color: Theme.of(context).colorScheme.destructive),
+                    ),
                   ),
               ],
             ),

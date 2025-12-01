@@ -9,9 +9,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
@@ -198,7 +198,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       left: position.dx,
       top: position.dy,
       child: Tooltip(
-        message: AppLocalizations.current.dragToReposition,
+        message: context.i18n.dragToReposition,
         child: AnimatedOpacity(
           opacity: _showFaded && widget.keyPair != keyPair ? 0.2 : 1.0,
           duration: Duration(milliseconds: 300),
@@ -315,14 +315,14 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                         children: [
                           IgnorePointer(
                             child: Text(
-                              AppLocalizations.current.touchAreaInstructions,
+                              context.i18n.touchAreaInstructions,
                             ),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               _pickScreenshot();
                             },
-                            child: Text(AppLocalizations.current.loadScreenshotForPlacement),
+                            child: Text(context.i18n.loadScreenshotForPlacement),
                           ),
                         ],
                       ),
@@ -338,18 +338,18 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                       ElevatedButton.icon(
                         onPressed: _saveAndClose,
                         icon: const Icon(Icons.save),
-                        label: Text(AppLocalizations.current.save),
+                        label: Text(context.i18n.save),
                       ),
                       PopupMenuButton(
                         itemBuilder: (c) => [
                           PopupMenuItem(
-                            child: Text(AppLocalizations.current.chooseAnotherScreenshot),
+                            child: Text(context.i18n.chooseAnotherScreenshot),
                             onTap: () {
                               _pickScreenshot();
                             },
                           ),
                           PopupMenuItem(
-                            child: Text(AppLocalizations.current.reset),
+                            child: Text(context.i18n.reset),
                             onTap: () {
                               _backgroundImage = null;
 
@@ -417,11 +417,11 @@ class KeypairExplanation extends StatelessWidget {
               keyPair.logicalKey?.keyLabel ?? 'Unknown',
             ].joinToString(separator: '+'),
           ),
-          if (keyPair.isLongPress) Text(AppLocalizations.current.longPress, style: TextStyle(fontSize: 10)),
+          if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
         ] else ...[
           if (!withKey && keyPair.touchPosition != Offset.zero)
             _KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
-          if (keyPair.isLongPress) Text(AppLocalizations.current.longPress, style: TextStyle(fontSize: 10)),
+          if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
         ],
       ],
     );

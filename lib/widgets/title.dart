@@ -8,7 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
-import 'package:swift_control/gen/app_localizations.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/gradient_text.dart';
@@ -139,7 +139,7 @@ class _AppTitleState extends State<AppTitle> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GradientText(AppLocalizations.current.appName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+        GradientText('BikeControl', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
         if (packageInfoValue != null)
           Text(
             'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' ${AppLocalizations.current.sideloaded}' : ''}',

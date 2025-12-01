@@ -1,7 +1,6 @@
-import 'package:flutter/widgets.dart';
-import 'package:swift_control/gen/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:swift_control/gen/l10n.dart';
 
-/// Extension to access AppLocalizations from BuildContext
-extension AppLocalizationsExtension on BuildContext {
+extension Intl on BuildContext {
   AppLocalizations get i18n => AppLocalizations.of(this);
 }

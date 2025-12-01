@@ -7,10 +7,10 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/button_simulator.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,9 +28,9 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               builder: (c) => DropdownMenu(
                 children: [
                   if ((!Platform.isIOS && !Platform.isMacOS)) ...[
-                    MenuLabel(child: Text(AppLocalizations.current.showDonation)),
+                    MenuLabel(child: Text(context.i18n.showDonation)),
                     MenuButton(
-                      child: Text(AppLocalizations.current.donateViaCreditCard),
+                      child: Text(context.i18n.donateViaCreditCard),
                       onPressed: (c) {
                         final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
                         final link = switch (currency.currencyName) {
@@ -42,20 +42,20 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                     ),
                     if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
                       MenuButton(
-                        child: Text(AppLocalizations.current.donateByBuyingFromPlayStore),
+                        child: Text(context.i18n.donateByBuyingFromPlayStore),
                         onPressed: (c) {
                           launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
                         },
                       ),
                     MenuButton(
-                      child: Text(AppLocalizations.current.donateViaPaypal),
+                      child: Text(context.i18n.donateViaPaypal),
                       onPressed: (c) {
                         launchUrlString('https://paypal.me/boni');
                       },
                     ),
                   ],
                   MenuButton(
-                    child: Text(AppLocalizations.current.leaveAReview),
+                    child: Text(context.i18n.leaveAReview),
                     onPressed: (c) async {
                       final InAppReview inAppReview = InAppReview.instance;
 
@@ -88,7 +88,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               builder: (c) => DropdownMenu(
                 children: [
                   MenuButton(
-                    child: Text(AppLocalizations.current.troubleshootingGuide),
+                    child: Text(context.i18n.troubleshootingGuide),
                     onPressed: (c) {
                       Navigator.push(
                         context,
@@ -97,7 +97,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                     },
                   ),
                   MenuButton(
-                    child: Text(AppLocalizations.current.provideFeedback),
+                    child: Text(context.i18n.provideFeedback),
                     onPressed: (c) {
                       launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
                     },
@@ -105,19 +105,19 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                   MenuDivider(),
                   if (!kIsWeb)
                     MenuButton(
-                      child: Text(AppLocalizations.current.getSupport),
+                      child: Text(context.i18n.getSupport),
                       onPressed: (c) {
                         final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
                         final suffix = isFromStore ? '' : '-sw';
 
                         String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
                         String subject = Uri.encodeComponent(
-                          AppLocalizations.current.helpRequested(packageInfoValue?.version ?? ''),
+                          context.i18n.helpRequested(packageInfoValue?.version ?? ''),
                         );
                         String body = Uri.encodeComponent("""
                 ${debugText()}
 
-${AppLocalizations.current.attachLogFile(File('${Directory.current.path}/app.logs').path)}""");
+${context.i18n.attachLogFile(File('${Directory.current.path}/app.logs').path)}""");
                         Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
 
                         launchUrl(mail);
@@ -145,7 +145,7 @@ String debugText() {
 ---
 App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
 Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
-Target: ${core.settings.getLastTarget()?.title ?? '-'}
+Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Logs: 
@@ -176,10 +176,10 @@ class BKMenuButton extends StatelessWidget {
                     ),
                   );
                 },
-                child: Text(AppLocalizations.current.simulateButtons),
+                child: Text(context.i18n.simulateButtons),
               ),
               MenuButton(
-                child: Text(AppLocalizations.current.continueAction),
+                child: Text(context.i18n.continueAction),
                 onPressed: (c) {
                   core.connection.addDevices([
                     ZwiftClickV2(
@@ -195,7 +195,7 @@ class BKMenuButton extends StatelessWidget {
                 },
               ),
               MenuButton(
-                child: Text(AppLocalizations.current.reset),
+                child: Text(context.i18n.reset),
                 onPressed: (c) async {
                   await core.settings.reset();
                 },
@@ -204,19 +204,19 @@ class BKMenuButton extends StatelessWidget {
             ],
             if (openLogs != null)
               MenuButton(
-                child: Text(AppLocalizations.current.logs),
+                child: Text(context.i18n.logs),
                 onPressed: (c) {
                   openLogs!();
                 },
               ),
             MenuButton(
-              child: Text(AppLocalizations.current.changelog),
+              child: Text(context.i18n.changelog),
               onPressed: (c) {
                 Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
               },
             ),
             MenuButton(
-              child: Text(AppLocalizations.current.license),
+              child: Text(context.i18n.license),
               onPressed: (c) {
                 showLicensePage(context: context);
               },

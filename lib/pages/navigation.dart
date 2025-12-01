@@ -2,7 +2,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/trainer.dart';
@@ -304,7 +303,9 @@ class _NavigationState extends State<Navigation> {
       ),
       enabled: _isPageEnabled(page),
       label: Text(
-        page == BCPage.trainer ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context) : page.getTitle(context),
+        page == BCPage.trainer
+            ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
+            : page.getTitle(context),
       ),
       child: _buildIcon(page),
     );

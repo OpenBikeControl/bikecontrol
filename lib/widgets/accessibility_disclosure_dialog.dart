@@ -1,5 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/app_localizations.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 
 class AccessibilityDisclosureDialog extends StatelessWidget {
   final VoidCallback onAccept;
@@ -16,39 +16,39 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
     return PopScope(
       canPop: false, // Prevent back navigation from dismissing dialog
       child: AlertDialog(
-        title: Text(AppLocalizations.current.accessibilityServicePermissionRequired),
+        title: Text(context.i18n.accessibilityServicePermissionRequired),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.current.accessibilityServiceExplanation,
+                context.i18n.accessibilityServiceExplanation,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
-              Text(AppLocalizations.current.whyPermissionNeeded),
+              Text(context.i18n.whyPermissionNeeded),
               SizedBox(height: 8),
-              Text(AppLocalizations.current.accessibilityReasonTouch),
-              Text(AppLocalizations.current.accessibilityReasonWindow),
-              Text(AppLocalizations.current.accessibilityReasonControl),
+              Text(context.i18n.accessibilityReasonTouch),
+              Text(context.i18n.accessibilityReasonWindow),
+              Text(context.i18n.accessibilityReasonControl),
               SizedBox(height: 16),
               Text(
-                AppLocalizations.current.howBikeControlUsesPermission,
+                context.i18n.howBikeControlUsesPermission,
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 8),
-              Text(AppLocalizations.current.accessibilityUsageGestures),
-              Text(AppLocalizations.current.accessibilityUsageMonitor),
-              Text(AppLocalizations.current.accessibilityUsageNoData),
+              Text(context.i18n.accessibilityUsageGestures),
+              Text(context.i18n.accessibilityUsageMonitor),
+              Text(context.i18n.accessibilityUsageNoData),
               SizedBox(height: 16),
               Text(
-                AppLocalizations.current.accessibilityDisclaimer,
+                context.i18n.accessibilityDisclaimer,
                 style: TextStyle(fontStyle: FontStyle.italic),
               ),
               SizedBox(height: 16),
               Text(
-                AppLocalizations.current.mustChooseAllowOrDeny,
+                context.i18n.mustChooseAllowOrDeny,
                 style: TextStyle(fontWeight: FontWeight.w600, color: Colors.orange),
               ),
             ],
@@ -57,11 +57,11 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
         actions: [
           DestructiveButton(
             onPressed: onDeny,
-            child: Text(AppLocalizations.current.deny),
+            child: Text(context.i18n.deny),
           ),
           PrimaryButton(
             onPressed: onAccept,
-            child: Text(AppLocalizations.current.allow),
+            child: Text(context.i18n.allow),
           ),
         ],
       ),

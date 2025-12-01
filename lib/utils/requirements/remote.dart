@@ -4,7 +4,7 @@ import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState;
-import 'package:swift_control/gen/app_localizations.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
@@ -317,10 +317,8 @@ class _PairWidgetState extends State<_PairWidget> {
             children: [
               Text(
                 switch (core.settings.getLastTarget()) {
-                  Target.iOS =>
-                    context.i18n.pairingInstructionsIOS,
-                  _ =>
-                    context.i18n.pairingInstructions(core.settings.getLastTarget()?.getTitle(context) ?? ''),
+                  Target.iOS => context.i18n.pairingInstructionsIOS,
+                  _ => context.i18n.pairingInstructions(core.settings.getLastTarget()?.getTitle(context) ?? ''),
                 },
               ).small,
             ],

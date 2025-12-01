@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
@@ -73,7 +72,11 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: ColoredTitle(text: core.connection.controllerDevices.isEmpty ? context.i18n.connectControllers : context.i18n.connectedControllers),
+              child: ColoredTitle(
+                text: core.connection.controllerDevices.isEmpty
+                    ? context.i18n.connectControllers
+                    : context.i18n.connectedControllers,
+              ),
             ),
 
             ScanWidget(),

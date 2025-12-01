@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' show SwitchListTile;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
@@ -34,7 +33,7 @@ class _CustomizeState extends State<CustomizePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        Container(
+          Container(
             margin: const EdgeInsets.only(bottom: 8.0),
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             width: double.infinity,

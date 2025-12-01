@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/app_localizations.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -104,7 +104,10 @@ class BluetoothConnectRequirement extends PlatformRequirement {
 
 class NotificationRequirement extends PlatformRequirement {
   NotificationRequirement()
-    : super(AppLocalizations.current.allowPersistentNotification, description: AppLocalizations.current.notificationDescription);
+    : super(
+        AppLocalizations.current.allowPersistentNotification,
+        description: AppLocalizations.current.notificationDescription,
+      );
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {

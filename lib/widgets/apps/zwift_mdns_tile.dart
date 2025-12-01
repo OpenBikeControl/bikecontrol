@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 
 class ZwiftMdnsTile extends StatefulWidget {
@@ -23,12 +24,12 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
             return StatefulBuilder(
               builder: (context, setState) {
                 return ConnectionMethod(
-                  title: 'Enable Zwift Controller (Network)',
+                  title: context.i18n.enableZwiftControllerNetwork,
                   description: !isStarted
-                      ? 'Enables BikeControl to act as a Zwift-compatible controller.'
+                      ? context.i18n.zwiftControllerDescription
                       : isConnected
-                      ? "Connected"
-                      : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
+                      ? context.i18n.connected
+                      : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
                   isStarted: isStarted,
                   onChange: (start) {
                     core.settings.setZwiftMdnsEmulatorEnabled(start);
