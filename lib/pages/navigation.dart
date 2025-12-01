@@ -111,7 +111,6 @@ class _NavigationState extends State<Navigation> {
     return Scaffold(
       headers: [
         AppBar(
-          backgroundColor: Theme.of(context).colorScheme.background,
           title: AppTitle(),
           trailing: buildMenuButtons(
             context,

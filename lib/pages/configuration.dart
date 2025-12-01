@@ -41,37 +41,40 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         ).small.muted,
         SizedBox(height: 4),
         if (core.settings.getTrainerApp() != null && !_newSetup)
-          Accordion(
-            items: [
-              AccordionItem(
-                trigger: AccordionTrigger(
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      Expanded(
-                        child: ColoredTitle(
-                          text: context.i18n.trainerSetup(
-                            core.settings.getTrainerApp()!.name,
-                            core.settings.getLastTarget()?.getTitle(context) ?? '',
+          SizedBox(
+            width: double.infinity,
+            child: Accordion(
+              items: [
+                AccordionItem(
+                  trigger: AccordionTrigger(
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        Expanded(
+                          child: ColoredTitle(
+                            text: context.i18n.trainerSetup(
+                              core.settings.getTrainerApp()!.name,
+                              core.settings.getLastTarget()?.getTitle(context) ?? '',
+                            ),
                           ),
                         ),
-                      ),
-                      IgnorePointer(
-                        child: PrimaryButton(
-                          child: Text(context.i18n.adjust),
-                          onPressed: () {},
+                        IgnorePointer(
+                          child: PrimaryButton(
+                            child: Text(context.i18n.adjust),
+                            onPressed: () {},
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  content: Card(
+                    child: requirement.build(context, () {
+                      widget.onUpdate();
+                    })!,
                   ),
                 ),
-                content: Card(
-                  child: requirement.build(context, () {
-                    widget.onUpdate();
-                  })!,
-                ),
-              ),
-            ],
+              ],
+            ),
           )
         else ...[
           ColoredTitle(text: context.i18n.setupTrainer),

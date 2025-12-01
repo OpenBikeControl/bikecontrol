@@ -179,12 +179,17 @@ class BikeControlApp extends StatelessWidget {
       ],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       title: 'BikeControl',
-      darkTheme: ThemeData(colorScheme: ColorSchemes.darkDefaultColor),
-      theme: ThemeData(
-        colorScheme: ColorSchemes.lightDefaultColor.copyWith(
-          card: () => Color(0xFFFCFCFC),
+      darkTheme: ThemeData(
+        colorScheme: ColorSchemes.darkDefaultColor.copyWith(
+          card: () => Color(0xFF001A29),
         ),
       ),
+      theme: ThemeData(
+        colorScheme: ColorSchemes.lightDefaultColor.copyWith(
+          card: () => Color(0xFFF2F9FF),
+        ),
+      ),
+      themeMode: ThemeMode.light,
       home: error != null
           ? Center(
               child: Text(

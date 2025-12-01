@@ -11,9 +11,9 @@ class _SmoothWifiAnimationState extends State<SmoothWifiAnimation> with SingleTi
   late final AnimationController _controller;
 
   final _animationIcons = [
+    Icons.wifi,
     Icons.wifi_1_bar,
     Icons.wifi_2_bar,
-    Icons.wifi,
   ];
 
   int _currentIndex = 0;
@@ -52,7 +52,7 @@ class _SmoothWifiAnimationState extends State<SmoothWifiAnimation> with SingleTi
       transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
       child: Icon(
         _animationIcons[_currentIndex],
-        color: Colors.gray,
+        color: Theme.of(context).colorScheme.cardForeground,
         key: ValueKey(_currentIndex),
         size: 26,
       ),
