@@ -71,7 +71,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 ],
               ),
 
-            ColoredTitle(text: 'Connect${core.connection.controllerDevices.isEmpty ? '' : 'ed'} Controllers'),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: ColoredTitle(text: 'Connect${core.connection.controllerDevices.isEmpty ? '' : 'ed'} Controllers'),
+            ),
 
             ScanWidget(),
             ...core.connection.controllerDevices.map(

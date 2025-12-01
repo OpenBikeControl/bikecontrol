@@ -171,7 +171,7 @@ enum Target {
 
   String getDescription(SupportedApp? app) {
     final preferredConnectionMethod = app?.supportsOpenBikeProtocol == true
-        ? ' e.g. by using OpenBikeConnect connection'
+        ? ' e.g. by using OpenBikeControl connection'
         : app is MyWhoosh
         ? ' e.g. by using MyWhoosh Direct Connect'
         : '';
@@ -313,6 +313,17 @@ class TargetRequirement extends PlatformRequirement {
               onChanged: (target) async {
                 if (target != null) {
                   await core.settings.setLastTarget(target);
+
+                  if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true && !core.logic.emulatorEnabled) {
+                    core.settings.setObpMdnsEnabled(true);
+                    core.obpMdnsEmulator.startServer().catchError((e) {
+                      buildToast(
+                        context,
+                        title: 'Error starting OpenBikeControl server.',
+                      );
+                    });
+                  }
+
                   if (target.warning != null) {
                     buildToast(
                       context,

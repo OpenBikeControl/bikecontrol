@@ -4,8 +4,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
-import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_ble_emulator.dart';
-import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_mdns_emulator.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
@@ -230,14 +230,14 @@ class CoreLogic {
     if (isObpMdnsEnabled) {
       core.obpMdnsEmulator.startServer().catchError((e) {
         core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeProtocol mDNS Emulator: $e'),
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl mDNS Emulator: $e'),
         );
       });
     }
     if (isObpBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
       core.obpBluetoothEmulator.startServer().catchError((e) {
         core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeProtocol BLE Emulator: $e'),
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl BLE Emulator: $e'),
         );
       });
     }

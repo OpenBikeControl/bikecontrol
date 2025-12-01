@@ -135,7 +135,7 @@ class _ButtonEditor extends StatelessWidget {
 
     final actions = <MenuItem>[
       if (core.logic.showObpActions) ...[
-        MenuLabel(child: Text('OpenBikeConnect actions')),
+        MenuLabel(child: Text('OpenBikeControl actions')),
         MenuButton(
           subMenu: core.logic.obpConnectedApp!.supportedButtons
               .map(

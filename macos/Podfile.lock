@@ -11,6 +11,8 @@ PODS:
   - FlutterMacOS (1.0.0)
   - gamepads_darwin (0.1.1):
     - FlutterMacOS
+  - in_app_review (2.0.0):
+    - FlutterMacOS
   - keypress_simulator_macos (0.0.1):
     - FlutterMacOS
   - media_key_detector_macos (0.0.1):
@@ -42,6 +44,7 @@ DEPENDENCIES:
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gamepads_darwin (from `Flutter/ephemeral/.symlinks/plugins/gamepads_darwin/macos`)
+  - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - keypress_simulator_macos (from `Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos`)
   - media_key_detector_macos (from `Flutter/ephemeral/.symlinks/plugins/media_key_detector_macos/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
@@ -66,6 +69,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gamepads_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/gamepads_darwin/macos
+  in_app_review:
+    :path: Flutter/ephemeral/.symlinks/plugins/in_app_review/macos
   keypress_simulator_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos
   media_key_detector_macos:
@@ -94,6 +99,7 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gamepads_darwin: 07af6c60c282902b66574c800e20b2b26e68fda8
+  in_app_review: 866c9b17c87a7b46a395bda43f5d3ca02deb585a
   keypress_simulator_macos: f8556f9101f9f2f175652e0bceddf0fe82a4c6b2
   media_key_detector_macos: a93757a483b4b47283ade432b1af9e427c47329f
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b

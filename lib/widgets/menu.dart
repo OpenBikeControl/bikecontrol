@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
+import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
@@ -16,16 +17,16 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
   return [
-    if (kIsWeb || (!Platform.isIOS && !Platform.isMacOS)) ...[
-      Builder(
-        builder: (context) {
-          return IconButton(
-            variance: ButtonVariance.outline,
-            onPressed: () {
-              showDropdown(
-                context: context,
-                builder: (c) => DropdownMenu(
-                  children: [
+    Builder(
+      builder: (context) {
+        return IconButton(
+          variance: ButtonVariance.outline,
+          onPressed: () {
+            showDropdown(
+              context: context,
+              builder: (c) => DropdownMenu(
+                children: [
+                  if ((!Platform.isIOS && !Platform.isMacOS)) ...[
                     MenuLabel(child: Text('Show your appreciation by donating')),
                     MenuButton(
                       child: Text('via Credit Card, Google Pay, Apple Pay and others'),
@@ -52,18 +53,30 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                       },
                     ),
                   ],
-                ),
-              );
-            },
-            icon: Text(
-              '♥',
-              style: TextStyle(color: Colors.red),
-            ).bold,
-          );
-        },
-      ),
-      Gap(4),
-    ],
+                  MenuButton(
+                    child: Text('Leave a Review'),
+                    onPressed: (c) async {
+                      final InAppReview inAppReview = InAppReview.instance;
+
+                      if (await inAppReview.isAvailable()) {
+                        inAppReview.requestReview();
+                      } else {
+                        inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+          icon: Text(
+            '♥',
+            style: TextStyle(color: Colors.red, fontSize: Platform.isIOS || Platform.isAndroid ? null : 11),
+          ).bold,
+        );
+      },
+    ),
+    Gap(4),
     Builder(
       builder: (context) {
         return IconButton(
@@ -73,22 +86,6 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               context: context,
               builder: (c) => DropdownMenu(
                 children: [
-                  MenuButton(
-                    child: Text('Instructions'),
-                    onPressed: (c) {
-                      final instructions = Platform.isAndroid
-                          ? 'INSTRUCTIONS_ANDROID.md'
-                          : Platform.isIOS
-                          ? 'INSTRUCTIONS_IOS.md'
-                          : Platform.isMacOS
-                          ? 'INSTRUCTIONS_MACOS.md'
-                          : 'INSTRUCTIONS_WINDOWS.md';
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: instructions)),
-                      );
-                    },
-                  ),
                   MenuButton(
                     child: Text('Troubleshooting Guide'),
                     onPressed: (c) {

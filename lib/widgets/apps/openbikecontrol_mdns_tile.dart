@@ -3,37 +3,39 @@ import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
-class OpenBikeProtocolBluetoothTile extends StatefulWidget {
-  const OpenBikeProtocolBluetoothTile({super.key});
+class OpenBikeControlMdnsTile extends StatefulWidget {
+  const OpenBikeControlMdnsTile({super.key});
 
   @override
-  State<OpenBikeProtocolBluetoothTile> createState() => _OpenBikeProtocolTileState();
+  State<OpenBikeControlMdnsTile> createState() => _OpenBikeProtocolTileState();
 }
 
-class _OpenBikeProtocolTileState extends State<OpenBikeProtocolBluetoothTile> {
+class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: core.obpBluetoothEmulator.isStarted,
+      valueListenable: core.obpMdnsEmulator.isStarted,
       builder: (context, isStarted, _) {
         return ValueListenableBuilder(
-          valueListenable: core.obpBluetoothEmulator.isConnected,
+          valueListenable: core.obpMdnsEmulator.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
-              title: 'Enable OpenBikeProtocol (Bluetooth)',
+              title: 'Connect directly over Network',
               description: isConnected != null
                   ? 'Connected to ${isConnected.appId}'
-                  : 'OpenBikeProtocol allows compatible apps to connect directly to your trainer using Bluetooth.',
-              requirements: core.permissions.getRemoteControlRequirements(),
+                  : isStarted
+                  ? 'Choose BikeControl in the connection screen.'
+                  : "Lets ${core.settings.getTrainerApp()?.name} connect directly over the Network. Choose BikeControl in the connection screen.",
+              requirements: [],
               onChange: (value) {
-                core.settings.setObpBleEnabled(value);
+                core.settings.setObpMdnsEnabled(value);
                 if (!value) {
-                  core.obpBluetoothEmulator.stopServer();
+                  core.obpMdnsEmulator.stopServer();
                 } else if (value) {
-                  core.obpBluetoothEmulator.startServer().catchError((e) {
+                  core.obpMdnsEmulator.startServer().catchError((e) {
                     buildToast(
                       context,
-                      title: 'Error starting OpenBikeProtocol server.',
+                      title: 'Error starting OpenBikeControl server.',
                     );
                   });
                 }

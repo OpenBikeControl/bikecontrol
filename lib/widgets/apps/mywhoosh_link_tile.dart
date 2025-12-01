@@ -21,12 +21,17 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
-              title: 'Enable MyWhoosh Direct Connect',
-              instructionLink: 'https://www.youtube.com/watch?v=p8sgQhuufeI',
-              description: core.actionHandler is RemoteActions
-                  ? 'MyWhoosh Direct Connect allows you to do some additional features such as Emotes and turn directions.'
-                  : 'MyWhoosh Direct Connect is optional, but allows you to do some additional features such as Emotes and turn directions.',
+              title: 'Connect over MyWhoosh "Link"',
+              instructionLink: 'https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md',
+              description: isConnected
+                  ? 'MyWhoosh "Link" connected'
+                  : isStarted
+                  ? 'Check the connection screen in MyWhoosh to see if "Link" is connected.'
+                  : core.actionHandler is RemoteActions
+                  ? 'Allows you to connect to MyWhoosh over the network. The MyWhoosh Link companion app must NOT be running at the same time.'
+                  : 'Optional - allows you to do some additional features such as Emotes and turn directions. The MyWhoosh Link companion app must NOT be running at the same time.',
               requirements: [],
+              showTroubleshooting: true,
               onChange: (value) {
                 core.settings.setMyWhooshLinkEnabled(value);
                 if (!value) {
@@ -36,7 +41,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                     buildToast(
                       context,
                       title:
-                          'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
+                          'Error starting MyWhoosh Link server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
                     );
                   });
                 }

@@ -9,11 +9,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/configuration.dart';
+import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
-import 'package:swift_control/widgets/apps/openbikeprotocol_ble_tile.dart';
+import 'package:swift_control/widgets/apps/openbikecontrol_ble_tile.dart';
+import 'package:swift_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -23,9 +25,6 @@ import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'package:wakelock_plus/wakelock_plus.dart';
-
-import '../utils/actions/android.dart';
-import '../widgets/apps/openbikeprotocol_mdns_tile.dart';
 
 class TrainerPage extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -239,11 +238,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
 
             if (core.logic.showObpMdnsEmulator)
               Card(
-                child: OpenBikeProtocolMdnsTile(),
+                child: OpenBikeControlMdnsTile(),
               ),
             if (core.logic.showObpBluetoothEmulator)
               Card(
-                child: OpenBikeProtocolBluetoothTile(),
+                child: OpenBikeControlBluetoothTile(),
               ),
 
             if (core.logic.showMyWhooshLink) Card(child: MyWhooshLinkTile()),

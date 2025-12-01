@@ -198,14 +198,14 @@ class OpenBikeControlBluetoothEmulator {
       name: 'BikeControl',
       serviceUUIDs: [UUID.fromString(OpenBikeControlConstants.SERVICE_UUID)],
     );
-    print('Starting advertising with OpenBikeProtocol service...');
+    print('Starting advertising with OpenBikeControl service...');
 
     await _peripheralManager.startAdvertising(advertisement);
   }
 
   Future<void> stopServer() async {
     if (kDebugMode) {
-      print('Stopping OpenBikeProtocol BLE server...');
+      print('Stopping OpenBikeControl BLE server...');
     }
     await _peripheralManager.stopAdvertising();
     isStarted.value = false;

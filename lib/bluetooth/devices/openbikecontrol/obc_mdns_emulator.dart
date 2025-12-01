@@ -85,7 +85,7 @@ class OpenBikeControlMdnsEmulator {
 
   Future<void> stopServer() async {
     if (kDebugMode) {
-      print('Stopping OpenBikeProtocol mDNS server...');
+      print('Stopping OpenBikeControl mDNS server...');
     }
     await _mDNSServer.stop();
     isStarted.value = false;

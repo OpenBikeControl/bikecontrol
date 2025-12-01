@@ -30,6 +30,7 @@ dependencies:
   dartx: any
   mdns_dart: any
   image_picker: ^1.1.2
+  in_app_review: ^2.0.11
   window_manager: ^0.5.1
   device_info_plus: ^12.1.0
   keypress_simulator:
