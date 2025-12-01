@@ -4,12 +4,11 @@ import 'dart:math';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -198,7 +197,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       left: position.dx,
       top: position.dy,
       child: Tooltip(
-        message: context.i18n.dragToReposition,
+        tooltip: (c) => Text(context.i18n.dragToReposition),
         child: AnimatedOpacity(
           opacity: _showFaded && widget.keyPair != keyPair ? 0.2 : 1.0,
           duration: Duration(milliseconds: 300),
@@ -208,7 +207,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               final RenderBox renderObject = context.findRenderObject() as RenderBox;
               return renderObject.globalToLocal(position).scale(scale, scale);
             },
-            feedback: Material(
+            feedback: Container(
               color: Colors.transparent,
               child: icon,
             ),
@@ -251,7 +250,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
+      child: LayoutBuilder(
         builder: (context, constraints) {
           if (_backgroundImage == null && constraints.biggest != _imageRect.size) {
             _imageRect = Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight);
@@ -318,7 +317,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                               context.i18n.touchAreaInstructions,
                             ),
                           ),
-                          ElevatedButton(
+                          PrimaryButton(
                             onPressed: () {
                               _pickScreenshot();
                             },
@@ -335,30 +334,37 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   child: Row(
                     spacing: 8,
                     children: [
-                      ElevatedButton.icon(
+                      IconButton.outline(
                         onPressed: _saveAndClose,
                         icon: const Icon(Icons.save),
-                        label: Text(context.i18n.save),
+                        trailing: Text(context.i18n.save),
                       ),
-                      PopupMenuButton(
-                        itemBuilder: (c) => [
-                          PopupMenuItem(
-                            child: Text(context.i18n.chooseAnotherScreenshot),
-                            onTap: () {
-                              _pickScreenshot();
-                            },
-                          ),
-                          PopupMenuItem(
-                            child: Text(context.i18n.reset),
-                            onTap: () {
-                              _backgroundImage = null;
+                      OutlineButton(
+                        child: Text('Menu'),
+                        onPressed: () {
+                          showDropdown(
+                            context: context,
+                            builder: (c) => DropdownMenu(
+                              children: [
+                                MenuButton(
+                                  child: Text(context.i18n.chooseAnotherScreenshot),
+                                  onPressed: (c) {
+                                    _pickScreenshot();
+                                  },
+                                ),
+                                MenuButton(
+                                  child: Text(context.i18n.reset),
+                                  onPressed: (c) {
+                                    _backgroundImage = null;
 
-                              core.actionHandler.supportedApp?.keymap.reset();
-                              setState(() {});
-                            },
-                          ),
-                        ],
-                        icon: Icon(Icons.more_vert),
+                                    core.actionHandler.supportedApp?.keymap.reset();
+                                    setState(() {});
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -412,10 +418,7 @@ class KeypairExplanation extends StatelessWidget {
           )
         else if (keyPair.physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
           _KeyWidget(
-            label: [
-              ...keyPair.modifiers.map((e) => e.name.replaceAll('Modifier', '')),
-              keyPair.logicalKey?.keyLabel ?? 'Unknown',
-            ].joinToString(separator: '+'),
+            label: keyPair.toString(),
           ),
           if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
         ] else ...[
@@ -439,16 +442,17 @@ class _KeyWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         constraints: BoxConstraints(minWidth: 30),
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(100)),
+          color: Theme.of(context).colorScheme.card,
+          border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Center(
           child: Text(
             label.splitByUpperCase(),
             style: TextStyle(
-              fontFamily: screenshotMode ? null : 'monospace',
+              fontFamily: 'monospace',
               fontSize: 12,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),

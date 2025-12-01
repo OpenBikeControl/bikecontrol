@@ -31,6 +31,7 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
                       ? context.i18n.connected
                       : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
                   isStarted: isStarted,
+                  isConnected: isConnected,
                   onChange: (start) {
                     core.settings.setZwiftMdnsEmulatorEnabled(start);
                     if (start) {

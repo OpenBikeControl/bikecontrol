@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -18,10 +18,12 @@ class ButtonWidget extends StatelessWidget {
           minHeight: big && button.color != null ? 40 : 0,
         ),
         decoration: BoxDecoration(
-          border: Border.all(color: button.color != null ? Colors.black : Theme.of(context).colorScheme.primary),
+          border: Border.all(
+            color: button.color != null ? Colors.black.getContrastColor(0.3) : Theme.of(context).colorScheme.primary,
+          ),
           shape: button.color != null || button.icon != null ? BoxShape.circle : BoxShape.rectangle,
           borderRadius: button.color != null || button.icon != null ? null : BorderRadius.circular(4),
-          color: button.color ?? Theme.of(context).colorScheme.primaryContainer,
+          color: button.color ?? Theme.of(context).colorScheme.card,
         ),
         child: Center(
           child: button.icon != null
@@ -36,7 +38,7 @@ class ButtonWidget extends StatelessWidget {
                     fontFamily: screenshotMode ? null : 'monospace',
                     fontSize: big && button.color != null ? 20 : 12,
                     fontWeight: button.color != null ? FontWeight.bold : null,
-                    color: button.color != null ? Colors.white : Theme.of(context).colorScheme.onPrimaryContainer,
+                    color: button.color != null ? Colors.white : Theme.of(context).colorScheme.primaryForeground,
                   ),
                 ),
         ),

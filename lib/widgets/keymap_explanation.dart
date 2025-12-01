@@ -57,23 +57,42 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   @override
   Widget build(BuildContext context) {
-    final availableKeypairs = widget.keymap.keyPairs;
     final allAvailableButtons = IterableFlatMap(core.connection.devices).flatMap((d) => d.availableButtons);
+    final availableKeypairs = widget.keymap.keyPairs.whereNot(
+      (keyPair) => keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty,
+    );
 
-    return Card(
-      child: ValueListenableBuilder(
-        valueListenable: core.whooshLink.isConnected,
-        builder: (c, _, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          spacing: 8,
-          children: [
-            Table(
-              columnWidths: {0: FlexTableSize(flex: 2), 1: FlexTableSize(flex: 3)},
-              rows: [
-                TableHeader(
-                  cells: [
-                    TableCell(
+    return ValueListenableBuilder(
+      valueListenable: core.whooshLink.isConnected,
+      builder: (c, _, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        spacing: 8,
+        children: [
+          Table(
+            columnWidths: {0: FlexTableSize(flex: 2), 1: FlexTableSize(flex: 3)},
+            theme: TableTheme(
+              cellTheme: TableCellTheme(
+                border: WidgetStatePropertyAll(
+                  Border.all(
+                    color: Theme.of(context).colorScheme.border,
+                    strokeAlign: BorderSide.strokeAlignCenter,
+                  ),
+                ),
+              ),
+              // rounded border
+              border: Border.all(
+                color: Theme.of(context).colorScheme.border,
+                strokeAlign: BorderSide.strokeAlignCenter,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            rows: [
+              TableHeader(
+                cells: [
+                  TableCell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: Text(
                         core.connection.devices.isEmpty
                             ? context.i18n.deviceButton('Device')
@@ -82,46 +101,46 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                               ),
                       ).small,
                     ),
-                    TableCell(
+                  ),
+                  TableCell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: Text(context.i18n.action).small,
+                    ),
+                  ),
+                ],
+              ),
+              for (final keyPair in availableKeypairs) ...[
+                TableRow(
+                  cells: [
+                    TableCell(
+                      child: Container(
+                        constraints: BoxConstraints(minHeight: 52),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          runAlignment: WrapAlignment.center,
+                          children: [
+                            if (core.actionHandler.supportedApp is! CustomApp)
+                              for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                                IntrinsicWidth(child: ButtonWidget(button: button))
+                            else
+                              for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    TableCell(
+                      child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
                     ),
                   ],
                 ),
-                for (final keyPair in availableKeypairs) ...[
-                  TableRow(
-                    cells: [
-                      TableCell(
-                        child: Container(
-                          constraints: BoxConstraints(minHeight: 52),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            runAlignment: WrapAlignment.center,
-                            children: [
-                              if (core.actionHandler.supportedApp is! CustomApp)
-                                if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
-                                  Text(context.i18n.noButtonAssigned)
-                                else
-                                  for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                                    IntrinsicWidth(child: ButtonWidget(button: button))
-                              else
-                                for (final button in keyPair.buttons)
-                                  IntrinsicWidth(child: ButtonWidget(button: button)),
-                            ],
-                          ),
-                        ),
-                      ),
-                      TableCell(
-                        child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
-                      ),
-                    ],
-                  ),
-                ],
               ],
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }

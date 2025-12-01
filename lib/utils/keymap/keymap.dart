@@ -117,10 +117,11 @@ class KeyPair {
       PhysicalKeyboardKey.mediaTrackNext ||
       PhysicalKeyboardKey.audioVolumeUp ||
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
+      _ when inGameAction != null && touchPosition == Offset.zero && core.logic.emulatorEnabled => Icons.link,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         Icons.keyboard,
-      _ when inGameAction != null && touchPosition == Offset.zero && core.logic.emulatorEnabled => Icons.link,
-      _ => Icons.touch_app,
+      _ when touchPosition != Offset.zero => Icons.touch_app,
+      _ => Icons.check_box_outline_blank,
     };
   }
 
@@ -142,6 +143,9 @@ class KeyPair {
         };
 
     if (modifiers.isEmpty || baseKey == 'Not assigned') {
+      if (baseKey.trim().isEmpty) {
+        return 'Space';
+      }
       return baseKey;
     }
 

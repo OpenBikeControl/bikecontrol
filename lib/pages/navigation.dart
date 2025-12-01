@@ -273,7 +273,7 @@ class _NavigationState extends State<Navigation> {
   NavigationBarItem _buildNavigationItem(BCPage page, bool withPadding) {
     return NavigationItem(
       selected: _selectedPage == page,
-      selectedStyle: ButtonStyle.primary(size: ButtonSize(1.1)).copyWith(
+      selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense, size: ButtonSize(1.1)).copyWith(
         decoration: (context, states, value) {
           return BoxDecoration(
             gradient: const LinearGradient(
@@ -288,7 +288,7 @@ class _NavigationState extends State<Navigation> {
               }
             : null,
       ),
-      style: ButtonStyle.ghost(density: ButtonDensity.icon, size: ButtonSize(1.1)).copyWith(
+      style: ButtonStyle.ghost(density: ButtonDensity.dense, size: ButtonSize(1.1)).copyWith(
         decoration: (context, states, value) {
           return BoxDecoration(
             color: states.contains(WidgetState.hovered) ? Theme.of(context).colorScheme.secondary : null,
