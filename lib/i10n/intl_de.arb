@@ -1,0 +1,480 @@
+{
+  "accessibilityDescription": "BikeControl benötigt Zugriffsberechtigungen, um Ihre Trainings-Apps zu steuern.",
+  "accessibilityDisclaimer": "BikeControl greift nur auf Ihren Bildschirm zu, um die von Ihnen konfigurierten Gesten auszuführen. Es werden keine weiteren Bedienungshilfen oder persönlichen Daten abgerufen.",
+  "accessibilityReasonControl": "• Um Ihnen die Steuerung von Apps wie MyWhoosh, IndieVelo und anderen über Ihre Zwift-Geräte zu ermöglichen",
+  "accessibilityReasonTouch": "• Um Berührungsgesten auf Ihrem Bildschirm zur Steuerung von Trainer-Apps zu simulieren.",
+  "accessibilityReasonWindow": "• Um zu erkennen, welches Trainings-App-Fenster aktuell aktiv ist",
+  "accessibilityServiceExplanation": "BikeControl benötigt die AccessibilityService API von Android, um ordnungsgemäß zu funktionieren.",
+  "accessibilityServiceNotRunning": "Der Bedienungshilfe-Dienst ist nicht verfügbar. \nFolge den Anweisungen unter",
+  "accessibilityServicePermissionRequired": "Berechtigung für barrierefreie Dienste erforderlich",
+  "accessibilityUsageGestures": "• Wenn Du die Tasten auf Deinem Zwift Click-, Zwift Ride- oder Zwift Play-Geräten drückst, simuliert BikeControl Berührungsgesten an bestimmten Bildschirmpositionen.",
+  "accessibilityUsageMonitor": "• Die App überwacht, welches Trainings-App-Fenster aktiv ist, um sicherzustellen, dass Gesten an die richtige App gesendet werden.",
+  "accessibilityUsageNoData": "• Über diesen Dienst werden keine personenbezogenen Daten abgerufen oder erfasst.",
+  "action": "Aktion",
+  "adjust": "Anpassen",
+  "adjustControllerButtons": "Controller-Tasten anpassen",
+  "allow": "Erlauben",
+  "allowAccessibilityService": "Barrierefreiheitsdienst zulassen",
+  "allowBluetoothConnections": "Bluetooth-Verbindungen zulassen",
+  "allowBluetoothScan": "Bluetooth-Scan zulassen",
+  "allowLocationForBluetooth": "Standortzugriff erlauben, damit Bluetooth-Scan funktioniert",
+  "allowPersistentNotification": "Dauerhafte Benachrichtigung zulassen",
+  "allowsRunningInBackground": "Ermöglicht es BikeControl, im Hintergrund weiterzulaufen.",
+  "appIdActions": "{appId} Aktionen",
+  "@appIdActions": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
+  "appNameOnTargetName": "{appName} auf {targetName}",
+  "@appNameOnTargetName": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      },
+      "targetName": {
+        "type": "String"
+      }
+    }
+  },
+  "appStartError": "Beim Starten der App ist ein Fehler aufgetreten. Bitte kontaktiere den Support.\n{error}",
+  "@appStartError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "attachLogFile": "Bitte füge auch die Datei „ {logPath} “ bei, falls vorhanden.\nBitte diese Informationen nicht entfernen.",
+  "@attachLogFile": {
+    "placeholders": {
+      "logPath": {
+        "type": "String"
+      }
+    }
+  },
+  "battery": "Batterie",
+  "bikeControlPlatform": "BikeControl {platform}",
+  "@bikeControlPlatform": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "bluetoothAdvertiseAccess": "Bluetooth-Zugriff",
+  "bluetoothTurnedOn": "Bluetooth ist eingeschaltet",
+  "browserNotSupported": "Dieser Browser unterstützt kein Web-Bluetooth und die Plattform wird nicht unterstützt :(",
+  "button": "Taste.",
+  "cancel": "Abbrechen",
+  "changelog": "Änderungsprotokoll",
+  "checkMyWhooshConnectionScreen": "Überprüfe den Verbindungsbildschirm in MyWhoosh, um zu sehen, ob „Link“ verbunden ist.",
+  "chooseAnotherScreenshot": "Wähle einen anderen Screenshot aus",
+  "chooseBikeControlInConnectionScreen": "Wähle im Verbindungsbildschirm BikeControl aus.",
+  "choosePreferredConnectionMethod": "Wähle Deine bevorzugte Verbindungsmethode.",
+  "close": "Schließen",
+  "configuration": "Konfiguration",
+  "connectControllerToPreview": "Schließe ein Controller-Gerät an, um die Tastaturbelegung in der Vorschau anzuzeigen und anzupassen.",
+  "connectControllers": "Controller verbinden",
+  "connectDirectlyOverNetwork": "Stelle eine direkte Verbindung über das Netzwerk her.",
+  "connectToTrainerApp": "Mit der Trainer-App verbinden",
+  "connectUsingBluetooth": "Verbindung über Bluetooth herstellen",
+  "connectUsingMyWhooshLink": "Verbinden über MyWhoosh „Link“",
+  "connected": "Verbunden",
+  "connectedControllers": "Verbundene Controller",
+  "connectedTo": "Verbunden mit {appId}",
+  "@connectedTo": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
+  "connection": "Verbindung",
+  "continueAction": "Weitermachen",
+  "controlAppUsingModes": "Steuere {appName} über {modes}",
+  "@controlAppUsingModes": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      },
+      "modes": {
+        "type": "String"
+      }
+    }
+  },
+  "controllers": "Controller",
+  "create": "Erstellen",
+  "createNewKeymap": "Neue Tastaturbelegung erstellen",
+  "createNewProfileByDuplicating": "Erstelle ein neues benutzerdefiniertes Profil, indem „{profileName} “ dupliziert wird.",
+  "@createNewProfileByDuplicating": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNewCustomProfile": "Ein neues benutzerdefiniertes Profil wurde erstellt: {profileName}",
+  "@createdNewCustomProfile": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "custom": "Benutzerdefiniert",
+  "customizeControllerButtons": "Controller-Tasten anpassen für {appName}",
+  "@customizeControllerButtons": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "customizeKeymapHint": "Passe die Tastaturbelegung an, falls Probleme auftreten (z. B. falsche Tastatureingaben oder falsch ausgerichtete Touch-Positionen).",
+  "delete": "Löschen",
+  "deleteProfile": "Profil löschen",
+  "deleteProfileConfirmation": "„{profileName} “ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "@deleteProfileConfirmation": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "deny": "Verweigern",
+  "deviceButton": "{deviceName} Taste",
+  "@deviceButton": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "disconnectDevices": "Geräte trennen",
+  "disconnected": "Getrennt",
+  "donateByBuyingFromPlayStore": "App im Play Store kaufen",
+  "donateViaCreditCard": "per Kreditkarte, Google Pay, Apple Pay und anderen Zahlungsarten",
+  "donateViaPaypal": "via PayPal",
+  "download": "Herunterladen",
+  "dragToReposition": "Zum Verschieben ziehen",
+  "duplicate": "Duplikat",
+  "enableAutoRotation": "Aktiviere die automatische Drehung auf Ihrem Gerät, um sicherzustellen, dass die App ordnungsgemäß funktioniert.",
+  "enableBluetooth": "Bluetooth aktivieren",
+  "enableKeyboardAccessMessage": "Aktiviere im folgenden Bildschirm die Tastatursteuerung für BikeControl. Falls BikeControl nicht angezeigt wird, füge es bitte manuell hinzu.",
+  "enableKeyboardMouseControl": "Aktiviere die Tastatur- und Maussteuerung für eine bessere Interaktion mit {appName}.",
+  "@enableKeyboardMouseControl": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "enableMediaKeyDetection": "Medientastenerkennung aktivieren",
+  "enablePairingProcess": "Kopplungsprozess aktivieren",
+  "enablePermissions": "Berechtigungen aktivieren",
+  "enableVibrationFeedback": "Vibrationsfeedback beim Gangwechsel aktivieren",
+  "enableZwiftControllerBluetooth": "Zwift Controller aktivieren (Bluetooth)",
+  "enableZwiftControllerNetwork": "Zwift Controller aktivieren (Netzwerk)",
+  "errorStartingMyWhooshLink": "Fehler beim Starten des MyWhoosh Link-Servers. Bitte stelle sicher, dass die App „MyWhoosh Link“ nicht bereits auf diesem Gerät ausgeführt wird.",
+  "errorStartingOpenBikeControlBluetoothServer": "Fehler beim Starten des OpenBikeControl Bluetooth-Servers.",
+  "errorStartingOpenBikeControlServer": "Fehler beim Starten des OpenBikeControl-Servers.",
+  "exportAction": "Export",
+  "failedToImportProfile": "Profilimport fehlgeschlagen. Ungültiges Format.",
+  "failedToUpdate": "Aktualisierung fehlgeschlagen: {error}",
+  "@failedToUpdate": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "firmware": "Firmware",
+  "forceCloseToUpdate": "Schließen die App, um die neue Version zu verwenden.",
+  "getSupport": "Unterstützung erhalten",
+  "gotIt": "Verstanden!",
+  "grant": "Gewähren",
+  "granted": "Gewährt",
+  "helpRequested": "Hilfe für BikeControl v{version} angefordert",
+  "@helpRequested": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "howBikeControlUsesPermission": "Wie nutzt BikeControl diese Berechtigung?",
+  "ignoredDevices": "Ignorierte Geräte",
+  "importAction": "Import",
+  "importProfile": "Profil importieren",
+  "jsonData": "JSON-Daten",
+  "keyboardAccess": "Tastaturzugriff",
+  "latestVersion": "aktuell: {version}",
+  "@latestVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveAReview": "Hinterlasse eine Bewertung",
+  "letsAppConnectOverBluetooth": "Lässt {appName} die Verbindung zu BikeControl über Bluetooth herstellen.",
+  "@letsAppConnectOverBluetooth": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "letsAppConnectOverNetwork": "{appName} direkt über das Netzwerk verbinden. Wähle BikeControl im Verbindungsbildschirm aus.",
+  "@letsAppConnectOverNetwork": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "license": "Lizenz",
+  "loadScreenshotForPlacement": "Lade einen Screenshot aus dem Spiel zur Platzierung hoch.",
+  "logViewer": "Protokollanzeige",
+  "logs": "Protokolle",
+  "logsAreAlsoAt": "Die Protokolle befinden sich auch unter",
+  "logsHaveBeenCopiedToClipboard": "Die Protokolle wurden in die Zwischenablage kopiert.",
+  "longPress": "langes\nDrücken",
+  "longPressMode": "Modus „Langes Drücken“ (statt Wiederholen)",
+  "manageIgnoredDevices": "Ignorierte Geräte verwalten",
+  "manageProfile": "Profil verwalten",
+  "mediaKeyDetectionTooltip": "Aktiviere diese Option, damit BikeControl Bluetooth-Fernbedienungen erkennt. \nDazu muss BikeControl als Mediaplayer fungieren.",
+  "miuiDeviceDetected": "MIUI-Gerät erkannt",
+  "miuiDisableBatteryOptimization": "• Batterieoptimierung für BikeControl deaktivieren",
+  "miuiEnableAutostart": "• Aktiviere den automatischen Start für BikeControl.",
+  "miuiEnsureProperWorking": "Um sicherzustellen, dass BikeControl ordnungsgemäß funktioniert:",
+  "miuiLockInRecentApps": "• Sperre die App in den zuletzt verwendeten Apps",
+  "miuiWarningDescription": "Auf Ihrem Gerät läuft MIUI, das dafür bekannt ist, Hintergrunddienste und Bedienungshilfen aggressiv zu beenden.",
+  "moreInformation": "Weitere Informationen",
+  "mustChooseAllowOrDeny": "Diese Berechtigung muss entweder erteilt oder verweigert werden, um fortfahren zu können.",
+  "myWhooshDirectConnectAction": "MyWhoosh Direct Connect Action",
+  "myWhooshDirectConnection": " z.B. durch die Verwendung von MyWhoosh Direct Connect",
+  "myWhooshLinkConnected": "MyWhoosh „Link“ verbunden",
+  "myWhooshLinkDescriptionLocal": "Optional – ermöglicht zusätzliche Funktionen wie Emotes und Abbiegehinweise. Die Begleit-App MyWhoosh Link darf nicht gleichzeitig ausgeführt werden.",
+  "myWhooshLinkDescriptionRemote": "Ermöglicht die Verbindung zu MyWhoosh über das Netzwerk mithilfe der „Link“-Verbindung. Die zugehörige MyWhoosh Link-App darf nicht gleichzeitig ausgeführt werden.",
+  "nameChangeNotice": "SwiftControl heißt jetzt BikeControl! Es ist Teil des OpenBikeControl-Projekts, das sich für offene Standards bei intelligenten Fahrradtrainern einsetzt und erschwingliche Hardware-Controller entwickelt!",
+  "needHelpClickHelp": "Hilfe benötigt? Klicke auf",
+  "needHelpDontHesitate": "den Button oben und zögere nicht, uns zu kontaktieren.",
+  "newCustomProfile": "Neues benutzerdefiniertes Profil",
+  "newProfileName": "Neuer Profilname",
+  "newVersionAvailable": "Neue Version verfügbar",
+  "newVersionAvailableWithVersion": "Neue Version verfügbar: {version}",
+  "@newVersionAvailableWithVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "next": "Nächste",
+  "noActionAssigned": "Keine Maßnahmen zugewiesen",
+  "noButtonAssigned": "Für Ihr angeschlossenes Gerät ist keine Taste zugewiesen.",
+  "noIgnoredDevices": "Keine ignorierten Geräte.",
+  "noPredefinedActionsAvailable": "Keine vordefinierten Aktionen verfügbar",
+  "notificationDescription": "Dadurch bleibt die App im Hintergrund aktiv.",
+  "ok": "OK",
+  "openBikeControlActions": "OpenBikeControl-Aktionen",
+  "openBikeControlConnection": " z. B. durch Verwendung einer OpenBikeControl-Verbindung",
+  "otherConnectionMethods": "Andere Verbindungsmethoden",
+  "pairingDescription": "Die Kopplung ermöglicht volle Anpassungsmöglichkeiten, funktioniert aber möglicherweise nicht auf allen Geräten.",
+  "pairingInstructions": "Gehe auf Deinem {targetName} in die Bluetooth-Einstellungen und suche nach BikeControl oder dem Namen Ihres Geräts. Wenn Du die Fernbedienungsfunktion nutzen möchtest, ist eine Kopplung erforderlich.",
+  "@pairingInstructions": {
+    "placeholders": {
+      "targetName": {
+        "type": "String"
+      }
+    }
+  },
+  "pairingInstructionsIOS": "Gehe auf Deinem iPad zu „Einstellungen“ > „Bedienungshilfen“ > „Berühren“ > „AssistiveTouch“ > „Zeigergeräte“ > „Geräte“ und koppel Dein Gerät. Stelle sicher, dass AssistiveTouch aktiviert ist.",
+  "pasteExportedJsonData": "Füge die exportierten JSON-Daten unten ein:",
+  "pathCopiedToClipboard": "Der Pfad wurde in die Zwischenablage kopiert.",
+  "permissionsRequired": "Damit BikeControl nach Geräten in der Nähe suchen kann, aktiviere bitte die folgenden Berechtigungen:",
+  "platformNotSupported": "{platform} wird nicht unterstützt :(",
+  "@platformNotSupported": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "platformRestrictionNotSupported": "Aufgrund von Plattformbeschränkungen wird dieses Szenario nicht unterstützt.",
+  "platformRestrictionOtherDevicesOnly": "Aufgrund von Plattformbeschränkungen wird das Kontrollieren von {appName} nur auf anderen Geräten unterstützt.",
+  "@platformRestrictionOtherDevicesOnly": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "playPause": "Wiedergabe/Pause",
+  "predefinedAction": "Vordefinierte {appName} Aktion",
+  "@predefinedAction": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "pressButtonOnClickDevice": "Drücke eine Taste auf Ihrem Click-Gerät.",
+  "pressKeyToAssign": "Drücke eine Taste auf Ihrer Tastatur, um sie {buttonName} zuzuweisen.",
+  "@pressKeyToAssign": {
+    "placeholders": {
+      "buttonName": {
+        "type": "String"
+      }
+    }
+  },
+  "previous": "Vorherige",
+  "profileExportedToClipboard": "Profil „{profileName} “ in die Zwischenablage kopiert",
+  "@profileExportedToClipboard": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileImportedSuccessfully": "Profil erfolgreich importiert",
+  "profileName": "Profilname",
+  "provideFeedback": "Feedback geben",
+  "recommendDownloadBikeControl": "Wir empfehlen dringend, BikeControl auf dieses {platform} -Gerät herunterzuladen und zu verwenden.",
+  "@recommendDownloadBikeControl": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "recommendedConnectionMethods": "Empfohlene Verbindungsmethoden",
+  "removeFromIgnoredList": "Aus der Ignorierliste entfernen",
+  "rename": "Umbenennen",
+  "renameProfile": "Profil umbenennen",
+  "requirement": "Anforderung",
+  "reset": "Zurücksetzen",
+  "restart": "Neustart",
+  "runAppOnPlatformRemotely": "{appName} auf {platform} laufen lassen und es von diesem Gerät aus fernsteuern via {preferredConnection}.",
+  "@runAppOnPlatformRemotely": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      },
+      "platform": {
+        "type": "String"
+      },
+      "preferredConnection": {
+        "type": "String"
+      }
+    }
+  },
+  "runAppOnThisDevice": "{appName} läuft auf diesem Gerät.",
+  "@runAppOnThisDevice": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "save": "Speichern",
+  "scan": "SCAN",
+  "scanningForDevices": "Suche nach Geräten... Stelle sicher, dass diese eingeschaltet und in Reichweite sind und nicht mit einem anderen Gerät verbunden sind.",
+  "selectKeymap": "Tastaturbelegung auswählen",
+  "selectOtherDeviceWhereAppRuns": "Wähle das andere Gerät aus, auf dem {appName} läuft auf",
+  "@selectOtherDeviceWhereAppRuns": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "selectTargetDevice": "Zielgerät auswählen",
+  "selectTargetDeviceDescription": "Wähle das Zielgerät aus, auf dem die Trainer-App ausgeführt werden soll.",
+  "selectTargetWhereAppRuns": "Ziel auswählen, auf dem {appName} läuft",
+  "@selectTargetWhereAppRuns": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "selectThisDeviceWarning": "Wähle „Dieses Gerät“, es sei denn, Du möchtest ein anderes {platform} -Gerät steuern. Sicher?",
+  "@selectThisDeviceWarning": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "selectTrainerApp": "Trainer-App auswählen",
+  "selectTrainerAppAndTarget": "Trainer-App und Zielgerät auswählen",
+  "selectTrainerAppPlaceholder": "Trainer-App auswählen",
+  "setting": "Einstellung",
+  "setupTrainer": "Trainer einrichten",
+  "share": "Teilen",
+  "showDonation": "Zeige Deine Wertschätzung durch eine Spende.",
+  "showSupportedControllers": "Unterstützte Controller anzeigen",
+  "showTroubleshootingGuide": "Anleitung zur Fehlerbehebung anzeigen",
+  "sideloaded": "(per Sideloading)",
+  "signal": "Signal",
+  "simulateButtons": "Tasten simulieren",
+  "simulateKeyboardShortcut": "Tastenkombination simulieren",
+  "simulateMediaKey": "Medientaste simulieren",
+  "simulateTouch": "Berührung simulieren",
+  "stop": "Stoppen",
+  "targetAndroid": "Android-Gerät",
+  "targetIOS": "iPhone / iPad / Apple TV",
+  "targetMacOS": "Mac",
+  "targetOtherDevice": "Anderes Gerät",
+  "targetThisDevice": "Dieses Gerät",
+  "targetWindows": "Windows-PC",
+  "theFollowingPermissionsRequired": "Folgende Berechtigungen sind erforderlich:",
+  "touchAreaInstructions": "1. Erstelle einen Screenshot Ihrer App (z. B. innerhalb von MyWhoosh) im Querformat.\n2. Lade den Screenshot über die Schaltfläche unten.\n3. Die App wird automatisch auf Querformat eingestellt, um eine genaue Zuordnung zu gewährleisten.\n4. Drücke eine Taste auf Ihrem Click-Gerät, um einen Touch-Bereich zu erstellen.\n5. Ziehe die Touch-Bereiche an die gewünschte Position auf dem Screenshot.\n6. Speicher und schließe diesen Bildschirm.",
+  "touchSimulationForegroundMessage": "Um Berührungen zu simulieren, muss die App im Vordergrund bleiben.",
+  "trainer": "Trainer",
+  "trainerSetup": "Trainer-Setup: {appName} auf {targetName}",
+  "@trainerSetup": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      },
+      "targetName": {
+        "type": "String"
+      }
+    }
+  },
+  "troubleshootingGuide": "Leitfaden zur Fehlerbehebung",
+  "unassignAction": "Zuweisung aufheben",
+  "update": "Aktualisieren",
+  "useCustomKeymapForButton": "Verwende eine benutzerdefinierte Tastaturbelegung, um die",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "videoInstructions": "Videoanleitung",
+  "viewDetailedInstructions": "Detaillierte Anweisungen ansehen",
+  "volumeDown": "Lautstärke verringern",
+  "volumeUp": "Lautstärke erhöhen",
+  "waiting": "Warten...",
+  "waitingForConnectionKickrBike": "Verbindung wird hergestellt. Wähle KICKR BIKE PRO im {appName} Verbindungs-Menü.",
+  "@waitingForConnectionKickrBike": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNew": "Was ist neu",
+  "whyPermissionNeeded": "Wozu wird diese Berechtigung benötigt?",
+  "zwiftControllerAction": "Zwift Controller-Aktion",
+  "zwiftControllerDescription": "Ermöglicht es BikeControl, als Zwift-kompatibler Controller zu fungieren."
+}

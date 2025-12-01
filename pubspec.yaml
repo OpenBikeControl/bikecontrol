@@ -65,6 +65,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
+  intl_utils: ^2.8.12
   test_screenshot: 0.0.8
   flutter_lints: ^6.0.0
   msix: ^3.16.12
@@ -87,6 +88,7 @@ flutter:
 
 flutter_intl:
   enabled: true
+  arb_dir: lib/i10n
   class_name: AppLocalizations
   output_dir: lib/gen
 

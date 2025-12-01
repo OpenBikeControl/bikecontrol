@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    show GlobalMaterialLocalizations, GlobalWidgetsLocalizations;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -171,8 +173,11 @@ class SwiftPlayApp extends StatelessWidget {
       menuHandler: PopoverOverlayHandler(),
       popoverHandler: PopoverOverlayHandler(),
       localizationsDelegates: [
+        ...GlobalMaterialLocalizations.delegates,
+        GlobalWidgetsLocalizations.delegate,
         AppLocalizations.delegate,
       ],
+      supportedLocales: AppLocalizations.delegate.supportedLocales,
       title: 'BikeControl',
       darkTheme: ThemeData(colorScheme: ColorSchemes.darkDefaultColor),
       theme: ThemeData(
