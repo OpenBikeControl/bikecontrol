@@ -4,9 +4,11 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
@@ -74,11 +76,13 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                   cells: [
                     TableCell(
                       child: Text(
-                        '${core.connection.devices.isEmpty ? 'Device' : core.connection.devices.joinToString(transform: (d) => d.name.screenshot)} button',
+                        core.connection.devices.isEmpty
+                            ? context.i18n.deviceButton('Device')
+                            : context.i18n.deviceButton(core.connection.devices.joinToString(transform: (d) => d.name.screenshot)),
                       ).small,
                     ),
                     TableCell(
-                      child: Text('Action').small,
+                      child: Text(context.i18n.action).small,
                     ),
                   ],
                 ),
@@ -96,7 +100,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                             children: [
                               if (core.actionHandler.supportedApp is! CustomApp)
                                 if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
-                                  Text('No button assigned for your connected device')
+                                  Text(context.i18n.noButtonAssigned)
                                 else
                                   for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
                                     IntrinsicWidth(child: ButtonWidget(button: button))
@@ -135,7 +139,7 @@ class _ButtonEditor extends StatelessWidget {
 
     final actions = <MenuItem>[
       if (core.logic.showObpActions) ...[
-        MenuLabel(child: Text('OpenBikeControl actions')),
+        MenuLabel(child: Text(context.i18n.openBikeControlActions)),
         MenuButton(
           subMenu: core.logic.obpConnectedApp!.supportedButtons
               .map(
@@ -154,7 +158,7 @@ class _ButtonEditor extends StatelessWidget {
               .toList(),
           child: _Item(
             icon: Icons.link,
-            title: '${core.logic.obpConnectedApp!.appId} actions',
+            title: context.i18n.appIdActions(core.logic.obpConnectedApp!.appId),
             isActive: keyPair.inGameAction != null,
           ),
         ),
@@ -188,7 +192,7 @@ class _ButtonEditor extends StatelessWidget {
           ).toList(),
           child: _Item(
             icon: Icons.link,
-            title: 'MyWhoosh Direct Connect Action',
+            title: context.i18n.myWhooshDirectConnectAction,
             isActive: keyPair.inGameAction != null,
           ),
         ),
@@ -220,19 +224,19 @@ class _ButtonEditor extends StatelessWidget {
           ).toList(),
           child: _Item(
             icon: Icons.link,
-            title: 'Zwift Controller Action',
+            title: context.i18n.zwiftControllerAction,
             isActive: keyPair.inGameAction != null,
           ),
         ),
       if (core.logic.showMyWhooshLink || core.logic.isZwiftBleEnabled || core.logic.isZwiftMdnsEnabled) MenuDivider(),
-      MenuLabel(child: Text('Custom')),
+      MenuLabel(child: Text(context.i18n.custom)),
       if (trainerApp != null && trainerApp is! CustomApp) ...[
         MenuButton(
           subMenu: (actionsWithInGameAction?.isEmpty == true)
               ? <MenuItem>[
                   MenuButton(
                     enabled: false,
-                    child: Text('No predefined actions available'),
+                    child: Text(context.i18n.noPredefinedActionsAvailable),
                   ),
                 ]
               : actionsWithInGameAction?.map((keyPairAction) {
@@ -263,7 +267,7 @@ class _ButtonEditor extends StatelessWidget {
                 }).toList(),
           child: _Item(
             icon: Icons.file_copy_outlined,
-            title: 'Predefined ${trainerApp.name} action',
+            title: context.i18n.predefinedAction(trainerApp.name),
             isActive: false,
           ),
         ),
@@ -272,7 +276,7 @@ class _ButtonEditor extends StatelessWidget {
         MenuButton(
           child: _Item(
             icon: Icons.keyboard_alt_outlined,
-            title: 'Simulate Keyboard shortcut',
+            title: context.i18n.simulateKeyboardShortcut,
             isActive: keyPair.physicalKey != null,
           ),
           onPressed: (context) async {
@@ -288,7 +292,7 @@ class _ButtonEditor extends StatelessWidget {
       if (core.actionHandler.supportedModes.contains(SupportedMode.touch))
         MenuButton(
           child: _Item(
-            title: 'Simulate Touch',
+            title: context.i18n.simulateTouch,
             icon: Icons.touch_app_outlined,
             isActive: keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero,
           ),
@@ -313,7 +317,7 @@ class _ButtonEditor extends StatelessWidget {
         MenuButton(
           subMenu: [
             MenuButton(
-              child: const Text('Play/Pause'),
+              child: Text(context.i18n.playPause),
               onPressed: (c) {
                 keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
                 keyPair.logicalKey = null;
@@ -322,7 +326,7 @@ class _ButtonEditor extends StatelessWidget {
               },
             ),
             MenuButton(
-              child: const Text('Stop'),
+              child: Text(context.i18n.stop),
               onPressed: (c) {
                 keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
                 keyPair.logicalKey = null;
@@ -331,7 +335,7 @@ class _ButtonEditor extends StatelessWidget {
               },
             ),
             MenuButton(
-              child: const Text('Previous'),
+              child: Text(context.i18n.previous),
 
               onPressed: (c) {
                 keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
@@ -341,7 +345,7 @@ class _ButtonEditor extends StatelessWidget {
               },
             ),
             MenuButton(
-              child: const Text('Next'),
+              child: Text(context.i18n.next),
               onPressed: (c) {
                 keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
                 keyPair.logicalKey = null;
@@ -356,10 +360,10 @@ class _ButtonEditor extends StatelessWidget {
 
                 onUpdate();
               },
-              child: const Text('Volume Up'),
+              child: Text(context.i18n.volumeUp),
             ),
             MenuButton(
-              child: const Text('Volume Down'),
+              child: Text(context.i18n.volumeDown),
               onPressed: (c) {
                 keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
                 keyPair.logicalKey = null;
@@ -372,12 +376,12 @@ class _ButtonEditor extends StatelessWidget {
           child: _Item(
             icon: Icons.music_note_outlined,
             isActive: keyPair.isSpecialKey,
-            title: 'Simulate Media key',
+            title: context.i18n.simulateMediaKey,
           ),
         ),
 
       MenuDivider(),
-      MenuLabel(child: Text('Setting')),
+      MenuLabel(child: Text(context.i18n.setting)),
       MenuButton(
         onPressed: (_) {
           keyPair.isLongPress = !keyPair.isLongPress;
@@ -385,7 +389,7 @@ class _ButtonEditor extends StatelessWidget {
         },
         child: _Item(
           icon: keyPair.isLongPress ? Icons.check_box : Icons.check_box_outline_blank,
-          title: 'Long Press Mode (vs. repeating)',
+          title: context.i18n.longPressMode,
           isActive: keyPair.isLongPress,
         ),
       ),
@@ -402,7 +406,7 @@ class _ButtonEditor extends StatelessWidget {
         },
         child: _Item(
           icon: Icons.delete_outline,
-          title: 'Unassign action',
+          title: context.i18n.unassignAction,
           isActive: false,
         ),
       ),
@@ -418,7 +422,7 @@ class _ButtonEditor extends StatelessWidget {
             skipName: '$currentProfile (Copy)',
           );
           if (newName != null) {
-            buildToast(context, title: 'Created a new custom profile: $newName');
+            buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
           }
           onUpdate();
         } else {
@@ -442,9 +446,7 @@ class _ButtonEditor extends StatelessWidget {
             )
           else
             Expanded(
-              child: Text(
-                'No action assigned',
-              ).muted.xSmall,
+              child: Text(context.i18n.noActionAssigned).muted.xSmall,
             ),
           Icon(Icons.edit, size: 14),
         ],

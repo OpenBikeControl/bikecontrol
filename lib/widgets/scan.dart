@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/wifi_animation.dart';
@@ -38,12 +40,12 @@ class _ScanWidgetState extends State<ScanWidget> {
           Card(
             child: Basic(
               title: Text(
-                'In order for BikeControl to search for nearby devices, please enable the following permissions:\n\n${_needsPermissions!.joinToString(transform: (e) => e.name, separator: '\n')}',
+                '${context.i18n.permissionsRequired}\n\n${_needsPermissions!.joinToString(transform: (e) => e.name, separator: '\n')}',
               ),
               trailing: isMobile
                   ? null
                   : PrimaryButton(
-                      child: Text('Enable Permissions'),
+                      child: Text(context.i18n.enablePermissions),
                       onPressed: () async {
                         await openPermissionSheet(context, _needsPermissions!);
                         _checkRequirements();
@@ -52,7 +54,7 @@ class _ScanWidgetState extends State<ScanWidget> {
               subtitle: !isMobile
                   ? null
                   : PrimaryButton(
-                      child: Text('Enable Permissions'),
+                      child: Text(context.i18n.enablePermissions),
                       onPressed: () async {
                         await openPermissionSheet(context, _needsPermissions!);
                         _checkRequirements();
@@ -76,9 +78,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                       children: [
                         SmoothWifiAnimation(),
                         Expanded(
-                          child: Text(
-                            'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
-                          ).small.muted,
+                          child: Text(context.i18n.scanningForDevices).small.muted,
                         ),
                       ],
                     ),
@@ -88,13 +88,11 @@ class _ScanWidgetState extends State<ScanWidget> {
                         builder: (context, value, child) {
                           return Tooltip(
                             tooltip: (c) => TooltipContainer(
-                              child: Text(
-                                'Enable this option to allow BikeControl to detect bluetooth remotes.\nIn order to do so BikeControl needs to act as a media player.',
-                              ),
+                              child: Text(context.i18n.mediaKeyDetectionTooltip),
                             ),
                             child: Checkbox(
                               state: value ? CheckboxState.checked : CheckboxState.unchecked,
-                              trailing: Text("Enable Media Key Detection"),
+                              trailing: Text(context.i18n.enableMediaKeyDetection),
                               onChanged: (change) {
                                 core.connection.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
                               },
@@ -110,7 +108,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                           MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
                         );
                       },
-                      child: const Text("Show Troubleshooting Guide"),
+                      child: Text(context.i18n.showTroubleshootingGuide),
                     ),
                     OutlineButton(
                       onPressed: () {
@@ -118,7 +116,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                           'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
                         );
                       },
-                      child: const Text("Show Supported Controllers"),
+                      child: Text(context.i18n.showSupportedControllers),
                     ),
                   ],
                 );
@@ -129,7 +127,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                       onPressed: () {
                         core.connection.performScanning();
                       },
-                      child: const Text("SCAN"),
+                      child: Text(context.i18n.scan),
                     ),
                   ],
                 );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 
 class IgnoredDevicesDialog extends StatefulWidget {
   const IgnoredDevicesDialog({super.key});
@@ -31,14 +33,14 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Ignored Devices'),
+      title: Text(context.i18n.ignoredDevices),
       content: SizedBox(
         width: double.maxFinite,
         child: _ignoredDevices.isEmpty
             ? Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'No ignored devices.',
+                  context.i18n.noIgnoredDevices,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -57,7 +59,7 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
                     ),
                     trailing: IconButton(
                       icon: Icon(Icons.delete_outline),
-                      tooltip: 'Remove from ignored list',
+                      tooltip: context.i18n.removeFromIgnoredList,
                       onPressed: () => _removeDevice(device.id),
                     ),
                   );
@@ -67,7 +69,7 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Close'),
+          child: Text(context.i18n.close),
         ),
       ],
     );

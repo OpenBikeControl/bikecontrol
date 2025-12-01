@@ -2,10 +2,12 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/trainer.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/logviewer.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/title.dart';
@@ -14,15 +16,23 @@ import 'package:swift_control/widgets/ui/colors.dart';
 import '../widgets/changelog_dialog.dart';
 
 enum BCPage {
-  devices('Controllers', Icons.gamepad),
-  trainer('Trainer', Icons.pedal_bike),
-  customization('Configuration', Icons.videogame_asset_outlined),
-  logs('Logs', Icons.article);
+  devices(Icons.gamepad),
+  trainer(Icons.pedal_bike),
+  customization(Icons.videogame_asset_outlined),
+  logs(Icons.article);
 
-  final String title;
   final IconData icon;
 
-  const BCPage(this.title, this.icon);
+  const BCPage(this.icon);
+
+  String getTitle(BuildContext context) {
+    return switch (this) {
+      BCPage.devices => context.i18n.controllers,
+      BCPage.trainer => context.i18n.trainer,
+      BCPage.customization => context.i18n.configuration,
+      BCPage.logs => context.i18n.logs,
+    };
+  }
 }
 
 class Navigation extends StatefulWidget {
@@ -186,7 +196,7 @@ class _NavigationState extends State<Navigation> {
           children: [
             NavigationDivider(),
             NavigationItem(
-              label: Text(BCPage.logs.title),
+              label: Text(BCPage.logs.getTitle(context)),
               selected: _selectedPage == BCPage.logs,
               child: _buildIcon(BCPage.logs),
             ),
@@ -294,7 +304,7 @@ class _NavigationState extends State<Navigation> {
       ),
       enabled: _isPageEnabled(page),
       label: Text(
-        page == BCPage.trainer ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.title : page.title,
+        page == BCPage.trainer ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context) : page.getTitle(context),
       ),
       child: _buildIcon(page),
     );

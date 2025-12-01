@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/gradient_text.dart';
@@ -64,7 +65,7 @@ class _AppTitleState extends State<AppTitle> {
               _showShorebirdRestartSnackbar();
             })
             .catchError((e) {
-              buildToast(context, title: 'Failed to update: $e');
+              buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
             });
       } else if (updateStatus == UpdateStatus.restartRequired) {
         _showShorebirdRestartSnackbar();
@@ -79,8 +80,8 @@ class _AppTitleState extends State<AppTitle> {
         if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
           buildToast(
             context,
-            title: 'New version available',
-            closeTitle: 'Update',
+            title: AppLocalizations.current.newVersionAvailable,
+            closeTitle: AppLocalizations.current.update,
             onClose: () {
               InAppUpdate.performImmediateUpdate();
             },
@@ -138,10 +139,10 @@ class _AppTitleState extends State<AppTitle> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GradientText('BikeControl', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+        GradientText(AppLocalizations.current.appName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
         if (packageInfoValue != null)
           Text(
-            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
+            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' ${AppLocalizations.current.sideloaded}' : ''}',
             style: TextStyle(fontSize: 12),
           ).mono.muted
         else
@@ -153,8 +154,8 @@ class _AppTitleState extends State<AppTitle> {
   void _showShorebirdRestartSnackbar() {
     buildToast(
       context,
-      title: 'Force-close the app to use the new version',
-      closeTitle: 'Restart',
+      title: AppLocalizations.current.forceCloseToUpdate,
+      closeTitle: AppLocalizations.current.restart,
       onClose: () {
         if (Platform.isIOS) {
           core.connection.reset();
@@ -184,8 +185,8 @@ class _AppTitleState extends State<AppTitle> {
   void _showUpdateSnackbar(Version newVersion, String url) {
     buildToast(
       context,
-      title: 'New version available: ${newVersion.toString()}',
-      closeTitle: 'Download',
+      title: AppLocalizations.current.newVersionAvailableWithVersion(newVersion.toString()),
+      closeTitle: AppLocalizations.current.download,
       onClose: () {
         launchUrlString(url);
       },

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 
 class ZwiftTile extends StatefulWidget {
@@ -30,12 +32,12 @@ class _ZwiftTileState extends State<ZwiftTile> {
                 }
                 setState(() {});
               },
-              title: 'Enable Zwift Controller (Bluetooth)',
+              title: context.i18n.enableZwiftControllerBluetooth,
               description: !core.zwiftEmulator.isAdvertising
-                  ? 'Enables BikeControl to act as a Zwift-compatible controller.'
+                  ? context.i18n.zwiftControllerDescription
                   : isConnected
-                  ? "Connected"
-                  : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
+                  ? context.i18n.connected
+                  : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
               requirements: core.permissions.getRemoteControlRequirements(),
             );
           },

@@ -1,7 +1,9 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
 import 'apps/custom_app.dart';
@@ -23,15 +25,15 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('New Custom Profile'),
+        title: Text(context.i18n.newCustomProfile),
         content: TextField(
           controller: controller,
-          hintText: 'Profile name',
+          hintText: context.i18n.profileName,
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Create')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.create)),
         ],
       ),
     );
@@ -45,14 +47,14 @@ class KeymapManager {
     return Builder(
       builder: (context) {
         return OutlineButton(
-          child: Text('Manage Profile'),
+          child: Text(context.i18n.manageProfile),
           onPressed: () => showDropdown(
             context: context,
             builder: (c) => DropdownMenu(
               children: [
                 if (currentProfile != null && core.actionHandler.supportedApp is CustomApp)
                   MenuButton(
-                    child: Text('Rename'),
+                    child: Text(context.i18n.rename),
                     onPressed: (c) async {
                       final newName = await _showRenameProfileDialog(
                         context,
@@ -74,7 +76,7 @@ class KeymapManager {
                   ),
                 if (currentProfile != null)
                   MenuButton(
-                    child: Text('Duplicate'),
+                    child: Text(context.i18n.duplicate),
                     onPressed: (c) async {
                       final newName = await duplicate(
                         context,
@@ -84,29 +86,29 @@ class KeymapManager {
                     },
                   ),
                 MenuButton(
-                  child: Text('Import'),
+                  child: Text(context.i18n.importAction),
                   onPressed: (c) async {
                     final jsonData = await _showImportDialog(context);
                     if (jsonData != null && jsonData.isNotEmpty) {
                       final success = await core.settings.importCustomAppProfile(jsonData);
                       if (success) {
-                        buildToast(context, title: 'Profile imported successfully');
+                        buildToast(context, title: context.i18n.profileImportedSuccessfully);
                       } else {
-                        buildToast(context, title: 'Failed to import profile. Invalid format.');
+                        buildToast(context, title: context.i18n.failedToImportProfile);
                       }
                     }
                   },
                 ),
                 if (currentProfile != null)
                   MenuButton(
-                    child: Text('Export'),
+                    child: Text(context.i18n.exportAction),
                     onPressed: (c) {
                       final currentProfile = (core.actionHandler.supportedApp as CustomApp).profileName;
                       final jsonData = core.settings.exportCustomAppProfile(currentProfile);
                       if (jsonData != null) {
                         Clipboard.setData(ClipboardData(text: jsonData));
 
-                        buildToast(context, title: 'Profile "$currentProfile" exported to clipboard');
+                        buildToast(context, title: context.i18n.profileExportedToClipboard(currentProfile));
                       }
                     },
                   ),
@@ -122,7 +124,7 @@ class KeymapManager {
                       }
                       onDone();
                     },
-                    child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.destructive)),
+                    child: Text(context.i18n.delete, style: TextStyle(color: Theme.of(context).colorScheme.destructive)),
                   ),
               ],
             ),
@@ -137,15 +139,15 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Rename Profile'),
+        title: Text(context.i18n.renameProfile),
         content: TextField(
           controller: controller,
-          hintText: 'Profile Name',
+          hintText: context.i18n.profileName,
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Rename')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.rename)),
         ],
       ),
     );
@@ -156,16 +158,16 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Create new custom profile by duplicating "$currentName"'),
+        title: Text(context.i18n.createNewProfileByDuplicating(currentName)),
         content: TextField(
           controller: controller,
-          placeholder: Text('New Profile name'),
-          hintText: 'New Profile Name',
+          placeholder: Text(context.i18n.newProfileName),
+          hintText: context.i18n.newProfileName,
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Duplicate')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.duplicate)),
         ],
       ),
     );
@@ -175,13 +177,13 @@ class KeymapManager {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Profile'),
-        content: Text('Are you sure you want to delete "$profileName"? This action cannot be undone.'),
+        title: Text(context.i18n.deleteProfile),
+        content: Text(context.i18n.deleteProfileConfirmation(profileName)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.i18n.cancel)),
           DestructiveButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete'),
+            child: Text(context.i18n.delete),
           ),
         ],
       ),
@@ -204,15 +206,15 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Import Profile'),
+        title: Text(context.i18n.importProfile),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Paste the exported JSON data below:'),
+            Text(context.i18n.pasteExportedJsonData),
             SizedBox(height: 16),
             TextField(
               controller: controller,
-              hintText: 'JSON Data',
+              hintText: context.i18n.jsonData,
               border: Border(),
               maxLines: 5,
               autofocus: true,
@@ -220,8 +222,8 @@ class KeymapManager {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Import')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.importAction)),
         ],
       ),
     );

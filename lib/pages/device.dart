@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/scan.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
@@ -55,9 +57,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
               Warning(
                 important: false,
                 children: [
-                  Text(
-                    'SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
-                  ),
+                  Text(context.i18n.nameChangeNotice),
                   SizedBox(height: 8),
                   TextButton(
                     onPressed: () {
@@ -66,14 +66,14 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                       });
                       launchUrlString('https://openbikecontrol.org');
                     },
-                    child: Text('More Information'),
+                    child: Text(context.i18n.moreInformation),
                   ),
                 ],
               ),
 
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: ColoredTitle(text: 'Connect${core.connection.controllerDevices.isEmpty ? '' : 'ed'} Controllers'),
+              child: ColoredTitle(text: core.connection.controllerDevices.isEmpty ? context.i18n.connectControllers : context.i18n.connectedControllers),
             ),
 
             ScanWidget(),
@@ -83,7 +83,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
             if (core.settings.getIgnoredDevices().isNotEmpty)
               OutlineButton(
-                child: Text('Manage Ignored Devices'),
+                child: Text(context.i18n.manageIgnoredDevices),
                 onPressed: () async {
                   await showDialog(
                     context: context,
@@ -95,7 +95,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
             if (core.connection.controllerDevices.isNotEmpty)
               PrimaryButton(
-                child: Text('Connect to Trainer app'),
+                child: Text(context.i18n.connectToTrainerApp),
                 onPressed: () {
                   widget.onUpdate();
                 },

@@ -15,8 +15,10 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/loading_widget.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
@@ -263,13 +265,13 @@ abstract class BluetoothDevice extends BaseDevice {
               filled: true,
               fillColor: Theme.of(context).colorScheme.background,
               child: Basic(
-                title: Text('Connection'),
+                title: Text(context.i18n.connection),
                 trailingAlignment: Alignment.centerRight,
                 trailing: Icon(switch (isConnected) {
                   true => Icons.bluetooth_connected_outlined,
                   false => Icons.bluetooth_disabled_outlined,
                 }),
-                subtitle: Text(isConnected ? 'Connected' : 'Disconnected'),
+                subtitle: Text(isConnected ? context.i18n.connected : context.i18n.disconnected),
               ),
             ),
             if (batteryLevel != null)
@@ -277,7 +279,7 @@ abstract class BluetoothDevice extends BaseDevice {
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
-                  title: Text('Battery'),
+                  title: Text(context.i18n.battery),
                   trailingAlignment: Alignment.centerRight,
                   trailing: Icon(switch (batteryLevel!) {
                     >= 80 => Icons.battery_full,
@@ -295,13 +297,13 @@ abstract class BluetoothDevice extends BaseDevice {
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
-                  title: Text('Firmware'),
+                  title: Text(context.i18n.firmware),
                   subtitle: Row(
                     children: [
                       Text('$firmwareVersion'),
                       if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
                         Text(
-                          ' (latest: ${(this as ZwiftDevice).latestFirmwareVersion})',
+                          ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
                           style: TextStyle(color: Theme.of(context).colorScheme.destructive),
                         ),
                     ],
@@ -317,7 +319,7 @@ abstract class BluetoothDevice extends BaseDevice {
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
                 child: Basic(
-                  title: Text('Signal'),
+                  title: Text(context.i18n.signal),
                   trailingAlignment: Alignment.centerRight,
                   trailing: Icon(
                     switch (rssi!) {

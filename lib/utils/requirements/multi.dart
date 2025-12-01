@@ -7,8 +7,10 @@ import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
@@ -21,14 +23,13 @@ import 'package:universal_ble/universal_ble.dart';
 import '../../widgets/ui/warning.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
-  KeyboardRequirement() : super('Keyboard access');
+  KeyboardRequirement() : super(AppLocalizations.current.keyboardAccess);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     buildToast(
       context,
-      title:
-          'Enable keyboard access in the following screen for BikeControl. If you don\'t see BikeControl, please add it manually.',
+      title: AppLocalizations.current.enableKeyboardAccessMessage,
     );
     await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
   }
@@ -40,7 +41,7 @@ class KeyboardRequirement extends PlatformRequirement {
 }
 
 class BluetoothAdvertiseRequirement extends PlatformRequirement {
-  BluetoothAdvertiseRequirement() : super('Bluetooth Advertise access');
+  BluetoothAdvertiseRequirement() : super(AppLocalizations.current.bluetoothAdvertiseAccess);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -54,7 +55,7 @@ class BluetoothAdvertiseRequirement extends PlatformRequirement {
 }
 
 class BluetoothTurnedOn extends PlatformRequirement {
-  BluetoothTurnedOn() : super('Bluetooth turned on');
+  BluetoothTurnedOn() : super(AppLocalizations.current.bluetoothTurnedOn);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -78,7 +79,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
       onPressed: () {
         call(context, onUpdate);
       },
-      child: Text('Enable Bluetooth'),
+      child: Text(context.i18n.enableBluetooth),
     );
   }
 
@@ -93,7 +94,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
 
 class UnsupportedPlatform extends PlatformRequirement {
   UnsupportedPlatform()
-    : super('This ${kIsWeb ? 'Browser does not support Web Bluetooth and ' : 'platform'} is not supported :(') {
+    : super(kIsWeb ? AppLocalizations.current.browserNotSupported : AppLocalizations.current.platformNotSupported('platform')) {
     status = false;
   }
 
@@ -122,34 +123,38 @@ typedef BoolFunction = bool Function();
 
 enum Target {
   thisDevice(
-    title: 'This Device',
     icon: Icons.devices,
   ),
   otherDevice(
-    title: 'Other Device',
     icon: Icons.settings_remote_outlined,
   ),
   iOS(
-    title: 'iPhone / iPad / Apple TV',
     icon: Icons.settings_remote_outlined,
   ),
   android(
-    title: 'Android Device',
     icon: Icons.settings_remote_outlined,
   ),
   macOS(
-    title: 'Mac',
     icon: Icons.settings_remote_outlined,
   ),
   windows(
-    title: 'Windows PC',
     icon: Icons.settings_remote_outlined,
   );
 
-  final String title;
   final IconData icon;
 
-  const Target({required this.title, required this.icon});
+  const Target({required this.icon});
+
+  String getTitle(BuildContext context) {
+    return switch (this) {
+      Target.thisDevice => context.i18n.targetThisDevice,
+      Target.otherDevice => context.i18n.targetOtherDevice,
+      Target.iOS => context.i18n.targetIOS,
+      Target.android => context.i18n.targetAndroid,
+      Target.macOS => context.i18n.targetMacOS,
+      Target.windows => context.i18n.targetWindows,
+    };
+  }
 
   bool get isCompatible {
     return core.settings.getTrainerApp()?.compatibleTargets.contains(this) == true;
@@ -170,27 +175,28 @@ enum Target {
   }
 
   String getDescription(SupportedApp? app) {
+    final appName = app?.name ?? 'the Trainer app';
     final preferredConnectionMethod = app?.supportsOpenBikeProtocol == true
-        ? ' e.g. by using OpenBikeControl connection'
+        ? AppLocalizations.current.openBikeControlConnection
         : app is MyWhoosh
-        ? ' e.g. by using MyWhoosh Direct Connect'
+        ? AppLocalizations.current.myWhooshDirectConnection
         : '';
 
     return switch (this) {
       Target.thisDevice when !isCompatible =>
-        'Due to platform restrictions only controlling ${app?.name ?? 'the Trainer app'} on other devices is supported.',
-      Target.otherDevice when !isCompatible => 'Due to platform restrictions this scenario is not supported.',
-      Target.thisDevice => 'Run ${app?.name ?? 'the Trainer app'} on this device.',
+        AppLocalizations.current.platformRestrictionOtherDevicesOnly(appName),
+      Target.otherDevice when !isCompatible => AppLocalizations.current.platformRestrictionNotSupported,
+      Target.thisDevice => AppLocalizations.current.runAppOnThisDevice(appName),
       Target.iOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on an Apple device and control it remotely from this device$preferredConnectionMethod.',
+        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'an Apple device', preferredConnectionMethod),
       Target.android =>
-        'Run ${app?.name ?? 'the Trainer app'} on an Android device and control it remotely from this device$preferredConnectionMethod.',
+        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'an Android device', preferredConnectionMethod),
       Target.macOS =>
-        'Run ${app?.name ?? 'the Trainer app'} on a Mac and control it remotely from this device$preferredConnectionMethod.',
+        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'a Mac', preferredConnectionMethod),
       Target.windows =>
-        'Run ${app?.name ?? 'the Trainer app'} on a Windows PC and control it remotely from this device$preferredConnectionMethod.',
+        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'a Windows PC', preferredConnectionMethod),
       Target.otherDevice =>
-        'Run ${app?.name ?? 'the Trainer app'} on another device and control it remotely from this device.',
+        AppLocalizations.current.runAppOnPlatformRemotely(appName, 'another device', ''),
     };
   }
 
@@ -201,14 +207,14 @@ enum Target {
     }
     return switch (this) {
       Target.android when Platform.isAndroid =>
-        "Select 'This device' unless you want to control another Android device. Are you sure?",
+        AppLocalizations.current.selectThisDeviceWarning('Android'),
       Target.macOS when Platform.isMacOS =>
-        "Select 'This device' unless you want to control another macOS device. Are you sure?",
+        AppLocalizations.current.selectThisDeviceWarning('macOS'),
       Target.windows when Platform.isWindows =>
-        "Select 'This device' unless you want to control another Windows device. Are you sure?",
-      Target.android => "We highly recommended to download and use BikeControl on that Android device.",
-      Target.macOS => "We highly recommended to download and use BikeControl on that macOS device.",
-      Target.windows => "We highly recommended to download and use BikeControl on that Windows device.",
+        AppLocalizations.current.selectThisDeviceWarning('Windows'),
+      Target.android => AppLocalizations.current.recommendDownloadBikeControl('Android'),
+      Target.macOS => AppLocalizations.current.recommendDownloadBikeControl('macOS'),
+      Target.windows => AppLocalizations.current.recommendDownloadBikeControl('Windows'),
       _ => null,
     };
   }
@@ -224,8 +230,8 @@ enum Target {
 class TargetRequirement extends PlatformRequirement {
   TargetRequirement()
     : super(
-        'Select Trainer App & Target Device',
-        description: 'Select your Target Device where you want to run your trainer app on',
+        AppLocalizations.current.selectTrainerAppAndTarget,
+        description: AppLocalizations.current.selectTargetDeviceDescription,
       ) {
     status = false;
   }
@@ -246,7 +252,7 @@ class TargetRequirement extends PlatformRequirement {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Select Trainer App'),
+          Text(context.i18n.selectTrainerApp),
           Select<SupportedApp>(
             constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
             itemBuilder: (c, app) => Text(app.name),
@@ -260,7 +266,7 @@ class TargetRequirement extends PlatformRequirement {
                 }).toList(),
               ),
             ).call,
-            placeholder: Text('Select Trainer app'),
+            placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
             value: core.settings.getTrainerApp(),
             onChanged: (selectedApp) async {
               if (core.settings.getTrainerApp() is MyWhoosh &&
@@ -284,11 +290,11 @@ class TargetRequirement extends PlatformRequirement {
           if (core.settings.getTrainerApp() != null) ...[
             SizedBox(height: 8),
             Text(
-              'Select Target where ${core.settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
+              context.i18n.selectTargetWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
             ),
             Select<Target>(
               constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-              itemBuilder: (c, app) => Text(app.title),
+              itemBuilder: (c, app) => Text(app.getTitle(context)),
               popup: SelectPopup(
                 items: SelectItemList(
                   children: [Target.thisDevice, Target.otherDevice].map((target) {
@@ -301,13 +307,13 @@ class TargetRequirement extends PlatformRequirement {
                         subtitle: Text(
                           target.getDescription(core.settings.getTrainerApp()),
                         ).xSmall.muted,
-                        title: Text(target.title),
+                        title: Text(target.getTitle(context)),
                       ),
                     );
                   }).toList(),
                 ),
               ).call,
-              placeholder: Text('Select Target device'),
+              placeholder: Text(context.i18n.selectTargetDevice),
               value: core.settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
               enabled: core.settings.getTrainerApp() != null,
               onChanged: (target) async {
@@ -319,7 +325,7 @@ class TargetRequirement extends PlatformRequirement {
                     core.obpMdnsEmulator.startServer().catchError((e) {
                       buildToast(
                         context,
-                        title: 'Error starting OpenBikeControl server.',
+                        title: context.i18n.errorStartingOpenBikeControlServer,
                       );
                     });
                   }
@@ -341,11 +347,11 @@ class TargetRequirement extends PlatformRequirement {
           if (core.settings.getLastTarget() != null && core.settings.getLastTarget() != Target.thisDevice) ...[
             SizedBox(height: 8),
             Text(
-              'Select the other device where ${core.settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
+              context.i18n.selectOtherDeviceWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
             ),
             Select<Target>(
               constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-              itemBuilder: (c, app) => Text(app.title),
+              itemBuilder: (c, app) => Text(app.getTitle(context)),
               popup: SelectPopup(
                 items: SelectItemList(
                   children: Target.values.whereNot((e) => [Target.thisDevice, Target.otherDevice].contains(e)).map((
@@ -362,7 +368,7 @@ class TargetRequirement extends PlatformRequirement {
                             Row(
                               children: [
                                 Text(
-                                  target.title,
+                                  target.getTitle(context),
                                   style: TextStyle(
                                     fontWeight: target == Target.thisDevice && target.isCompatible
                                         ? FontWeight.bold
@@ -382,7 +388,7 @@ class TargetRequirement extends PlatformRequirement {
                   }).toList(),
                 ),
               ).call,
-              placeholder: Text('Select Target device'),
+              placeholder: Text(context.i18n.selectTargetDevice),
               value: core.settings.getLastTarget(),
               enabled: core.settings.getTrainerApp() != null,
               onChanged: (target) async {
@@ -439,7 +445,7 @@ class TargetRequirement extends PlatformRequirement {
           ],
         );
       } else {
-        return Text('${trainer.name} on ${target.title}');
+        return Builder(builder: (context) => Text(AppLocalizations.current.appNameOnTargetName(trainer.name, target.getTitle(context))));
       }
     } else {
       return null;
@@ -448,7 +454,7 @@ class TargetRequirement extends PlatformRequirement {
 }
 
 class PlaceholderRequirement extends PlatformRequirement {
-  PlaceholderRequirement() : super('Requirement');
+  PlaceholderRequirement() : super(AppLocalizations.current.requirement);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {}

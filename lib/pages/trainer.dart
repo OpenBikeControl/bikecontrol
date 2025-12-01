@@ -7,11 +7,13 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/openbikecontrol_ble_tile.dart';
@@ -56,7 +58,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       if (core.logic.showForegroundMessage) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // show snackbar to inform user that the app needs to stay in foreground
-          buildToast(context, title: 'To simulate touches the app needs to stay in the foreground.');
+          buildToast(context, title: AppLocalizations.current.touchSimulationForegroundMessage);
         });
       }
 
@@ -115,7 +117,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
           if (state == AvailabilityState.poweredOn && mounted) {
             final requirement = RemoteRequirement();
             requirement.reconnect();
-            buildToast(context, title: 'To simulate touches the app needs to stay in the foreground.');
+            buildToast(context, title: AppLocalizations.current.touchSimulationForegroundMessage);
           }
         });
       }
@@ -165,7 +167,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               Warning(
                 important: false,
                 children: [
-                  Text('Enable auto-rotation on your device to make sure the app works correctly.'),
+                  Text(context.i18n.enableAutoRotation),
                 ],
               ),
             if (_showMiuiWarning)
@@ -176,7 +178,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                       Icon(Icons.warning_amber),
                       SizedBox(width: 8),
                       Expanded(
-                        child: Text('MIUI Device Detected').bold,
+                        child: Text(context.i18n.miuiDeviceDetected).bold,
                       ),
                       IconButton.destructive(
                         icon: Icon(Icons.close),
@@ -191,24 +193,24 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
+                    context.i18n.miuiWarningDescription,
                     style: TextStyle(fontSize: 14),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'To ensure BikeControl works properly:',
+                    context.i18n.miuiEnsureProperWorking,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   Text(
-                    '• Disable battery optimization for BikeControl',
+                    context.i18n.miuiDisableBatteryOptimization,
                     style: TextStyle(fontSize: 14),
                   ),
                   Text(
-                    '• Enable autostart for BikeControl',
+                    context.i18n.miuiEnableAutostart,
                     style: TextStyle(fontSize: 14),
                   ),
                   Text(
-                    '• Lock the app in recent apps',
+                    context.i18n.miuiLockInRecentApps,
                     style: TextStyle(fontSize: 14),
                   ),
                   SizedBox(height: 12),
@@ -220,7 +222,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                       }
                     },
                     icon: Icon(Icons.open_in_new),
-                    trailing: Text('View Detailed Instructions'),
+                    trailing: Text(context.i18n.viewDetailedInstructions),
                   ),
                 ],
               ),
@@ -234,7 +236,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 core.logic.showZwiftMsdnEmulator ||
                 core.logic.showMyWhooshLink)
               ColoredTitle(
-                text: 'Recommended Connection Methods',
+                text: context.i18n.recommendedConnectionMethods,
               ),
 
             if (core.logic.showObpMdnsEmulator)
@@ -265,7 +267,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                     core.connection.signalNotification(
                       LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
                     );
-                    setState(() {});
                   },
                 ),
               ),
@@ -273,10 +274,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               Card(
                 child: ConnectionMethod(
                   showTroubleshooting: true,
-                  title:
-                      'Control ${core.settings.getTrainerApp()?.name} using ${core.actionHandler.supportedModes.joinToString(transform: (e) => e.name)}',
-                  description:
-                      'Enable keyboard and mouse control for better interaction with ${core.settings.getTrainerApp()?.name}.',
+                  title: context.i18n.controlAppUsingModes(
+                    core.settings.getTrainerApp()?.name ?? '',
+                    core.actionHandler.supportedModes.joinToString(transform: (e) => e.name),
+                  ),
+                  description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
                   requirements: core.permissions.getLocalControlRequirements(),
                   isStarted: core.logic.canRunAndroidService ? _isRunningAndroidService == true : null,
                   onChange: (value) {
@@ -292,7 +294,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                   additionalChild: _isRunningAndroidService == false
                       ? Warning(
                           children: [
-                            Text('Accessibility Service is not running.\nFollow instructions at').xSmall,
+                            Text(context.i18n.accessibilityServiceNotRunning).xSmall,
                             Row(
                               spacing: 8,
                               children: [
@@ -326,7 +328,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
             if (core.logic.showRemote) ...[
               SizedBox(height: 8),
-              ColoredTitle(text: 'Other Connection Methods'),
+              ColoredTitle(text: context.i18n.otherConnectionMethods),
               Card(
                 child: RemoteRequirement().build(context, () {
                   core.connection.signalNotification(
@@ -338,7 +340,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
 
             SizedBox(),
             PrimaryButton(
-              child: Text('Adjust Controller Buttons'),
+              child: Text(context.i18n.adjustControllerButtons),
               onPressed: () {
                 widget.goToNextPage();
               },

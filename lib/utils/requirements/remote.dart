@@ -4,9 +4,11 @@ import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState;
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -21,7 +23,7 @@ final peripheralManager = PeripheralManager();
 class RemoteRequirement extends PlatformRequirement {
   RemoteRequirement()
     : super(
-        'Connect to your target device',
+        AppLocalizations.current.choosePreferredConnectionMethod,
       );
 
   @override
@@ -29,7 +31,7 @@ class RemoteRequirement extends PlatformRequirement {
 
   @override
   Widget? buildDescription() {
-    return Text('Choose your preferred connection method');
+    return Text(AppLocalizations.current.choosePreferredConnectionMethod);
   }
 
   Future<void> reconnect() async {
@@ -299,8 +301,8 @@ class _PairWidgetState extends State<_PairWidget> {
           isStarted: isAdvertisingPeripheral,
           showTroubleshooting: true,
           badge: 'BETA',
-          title: 'Enable Pairing Process',
-          description: 'Pairing allows full customizability, but may not work on all devices.',
+          title: context.i18n.enablePairingProcess,
+          description: context.i18n.pairingDescription,
           isConnected: (core.actionHandler as RemoteActions).isConnected,
           requirements: core.permissions.getRemoteControlRequirements(),
           onChange: (value) async {
@@ -316,9 +318,9 @@ class _PairWidgetState extends State<_PairWidget> {
               Text(
                 switch (core.settings.getLastTarget()) {
                   Target.iOS =>
-                    'On your iPad go to Settings > Accessibility > Touch > AssistiveTouch > Pointer Devices > Devices and pair your device. Make sure AssistiveTouch is enabled.',
+                    context.i18n.pairingInstructionsIOS,
                   _ =>
-                    'On your ${core.settings.getLastTarget()?.title} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.',
+                    context.i18n.pairingInstructions(core.settings.getLastTarget()?.getTitle(context) ?? ''),
                 },
               ).small,
             ],
