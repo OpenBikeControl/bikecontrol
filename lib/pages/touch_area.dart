@@ -9,6 +9,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -197,7 +198,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       left: position.dx,
       top: position.dy,
       child: Tooltip(
-        message: 'Drag to reposition',
+        message: AppLocalizations.current.dragToReposition,
         child: AnimatedOpacity(
           opacity: _showFaded && widget.keyPair != keyPair ? 0.2 : 1.0,
           duration: Duration(milliseconds: 300),
@@ -314,19 +315,14 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                         children: [
                           IgnorePointer(
                             child: Text(
-                              '''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
-2. Load the screenshot with the button below
-3. The app is automatically set to landscape orientation for accurate mapping
-4. Press a button on your Click device to create a touch area
-5. Drag the touch areas to the desired position on the screenshot
-6. Save and close this screen''',
+                              AppLocalizations.current.touchAreaInstructions,
                             ),
                           ),
                           ElevatedButton(
                             onPressed: () {
                               _pickScreenshot();
                             },
-                            child: Text('Load in-game screenshot for placement'),
+                            child: Text(AppLocalizations.current.loadScreenshotForPlacement),
                           ),
                         ],
                       ),
@@ -342,18 +338,18 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                       ElevatedButton.icon(
                         onPressed: _saveAndClose,
                         icon: const Icon(Icons.save),
-                        label: const Text("Save"),
+                        label: Text(AppLocalizations.current.save),
                       ),
                       PopupMenuButton(
                         itemBuilder: (c) => [
                           PopupMenuItem(
-                            child: Text('Choose another screenshot'),
+                            child: Text(AppLocalizations.current.chooseAnotherScreenshot),
                             onTap: () {
                               _pickScreenshot();
                             },
                           ),
                           PopupMenuItem(
-                            child: Text('Reset'),
+                            child: Text(AppLocalizations.current.reset),
                             onTap: () {
                               _backgroundImage = null;
 
@@ -421,11 +417,11 @@ class KeypairExplanation extends StatelessWidget {
               keyPair.logicalKey?.keyLabel ?? 'Unknown',
             ].joinToString(separator: '+'),
           ),
-          if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
+          if (keyPair.isLongPress) Text(AppLocalizations.current.longPress, style: TextStyle(fontSize: 10)),
         ] else ...[
           if (!withKey && keyPair.touchPosition != Offset.zero)
             _KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
-          if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
+          if (keyPair.isLongPress) Text(AppLocalizations.current.longPress, style: TextStyle(fontSize: 10)),
         ],
       ],
     );

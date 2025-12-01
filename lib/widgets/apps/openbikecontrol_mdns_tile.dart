@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
@@ -20,12 +21,12 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
           valueListenable: core.obpMdnsEmulator.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
-              title: 'Connect directly over Network',
+              title: context.i18n.connectDirectlyOverNetwork,
               description: isConnected != null
-                  ? 'Connected to ${isConnected.appId}'
+                  ? context.i18n.connectedTo(isConnected.appId)
                   : isStarted
-                  ? 'Choose BikeControl in the connection screen.'
-                  : "Lets ${core.settings.getTrainerApp()?.name} connect directly over the Network. Choose BikeControl in the connection screen.",
+                  ? context.i18n.chooseBikeControlInConnectionScreen
+                  : context.i18n.letsAppConnectOverNetwork(core.settings.getTrainerApp()?.name ?? ''),
               requirements: [],
               onChange: (value) {
                 core.settings.setObpMdnsEnabled(value);
@@ -35,7 +36,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                   core.obpMdnsEmulator.startServer().catchError((e) {
                     buildToast(
                       context,
-                      title: 'Error starting OpenBikeControl server.',
+                      title: context.i18n.errorStartingOpenBikeControlServer,
                     );
                   });
                 }

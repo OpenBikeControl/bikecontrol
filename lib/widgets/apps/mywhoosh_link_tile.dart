@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -21,15 +22,15 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
-              title: 'Connect using MyWhoosh "Link"',
+              title: context.i18n.connectUsingMyWhooshLink,
               instructionLink: 'https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md',
               description: isConnected
-                  ? 'MyWhoosh "Link" connected'
+                  ? context.i18n.myWhooshLinkConnected
                   : isStarted
-                  ? 'Check the connection screen in MyWhoosh to see if "Link" is connected.'
+                  ? context.i18n.checkMyWhooshConnectionScreen
                   : core.actionHandler is RemoteActions
-                  ? 'Allows you to connect to MyWhoosh over the network, using the "Link" connection. The MyWhoosh Link companion app must NOT be running at the same time.'
-                  : 'Optional - allows you to do some additional features such as Emotes and turn directions. The MyWhoosh Link companion app must NOT be running at the same time.',
+                  ? context.i18n.myWhooshLinkDescriptionRemote
+                  : context.i18n.myWhooshLinkDescriptionLocal,
               requirements: [],
               showTroubleshooting: true,
               onChange: (value) {
@@ -40,8 +41,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                   core.connection.startMyWhooshServer().catchError((e) {
                     buildToast(
                       context,
-                      title:
-                          'Error starting MyWhoosh Link server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
+                      title: context.i18n.errorStartingMyWhooshLink,
                     );
                   });
                 }

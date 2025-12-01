@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
@@ -21,12 +22,12 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
           valueListenable: core.obpBluetoothEmulator.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
-              title: 'Connect using Bluetooth',
+              title: context.i18n.connectUsingBluetooth,
               description: isConnected != null
-                  ? 'Connected to ${isConnected.appId}'
+                  ? context.i18n.connectedTo(isConnected.appId)
                   : isStarted
-                  ? 'Choose BikeControl in the connection screen.'
-                  : 'Lets ${core.settings.getTrainerApp()?.name} connect to BikeControl over Bluetooth.',
+                  ? context.i18n.chooseBikeControlInConnectionScreen
+                  : context.i18n.letsAppConnectOverBluetooth(core.settings.getTrainerApp()?.name ?? ''),
               requirements: core.permissions.getRemoteControlRequirements(),
               onChange: (value) {
                 core.settings.setObpBleEnabled(value);
@@ -37,7 +38,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
                     buildToast(
                       context,
                       level: LogLevel.LOGLEVEL_WARNING,
-                      title: 'Error starting OpenBikeControl Bluetooth server.',
+                      title: context.i18n.errorStartingOpenBikeControlBluetoothServer,
                     );
                   });
                 }

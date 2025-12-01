@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -13,8 +14,8 @@ import 'package:universal_ble/universal_ble.dart';
 class AccessibilityRequirement extends PlatformRequirement {
   AccessibilityRequirement()
     : super(
-        'Allow Accessibility Service',
-        description: 'BikeControl needs accessibility permission to control your training apps.',
+        AppLocalizations.current.allowAccessibilityService,
+        description: AppLocalizations.current.accessibilityDescription,
       );
 
   @override
@@ -54,7 +55,7 @@ class AccessibilityRequirement extends PlatformRequirement {
 }
 
 class BluetoothScanRequirement extends PlatformRequirement {
-  BluetoothScanRequirement() : super('Allow Bluetooth Scan');
+  BluetoothScanRequirement() : super(AppLocalizations.current.allowBluetoothScan);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -70,7 +71,7 @@ class BluetoothScanRequirement extends PlatformRequirement {
 }
 
 class LocationRequirement extends PlatformRequirement {
-  LocationRequirement() : super('Allow Location so Bluetooth scan works');
+  LocationRequirement() : super(AppLocalizations.current.allowLocationForBluetooth);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -86,7 +87,7 @@ class LocationRequirement extends PlatformRequirement {
 }
 
 class BluetoothConnectRequirement extends PlatformRequirement {
-  BluetoothConnectRequirement() : super('Allow Bluetooth Connections');
+  BluetoothConnectRequirement() : super(AppLocalizations.current.allowBluetoothConnections);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -103,7 +104,7 @@ class BluetoothConnectRequirement extends PlatformRequirement {
 
 class NotificationRequirement extends PlatformRequirement {
   NotificationRequirement()
-    : super('Allow persistent Notification', description: 'This keeps the app alive in background');
+    : super(AppLocalizations.current.allowPersistentNotification, description: AppLocalizations.current.notificationDescription);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -160,7 +161,7 @@ class NotificationRequirement extends PlatformRequirement {
     await AndroidFlutterLocalNotificationsPlugin().startForegroundService(
       1,
       channelGroupId,
-      'Allows BikeControl to keep running in background',
+      AppLocalizations.current.allowsRunningInBackground,
       foregroundServiceTypes: {AndroidServiceForegroundType.foregroundServiceTypeConnectedDevice},
       startType: AndroidServiceStartType.startRedeliverIntent,
       notificationDetails: AndroidNotificationDetails(
@@ -168,8 +169,8 @@ class NotificationRequirement extends PlatformRequirement {
         'Keep Alive',
         actions: [
           AndroidNotificationAction(
-            'Disconnect Devices',
-            'Disconnect Devices',
+            AppLocalizations.current.disconnectDevices,
+            AppLocalizations.current.disconnectDevices,
             cancelNotification: true,
             showsUserInterface: false,
           ),

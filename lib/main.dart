@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/remote.dart';
@@ -169,7 +170,7 @@ class SwiftPlayApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       menuHandler: PopoverOverlayHandler(),
       popoverHandler: PopoverOverlayHandler(),
-      title: 'BikeControl',
+      title: AppLocalizations.current.appName,
       darkTheme: ThemeData(colorScheme: ColorSchemes.darkDefaultColor),
       theme: ThemeData(
         colorScheme: ColorSchemes.lightDefaultColor.copyWith(
@@ -177,7 +178,7 @@ class SwiftPlayApp extends StatelessWidget {
         ),
       ),
       home: error != null
-          ? Text('There was an error starting the App. Please contact support:\n$error')
+          ? Text(AppLocalizations.current.appStartError(error!))
           : ToastLayer(
               key: ValueKey('Test'),
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
