@@ -26,6 +26,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeProtocolMdnsTile> {
                   : 'OpenBikeProtocol allows compatible apps to connect directly to your trainer over the Network.',
               requirements: [],
               onChange: (value) {
+                core.settings.setObpMdnsEnabled(value);
                 if (!value) {
                   core.obpMdnsEmulator.stopServer();
                 } else if (value) {

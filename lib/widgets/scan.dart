@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dartx/dartx.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/pages/markdown.dart';
@@ -9,10 +8,6 @@ import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/wifi_animation.dart';
-import 'package:universal_ble/universal_ble.dart';
-
-import '../utils/requirements/android.dart';
-import '../utils/requirements/multi.dart';
 
 class ScanWidget extends StatefulWidget {
   const ScanWidget({super.key});
@@ -27,8 +22,6 @@ class _ScanWidgetState extends State<ScanWidget> {
   @override
   void initState() {
     super.initState();
-
-    core.connection.initialize();
 
     _checkRequirements();
   }
@@ -136,52 +129,11 @@ class _ScanWidgetState extends State<ScanWidget> {
     );
   }
 
-  Future<void> _checkRequirements() async {
-    final List<PlatformRequirement> list;
-    if (kIsWeb) {
-      final availablity = await UniversalBle.getBluetoothAvailabilityState();
-      if (availablity == AvailabilityState.unsupported) {
-        list = [UnsupportedPlatform()];
-      } else {
-        list = [BluetoothTurnedOn()];
-      }
-    } else if (Platform.isMacOS) {
-      list = [BluetoothTurnedOn()];
-    } else if (Platform.isIOS) {
-      list = [
-        BluetoothTurnedOn(),
-      ];
-    } else if (Platform.isWindows) {
-      list = [
-        BluetoothTurnedOn(),
-      ];
-    } else if (Platform.isAndroid) {
-      final deviceInfoPlugin = DeviceInfoPlugin();
-      final deviceInfo = await deviceInfoPlugin.androidInfo;
-      list = [
-        BluetoothTurnedOn(),
-        NotificationRequirement(),
-        if (deviceInfo.version.sdkInt <= 30)
-          LocationRequirement()
-        else ...[
-          BluetoothScanRequirement(),
-          BluetoothConnectRequirement(),
-        ],
-      ];
-    } else {
-      list = [UnsupportedPlatform()];
-    }
-
-    await Future.wait(list.map((e) => e.getStatus()));
-    setState(() {
-      _needsPermissions = list.where((e) => !e.status).toList();
-      if (_needsPermissions!.isEmpty) {
-        if (!kIsWeb) {
-          core.connection.performScanning().catchError((e, s) {
-            print("Error during scanning: $e\n$s");
-          });
-        }
-      }
+  void _checkRequirements() {
+    core.permissions.getScanRequirements().then((permissions) {
+      setState(() {
+        _needsPermissions = permissions;
+      });
     });
   }
 }

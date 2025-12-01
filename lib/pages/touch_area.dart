@@ -395,7 +395,7 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.inGameAction != null && core.logic.emulatorConnected && keyPair.touchPosition == Offset.zero)
+        if (keyPair.inGameAction != null && core.logic.emulatorEnabled && keyPair.touchPosition == Offset.zero)
           _KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,

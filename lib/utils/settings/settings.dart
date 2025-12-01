@@ -212,12 +212,20 @@ class Settings {
     await prefs.setBool('openbikeprotocol_ble_enabled', enabled);
   }
 
-  bool getZwiftEmulatorEnabled() {
+  bool getZwiftBleEmulatorEnabled() {
     return prefs.getBool('zwift_emulator_enabled') ?? true;
   }
 
-  Future<void> setZwiftEmulatorEnabled(bool enabled) async {
+  Future<void> setZwiftBleEmulatorEnabled(bool enabled) async {
     await prefs.setBool('zwift_emulator_enabled', enabled);
+  }
+
+  bool getZwiftMdnsEmulatorEnabled() {
+    return prefs.getBool('zwift_mdns_emulator_enabled') ?? true;
+  }
+
+  Future<void> setZwiftMdnsEmulatorEnabled(bool enabled) async {
+    await prefs.setBool('zwift_mdns_emulator_enabled', enabled);
   }
 
   bool getMiuiWarningDismissed() {
@@ -278,5 +286,13 @@ class Settings {
 
   Future<void> setShowZwiftClickV2ReconnectWarning(bool show) async {
     await prefs.setBool('zwift_click_v2_reconnect_warning', show);
+  }
+
+  void setRemoteControlEnabled(bool value) {
+    prefs.setBool('remote_control_enabled', value);
+  }
+
+  bool getRemoteControlEnabled() {
+    return prefs.getBool('remote_control_enabled') ?? false;
   }
 }

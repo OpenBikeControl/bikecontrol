@@ -35,8 +35,7 @@ class _StatusWidgetState extends State<StatusWidget> {
   @override
   Widget build(BuildContext context) {
     final isRemote = core.actionHandler is RemoteActions && isAdvertisingPeripheral;
-    final isZwift =
-        core.settings.getTrainerApp()?.supportsZwiftEmulation == true && core.settings.getZwiftEmulatorEnabled();
+    final isZwift = core.logic.showZwiftEmulator;
     return Card(
       child: Column(
         spacing: 8,

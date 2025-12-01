@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
@@ -27,8 +24,9 @@ class _OpenBikeProtocolTileState extends State<OpenBikeProtocolBluetoothTile> {
               description: isConnected != null
                   ? 'Connected to ${isConnected.appId}'
                   : 'OpenBikeProtocol allows compatible apps to connect directly to your trainer using Bluetooth.',
-              requirements: [if (Platform.isAndroid) BluetoothAdvertiseRequirement()],
+              requirements: core.permissions.getRemoteControlRequirements(),
               onChange: (value) {
+                core.settings.setObpBleEnabled(value);
                 if (!value) {
                   core.obpBluetoothEmulator.stopServer();
                 } else if (value) {

@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 
 class ZwiftTile extends StatefulWidget {
@@ -25,7 +22,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
             return ConnectionMethod(
               isStarted: core.zwiftEmulator.isAdvertising,
               onChange: (value) {
-                core.settings.setZwiftEmulatorEnabled(value);
+                core.settings.setZwiftBleEmulatorEnabled(value);
                 if (!value) {
                   core.zwiftEmulator.stopAdvertising();
                 } else if (value) {
@@ -39,7 +36,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
                   : isConnected
                   ? "Connected"
                   : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
-              requirements: [if (Platform.isAndroid) BluetoothAdvertiseRequirement()],
+              requirements: core.permissions.getRemoteControlRequirements(),
             );
           },
         );

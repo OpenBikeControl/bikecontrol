@@ -119,7 +119,7 @@ class KeyPair {
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         Icons.keyboard,
-      _ when inGameAction != null && touchPosition == Offset.zero && core.logic.emulatorConnected => Icons.link,
+      _ when inGameAction != null && touchPosition == Offset.zero && core.logic.emulatorEnabled => Icons.link,
       _ => Icons.touch_app,
     };
   }

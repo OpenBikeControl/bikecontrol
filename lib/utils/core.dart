@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
@@ -7,17 +8,22 @@ import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_ble_emulator
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obp_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/settings/settings.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
 import '../bluetooth/devices/link/link.dart';
 import 'requirements/multi.dart';
+import 'requirements/platform.dart';
 
 final core = Core();
 
@@ -33,7 +39,65 @@ class Core {
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
 
-  final logic = CoreLogic();
+  late final logic = CoreLogic();
+  late final permissions = Permissions();
+}
+
+class Permissions {
+  Future<List<PlatformRequirement>> getScanRequirements() async {
+    final List<PlatformRequirement> list;
+    if (kIsWeb) {
+      final availablity = await UniversalBle.getBluetoothAvailabilityState();
+      if (availablity == AvailabilityState.unsupported) {
+        list = [UnsupportedPlatform()];
+      } else {
+        list = [BluetoothTurnedOn()];
+      }
+    } else if (Platform.isMacOS) {
+      list = [BluetoothTurnedOn()];
+    } else if (Platform.isIOS) {
+      list = [
+        BluetoothTurnedOn(),
+      ];
+    } else if (Platform.isWindows) {
+      list = [
+        BluetoothTurnedOn(),
+      ];
+    } else if (Platform.isAndroid) {
+      final deviceInfoPlugin = DeviceInfoPlugin();
+      final deviceInfo = await deviceInfoPlugin.androidInfo;
+      list = [
+        BluetoothTurnedOn(),
+        NotificationRequirement(),
+        if (deviceInfo.version.sdkInt <= 30)
+          LocationRequirement()
+        else ...[
+          BluetoothScanRequirement(),
+          BluetoothConnectRequirement(),
+        ],
+      ];
+    } else {
+      list = [UnsupportedPlatform()];
+    }
+
+    await Future.wait(list.map((e) => e.getStatus()));
+    return list.where((e) => !e.status).toList();
+  }
+
+  List<PlatformRequirement> getLocalControlRequirements() {
+    return [Platform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()];
+  }
+
+  List<PlatformRequirement> getRemoteControlRequirements() {
+    return [BluetoothTurnedOn(), if (Platform.isAndroid) BluetoothAdvertiseRequirement()];
+  }
+}
+
+extension Granted on List<PlatformRequirement> {
+  Future<bool> get allGranted async {
+    await Future.wait(map((e) => e.getStatus()));
+    return where((element) => !element.status).isEmpty;
+  }
 }
 
 class CoreLogic {
@@ -53,8 +117,24 @@ class CoreLogic {
     return false;
   }
 
-  bool get shouldStartZwiftEmulator {
-    return core.settings.getZwiftEmulatorEnabled() && showZwiftEmulator;
+  bool get isZwiftBleEnabled {
+    return core.settings.getZwiftBleEmulatorEnabled() && showZwiftEmulator;
+  }
+
+  bool get isZwiftMdnsEnabled {
+    return core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftEmulator;
+  }
+
+  bool get isObpBleEnabled {
+    return core.settings.getObpBleEnabled() && showObpBluetoothEmulator;
+  }
+
+  bool get isObpMdnsEnabled {
+    return core.settings.getObpMdnsEnabled() && showObpMdnsEmulator;
+  }
+
+  bool get isMyWhooshLinkEnabled {
+    return core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink;
   }
 
   bool get showZwiftEmulator {
@@ -70,6 +150,10 @@ class CoreLogic {
         core.settings.getLastTarget() != Target.thisDevice;
   }
 
+  bool get isRemoteControlEnabled {
+    return core.settings.getRemoteControlEnabled() && showRemote;
+  }
+
   bool get showMyWhooshLink =>
       core.settings.getTrainerApp() is MyWhoosh && core.whooshLink.isCompatible(core.settings.getLastTarget()!);
 
@@ -83,9 +167,10 @@ class CoreLogic {
 
   AppInfo? get obpConnectedApp => core.obpMdnsEmulator.isConnected.value ?? core.obpBluetoothEmulator.isConnected.value;
 
-  bool get emulatorConnected =>
+  bool get emulatorEnabled =>
       (core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) ||
-      (core.settings.getZwiftEmulatorEnabled() && showZwiftEmulator) ||
+      (core.settings.getZwiftBleEmulatorEnabled() && showZwiftEmulator) ||
+      (core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftEmulator) ||
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
       (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
 
@@ -113,10 +198,49 @@ class CoreLogic {
       return core.obpBluetoothEmulator.isConnected.value != null;
     } else if (showZwiftEmulator) {
       return core.zwiftEmulator.isConnected.value || core.zwiftMdnsEmulator.isConnected;
-    } else if (showRemote && core.actionHandler is RemoteActions) {
+    } else if (showRemote) {
       return (core.actionHandler as RemoteActions).isConnected;
     } else {
       return false;
+    }
+  }
+
+  void initialize() async {
+    if (isZwiftBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
+      core.zwiftEmulator.startAdvertising(() {}).catchError((e) {
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
+        );
+      });
+    }
+    if (isZwiftMdnsEnabled) {
+      core.zwiftMdnsEmulator.startServer().catchError((e) {
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
+        );
+      });
+    }
+    if (isObpMdnsEnabled) {
+      core.obpMdnsEmulator.startServer().catchError((e) {
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeProtocol mDNS Emulator: $e'),
+        );
+      });
+    }
+    if (isObpBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
+      core.obpBluetoothEmulator.startServer().catchError((e) {
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeProtocol BLE Emulator: $e'),
+        );
+      });
+    }
+
+    if (isMyWhooshLinkEnabled) {
+      core.connection.startMyWhooshServer();
+    }
+
+    if (isRemoteControlEnabled) {
+      // TODO start remote control server
     }
   }
 }

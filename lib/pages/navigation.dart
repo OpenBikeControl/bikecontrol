@@ -40,6 +40,10 @@ class _NavigationState extends State<Navigation> {
   @override
   void initState() {
     super.initState();
+
+    core.connection.initialize();
+    core.logic.initialize();
+
     core.connection.actionStream.listen((_) {
       _updateTrainerConnectionStatus();
       setState(() {});

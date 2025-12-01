@@ -19,7 +19,6 @@ import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-import '../utils/keymap/apps/my_whoosh.dart';
 import 'devices/base_device.dart';
 import 'devices/zwift/constants.dart';
 import 'messages/notification.dart';
@@ -140,6 +139,12 @@ class Connection {
         _lastScanResult.removeWhere((d) => d.deviceId == deviceId);
       }
     };
+
+    core.permissions.getScanRequirements().then((perms) {
+      if (perms.isEmpty) {
+        performScanning();
+      }
+    });
   }
 
   Future<void> performScanning() async {
@@ -191,25 +196,6 @@ class Connection {
       });
     }
 
-    if (core.settings.getMyWhooshLinkEnabled() &&
-        core.settings.getTrainerApp() is MyWhoosh &&
-        !core.whooshLink.isStarted.value &&
-        core.whooshLink.isCompatible(core.settings.getLastTarget()!)) {
-      startMyWhooshServer().catchError((e) {
-        _actionStreams.add(
-          LogNotification(
-            'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.\n$e',
-          ),
-        );
-        _actionStreams.add(
-          AlertNotification(
-            LogLevel.LOGLEVEL_ERROR,
-            'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
-          ),
-        );
-      });
-    }
-
     if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
       _androidNotificationsSetup = true;
       // start foreground service only when app is in foreground
@@ -220,10 +206,24 @@ class Connection {
   }
 
   Future<void> startMyWhooshServer() {
-    return core.whooshLink.startServer(
-      onConnected: (socket) {},
-      onDisconnected: (socket) {},
-    );
+    return core.whooshLink
+        .startServer(
+          onConnected: (socket) {},
+          onDisconnected: (socket) {},
+        )
+        .catchError((e) {
+          _actionStreams.add(
+            LogNotification(
+              'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.\n$e',
+            ),
+          );
+          _actionStreams.add(
+            AlertNotification(
+              LogLevel.LOGLEVEL_ERROR,
+              'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
+            ),
+          );
+        });
   }
 
   void addDevices(List<BaseDevice> dev) {

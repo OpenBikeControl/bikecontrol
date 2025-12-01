@@ -10,8 +10,6 @@ import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/requirements/android.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/openbikeprotocol_ble_tile.dart';
@@ -71,11 +69,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         if (mounted) setState(() {});
       });
 
-      if (core.logic.shouldStartZwiftEmulator) {
-        core.zwiftEmulator.startAdvertising(() {
-          if (mounted) setState(() {});
-        });
-      }
       if (core.logic.canRunAndroidService) {
         core.logic.isAndroidServiceRunning().then((isRunning) {
           core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
@@ -246,7 +239,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                     'Control ${core.settings.getTrainerApp()?.name} using ${core.actionHandler.supportedModes.joinToString(transform: (e) => e.name)}',
                 description:
                     'Enable keyboard and mouse control for better interaction with ${core.settings.getTrainerApp()?.name}.',
-                requirements: [Platform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()],
+                requirements: core.permissions.getLocalControlRequirements(),
                 isStarted: core.logic.canRunAndroidService ? _isRunningAndroidService == true : null,
                 onChange: (value) {
                   if (core.logic.canRunAndroidService) {
@@ -315,6 +308,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                     : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
                 isStarted: core.zwiftMdnsEmulator.isStarted,
                 onChange: (start) {
+                  core.settings.setZwiftMdnsEmulatorEnabled(start);
                   if (start) {
                     core.zwiftMdnsEmulator.startServer();
                   } else {

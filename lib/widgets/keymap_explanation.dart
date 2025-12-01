@@ -192,7 +192,7 @@ class _ButtonEditor extends StatelessWidget {
             isActive: keyPair.inGameAction != null,
           ),
         ),
-      if (core.settings.getZwiftEmulatorEnabled() && core.settings.getTrainerApp()?.supportsZwiftEmulation == true)
+      if (core.logic.isZwiftBleEnabled || core.logic.isZwiftMdnsEnabled)
         MenuButton(
           subMenu: ZwiftEmulator.supportedActions.map(
             (ingame) {
@@ -224,9 +224,7 @@ class _ButtonEditor extends StatelessWidget {
             isActive: keyPair.inGameAction != null,
           ),
         ),
-      if (core.settings.getMyWhooshLinkEnabled() && core.whooshLink.isCompatible(core.settings.getLastTarget()!) ||
-          (core.settings.getZwiftEmulatorEnabled() && core.settings.getTrainerApp()?.supportsZwiftEmulation == true))
-        MenuDivider(),
+      if (core.logic.showMyWhooshLink || core.logic.isZwiftBleEnabled || core.logic.isZwiftMdnsEnabled) MenuDivider(),
       MenuLabel(child: Text('Custom')),
       if (trainerApp != null && trainerApp is! CustomApp) ...[
         MenuButton(
