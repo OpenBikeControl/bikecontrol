@@ -1,134 +1,84 @@
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as ma;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_screenshot/golden_screenshot.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/core.dart' show core;
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:test_screenshot/test_screenshot.dart';
 import 'package:universal_ble/universal_ble.dart';
+
+import 'custom_frame.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
-    version: '3.5.0',
+    version: '4.0.0',
     buildNumber: '1',
     buildSignature: '',
   );
   SharedPreferences.setMockInitialValues({});
 
-  group('Screenshot Tests', () {
-    final List<(String type, Size size)> sizes = [
-      ('Phone', Size(400, 800)),
-      ('iPhone', Size(1242, 2688)),
-      ('macOS', Size(1280, 800)),
-      ('GitHub', Size(600, 900)),
-    ];
+  final List<(String type, Size size)> sizes = [
+    ('Phone', Size(400, 800)),
+    /*('iPhone', Size(1242, 2688)),
+    ('macOS', Size(1280, 800)),
+    ('GitHub', Size(600, 900)),*/
+  ];
 
-    testWidgets('Requirements', (WidgetTester tester) async {
-      await tester.loadFonts();
-      for (final size in sizes) {
-        await _createRequirementScreenshot(tester, size);
-      }
+  debugDisableShadows = true;
+  testGoldens('Requirements', (WidgetTester tester) async {
+    screenshotMode = true;
 
-      // Reset
-    });
-    testWidgets('Device', (WidgetTester tester) async {
-      await tester.loadFonts();
-      for (final size in sizes) {
-        await _createDeviceScreenshot(tester, size);
-      }
-    });
+    // Set phone screen size (typical Android phone - 1140x2616 to match existing)
+    await core.settings.init();
+    await core.settings.reset();
+
+    core.settings.setTrainerApp(MyWhoosh());
+    core.settings.setKeyMap(MyWhoosh());
+    core.settings.setLastTarget(Target.thisDevice);
+
+    core.connection.addDevices([
+      ZwiftRide(
+          BleDevice(
+            name: 'Controller',
+            deviceId: '00:11:22:33:44:55',
+          ),
+        )
+        ..firmwareVersion = '1.2.0'
+        ..rssi = -51
+        ..batteryLevel = 81,
+    ]);
+
+    final device = ScreenshotDevice(
+      platform: TargetPlatform.android,
+      resolution: Size(1320, 2868),
+      pixelRatio: 3,
+      goldenSubFolder: 'iphoneScreenshots/',
+      frameBuilder: CustomFrame.new,
+    );
+
+    await tester.pumpWidget(
+      ScreenshotApp(device: device, home: BikeControlApp()),
+    );
+
+    await tester.loadAssets();
+    await tester.pump();
+    await expectLater(
+      find.byType(ma.Scaffold),
+      matchesGoldenFile('custom_frame_test.png'),
+    );
   });
-}
-
-Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size size) spec) async {
-  // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-  tester.view.physicalSize = spec.$2;
-  tester.view.devicePixelRatio = 1;
-
-  screenshotMode = true;
-
-  await core.settings.init();
-  await core.settings.reset();
-  core.settings.setTrainerApp(MyWhoosh());
-  core.settings.setKeyMap(MyWhoosh());
-  core.settings.setLastTarget(Target.thisDevice);
-
-  core.connection.addDevices([
-    ZwiftRide(
-        BleDevice(
-          name: 'Controller',
-          deviceId: '00:11:22:33:44:55',
-        ),
-      )
-      ..firmwareVersion = '1.2.0'
-      ..rssi = -51
-      ..batteryLevel = 81,
-  ]);
-
-  await tester.pumpWidget(
-    Screenshotter(
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        title: 'BikeControl',
-        themeMode: ThemeMode.light,
-        home: DevicePage(
-          onUpdate: () {},
-        ),
-      ),
-    ),
-  );
-
-  const wait = 1;
-
-  try {
-    await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
-  } catch (e) {
-    // Ignore timeout errors
-  }
-
-  await _takeScreenshot(tester, 'device-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png', spec.$2);
-}
-
-Future<void> _createRequirementScreenshot(WidgetTester tester, (String type, Size size) spec) async {
-  // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-  tester.view.physicalSize = spec.$2;
-  tester.view.devicePixelRatio = 1;
-
-  await core.settings.init();
-  await core.settings.reset();
-  screenshotMode = true;
-  await tester.pumpWidget(
-    Screenshotter(
-      child: SwiftPlayApp(),
-    ),
-  );
-  await tester.pumpAndSettle();
-
-  await _takeScreenshot(
-    tester,
-    'screenshot-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png',
-    spec.$2,
-  );
-}
-
-Future<void> _takeScreenshot(WidgetTester tester, String path, Size size) async {
-  const FileSystem fs = LocalFileSystem();
-  final file = fs.file('screenshots/$path');
-  await fs.directory('screenshots').create();
-  print('File path: ${file.absolute.path}');
-
-  await tester.screenshot(path: 'screenshots/$path');
-  final decodedImage = await decodeImageFromList(file.readAsBytesSync());
-  // resize image
+  /*testGoldens('Device', (WidgetTester tester) async {
+    await tester.loadFonts();
+    for (final size in sizes) {
+      await _createDeviceScreenshot(tester, size);
+    }
+  });*/
 }

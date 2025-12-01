@@ -140,11 +140,13 @@ class Connection {
       }
     };
 
-    core.permissions.getScanRequirements().then((perms) {
-      if (perms.isEmpty) {
-        performScanning();
-      }
-    });
+    if (!kIsWeb && !screenshotMode) {
+      core.permissions.getScanRequirements().then((perms) {
+        if (perms.isEmpty) {
+          performScanning();
+        }
+      });
+    }
   }
 
   Future<void> performScanning() async {

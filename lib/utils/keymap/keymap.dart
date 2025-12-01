@@ -129,7 +129,35 @@ class KeyPair {
 
   @override
   String toString() {
-    return encode();
+    final baseKey =
+        logicalKey?.keyLabel ??
+        switch (physicalKey) {
+          PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
+          PhysicalKeyboardKey.mediaTrackNext => 'Next Track',
+          PhysicalKeyboardKey.mediaTrackPrevious => 'Previous Track',
+          PhysicalKeyboardKey.mediaStop => 'Stop',
+          PhysicalKeyboardKey.audioVolumeUp => 'Volume Up',
+          PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
+          _ => 'Not assigned',
+        };
+
+    if (modifiers.isEmpty || baseKey == 'Not assigned') {
+      return baseKey;
+    }
+
+    // Format modifiers + key (e.g., "Ctrl+Alt+R")
+    final modifierStrings = modifiers.map((m) {
+      return switch (m) {
+        ModifierKey.shiftModifier => 'Shift',
+        ModifierKey.controlModifier => 'Ctrl',
+        ModifierKey.altModifier => 'Alt',
+        ModifierKey.metaModifier => 'Meta',
+        ModifierKey.functionModifier => 'Fn',
+        _ => m.name,
+      };
+    }).toList();
+
+    return '${modifierStrings.join('+')}+$baseKey';
   }
 
   String encode() {

@@ -55,7 +55,7 @@ void main() async {
 
       final error = await core.settings.init();
 
-      runApp(SwiftPlayApp(error: error));
+      runApp(BikeControlApp(error: error));
     },
     (Object error, StackTrace stack) {
       // Zone-level uncaught errors (async, timers, futures)
@@ -160,9 +160,9 @@ Future<void> initializeActions(ConnectionType connectionType) async {
   core.actionHandler.init(core.settings.getKeyMap());
 }
 
-class SwiftPlayApp extends StatelessWidget {
+class BikeControlApp extends StatelessWidget {
   final String? error;
-  const SwiftPlayApp({super.key, this.error});
+  const BikeControlApp({super.key, this.error});
 
   @override
   Widget build(BuildContext context) {

@@ -66,7 +66,7 @@ dev_dependencies:
     sdk: flutter
 
   intl_utils: ^2.8.12
-  test_screenshot: 0.0.8
+  golden_screenshot: ^8.1.1
   flutter_lints: ^6.0.0
   msix: ^3.16.12
 

@@ -2,12 +2,13 @@
 
 **Features:**
 - a brand new design
+- Zwift is now fully supported on all operating systems
+    - you can choose between network based control or bluetooth based control
+- BikeControl is now translated to German and French (contact me if you want to help with more translations)
 - support for KICKR BIKE PRO
 - support for the OpenBikeControl protocol for supported Trainer apps
   - this enables seamless and official integration, independent of the operating system
   - learn more at https://openbikecontrol.org
-- Zwift is now fully supported on all operating systems
-  - you can choose between network based control or bluetooth based control
 
 ### 3.6.0 (23-11-2025)
 

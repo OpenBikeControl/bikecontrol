@@ -189,7 +189,9 @@ class CoreLogic {
       core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true;
 
   Future<bool> isTrainerConnected() async {
-    if (showLocalControl) {
+    if (screenshotMode) {
+      return true;
+    } else if (showLocalControl) {
       if (canRunAndroidService) {
         return isAndroidServiceRunning();
       } else {
@@ -204,7 +206,7 @@ class CoreLogic {
     } else if (showZwiftBleEmulator) {
       return core.zwiftEmulator.isConnected.value;
     } else if (showZwiftMsdnEmulator) {
-      return core.zwiftMdnsEmulator.isConnected == true;
+      return core.zwiftMdnsEmulator.isConnected.value == true;
     } else if (showRemote) {
       return (core.actionHandler as RemoteActions).isConnected;
     } else {
