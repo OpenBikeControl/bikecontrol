@@ -1,4 +1,5 @@
 import 'package:dartx/dartx.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/pages/customize.dart';
@@ -49,6 +50,11 @@ class _NavigationState extends State<Navigation> {
     _updateTrainerConnectionStatus();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      SystemChrome.setSystemUIOverlayStyle(
+        Theme.of(context).colorScheme.brightness == Brightness.light
+            ? SystemUiOverlayStyle.dark
+            : SystemUiOverlayStyle.light,
+      );
       _checkAndShowChangelog();
     });
   }
@@ -167,7 +173,7 @@ class _NavigationState extends State<Navigation> {
                 _selectedPage = BCPage.values[index];
               });
             },
-            children: _tabs.map((page) => _buildNavigationItem(page)).toList(),
+            children: _tabs.map((page) => _buildNavigationItem(page, true)).toList(),
           ),
         ),
 
@@ -234,7 +240,7 @@ class _NavigationState extends State<Navigation> {
         });
       },
       children: _tabs.map((page) {
-        return _buildNavigationItem(page);
+        return _buildNavigationItem(page, false);
       }).toList(),
     );
   }
@@ -255,7 +261,7 @@ class _NavigationState extends State<Navigation> {
     };
   }
 
-  NavigationBarItem _buildNavigationItem(BCPage page) {
+  NavigationBarItem _buildNavigationItem(BCPage page, bool withPadding) {
     return NavigationItem(
       selected: _selectedPage == page,
       selectedStyle: ButtonStyle.primary(size: ButtonSize(1.1)).copyWith(
@@ -267,9 +273,11 @@ class _NavigationState extends State<Navigation> {
             borderRadius: BorderRadius.circular(8),
           );
         },
-        padding: (context, states, value) {
-          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-        },
+        padding: withPadding
+            ? (context, states, value) {
+                return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+              }
+            : null,
       ),
       style: ButtonStyle.ghost(density: ButtonDensity.icon, size: ButtonSize(1.1)).copyWith(
         decoration: (context, states, value) {
@@ -278,9 +286,11 @@ class _NavigationState extends State<Navigation> {
             borderRadius: BorderRadius.circular(8),
           );
         },
-        padding: (context, states, value) {
-          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-        },
+        padding: withPadding
+            ? (context, states, value) {
+                return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+              }
+            : null,
       ),
       enabled: _isPageEnabled(page),
       label: Text(

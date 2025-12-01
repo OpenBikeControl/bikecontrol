@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:swift_control/widgets/ui/colored_title.dart';
 
 import '../utils/core.dart';
 
@@ -43,9 +44,23 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
             items: [
               AccordionItem(
                 trigger: AccordionTrigger(
-                  child: Text(
-                    'Change Trainer setup (${core.settings.getTrainerApp()!.name} on ${core.settings.getLastTarget()?.title})',
-                  ).bold,
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      Expanded(
+                        child: ColoredTitle(
+                          text:
+                              'Trainer setup: ${core.settings.getTrainerApp()!.name} on ${core.settings.getLastTarget()?.title}',
+                        ),
+                      ),
+                      IgnorePointer(
+                        child: PrimaryButton(
+                          child: Text('Adjust'),
+                          onPressed: () {},
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 content: Card(
                   child: requirement.build(context, () {
@@ -56,7 +71,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
             ],
           )
         else ...[
-          Text('Setup Trainer').bold,
+          ColoredTitle(text: 'Setup Trainer'),
           Card(
             child: requirement.build(context, () {
               widget.onUpdate();

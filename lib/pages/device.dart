@@ -4,6 +4,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/scan.dart';
+import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -69,6 +70,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                   ),
                 ],
               ),
+
+            ColoredTitle(text: 'Connect${core.connection.controllerDevices.isEmpty ? '' : 'ed'} Controllers'),
 
             ScanWidget(),
             ...core.connection.controllerDevices.map(

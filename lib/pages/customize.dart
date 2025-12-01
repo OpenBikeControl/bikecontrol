@@ -8,6 +8,7 @@ import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
+import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 
 class CustomizePage extends StatefulWidget {
@@ -35,9 +36,10 @@ class _CustomizeState extends State<CustomizePage> {
             margin: const EdgeInsets.only(bottom: 8.0),
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             width: double.infinity,
-            child: Text(
-              'Customize Controller buttons for ${screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name}',
-            ).bold,
+            child: ColoredTitle(
+              text:
+                  'Customize Controller buttons for ${screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name}',
+            ),
           ),
 
           if (core.settings.getLastTarget()?.warning != null) ...[

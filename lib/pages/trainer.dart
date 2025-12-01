@@ -15,6 +15,7 @@ import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/openbikeprotocol_ble_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
+import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
@@ -240,7 +241,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 core.logic.showZwiftBleEmulator ||
                 core.logic.showZwiftMsdnEmulator ||
                 core.logic.showMyWhooshLink)
-              _UnderlinedText(
+              ColoredTitle(
                 text: 'Recommended Connection Methods',
               ),
 
@@ -344,7 +345,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
             if (core.logic.showRemote) ...[
               SizedBox(height: 8),
-              _UnderlinedText(text: 'Other Connection Methods'),
+              ColoredTitle(text: 'Other Connection Methods'),
               Card(
                 child: RemoteRequirement().build(context, () {
                   core.connection.signalNotification(
@@ -354,6 +355,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
             ],
 
+            SizedBox(),
             PrimaryButton(
               child: Text('Adjust Controller Buttons'),
               onPressed: () {
@@ -364,15 +366,5 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         ],
       ),
     );
-  }
-}
-
-class _UnderlinedText extends StatelessWidget {
-  final String text;
-  const _UnderlinedText({super.key, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(text).bold;
   }
 }
