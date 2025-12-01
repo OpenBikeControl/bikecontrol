@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 
 class ChangelogDialog extends StatelessWidget {
@@ -19,9 +20,9 @@ class ChangelogDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('What\'s New'),
+          Text(AppLocalizations.current.whatsNew),
           SizedBox(height: 4),
-          Text('Version ${entry.blocks.first.text}'),
+          Text(AppLocalizations.current.version(entry.blocks.first.text)),
         ],
       ),
       content: Container(
@@ -31,7 +32,7 @@ class ChangelogDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Got it!'),
+          child: Text(AppLocalizations.current.gotIt),
         ),
       ],
     );

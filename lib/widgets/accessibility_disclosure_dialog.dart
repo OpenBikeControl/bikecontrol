@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 
 class AccessibilityDisclosureDialog extends StatelessWidget {
   final VoidCallback onAccept;
@@ -15,43 +16,39 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
     return PopScope(
       canPop: false, // Prevent back navigation from dismissing dialog
       child: AlertDialog(
-        title: const Text('Accessibility Service Permission Required'),
-        content: const SingleChildScrollView(
+        title: Text(AppLocalizations.current.accessibilityServicePermissionRequired),
+        content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'BikeControl needs to use Android\'s AccessibilityService API to function properly.',
+                AppLocalizations.current.accessibilityServiceExplanation,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
-              Text('Why is this permission needed?'),
+              Text(AppLocalizations.current.whyPermissionNeeded),
               SizedBox(height: 8),
-              Text('• To simulate touch gestures on your screen for controlling trainer apps'),
-              Text('• To detect which training app window is currently active'),
-              Text('• To enable you to control apps like MyWhoosh, IndieVelo, and others using your Zwift devices'),
+              Text(AppLocalizations.current.accessibilityReasonTouch),
+              Text(AppLocalizations.current.accessibilityReasonWindow),
+              Text(AppLocalizations.current.accessibilityReasonControl),
               SizedBox(height: 16),
               Text(
-                'How does BikeControl use this permission?',
+                AppLocalizations.current.howBikeControlUsesPermission,
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 8),
-              Text(
-                '• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, BikeControl simulates touch gestures at specific screen locations',
-              ),
-              Text(
-                '• The app monitors which training app window is active to ensure gestures are sent to the correct app',
-              ),
-              Text('• No personal data is accessed or collected through this service'),
+              Text(AppLocalizations.current.accessibilityUsageGestures),
+              Text(AppLocalizations.current.accessibilityUsageMonitor),
+              Text(AppLocalizations.current.accessibilityUsageNoData),
               SizedBox(height: 16),
               Text(
-                'BikeControl will only access your screen to perform the gestures you configure. No other accessibility features or personal information will be accessed.',
+                AppLocalizations.current.accessibilityDisclaimer,
                 style: TextStyle(fontStyle: FontStyle.italic),
               ),
               SizedBox(height: 16),
               Text(
-                'You must choose to either Allow or Deny this permission to continue.',
+                AppLocalizations.current.mustChooseAllowOrDeny,
                 style: TextStyle(fontWeight: FontWeight.w600, color: Colors.orange),
               ),
             ],
@@ -60,11 +57,11 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
         actions: [
           DestructiveButton(
             onPressed: onDeny,
-            child: const Text('Deny'),
+            child: Text(AppLocalizations.current.deny),
           ),
           PrimaryButton(
             onPressed: onAccept,
-            child: const Text('Allow'),
+            child: Text(AppLocalizations.current.allow),
           ),
         ],
       ),

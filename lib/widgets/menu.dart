@@ -7,6 +7,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/button_simulator.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/core.dart';
@@ -27,9 +28,9 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               builder: (c) => DropdownMenu(
                 children: [
                   if ((!Platform.isIOS && !Platform.isMacOS)) ...[
-                    MenuLabel(child: Text('Show your appreciation by donating')),
+                    MenuLabel(child: Text(AppLocalizations.current.showDonation)),
                     MenuButton(
-                      child: Text('via Credit Card, Google Pay, Apple Pay and others'),
+                      child: Text(AppLocalizations.current.donateViaCreditCard),
                       onPressed: (c) {
                         final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
                         final link = switch (currency.currencyName) {
@@ -41,20 +42,20 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                     ),
                     if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
                       MenuButton(
-                        child: Text('by buying the app from Play Store'),
+                        child: Text(AppLocalizations.current.donateByBuyingFromPlayStore),
                         onPressed: (c) {
                           launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
                         },
                       ),
                     MenuButton(
-                      child: Text('via PayPal'),
+                      child: Text(AppLocalizations.current.donateViaPaypal),
                       onPressed: (c) {
                         launchUrlString('https://paypal.me/boni');
                       },
                     ),
                   ],
                   MenuButton(
-                    child: Text('Leave a Review'),
+                    child: Text(AppLocalizations.current.leaveAReview),
                     onPressed: (c) async {
                       final InAppReview inAppReview = InAppReview.instance;
 
@@ -87,7 +88,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               builder: (c) => DropdownMenu(
                 children: [
                   MenuButton(
-                    child: Text('Troubleshooting Guide'),
+                    child: Text(AppLocalizations.current.troubleshootingGuide),
                     onPressed: (c) {
                       Navigator.push(
                         context,
@@ -96,7 +97,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                     },
                   ),
                   MenuButton(
-                    child: Text('Provide Feedback'),
+                    child: Text(AppLocalizations.current.provideFeedback),
                     onPressed: (c) {
                       launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
                     },
@@ -104,20 +105,19 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                   MenuDivider(),
                   if (!kIsWeb)
                     MenuButton(
-                      child: Text('Get Support'),
+                      child: Text(AppLocalizations.current.getSupport),
                       onPressed: (c) {
                         final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
                         final suffix = isFromStore ? '' : '-sw';
 
                         String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
                         String subject = Uri.encodeComponent(
-                          "Help requested for BikeControl v${packageInfoValue?.version}",
+                          AppLocalizations.current.helpRequested(packageInfoValue?.version ?? ''),
                         );
                         String body = Uri.encodeComponent("""
                 ${debugText()}
 
-Please also attach the file ${File('${Directory.current.path}/app.logs').path}, if it exists.
-Please don't remove this information, it helps me to assist you better.""");
+${AppLocalizations.current.attachLogFile(File('${Directory.current.path}/app.logs').path)}""");
                         Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
 
                         launchUrl(mail);
@@ -176,10 +176,10 @@ class BKMenuButton extends StatelessWidget {
                     ),
                   );
                 },
-                child: Text('Simulate buttons'),
+                child: Text(AppLocalizations.current.simulateButtons),
               ),
               MenuButton(
-                child: Text('Continue'),
+                child: Text(AppLocalizations.current.continueAction),
                 onPressed: (c) {
                   core.connection.addDevices([
                     ZwiftClickV2(
@@ -195,7 +195,7 @@ class BKMenuButton extends StatelessWidget {
                 },
               ),
               MenuButton(
-                child: Text('Reset'),
+                child: Text(AppLocalizations.current.reset),
                 onPressed: (c) async {
                   await core.settings.reset();
                 },
@@ -204,19 +204,19 @@ class BKMenuButton extends StatelessWidget {
             ],
             if (openLogs != null)
               MenuButton(
-                child: Text('Logs'),
+                child: Text(AppLocalizations.current.logs),
                 onPressed: (c) {
                   openLogs!();
                 },
               ),
             MenuButton(
-              child: Text('Changelog'),
+              child: Text(AppLocalizations.current.changelog),
               onPressed: (c) {
                 Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
               },
             ),
             MenuButton(
-              child: Text('License'),
+              child: Text(AppLocalizations.current.license),
               onPressed: (c) {
                 showLicensePage(context: context);
               },

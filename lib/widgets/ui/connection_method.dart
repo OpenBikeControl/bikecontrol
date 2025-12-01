@@ -1,5 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
@@ -153,7 +154,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             onPressed: () {
               launchUrlString(widget.instructionLink!);
             },
-            child: Text('Video Instructions'),
+            child: Text(context.i18n.videoInstructions),
           ),
         if (widget.showTroubleshooting)
           OutlineButton(
@@ -166,7 +167,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                 ),
               );
             },
-            child: Text('Troubleshooting Guide'),
+            child: Text(context.i18n.troubleshootingGuide),
           ),
       ],
     );
@@ -230,7 +231,7 @@ class _PermissionListState extends State<_PermissionList> with WidgetsBindingObs
         spacing: 18,
         children: [
           Text(
-            'The following permissions are required:',
+            context.i18n.theFollowingPermissionsRequired,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           ...widget.requirements.map(
@@ -256,7 +257,7 @@ class _PermissionListState extends State<_PermissionList> with WidgetsBindingObs
                                     }
                                   });
                             },
-                      child: e.status ? Text('Granted') : Text('Grant'),
+                      child: e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
                     ),
                   ),
                 ),

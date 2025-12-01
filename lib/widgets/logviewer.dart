@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 
@@ -57,16 +58,16 @@ class _LogviewerState extends State<LogViewer> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Log Viewer').bold,
+              Text(context.i18n.logViewer).bold,
               OutlineButton(
-                child: Text('Share'),
+                child: Text(context.i18n.share),
                 onPressed: () {
                   final logText = core.connection.lastLogEntries
                       .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
                       .join('\n');
                   Clipboard.setData(ClipboardData(text: logText));
 
-                  buildToast(context, title: 'Logs have been copied to clipboard');
+                  buildToast(context, title: context.i18n.logsHaveBeenCopiedToClipboard);
                 },
               ),
             ],
@@ -110,7 +111,7 @@ class _LogviewerState extends State<LogViewer> {
                     ),
                   ),
                 ),
-          Text('Logs are also at').muted.small,
+          Text(context.i18n.logsAreAlsoAt).muted.small,
           CodeSnippet(
             code: SelectableText(File('${Directory.current.path}/app.logs').path),
             actions: [
@@ -119,7 +120,7 @@ class _LogviewerState extends State<LogViewer> {
                 variance: ButtonVariance.outline,
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
-                  buildToast(context, title: 'Path has been copied to clipboard');
+                  buildToast(context, title: context.i18n.pathCopiedToClipboard);
                 },
               ),
             ],
