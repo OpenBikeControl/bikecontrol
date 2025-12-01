@@ -21,6 +21,8 @@ using flutter::EncodableValue;
 constexpr int HOTKEY_PLAY_PAUSE = 1;
 constexpr int HOTKEY_NEXT_TRACK = 2;
 constexpr int HOTKEY_PREV_TRACK = 3;
+constexpr int HOTKEY_VOLUME_UP = 4;
+constexpr int HOTKEY_VOLUME_DOWN = 5;
 
 class MediaKeyDetectorWindows : public flutter::Plugin {
  public:
@@ -150,16 +152,20 @@ void MediaKeyDetectorWindows::RegisterHotkeys() {
   bool play_pause_ok = RegisterHotKey(hwnd, HOTKEY_PLAY_PAUSE, MOD_NOREPEAT, VK_MEDIA_PLAY_PAUSE);
   bool next_ok = RegisterHotKey(hwnd, HOTKEY_NEXT_TRACK, MOD_NOREPEAT, VK_MEDIA_NEXT_TRACK);
   bool prev_ok = RegisterHotKey(hwnd, HOTKEY_PREV_TRACK, MOD_NOREPEAT, VK_MEDIA_PREV_TRACK);
+  bool vol_up_ok = RegisterHotKey(hwnd, HOTKEY_VOLUME_UP, MOD_NOREPEAT, VK_VOLUME_UP);
+  bool vol_down_ok = RegisterHotKey(hwnd, HOTKEY_VOLUME_DOWN, MOD_NOREPEAT, VK_VOLUME_DOWN);
   
   // If all registrations succeeded, mark as registered
   // If any failed, unregister the successful ones to maintain consistent state
-  if (play_pause_ok && next_ok && prev_ok) {
+  if (play_pause_ok && next_ok && prev_ok && vol_up_ok && vol_down_ok) {
     hotkeys_registered_ = true;
   } else {
     // Clean up any successful registrations
     if (play_pause_ok) UnregisterHotKey(hwnd, HOTKEY_PLAY_PAUSE);
     if (next_ok) UnregisterHotKey(hwnd, HOTKEY_NEXT_TRACK);
     if (prev_ok) UnregisterHotKey(hwnd, HOTKEY_PREV_TRACK);
+    if (vol_up_ok) UnregisterHotKey(hwnd, HOTKEY_VOLUME_UP);
+    if (vol_down_ok) UnregisterHotKey(hwnd, HOTKEY_VOLUME_DOWN);
   }
 }
 
@@ -173,6 +179,8 @@ void MediaKeyDetectorWindows::UnregisterHotkeys() {
   UnregisterHotKey(hwnd, HOTKEY_PLAY_PAUSE);
   UnregisterHotKey(hwnd, HOTKEY_NEXT_TRACK);
   UnregisterHotKey(hwnd, HOTKEY_PREV_TRACK);
+  UnregisterHotKey(hwnd, HOTKEY_VOLUME_UP);
+  UnregisterHotKey(hwnd, HOTKEY_VOLUME_DOWN);
   
   hotkeys_registered_ = false;
 }
@@ -192,6 +200,12 @@ std::optional<LRESULT> MediaKeyDetectorWindows::HandleWindowProc(
         break;
       case HOTKEY_NEXT_TRACK:
         key_index = 2;  // MediaKey.fastForward
+        break;
+      case HOTKEY_VOLUME_UP:
+        key_index = 3;  // MediaKey.volumeUp
+        break;
+      case HOTKEY_VOLUME_DOWN:
+        key_index = 4;  // MediaKey.volumeDown
         break;
     }
     

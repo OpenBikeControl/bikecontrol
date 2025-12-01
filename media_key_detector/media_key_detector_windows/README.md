@@ -6,13 +6,15 @@ The windows implementation of `media_key_detector`.
 
 ## Features
 
-This plugin provides global media key detection on Windows using the Windows `RegisterHotKey` API. This allows your application to respond to media keys (play/pause, next track, previous track) even when it's not the focused application.
+This plugin provides global media key detection on Windows using the Windows `RegisterHotKey` API. This allows your application to respond to media keys (play/pause, next track, previous track, volume up, volume down) even when it's not the focused application.
 
 ### Supported Media Keys
 
 - Play/Pause (VK_MEDIA_PLAY_PAUSE)
 - Next Track (VK_MEDIA_NEXT_TRACK)
 - Previous Track (VK_MEDIA_PREV_TRACK)
+- Volume Up (VK_VOLUME_UP)
+- Volume Down (VK_VOLUME_DOWN)
 
 ### Implementation Details
 
@@ -45,6 +47,12 @@ mediaKeyDetector.addListener((MediaKey key) {
       break;
     case MediaKey.rewind:
       // Handle previous track
+      break;
+    case MediaKey.volumeUp:
+      // Handle volume up
+      break;
+    case MediaKey.volumeDown:
+      // Handle volume down
       break;
   }
 });

@@ -74,6 +74,8 @@ abstract class MediaKeyDetectorPlatform extends PlatformInterface {
     LogicalKeyboardKey.mediaPlay: MediaKey.playPause,
     LogicalKeyboardKey.mediaRewind: MediaKey.rewind,
     LogicalKeyboardKey.mediaFastForward: MediaKey.fastForward,
+    LogicalKeyboardKey.audioVolumeUp: MediaKey.volumeUp,
+    LogicalKeyboardKey.audioVolumeDown: MediaKey.volumeDown,
   };
 
   /// The default handler to use if this platform doesn't need to implement any
