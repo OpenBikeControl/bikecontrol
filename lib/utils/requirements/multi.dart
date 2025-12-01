@@ -25,14 +25,10 @@ class KeyboardRequirement extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    showToast(
-      context: context,
-      builder: (c, overlay) => buildToast(
-        context,
-        overlay,
-        title:
-            'Enable keyboard access in the following screen for BikeControl. If you don\'t see BikeControl, please add it manually.',
-      ),
+    buildToast(
+      context,
+      title:
+          'Enable keyboard access in the following screen for BikeControl. If you don\'t see BikeControl, please add it manually.',
     );
     await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
   }
@@ -318,14 +314,10 @@ class TargetRequirement extends PlatformRequirement {
                 if (target != null) {
                   await core.settings.setLastTarget(target);
                   if (target.warning != null) {
-                    showToast(
-                      context: context,
-                      builder: (c, overlay) => buildToast(
-                        context,
-                        overlay,
-                        title: target.warning,
-                        level: LogLevel.LOGLEVEL_WARNING,
-                      ),
+                    buildToast(
+                      context,
+                      title: target.warning,
+                      level: LogLevel.LOGLEVEL_WARNING,
                     );
                   }
                   setState(() {});
@@ -387,14 +379,10 @@ class TargetRequirement extends PlatformRequirement {
                   await core.settings.setLastTarget(target);
                   initializeActions(target.connectionType);
                   if (target.warning != null && context.mounted) {
-                    showToast(
-                      context: context,
-                      builder: (c, overlay) => buildToast(
-                        context,
-                        overlay,
-                        title: target.warning,
-                        level: LogLevel.LOGLEVEL_WARNING,
-                      ),
+                    buildToast(
+                      context,
+                      title: target.warning,
+                      level: LogLevel.LOGLEVEL_WARNING,
                     );
                   }
                   setState(() {});

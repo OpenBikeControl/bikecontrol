@@ -418,10 +418,7 @@ class _ButtonEditor extends StatelessWidget {
             skipName: '$currentProfile (Copy)',
           );
           if (newName != null) {
-            showToast(
-              context: context,
-              builder: (c, overlay) => buildToast(context, overlay, title: 'Created a new custom profile: $newName'),
-            );
+            buildToast(context, title: 'Created a new custom profile: $newName');
           }
           onUpdate();
         } else {

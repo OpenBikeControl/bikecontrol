@@ -56,11 +56,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       if (core.logic.showForegroundMessage) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // show snackbar to inform user that the app needs to stay in foreground
-          showToast(
-            builder: (c, overlay) =>
-                buildToast(c, overlay, title: 'To simulate touches the app needs to stay in the foreground.'),
-            context: context,
-          );
+          buildToast(context, title: 'To simulate touches the app needs to stay in the foreground.');
         });
       }
 
@@ -119,11 +115,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
           if (state == AvailabilityState.poweredOn && mounted) {
             final requirement = RemoteRequirement();
             requirement.reconnect();
-            showToast(
-              builder: (c, overlay) =>
-                  buildToast(c, overlay, title: 'To simulate touches the app needs to stay in the foreground.'),
-              context: context,
-            );
+            buildToast(context, title: 'To simulate touches the app needs to stay in the foreground.');
           }
         });
       }

@@ -33,14 +33,10 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                   core.whooshLink.stopServer();
                 } else if (value) {
                   core.connection.startMyWhooshServer().catchError((e) {
-                    showToast(
-                      context: context,
-                      builder: (c, overlay) => buildToast(
-                        context,
-                        overlay,
-                        title:
-                            'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
-                      ),
+                    buildToast(
+                      context,
+                      title:
+                          'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
                     );
                   });
                 }

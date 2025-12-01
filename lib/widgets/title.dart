@@ -64,10 +64,7 @@ class _AppTitleState extends State<AppTitle> {
               _showShorebirdRestartSnackbar();
             })
             .catchError((e) {
-              showToast(
-                context: context,
-                builder: (c, overlay) => buildToast(c, overlay, title: 'Failed to update: $e'),
-              );
+              buildToast(context, title: 'Failed to update: $e');
             });
       } else if (updateStatus == UpdateStatus.restartRequired) {
         _showShorebirdRestartSnackbar();
@@ -80,17 +77,13 @@ class _AppTitleState extends State<AppTitle> {
       try {
         final appUpdateInfo = await InAppUpdate.checkForUpdate();
         if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-          showToast(
-            context: context,
-            builder: (c, overlay) => buildToast(
-              c,
-              overlay,
-              title: 'New version available',
-              closeTitle: 'Update',
-              onClose: () {
-                InAppUpdate.performImmediateUpdate();
-              },
-            ),
+          buildToast(
+            context,
+            title: 'New version available',
+            closeTitle: 'Update',
+            onClose: () {
+              InAppUpdate.performImmediateUpdate();
+            },
           );
         }
         isFromPlayStore = true;
@@ -158,23 +151,19 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _showShorebirdRestartSnackbar() {
-    showToast(
-      context: context,
-      builder: (c, overlay) => buildToast(
-        c,
-        overlay,
-        title: 'Force-close the app to use the new version',
-        closeTitle: 'Restart',
-        onClose: () {
-          if (Platform.isIOS) {
-            core.connection.reset();
-            Restart.restartApp(delayBeforeRestart: 1000);
-          } else {
-            core.connection.reset();
-            exit(0);
-          }
-        },
-      ),
+    buildToast(
+      context,
+      title: 'Force-close the app to use the new version',
+      closeTitle: 'Restart',
+      onClose: () {
+        if (Platform.isIOS) {
+          core.connection.reset();
+          Restart.restartApp(delayBeforeRestart: 1000);
+        } else {
+          core.connection.reset();
+          exit(0);
+        }
+      },
     );
   }
 
@@ -193,17 +182,13 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _showUpdateSnackbar(Version newVersion, String url) {
-    showToast(
-      context: context,
-      builder: (c, overlay) => buildToast(
-        c,
-        overlay,
-        title: 'New version available: ${newVersion.toString()}',
-        closeTitle: 'Download',
-        onClose: () {
-          launchUrlString(url);
-        },
-      ),
+    buildToast(
+      context,
+      title: 'New version available: ${newVersion.toString()}',
+      closeTitle: 'Download',
+      onClose: () {
+        launchUrlString(url);
+      },
     );
   }
 }

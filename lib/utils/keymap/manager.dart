@@ -90,16 +90,9 @@ class KeymapManager {
                     if (jsonData != null && jsonData.isNotEmpty) {
                       final success = await core.settings.importCustomAppProfile(jsonData);
                       if (success) {
-                        showToast(
-                          context: context,
-                          builder: (c, overlay) => buildToast(context, overlay, title: 'Profile imported successfully'),
-                        );
+                        buildToast(context, title: 'Profile imported successfully');
                       } else {
-                        showToast(
-                          context: context,
-                          builder: (c, overlay) =>
-                              buildToast(context, overlay, title: 'Failed to import profile. Invalid format.'),
-                        );
+                        buildToast(context, title: 'Failed to import profile. Invalid format.');
                       }
                     }
                   },
@@ -113,11 +106,7 @@ class KeymapManager {
                       if (jsonData != null) {
                         Clipboard.setData(ClipboardData(text: jsonData));
 
-                        showToast(
-                          context: context,
-                          builder: (c, overlay) =>
-                              buildToast(context, overlay, title: 'Profile "$currentProfile" exported to clipboard'),
-                        );
+                        buildToast(context, title: 'Profile "$currentProfile" exported to clipboard');
                       }
                     },
                   ),

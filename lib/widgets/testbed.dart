@@ -75,34 +75,27 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
       }
       if (data is ButtonNotification) {
         for (final button in data.buttonsClicked) {
-          showToast(
-            context: context,
+          buildToast(
+            context,
+
             location: ToastLocation.bottomLeft,
-            builder: (c, overlay) => buildToast(
-              context,
-              overlay,
-              title: '🔘 ${button.name}',
-            ),
+            title: '🔘 ${button.name}',
           );
           if (core.actionHandler.supportedApp is! CustomApp &&
               core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
-            showToast(
-              context: context,
-              builder: (c, overlay) => buildToast(
-                context,
-                overlay,
-                titleWidget: Text.rich(
-                  TextSpan(
-                    children: [
-                      const TextSpan(text: 'Use a custom keymap to support the '),
-                      WidgetSpan(
-                        child: ButtonWidget(button: button),
-                      ),
-                      const TextSpan(
-                        text: ' button.',
-                      ),
-                    ],
-                  ),
+            buildToast(
+              context,
+              titleWidget: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(text: 'Use a custom keymap to support the '),
+                    WidgetSpan(
+                      child: ButtonWidget(button: button),
+                    ),
+                    const TextSpan(
+                      text: ' button.',
+                    ),
+                  ],
                 ),
               ),
             );
@@ -110,27 +103,19 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
         }
         setState(() {});
       } else if (data is ActionNotification) {
-        showToast(
-          context: context,
+        buildToast(
+          context,
           location: ToastLocation.topRight,
-          builder: (c, overlay) => buildToast(
-            context,
-            overlay,
-            level: data.result is actions.Error ? LogLevel.LOGLEVEL_WARNING : LogLevel.LOGLEVEL_INFO,
-            title: data.result.message,
-            duration: Duration(seconds: 1),
-          ),
+          level: data.result is actions.Error ? LogLevel.LOGLEVEL_WARNING : LogLevel.LOGLEVEL_INFO,
+          title: data.result.message,
+          duration: Duration(seconds: 1),
         );
       } else if (data is AlertNotification) {
-        showToast(
-          context: context,
+        buildToast(
+          context,
           location: ToastLocation.bottomLeft,
-          builder: (c, overlay) => buildToast(
-            context,
-            overlay,
-            level: data.level,
-            title: data.alertMessage,
-          ),
+          level: data.level,
+          title: data.alertMessage,
         );
       }
     });
@@ -210,19 +195,16 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
     final isDown = event is KeyDownEvent;
     final isUp = event is KeyUpEvent;
 
-    showToast(
-      context: context,
+    buildToast(
+      context,
+
       location: ToastLocation.bottomLeft,
-      builder: (c, overlay) => buildToast(
-        context,
-        overlay,
-        title:
-            '${isDown
-                ? "↓"
-                : isUp
-                ? "↑"
-                : "•"} $keyName',
-      ),
+      title:
+          '${isDown
+              ? "↓"
+              : isUp
+              ? "↑"
+              : "•"} $keyName',
     );
     // We don't want to prevent normal text input, so we return ignored.
     return KeyEventResult.ignored;

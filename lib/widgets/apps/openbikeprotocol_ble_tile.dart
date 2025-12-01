@@ -31,13 +31,9 @@ class _OpenBikeProtocolTileState extends State<OpenBikeProtocolBluetoothTile> {
                   core.obpBluetoothEmulator.stopServer();
                 } else if (value) {
                   core.obpBluetoothEmulator.startServer().catchError((e) {
-                    showToast(
-                      context: context,
-                      builder: (c, overlay) => buildToast(
-                        context,
-                        overlay,
-                        title: 'Error starting OpenBikeProtocol server.',
-                      ),
+                    buildToast(
+                      context,
+                      title: 'Error starting OpenBikeProtocol server.',
                     );
                   });
                 }

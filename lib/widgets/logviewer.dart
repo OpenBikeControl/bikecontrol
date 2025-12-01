@@ -66,10 +66,7 @@ class _LogviewerState extends State<LogViewer> {
                       .join('\n');
                   Clipboard.setData(ClipboardData(text: logText));
 
-                  showToast(
-                    context: context,
-                    builder: (c, overlay) => buildToast(context, overlay, title: 'Logs have been copied to clipboard'),
-                  );
+                  buildToast(context, title: 'Logs have been copied to clipboard');
                 },
               ),
             ],
@@ -122,11 +119,7 @@ class _LogviewerState extends State<LogViewer> {
                 variance: ButtonVariance.outline,
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
-
-                  showToast(
-                    context: context,
-                    builder: (c, overlay) => buildToast(context, overlay, title: 'Path has been copied to clipboard'),
-                  );
+                  buildToast(context, title: 'Path has been copied to clipboard');
                 },
               ),
             ],
