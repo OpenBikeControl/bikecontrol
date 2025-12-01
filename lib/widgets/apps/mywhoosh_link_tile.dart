@@ -21,14 +21,14 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
-              title: 'Connect over MyWhoosh "Link"',
+              title: 'Connect using MyWhoosh "Link"',
               instructionLink: 'https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md',
               description: isConnected
                   ? 'MyWhoosh "Link" connected'
                   : isStarted
                   ? 'Check the connection screen in MyWhoosh to see if "Link" is connected.'
                   : core.actionHandler is RemoteActions
-                  ? 'Allows you to connect to MyWhoosh over the network. The MyWhoosh Link companion app must NOT be running at the same time.'
+                  ? 'Allows you to connect to MyWhoosh over the network, using the "Link" connection. The MyWhoosh Link companion app must NOT be running at the same time.'
                   : 'Optional - allows you to do some additional features such as Emotes and turn directions. The MyWhoosh Link companion app must NOT be running at the same time.',
               requirements: [],
               showTroubleshooting: true,
