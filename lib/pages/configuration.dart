@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
 
@@ -27,14 +28,14 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         Text.rich(
           TextSpan(
             children: [
-              TextSpan(text: 'Need help? Click on the '),
+              TextSpan(text: '${context.i18n.needHelpClickHelp} '),
               WidgetSpan(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 4.0),
                   child: Icon(Icons.help_outline),
                 ),
               ),
-              TextSpan(text: ' button on top and don\'t hesitate to contact us.'),
+              TextSpan(text: ' ${context.i18n.needHelpDontHesitate}'),
             ],
           ),
         ).small.muted,
@@ -49,13 +50,15 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     children: [
                       Expanded(
                         child: ColoredTitle(
-                          text:
-                              'Trainer setup: ${core.settings.getTrainerApp()!.name} on ${core.settings.getLastTarget()?.title}',
+                          text: context.i18n.trainerSetup(
+                            core.settings.getTrainerApp()!.name,
+                            core.settings.getLastTarget()?.getTitle(context) ?? '',
+                          ),
                         ),
                       ),
                       IgnorePointer(
                         child: PrimaryButton(
-                          child: Text('Adjust'),
+                          child: Text(context.i18n.adjust),
                           onPressed: () {},
                         ),
                       ),
@@ -71,7 +74,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
             ],
           )
         else ...[
-          ColoredTitle(text: 'Setup Trainer'),
+          ColoredTitle(text: context.i18n.setupTrainer),
           Card(
             child: requirement.build(context, () {
               widget.onUpdate();

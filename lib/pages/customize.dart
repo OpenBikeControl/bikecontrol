@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' show SwitchListTile;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
+import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
@@ -32,13 +33,14 @@ class _CustomizeState extends State<CustomizePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+        Container(
             margin: const EdgeInsets.only(bottom: 8.0),
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             width: double.infinity,
             child: ColoredTitle(
-              text:
-                  'Customize Controller buttons for ${screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name}',
+              text: context.i18n.customizeControllerButtons(
+                screenshotMode ? 'Trainer app' : (core.settings.getTrainerApp()?.name ?? ''),
+              ),
             ),
           ),
 
@@ -74,7 +76,7 @@ class _CustomizeState extends State<CustomizePage> {
                       spacing: 6,
                       children: [
                         Icon(Icons.add, color: Theme.of(context).colorScheme.mutedForeground),
-                        Text('Create new keymap').normal.muted,
+                        Text(context.i18n.createNewKeymap).normal.muted,
                       ],
                     ),
                   ),
@@ -94,7 +96,7 @@ class _CustomizeState extends State<CustomizePage> {
                                   labelWidget: Text('Create new keymap'),
                                   leadingIcon: Icon(Icons.add),
                                 ),*/
-            placeholder: Text('Select Keymap'),
+            placeholder: Text(context.i18n.selectKeymap),
 
             onChanged: (app) async {
               if (app == null) {
@@ -124,7 +126,7 @@ class _CustomizeState extends State<CustomizePage> {
           ),
           if (core.actionHandler.supportedApp is! CustomApp)
             Text(
-              'Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)',
+              context.i18n.customizeKeymapHint,
               style: TextStyle(fontSize: 12),
             ),
           Gap(12),
@@ -143,11 +145,11 @@ class _CustomizeState extends State<CustomizePage> {
           else if (core.connection.controllerDevices.isEmpty)
             Warning(
               important: false,
-              children: [Text('Connect a controller device to preview and customize the keymap.').small],
+              children: [Text(context.i18n.connectControllerToPreview).small],
             ),
           if (canVibrate) ...[
             SwitchListTile(
-              title: Text('Enable vibration feedback when shifting gears'),
+              title: Text(context.i18n.enableVibrationFeedback),
               value: core.settings.getVibrationEnabled(),
               contentPadding: EdgeInsets.zero,
               onChanged: (value) async {
