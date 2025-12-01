@@ -40,57 +40,62 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12,
-        children: [
-          if (_showNameChangeWarning && !screenshotMode)
-            Warning(
-              important: false,
-              children: [
-                Text(
-                  'SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
-                ),
-                SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _showNameChangeWarning = false;
-                    });
-                    launchUrlString('https://openbikecontrol.org');
-                  },
-                  child: Text('More Information'),
-                ),
-              ],
+    return RefreshTrigger(
+      onRefresh: () async {
+        await Future.delayed(const Duration(seconds: 2));
+      },
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 12,
+          children: [
+            if (_showNameChangeWarning && !screenshotMode)
+              Warning(
+                important: false,
+                children: [
+                  Text(
+                    'SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!',
+                  ),
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _showNameChangeWarning = false;
+                      });
+                      launchUrlString('https://openbikecontrol.org');
+                    },
+                    child: Text('More Information'),
+                  ),
+                ],
+              ),
+
+            ScanWidget(),
+            ...core.connection.controllerDevices.map(
+              (device) => Card(child: device.showInformation(context)),
             ),
 
-          ScanWidget(),
-          ...core.connection.controllerDevices.map(
-            (device) => Card(child: device.showInformation(context)),
-          ),
+            if (core.settings.getIgnoredDevices().isNotEmpty)
+              OutlineButton(
+                child: Text('Manage Ignored Devices'),
+                onPressed: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (context) => IgnoredDevicesDialog(),
+                  );
+                  setState(() {});
+                },
+              ),
 
-          if (core.settings.getIgnoredDevices().isNotEmpty)
-            OutlineButton(
-              child: Text('Manage Ignored Devices'),
-              onPressed: () async {
-                await showDialog(
-                  context: context,
-                  builder: (context) => IgnoredDevicesDialog(),
-                );
-                setState(() {});
-              },
-            ),
-
-          if (core.connection.controllerDevices.isNotEmpty)
-            PrimaryButton(
-              child: Text('Continue'),
-              onPressed: () {
-                widget.onUpdate();
-              },
-            ),
-        ],
+            if (core.connection.controllerDevices.isNotEmpty)
+              PrimaryButton(
+                child: Text('Connect to Trainer app'),
+                onPressed: () {
+                  widget.onUpdate();
+                },
+              ),
+          ],
+        ),
       ),
     );
   }

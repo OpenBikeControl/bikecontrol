@@ -173,7 +173,7 @@ class SwiftPlayApp extends StatelessWidget {
       darkTheme: ThemeData(colorScheme: ColorSchemes.darkDefaultColor),
       theme: ThemeData(
         colorScheme: ColorSchemes.lightDefaultColor.copyWith(
-          card: () => Color(0xFFF8F8F8),
+          card: () => Color(0xFFFCFCFC),
         ),
       ),
       home: error != null

@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
@@ -27,7 +28,8 @@ import '../widgets/apps/openbikeprotocol_mdns_tile.dart';
 
 class TrainerPage extends StatefulWidget {
   final VoidCallback onUpdate;
-  const TrainerPage({super.key, required this.onUpdate});
+  final VoidCallback goToNextPage;
+  const TrainerPage({super.key, required this.onUpdate, required this.goToNextPage});
 
   @override
   State<TrainerPage> createState() => _TrainerPageState();
@@ -159,185 +161,218 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 12,
         children: [
-          if (_showAutoRotationWarning)
-            Warning(
-              important: false,
-              children: [
-                Text('Enable auto-rotation on your device to make sure the app works correctly.'),
-              ],
-            ),
-          if (_showMiuiWarning)
-            Warning(
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.warning_amber),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text('MIUI Device Detected').bold,
-                    ),
-                    IconButton.destructive(
-                      icon: Icon(Icons.close),
-                      onPressed: () async {
-                        await core.settings.setMiuiWarningDismissed(true);
-                        setState(() {
-                          _showMiuiWarning = false;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
-                  style: TextStyle(fontSize: 14),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'To ensure BikeControl works properly:',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  '• Disable battery optimization for BikeControl',
-                  style: TextStyle(fontSize: 14),
-                ),
-                Text(
-                  '• Enable autostart for BikeControl',
-                  style: TextStyle(fontSize: 14),
-                ),
-                Text(
-                  '• Lock the app in recent apps',
-                  style: TextStyle(fontSize: 14),
-                ),
-                SizedBox(height: 12),
-                IconButton.secondary(
-                  onPressed: () async {
-                    final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                  icon: Icon(Icons.open_in_new),
-                  trailing: Text('View Detailed Instructions'),
-                ),
-              ],
-            ),
-
-          if (core.logic.showObpMdnsEmulator)
-            Card(
-              child: OpenBikeProtocolMdnsTile(),
-            ),
-          if (core.logic.showObpBluetoothEmulator)
-            Card(
-              child: OpenBikeProtocolBluetoothTile(),
-            ),
-          if (core.logic.showLocalControl)
-            Card(
-              child: ConnectionMethod(
-                showTroubleshooting: true,
-                title:
-                    'Control ${core.settings.getTrainerApp()?.name} using ${core.actionHandler.supportedModes.joinToString(transform: (e) => e.name)}',
-                description:
-                    'Enable keyboard and mouse control for better interaction with ${core.settings.getTrainerApp()?.name}.',
-                requirements: core.permissions.getLocalControlRequirements(),
-                isStarted: core.logic.canRunAndroidService ? _isRunningAndroidService == true : null,
-                onChange: (value) {
-                  if (core.logic.canRunAndroidService) {
-                    core.logic.canRunAndroidService.then((isRunning) {
-                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-                      setState(() {
-                        _isRunningAndroidService = isRunning;
-                      });
-                    });
-                  }
-                },
-                additionalChild: _isRunningAndroidService == false
-                    ? Warning(
-                        children: [
-                          Text('Accessibility Service is not running.\nFollow instructions at').xSmall,
-                          Row(
-                            spacing: 8,
-                            children: [
-                              Expanded(
-                                child: LinkButton(
-                                  child: Text('dontkillmyapp.com'),
-                                  onPressed: () {
-                                    launchUrlString('https://dontkillmyapp.com/');
-                                  },
-                                ),
-                              ),
-                              IconButton.secondary(
-                                onPressed: () {
-                                  core.logic.isAndroidServiceRunning().then((
-                                    isRunning,
-                                  ) {
-                                    core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-                                    setState(() {
-                                      _isRunningAndroidService = isRunning;
-                                    });
-                                  });
-                                },
-                                icon: Icon(Icons.refresh),
-                              ),
-                            ],
-                          ),
-                        ],
-                      )
-                    : null,
-              ),
-            ),
-          if (core.logic.showMyWhooshLink) Card(child: MyWhooshLinkTile()),
-          if (core.logic.showZwiftEmulator) ...[
-            Card(
-              child: ZwiftTile(
-                onUpdate: () {
-                  core.connection.signalNotification(
-                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                  );
-                  setState(() {});
-                },
-              ),
-            ),
-            Card(
-              child: ConnectionMethod(
-                title: 'Enable Zwift Controller (Network)',
-                description: !core.zwiftMdnsEmulator.isStarted
-                    ? 'Enables BikeControl to act as a Zwift-compatible controller.'
-                    : core.zwiftMdnsEmulator.isConnected
-                    ? "Connected"
-                    : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
-                isStarted: core.zwiftMdnsEmulator.isStarted,
-                onChange: (start) {
-                  core.settings.setZwiftMdnsEmulatorEnabled(start);
-                  if (start) {
-                    core.zwiftMdnsEmulator.startServer();
-                  } else {
-                    core.zwiftMdnsEmulator.stop();
-                  }
-                  setState(() {});
-                },
-                requirements: [],
-              ),
-            ),
-          ],
-
-          if (core.logic.showRemote)
-            Card(
-              child: RemoteRequirement().build(context, () {
-                core.connection.signalNotification(
-                  LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
-                );
-              })!,
-            ),
-
-          PrimaryButton(
-            child: Text('Adjust Controller Buttons'),
-            onPressed: () {
+          ConfigurationPage(
+            onUpdate: () {
+              setState(() {});
               widget.onUpdate();
             },
           ),
+          if (core.settings.getTrainerApp() != null) ...[
+            if (_showAutoRotationWarning)
+              Warning(
+                important: false,
+                children: [
+                  Text('Enable auto-rotation on your device to make sure the app works correctly.'),
+                ],
+              ),
+            if (_showMiuiWarning)
+              Warning(
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.warning_amber),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text('MIUI Device Detected').bold,
+                      ),
+                      IconButton.destructive(
+                        icon: Icon(Icons.close),
+                        onPressed: () async {
+                          await core.settings.setMiuiWarningDismissed(true);
+                          setState(() {
+                            _showMiuiWarning = false;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Your device is running MIUI, which is known to aggressively kill background services and accessibility services.',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'To ensure BikeControl works properly:',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    '• Disable battery optimization for BikeControl',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    '• Enable autostart for BikeControl',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    '• Lock the app in recent apps',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  SizedBox(height: 12),
+                  IconButton.secondary(
+                    onPressed: () async {
+                      final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    icon: Icon(Icons.open_in_new),
+                    trailing: Text('View Detailed Instructions'),
+                  ),
+                ],
+              ),
+
+            SizedBox(height: 8),
+            if (core.logic.showObpBluetoothEmulator ||
+                core.logic.showObpMdnsEmulator ||
+                core.logic.showLocalControl ||
+                core.logic.showMyWhooshLink ||
+                core.logic.showZwiftBleEmulator ||
+                core.logic.showZwiftMsdnEmulator ||
+                core.logic.showMyWhooshLink)
+              _UnderlinedText(
+                text: 'Recommended Connection Methods',
+              ),
+
+            if (core.logic.showObpMdnsEmulator)
+              Card(
+                child: OpenBikeProtocolMdnsTile(),
+              ),
+            if (core.logic.showObpBluetoothEmulator)
+              Card(
+                child: OpenBikeProtocolBluetoothTile(),
+              ),
+
+            if (core.logic.showMyWhooshLink) Card(child: MyWhooshLinkTile()),
+            if (core.logic.showZwiftBleEmulator)
+              Card(
+                child: ZwiftTile(
+                  onUpdate: () {
+                    core.connection.signalNotification(
+                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                    );
+                    setState(() {});
+                  },
+                ),
+              ),
+            if (core.logic.showZwiftMsdnEmulator)
+              Card(
+                child: ConnectionMethod(
+                  title: 'Enable Zwift Controller (Network)',
+                  description: !core.zwiftMdnsEmulator.isStarted
+                      ? 'Enables BikeControl to act as a Zwift-compatible controller.'
+                      : core.zwiftMdnsEmulator.isConnected
+                      ? "Connected"
+                      : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
+                  isStarted: core.zwiftMdnsEmulator.isStarted,
+                  onChange: (start) {
+                    core.settings.setZwiftMdnsEmulatorEnabled(start);
+                    if (start) {
+                      core.zwiftMdnsEmulator.startServer();
+                    } else {
+                      core.zwiftMdnsEmulator.stop();
+                    }
+                    setState(() {});
+                  },
+                  requirements: [],
+                ),
+              ),
+            if (core.logic.showLocalControl)
+              Card(
+                child: ConnectionMethod(
+                  showTroubleshooting: true,
+                  title:
+                      'Control ${core.settings.getTrainerApp()?.name} using ${core.actionHandler.supportedModes.joinToString(transform: (e) => e.name)}',
+                  description:
+                      'Enable keyboard and mouse control for better interaction with ${core.settings.getTrainerApp()?.name}.',
+                  requirements: core.permissions.getLocalControlRequirements(),
+                  isStarted: core.logic.canRunAndroidService ? _isRunningAndroidService == true : null,
+                  onChange: (value) {
+                    if (core.logic.canRunAndroidService) {
+                      core.logic.canRunAndroidService.then((isRunning) {
+                        core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                        setState(() {
+                          _isRunningAndroidService = isRunning;
+                        });
+                      });
+                    }
+                  },
+                  additionalChild: _isRunningAndroidService == false
+                      ? Warning(
+                          children: [
+                            Text('Accessibility Service is not running.\nFollow instructions at').xSmall,
+                            Row(
+                              spacing: 8,
+                              children: [
+                                Expanded(
+                                  child: LinkButton(
+                                    child: Text('dontkillmyapp.com'),
+                                    onPressed: () {
+                                      launchUrlString('https://dontkillmyapp.com/');
+                                    },
+                                  ),
+                                ),
+                                IconButton.secondary(
+                                  onPressed: () {
+                                    core.logic.isAndroidServiceRunning().then((
+                                      isRunning,
+                                    ) {
+                                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                                      setState(() {
+                                        _isRunningAndroidService = isRunning;
+                                      });
+                                    });
+                                  },
+                                  icon: Icon(Icons.refresh),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      : null,
+                ),
+              ),
+            if (core.logic.showRemote) ...[
+              SizedBox(height: 8),
+              _UnderlinedText(text: 'Other Connection Methods'),
+              Card(
+                child: RemoteRequirement().build(context, () {
+                  core.connection.signalNotification(
+                    LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
+                  );
+                })!,
+              ),
+            ],
+
+            PrimaryButton(
+              child: Text('Adjust Controller Buttons'),
+              onPressed: () {
+                widget.goToNextPage();
+              },
+            ),
+          ],
         ],
       ),
     );
+  }
+}
+
+class _UnderlinedText extends StatelessWidget {
+  final String text;
+  const _UnderlinedText({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text).bold;
   }
 }

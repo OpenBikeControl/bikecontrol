@@ -118,11 +118,11 @@ class CoreLogic {
   }
 
   bool get isZwiftBleEnabled {
-    return core.settings.getZwiftBleEmulatorEnabled() && showZwiftEmulator;
+    return core.settings.getZwiftBleEmulatorEnabled() && showZwiftBleEmulator;
   }
 
   bool get isZwiftMdnsEnabled {
-    return core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftEmulator;
+    return core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator;
   }
 
   bool get isObpBleEnabled {
@@ -137,7 +137,12 @@ class CoreLogic {
     return core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink;
   }
 
-  bool get showZwiftEmulator {
+  bool get showZwiftBleEmulator {
+    return core.settings.getTrainerApp()?.supportsZwiftEmulation == true &&
+        core.settings.getLastTarget() != Target.thisDevice;
+  }
+
+  bool get showZwiftMsdnEmulator {
     return core.settings.getTrainerApp()?.supportsZwiftEmulation == true;
   }
 
@@ -169,8 +174,8 @@ class CoreLogic {
 
   bool get emulatorEnabled =>
       (core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) ||
-      (core.settings.getZwiftBleEmulatorEnabled() && showZwiftEmulator) ||
-      (core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftEmulator) ||
+      (core.settings.getZwiftBleEmulatorEnabled() && showZwiftBleEmulator) ||
+      (core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator) ||
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
       (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
 
@@ -196,8 +201,10 @@ class CoreLogic {
       return core.obpMdnsEmulator.isConnected.value != null;
     } else if (showObpBluetoothEmulator) {
       return core.obpBluetoothEmulator.isConnected.value != null;
-    } else if (showZwiftEmulator) {
-      return core.zwiftEmulator.isConnected.value || core.zwiftMdnsEmulator.isConnected;
+    } else if (showZwiftBleEmulator) {
+      return core.zwiftEmulator.isConnected.value;
+    } else if (showZwiftMsdnEmulator) {
+      return core.zwiftMdnsEmulator.isConnected == true;
     } else if (showRemote) {
       return (core.actionHandler as RemoteActions).isConnected;
     } else {

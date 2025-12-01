@@ -250,7 +250,7 @@ class TargetRequirement extends PlatformRequirement {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Select Trainer App', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('Select Trainer App'),
           Select<SupportedApp>(
             constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
             itemBuilder: (c, app) => Text(app.name),
@@ -259,16 +259,7 @@ class TargetRequirement extends PlatformRequirement {
                 children: SupportedApp.supportedApps.map((app) {
                   return SelectItemButton(
                     value: app,
-                    child: app is Zwift && !(Platform.isWindows || Platform.isAndroid)
-                        ? Basic(
-                            title: Text(app.name),
-                            trailing: Icon(Icons.warning_amber),
-                            trailingAlignment: Alignment.centerRight,
-                            subtitle: Text(
-                              'When running BikeControl on Apple devices you are limited to on-screen controls (so no virtual shifting) only due to platform restrictions :(',
-                            ).xSmall.muted,
-                          )
-                        : Text(app.name),
+                    child: Text(app.name),
                   );
                 }).toList(),
               ),
@@ -298,7 +289,6 @@ class TargetRequirement extends PlatformRequirement {
             SizedBox(height: 8),
             Text(
               'Select Target where ${core.settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
-              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             Select<Target>(
               constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
@@ -349,7 +339,6 @@ class TargetRequirement extends PlatformRequirement {
             SizedBox(height: 8),
             Text(
               'Select the other device where ${core.settings.getTrainerApp()?.name ?? 'the Trainer app'} runs on',
-              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             Select<Target>(
               constraints: BoxConstraints(maxWidth: 400, minWidth: 400),

@@ -1,9 +1,9 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/requirements/platform.dart';

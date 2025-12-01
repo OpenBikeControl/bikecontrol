@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class AccessibilityDisclosureDialog extends StatelessWidget {
   final VoidCallback onAccept;
@@ -38,8 +37,12 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 8),
-              Text('• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, BikeControl simulates touch gestures at specific screen locations'),
-              Text('• The app monitors which training app window is active to ensure gestures are sent to the correct app'),
+              Text(
+                '• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, BikeControl simulates touch gestures at specific screen locations',
+              ),
+              Text(
+                '• The app monitors which training app window is active to ensure gestures are sent to the correct app',
+              ),
               Text('• No personal data is accessed or collected through this service'),
               SizedBox(height: 16),
               Text(
@@ -49,25 +52,18 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
               SizedBox(height: 16),
               Text(
                 'You must choose to either Allow or Deny this permission to continue.',
-                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.deepOrange),
+                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.orange),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(
+          DestructiveButton(
             onPressed: onDeny,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
             child: const Text('Deny'),
           ),
-          ElevatedButton(
+          PrimaryButton(
             onPressed: onAccept,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-            ),
             child: const Text('Allow'),
           ),
         ],

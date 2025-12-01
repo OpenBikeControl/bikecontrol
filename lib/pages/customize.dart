@@ -33,13 +33,11 @@ class _CustomizeState extends State<CustomizePage> {
         children: [
           Container(
             margin: const EdgeInsets.only(bottom: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                'Customize ${screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name} on ${core.settings.getLastTarget()?.title}',
-              ).bold,
-            ),
+            child: Text(
+              'Customize Controller buttons for ${screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name}',
+            ).bold,
           ),
 
           if (core.settings.getLastTarget()?.warning != null) ...[
@@ -141,7 +139,10 @@ class _CustomizeState extends State<CustomizePage> {
               },
             )
           else if (core.connection.controllerDevices.isEmpty)
-            Text('Connect a controller device to preview and customize the keymap.').small,
+            Warning(
+              important: false,
+              children: [Text('Connect a controller device to preview and customize the keymap.').small],
+            ),
           if (canVibrate) ...[
             SwitchListTile(
               title: Text('Enable vibration feedback when shifting gears'),

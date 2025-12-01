@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 
 class ChangelogDialog extends StatelessWidget {
@@ -21,10 +21,7 @@ class ChangelogDialog extends StatelessWidget {
         children: [
           Text('What\'s New'),
           SizedBox(height: 4),
-          Text(
-            'Version ${entry.blocks.first.text}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.normal),
-          ),
+          Text('Version ${entry.blocks.first.text}'),
         ],
       ),
       content: Container(

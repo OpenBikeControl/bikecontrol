@@ -1,7 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/pages/trainer.dart';
@@ -14,10 +13,9 @@ import 'package:swift_control/widgets/ui/colors.dart';
 import '../widgets/changelog_dialog.dart';
 
 enum BCPage {
-  configuration('Configuration', Icons.settings),
   devices('Controllers', Icons.gamepad),
   trainer('Trainer', Icons.pedal_bike),
-  customization('Adjust', Icons.color_lens),
+  customization('Configuration', Icons.videogame_asset_outlined),
   logs('Logs', Icons.article);
 
   final String title;
@@ -35,7 +33,7 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
-  var _selectedPage = BCPage.configuration;
+  var _selectedPage = BCPage.devices;
 
   @override
   void initState() {
@@ -140,19 +138,15 @@ class _NavigationState extends State<Navigation> {
                   ),
                   BCPage.trainer => TrainerPage(
                     onUpdate: () {
+                      setState(() {});
+                    },
+                    goToNextPage: () {
                       setState(() {
                         _selectedPage = BCPage.customization;
                       });
                     },
                   ),
                   BCPage.customization => CustomizePage(),
-                  BCPage.configuration => ConfigurationPage(
-                    onUpdate: () {
-                      setState(() {
-                        _selectedPage = BCPage.devices;
-                      });
-                    },
-                  ),
                   BCPage.logs => LogViewer(),
                 },
               ),
@@ -173,43 +167,7 @@ class _NavigationState extends State<Navigation> {
                 _selectedPage = BCPage.values[index];
               });
             },
-            children: [
-              ..._tabs.map((page) {
-                return NavigationItem(
-                  selected: _selectedPage == page,
-                  selectedStyle: ButtonStyle.primary(size: ButtonSize(1.1)).copyWith(
-                    decoration: (context, states, value) {
-                      return BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [BKColor.main, BKColor.mainEnd],
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      );
-                    },
-                    padding: (context, states, value) {
-                      return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-                    },
-                  ),
-                  style: ButtonStyle.ghost(density: ButtonDensity.icon, size: ButtonSize(1.1)).copyWith(
-                    decoration: (context, states, value) {
-                      return BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                      );
-                    },
-                    padding: (context, states, value) {
-                      return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-                    },
-                  ),
-                  enabled: _isPageEnabled(page),
-                  label: Text(
-                    page == BCPage.trainer
-                        ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.title
-                        : page.title,
-                  ),
-                  child: _buildIcon(page),
-                );
-              }),
-            ],
+            children: _tabs.map((page) => _buildNavigationItem(page)).toList(),
           ),
         ),
 
@@ -241,14 +199,24 @@ class _NavigationState extends State<Navigation> {
           Positioned(
             right: 0,
             top: 0,
-            child: Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
-              ),
+            child: RepeatedAnimationBuilder<double>(
+              duration: Duration(seconds: 1),
+              reverseDuration: Duration(seconds: 1),
+              start: 10,
+              end: 12,
+              mode: RepeatMode.pingPong,
+              builder: (context, value, child) {
+                return Container(
+                  width: value,
+                  height: value,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -259,37 +227,66 @@ class _NavigationState extends State<Navigation> {
   Widget _buildNavigationBar() {
     return NavigationBar(
       backgroundColor: Theme.of(context).colorScheme.background,
-      labelType: NavigationLabelType.tooltip,
+      labelType: NavigationLabelType.all,
       onSelected: (int index) {
         setState(() {
           _selectedPage = _tabs[index];
         });
       },
       children: _tabs.map((page) {
-        return NavigationItem(
-          selected: _selectedPage == page,
-          enabled: _isPageEnabled(page),
-          label: Text(page == BCPage.trainer ? core.settings.getTrainerApp()?.name ?? page.title : page.title),
-          child: _buildIcon(page),
-        );
+        return _buildNavigationItem(page);
       }).toList(),
     );
   }
 
   bool _isPageEnabled(BCPage page) {
     return switch (page) {
-      BCPage.configuration => true,
-      _ => core.settings.getTrainerApp() != null,
+      BCPage.customization => core.settings.getTrainerApp() != null,
+      _ => true,
     };
   }
 
   bool _needsAttention(BCPage page) {
     return switch (page) {
-      BCPage.configuration => core.settings.getTrainerApp() == null,
       BCPage.devices => core.connection.controllerDevices.isEmpty,
       BCPage.customization => false,
-      BCPage.trainer => !_isTrainerConnected,
+      BCPage.trainer => core.settings.getTrainerApp() == null || !_isTrainerConnected,
       BCPage.logs => false,
     };
+  }
+
+  NavigationBarItem _buildNavigationItem(BCPage page) {
+    return NavigationItem(
+      selected: _selectedPage == page,
+      selectedStyle: ButtonStyle.primary(size: ButtonSize(1.1)).copyWith(
+        decoration: (context, states, value) {
+          return BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [BKColor.main, BKColor.mainEnd],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          );
+        },
+        padding: (context, states, value) {
+          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+        },
+      ),
+      style: ButtonStyle.ghost(density: ButtonDensity.icon, size: ButtonSize(1.1)).copyWith(
+        decoration: (context, states, value) {
+          return BoxDecoration(
+            color: states.contains(WidgetState.hovered) ? Theme.of(context).colorScheme.secondary : null,
+            borderRadius: BorderRadius.circular(8),
+          );
+        },
+        padding: (context, states, value) {
+          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+        },
+      ),
+      enabled: _isPageEnabled(page),
+      label: Text(
+        page == BCPage.trainer ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.title : page.title,
+      ),
+      child: _buildIcon(page),
+    );
   }
 }
