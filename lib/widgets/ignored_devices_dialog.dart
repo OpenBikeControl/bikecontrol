@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:swift_control/gen/app_localizations.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 
 class IgnoredDevicesDialog extends StatefulWidget {
   const IgnoredDevicesDialog({super.key});

@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/gen/app_localizations.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
 
