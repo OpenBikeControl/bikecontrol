@@ -41,6 +41,7 @@ class ZwiftEmulator {
   bool _isSubscribedToEvents = false;
   Central? _central;
   GATTCharacteristic? _asyncCharacteristic;
+  GATTCharacteristic? _syncTxCharacteristic;
 
   Future<void> reconnect() async {
     await _peripheralManager.stopAdvertising();
@@ -88,7 +89,7 @@ class ZwiftEmulator {
       await Future.delayed(Duration(seconds: 1));
     }
 
-    final syncTxCharacteristic = GATTCharacteristic.mutable(
+    _syncTxCharacteristic = GATTCharacteristic.mutable(
       uuid: UUID.fromString(ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID),
       descriptors: [],
       properties: [
@@ -154,10 +155,13 @@ class ZwiftEmulator {
           if (response != null) {
             await _peripheralManager.notifyCharacteristic(
               _central!,
-              syncTxCharacteristic,
+              _syncTxCharacteristic!,
               value: response,
             );
             onUpdate();
+            if (response == ZwiftConstants.RIDE_ON) {
+              _sendKeepAlive();
+            }
           }
 
           await _peripheralManager.respondWriteRequest(request);
@@ -232,7 +236,7 @@ class ZwiftEmulator {
               ],
               permissions: [],
             ),
-            syncTxCharacteristic,
+            _syncTxCharacteristic!,
             GATTCharacteristic.mutable(
               uuid: UUID.fromString('00000005-19CA-4651-86E5-FA29DCDD09D1'),
               descriptors: [],
@@ -263,7 +267,7 @@ class ZwiftEmulator {
     }
 
     final advertisement = Advertisement(
-      name: 'KICKR BIKE PRO 61DD',
+      name: 'KICKR BIKE PRO 1337',
       serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
       /*serviceData: {
         UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),
@@ -287,6 +291,15 @@ class ZwiftEmulator {
     await _peripheralManager.stopAdvertising();
     _isAdvertising = false;
     _isLoading = false;
+  }
+
+  Future<void> _sendKeepAlive() async {
+    await Future.delayed(const Duration(seconds: 5));
+    if (isConnected.value) {
+      final zero = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
+      _peripheralManager.notifyCharacteristic(_central!, _syncTxCharacteristic!, value: zero);
+      _sendKeepAlive();
+    }
   }
 
   Future<ActionResult> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
@@ -325,15 +338,7 @@ class ZwiftEmulator {
       value: commandProto,
     );
 
-    final zero = Uint8List.fromList([
-      Opcode.CONTROLLER_NOTIFICATION.value,
-      0x08,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0x0F,
-    ]);
+    final zero = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
     _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
     print('Sent action ${inGameAction.name} to Zwift Emulator');
     return Success('Sent action: ${inGameAction.name}');

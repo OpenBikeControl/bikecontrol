@@ -16,6 +16,7 @@ import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:swift_control/widgets/apps/openbikecontrol_mdns_tile.dart';
+import 'package:swift_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -259,24 +260,13 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
             if (core.logic.showZwiftMsdnEmulator)
               Card(
-                child: ConnectionMethod(
-                  title: 'Enable Zwift Controller (Network)',
-                  description: !core.zwiftMdnsEmulator.isStarted
-                      ? 'Enables BikeControl to act as a Zwift-compatible controller.'
-                      : core.zwiftMdnsEmulator.isConnected
-                      ? "Connected"
-                      : "Waiting for connection. Choose KICKR BIKE PRO in ${core.settings.getTrainerApp()?.name}'s controller pairing menu.",
-                  isStarted: core.zwiftMdnsEmulator.isStarted,
-                  onChange: (start) {
-                    core.settings.setZwiftMdnsEmulatorEnabled(start);
-                    if (start) {
-                      core.zwiftMdnsEmulator.startServer();
-                    } else {
-                      core.zwiftMdnsEmulator.stop();
-                    }
+                child: ZwiftMdnsTile(
+                  onUpdate: () {
+                    core.connection.signalNotification(
+                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                    );
                     setState(() {});
                   },
-                  requirements: [],
                 ),
               ),
             if (core.logic.showLocalControl)

@@ -116,7 +116,7 @@ abstract class BaseActions {
         return Future.value(core.obpMdnsEmulator.sendButtonPress([button]));
       } else if (core.whooshLink.isConnected.value) {
         return Future.value(core.whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
-      } else if (core.zwiftMdnsEmulator.isConnected) {
+      } else if (core.zwiftMdnsEmulator.isConnected.value) {
         return core.zwiftMdnsEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
       } else if (core.zwiftEmulator.isConnected.value) {
         return core.zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
