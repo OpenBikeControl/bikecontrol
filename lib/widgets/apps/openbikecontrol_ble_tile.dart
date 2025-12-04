@@ -22,6 +22,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
           valueListenable: core.obpBluetoothEmulator.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              type: ConnectionMethodType.openBikeControl,
               title: context.i18n.connectUsingBluetooth,
               description: isConnected != null
                   ? context.i18n.connectedTo(isConnected.appId)

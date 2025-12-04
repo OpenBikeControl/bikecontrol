@@ -22,6 +22,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              type: ConnectionMethodType.network,
               title: context.i18n.connectUsingMyWhooshLink,
               instructionLink: 'https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md',
               description: isConnected

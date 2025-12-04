@@ -24,6 +24,7 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
             return StatefulBuilder(
               builder: (context, setState) {
                 return ConnectionMethod(
+                  type: ConnectionMethodType.network,
                   title: context.i18n.enableZwiftControllerNetwork,
                   description: !isStarted
                       ? context.i18n.zwiftControllerDescription

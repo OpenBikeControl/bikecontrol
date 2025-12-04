@@ -300,7 +300,7 @@ class _PairWidgetState extends State<_PairWidget> {
         ConnectionMethod(
           isStarted: isAdvertisingPeripheral,
           showTroubleshooting: true,
-          badge: 'BETA',
+          type: ConnectionMethodType.bluetooth,
           title: context.i18n.enablePairingProcess,
           description: context.i18n.pairingDescription,
           isConnected: (core.actionHandler as RemoteActions).isConnected,

@@ -21,6 +21,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
         return StatefulBuilder(
           builder: (context, setState) {
             return ConnectionMethod(
+              type: ConnectionMethodType.bluetooth,
               isStarted: core.zwiftEmulator.isAdvertising,
               onChange: (value) {
                 core.settings.setZwiftBleEmulatorEnabled(value);

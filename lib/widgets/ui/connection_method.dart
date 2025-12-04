@@ -7,11 +7,18 @@ import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+enum ConnectionMethodType {
+  bluetooth,
+  network,
+  openBikeControl,
+  local,
+}
+
 class ConnectionMethod extends StatefulWidget {
   final String title;
   final String description;
   final String? instructionLink;
-  final String? badge;
+  final ConnectionMethodType type;
   final Widget? additionalChild;
   final bool? isConnected;
   final bool? isStarted;
@@ -22,7 +29,7 @@ class ConnectionMethod extends StatefulWidget {
   const ConnectionMethod({
     super.key,
     required this.title,
-    this.badge,
+    required this.type,
     this.additionalChild,
     required this.description,
     this.instructionLink,
@@ -127,9 +134,24 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 8,
                         children: [
                           Expanded(child: Text(widget.title)),
-                          if (widget.badge != null) BetaPill(text: widget.badge!),
+                          if (widget.title == context.i18n.enablePairingProcess)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 1.0),
+                              child: BetaPill(),
+                            ),
+                          PrimaryBadge(
+                            trailing: switch (widget.type) {
+                              ConnectionMethodType.bluetooth => Icon(Icons.bluetooth),
+                              ConnectionMethodType.network => Icon(Icons.wifi),
+                              ConnectionMethodType.openBikeControl => Icon(Icons.directions_bike),
+                              ConnectionMethodType.local => Icon(Icons.keyboard),
+                            },
+                            child: Text(widget.type.name.capitalize()),
+                          ),
                         ],
                       ),
                       Text(

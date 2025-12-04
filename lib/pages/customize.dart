@@ -65,7 +65,7 @@ class _CustomizeState extends State<CustomizePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(a.name),
-                          if (a is CustomApp) BetaPill(text: 'CUSTOM'),
+                          if (a is CustomApp) PrimaryBadge(child: Text('CUSTOM')),
                         ],
                       ),
                     ),

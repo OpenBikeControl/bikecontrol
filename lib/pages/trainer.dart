@@ -274,6 +274,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             if (core.logic.showLocalControl)
               Card(
                 child: ConnectionMethod(
+                  type: ConnectionMethodType.local,
                   showTroubleshooting: true,
                   title: context.i18n.controlAppUsingModes(
                     core.settings.getTrainerApp()?.name ?? '',
