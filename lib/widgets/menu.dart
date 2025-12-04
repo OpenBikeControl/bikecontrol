@@ -20,8 +20,8 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
   return [
     Builder(
       builder: (context) {
-        return IconButton(
-          variance: ButtonVariance.outline,
+        return OutlineButton(
+          density: ButtonDensity.icon,
           onPressed: () {
             showDropdown(
               context: context,
@@ -70,18 +70,18 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               ),
             );
           },
-          icon: Text(
+          child: Text(
             '♥',
             style: TextStyle(color: Colors.red, fontSize: Platform.isIOS || Platform.isAndroid ? null : 11),
-          ).bold,
+          ),
         );
       },
     ),
     Gap(4),
     Builder(
       builder: (context) {
-        return IconButton(
-          variance: ButtonVariance.outline,
+        return OutlineButton(
+          density: ButtonDensity.icon,
           onPressed: () {
             showDropdown(
               context: context,
@@ -127,7 +127,7 @@ ${context.i18n.attachLogFile(File('${Directory.current.path}/app.logs').path)}""
               ),
             );
           },
-          icon: Icon(
+          child: Icon(
             Icons.help_outline,
             size: 18,
           ),
@@ -159,9 +159,9 @@ class BKMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      variance: ButtonVariance.outline,
-      icon: Icon(Icons.more_vert, size: 18),
+    return OutlineButton(
+      density: ButtonDensity.icon,
+      child: Icon(Icons.more_vert, size: 18),
       onPressed: () => showDropdown(
         context: context,
         builder: (c) => DropdownMenu(

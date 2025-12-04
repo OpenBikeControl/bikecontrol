@@ -189,7 +189,6 @@ class BikeControlApp extends StatelessWidget {
           card: () => Color(0xFFF2F9FF),
         ),
       ),
-      themeMode: ThemeMode.light,
       home: error != null
           ? Center(
               child: Text(

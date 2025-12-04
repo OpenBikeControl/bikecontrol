@@ -89,11 +89,11 @@ class _ScanWidgetState extends State<ScanWidget> {
                             tooltip: (c) => TooltipContainer(
                               child: Text(context.i18n.mediaKeyDetectionTooltip),
                             ),
-                            child: Checkbox(
-                              state: value ? CheckboxState.checked : CheckboxState.unchecked,
+                            child: Switch(
+                              value: value,
                               trailing: Text(context.i18n.enableMediaKeyDetection),
                               onChanged: (change) {
-                                core.connection.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
+                                core.connection.isMediaKeyDetectionEnabled.value = change;
                               },
                             ),
                           );
