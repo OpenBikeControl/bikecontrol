@@ -12,7 +12,6 @@ import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
-import 'package:swift_control/widgets/ui/warning.dart';
 
 bool isAdvertisingPeripheral = false;
 bool _isLoading = false;
@@ -291,39 +290,28 @@ class _PairWidget extends StatefulWidget {
 class _PairWidgetState extends State<_PairWidget> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 16,
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ConnectionMethod(
-          isStarted: isAdvertisingPeripheral,
-          showTroubleshooting: true,
-          type: ConnectionMethodType.bluetooth,
-          title: context.i18n.enablePairingProcess,
-          description: context.i18n.pairingDescription,
-          isConnected: (core.actionHandler as RemoteActions).isConnected,
-          requirements: core.permissions.getRemoteControlRequirements(),
-          onChange: (value) async {
-            core.settings.setRemoteControlEnabled(value);
-            await toggle(value);
-            setState(() {});
-          },
-        ),
-        if (isAdvertisingPeripheral)
-          Warning(
-            important: false,
-            children: [
-              Text(
-                switch (core.settings.getLastTarget()) {
-                  Target.iOS => context.i18n.pairingInstructionsIOS,
-                  _ => context.i18n.pairingInstructions(core.settings.getLastTarget()?.getTitle(context) ?? ''),
-                },
-              ).small,
-            ],
-          ),
-      ],
+    return ConnectionMethod(
+      isEnabled: core.settings.getRemoteControlEnabled(),
+      isStarted: isAdvertisingPeripheral,
+      showTroubleshooting: true,
+      type: ConnectionMethodType.bluetooth,
+      title: context.i18n.enablePairingProcess,
+      description: context.i18n.pairingDescription,
+      isConnected: (core.actionHandler as RemoteActions).isConnected,
+      requirements: core.permissions.getRemoteControlRequirements(),
+      onChange: (value) async {
+        core.settings.setRemoteControlEnabled(value);
+        await toggle(value);
+        setState(() {});
+      },
+      additionalChild: isAdvertisingPeripheral
+          ? Text(
+              switch (core.settings.getLastTarget()) {
+                Target.iOS => context.i18n.pairingInstructionsIOS,
+                _ => context.i18n.pairingInstructions(core.settings.getLastTarget()?.getTitle(context) ?? ''),
+              },
+            ).small
+          : null,
     );
   }
 

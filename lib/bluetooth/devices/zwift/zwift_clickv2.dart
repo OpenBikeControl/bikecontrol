@@ -1,6 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
@@ -63,50 +63,55 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Widget showInformation(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      spacing: 8,
-      children: [
-        super.showInformation(context),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          spacing: 8,
+          children: [
+            super.showInformation(context),
 
-        if (isConnected && _noLongerSendsEvents && core.settings.getShowZwiftClickV2ReconnectWarning())
-          Warning(
-            children: [
-              Text(
-                AppLocalizations.of(context).clickV2Instructions,
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+            if (isConnected && _noLongerSendsEvents && core.settings.getShowZwiftClickV2ReconnectWarning())
+              Warning(
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      sendCommand(Opcode.RESET, null);
-                    },
-                    child: Text('Reset now'),
+                  Text(
+                    AppLocalizations.of(context).clickV2Instructions,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                        ),
-                      );
-                    },
-                    child: Text(context.i18n.troubleshootingGuide),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      core.settings.setShowZwiftClickV2ReconnectWarning(false);
-                    },
-                    child: Text(context.i18n.close),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          sendCommand(Opcode.RESET, null);
+                        },
+                        child: Text('Reset now'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                            ),
+                          );
+                        },
+                        child: Text(context.i18n.troubleshootingGuide),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          core.settings.setShowZwiftClickV2ReconnectWarning(false);
+                          setState(() {});
+                        },
+                        child: Text(context.i18n.close),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 

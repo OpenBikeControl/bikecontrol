@@ -1,5 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -22,6 +23,7 @@ class ConnectionMethod extends StatefulWidget {
   final Widget? additionalChild;
   final bool? isConnected;
   final bool? isStarted;
+  final bool isEnabled;
   final bool showTroubleshooting;
   final List<PlatformRequirement> requirements;
   final Function(bool) onChange;
@@ -30,6 +32,7 @@ class ConnectionMethod extends StatefulWidget {
     super.key,
     required this.title,
     required this.type,
+    required this.isEnabled,
     this.additionalChild,
     required this.description,
     this.instructionLink,
@@ -45,8 +48,6 @@ class ConnectionMethod extends StatefulWidget {
 }
 
 class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBindingObserver {
-  bool _isStarted = false;
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (widget.requirements.isNotEmpty && widget.isStarted == null) {
@@ -55,9 +56,6 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
           final allDone = widget.requirements.every((e) => e.status);
 
           if (context.mounted) {
-            setState(() {
-              _isStarted = allDone;
-            });
             widget.onChange(allDone);
           }
         });
@@ -75,16 +73,11 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (widget.isStarted != null) {
-      _isStarted = widget.isStarted!;
-    } else if (widget.requirements.isNotEmpty) {
+    if (widget.requirements.isNotEmpty) {
       Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
         final allDone = widget.requirements.every((e) => e.status);
         if (allDone) {
           widget.onChange(true);
-          setState(() {
-            _isStarted = true;
-          });
         } else {
           widget.onChange(false);
         }
@@ -93,105 +86,86 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
   }
 
   @override
-  void didUpdateWidget(covariant ConnectionMethod oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isStarted != widget.isStarted && widget.isStarted != null) {
-      _isStarted = widget.isStarted!;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 16,
-      children: [
-        Checkbox(
-          state: _isStarted ? CheckboxState.checked : CheckboxState.unchecked,
-          onChanged: _isStarted && widget.isStarted == null
-              ? null
-              : (value) {
-                  Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) async {
-                    final notDone = widget.requirements.filter((e) => !e.status).toList();
-                    if (notDone.isEmpty) {
-                      widget.onChange(value == CheckboxState.checked);
-                      setState(() {
-                        _isStarted = true;
-                      });
-                    } else {
-                      await openPermissionSheet(context, notDone);
-                      setState(() {});
-                    }
-                  });
-                },
-          trailing: Expanded(
-            child: Row(
-              spacing: 8,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 8,
-                        children: [
-                          Expanded(child: Text(widget.title)),
-                          if (widget.title == context.i18n.enablePairingProcess)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 1.0),
-                              child: BetaPill(),
-                            ),
-                          PrimaryBadge(
-                            trailing: switch (widget.type) {
-                              ConnectionMethodType.bluetooth => Icon(Icons.bluetooth),
-                              ConnectionMethodType.network => Icon(Icons.wifi),
-                              ConnectionMethodType.openBikeControl => Icon(Icons.directions_bike),
-                              ConnectionMethodType.local => Icon(Icons.keyboard),
-                            },
-                            child: Text(widget.type.name.capitalize()),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        widget.description,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
+    return SelectableCard(
+      onPressed: () {
+        if (widget.requirements.isEmpty) {
+          widget.onChange(!widget.isEnabled);
+        } else {
+          Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) async {
+            final notDone = widget.requirements.filter((e) => !e.status).toList();
+            if (notDone.isEmpty) {
+              widget.onChange(!widget.isEnabled);
+            } else {
+              await openPermissionSheet(context, notDone);
+              setState(() {});
+            }
+          });
+        }
+      },
+      isActive: widget.isEnabled,
+      icon: widget.isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              Expanded(child: Text(widget.title)),
+              if (widget.title == context.i18n.enablePairingProcess)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: BetaPill(),
                 ),
-                if (_isStarted && (widget.isConnected == false)) SmallProgressIndicator(),
-              ],
+              PrimaryBadge(
+                trailing: widget.isStarted == true && (widget.isConnected == false)
+                    ? SmallProgressIndicator(
+                        color: Theme.of(context).colorScheme.primaryForeground,
+                      )
+                    : switch (widget.type) {
+                        ConnectionMethodType.bluetooth => Icon(Icons.bluetooth),
+                        ConnectionMethodType.network => Icon(Icons.wifi),
+                        ConnectionMethodType.openBikeControl => Icon(Icons.directions_bike),
+                        ConnectionMethodType.local => Icon(Icons.keyboard),
+                      },
+                child: Text(widget.type.name.capitalize()),
+              ),
+            ],
+          ),
+          Text(
+            widget.description,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.normal,
             ),
           ),
-        ),
-        if (_isStarted) ?widget.additionalChild,
-        if (widget.instructionLink != null)
-          OutlineButton(
-            leading: Icon(Icons.play_circle_outline_outlined),
-            onPressed: () {
-              launchUrlString(widget.instructionLink!);
-            },
-            child: Text(context.i18n.videoInstructions),
-          ),
-        if (widget.showTroubleshooting)
-          OutlineButton(
-            leading: Icon(Icons.help_outline),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                ),
-              );
-            },
-            child: Text(context.i18n.troubleshootingGuide),
-          ),
-      ],
+          if (widget.isEnabled) ?widget.additionalChild,
+          if (widget.instructionLink != null)
+            OutlineButton(
+              leading: Icon(Icons.play_circle_outline_outlined),
+              onPressed: () {
+                launchUrlString(widget.instructionLink!);
+              },
+              child: Text(context.i18n.videoInstructions),
+            ),
+          if (widget.showTroubleshooting)
+            OutlineButton(
+              leading: Icon(Icons.help_outline),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                  ),
+                );
+              },
+              child: Text(context.i18n.troubleshootingGuide),
+            ),
+        ],
+      ),
     );
   }
 }

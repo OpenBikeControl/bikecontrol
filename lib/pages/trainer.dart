@@ -240,104 +240,95 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 text: context.i18n.recommendedConnectionMethods,
               ),
 
-            if (core.logic.showObpMdnsEmulator)
-              Card(
-                child: OpenBikeControlMdnsTile(),
-              ),
-            if (core.logic.showObpBluetoothEmulator)
-              Card(
-                child: OpenBikeControlBluetoothTile(),
-              ),
+            if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
+            if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
 
-            if (core.logic.showMyWhooshLink) Card(child: MyWhooshLinkTile()),
+            if (core.logic.showMyWhooshLink) MyWhooshLinkTile(),
             if (core.logic.showZwiftBleEmulator)
-              Card(
-                child: ZwiftTile(
-                  onUpdate: () {
-                    core.connection.signalNotification(
-                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                    );
-                    setState(() {});
-                  },
-                ),
+              ZwiftTile(
+                onUpdate: () {
+                  core.connection.signalNotification(
+                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                  );
+                  setState(() {});
+                },
               ),
             if (core.logic.showZwiftMsdnEmulator)
-              Card(
-                child: ZwiftMdnsTile(
-                  onUpdate: () {
-                    core.connection.signalNotification(
-                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                    );
-                  },
-                ),
+              ZwiftMdnsTile(
+                onUpdate: () {
+                  core.connection.signalNotification(
+                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                  );
+                },
               ),
             if (core.logic.showLocalControl)
-              Card(
-                child: ConnectionMethod(
-                  type: ConnectionMethodType.local,
-                  showTroubleshooting: true,
-                  title: context.i18n.controlAppUsingModes(
-                    core.settings.getTrainerApp()?.name ?? '',
-                    core.actionHandler.supportedModes.joinToString(transform: (e) => e.name),
-                  ),
-                  description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
-                  requirements: core.permissions.getLocalControlRequirements(),
-                  isStarted: core.logic.canRunAndroidService ? _isRunningAndroidService == true : null,
-                  onChange: (value) {
-                    if (core.logic.canRunAndroidService) {
-                      core.logic.canRunAndroidService.then((isRunning) {
-                        core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-                        setState(() {
-                          _isRunningAndroidService = isRunning;
-                        });
-                      });
-                    }
-                  },
-                  additionalChild: _isRunningAndroidService == false
-                      ? Warning(
-                          children: [
-                            Text(context.i18n.accessibilityServiceNotRunning).xSmall,
-                            Row(
-                              spacing: 8,
-                              children: [
-                                Expanded(
-                                  child: LinkButton(
-                                    child: Text('dontkillmyapp.com'),
-                                    onPressed: () {
-                                      launchUrlString('https://dontkillmyapp.com/');
-                                    },
-                                  ),
-                                ),
-                                IconButton.secondary(
-                                  onPressed: () {
-                                    core.logic.isAndroidServiceRunning().then((
-                                      isRunning,
-                                    ) {
-                                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-                                      setState(() {
-                                        _isRunningAndroidService = isRunning;
-                                      });
-                                    });
-                                  },
-                                  icon: Icon(Icons.refresh),
-                                ),
-                              ],
-                            ),
-                          ],
-                        )
-                      : null,
+              ConnectionMethod(
+                isEnabled: core.settings.getLocalEnabled(),
+                type: ConnectionMethodType.local,
+                showTroubleshooting: true,
+                title: context.i18n.controlAppUsingModes(
+                  core.settings.getTrainerApp()?.name ?? '',
+                  core.actionHandler.supportedModes.joinToString(transform: (e) => e.name.capitalize()),
                 ),
+                description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
+                requirements: core.permissions.getLocalControlRequirements(),
+                isStarted: core.logic.canRunAndroidService
+                    ? _isRunningAndroidService == true
+                    : core.settings.getLocalEnabled(),
+                onChange: (value) {
+                  core.settings.setLocalEnabled(value);
+                  setState(() {});
+                  if (core.logic.canRunAndroidService) {
+                    core.logic.canRunAndroidService.then((isRunning) {
+                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                      setState(() {
+                        _isRunningAndroidService = isRunning;
+                      });
+                    });
+                  }
+                },
+                additionalChild: _isRunningAndroidService == false
+                    ? Warning(
+                        children: [
+                          Text(context.i18n.accessibilityServiceNotRunning).xSmall,
+                          Row(
+                            spacing: 8,
+                            children: [
+                              Expanded(
+                                child: LinkButton(
+                                  child: Text('dontkillmyapp.com'),
+                                  onPressed: () {
+                                    launchUrlString('https://dontkillmyapp.com/');
+                                  },
+                                ),
+                              ),
+                              IconButton.secondary(
+                                onPressed: () {
+                                  core.logic.isAndroidServiceRunning().then((
+                                    isRunning,
+                                  ) {
+                                    core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                                    setState(() {
+                                      _isRunningAndroidService = isRunning;
+                                    });
+                                  });
+                                },
+                                icon: Icon(Icons.refresh),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                    : null,
               ),
             if (core.logic.showRemote) ...[
               SizedBox(height: 8),
               ColoredTitle(text: context.i18n.otherConnectionMethods),
-              Card(
-                child: RemoteRequirement().build(context, () {
-                  core.connection.signalNotification(
-                    LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
-                  );
-                })!,
-              ),
+              RemoteRequirement().build(context, () {
+                core.connection.signalNotification(
+                  LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
+                );
+              })!,
             ],
 
             SizedBox(),

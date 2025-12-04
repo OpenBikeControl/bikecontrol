@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -25,6 +27,7 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
               builder: (context, setState) {
                 return ConnectionMethod(
                   type: ConnectionMethodType.network,
+                  isEnabled: core.settings.getZwiftMdnsEmulatorEnabled(),
                   title: context.i18n.enableZwiftControllerNetwork,
                   description: !isStarted
                       ? context.i18n.zwiftControllerDescription
@@ -36,7 +39,12 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
                   onChange: (start) {
                     core.settings.setZwiftMdnsEmulatorEnabled(start);
                     if (start) {
-                      core.zwiftMdnsEmulator.startServer();
+                      core.zwiftMdnsEmulator.startServer().catchError((e) {
+                        core.settings.setZwiftMdnsEmulatorEnabled(false);
+                        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+                        setState(() {});
+                        widget.onUpdate();
+                      });
                     } else {
                       core.zwiftMdnsEmulator.stop();
                     }

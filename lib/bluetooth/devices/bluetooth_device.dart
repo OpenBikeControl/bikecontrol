@@ -210,6 +210,7 @@ abstract class BluetoothDevice extends BaseDevice {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          spacing: 8,
           children: [
             Text(
               device.name?.screenshot ?? runtimeType.toString(),

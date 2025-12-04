@@ -209,7 +209,10 @@ class _NavigationState extends State<Navigation> {
     final needsAttention = _needsAttention(page);
     return Stack(
       children: [
-        Icon(page.icon),
+        Icon(
+          page.icon,
+          color: Theme.of(context).colorScheme.brightness == Brightness.dark ? Colors.white : null,
+        ),
         if (needsAttention) ...[
           Positioned(
             right: 0,
@@ -306,6 +309,9 @@ class _NavigationState extends State<Navigation> {
         page == BCPage.trainer && !screenshotMode
             ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
             : page.getTitle(context),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.brightness == Brightness.dark ? Colors.white : null,
+        ),
       ),
       child: _buildIcon(page),
     );

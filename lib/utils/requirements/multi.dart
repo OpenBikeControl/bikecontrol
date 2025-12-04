@@ -64,7 +64,11 @@ class BluetoothTurnedOn extends PlatformRequirement {
       // on iOS we cannot programmatically enable Bluetooth, just open settings
       await PeripheralManager().showAppSettings();
     } else if (currentState == AvailabilityState.poweredOff) {
-      await UniversalBle.enableBluetooth();
+      if (Platform.isMacOS) {
+        buildToast(context, title: name);
+      } else {
+        await UniversalBle.enableBluetooth();
+      }
     } else {
       // I guess bluetooth is on now
       // TODO move UniversalBle.onAvailabilityChange
@@ -334,6 +338,7 @@ class TargetRequirement extends PlatformRequirement {
                   if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true && !core.logic.emulatorEnabled) {
                     core.settings.setObpMdnsEnabled(true);
                     core.obpMdnsEmulator.startServer().catchError((e) {
+                      core.settings.setObpMdnsEnabled(false);
                       buildToast(
                         context,
                         title: context.i18n.errorStartingOpenBikeControlServer,

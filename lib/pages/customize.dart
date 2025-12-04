@@ -64,8 +64,8 @@ class _CustomizeState extends State<CustomizePage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(a.name),
-                          if (a is CustomApp) PrimaryBadge(child: Text('CUSTOM')),
+                          Expanded(child: Text(a.name)),
+                          if (a is CustomApp) BetaPill(text: 'CUSTOM'),
                         ],
                       ),
                     ),
@@ -84,9 +84,10 @@ class _CustomizeState extends State<CustomizePage> {
               ),
             ).call,
             itemBuilder: (c, app) => Row(
+              spacing: 8,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(screenshotMode ? 'Trainer app' : app!.name),
+                Expanded(child: Text(screenshotMode ? 'Trainer app' : app!.name)),
                 if (app is CustomApp) BetaPill(text: 'CUSTOM'),
               ],
             ),

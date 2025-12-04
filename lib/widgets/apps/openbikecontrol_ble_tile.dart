@@ -22,6 +22,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
           valueListenable: core.obpBluetoothEmulator.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              isEnabled: core.settings.getObpBleEnabled(),
               type: ConnectionMethodType.openBikeControl,
               title: context.i18n.connectUsingBluetooth,
               description: isConnected != null
@@ -36,6 +37,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
                   core.obpBluetoothEmulator.stopServer();
                 } else if (value) {
                   core.obpBluetoothEmulator.startServer().catchError((e) {
+                    core.settings.setObpBleEnabled(false);
                     buildToast(
                       context,
                       level: LogLevel.LOGLEVEL_WARNING,

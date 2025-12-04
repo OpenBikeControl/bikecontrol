@@ -295,4 +295,12 @@ class Settings {
   bool getRemoteControlEnabled() {
     return prefs.getBool('remote_control_enabled') ?? false;
   }
+
+  bool getLocalEnabled() {
+    return prefs.getBool('local_control_enabled') ?? false;
+  }
+
+  void setLocalEnabled(bool value) {
+    prefs.setBool('local_control_enabled', value);
+  }
 }

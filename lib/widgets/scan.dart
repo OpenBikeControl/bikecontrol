@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/pages/markdown.dart';
@@ -38,27 +37,24 @@ class _ScanWidgetState extends State<ScanWidget> {
         if (_needsPermissions != null && _needsPermissions!.isNotEmpty)
           Card(
             child: Basic(
-              title: Text(
-                '${context.i18n.permissionsRequired}\n\n${_needsPermissions!.joinToString(transform: (e) => e.name, separator: '\n')}',
+              title: Column(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(context.i18n.permissionsRequired),
+                  ..._needsPermissions!.map((e) => Text(e.name).li),
+                ],
               ),
-              trailing: isMobile
-                  ? null
-                  : PrimaryButton(
-                      child: Text(context.i18n.enablePermissions),
-                      onPressed: () async {
-                        await openPermissionSheet(context, _needsPermissions!);
-                        _checkRequirements();
-                      },
-                    ),
-              subtitle: !isMobile
-                  ? null
-                  : PrimaryButton(
-                      child: Text(context.i18n.enablePermissions),
-                      onPressed: () async {
-                        await openPermissionSheet(context, _needsPermissions!);
-                        _checkRequirements();
-                      },
-                    ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: PrimaryButton(
+                  child: Text(context.i18n.enablePermissions),
+                  onPressed: () async {
+                    await openPermissionSheet(context, _needsPermissions!);
+                    _checkRequirements();
+                  },
+                ),
+              ),
             ),
           )
         else

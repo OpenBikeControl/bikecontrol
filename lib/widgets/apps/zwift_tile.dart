@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -21,6 +23,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
         return StatefulBuilder(
           builder: (context, setState) {
             return ConnectionMethod(
+              isEnabled: core.settings.getZwiftBleEmulatorEnabled(),
               type: ConnectionMethodType.bluetooth,
               isStarted: core.zwiftEmulator.isAdvertising,
               onChange: (value) {
@@ -28,7 +31,10 @@ class _ZwiftTileState extends State<ZwiftTile> {
                 if (!value) {
                   core.zwiftEmulator.stopAdvertising();
                 } else if (value) {
-                  core.zwiftEmulator.startAdvertising(widget.onUpdate);
+                  core.zwiftEmulator.startAdvertising(widget.onUpdate).catchError((e) {
+                    core.settings.setZwiftBleEmulatorEnabled(false);
+                    core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+                  });
                 }
                 setState(() {});
               },

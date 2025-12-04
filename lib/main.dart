@@ -117,6 +117,9 @@ Future<void> _persistCrash({
 
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
     core.connection.lastLogEntries.add((date: DateTime.now(), entry: 'App crashed: $error'));
+    if (kDebugMode) {
+      print('App crashed: $error');
+    }
   } catch (_) {
     // Avoid throwing from the crash logger
   }
@@ -182,6 +185,7 @@ class BikeControlApp extends StatelessWidget {
       darkTheme: ThemeData(
         colorScheme: ColorSchemes.darkDefaultColor.copyWith(
           card: () => Color(0xFF001A29),
+          background: () => Color(0xFF232323),
         ),
       ),
       theme: ThemeData(

@@ -22,6 +22,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              isEnabled: core.settings.getMyWhooshLinkEnabled(),
               type: ConnectionMethodType.network,
               title: context.i18n.connectUsingMyWhooshLink,
               instructionLink: 'https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md',
@@ -40,6 +41,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                   core.whooshLink.stopServer();
                 } else if (value) {
                   core.connection.startMyWhooshServer().catchError((e) {
+                    core.settings.setMyWhooshLinkEnabled(false);
                     buildToast(
                       context,
                       title: context.i18n.errorStartingMyWhooshLink,

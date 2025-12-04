@@ -13,8 +13,8 @@ import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 
 class OpenBikeControlMdnsEmulator {
-  late ServerSocket _server;
-  late MDNSServer _mDNSServer;
+  ServerSocket? _server;
+  MDNSServer? _mDNSServer;
 
   final ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
   final ValueNotifier<AppInfo?> isConnected = ValueNotifier<AppInfo?>(null);
@@ -74,7 +74,7 @@ class OpenBikeControlMdnsEmulator {
     );
 
     try {
-      await _mDNSServer.start();
+      await _mDNSServer!.start();
       isStarted.value = true;
       print('Server started - advertising service!');
     } catch (e, s) {
@@ -87,7 +87,7 @@ class OpenBikeControlMdnsEmulator {
     if (kDebugMode) {
       print('Stopping OpenBikeControl mDNS server...');
     }
-    await _mDNSServer.stop();
+    await _mDNSServer?.stop();
     isStarted.value = false;
     isConnected.value = null;
     _socket?.destroy();
@@ -106,12 +106,12 @@ class OpenBikeControlMdnsEmulator {
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start server: $e'));
       rethrow;
     }
-    if (true) {
-      print('Server started on port ${_server.port}');
+    if (kDebugMode) {
+      print('Server started on port ${_server!.port}');
     }
 
     // Accept connection
-    _server.listen(
+    _server!.listen(
       (Socket socket) {
         _socket = socket;
 

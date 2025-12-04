@@ -109,7 +109,7 @@ class KeyPair {
       physicalKey == PhysicalKeyboardKey.audioVolumeUp ||
       physicalKey == PhysicalKeyboardKey.audioVolumeDown;
 
-  IconData get icon {
+  IconData? get icon {
     return switch (physicalKey) {
       PhysicalKeyboardKey.mediaPlayPause ||
       PhysicalKeyboardKey.mediaStop ||
@@ -120,13 +120,18 @@ class KeyPair {
       _ when inGameAction != null && touchPosition == Offset.zero && core.logic.emulatorEnabled => Icons.link,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         Icons.keyboard,
-      _ when touchPosition != Offset.zero => Icons.touch_app,
-      _ => Icons.check_box_outline_blank,
+      _ when touchPosition != Offset.zero && core.logic.showLocalRemoteOptions => Icons.touch_app,
+      _ => null,
     };
   }
 
   bool get hasNoAction =>
       logicalKey == null && physicalKey == null && touchPosition == Offset.zero && inGameAction == null;
+
+  bool get hasActiveAction =>
+      (physicalKey != null && core.logic.showLocalControl && core.settings.getLocalEnabled()) ||
+      (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions) ||
+      (inGameAction != null && core.logic.emulatorEnabled);
 
   @override
   String toString() {

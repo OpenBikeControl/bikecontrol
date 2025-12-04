@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
@@ -180,13 +179,24 @@ class CoreLogic {
       (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
 
   bool get showObpActions =>
-      core.settings.getObpBleEnabled() &&
-      (showObpMdnsEmulator || showObpBluetoothEmulator) &&
-      core.logic.obpConnectedApp != null;
+      (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
+      (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
 
   bool get ignoreWarnings =>
       core.settings.getTrainerApp()?.supportsZwiftEmulation == true ||
       core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true;
+
+  bool get showLocalRemoteOptions =>
+      core.actionHandler.supportedModes.isNotEmpty &&
+      ((showLocalControl && core.settings.getLocalEnabled()) ||
+          (core.logic.showRemote && core.settings.getRemoteControlEnabled()));
+
+  bool get hasNoConnectionMethod =>
+      !core.logic.isZwiftBleEnabled &&
+      !core.logic.isZwiftMdnsEnabled &&
+      !core.logic.showObpActions &&
+      !(core.settings.getMyWhooshLinkEnabled() && core.logic.showMyWhooshLink) &&
+      !core.logic.showLocalRemoteOptions;
 
   Future<bool> isTrainerConnected() async {
     if (screenshotMode) {
@@ -195,7 +205,7 @@ class CoreLogic {
       if (canRunAndroidService) {
         return isAndroidServiceRunning();
       } else {
-        return await keyPressSimulator.isAccessAllowed();
+        return core.settings.getLocalEnabled();
       }
     } else if (showMyWhooshLink) {
       return core.whooshLink.isConnected.value;
@@ -217,6 +227,7 @@ class CoreLogic {
   void initialize() async {
     if (isZwiftBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
       core.zwiftEmulator.startAdvertising(() {}).catchError((e) {
+        core.settings.setZwiftBleEmulatorEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
         );
@@ -224,6 +235,7 @@ class CoreLogic {
     }
     if (isZwiftMdnsEnabled) {
       core.zwiftMdnsEmulator.startServer().catchError((e) {
+        core.settings.setZwiftMdnsEmulatorEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
         );
@@ -231,6 +243,7 @@ class CoreLogic {
     }
     if (isObpMdnsEnabled) {
       core.obpMdnsEmulator.startServer().catchError((e) {
+        core.settings.setObpMdnsEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl mDNS Emulator: $e'),
         );
@@ -238,6 +251,7 @@ class CoreLogic {
     }
     if (isObpBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
       core.obpBluetoothEmulator.startServer().catchError((e) {
+        core.settings.setObpBleEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl BLE Emulator: $e'),
         );

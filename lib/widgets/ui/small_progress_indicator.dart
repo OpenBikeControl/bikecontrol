@@ -1,10 +1,18 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SmallProgressIndicator extends StatelessWidget {
-  const SmallProgressIndicator({super.key});
+  final Color? color;
+
+  const SmallProgressIndicator({super.key, this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: SizedBox(height: 12, width: 12, child: CircularProgressIndicator(strokeWidth: 2)));
+    return Center(
+      child: CircularProgressIndicator(
+        color: color,
+        size: 12,
+        strokeWidth: 2,
+      ),
+    );
   }
 }
