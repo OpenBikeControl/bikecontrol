@@ -5,8 +5,10 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
@@ -63,6 +65,7 @@ class ZwiftClickV2 extends ZwiftRide {
   Widget showInformation(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
+      spacing: 8,
       children: [
         super.showInformation(context),
 
@@ -70,14 +73,11 @@ class ZwiftClickV2 extends ZwiftRide {
           Warning(
             children: [
               Text(
-                '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that BikeControl will need to reconnect every minute.
-
-1. Open Zwift app
-2. Log in (subscription not required) and open the device connection screen
-3. Connect your Trainer, then connect the Zwift Click V2
-4. Close the Zwift app again and connect again in BikeControl''',
+                AppLocalizations.of(context).clickV2Instructions,
               ),
-              Row(
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextButton(
                     onPressed: () {
@@ -94,21 +94,13 @@ class ZwiftClickV2 extends ZwiftRide {
                         ),
                       );
                     },
-                    child: Text('Troubleshooting'),
+                    child: Text(context.i18n.troubleshootingGuide),
                   ),
-                  if (kDebugMode && false)
-                    TextButton(
-                      onPressed: () {
-                        test();
-                      },
-                      child: Text('Test'),
-                    ),
-                  Expanded(child: SizedBox()),
                   TextButton(
                     onPressed: () {
                       core.settings.setShowZwiftClickV2ReconnectWarning(false);
                     },
-                    child: Text('Dismiss'),
+                    child: Text(context.i18n.close),
                   ),
                 ],
               ),

@@ -163,7 +163,8 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             },
           ),
           if (core.settings.getTrainerApp() != null) ...[
-            if (_showAutoRotationWarning)
+            // show warning only for android when using local accessibility service
+            if (_showAutoRotationWarning && _isRunningAndroidService == true)
               Warning(
                 important: false,
                 children: [

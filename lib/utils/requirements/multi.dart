@@ -192,21 +192,25 @@ enum Target {
       Target.thisDevice => AppLocalizations.current.runAppOnThisDevice(appName),
       Target.iOS => AppLocalizations.current.runAppOnPlatformRemotely(
         appName,
-        'an Apple device',
+        'Apple',
         preferredConnectionMethod,
       ),
       Target.android => AppLocalizations.current.runAppOnPlatformRemotely(
         appName,
-        'an Android device',
+        'Android',
         preferredConnectionMethod,
       ),
-      Target.macOS => AppLocalizations.current.runAppOnPlatformRemotely(appName, 'a Mac', preferredConnectionMethod),
+      Target.macOS => AppLocalizations.current.runAppOnPlatformRemotely(appName, 'Mac', preferredConnectionMethod),
       Target.windows => AppLocalizations.current.runAppOnPlatformRemotely(
         appName,
-        'a Windows PC',
+        'Windows PC',
         preferredConnectionMethod,
       ),
-      Target.otherDevice => AppLocalizations.current.runAppOnPlatformRemotely(appName, 'another device', ''),
+      Target.otherDevice => AppLocalizations.current.runAppOnPlatformRemotely(
+        appName,
+        AppLocalizations.current.targetOtherDevice,
+        preferredConnectionMethod,
+      ),
     };
   }
 

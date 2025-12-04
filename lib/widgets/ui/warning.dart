@@ -7,9 +7,16 @@ class Warning extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      filled: true,
-      fillColor: important ? Theme.of(context).colorScheme.destructive : Theme.of(context).colorScheme.secondary,
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: (important ? Theme.of(context).colorScheme.destructive : Theme.of(context).colorScheme.secondary)
+            .withAlpha(80),
+        border: Border.all(
+          color: important ? Theme.of(context).colorScheme.destructive : Theme.of(context).colorScheme.secondary,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,

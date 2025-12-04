@@ -100,15 +100,15 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 16,
       children: [
-        Switch(
-          value: _isStarted,
+        Checkbox(
+          state: _isStarted ? CheckboxState.checked : CheckboxState.unchecked,
           onChanged: _isStarted && widget.isStarted == null
               ? null
               : (value) {
                   Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) async {
                     final notDone = widget.requirements.filter((e) => !e.status).toList();
                     if (notDone.isEmpty) {
-                      widget.onChange(value);
+                      widget.onChange(value == CheckboxState.checked);
                       setState(() {
                         _isStarted = true;
                       });
