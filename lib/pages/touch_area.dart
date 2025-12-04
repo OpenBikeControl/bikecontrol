@@ -14,6 +14,7 @@ import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
+import 'package:swift_control/widgets/ui/colors.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../utils/actions/base_actions.dart';
@@ -397,7 +398,7 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.inGameAction != null && core.logic.emulatorEnabled && keyPair.touchPosition == Offset.zero)
+        if (keyPair.inGameAction != null && core.logic.emulatorEnabled)
           _KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,
@@ -420,12 +421,12 @@ class KeypairExplanation extends StatelessWidget {
           _KeyWidget(
             label: keyPair.toString(),
           ),
-          if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
         ] else ...[
           if (!withKey && keyPair.touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
             _KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
           if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
         ],
+        if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
       ],
     );
   }
@@ -442,7 +443,7 @@ class _KeyWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         constraints: BoxConstraints(minWidth: 30),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.card,
+          color: BKColor.main,
           border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
           borderRadius: BorderRadius.circular(4),
         ),

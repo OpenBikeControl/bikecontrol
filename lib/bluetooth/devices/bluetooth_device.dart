@@ -116,6 +116,7 @@ abstract class BluetoothDevice extends BaseDevice {
         //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
         ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
         //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
+        _ when scanResult.name == 'Zwift Ride' => ZwiftRide(scanResult), // e.g. old firmware
         _ => null,
       };
     } else {

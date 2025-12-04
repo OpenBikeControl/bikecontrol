@@ -39,8 +39,7 @@ class OpenBikeControlMdnsEmulator {
     }
 
     if (localIP == null) {
-      print('Could not find network interface');
-      return;
+      throw 'Could not find network interface';
     }
 
     _createTcpServer();

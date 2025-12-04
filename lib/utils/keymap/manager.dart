@@ -261,6 +261,7 @@ class KeymapManager {
               touchPosition: pair.touchPosition,
               inGameAction: pair.inGameAction,
               inGameActionValue: pair.inGameActionValue,
+              modifiers: pair.modifiers,
             );
           });
         });

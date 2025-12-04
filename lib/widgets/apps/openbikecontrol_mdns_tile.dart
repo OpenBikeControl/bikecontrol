@@ -1,8 +1,9 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
-import 'package:swift_control/widgets/ui/toast.dart';
 
 class OpenBikeControlMdnsTile extends StatefulWidget {
   const OpenBikeControlMdnsTile({super.key});
@@ -37,12 +38,15 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                 } else if (value) {
                   core.obpMdnsEmulator.startServer().catchError((e) {
                     core.settings.setObpMdnsEnabled(false);
-                    buildToast(
-                      context,
-                      title: context.i18n.errorStartingOpenBikeControlServer,
+                    core.connection.signalNotification(
+                      AlertNotification(
+                        LogLevel.LOGLEVEL_ERROR,
+                        context.i18n.errorStartingOpenBikeControlServer,
+                      ),
                     );
                   });
                 }
+                setState(() {});
               },
               isStarted: isStarted,
               isConnected: isConnected != null,

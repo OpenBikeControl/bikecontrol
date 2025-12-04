@@ -111,13 +111,14 @@ class KeyPair {
 
   IconData? get icon {
     return switch (physicalKey) {
+      _ when inGameAction != null && core.logic.emulatorEnabled => Icons.link,
+
       PhysicalKeyboardKey.mediaPlayPause ||
       PhysicalKeyboardKey.mediaStop ||
       PhysicalKeyboardKey.mediaTrackPrevious ||
       PhysicalKeyboardKey.mediaTrackNext ||
       PhysicalKeyboardKey.audioVolumeUp ||
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
-      _ when inGameAction != null && touchPosition == Offset.zero && core.logic.emulatorEnabled => Icons.link,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         Icons.keyboard,
       _ when touchPosition != Offset.zero && core.logic.showLocalRemoteOptions => Icons.touch_app,
@@ -231,4 +232,28 @@ class KeyPair {
       inGameActionValue: decoded['inGameActionValue'],
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is KeyPair &&
+          runtimeType == other.runtimeType &&
+          physicalKey == other.physicalKey &&
+          logicalKey == other.logicalKey &&
+          modifiers == other.modifiers &&
+          touchPosition == other.touchPosition &&
+          isLongPress == other.isLongPress &&
+          inGameAction == other.inGameAction &&
+          inGameActionValue == other.inGameActionValue;
+
+  @override
+  int get hashCode => Object.hash(
+    physicalKey,
+    logicalKey,
+    modifiers,
+    touchPosition,
+    isLongPress,
+    inGameAction,
+    inGameActionValue,
+  );
 }

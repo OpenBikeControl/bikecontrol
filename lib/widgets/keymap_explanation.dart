@@ -160,6 +160,17 @@ class _ButtonEditor extends StatelessWidget {
           );
           if (newName != null) {
             buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
+            final selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
+              (e) => e == this.keyPair,
+            );
+            await openDrawer(
+              context: context,
+              builder: (c) => ButtonEditPage(
+                keyPair: selectedKeyPair,
+                onUpdate: () {},
+              ),
+              position: OverlayPosition.end,
+            );
           }
           onUpdate();
         } else {
