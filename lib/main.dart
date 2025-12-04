@@ -164,8 +164,9 @@ Future<void> initializeActions(ConnectionType connectionType) async {
 }
 
 class BikeControlApp extends StatelessWidget {
+  final BCPage page;
   final String? error;
-  const BikeControlApp({super.key, this.error});
+  const BikeControlApp({super.key, this.error, this.page = BCPage.devices});
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +206,7 @@ class BikeControlApp extends StatelessWidget {
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
               child: Stack(
                 children: [
-                  Navigation(),
+                  Navigation(page: page),
                   Positioned.fill(child: Testbed()),
                 ],
               ),

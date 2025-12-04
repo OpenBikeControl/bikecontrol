@@ -225,6 +225,9 @@ class CoreLogic {
   }
 
   void initialize() async {
+    if (screenshotMode) {
+      return;
+    }
     if (isZwiftBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
       core.zwiftEmulator.startAdvertising(() {}).catchError((e) {
         core.settings.setZwiftBleEmulatorEnabled(false);

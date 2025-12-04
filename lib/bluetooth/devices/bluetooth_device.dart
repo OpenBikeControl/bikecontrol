@@ -15,6 +15,7 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
@@ -262,76 +263,92 @@ abstract class BluetoothDevice extends BaseDevice {
           spacing: 12,
           runSpacing: 12,
           children: [
-            Card(
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.background,
-              child: Basic(
-                title: Text(context.i18n.connection),
-                trailingAlignment: Alignment.centerRight,
-                trailing: Icon(switch (isConnected) {
-                  true => Icons.bluetooth_connected_outlined,
-                  false => Icons.bluetooth_disabled_outlined,
-                }),
-                subtitle: Text(isConnected ? context.i18n.connected : context.i18n.disconnected),
+            SizedBox(
+              width: screenshotMode ? 200 : null,
+              height: screenshotMode ? 100 : null,
+              child: Card(
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.background,
+                child: Basic(
+                  title: Text(context.i18n.connection),
+                  trailingAlignment: Alignment.centerRight,
+                  trailing: Icon(switch (isConnected) {
+                    true => Icons.bluetooth_connected_outlined,
+                    false => Icons.bluetooth_disabled_outlined,
+                  }),
+                  subtitle: Text(isConnected ? context.i18n.connected : context.i18n.disconnected),
+                ),
               ),
             ),
             if (batteryLevel != null)
-              Card(
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.background,
-                child: Basic(
-                  title: Text(context.i18n.battery),
-                  trailingAlignment: Alignment.centerRight,
-                  trailing: Icon(switch (batteryLevel!) {
-                    >= 80 => Icons.battery_full,
-                    >= 60 => Icons.battery_6_bar,
-                    >= 50 => Icons.battery_5_bar,
-                    >= 25 => Icons.battery_4_bar,
-                    >= 10 => Icons.battery_2_bar,
-                    _ => Icons.battery_alert,
-                  }),
-                  subtitle: Text('$batteryLevel%'),
+              SizedBox(
+                width: screenshotMode ? 200 : null,
+                height: screenshotMode ? 100 : null,
+                child: Card(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.background,
+                  child: Basic(
+                    title: Text(context.i18n.battery),
+                    trailingAlignment: Alignment.centerRight,
+                    trailing: Icon(switch (batteryLevel!) {
+                      >= 80 => Icons.battery_full,
+                      >= 60 => Icons.battery_6_bar,
+                      >= 50 => Icons.battery_5_bar,
+                      >= 25 => Icons.battery_4_bar,
+                      >= 10 => Icons.battery_2_bar,
+                      _ => Icons.battery_alert,
+                    }),
+                    subtitle: Text('$batteryLevel%'),
+                  ),
                 ),
               ),
             if (firmwareVersion != null)
-              Card(
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.background,
-                child: Basic(
-                  title: Text(context.i18n.firmware),
-                  subtitle: Row(
-                    children: [
-                      Text('$firmwareVersion'),
-                      if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
-                        Text(
-                          ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
-                          style: TextStyle(color: Theme.of(context).colorScheme.destructive),
-                        ),
-                    ],
+              SizedBox(
+                width: screenshotMode ? 200 : null,
+                height: screenshotMode ? 100 : null,
+                child: Card(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.background,
+                  child: Basic(
+                    title: Text(context.i18n.firmware),
+                    subtitle: Row(
+                      children: [
+                        Text('$firmwareVersion'),
+                        if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+                          Text(
+                            ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
+                            style: TextStyle(color: Theme.of(context).colorScheme.destructive),
+                          ),
+                      ],
+                    ),
+                    trailingAlignment: Alignment.centerRight,
+                    trailing: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
+                        ? Icon(Icons.warning, color: Theme.of(context).colorScheme.destructive)
+                        : Icon(Icons.text_fields_sharp),
                   ),
-                  trailingAlignment: Alignment.centerRight,
-                  trailing: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
-                      ? Icon(Icons.warning, color: Theme.of(context).colorScheme.destructive)
-                      : Icon(Icons.text_fields_sharp),
                 ),
               ),
             if (rssi != null)
-              Card(
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.background,
-                child: Basic(
-                  title: Text(context.i18n.signal),
-                  trailingAlignment: Alignment.centerRight,
-                  trailing: Icon(
-                    switch (rssi!) {
-                      >= -50 => Icons.signal_cellular_4_bar,
-                      >= -60 => Icons.signal_cellular_alt_2_bar,
-                      >= -70 => Icons.signal_cellular_alt_1_bar,
-                      _ => Icons.signal_cellular_alt,
-                    },
-                    size: 18,
+              SizedBox(
+                width: screenshotMode ? 200 : null,
+                height: screenshotMode ? 100 : null,
+                child: Card(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.background,
+                  child: Basic(
+                    title: Text(context.i18n.signal),
+                    trailingAlignment: Alignment.centerRight,
+                    trailing: Icon(
+                      switch (rssi!) {
+                        >= -50 => Icons.signal_cellular_4_bar,
+                        >= -60 => Icons.signal_cellular_alt_2_bar,
+                        >= -70 => Icons.signal_cellular_alt_1_bar,
+                        _ => Icons.signal_cellular_alt,
+                      },
+                      size: 18,
+                    ),
+                    subtitle: Text('$rssi dBm'),
                   ),
-                  subtitle: Text('$rssi dBm'),
                 ),
               ),
           ],

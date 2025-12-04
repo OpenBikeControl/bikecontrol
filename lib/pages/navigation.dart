@@ -36,7 +36,8 @@ enum BCPage {
 }
 
 class Navigation extends StatefulWidget {
-  const Navigation({super.key});
+  final BCPage page;
+  const Navigation({super.key, this.page = BCPage.devices});
 
   @override
   State<Navigation> createState() => _NavigationState();
@@ -44,11 +45,13 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
-  var _selectedPage = BCPage.devices;
+  late BCPage _selectedPage;
 
   @override
   void initState() {
     super.initState();
+
+    _selectedPage = widget.page;
 
     core.connection.initialize();
     core.logic.initialize();
@@ -67,6 +70,16 @@ class _NavigationState extends State<Navigation> {
       );
       _checkAndShowChangelog();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant Navigation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.page != oldWidget.page) {
+      setState(() {
+        _selectedPage = widget.page;
+      });
+    }
   }
 
   void _updateTrainerConnectionStatus() async {

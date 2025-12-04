@@ -54,9 +54,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   @override
   Widget build(BuildContext context) {
     final allAvailableButtons = IterableFlatMap(core.connection.devices).flatMap((d) => d.availableButtons);
-    final availableKeypairs = widget.keymap.keyPairs.whereNot(
-      (keyPair) => keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty,
-    );
+    final availableKeypairs = widget.keymap.keyPairs
+        .whereNot(
+          (keyPair) => keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty,
+        )
+        .sortedBy((k) => k.buttons.first.color != null ? 0 : 1);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -5,11 +5,13 @@ import 'package:swift_control/widgets/ui/colors.dart';
 class CustomFrame extends StatelessWidget {
   const CustomFrame({
     super.key,
+    required this.title,
     required this.device,
     this.frameColors,
     required this.child,
   });
 
+  final String title;
   final ScreenshotDevice device;
   final ScreenshotFrameColors? frameColors;
   final Widget child;
@@ -29,9 +31,9 @@ class CustomFrame extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 8),
+              padding: const EdgeInsets.symmetric(vertical: 54, horizontal: 8),
               child: Text(
-                'BikeControl',
+                title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -41,10 +43,10 @@ class CustomFrame extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 130,
+              top: 170,
               left: 8,
               right: 8,
-              bottom: -40,
+              bottom: -30,
               child: FittedBox(
                 child: Container(
                   width: device.resolution.width / device.pixelRatio,
