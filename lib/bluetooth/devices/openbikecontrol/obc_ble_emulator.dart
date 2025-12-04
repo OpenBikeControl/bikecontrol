@@ -212,7 +212,11 @@ class OpenBikeControlBluetoothEmulator {
     isConnected.value = null;
   }
 
-  Future<ActionResult> sendButtonPress(List<ControllerButton> buttons) async {
+  Future<ActionResult> sendButtonPress(
+    List<ControllerButton> buttons, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+  }) async {
     if (_central == null) {
       return Error('No central connected');
     } else if (isConnected.value == null) {
@@ -221,12 +225,17 @@ class OpenBikeControlBluetoothEmulator {
       return Error('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 
-    final responseData = OpenBikeProtocolParser.encodeButtonState(buttons.map((b) => ButtonState(b, 1)).toList());
-    await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
-    final responseDataReleased = OpenBikeProtocolParser.encodeButtonState(
-      buttons.map((b) => ButtonState(b, 0)).toList(),
+    final responseData = OpenBikeProtocolParser.encodeButtonState(
+      buttons
+          .map(
+            (b) => ButtonState(
+              b,
+              isKeyDown ? 1 : 0,
+            ),
+          )
+          .toList(),
     );
-    await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseDataReleased);
+    await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
 
     return Success('Buttons ${buttons.map((b) => b.name).join(', ')} sent');
   }

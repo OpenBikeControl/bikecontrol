@@ -305,7 +305,12 @@ class FtmsMdnsEmulator {
     return res;
   }
 
-  Future<ActionResult> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
+  Future<ActionResult> sendAction(
+    InGameAction inGameAction,
+    int? inGameActionValue, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+  }) async {
     final button = switch (inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
@@ -324,28 +329,32 @@ class FtmsMdnsEmulator {
       return Error('Action ${inGameAction.name} not supported by Zwift Emulator');
     }
 
-    final status = RideKeyPadStatus()
-      ..buttonMap = (~button.mask) & 0xFFFFFFFF
-      ..analogPaddles.clear();
+    if (isKeyDown) {
+      final status = RideKeyPadStatus()
+        ..buttonMap = (~button.mask) & 0xFFFFFFFF
+        ..analogPaddles.clear();
 
-    final bytes = status.writeToBuffer();
+      final bytes = status.writeToBuffer();
 
-    final commandProto = _buildNotify(
-      ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
-      Uint8List.fromList([
-        Opcode.CONTROLLER_NOTIFICATION.value,
-        ...bytes,
-      ]),
-    );
+      final commandProto = _buildNotify(
+        ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+        Uint8List.fromList([
+          Opcode.CONTROLLER_NOTIFICATION.value,
+          ...bytes,
+        ]),
+      );
 
-    _write(_socket!, commandProto);
+      _write(_socket!, commandProto);
+    }
 
-    final zero = _buildNotify(
-      ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
-      Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]),
-    );
+    if (isKeyUp) {
+      final zero = _buildNotify(
+        ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+        Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]),
+      );
 
-    _write(_socket!, zero);
+      _write(_socket!, zero);
+    }
     print('Sent action ${inGameAction.name} to Zwift Emulator');
     return Success('Sent action: ${inGameAction.name}');
   }

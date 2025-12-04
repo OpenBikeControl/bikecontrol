@@ -147,7 +147,7 @@ class OpenBikeControlMdnsEmulator {
     );
   }
 
-  ActionResult sendButtonPress(List<ControllerButton> buttons) {
+  ActionResult sendButtonPress(List<ControllerButton> buttons, {required bool isKeyDown, required bool isKeyUp}) {
     if (_socket == null) {
       print('No client connected, cannot send button press');
       return Error('No client connected');
@@ -157,12 +157,11 @@ class OpenBikeControlMdnsEmulator {
       return Error('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 
-    final responseData = OpenBikeProtocolParser.encodeButtonState(buttons.map((b) => ButtonState(b, 1)).toList());
-    _write(_socket!, responseData);
-    final responseDataReleased = OpenBikeProtocolParser.encodeButtonState(
-      buttons.map((b) => ButtonState(b, 0)).toList(),
+    final responseData = OpenBikeProtocolParser.encodeButtonState(
+      buttons.map((b) => ButtonState(b, isKeyDown ? 1 : 0)).toList(),
     );
-    _write(_socket!, responseDataReleased);
+    _write(_socket!, responseData);
+
     return Success('Sent ${buttons.map((b) => b.name).join(', ')} button press');
   }
 

@@ -177,6 +177,7 @@ class _NavigationState extends State<Navigation> {
       children: [
         Expanded(
           child: NavigationSidebar(
+            backgroundColor: Theme.of(context).colorScheme.card,
             onSelected: (int index) {
               setState(() {
                 _selectedPage = BCPage.values[index];
@@ -187,6 +188,7 @@ class _NavigationState extends State<Navigation> {
         ),
 
         NavigationSidebar(
+          backgroundColor: Theme.of(context).colorScheme.card,
           onSelected: (int index) {
             setState(() {
               _selectedPage = BCPage.logs;
@@ -248,7 +250,6 @@ class _NavigationState extends State<Navigation> {
 
   Widget _buildNavigationBar() {
     return NavigationBar(
-      backgroundColor: Theme.of(context).colorScheme.background,
       labelType: NavigationLabelType.all,
       onSelected: (int index) {
         setState(() {

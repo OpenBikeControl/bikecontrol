@@ -91,7 +91,10 @@ class WhooshLink {
     );
   }
 
-  ActionResult sendAction(InGameAction action, int? value) {
+  ActionResult sendAction(InGameAction action, int? value, {required bool isKeyDown, required bool isKeyUp}) {
+    if (!isKeyDown) {
+      return Success('Done');
+    }
     final jsonObject = switch (action) {
       InGameAction.shiftUp => {
         'MessageType': 'Controls',
@@ -126,13 +129,13 @@ class WhooshLink {
       InGameAction.steerLeft => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'Steering': '-1',
+          'Steering': isKeyDown ? '-1' : '0',
         },
       },
       InGameAction.steerRight => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'Steering': '1',
+          'Steering': isKeyDown ? '1' : '0',
         },
       },
       InGameAction.increaseResistance => null,

@@ -106,20 +106,52 @@ abstract class BaseActions {
     return Offset.zero;
   }
 
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false});
+  Future<ActionResult> performAction(ControllerButton action, {required bool isKeyDown, required bool isKeyUp});
 
-  Future<ActionResult>? handleDirectConnect(KeyPair keyPair, ControllerButton button) {
+  Future<ActionResult>? handleDirectConnect(
+    KeyPair keyPair,
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+  }) {
     if (keyPair.inGameAction != null) {
       if (core.obpBluetoothEmulator.isConnected.value != null) {
-        return core.obpBluetoothEmulator.sendButtonPress([button]);
+        return core.obpBluetoothEmulator.sendButtonPress(
+          [button],
+          isKeyDown: isKeyDown,
+          isKeyUp: isKeyUp,
+        );
       } else if (core.obpMdnsEmulator.isConnected.value != null) {
-        return Future.value(core.obpMdnsEmulator.sendButtonPress([button]));
+        return Future.value(
+          core.obpMdnsEmulator.sendButtonPress(
+            [button],
+            isKeyDown: isKeyDown,
+            isKeyUp: isKeyUp,
+          ),
+        );
       } else if (core.whooshLink.isConnected.value) {
-        return Future.value(core.whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
+        return Future.value(
+          core.whooshLink.sendAction(
+            keyPair.inGameAction!,
+            keyPair.inGameActionValue,
+            isKeyDown: isKeyDown,
+            isKeyUp: isKeyUp,
+          ),
+        );
       } else if (core.zwiftMdnsEmulator.isConnected.value) {
-        return core.zwiftMdnsEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+        return core.zwiftMdnsEmulator.sendAction(
+          keyPair.inGameAction!,
+          keyPair.inGameActionValue,
+          isKeyDown: isKeyDown,
+          isKeyUp: isKeyUp,
+        );
       } else if (core.zwiftEmulator.isConnected.value) {
-        return core.zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+        return core.zwiftEmulator.sendAction(
+          keyPair.inGameAction!,
+          keyPair.inGameActionValue,
+          isKeyDown: isKeyDown,
+          isKeyUp: isKeyUp,
+        );
       }
     }
     return null;

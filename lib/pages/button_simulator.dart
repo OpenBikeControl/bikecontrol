@@ -26,7 +26,7 @@ class ButtonSimulator extends StatelessWidget {
                     core.connection.devices.firstOrNull?.handleButtonsClicked([e]);
                     core.connection.devices.firstOrNull?.handleButtonsClicked([]);
                   } else {
-                    core.actionHandler.performAction(e);
+                    core.actionHandler.performAction(e, isKeyDown: true, isKeyUp: true);
                     /*final point = Offset(300, 300);
                                 await keyPressSimulator.simulateMouseClickDown(point);
                                 // slight move to register clicks on some apps, see issue #116

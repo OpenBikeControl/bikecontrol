@@ -302,7 +302,12 @@ class ZwiftEmulator {
     }
   }
 
-  Future<ActionResult> sendAction(InGameAction inGameAction, int? inGameActionValue) async {
+  Future<ActionResult> sendAction(
+    InGameAction inGameAction,
+    int? inGameActionValue, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+  }) async {
     final button = switch (inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
@@ -327,20 +332,24 @@ class ZwiftEmulator {
 
     final bytes = status.writeToBuffer();
 
-    final commandProto = Uint8List.fromList([
-      Opcode.CONTROLLER_NOTIFICATION.value,
-      ...bytes,
-    ]);
+    if (isKeyDown) {
+      final commandProto = Uint8List.fromList([
+        Opcode.CONTROLLER_NOTIFICATION.value,
+        ...bytes,
+      ]);
 
-    _peripheralManager.notifyCharacteristic(
-      _central!,
-      _asyncCharacteristic!,
-      value: commandProto,
-    );
+      _peripheralManager.notifyCharacteristic(
+        _central!,
+        _asyncCharacteristic!,
+        value: commandProto,
+      );
+    }
 
-    final zero = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
-    _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
-    print('Sent action ${inGameAction.name} to Zwift Emulator');
+    if (isKeyUp) {
+      final zero = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
+      _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
+    }
+
     return Success('Sent action: ${inGameAction.name}');
   }
 

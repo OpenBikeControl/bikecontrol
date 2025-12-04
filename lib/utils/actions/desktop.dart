@@ -13,7 +13,7 @@ class DesktopActions extends BaseActions {
   // Track keys that are currently held down in long press mode
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<ActionResult> performAction(ControllerButton action, {required bool isKeyDown, required bool isKeyUp}) async {
     if (supportedApp == null) {
       return Error('Supported app is not set');
     }
@@ -27,7 +27,7 @@ class DesktopActions extends BaseActions {
       return Error('No action assigned for ${action.toString().splitByUpperCase()}');
     }
 
-    final directConnectHandled = await handleDirectConnect(keyPair, action);
+    final directConnectHandled = await handleDirectConnect(keyPair, action, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
 
     if (directConnectHandled != null) {
       return directConnectHandled;

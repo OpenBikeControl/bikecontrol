@@ -45,7 +45,7 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
     if (supportedApp == null) {
       return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
     }
@@ -60,7 +60,7 @@ class AndroidActions extends BaseActions {
       return Error('No action assigned for ${button.toString().splitByUpperCase()}');
     }
 
-    final directConnectHandled = await handleDirectConnect(keyPair, button);
+    final directConnectHandled = await handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
 
     if (directConnectHandled != null) {
       return directConnectHandled;

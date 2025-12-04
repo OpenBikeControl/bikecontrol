@@ -18,7 +18,7 @@ class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch]});
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
+  Future<ActionResult> performAction(ControllerButton action, {required bool isKeyDown, required bool isKeyUp}) async {
     if (supportedApp == null) {
       return Error('Supported app is not set');
     }
@@ -32,7 +32,7 @@ class RemoteActions extends BaseActions {
       return Error('No action assigned for ${action.toString().splitByUpperCase()}');
     }
 
-    final directConnectHandled = await handleDirectConnect(keyPair, action);
+    final directConnectHandled = await handleDirectConnect(keyPair, action, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
 
     if (directConnectHandled != null) {
       return directConnectHandled;
