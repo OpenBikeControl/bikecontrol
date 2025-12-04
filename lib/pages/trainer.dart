@@ -332,11 +332,16 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             ],
 
             SizedBox(),
-            PrimaryButton(
-              child: Text(context.i18n.adjustControllerButtons),
-              onPressed: () {
-                widget.goToNextPage();
-              },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                PrimaryButton(
+                  child: Text(context.i18n.adjustControllerButtons),
+                  onPressed: () {
+                    widget.goToNextPage();
+                  },
+                ),
+              ],
             ),
           ],
         ],

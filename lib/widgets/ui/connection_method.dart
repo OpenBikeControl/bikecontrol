@@ -143,6 +143,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             ),
           ),
           if (widget.isEnabled) ?widget.additionalChild,
+          if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(height: 8),
           if (widget.instructionLink != null)
             OutlineButton(
               leading: Icon(Icons.play_circle_outline_outlined),

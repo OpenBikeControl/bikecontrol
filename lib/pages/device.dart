@@ -96,13 +96,20 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 },
               ),
 
-            if (core.connection.controllerDevices.isNotEmpty)
-              PrimaryButton(
-                child: Text(context.i18n.connectToTrainerApp),
-                onPressed: () {
-                  widget.onUpdate();
-                },
+            if (core.connection.controllerDevices.isNotEmpty) ...[
+              SizedBox(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  PrimaryButton(
+                    child: Text(context.i18n.connectToTrainerApp),
+                    onPressed: () {
+                      widget.onUpdate();
+                    },
+                  ),
+                ],
               ),
+            ],
           ],
         ),
       ),

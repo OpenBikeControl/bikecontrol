@@ -96,23 +96,25 @@ class _ScanWidgetState extends State<ScanWidget> {
                         },
                       ),
                     SizedBox(),
-                    OutlineButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-                        );
-                      },
-                      child: Text(context.i18n.showTroubleshootingGuide),
-                    ),
-                    OutlineButton(
-                      onPressed: () {
-                        launchUrlString(
-                          'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
-                        );
-                      },
-                      child: Text(context.i18n.showSupportedControllers),
-                    ),
+                    if (core.connection.controllerDevices.isEmpty) ...[
+                      OutlineButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                          );
+                        },
+                        child: Text(context.i18n.showTroubleshootingGuide),
+                      ),
+                      OutlineButton(
+                        onPressed: () {
+                          launchUrlString(
+                            'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
+                          );
+                        },
+                        child: Text(context.i18n.showSupportedControllers),
+                      ),
+                    ],
                   ],
                 );
               } else {
