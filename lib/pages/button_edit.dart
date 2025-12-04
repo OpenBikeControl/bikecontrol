@@ -447,7 +447,13 @@ class SelectableCard extends StatelessWidget {
           ButtonStyle(
                 variance: ButtonVariance.outline,
               )
-              .withBorder(border: isActive ? Border.all(color: BKColor.main) : null)
+              .withBorder(
+                border: isActive
+                    ? Border.all(color: BKColor.main, width: 2)
+                    : Border.all(color: Theme.of(context).colorScheme.border, width: 2),
+                hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
+                focusBorder: Border.all(color: BKColor.main, width: 2),
+              )
               .withBackgroundColor(
                 color: isActive ? Theme.of(context).colorScheme.card : Theme.of(context).colorScheme.background,
                 hoverColor: Theme.of(context).colorScheme.card,

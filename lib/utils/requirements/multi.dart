@@ -9,6 +9,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
@@ -267,7 +268,6 @@ class TargetRequirement extends PlatformRequirement {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(context.i18n.selectTrainerApp),
           Select<SupportedApp>(
             constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
             itemBuilder: (c, app) => Text(app.name),
@@ -307,56 +307,48 @@ class TargetRequirement extends PlatformRequirement {
             Text(
               context.i18n.selectTargetWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
             ),
-            Select<Target>(
-              constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-              itemBuilder: (c, app) => Text(app.getTitle(context)),
-              popup: SelectPopup(
-                items: SelectItemList(
-                  children: [Target.thisDevice, Target.otherDevice].map((target) {
-                    return SelectItemButton(
-                      value: target,
-                      enabled: target.isCompatible,
-                      child: Basic(
-                        leading: Icon(target.icon),
-                        leadingAlignment: Alignment.centerLeft,
-                        subtitle: Text(
-                          target.getDescription(core.settings.getTrainerApp()),
-                        ).xSmall.muted,
+            Row(
+              spacing: 8,
+              children: [Target.thisDevice, Target.otherDevice]
+                  .map(
+                    (target) => Expanded(
+                      child: SelectableCard(
                         title: Text(target.getTitle(context)),
+                        icon: target.icon,
+                        isActive: target == Target.thisDevice
+                            ? core.settings.getLastTarget() == Target.thisDevice
+                            : core.settings.getLastTarget() != Target.thisDevice,
+                        onPressed: !target.isCompatible
+                            ? null
+                            : () async {
+                                await core.settings.setLastTarget(target);
+
+                                if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true &&
+                                    !core.logic.emulatorEnabled) {
+                                  core.settings.setObpMdnsEnabled(true);
+                                  core.obpMdnsEmulator.startServer().catchError((e) {
+                                    core.settings.setObpMdnsEnabled(false);
+                                    buildToast(
+                                      context,
+                                      title: context.i18n.errorStartingOpenBikeControlServer,
+                                    );
+                                  });
+                                }
+
+                                if (target.warning != null) {
+                                  buildToast(
+                                    context,
+                                    title: target.warning,
+                                    level: LogLevel.LOGLEVEL_WARNING,
+                                  );
+                                }
+                                setState(() {});
+                                onUpdate();
+                              },
                       ),
-                    );
-                  }).toList(),
-                ),
-              ).call,
-              placeholder: Text(context.i18n.selectTargetDevice),
-              value: core.settings.getLastTarget() != Target.thisDevice ? Target.otherDevice : Target.thisDevice,
-              enabled: core.settings.getTrainerApp() != null,
-              onChanged: (target) async {
-                if (target != null) {
-                  await core.settings.setLastTarget(target);
-
-                  if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true && !core.logic.emulatorEnabled) {
-                    core.settings.setObpMdnsEnabled(true);
-                    core.obpMdnsEmulator.startServer().catchError((e) {
-                      core.settings.setObpMdnsEnabled(false);
-                      buildToast(
-                        context,
-                        title: context.i18n.errorStartingOpenBikeControlServer,
-                      );
-                    });
-                  }
-
-                  if (target.warning != null) {
-                    buildToast(
-                      context,
-                      title: target.warning,
-                      level: LogLevel.LOGLEVEL_WARNING,
-                    );
-                  }
-                  setState(() {});
-                  onUpdate();
-                }
-              },
+                    ),
+                  )
+                  .toList(),
             ),
           ],
 
