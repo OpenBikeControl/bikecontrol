@@ -4,6 +4,7 @@ import 'package:accessibility/accessibility.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -23,7 +24,9 @@ class RemoteActions extends BaseActions {
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (keyPair == null) {
+    if (core.logic.hasNoConnectionMethod) {
+      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (keyPair == null) {
       return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     } else if (keyPair.hasNoAction) {
       return Error('No action assigned for ${action.toString().splitByUpperCase()}');

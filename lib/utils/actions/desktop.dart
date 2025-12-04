@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
@@ -17,7 +19,9 @@ class DesktopActions extends BaseActions {
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (keyPair == null) {
+    if (core.logic.hasNoConnectionMethod) {
+      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (keyPair == null) {
       return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     } else if (keyPair.hasNoAction) {
       return Error('No action assigned for ${action.toString().splitByUpperCase()}');
@@ -27,37 +31,38 @@ class DesktopActions extends BaseActions {
 
     if (directConnectHandled != null) {
       return directConnectHandled;
-    } else if (keyPair.physicalKey != null) {
-      if (isKeyDown && isKeyUp) {
-        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
-        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
-        return Success('Key clicked: $keyPair');
-      } else if (isKeyDown) {
-        await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
-        return Success('Key pressed: $keyPair');
-      } else {
-        await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
-        return Success('Key released: $keyPair');
-      }
-    } else {
-      final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: null);
-      if (point != Offset.zero) {
+    } else if (core.settings.getLocalEnabled()) {
+      if (keyPair.physicalKey != null) {
         if (isKeyDown && isKeyUp) {
-          await keyPressSimulator.simulateMouseClickDown(point);
-          // slight move to register clicks on some apps, see issue #116
-          await keyPressSimulator.simulateMouseClickUp(point);
-          return Success('Mouse clicked at: ${point.dx.toInt()} ${point.dy.toInt()}');
+          await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
+          await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
+          return Success('Key clicked: $keyPair');
         } else if (isKeyDown) {
-          await keyPressSimulator.simulateMouseClickDown(point);
-          return Success('Mouse down at: ${point.dx.toInt()} ${point.dy.toInt()}');
+          await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
+          return Success('Key pressed: $keyPair');
         } else {
-          await keyPressSimulator.simulateMouseClickUp(point);
-          return Success('Mouse up at: ${point.dx.toInt()} ${point.dy.toInt()}');
+          await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
+          return Success('Key released: $keyPair');
         }
       } else {
-        return Error('No action assigned for ${action.toString().splitByUpperCase()}');
+        final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: null);
+        if (point != Offset.zero) {
+          if (isKeyDown && isKeyUp) {
+            await keyPressSimulator.simulateMouseClickDown(point);
+            // slight move to register clicks on some apps, see issue #116
+            await keyPressSimulator.simulateMouseClickUp(point);
+            return Success('Mouse clicked at: ${point.dx.toInt()} ${point.dy.toInt()}');
+          } else if (isKeyDown) {
+            await keyPressSimulator.simulateMouseClickDown(point);
+            return Success('Mouse down at: ${point.dx.toInt()} ${point.dy.toInt()}');
+          } else {
+            await keyPressSimulator.simulateMouseClickUp(point);
+            return Success('Mouse up at: ${point.dx.toInt()} ${point.dy.toInt()}');
+          }
+        }
       }
     }
+    return Error('No action assigned for ${action.toString().splitByUpperCase()}');
   }
 
   // Release all held keys (useful for cleanup)

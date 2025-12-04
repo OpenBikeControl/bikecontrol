@@ -1,5 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/widgets/ui/button_widget.dart';
+import 'package:swift_control/widgets/ui/colors.dart';
 
 void buildToast(
   BuildContext context, {
@@ -26,7 +28,7 @@ void buildToast(
       filled: true,
       fillColor: switch (level) {
         LogLevel.LOGLEVEL_DEBUG => null,
-        LogLevel.LOGLEVEL_INFO => null,
+        LogLevel.LOGLEVEL_INFO => BKColor.main,
         LogLevel.LOGLEVEL_WARNING => Theme.of(context).colorScheme.accent,
         LogLevel.LOGLEVEL_ERROR => Theme.of(context).colorScheme.destructive,
         _ => null,
@@ -34,15 +36,17 @@ void buildToast(
       child: Basic(
         title: titleWidget ?? Text(title ?? ''),
         subtitle: subtitle != null ? Text(subtitle) : null,
-        trailing: PrimaryButton(
-          size: ButtonSize.small,
-          onPressed: () {
-            // Close the toast programmatically when clicking Undo.
-            overlay.close();
-            onClose?.call();
-          },
-          child: Text(closeTitle),
-        ),
+        trailing: titleWidget is ButtonWidget
+            ? null
+            : PrimaryButton(
+                size: ButtonSize.small,
+                onPressed: () {
+                  // Close the toast programmatically when clicking Undo.
+                  overlay.close();
+                  onClose?.call();
+                },
+                child: Text(closeTitle),
+              ),
         trailingAlignment: Alignment.center,
       ),
     ),

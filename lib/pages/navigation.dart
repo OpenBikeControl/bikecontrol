@@ -211,7 +211,11 @@ class _NavigationState extends State<Navigation> {
       children: [
         Icon(
           page.icon,
-          color: Theme.of(context).colorScheme.brightness == Brightness.dark ? Colors.white : null,
+          color: !_isPageEnabled(page)
+              ? null
+              : Theme.of(context).colorScheme.brightness == Brightness.dark
+              ? Colors.white
+              : null,
         ),
         if (needsAttention) ...[
           Positioned(
@@ -310,7 +314,11 @@ class _NavigationState extends State<Navigation> {
             ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
             : page.getTitle(context),
         style: TextStyle(
-          color: Theme.of(context).colorScheme.brightness == Brightness.dark ? Colors.white : null,
+          color: !_isPageEnabled(page)
+              ? null
+              : Theme.of(context).colorScheme.brightness == Brightness.dark
+              ? Colors.white
+              : null,
         ),
       ),
       child: _buildIcon(page),

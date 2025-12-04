@@ -200,15 +200,19 @@ class BikeControlApp extends StatelessWidget {
                 style: TextStyle(color: Colors.white),
               ),
             )
-          : ToastLayer(
-              key: ValueKey('Test'),
-              padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
-              child: Stack(
-                children: [
-                  Navigation(),
-                  Positioned.fill(child: Testbed()),
-                ],
-              ),
+          : Builder(
+              builder: (context) {
+                return ToastLayer(
+                  key: ValueKey('Test'),
+                  padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
+                  child: Stack(
+                    children: [
+                      Navigation(),
+                      Positioned.fill(child: Testbed()),
+                    ],
+                  ),
+                );
+              },
             ),
     );
   }

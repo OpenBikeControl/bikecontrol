@@ -2,6 +2,7 @@ import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
@@ -51,7 +52,9 @@ class AndroidActions extends BaseActions {
 
     final keyPair = supportedApp!.keymap.getKeyPair(button);
 
-    if (keyPair == null) {
+    if (core.logic.hasNoConnectionMethod) {
+      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (keyPair == null) {
       return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
     } else if (keyPair.hasNoAction) {
       return Error('No action assigned for ${button.toString().splitByUpperCase()}');

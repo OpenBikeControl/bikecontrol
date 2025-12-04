@@ -73,18 +73,20 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
       if (!mounted) {
         return;
       }
+      print('TESTBED ${data.runtimeType}');
       if (data is ButtonNotification) {
         for (final button in data.buttonsClicked) {
           buildToast(
             context,
 
             location: ToastLocation.bottomLeft,
-            title: '🔘 ${button.name}',
+            titleWidget: ButtonWidget(button: button),
           );
           if (core.actionHandler.supportedApp is! CustomApp &&
               core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
             buildToast(
               context,
+              level: LogLevel.LOGLEVEL_WARNING,
               titleWidget: Text.rich(
                 TextSpan(
                   children: [

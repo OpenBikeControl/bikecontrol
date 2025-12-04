@@ -262,6 +262,7 @@ class TargetRequirement extends PlatformRequirement {
 
   @override
   Widget? build(BuildContext context, VoidCallback onUpdate) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     return StatefulBuilder(
       builder: (c, setState) => Column(
         spacing: 8,
@@ -307,47 +308,47 @@ class TargetRequirement extends PlatformRequirement {
             Text(
               context.i18n.selectTargetWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
             ),
-            Row(
+            Flex(
+              direction: isMobile ? Axis.vertical : Axis.horizontal,
               spacing: 8,
               children: [Target.thisDevice, Target.otherDevice]
                   .map(
-                    (target) => Expanded(
-                      child: SelectableCard(
-                        title: Text(target.getTitle(context)),
-                        icon: target.icon,
-                        isActive: target == Target.thisDevice
-                            ? core.settings.getLastTarget() == Target.thisDevice
-                            : core.settings.getLastTarget() != Target.thisDevice,
-                        onPressed: !target.isCompatible
-                            ? null
-                            : () async {
-                                await core.settings.setLastTarget(target);
+                    (target) => SelectableCard(
+                      title: Text(target.getTitle(context)),
+                      icon: target.icon,
+                      isActive: target == Target.thisDevice
+                          ? core.settings.getLastTarget() == Target.thisDevice
+                          : core.settings.getLastTarget() != Target.thisDevice,
+                      onPressed: !target.isCompatible
+                          ? null
+                          : () async {
+                              await core.settings.setLastTarget(target);
 
-                                if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true &&
-                                    !core.logic.emulatorEnabled) {
-                                  core.settings.setObpMdnsEnabled(true);
-                                  core.obpMdnsEmulator.startServer().catchError((e) {
-                                    core.settings.setObpMdnsEnabled(false);
-                                    buildToast(
-                                      context,
-                                      title: context.i18n.errorStartingOpenBikeControlServer,
-                                    );
-                                  });
-                                }
-
-                                if (target.warning != null) {
+                              if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true &&
+                                  !core.logic.emulatorEnabled) {
+                                core.settings.setObpMdnsEnabled(true);
+                                core.obpMdnsEmulator.startServer().catchError((e) {
+                                  core.settings.setObpMdnsEnabled(false);
                                   buildToast(
                                     context,
-                                    title: target.warning,
-                                    level: LogLevel.LOGLEVEL_WARNING,
+                                    title: context.i18n.errorStartingOpenBikeControlServer,
                                   );
-                                }
-                                setState(() {});
-                                onUpdate();
-                              },
-                      ),
+                                });
+                              }
+
+                              if (target.warning != null) {
+                                buildToast(
+                                  context,
+                                  title: target.warning,
+                                  level: LogLevel.LOGLEVEL_WARNING,
+                                );
+                              }
+                              setState(() {});
+                              onUpdate();
+                            },
                     ),
                   )
+                  .map((e) => !isMobile ? Expanded(child: e) : e)
                   .toList(),
             ),
           ],
