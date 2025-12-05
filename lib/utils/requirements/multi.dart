@@ -292,22 +292,24 @@ class TargetRequirement extends PlatformRequirement {
               }
               core.settings.setTrainerApp(selectedApp!);
               if (core.settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
-                await core.settings.setLastTarget(Target.thisDevice);
+                _setTarget(context, Target.thisDevice);
+              } else if (core.settings.getLastTarget() == null && Target.otherDevice.isCompatible) {
+                _setTarget(context, Target.otherDevice);
               }
               if (core.actionHandler.supportedApp == null ||
                   (core.actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
                 core.actionHandler.init(selectedApp);
                 core.settings.setKeyMap(selectedApp);
               }
-              setState(() {});
               onUpdate();
+              setState(() {});
             },
           ),
           if (core.settings.getTrainerApp() != null) ...[
             SizedBox(height: 8),
             Text(
               context.i18n.selectTargetWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
-            ),
+            ).small,
             Flex(
               direction: isMobile ? Axis.vertical : Axis.horizontal,
               spacing: 8,
@@ -322,27 +324,7 @@ class TargetRequirement extends PlatformRequirement {
                       onPressed: !target.isCompatible
                           ? null
                           : () async {
-                              await core.settings.setLastTarget(target);
-
-                              if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true &&
-                                  !core.logic.emulatorEnabled) {
-                                core.settings.setObpMdnsEnabled(true);
-                                core.obpMdnsEmulator.startServer().catchError((e) {
-                                  core.settings.setObpMdnsEnabled(false);
-                                  buildToast(
-                                    context,
-                                    title: context.i18n.errorStartingOpenBikeControlServer,
-                                  );
-                                });
-                              }
-
-                              if (target.warning != null) {
-                                buildToast(
-                                  context,
-                                  title: target.warning,
-                                  level: LogLevel.LOGLEVEL_WARNING,
-                                );
-                              }
+                              _setTarget(context, target);
                               setState(() {});
                               onUpdate();
                             },
@@ -357,7 +339,7 @@ class TargetRequirement extends PlatformRequirement {
             SizedBox(height: 8),
             Text(
               context.i18n.selectOtherDeviceWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
-            ),
+            ).small,
             Select<Target>(
               constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
               itemBuilder: (c, app) => Text(app.getTitle(context)),
@@ -461,6 +443,29 @@ class TargetRequirement extends PlatformRequirement {
       }
     } else {
       return null;
+    }
+  }
+
+  Future<void> _setTarget(BuildContext context, Target target) async {
+    await core.settings.setLastTarget(target);
+
+    if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true && !core.logic.emulatorEnabled) {
+      core.settings.setObpMdnsEnabled(true);
+      core.obpMdnsEmulator.startServer().catchError((e) {
+        core.settings.setObpMdnsEnabled(false);
+        buildToast(
+          context,
+          title: context.i18n.errorStartingOpenBikeControlServer,
+        );
+      });
+    }
+
+    if (target.warning != null) {
+      buildToast(
+        context,
+        title: target.warning,
+        level: LogLevel.LOGLEVEL_WARNING,
+      );
     }
   }
 }

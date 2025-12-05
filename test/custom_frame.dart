@@ -9,8 +9,10 @@ class CustomFrame extends StatelessWidget {
     required this.device,
     this.frameColors,
     required this.child,
+    required this.platform,
   });
 
+  final TargetPlatform platform;
   final String title;
   final ScreenshotDevice device;
   final ScreenshotFrameColors? frameColors;
@@ -59,7 +61,14 @@ class CustomFrame extends StatelessWidget {
                     borderRadius: BorderRadius.circular(64),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: ScreenshotFrame.iphone(device: device, child: child),
+                  child: switch (platform) {
+                    TargetPlatform.android => ScreenshotFrame.androidPhone(device: device, child: child),
+                    TargetPlatform.fuchsia => throw UnimplementedError(),
+                    TargetPlatform.iOS => ScreenshotFrame.iphone(device: device, child: child),
+                    TargetPlatform.linux => throw UnimplementedError(),
+                    TargetPlatform.macOS => ScreenshotFrame.noFrame(device: device, child: child),
+                    TargetPlatform.windows => ScreenshotFrame.noFrame(device: device, child: child),
+                  },
                 ),
               ),
             ),

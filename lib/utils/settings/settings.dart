@@ -189,7 +189,7 @@ class Settings {
   }
 
   bool getMyWhooshLinkEnabled() {
-    return prefs.getBool('mywhoosh_link_enabled') ?? true;
+    return prefs.getBool('mywhoosh_link_enabled') ?? false;
   }
 
   Future<void> setMyWhooshLinkEnabled(bool enabled) async {
@@ -197,7 +197,7 @@ class Settings {
   }
 
   bool getObpMdnsEnabled() {
-    return prefs.getBool('openbikeprotocol_mdns_enabled') ?? true;
+    return prefs.getBool('openbikeprotocol_mdns_enabled') ?? false;
   }
 
   Future<void> setObpMdnsEnabled(bool enabled) async {
@@ -205,7 +205,7 @@ class Settings {
   }
 
   bool getObpBleEnabled() {
-    return prefs.getBool('openbikeprotocol_ble_enabled') ?? true;
+    return prefs.getBool('openbikeprotocol_ble_enabled') ?? false;
   }
 
   Future<void> setObpBleEnabled(bool enabled) async {
@@ -213,7 +213,7 @@ class Settings {
   }
 
   bool getZwiftBleEmulatorEnabled() {
-    return prefs.getBool('zwift_emulator_enabled') ?? true;
+    return prefs.getBool('zwift_emulator_enabled') ?? false;
   }
 
   Future<void> setZwiftBleEmulatorEnabled(bool enabled) async {
@@ -221,7 +221,7 @@ class Settings {
   }
 
   bool getZwiftMdnsEmulatorEnabled() {
-    return prefs.getBool('zwift_mdns_emulator_enabled') ?? true;
+    return prefs.getBool('zwift_mdns_emulator_enabled') ?? false;
   }
 
   Future<void> setZwiftMdnsEmulatorEnabled(bool enabled) async {

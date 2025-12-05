@@ -31,11 +31,10 @@ class ZwiftEmulator {
   ];
 
   ValueNotifier<bool> isConnected = ValueNotifier<bool>(false);
-  bool get isAdvertising => _isAdvertising;
+  ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
   bool get isLoading => _isLoading;
 
   late final _peripheralManager = PeripheralManager();
-  bool _isAdvertising = false;
   bool _isLoading = false;
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
@@ -47,12 +46,12 @@ class ZwiftEmulator {
     await _peripheralManager.stopAdvertising();
     await _peripheralManager.removeAllServices();
     _isServiceAdded = false;
-    _isAdvertising = false;
     startAdvertising(() {});
   }
 
   Future<void> startAdvertising(VoidCallback onUpdate) async {
     _isLoading = true;
+    isStarted.value = true;
     onUpdate();
 
     _peripheralManager.stateChanged.forEach((state) {
@@ -75,7 +74,7 @@ class ZwiftEmulator {
       final status = await Permission.bluetoothAdvertise.request();
       if (!status.isGranted) {
         print('Bluetooth advertise permission not granted');
-        _isAdvertising = false;
+        isStarted.value = false;
         onUpdate();
         return;
       }
@@ -267,7 +266,7 @@ class ZwiftEmulator {
     }
 
     final advertisement = Advertisement(
-      name: 'KICKR BIKE PRO 1337',
+      name: 'KICKR BIKE PRO 61DD',
       serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
       /*serviceData: {
         UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),
@@ -282,14 +281,14 @@ class ZwiftEmulator {
     print('Starting advertising with Zwift service...');
 
     await _peripheralManager.startAdvertising(advertisement);
-    _isAdvertising = true;
     _isLoading = false;
     onUpdate();
   }
 
   Future<void> stopAdvertising() async {
     await _peripheralManager.stopAdvertising();
-    _isAdvertising = false;
+    isStarted.value = false;
+    isConnected.value = false;
     _isLoading = false;
   }
 

@@ -20,31 +20,37 @@ class _ZwiftTileState extends State<ZwiftTile> {
     return ValueListenableBuilder(
       valueListenable: core.zwiftEmulator.isConnected,
       builder: (context, isConnected, _) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return ConnectionMethod(
-              isEnabled: core.settings.getZwiftBleEmulatorEnabled(),
-              type: ConnectionMethodType.bluetooth,
-              isStarted: core.zwiftEmulator.isAdvertising,
-              onChange: (value) {
-                core.settings.setZwiftBleEmulatorEnabled(value);
-                if (!value) {
-                  core.zwiftEmulator.stopAdvertising();
-                } else if (value) {
-                  core.zwiftEmulator.startAdvertising(widget.onUpdate).catchError((e) {
-                    core.settings.setZwiftBleEmulatorEnabled(false);
-                    core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
-                  });
-                }
-                setState(() {});
+        return ValueListenableBuilder(
+          valueListenable: core.zwiftEmulator.isStarted,
+          builder: (context, isStarted, _) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return ConnectionMethod(
+                  isEnabled: core.settings.getZwiftBleEmulatorEnabled(),
+                  type: ConnectionMethodType.bluetooth,
+                  isStarted: isStarted,
+                  isConnected: isConnected,
+                  onChange: (value) {
+                    core.settings.setZwiftBleEmulatorEnabled(value);
+                    if (!value) {
+                      core.zwiftEmulator.stopAdvertising();
+                    } else if (value) {
+                      core.zwiftEmulator.startAdvertising(widget.onUpdate).catchError((e) {
+                        core.settings.setZwiftBleEmulatorEnabled(false);
+                        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+                      });
+                    }
+                    setState(() {});
+                  },
+                  title: context.i18n.enableZwiftControllerBluetooth,
+                  description: !isStarted
+                      ? context.i18n.zwiftControllerDescription
+                      : isConnected
+                      ? context.i18n.connected
+                      : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
+                  requirements: core.permissions.getRemoteControlRequirements(),
+                );
               },
-              title: context.i18n.enableZwiftControllerBluetooth,
-              description: !core.zwiftEmulator.isAdvertising
-                  ? context.i18n.zwiftControllerDescription
-                  : isConnected
-                  ? context.i18n.connected
-                  : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
-              requirements: core.permissions.getRemoteControlRequirements(),
             );
           },
         );

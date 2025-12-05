@@ -32,6 +32,11 @@
 	<string>BikeControl uses Bluetooth to connect to accessories.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>This app connects to your trainer app on your local network.</string>
+    <key>NSBonjourServices</key>
+    <array>
+      <string>_wahoo-fitness-tnp._tcp</string>
+      <string>_openbikecontrol._tcp</string>
+    </array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

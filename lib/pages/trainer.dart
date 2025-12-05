@@ -44,6 +44,8 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
   bool _showMiuiWarning = false;
   StreamSubscription<bool>? _autoRotateStream;
 
+  late final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -105,6 +107,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
 
+    _scrollController.dispose();
     _autoRotateStream?.cancel();
     super.dispose();
   }
@@ -150,6 +153,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      controller: _scrollController,
       padding: EdgeInsets.all(16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -160,6 +164,13 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             onUpdate: () {
               setState(() {});
               widget.onUpdate();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _scrollController.animateTo(
+                  _scrollController.offset + 200,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              });
             },
           ),
           if (core.settings.getTrainerApp() != null) ...[

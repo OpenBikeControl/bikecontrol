@@ -45,109 +45,129 @@ Future<void> main() async {
       ..batteryLevel = 81,
   ]);
 
-  final List<(String type, Size size)> sizes = [
-    ('Phone', Size(400, 800)),
+  final List<(TargetPlatform type, Size size)> sizes = [
+    (TargetPlatform.android, Size(1320, 2868)),
+    (TargetPlatform.iOS, Size(1320, 2868)),
     /*('iPhone', Size(1242, 2688)),
     ('macOS', Size(1280, 800)),
     ('GitHub', Size(600, 900)),*/
   ];
 
   debugDisableShadows = true;
+  screenshotMode = true;
+
   testGoldens('Device', (WidgetTester tester) async {
-    screenshotMode = true;
-
-    await tester.pumpWidget(
-      ScreenshotApp(
-        device: ScreenshotDevice(
-          platform: TargetPlatform.android,
-          resolution: Size(1320, 2868),
-          pixelRatio: 3,
-          goldenSubFolder: 'iphoneScreenshots/',
-          frameBuilder:
-              ({
-                required ScreenshotDevice device,
-                required ScreenshotFrameColors? frameColors,
-                required Widget child,
-              }) =>
-                  CustomFrame(title: 'BikeControl connects to your favorite controller', device: device, child: child),
-        ),
-        home: BikeControlApp(
-          page: BCPage.devices,
-        ),
-      ),
-    );
-
     await tester.loadAssets();
 
-    await tester.pump();
-    await expectLater(
-      find.byType(ma.Scaffold),
-      matchesGoldenFile('screenshots/device.png'),
-    );
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.$1,
+            resolution: size.$2,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.$1,
+                  title: 'BikeControl connects to your favorite controller',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.devices,
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/device-${size.$1.name}-${size.$2.width.toInt()}-${size.$2.height.toInt()}.png',
+        ),
+      );
+    }
   });
 
   testGoldens('Trainer', (WidgetTester tester) async {
-    screenshotMode = true;
-
-    await tester.pumpWidget(
-      ScreenshotApp(
-        device: ScreenshotDevice(
-          platform: TargetPlatform.android,
-          resolution: Size(1320, 2868),
-          pixelRatio: 3,
-          goldenSubFolder: 'iphoneScreenshots/',
-          frameBuilder:
-              ({
-                required ScreenshotDevice device,
-                required ScreenshotFrameColors? frameColors,
-                required Widget child,
-              }) =>
-                  CustomFrame(title: 'BikeControl connects to your favorite controller', device: device, child: child),
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.$1,
+            resolution: size.$2,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.$1,
+                  title: 'BikeControl connects to your favorite controller',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.trainer,
+          ),
         ),
-        home: BikeControlApp(
-          page: BCPage.trainer,
+      );
+
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/trainer-${size.$1.name}-${size.$2.width.toInt()}-${size.$2.height.toInt()}.png',
         ),
-      ),
-    );
-
-    await tester.loadAssets();
-
-    await tester.pump();
-    await expectLater(
-      find.byType(ma.Scaffold),
-      matchesGoldenFile('screenshots/trainer.png'),
-    );
+      );
+    }
   });
 
   testGoldens('Customization', (WidgetTester tester) async {
     screenshotMode = true;
 
-    await tester.pumpWidget(
-      ScreenshotApp(
-        device: ScreenshotDevice(
-          platform: TargetPlatform.android,
-          resolution: Size(1320, 2868),
-          pixelRatio: 3,
-          goldenSubFolder: 'iphoneScreenshots/',
-          frameBuilder:
-              ({
-                required ScreenshotDevice device,
-                required ScreenshotFrameColors? frameColors,
-                required Widget child,
-              }) => CustomFrame(title: 'Customize what each controller button should do', device: device, child: child),
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.$1,
+            resolution: size.$2,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.$1,
+                  title: 'Customize every controller button',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.customization,
+          ),
         ),
-        home: BikeControlApp(
-          page: BCPage.customization,
+      );
+
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/customization-${size.$1.name}-${size.$2.width.toInt()}-${size.$2.height.toInt()}.png',
         ),
-      ),
-    );
-
-    await tester.loadAssets();
-
-    await tester.pump();
-    await expectLater(
-      find.byType(ma.Scaffold),
-      matchesGoldenFile('screenshots/customization.png'),
-    );
+      );
+    }
   });
 }

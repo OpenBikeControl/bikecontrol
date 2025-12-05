@@ -76,9 +76,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     if (widget.requirements.isNotEmpty && widget.isEnabled && widget.isStarted == false) {
       Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
         final allDone = widget.requirements.every((e) => e.status);
-        if (allDone) {
+        if (allDone && widget.isEnabled) {
           widget.onChange(true);
-        } else {
+        } else if (!allDone && widget.isEnabled) {
           widget.onChange(false);
         }
       });
@@ -112,14 +112,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: 8,
             children: [
-              Expanded(child: Text(widget.title)),
-              if (widget.title == context.i18n.enablePairingProcess)
-                Padding(
-                  padding: const EdgeInsets.only(top: 1.0),
-                  child: BetaPill(),
-                ),
               PrimaryBadge(
                 trailing: widget.isStarted == true && (widget.isConnected == false)
                     ? SmallProgressIndicator(
@@ -133,8 +128,14 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                       },
                 child: Text(widget.type.name.capitalize()),
               ),
+              if (widget.title == context.i18n.enablePairingProcess)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: BetaPill(),
+                ),
             ],
           ),
+          Text(widget.title),
           Text(
             widget.description,
             style: TextStyle(

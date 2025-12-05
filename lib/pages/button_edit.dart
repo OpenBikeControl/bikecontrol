@@ -462,7 +462,7 @@ class SelectableCard extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Basic(
           leading: icon != null
               ? Padding(

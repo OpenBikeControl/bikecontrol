@@ -22,20 +22,28 @@ class Rouvy extends SupportedApp {
         keymap: Keymap(
           keyPairs: [
             // https://support.rouvy.com/hc/de/articles/32452137189393-Virtuelles-Schalten#h_01K5GMVG4KVYZ0Y6W7RBRZC9MA
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
-              inGameAction: InGameAction.shiftDown,
-              physicalKey: PhysicalKeyboardKey.comma,
-              logicalKey: LogicalKeyboardKey.comma,
-              touchPosition: Offset(94, 80),
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
-              inGameAction: InGameAction.shiftUp,
-              physicalKey: PhysicalKeyboardKey.period,
-              logicalKey: LogicalKeyboardKey.period,
-              touchPosition: Offset(94, 72),
-            ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.shiftDown)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    inGameAction: InGameAction.shiftDown,
+                    physicalKey: PhysicalKeyboardKey.comma,
+                    logicalKey: LogicalKeyboardKey.comma,
+                    touchPosition: Offset(94, 80),
+                  ),
+                ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.shiftUp)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    inGameAction: InGameAction.shiftUp,
+                    physicalKey: PhysicalKeyboardKey.period,
+                    logicalKey: LogicalKeyboardKey.period,
+                    touchPosition: Offset(94, 72),
+                  ),
+                ),
             // like escape
             KeyPair(
               buttons: [ZwiftButtons.b],

@@ -49,7 +49,7 @@ class FtmsMdnsEmulator {
       instance: 'KICKR BIKE PRO 1337',
       service: '_wahoo-fitness-tnp._tcp',
       port: 36867,
-      //hostName: 'KICKR BIKE SHIFT B84D.local',
+      hostName: 'KICKR-BIKE-SHIFT-1337.local.',
       ips: [localIP],
       txt: [
         'ble-service-uuids=FC82',
@@ -64,8 +64,13 @@ class FtmsMdnsEmulator {
     _server = MDNSServer(
       MDNSServerConfig(
         zone: service,
-        reusePort: true,
-        logger: (log) {},
+        networkInterface: interfaces.first,
+        reusePort: !Platform.isAndroid,
+        logger: (log) {
+          if (kDebugMode) {
+            print('mDNS: $log');
+          }
+        },
       ),
     );
 
