@@ -68,7 +68,7 @@ class _CustomizeState extends State<CustomizePage> {
                       spacing: 6,
                       children: [
                         Icon(Icons.add, color: Theme.of(context).colorScheme.mutedForeground),
-                        Text(context.i18n.createNewKeymap).normal.muted,
+                        Expanded(child: Text(context.i18n.createNewKeymap).normal.muted),
                       ],
                     ),
                   ),

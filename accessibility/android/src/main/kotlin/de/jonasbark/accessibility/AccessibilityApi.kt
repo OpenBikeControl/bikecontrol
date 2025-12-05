@@ -129,6 +129,43 @@ data class WindowEvent (
 
   override fun hashCode(): Int = toList().hashCode()
 }
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class AKeyEvent (
+  val source: String,
+  val hidKey: String,
+  val keyDown: Boolean,
+  val keyUp: Boolean
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): AKeyEvent {
+      val source = pigeonVar_list[0] as String
+      val hidKey = pigeonVar_list[1] as String
+      val keyDown = pigeonVar_list[2] as Boolean
+      val keyUp = pigeonVar_list[3] as Boolean
+      return AKeyEvent(source, hidKey, keyDown, keyUp)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      source,
+      hidKey,
+      keyDown,
+      keyUp,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is AKeyEvent) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return AccessibilityApiPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
 private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -142,6 +179,11 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
           WindowEvent.fromList(it)
         }
       }
+      131.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          AKeyEvent.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -153,6 +195,10 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
       }
       is WindowEvent -> {
         stream.write(130)
+        writeValue(stream, value.toList())
+      }
+      is AKeyEvent -> {
+        stream.write(131)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -334,14 +380,14 @@ abstract class StreamEventsStreamHandler : AccessibilityApiPigeonEventChannelWra
   }
 }
       
-abstract class HidKeyPressedStreamHandler : AccessibilityApiPigeonEventChannelWrapper<String> {
+abstract class HidKeyPressedStreamHandler : AccessibilityApiPigeonEventChannelWrapper<AKeyEvent> {
   companion object {
     fun register(messenger: BinaryMessenger, streamHandler: HidKeyPressedStreamHandler, instanceName: String = "") {
       var channelName: String = "dev.flutter.pigeon.accessibility.EventChannelMethods.hidKeyPressed"
       if (instanceName.isNotEmpty()) {
         channelName += ".$instanceName"
       }
-      val internalStreamHandler = AccessibilityApiPigeonStreamHandler<String>(streamHandler)
+      val internalStreamHandler = AccessibilityApiPigeonStreamHandler<AKeyEvent>(streamHandler)
       EventChannel(messenger, channelName, AccessibilityApiPigeonMethodCodec).setStreamHandler(internalStreamHandler)
     }
   }

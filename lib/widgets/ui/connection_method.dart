@@ -50,7 +50,7 @@ class ConnectionMethod extends StatefulWidget {
 class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.requirements.isNotEmpty && widget.isStarted == null) {
+    if (widget.requirements.isNotEmpty && !widget.isEnabled) {
       if (state == AppLifecycleState.resumed) {
         Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
           final allDone = widget.requirements.every((e) => e.status);

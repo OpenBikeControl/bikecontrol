@@ -219,10 +219,20 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             ),
                             onPressed: (_) {
                               // Copy all properties from the selected predefined action
-                              keyPair.physicalKey = keyPairAction.physicalKey;
-                              keyPair.logicalKey = keyPairAction.logicalKey;
-                              keyPair.modifiers = List.of(keyPairAction.modifiers);
-                              keyPair.touchPosition = keyPairAction.touchPosition;
+                              if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
+                                keyPair.physicalKey = keyPairAction.physicalKey;
+                                keyPair.logicalKey = keyPairAction.logicalKey;
+                                keyPair.modifiers = List.of(keyPairAction.modifiers);
+                              } else {
+                                keyPair.physicalKey = null;
+                                keyPair.logicalKey = null;
+                                keyPair.modifiers = [];
+                              }
+                              if (core.actionHandler.supportedModes.contains(SupportedMode.touch)) {
+                                keyPair.touchPosition = keyPairAction.touchPosition;
+                              } else {
+                                keyPair.touchPosition = Offset.zero;
+                              }
                               keyPair.isLongPress = keyPairAction.isLongPress;
                               keyPair.inGameAction = keyPairAction.inGameAction;
                               keyPair.inGameActionValue = keyPairAction.inGameActionValue;

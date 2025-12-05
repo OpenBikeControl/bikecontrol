@@ -130,6 +130,11 @@ jobs:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
+      - name: Generate translation files
+        run: |
+          flutter pub global activate intl_utils;
+          flutter pub global run intl_utils:generate;
+
       - name: Build Web
         if: inputs.build_web
         run: flutter build web --release --base-href "/swiftcontrol/"

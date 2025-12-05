@@ -4,7 +4,7 @@ import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/core.dart';
 
 class HidDevice extends BaseDevice {
-  HidDevice(super.name, {super.availableButtons = const []});
+  HidDevice(super.name) : super(availableButtons: []);
 
   @override
   Future<void> connect() {

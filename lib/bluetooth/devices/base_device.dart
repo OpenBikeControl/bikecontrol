@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -13,7 +15,13 @@ abstract class BaseDevice {
   final bool isBeta;
   final List<ControllerButton> availableButtons;
 
-  BaseDevice(this.name, {required this.availableButtons, this.isBeta = false});
+  BaseDevice(this.name, {required this.availableButtons, this.isBeta = false}) {
+    if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
+      // TODO we should verify where the buttons came from
+      final allButtons = core.actionHandler.supportedApp!.keymap.keyPairs.flatMap((e) => e.buttons);
+      availableButtons.addAll(allButtons);
+    }
+  }
 
   bool isConnected = false;
 
@@ -139,4 +147,14 @@ abstract class BaseDevice {
   }
 
   Widget showInformation(BuildContext context);
+
+  ControllerButton? getOrAddButton(String key, ControllerButton Function() creator) {
+    final button = core.actionHandler.supportedApp?.keymap.getOrAddButton(key, creator);
+
+    if (button != null && availableButtons.none((e) => e.name == button.name)) {
+      availableButtons.add(button);
+      core.settings.setKeyMap(core.actionHandler.supportedApp!);
+    }
+    return button;
+  }
 }

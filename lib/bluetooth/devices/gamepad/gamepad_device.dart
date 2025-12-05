@@ -2,6 +2,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/core.dart';
@@ -23,10 +24,16 @@ class GamepadDevice extends BaseDevice {
     Gamepads.eventsByGamepad(id).listen((event) {
       actionStreamInternal.add(LogNotification('Gamepad event: $event'));
 
-      ControllerButton? button = core.actionHandler.supportedApp?.keymap.getOrAddButton(
+      ControllerButton? button = getOrAddButton(
         event.key,
         () => ControllerButton(event.key),
       );
+
+      if (button == null && event.value == 0) {
+        actionStreamInternal.add(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Use a custom keymap to use the buttons on $name.'),
+        );
+      }
 
       final buttonsClicked = event.value == 0.0 && button != null ? [button] : <ControllerButton>[];
       if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
@@ -44,6 +51,7 @@ class GamepadDevice extends BaseDevice {
         spacing: 8,
         children: [
           Row(
+            spacing: 8,
             children: [
               Text(
                 name.screenshot,

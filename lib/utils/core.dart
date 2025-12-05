@@ -354,10 +354,10 @@ class MediaKeyHandler {
     final hidDevice = HidDevice('HID Device');
     final keyPressed = mediaKey.name;
 
-    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(
+    final button = hidDevice.getOrAddButton(
       keyPressed,
       () => ControllerButton(keyPressed),
-    );
+    )!;
 
     var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
     if (availableDevice == null) {

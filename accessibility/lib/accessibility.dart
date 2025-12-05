@@ -97,6 +97,62 @@ class WindowEvent {
 ;
 }
 
+class AKeyEvent {
+  AKeyEvent({
+    required this.source,
+    required this.hidKey,
+    required this.keyDown,
+    required this.keyUp,
+  });
+
+  String source;
+
+  String hidKey;
+
+  bool keyDown;
+
+  bool keyUp;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      source,
+      hidKey,
+      keyDown,
+      keyUp,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static AKeyEvent decode(Object result) {
+    result as List<Object?>;
+    return AKeyEvent(
+      source: result[0]! as String,
+      hidKey: result[1]! as String,
+      keyDown: result[2]! as bool,
+      keyUp: result[3]! as bool,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! AKeyEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -111,6 +167,9 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is WindowEvent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
+    }    else if (value is AKeyEvent) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -124,6 +183,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return value == null ? null : MediaAction.values[value];
       case 130: 
         return WindowEvent.decode(readValue(buffer)!);
+      case 131: 
+        return AKeyEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -305,14 +366,14 @@ Stream<WindowEvent> streamEvents( {String instanceName = ''}) {
   });
 }
     
-Stream<String> hidKeyPressed( {String instanceName = ''}) {
+Stream<AKeyEvent> hidKeyPressed( {String instanceName = ''}) {
   if (instanceName.isNotEmpty) {
     instanceName = '.$instanceName';
   }
   final EventChannel hidKeyPressedChannel =
       EventChannel('dev.flutter.pigeon.accessibility.EventChannelMethods.hidKeyPressed$instanceName', pigeonMethodCodec);
   return hidKeyPressedChannel.receiveBroadcastStream().map((dynamic event) {
-    return event as String;
+    return event as AKeyEvent;
   });
 }
     

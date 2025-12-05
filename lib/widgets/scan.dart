@@ -137,6 +137,7 @@ class _ScanWidgetState extends State<ScanWidget> {
 
   void _checkRequirements() {
     core.permissions.getScanRequirements().then((permissions) {
+      if (!mounted) return;
       setState(() {
         _needsPermissions = permissions;
       });

@@ -34,6 +34,12 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Generate translation files
+
+        run: |
+          flutter pub global activate intl_utils;
+          flutter pub global run intl_utils:generate;
+
         #4 Install Dependencies
       - name: Install Dependencies
         run: flutter pub get

@@ -30,9 +30,9 @@ class AndroidActions extends BaseActions {
 
     hidKeyPressed().listen((keyPressed) {
       if (supportedApp is CustomApp) {
-        final button = supportedApp.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
+        final hidDevice = HidDevice(keyPressed.source);
+        final button = hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey))!;
 
-        final hidDevice = HidDevice('HID Device');
         var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
         if (availableDevice == null) {
           core.connection.addDevices([hidDevice]);

@@ -153,209 +153,212 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Scrollbar(
       controller: _scrollController,
-      padding: EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12,
-        children: [
-          ConfigurationPage(
-            onUpdate: () {
-              setState(() {});
-              widget.onUpdate();
-              if (_scrollController.position.pixels != _scrollController.position.maxScrollExtent &&
-                  core.settings.getLastTarget() == Target.otherDevice) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _scrollController.animateTo(
-                    _scrollController.offset + 300,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                });
-              }
-            },
-          ),
-          if (core.settings.getTrainerApp() != null) ...[
-            // show warning only for android when using local accessibility service
-            if (_showAutoRotationWarning && _isRunningAndroidService == true)
-              Warning(
-                important: false,
-                children: [
-                  Text(context.i18n.enableAutoRotation),
-                ],
-              ),
-            if (_showMiuiWarning)
-              Warning(
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(context.i18n.miuiDeviceDetected).bold,
-                      ),
-                      IconButton.destructive(
-                        icon: Icon(Icons.close),
-                        onPressed: () async {
-                          await core.settings.setMiuiWarningDismissed(true);
-                          setState(() {
-                            _showMiuiWarning = false;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    context.i18n.miuiWarningDescription,
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    context.i18n.miuiEnsureProperWorking,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    context.i18n.miuiDisableBatteryOptimization,
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  Text(
-                    context.i18n.miuiEnableAutostart,
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  Text(
-                    context.i18n.miuiLockInRecentApps,
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  SizedBox(height: 12),
-                  IconButton.secondary(
-                    onPressed: () async {
-                      final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    icon: Icon(Icons.open_in_new),
-                    trailing: Text(context.i18n.viewDetailedInstructions),
-                  ),
-                ],
-              ),
-
-            SizedBox(height: 8),
-            if (core.logic.hasRecommendedConnectionMethods)
-              ColoredTitle(
-                text: context.i18n.recommendedConnectionMethods,
-              ),
-
-            if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
-            if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
-
-            if (core.logic.showMyWhooshLink) MyWhooshLinkTile(),
-            if (core.logic.showZwiftMsdnEmulator)
-              ZwiftMdnsTile(
-                onUpdate: () {
-                  core.connection.signalNotification(
-                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                  );
-                },
-              ),
-            if (core.logic.showZwiftBleEmulator)
-              ZwiftTile(
-                onUpdate: () {
-                  core.connection.signalNotification(
-                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                  );
-                  setState(() {});
-                },
-              ),
-            if (core.logic.showLocalControl)
-              ConnectionMethod(
-                isEnabled: core.settings.getLocalEnabled(),
-                type: ConnectionMethodType.local,
-                showTroubleshooting: true,
-                title: context.i18n.controlAppUsingModes(
-                  core.settings.getTrainerApp()?.name ?? '',
-                  core.actionHandler.supportedModes.joinToString(transform: (e) => e.name.capitalize()),
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 12,
+          children: [
+            ConfigurationPage(
+              onUpdate: () {
+                setState(() {});
+                widget.onUpdate();
+                if (_scrollController.position.pixels != _scrollController.position.maxScrollExtent &&
+                    core.settings.getLastTarget() == Target.otherDevice) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollController.animateTo(
+                      _scrollController.offset + 300,
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  });
+                }
+              },
+            ),
+            if (core.settings.getTrainerApp() != null) ...[
+              // show warning only for android when using local accessibility service
+              if (_showAutoRotationWarning && _isRunningAndroidService == true)
+                Warning(
+                  important: false,
+                  children: [
+                    Text(context.i18n.enableAutoRotation),
+                  ],
                 ),
-                description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
-                requirements: core.permissions.getLocalControlRequirements(),
-                isStarted: core.logic.canRunAndroidService
-                    ? _isRunningAndroidService == true
-                    : core.settings.getLocalEnabled(),
-                onChange: (value) {
-                  core.settings.setLocalEnabled(value);
-                  setState(() {});
-                  if (core.logic.canRunAndroidService) {
-                    core.logic.canRunAndroidService.then((isRunning) {
-                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-                      setState(() {
-                        _isRunningAndroidService = isRunning;
-                      });
-                    });
-                  } else {
-                    core.connection.signalNotification(LogNotification('Local Control: $value'));
-                  }
-                },
-                additionalChild: _isRunningAndroidService == false
-                    ? Warning(
-                        children: [
-                          Text(context.i18n.accessibilityServiceNotRunning).xSmall,
-                          Row(
-                            spacing: 8,
-                            children: [
-                              Expanded(
-                                child: LinkButton(
-                                  child: Text('dontkillmyapp.com'),
-                                  onPressed: () {
-                                    launchUrlString('https://dontkillmyapp.com/');
-                                  },
-                                ),
-                              ),
-                              IconButton.secondary(
-                                onPressed: () {
-                                  core.logic.isAndroidServiceRunning().then((
-                                    isRunning,
-                                  ) {
-                                    core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-                                    setState(() {
-                                      _isRunningAndroidService = isRunning;
-                                    });
-                                  });
-                                },
-                                icon: Icon(Icons.refresh),
-                              ),
-                            ],
-                          ),
-                        ],
-                      )
-                    : null,
-              ),
-            if (core.logic.showRemote) ...[
-              SizedBox(height: 8),
-              ColoredTitle(text: context.i18n.otherConnectionMethods),
-              RemoteRequirement().build(context, () {
-                core.connection.signalNotification(
-                  LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
-                );
-              })!,
-            ],
+              if (_showMiuiWarning)
+                Warning(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.warning_amber),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(context.i18n.miuiDeviceDetected).bold,
+                        ),
+                        IconButton.destructive(
+                          icon: Icon(Icons.close),
+                          onPressed: () async {
+                            await core.settings.setMiuiWarningDismissed(true);
+                            setState(() {
+                              _showMiuiWarning = false;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      context.i18n.miuiWarningDescription,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      context.i18n.miuiEnsureProperWorking,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      context.i18n.miuiDisableBatteryOptimization,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    Text(
+                      context.i18n.miuiEnableAutostart,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    Text(
+                      context.i18n.miuiLockInRecentApps,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    SizedBox(height: 12),
+                    IconButton.secondary(
+                      onPressed: () async {
+                        final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: Icon(Icons.open_in_new),
+                      trailing: Text(context.i18n.viewDetailedInstructions),
+                    ),
+                  ],
+                ),
 
-            SizedBox(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                PrimaryButton(
-                  child: Text(context.i18n.adjustControllerButtons),
-                  onPressed: () {
-                    widget.goToNextPage();
+              SizedBox(height: 8),
+              if (core.logic.hasRecommendedConnectionMethods)
+                ColoredTitle(
+                  text: context.i18n.recommendedConnectionMethods,
+                ),
+
+              if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
+              if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
+
+              if (core.logic.showMyWhooshLink) MyWhooshLinkTile(),
+              if (core.logic.showZwiftMsdnEmulator)
+                ZwiftMdnsTile(
+                  onUpdate: () {
+                    core.connection.signalNotification(
+                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                    );
                   },
                 ),
+              if (core.logic.showZwiftBleEmulator)
+                ZwiftTile(
+                  onUpdate: () {
+                    core.connection.signalNotification(
+                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                    );
+                    setState(() {});
+                  },
+                ),
+              if (core.logic.showLocalControl)
+                ConnectionMethod(
+                  isEnabled: core.settings.getLocalEnabled(),
+                  type: ConnectionMethodType.local,
+                  showTroubleshooting: true,
+                  title: context.i18n.controlAppUsingModes(
+                    core.settings.getTrainerApp()?.name ?? '',
+                    core.actionHandler.supportedModes.joinToString(transform: (e) => e.name.capitalize()),
+                  ),
+                  description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
+                  requirements: core.permissions.getLocalControlRequirements(),
+                  isStarted: core.logic.canRunAndroidService
+                      ? _isRunningAndroidService == true
+                      : core.settings.getLocalEnabled(),
+                  onChange: (value) {
+                    core.settings.setLocalEnabled(value);
+                    setState(() {});
+                    if (core.logic.canRunAndroidService) {
+                      core.logic.canRunAndroidService.then((isRunning) {
+                        core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                        setState(() {
+                          _isRunningAndroidService = isRunning;
+                        });
+                      });
+                    } else {
+                      core.connection.signalNotification(LogNotification('Local Control: $value'));
+                    }
+                  },
+                  additionalChild: _isRunningAndroidService == false
+                      ? Warning(
+                          children: [
+                            Text(context.i18n.accessibilityServiceNotRunning).xSmall,
+                            Row(
+                              spacing: 8,
+                              children: [
+                                Expanded(
+                                  child: LinkButton(
+                                    child: Text('dontkillmyapp.com'),
+                                    onPressed: () {
+                                      launchUrlString('https://dontkillmyapp.com/');
+                                    },
+                                  ),
+                                ),
+                                IconButton.secondary(
+                                  onPressed: () {
+                                    core.logic.isAndroidServiceRunning().then((
+                                      isRunning,
+                                    ) {
+                                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                                      setState(() {
+                                        _isRunningAndroidService = isRunning;
+                                      });
+                                    });
+                                  },
+                                  icon: Icon(Icons.refresh),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      : null,
+                ),
+              if (core.logic.showRemote) ...[
+                SizedBox(height: 8),
+                ColoredTitle(text: context.i18n.otherConnectionMethods),
+                RemoteRequirement().build(context, () {
+                  core.connection.signalNotification(
+                    LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
+                  );
+                })!,
               ],
-            ),
+
+              SizedBox(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  PrimaryButton(
+                    child: Text(context.i18n.adjustControllerButtons),
+                    onPressed: () {
+                      widget.goToNextPage();
+                    },
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

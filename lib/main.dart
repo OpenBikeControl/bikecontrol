@@ -59,7 +59,10 @@ void main() async {
       runApp(BikeControlApp(error: error));
     },
     (Object error, StackTrace stack) {
-      // Zone-level uncaught errors (async, timers, futures)
+      if (kDebugMode) {
+        print('App crashed: $error');
+        debugPrintStack(stackTrace: stack);
+      }
       _recordError(error, stack, context: 'Zone');
     },
   );
@@ -118,9 +121,6 @@ Future<void> _persistCrash({
 
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
     core.connection.lastLogEntries.add((date: DateTime.now(), entry: 'App crashed: $error'));
-    if (kDebugMode) {
-      print('App crashed: $error');
-    }
   } catch (_) {
     // Avoid throwing from the crash logger
   }

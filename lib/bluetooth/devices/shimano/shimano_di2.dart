@@ -40,7 +40,7 @@ class ShimanoDi2 extends BluetoothDevice {
           final readableIndex = index + 1;
           _lastButtons[index] = value;
 
-          core.actionHandler.supportedApp?.keymap.getOrAddButton(
+          getOrAddButton(
             'D-Fly Channel $readableIndex',
             () => ControllerButton('D-Fly Channel $readableIndex'),
           );
@@ -57,7 +57,7 @@ class ShimanoDi2 extends BluetoothDevice {
 
         final readableIndex = index + 1;
 
-        final button = core.actionHandler.supportedApp?.keymap.getOrAddButton(
+        final button = getOrAddButton(
           'D-Fly Channel $readableIndex',
           () => ControllerButton('D-Fly Channel $readableIndex'),
         );

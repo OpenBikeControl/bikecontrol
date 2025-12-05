@@ -33,8 +33,17 @@ class WindowEvent {
   });
 }
 
+class AKeyEvent {
+  final String source;
+  final String hidKey;
+  final bool keyDown;
+  final bool keyUp;
+
+  AKeyEvent({required this.source, required this.hidKey, required this.keyDown, required this.keyUp});
+}
+
 @EventChannelApi()
 abstract class EventChannelMethods {
   WindowEvent streamEvents();
-  String hidKeyPressed();
+  AKeyEvent hidKeyPressed();
 }

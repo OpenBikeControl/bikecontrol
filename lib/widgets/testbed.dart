@@ -68,6 +68,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
     _focusNode = FocusNode(debugLabel: 'TestbedFocus', canRequestFocus: true, skipTraversal: true);
     _actionSubscription = core.connection.actionStream.listen((data) async {
       if (!mounted) {
@@ -95,9 +96,10 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
               ),
             );
           } else {
+            final isMobile = MediaQuery.sizeOf(context).width < 600;
             buildToast(
               context,
-              location: ToastLocation.bottomRight,
+              location: isMobile ? ToastLocation.topCenter : ToastLocation.bottomRight,
               titleWidget: ButtonWidget(button: button),
             );
           }

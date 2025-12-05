@@ -27,6 +27,17 @@ jobs:
         with:
           cache: true
 
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Generate translation files
+        run: |
+          flutter pub global activate intl_utils;
+          flutter pub global run intl_utils:generate;
+
       - name: Install certificates
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
@@ -95,12 +106,6 @@ jobs:
           platform: ios
           release-version: latest
           args: '--allow-asset-diffs --allow-native-diffs'
-
-      - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       # shorebird struggles with the app from GitHub
       - name: Build macOS

@@ -61,13 +61,17 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         )
         .sortedBy((k) => k.buttons.first.color != null ? 0 : 1);
 
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       spacing: 8,
       children: [
         Table(
-          columnWidths: {0: FlexTableSize(flex: 1), 1: FlexTableSize(flex: 3)},
+          columnWidths: {
+            0: FlexTableSize(flex: isMobile ? 1.5 : 1),
+            1: FlexTableSize(flex: 3),
+          },
           theme: TableTheme(
             cellTheme: TableCellTheme(
               border: WidgetStatePropertyAll(
@@ -90,13 +94,16 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                 TableCell(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      core.connection.devices.isEmpty
-                          ? context.i18n.deviceButton('Device')
-                          : context.i18n.deviceButton(
-                              core.connection.devices.joinToString(transform: (d) => d.name.screenshot),
-                            ),
-                    ).small,
+                    child: OverflowMarquee(
+                      duration: Duration(seconds: 3),
+                      child: Text(
+                        core.connection.devices.isEmpty
+                            ? context.i18n.deviceButton('Device')
+                            : context.i18n.deviceButton(
+                                core.connection.devices.joinToString(transform: (d) => d.name.screenshot),
+                              ),
+                      ).small,
+                    ),
                   ),
                 ),
                 TableCell(
