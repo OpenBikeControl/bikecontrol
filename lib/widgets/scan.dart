@@ -141,6 +141,9 @@ class _ScanWidgetState extends State<ScanWidget> {
       setState(() {
         _needsPermissions = permissions;
       });
+      if (permissions.isEmpty) {
+        core.connection.performScanning();
+      }
     });
   }
 }

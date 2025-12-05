@@ -5,7 +5,6 @@ import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
@@ -29,20 +28,18 @@ class AndroidActions extends BaseActions {
     });
 
     hidKeyPressed().listen((keyPressed) {
-      if (supportedApp is CustomApp) {
-        final hidDevice = HidDevice(keyPressed.source);
-        final button = hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey))!;
+      final hidDevice = HidDevice(keyPressed.source);
+      final button = hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey))!;
 
-        var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
-        if (availableDevice == null) {
-          core.connection.addDevices([hidDevice]);
-          availableDevice = hidDevice;
-        }
-        if (keyPressed.keyDown) {
-          availableDevice.handleButtonsClicked([button]);
-        } else if (keyPressed.keyUp) {
-          availableDevice.handleButtonsClicked([]);
-        }
+      var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+      if (availableDevice == null) {
+        core.connection.addDevices([hidDevice]);
+        availableDevice = hidDevice;
+      }
+      if (keyPressed.keyDown) {
+        availableDevice.handleButtonsClicked([button]);
+      } else if (keyPressed.keyUp) {
+        availableDevice.handleButtonsClicked([]);
       }
     });
   }

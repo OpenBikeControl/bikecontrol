@@ -149,12 +149,16 @@ abstract class BaseDevice {
   Widget showInformation(BuildContext context);
 
   ControllerButton? getOrAddButton(String key, ControllerButton Function() creator) {
-    final button = core.actionHandler.supportedApp?.keymap.getOrAddButton(key, creator);
+    if (core.actionHandler.supportedApp is CustomApp) {
+      final button = core.actionHandler.supportedApp?.keymap.getOrAddButton(key, creator);
 
-    if (button != null && availableButtons.none((e) => e.name == button.name)) {
-      availableButtons.add(button);
-      core.settings.setKeyMap(core.actionHandler.supportedApp!);
+      if (button != null && availableButtons.none((e) => e.name == button.name)) {
+        availableButtons.add(button);
+        core.settings.setKeyMap(core.actionHandler.supportedApp!);
+      }
+      return button;
+    } else {
+      return null;
     }
-    return button;
   }
 }

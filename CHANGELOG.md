@@ -1,11 +1,12 @@
 ### 4.0.0 (unreleased)
 
 **Features:**
-- a brand new design
+- a brand-new design
+  - Accessibility Permission is now optional on Android
 - Zwift is now fully supported on all operating systems
     - you can choose between network based control or bluetooth based control
-- BikeControl is now translated to German and French (contact me if you want to help with more translations)
-- support for KICKR BIKE PRO
+- BikeControl is now translated to German and French (contact me if you'd like to help with more translations)
+- support for Wahoo KICKR BIKE PRO
 - support for the OpenBikeControl protocol for supported Trainer apps
   - this enables seamless and official integration, independent of the operating system
   - learn more at https://openbikecontrol.org
