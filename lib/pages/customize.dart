@@ -44,14 +44,6 @@ class _CustomizeState extends State<CustomizePage> {
             ),
           ),
 
-          if (core.settings.getLastTarget()?.warning != null) ...[
-            Warning(
-              children: [
-                Icon(Icons.warning_amber),
-                Text(core.settings.getLastTarget()!.warning!),
-              ],
-            ),
-          ],
           Select<SupportedApp?>(
             constraints: BoxConstraints(minWidth: 300),
             value: core.actionHandler.supportedApp,

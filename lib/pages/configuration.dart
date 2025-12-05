@@ -38,6 +38,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         SizedBox(height: 4),
         ColoredTitle(text: context.i18n.setupTrainer),
         Card(
+          fillColor: Theme.of(context).colorScheme.background,
+          filled: true,
           child: requirement.build(context, () {
             widget.onUpdate();
           })!,

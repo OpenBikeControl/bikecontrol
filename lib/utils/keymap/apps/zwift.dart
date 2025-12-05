@@ -15,10 +15,6 @@ class Zwift extends SupportedApp {
         compatibleTargets: [
           Target.thisDevice,
           Target.otherDevice,
-          Target.macOS,
-          Target.windows,
-          Target.iOS,
-          Target.android,
         ],
         keymap: Keymap(
           keyPairs: [

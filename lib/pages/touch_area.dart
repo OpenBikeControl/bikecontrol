@@ -453,7 +453,7 @@ class _KeyWidget extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 12,
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.primaryForeground,
             ),
           ),
         ),

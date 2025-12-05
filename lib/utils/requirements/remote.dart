@@ -307,7 +307,7 @@ class _PairWidgetState extends State<_PairWidget> {
       additionalChild: isAdvertisingPeripheral
           ? Text(
               switch (core.settings.getLastTarget()) {
-                Target.iOS => context.i18n.pairingInstructionsIOS,
+                Target.otherDevice => context.i18n.pairingInstructionsIOS,
                 _ => context.i18n.pairingInstructions(core.settings.getLastTarget()?.getTitle(context) ?? ''),
               },
             ).small

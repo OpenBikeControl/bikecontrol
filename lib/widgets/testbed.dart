@@ -73,15 +73,8 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
       if (!mounted) {
         return;
       }
-      print('TESTBED ${data.runtimeType}');
       if (data is ButtonNotification) {
         for (final button in data.buttonsClicked) {
-          buildToast(
-            context,
-
-            location: ToastLocation.bottomLeft,
-            titleWidget: ButtonWidget(button: button),
-          );
           if (core.actionHandler.supportedApp is! CustomApp &&
               core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
             buildToast(
@@ -101,13 +94,19 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
                 ),
               ),
             );
+          } else {
+            buildToast(
+              context,
+              location: ToastLocation.bottomRight,
+              titleWidget: ButtonWidget(button: button),
+            );
           }
         }
         setState(() {});
       } else if (data is ActionNotification) {
         buildToast(
           context,
-          location: ToastLocation.topRight,
+          location: ToastLocation.bottomLeft,
           level: data.result is actions.Error ? LogLevel.LOGLEVEL_WARNING : LogLevel.LOGLEVEL_INFO,
           title: data.result.message,
           duration: Duration(seconds: 1),
@@ -115,7 +114,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
       } else if (data is AlertNotification) {
         buildToast(
           context,
-          location: ToastLocation.bottomLeft,
+          location: ToastLocation.bottomRight,
           level: data.level,
           title: data.alertMessage,
         );

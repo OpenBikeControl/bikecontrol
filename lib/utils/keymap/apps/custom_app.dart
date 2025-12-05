@@ -19,13 +19,10 @@ class CustomApp extends SupportedApp {
             ? [Target.thisDevice]
             : [
                 if (!Platform.isIOS) Target.thisDevice,
-                Target.macOS,
-                Target.windows,
-                Target.iOS,
-                Target.android,
+                Target.otherDevice,
               ],
         packageName: "custom_$profileName",
-        supportsZwiftEmulation: !kIsWeb && !(Platform.isIOS || Platform.isMacOS),
+        supportsZwiftEmulation: !kIsWeb,
         keymap: Keymap(keyPairs: []),
       );
 

@@ -15,9 +15,7 @@ class Rouvy extends SupportedApp {
     : super(
         name: 'Rouvy',
         packageName: "eu.virtualtraining.rouvy.android",
-        compatibleTargets: !kIsWeb && Platform.isIOS
-            ? Target.values.filterNot((e) => e == Target.thisDevice).toList()
-            : Target.values,
+        compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.otherDevice] : Target.values,
         supportsZwiftEmulation: !kIsWeb && Platform.isAndroid,
         keymap: Keymap(
           keyPairs: [

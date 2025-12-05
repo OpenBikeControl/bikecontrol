@@ -208,25 +208,20 @@ class Connection {
   }
 
   Future<void> startMyWhooshServer() {
-    return core.whooshLink
-        .startServer(
-          onConnected: (socket) {},
-          onDisconnected: (socket) {},
-        )
-        .catchError((e) {
-          _actionStreams.add(
-            LogNotification(
-              'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.\n$e',
-            ),
-          );
-          core.settings.setMyWhooshLinkEnabled(false);
-          _actionStreams.add(
-            AlertNotification(
-              LogLevel.LOGLEVEL_ERROR,
-              'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
-            ),
-          );
-        });
+    return core.whooshLink.startServer().catchError((e) {
+      _actionStreams.add(
+        LogNotification(
+          'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.\n$e',
+        ),
+      );
+      core.settings.setMyWhooshLinkEnabled(false);
+      _actionStreams.add(
+        AlertNotification(
+          LogLevel.LOGLEVEL_ERROR,
+          'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
+        ),
+      );
+    });
   }
 
   void addDevices(List<BaseDevice> dev) {

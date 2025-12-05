@@ -266,7 +266,7 @@ class ZwiftEmulator {
     }
 
     final advertisement = Advertisement(
-      name: 'KICKR BIKE PRO 61DD',
+      name: 'KICKR BIKE PRO 1337',
       serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
       /*serviceData: {
         UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),

@@ -70,9 +70,10 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               ),
             );
           },
-          child: Text(
-            '♥',
-            style: TextStyle(color: Colors.red, fontSize: Platform.isIOS || Platform.isAndroid ? null : 11),
+          child: Icon(
+            Icons.favorite,
+            color: Colors.red,
+            size: 18,
           ),
         );
       },

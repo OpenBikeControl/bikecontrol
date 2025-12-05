@@ -128,7 +128,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                       },
                 child: Text(widget.type.name.capitalize()),
               ),
-              if (widget.title == context.i18n.enablePairingProcess)
+              if (widget.title == context.i18n.enablePairingProcess ||
+                  widget.title == context.i18n.enableZwiftControllerBluetooth)
                 Padding(
                   padding: const EdgeInsets.only(top: 1.0),
                   child: BetaPill(),

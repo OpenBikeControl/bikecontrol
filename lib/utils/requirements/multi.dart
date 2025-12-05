@@ -1,12 +1,10 @@
 import 'dart:io';
 
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/button_edit.dart';
@@ -17,11 +15,8 @@ import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:universal_ble/universal_ble.dart';
-
-import '../../widgets/ui/warning.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
   KeyboardRequirement() : super(AppLocalizations.current.keyboardAccess);
@@ -136,18 +131,6 @@ enum Target {
   ),
   otherDevice(
     icon: Icons.settings_remote_outlined,
-  ),
-  iOS(
-    icon: Icons.settings_remote_outlined,
-  ),
-  android(
-    icon: Icons.settings_remote_outlined,
-  ),
-  macOS(
-    icon: Icons.settings_remote_outlined,
-  ),
-  windows(
-    icon: Icons.settings_remote_outlined,
   );
 
   final IconData icon;
@@ -158,10 +141,6 @@ enum Target {
     return switch (this) {
       Target.thisDevice => context.i18n.targetThisDevice,
       Target.otherDevice => context.i18n.targetOtherDevice,
-      Target.iOS => context.i18n.targetIOS,
-      Target.android => context.i18n.targetAndroid,
-      Target.macOS => context.i18n.targetMacOS,
-      Target.windows => context.i18n.targetWindows,
     };
   }
 
@@ -195,43 +174,11 @@ enum Target {
       Target.thisDevice when !isCompatible => AppLocalizations.current.platformRestrictionOtherDevicesOnly(appName),
       Target.otherDevice when !isCompatible => AppLocalizations.current.platformRestrictionNotSupported,
       Target.thisDevice => AppLocalizations.current.runAppOnThisDevice(appName),
-      Target.iOS => AppLocalizations.current.runAppOnPlatformRemotely(
-        appName,
-        'Apple',
-        preferredConnectionMethod,
-      ),
-      Target.android => AppLocalizations.current.runAppOnPlatformRemotely(
-        appName,
-        'Android',
-        preferredConnectionMethod,
-      ),
-      Target.macOS => AppLocalizations.current.runAppOnPlatformRemotely(appName, 'Mac', preferredConnectionMethod),
-      Target.windows => AppLocalizations.current.runAppOnPlatformRemotely(
-        appName,
-        'Windows PC',
-        preferredConnectionMethod,
-      ),
       Target.otherDevice => AppLocalizations.current.runAppOnPlatformRemotely(
         appName,
         AppLocalizations.current.targetOtherDevice,
         preferredConnectionMethod,
       ),
-    };
-  }
-
-  String? get warning {
-    if (core.logic.ignoreWarnings) {
-      // no warnings for zwift emulation
-      return null;
-    }
-    return switch (this) {
-      Target.android when Platform.isAndroid => AppLocalizations.current.selectThisDeviceWarning('Android'),
-      Target.macOS when Platform.isMacOS => AppLocalizations.current.selectThisDeviceWarning('macOS'),
-      Target.windows when Platform.isWindows => AppLocalizations.current.selectThisDeviceWarning('Windows'),
-      Target.android => AppLocalizations.current.recommendDownloadBikeControl('Android'),
-      Target.macOS => AppLocalizations.current.recommendDownloadBikeControl('macOS'),
-      Target.windows => AppLocalizations.current.recommendDownloadBikeControl('Windows'),
-      _ => null,
     };
   }
 
@@ -335,115 +282,13 @@ class TargetRequirement extends PlatformRequirement {
             ),
           ],
 
-          if (core.settings.getLastTarget() != null && core.settings.getLastTarget() != Target.thisDevice) ...[
+          if (core.settings.getLastTarget() == Target.otherDevice) ...[
             SizedBox(height: 8),
-            Text(
-              context.i18n.selectOtherDeviceWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
-            ).small,
-            Select<Target>(
-              constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-              itemBuilder: (c, app) => Text(app.getTitle(context)),
-              popup: SelectPopup(
-                items: SelectItemList(
-                  children: Target.values.whereNot((e) => [Target.thisDevice, Target.otherDevice].contains(e)).map((
-                    target,
-                  ) {
-                    return SelectItemButton(
-                      value: target,
-                      enabled: target.isCompatible,
-                      child: Basic(
-                        leading: Icon(target.icon),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  target.getTitle(context),
-                                  style: TextStyle(
-                                    fontWeight: target == Target.thisDevice && target.isCompatible
-                                        ? FontWeight.bold
-                                        : null,
-                                  ),
-                                ),
-                                if (target.isBeta) BetaPill(),
-                              ],
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          target.getDescription(core.settings.getTrainerApp()),
-                        ).small,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ).call,
-              placeholder: Text(context.i18n.selectTargetDevice),
-              value: core.settings.getLastTarget(),
-              enabled: core.settings.getTrainerApp() != null,
-              onChanged: (target) async {
-                if (target != null) {
-                  await core.settings.setLastTarget(target);
-                  initializeActions(target.connectionType);
-                  if (target.warning != null && context.mounted) {
-                    buildToast(
-                      context,
-                      title: target.warning,
-                      level: LogLevel.LOGLEVEL_WARNING,
-                    );
-                  }
-                  setState(() {});
-                  onUpdate();
-                }
-              },
-            ),
-
-            if (core.settings.getLastTarget()?.warning != null) ...[
-              Warning(
-                children: [
-                  Icon(Icons.warning_amber, color: Theme.of(context).colorScheme.primaryForeground),
-                  Text(
-                    core.settings.getLastTarget()!.warning!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.primaryForeground),
-                  ),
-                ],
-              ),
-            ],
+            Text('BikeControl is available on iOS, Android, Windows and macOS. ').small,
           ],
         ],
       ),
     );
-  }
-
-  @override
-  Widget? buildDescription() {
-    final trainer = core.settings.getTrainerApp();
-    final target = core.settings.getLastTarget();
-
-    if (target != null && trainer != null) {
-      if (target.warning != null) {
-        return Row(
-          spacing: 8,
-          children: [
-            Icon(Icons.warning, color: Colors.red, size: 16),
-            Expanded(
-              child: Text(
-                core.settings.getLastTarget()!.warning!,
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      } else {
-        return Builder(
-          builder: (context) =>
-              Text(AppLocalizations.current.appNameOnTargetName(trainer.name, target.getTitle(context))),
-        );
-      }
-    } else {
-      return null;
-    }
   }
 
   Future<void> _setTarget(BuildContext context, Target target) async {
@@ -458,14 +303,6 @@ class TargetRequirement extends PlatformRequirement {
           title: context.i18n.errorStartingOpenBikeControlServer,
         );
       });
-    }
-
-    if (target.warning != null) {
-      buildToast(
-        context,
-        title: target.warning,
-        level: LogLevel.LOGLEVEL_WARNING,
-      );
     }
   }
 }

@@ -2,7 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
@@ -35,10 +39,7 @@ class WhooshLink {
     }
   }
 
-  Future<void> startServer({
-    required void Function(Socket socket) onConnected,
-    required void Function(Socket socket) onDisconnected,
-  }) async {
+  Future<void> startServer() async {
     try {
       // Create and bind server socket
       _server = await ServerSocket.bind(
@@ -64,7 +65,9 @@ class WhooshLink {
     _server!.listen(
       (Socket socket) {
         _socket = socket;
-        onConnected(socket);
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.myWhooshLinkConnected),
+        );
         isConnected.value = true;
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
@@ -83,7 +86,6 @@ class WhooshLink {
           },
           onDone: () {
             print('Client disconnected: $socket');
-            onDisconnected(socket);
             isConnected.value = false;
           },
         );
@@ -159,7 +161,7 @@ class WhooshLink {
     return kIsWeb
         ? false
         : switch (target) {
-            Target.thisDevice => Platform.isAndroid || Platform.isWindows,
+            Target.thisDevice => !Platform.isIOS,
             _ => true,
           };
   }

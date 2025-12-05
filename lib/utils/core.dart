@@ -20,7 +20,7 @@ import 'package:swift_control/utils/settings/settings.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
-import '../bluetooth/devices/link/link.dart';
+import '../bluetooth/devices/mywhoosh/link.dart';
 import 'requirements/multi.dart';
 import 'requirements/platform.dart';
 

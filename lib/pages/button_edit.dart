@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/link/link.dart';
+import 'package:swift_control/bluetooth/devices/mywhoosh/link.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/pages/touch_area.dart';

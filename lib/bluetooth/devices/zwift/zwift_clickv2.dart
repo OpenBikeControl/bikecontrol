@@ -67,6 +67,7 @@ class ZwiftClickV2 extends ZwiftRide {
       builder: (context, setState) {
         return Column(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 8,
           children: [
             super.showInformation(context),

@@ -164,13 +164,15 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             onUpdate: () {
               setState(() {});
               widget.onUpdate();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _scrollController.animateTo(
-                  _scrollController.offset + 200,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              });
+              if (_scrollController.position.pixels != _scrollController.position.maxScrollExtent) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _scrollController.animateTo(
+                    _scrollController.offset + 100,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                });
+              }
             },
           ),
           if (core.settings.getTrainerApp() != null) ...[
@@ -243,7 +245,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             if (core.logic.showObpBluetoothEmulator ||
                 core.logic.showObpMdnsEmulator ||
                 core.logic.showLocalControl ||
-                core.logic.showMyWhooshLink ||
                 core.logic.showZwiftBleEmulator ||
                 core.logic.showZwiftMsdnEmulator ||
                 core.logic.showMyWhooshLink)
@@ -255,6 +256,14 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
 
             if (core.logic.showMyWhooshLink) MyWhooshLinkTile(),
+            if (core.logic.showZwiftMsdnEmulator)
+              ZwiftMdnsTile(
+                onUpdate: () {
+                  core.connection.signalNotification(
+                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                  );
+                },
+              ),
             if (core.logic.showZwiftBleEmulator)
               ZwiftTile(
                 onUpdate: () {
@@ -262,14 +271,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                     LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
                   );
                   setState(() {});
-                },
-              ),
-            if (core.logic.showZwiftMsdnEmulator)
-              ZwiftMdnsTile(
-                onUpdate: () {
-                  core.connection.signalNotification(
-                    LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                  );
                 },
               ),
             if (core.logic.showLocalControl)

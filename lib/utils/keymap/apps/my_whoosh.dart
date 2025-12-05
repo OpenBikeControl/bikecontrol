@@ -14,11 +14,9 @@ class MyWhoosh extends SupportedApp {
     : super(
         name: 'MyWhoosh',
         packageName: "com.mywhoosh.whooshgame",
-        compatibleTargets: !kIsWeb && Platform.isIOS
-            ? Target.values.filterNot((e) => e == Target.thisDevice).toList()
-            : Target.values,
+        compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.thisDevice] : Target.values,
         supportsZwiftEmulation: false,
-        supportsOpenBikeProtocol: kDebugMode,
+        supportsOpenBikeProtocol: false,
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values

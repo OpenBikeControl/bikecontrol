@@ -1,7 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
-import 'package:swift_control/widgets/ui/colors.dart';
 
 void buildToast(
   BuildContext context, {
@@ -25,11 +24,15 @@ void buildToast(
       _ => duration ?? const Duration(seconds: 3),
     },
     builder: (context, overlay) => SurfaceCard(
-      filled: true,
+      filled: switch (level) {
+        LogLevel.LOGLEVEL_WARNING => true,
+        LogLevel.LOGLEVEL_ERROR => true,
+        _ => false,
+      },
       fillColor: switch (level) {
         LogLevel.LOGLEVEL_DEBUG => null,
-        LogLevel.LOGLEVEL_INFO => BKColor.main,
-        LogLevel.LOGLEVEL_WARNING => Theme.of(context).colorScheme.accent,
+        LogLevel.LOGLEVEL_INFO => null,
+        LogLevel.LOGLEVEL_WARNING => Theme.of(context).colorScheme.chart1,
         LogLevel.LOGLEVEL_ERROR => Theme.of(context).colorScheme.destructive,
         _ => null,
       },
