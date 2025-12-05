@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -124,7 +127,9 @@ class _NavigationState extends State<Navigation> {
     return Scaffold(
       headers: [
         AppBar(
+          padding: const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) * Theme.of(context).scaling,
           title: AppTitle(),
+          backgroundColor: Theme.of(context).colorScheme.background,
           trailing: buildMenuButtons(
             context,
             _isMobile
@@ -138,12 +143,7 @@ class _NavigationState extends State<Navigation> {
         ),
         Divider(),
       ],
-      footers: _isMobile
-          ? [
-              Divider(),
-              _buildNavigationBar(),
-            ]
-          : [],
+      footers: _isMobile ? [Divider(), _buildNavigationBar()] : [],
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -190,7 +190,9 @@ class _NavigationState extends State<Navigation> {
       children: [
         Expanded(
           child: NavigationSidebar(
-            backgroundColor: Theme.of(context).colorScheme.card,
+            backgroundColor: Theme.of(context).brightness == Brightness.light
+                ? BKColor.backgroundLight
+                : Theme.of(context).colorScheme.card,
             onSelected: (int index) {
               setState(() {
                 _selectedPage = BCPage.values[index];
@@ -201,7 +203,9 @@ class _NavigationState extends State<Navigation> {
         ),
 
         NavigationSidebar(
-          backgroundColor: Theme.of(context).colorScheme.card,
+          backgroundColor: Theme.of(context).brightness == Brightness.light
+              ? BKColor.backgroundLight
+              : Theme.of(context).colorScheme.card,
           onSelected: (int index) {
             setState(() {
               _selectedPage = BCPage.logs;
@@ -263,6 +267,9 @@ class _NavigationState extends State<Navigation> {
 
   Widget _buildNavigationBar() {
     return NavigationBar(
+      padding:
+          EdgeInsets.only(top: 6, left: 12, right: 12, bottom: !kIsWeb && Platform.isMacOS ? 8 : 0) *
+          Theme.of(context).scaling,
       labelType: NavigationLabelType.all,
       onSelected: (int index) {
         setState(() {
@@ -294,7 +301,7 @@ class _NavigationState extends State<Navigation> {
   NavigationBarItem _buildNavigationItem(BCPage page, bool withPadding) {
     return NavigationItem(
       selected: _selectedPage == page,
-      selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense, size: ButtonSize(1.1)).copyWith(
+      selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
         decoration: (context, states, value) {
           return BoxDecoration(
             gradient: const LinearGradient(
@@ -309,10 +316,14 @@ class _NavigationState extends State<Navigation> {
               }
             : null,
       ),
-      style: ButtonStyle.ghost(density: ButtonDensity.dense, size: ButtonSize(1.1)).copyWith(
+      style: ButtonStyle.ghost(density: ButtonDensity.dense).copyWith(
         decoration: (context, states, value) {
           return BoxDecoration(
-            color: states.contains(WidgetState.hovered) ? Theme.of(context).colorScheme.secondary : null,
+            gradient: states.contains(WidgetState.hovered)
+                ? const LinearGradient(
+                    colors: [BKColor.main, BKColor.mainEnd],
+                  )
+                : null,
             borderRadius: BorderRadius.circular(8),
           );
         },

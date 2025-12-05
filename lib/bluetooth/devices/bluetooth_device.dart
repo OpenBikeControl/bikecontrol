@@ -269,14 +269,18 @@ abstract class BluetoothDevice extends BaseDevice {
               child: Card(
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
+                padding: EdgeInsets.all(12),
                 child: Basic(
-                  title: Text(context.i18n.connection),
+                  title: Text(context.i18n.connection).xSmall,
                   trailingAlignment: Alignment.centerRight,
                   trailing: Icon(switch (isConnected) {
                     true => Icons.bluetooth_connected_outlined,
                     false => Icons.bluetooth_disabled_outlined,
                   }),
-                  subtitle: Text(isConnected ? context.i18n.connected : context.i18n.disconnected),
+                  subtitle: Text(
+                    isConnected ? context.i18n.connected : context.i18n.disconnected,
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
             ),
@@ -287,8 +291,9 @@ abstract class BluetoothDevice extends BaseDevice {
                 child: Card(
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.background,
+                  padding: EdgeInsets.all(12),
                   child: Basic(
-                    title: Text(context.i18n.battery),
+                    title: Text(context.i18n.battery).xSmall,
                     trailingAlignment: Alignment.centerRight,
                     trailing: Icon(switch (batteryLevel!) {
                       >= 80 => Icons.battery_full,
@@ -298,7 +303,10 @@ abstract class BluetoothDevice extends BaseDevice {
                       >= 10 => Icons.battery_2_bar,
                       _ => Icons.battery_alert,
                     }),
-                    subtitle: Text('$batteryLevel%'),
+                    subtitle: Text(
+                      '$batteryLevel%',
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
                 ),
               ),
@@ -308,16 +316,20 @@ abstract class BluetoothDevice extends BaseDevice {
                 height: screenshotMode ? 100 : null,
                 child: Card(
                   filled: true,
+                  padding: EdgeInsets.all(12),
                   fillColor: Theme.of(context).colorScheme.background,
                   child: Basic(
-                    title: Text(context.i18n.firmware),
+                    title: Text(context.i18n.firmware).xSmall,
                     subtitle: Row(
                       children: [
-                        Text('$firmwareVersion'),
+                        Text(
+                          '$firmwareVersion',
+                          style: TextStyle(fontSize: 12),
+                        ),
                         if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
                           Text(
                             ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
-                            style: TextStyle(color: Theme.of(context).colorScheme.destructive),
+                            style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
                           ),
                       ],
                     ),
@@ -334,9 +346,10 @@ abstract class BluetoothDevice extends BaseDevice {
                 height: screenshotMode ? 100 : null,
                 child: Card(
                   filled: true,
+                  padding: EdgeInsets.all(12),
                   fillColor: Theme.of(context).colorScheme.background,
                   child: Basic(
-                    title: Text(context.i18n.signal),
+                    title: Text(context.i18n.signal).xSmall,
                     trailingAlignment: Alignment.centerRight,
                     trailing: Icon(
                       switch (rssi!) {
@@ -347,7 +360,10 @@ abstract class BluetoothDevice extends BaseDevice {
                       },
                       size: 18,
                     ),
-                    subtitle: Text('$rssi dBm'),
+                    subtitle: Text(
+                      '$rssi dBm',
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
                 ),
               ),

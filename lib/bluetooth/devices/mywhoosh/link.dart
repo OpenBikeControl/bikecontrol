@@ -87,6 +87,9 @@ class WhooshLink {
           onDone: () {
             print('Client disconnected: $socket');
             isConnected.value = false;
+            core.connection.signalNotification(
+              AlertNotification(LogLevel.LOGLEVEL_WARNING, 'MyWhoosh Link disconnected'),
+            );
           },
         );
       },

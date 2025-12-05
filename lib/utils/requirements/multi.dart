@@ -7,10 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/keymap/apps/zwift.dart';
@@ -187,123 +185,6 @@ enum Target {
       Target.thisDevice => ConnectionType.local,
       _ => ConnectionType.remote,
     };
-  }
-}
-
-class TargetRequirement extends PlatformRequirement {
-  TargetRequirement()
-    : super(
-        AppLocalizations.current.selectTrainerAppAndTarget,
-        description: AppLocalizations.current.selectTargetDeviceDescription,
-      ) {
-    status = false;
-  }
-
-  @override
-  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
-
-  @override
-  Future<void> getStatus() async {
-    status = core.settings.getLastTarget() != null && core.settings.getTrainerApp() != null;
-  }
-
-  @override
-  Widget? build(BuildContext context, VoidCallback onUpdate) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
-    return StatefulBuilder(
-      builder: (c, setState) => Column(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Select<SupportedApp>(
-            constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-            itemBuilder: (c, app) => Text(app.name),
-            popup: SelectPopup(
-              items: SelectItemList(
-                children: SupportedApp.supportedApps.map((app) {
-                  return SelectItemButton(
-                    value: app,
-                    child: Text(app.name),
-                  );
-                }).toList(),
-              ),
-            ).call,
-            placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
-            value: core.settings.getTrainerApp(),
-            onChanged: (selectedApp) async {
-              if (core.settings.getTrainerApp() is MyWhoosh &&
-                  selectedApp is! MyWhoosh &&
-                  core.whooshLink.isStarted.value) {
-                core.whooshLink.stopServer();
-              }
-              core.settings.setTrainerApp(selectedApp!);
-              if (core.settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
-                _setTarget(context, Target.thisDevice);
-              } else if (core.settings.getLastTarget() == null && Target.otherDevice.isCompatible) {
-                _setTarget(context, Target.otherDevice);
-              }
-              if (core.actionHandler.supportedApp == null ||
-                  (core.actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
-                core.actionHandler.init(selectedApp);
-                core.settings.setKeyMap(selectedApp);
-              }
-              onUpdate();
-              setState(() {});
-            },
-          ),
-          if (core.settings.getTrainerApp() != null) ...[
-            SizedBox(height: 8),
-            Text(
-              context.i18n.selectTargetWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
-            ).small,
-            Flex(
-              direction: isMobile ? Axis.vertical : Axis.horizontal,
-              spacing: 8,
-              children: [Target.thisDevice, Target.otherDevice]
-                  .map(
-                    (target) => SelectableCard(
-                      title: Text(target.getTitle(context)),
-                      icon: target.icon,
-                      isActive: target == Target.thisDevice
-                          ? core.settings.getLastTarget() == Target.thisDevice
-                          : core.settings.getLastTarget() != Target.thisDevice,
-                      onPressed: !target.isCompatible
-                          ? null
-                          : () async {
-                              _setTarget(context, target);
-                              setState(() {});
-                              onUpdate();
-                            },
-                    ),
-                  )
-                  .map((e) => !isMobile ? Expanded(child: e) : e)
-                  .toList(),
-            ),
-          ],
-
-          if (core.settings.getLastTarget() == Target.otherDevice) ...[
-            SizedBox(height: 8),
-            Text('BikeControl is available on iOS, Android, Windows and macOS. ').small,
-          ],
-        ],
-      ),
-    );
-  }
-
-  Future<void> _setTarget(BuildContext context, Target target) async {
-    await core.settings.setLastTarget(target);
-
-    if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true && !core.logic.emulatorEnabled) {
-      core.settings.setObpMdnsEnabled(true);
-      core.obpMdnsEmulator.startServer().catchError((e) {
-        core.settings.setObpMdnsEnabled(false);
-        buildToast(
-          context,
-          title: context.i18n.errorStartingOpenBikeControlServer,
-        );
-      });
-    }
   }
 }
 

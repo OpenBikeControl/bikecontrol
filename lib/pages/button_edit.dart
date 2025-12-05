@@ -426,6 +426,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
 class SelectableCard extends StatelessWidget {
   final Widget title;
+  final Widget? subtitle;
   final IconData? icon;
   final bool isActive;
   final String? value;
@@ -435,6 +436,7 @@ class SelectableCard extends StatelessWidget {
     super.key,
     required this.title,
     this.icon,
+    this.subtitle,
     required this.isActive,
     this.value,
     required this.onPressed,
@@ -455,7 +457,11 @@ class SelectableCard extends StatelessWidget {
                 focusBorder: Border.all(color: BKColor.main, width: 2),
               )
               .withBackgroundColor(
-                color: isActive ? Theme.of(context).colorScheme.card : Theme.of(context).colorScheme.background,
+                color: isActive
+                    ? Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).colorScheme.card
+                          : Theme.of(context).colorScheme.card.withLuminance(0.9)
+                    : Theme.of(context).colorScheme.background,
                 hoverColor: Theme.of(context).colorScheme.card,
               ),
       onPressed: onPressed,
@@ -474,7 +480,7 @@ class SelectableCard extends StatelessWidget {
                 )
               : null,
           title: title,
-          subtitle: value != null && isActive ? Text(value!) : null,
+          subtitle: value != null && isActive ? Text(value!) : subtitle,
         ),
       ),
     );

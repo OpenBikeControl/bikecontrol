@@ -7,6 +7,8 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' show RideKeyPadStatus;
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -63,37 +65,6 @@ class FtmsMdnsEmulator {
         },
       ),
     );
-    // Create service
-    /*final service = await MDNSService.create(
-      instance: 'KICKR BIKE PRO 1337',
-      service: '_wahoo-fitness-tnp._tcp',
-      port: 36867,
-      hostName: 'KICKR-BIKE-SHIFT-1337.local.',
-      ips: [localIP],
-      txt: [
-        'ble-service-uuids=FC82',
-        'mac-address=50-50-25-6C-66-9C',
-        'serial-number=244700181',
-      ],
-    );
-
-    print('Service: ${service.instance} at ${localIP.address}:${service.port}');
-
-    // Start server
-    _server = MDNSServer(
-      MDNSServerConfig(
-        zone: service,
-        networkInterface: interfaces.first,
-        reusePort: !Platform.isAndroid,
-        logger: (log) {
-          if (kDebugMode) {
-            print('mDNS: $log');
-          }
-        },
-      ),
-    );
-
-    await _server!.start();*/
     isStarted.value = true;
     print('Server started - advertising service!');
   }
@@ -137,6 +108,9 @@ class FtmsMdnsEmulator {
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
         }
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connected),
+        );
 
         // Listen for data from the client
         socket.listen(
@@ -308,6 +282,10 @@ class FtmsMdnsEmulator {
           onDone: () {
             print('Client disconnected: $socket');
             isConnected.value = false;
+
+            core.connection.signalNotification(
+              AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.disconnected),
+            );
             _socket = null;
           },
         );

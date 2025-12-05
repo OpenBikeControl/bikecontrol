@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/pages/device.dart';
 import 'package:swift_control/utils/core.dart';
@@ -199,7 +200,7 @@ class _ButtonEditor extends StatelessWidget {
             Expanded(
               child: Text(
                 core.logic.hasNoConnectionMethod
-                    ? context.i18n.pleaseSelectAConnectionMethodFirst
+                    ? AppLocalizations.of(context).noConnectionMethodSelected
                     : context.i18n.noActionAssigned,
               ).muted.xSmall,
             ),

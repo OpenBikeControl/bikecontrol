@@ -157,6 +157,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
           if (widget.showTroubleshooting)
             OutlineButton(
               leading: Icon(Icons.help_outline),
+
               onPressed: () {
                 Navigator.push(
                   context,

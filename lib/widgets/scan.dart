@@ -29,7 +29,6 @@ class _ScanWidgetState extends State<ScanWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,6 +70,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                     Row(
                       spacing: 14,
                       children: [
+                        SizedBox(),
                         SmoothWifiAnimation(),
                         Expanded(
                           child: Text(context.i18n.scanningForDevices).small.muted,

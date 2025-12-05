@@ -55,6 +55,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                     ),
                   ],
                   MenuButton(
+                    leading: Icon(Icons.star_rate),
                     child: Text(context.i18n.leaveAReview),
                     onPressed: (c) async {
                       final InAppReview inAppReview = InAppReview.instance;
@@ -89,6 +90,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
               builder: (c) => DropdownMenu(
                 children: [
                   MenuButton(
+                    leading: Icon(Icons.help_outline),
                     child: Text(context.i18n.troubleshootingGuide),
                     onPressed: (c) {
                       Navigator.push(
@@ -98,6 +100,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                     },
                   ),
                   MenuButton(
+                    leading: Icon(Icons.bug_report_outlined),
                     child: Text(context.i18n.provideFeedback),
                     onPressed: (c) {
                       launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
@@ -106,6 +109,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                   MenuDivider(),
                   if (!kIsWeb)
                     MenuButton(
+                      leading: Icon(Icons.email_outlined),
                       child: Text(context.i18n.getSupport),
                       onPressed: (c) {
                         final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
@@ -205,18 +209,21 @@ class BKMenuButton extends StatelessWidget {
             ],
             if (openLogs != null)
               MenuButton(
+                leading: Icon(Icons.article_outlined),
                 child: Text(context.i18n.logs),
                 onPressed: (c) {
                   openLogs!();
                 },
               ),
             MenuButton(
+              leading: Icon(Icons.update_outlined),
               child: Text(context.i18n.changelog),
               onPressed: (c) {
                 Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
               },
             ),
             MenuButton(
+              leading: Icon(Icons.policy_outlined),
               child: Text(context.i18n.license),
               onPressed: (c) {
                 showLicensePage(context: context);

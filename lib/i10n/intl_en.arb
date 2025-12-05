@@ -450,5 +450,6 @@
     }
   },
   "clickV2Instructions": "To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that the Click V2 will stop working after a minute.\n\n1. Open Zwift app\n2. Log in (subscription not required) and open the device connection screen\n3. Connect your Trainer, then connect the Zwift Click V2\n4. Close the Zwift app again and connect again in BikeControl",
-  "pleaseSelectAConnectionMethodFirst": "Please select a connection method in the Trainer settings, first."
+  "pleaseSelectAConnectionMethodFirst": "Please select a connection method in the Trainer settings, first.",
+  "noConnectionMethodSelected": "No Connection Method selected"
 }

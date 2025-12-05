@@ -158,10 +158,7 @@ class CoreLogic {
     return core.settings.getRemoteControlEnabled() && showRemote;
   }
 
-  bool get showMyWhooshLink =>
-      core.settings.getTrainerApp() is MyWhoosh &&
-      core.settings.getLastTarget() != null &&
-      core.whooshLink.isCompatible(core.settings.getLastTarget()!);
+  bool get showMyWhooshLink => core.settings.getTrainerApp() is MyWhoosh && core.settings.getLastTarget() != null;
 
   bool get showRemote => core.settings.getLastTarget() != Target.thisDevice && core.actionHandler is RemoteActions;
 
@@ -191,14 +188,22 @@ class CoreLogic {
   bool get showLocalRemoteOptions =>
       core.actionHandler.supportedModes.isNotEmpty &&
       ((showLocalControl && core.settings.getLocalEnabled()) ||
-          (core.logic.showRemote && core.settings.getRemoteControlEnabled()));
+          (showRemote && core.settings.getRemoteControlEnabled()));
 
   bool get hasNoConnectionMethod =>
-      !core.logic.isZwiftBleEnabled &&
-      !core.logic.isZwiftMdnsEnabled &&
-      !core.logic.showObpActions &&
-      !(core.settings.getMyWhooshLinkEnabled() && core.logic.showMyWhooshLink) &&
-      !core.logic.showLocalRemoteOptions;
+      !isZwiftBleEnabled &&
+      !isZwiftMdnsEnabled &&
+      !showObpActions &&
+      !(core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) &&
+      !showLocalRemoteOptions;
+
+  bool get hasRecommendedConnectionMethods =>
+      showObpBluetoothEmulator ||
+      showObpMdnsEmulator ||
+      showLocalControl ||
+      showZwiftBleEmulator ||
+      showZwiftMsdnEmulator ||
+      showMyWhooshLink;
 
   Future<bool> isTrainerConnected() async {
     if (screenshotMode) {

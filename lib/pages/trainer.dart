@@ -14,6 +14,7 @@ import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/openbikecontrol_ble_tile.dart';
@@ -164,10 +165,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             onUpdate: () {
               setState(() {});
               widget.onUpdate();
-              if (_scrollController.position.pixels != _scrollController.position.maxScrollExtent) {
+              if (_scrollController.position.pixels != _scrollController.position.maxScrollExtent &&
+                  core.settings.getLastTarget() == Target.otherDevice) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _scrollController.animateTo(
-                    _scrollController.offset + 100,
+                    _scrollController.offset + 300,
                     duration: Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                   );
@@ -242,12 +244,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
 
             SizedBox(height: 8),
-            if (core.logic.showObpBluetoothEmulator ||
-                core.logic.showObpMdnsEmulator ||
-                core.logic.showLocalControl ||
-                core.logic.showZwiftBleEmulator ||
-                core.logic.showZwiftMsdnEmulator ||
-                core.logic.showMyWhooshLink)
+            if (core.logic.hasRecommendedConnectionMethods)
               ColoredTitle(
                 text: context.i18n.recommendedConnectionMethods,
               ),
@@ -297,6 +294,8 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                         _isRunningAndroidService = isRunning;
                       });
                     });
+                  } else {
+                    core.connection.signalNotification(LogNotification('Local Control: $value'));
                   }
                 },
                 additionalChild: _isRunningAndroidService == false

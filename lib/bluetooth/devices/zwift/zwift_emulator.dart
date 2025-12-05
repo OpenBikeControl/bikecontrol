@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
@@ -10,6 +9,8 @@ import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pbserver.dart' hide RideButtonMask;
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -59,17 +60,18 @@ class ZwiftEmulator {
     });
 
     if (!kIsWeb && Platform.isAndroid) {
-      if (Platform.isAndroid) {
-        _peripheralManager.connectionStateChanged.forEach((state) {
-          print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
-          if (state.state == ConnectionState.connected) {
-          } else if (state.state == ConnectionState.disconnected) {
-            _central = null;
-            isConnected.value = false;
-            onUpdate();
-          }
-        });
-      }
+      _peripheralManager.connectionStateChanged.forEach((state) {
+        print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
+        if (state.state == ConnectionState.connected) {
+        } else if (state.state == ConnectionState.disconnected) {
+          _central = null;
+          isConnected.value = false;
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.disconnected),
+          );
+          onUpdate();
+        }
+      });
 
       final status = await Permission.bluetoothAdvertise.request();
       if (!status.isGranted) {
@@ -148,6 +150,10 @@ class ZwiftEmulator {
         _peripheralManager.characteristicWriteRequested.forEach((eventArgs) async {
           _central = eventArgs.central;
           isConnected.value = true;
+
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connected),
+          );
 
           final request = eventArgs.request;
           final response = handleWriteRequest(eventArgs.characteristic.uuid.toString(), request.value);
@@ -433,7 +439,7 @@ class ZwiftEmulator {
                     dataObjectId: DO.BATTERY_STATE.value,
                     dataObjectData: BatteryStatus(
                       chgState: ChargingState.CHARGING_IDLE,
-                      percLevel: 50,
+                      percLevel: 100,
                       timeToEmpty: 0,
                       timeToFull: 0,
                     ).writeToBuffer(),
@@ -450,23 +456,5 @@ class ZwiftEmulator {
         print('Unhandled write request for characteristic: $characteristic $value');
     }
     return null;
-  }
-}
-
-class ZwiftEmulatorInformation extends StatelessWidget {
-  const ZwiftEmulatorInformation({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: core.zwiftEmulator.isConnected,
-      builder: (context, isConnected, _) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Text('Zwift is ${isConnected ? 'connected' : 'not connected'}');
-          },
-        );
-      },
-    );
   }
 }

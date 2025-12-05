@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
@@ -14,7 +11,7 @@ class MyWhoosh extends SupportedApp {
     : super(
         name: 'MyWhoosh',
         packageName: "com.mywhoosh.whooshgame",
-        compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.thisDevice] : Target.values,
+        compatibleTargets: Target.values,
         supportsZwiftEmulation: false,
         supportsOpenBikeProtocol: false,
         keymap: Keymap(

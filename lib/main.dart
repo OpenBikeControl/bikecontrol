@@ -12,6 +12,7 @@ import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/widgets/menu.dart';
 import 'package:swift_control/widgets/testbed.dart';
+import 'package:swift_control/widgets/ui/colors.dart';
 
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
@@ -138,7 +139,7 @@ enum ConnectionType {
   remote,
 }
 
-Future<void> initializeActions(ConnectionType connectionType) async {
+void initializeActions(ConnectionType connectionType) {
   if (kIsWeb) {
     core.actionHandler = StubActions();
   } else if (Platform.isAndroid) {
@@ -183,7 +184,6 @@ class BikeControlApp extends StatelessWidget {
       ],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       title: 'BikeControl',
-      themeMode: ThemeMode.dark,
       darkTheme: ThemeData(
         colorScheme: ColorSchemes.darkDefaultColor.copyWith(
           card: () => Color(0xFF001A29),
@@ -192,9 +192,10 @@ class BikeControlApp extends StatelessWidget {
       ),
       theme: ThemeData(
         colorScheme: ColorSchemes.lightDefaultColor.copyWith(
-          card: () => Color(0xFFF2F9FF),
+          card: () => BKColor.background,
         ),
       ),
+      //themeMode: ThemeMode.dark,
       home: error != null
           ? Center(
               child: Text(
