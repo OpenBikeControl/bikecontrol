@@ -79,7 +79,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                     ),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
                       ValueListenableBuilder(
-                        valueListenable: core.connection.isMediaKeyDetectionEnabled,
+                        valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
                         builder: (context, value, child) {
                           return Tooltip(
                             tooltip: (c) => TooltipContainer(
@@ -89,7 +89,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                               state: value ? CheckboxState.checked : CheckboxState.unchecked,
                               trailing: Text(context.i18n.enableMediaKeyDetection),
                               onChanged: (change) {
-                                core.connection.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
+                                core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
                               },
                             ),
                           );

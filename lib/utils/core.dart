@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:media_key_detector/media_key_detector.dart';
+import 'package:smtc_windows/smtc_windows.dart';
+import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
@@ -15,6 +19,7 @@ import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -38,6 +43,7 @@ class Core {
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
 
+  late final mediaKeyHandler = MediaKeyHandler();
   late final logic = CoreLogic();
   late final permissions = Permissions();
 }
@@ -275,5 +281,90 @@ class CoreLogic {
     if (isRemoteControlEnabled) {
       // TODO start remote control server
     }
+  }
+}
+
+class MediaKeyHandler {
+  final ValueNotifier<bool> isMediaKeyDetectionEnabled = ValueNotifier(false);
+
+  bool _smtcInitialized = false;
+  SMTCWindows? _smtc;
+
+  void initialize() {
+    isMediaKeyDetectionEnabled.addListener(() async {
+      if (!isMediaKeyDetectionEnabled.value) {
+        if (Platform.isWindows) {
+          _smtc?.disableSmtc();
+        } else {
+          mediaKeyDetector.setIsPlaying(isPlaying: false);
+          mediaKeyDetector.removeListener(_onMediaKeyDetectedListener);
+        }
+      } else {
+        if (Platform.isWindows) {
+          if (!_smtcInitialized) {
+            _smtcInitialized = true;
+            await SMTCWindows.initialize();
+          }
+
+          _smtc = SMTCWindows(
+            metadata: const MusicMetadata(
+              title: 'BikeControl Media Key Handler',
+              album: 'BikeControl',
+              albumArtist: 'BikeControl',
+              artist: 'BikeControl',
+            ),
+            // Timeline info for the OS media player
+            timeline: const PlaybackTimeline(
+              startTimeMs: 0,
+              endTimeMs: 1000,
+              positionMs: 0,
+              minSeekTimeMs: 0,
+              maxSeekTimeMs: 1000,
+            ),
+            config: const SMTCConfig(
+              fastForwardEnabled: true,
+              nextEnabled: true,
+              pauseEnabled: true,
+              playEnabled: true,
+              rewindEnabled: true,
+              prevEnabled: true,
+              stopEnabled: true,
+            ),
+          );
+          _smtc!.buttonPressStream.listen(_onMediaKeyPressedListener);
+        } else {
+          mediaKeyDetector.addListener(_onMediaKeyDetectedListener);
+          mediaKeyDetector.setIsPlaying(isPlaying: true);
+        }
+      }
+    });
+  }
+
+  void _onMediaKeyDetectedListener(MediaKey mediaKey) {
+    _onMediaKeyPressedListener(switch (mediaKey) {
+      MediaKey.playPause => PressedButton.play,
+      MediaKey.rewind => PressedButton.rewind,
+      MediaKey.fastForward => PressedButton.fastForward,
+      MediaKey.volumeUp => PressedButton.channelUp,
+      MediaKey.volumeDown => PressedButton.channelDown,
+    });
+  }
+
+  void _onMediaKeyPressedListener(PressedButton mediaKey) {
+    final hidDevice = HidDevice('HID Device');
+    final keyPressed = mediaKey.name;
+
+    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(
+      keyPressed,
+      () => ControllerButton(keyPressed),
+    );
+
+    var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+    if (availableDevice == null) {
+      core.connection.addDevices([hidDevice]);
+      availableDevice = hidDevice;
+    }
+    availableDevice.handleButtonsClicked([button]);
+    availableDevice.handleButtonsClicked([]);
   }
 }

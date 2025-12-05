@@ -6,8 +6,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
-import 'package:media_key_detector/media_key_detector.dart';
-import 'package:smtc_windows/smtc_windows.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
@@ -15,7 +13,6 @@ import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -48,7 +45,6 @@ class Connection {
   final _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
-  final ValueNotifier<bool> isMediaKeyDetectionEnabled = ValueNotifier(false);
 
   Timer? _gamePadSearchTimer;
 
@@ -56,71 +52,6 @@ class Connection {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
       lastLogEntries = lastLogEntries.takeLast(kIsWeb ? 1000 : 60).toList();
-    });
-
-    isMediaKeyDetectionEnabled.addListener(() async {
-      if (!isMediaKeyDetectionEnabled.value) {
-      
-        mediaKeyDetector.setIsPlaying(isPlaying: false);
-        mediaKeyDetector.removeListener(_onMediaKeyDetectedListener);
-      } else {
-        if (Platform.isWindows) {
-            await SMTCWindows.initialize();
-
-final smtc = SMTCWindows(
-      metadata: const MusicMetadata(
-        title: 'Title',
-        album: 'Album',
-        albumArtist: 'Album Artist',
-        artist: 'Artist',
-        thumbnail:
-            'https://media.glamour.com/photos/5f4c44e20c71c58fc210d35f/master/w_2560%2Cc_limit/mgid_ao_image_mtv.jpg',
-      ),
-      // Timeline info for the OS media player
-      timeline: const PlaybackTimeline(
-        startTimeMs: 0,
-        endTimeMs: 1000,
-        positionMs: 0,
-        minSeekTimeMs: 0,
-        maxSeekTimeMs: 1000,
-      ),
-      // Which buttons to show in the OS media player
-      config: const SMTCConfig(
-        fastForwardEnabled: true,
-        nextEnabled: true,
-        pauseEnabled: true,
-        playEnabled: true,
-        rewindEnabled: true,
-        prevEnabled: true,
-        stopEnabled: true,
-      ),
-    );
-    smtc.buttonPressStream.listen((event) {
-      print('Event: $event');
-          switch (event) {
-            case PressedButton.play:
-              // Update playback status
-              break;
-            case PressedButton.pause:
-              break;
-            case PressedButton.next:
-              print('Next');
-              break;
-            case PressedButton.previous:
-              print('Previous');
-              break;
-            case PressedButton.stop:
-              smtc.disableSmtc();
-              break;
-            default:
-              break;
-          }
-        });
-        } else {
-          mediaKeyDetector.addListener(_onMediaKeyDetectedListener);
-          mediaKeyDetector.setIsPlaying(isPlaying: true);
-        }
-      }
     });
 
     UniversalBle.onAvailabilityChange = (available) {
@@ -444,23 +375,5 @@ final smtc = SMTCWindows(
     }
 
     signalChange(device);
-  }
-
-  void _onMediaKeyDetectedListener(MediaKey mediaKey) {
-    final hidDevice = HidDevice('HID Device');
-    final keyPressed = mediaKey.name;
-
-    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(
-      keyPressed,
-      () => ControllerButton(keyPressed),
-    );
-
-    var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
-    if (availableDevice == null) {
-      core.connection.addDevices([hidDevice]);
-      availableDevice = hidDevice;
-    }
-    availableDevice.handleButtonsClicked([button]);
-    availableDevice.handleButtonsClicked([]);
   }
 }
