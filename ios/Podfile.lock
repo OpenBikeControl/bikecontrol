@@ -17,6 +17,8 @@ PODS:
     - Flutter
   - media_key_detector_ios (0.0.1):
     - Flutter
+  - nsd_ios (0.0.1):
+    - Flutter
   - package_info_plus (0.4.5):
     - Flutter
   - path_provider_foundation (0.0.1):
@@ -47,6 +49,7 @@ DEPENDENCIES:
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - media_key_detector_ios (from `.symlinks/plugins/media_key_detector_ios/ios`)
+  - nsd_ios (from `.symlinks/plugins/nsd_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -75,6 +78,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
   media_key_detector_ios:
     :path: ".symlinks/plugins/media_key_detector_ios/ios"
+  nsd_ios:
+    :path: ".symlinks/plugins/nsd_ios/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
@@ -102,6 +107,7 @@ SPEC CHECKSUMS:
   in_app_review: 436034b18594851a7328d7f1c2ed5ec235b79cfc
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   media_key_detector_ios: 7ff9aefdfea00bb7b71e184132381b7d0e7e1269
+  nsd_ios: 8c37babdc6538e3350dbed3a52674d2edde98173
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2

@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gamepads_windows
   keypress_simulator_windows
   media_key_detector_windows
+  nsd_windows
   permission_handler_windows
   screen_retriever_windows
   universal_ble

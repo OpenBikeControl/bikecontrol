@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:mdns_dart/mdns_dart.dart';
+import 'package:nsd/nsd.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
@@ -14,7 +14,7 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 
 class OpenBikeControlMdnsEmulator {
   ServerSocket? _server;
-  MDNSServer? _mDNSServer;
+  Registration? _mdnsRegistration;
 
   final ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
   final ValueNotifier<AppInfo?> isConnected = ValueNotifier<AppInfo?>(null);
@@ -44,36 +44,32 @@ class OpenBikeControlMdnsEmulator {
 
     _createTcpServer();
 
-    // Create service
-    final service = await MDNSService.create(
-      instance: 'BikeControl',
-      service: '_openbikecontrol._tcp',
-      port: 36867,
-      //hostName: 'KICKR BIKE SHIFT B84D.local',
-      ips: [localIP],
-      txt: [
-        'version=1',
-        'id=1337',
-        'name=BikeControl',
-        'service-uuids=${OpenBikeControlConstants.SERVICE_UUID}',
-        'manufacturer=OpenBikeControl',
-        'model=BikeControl app',
-      ],
-    );
-
-    print('Service: ${service.instance} at ${localIP.address}:${service.port}');
-
-    // Start server
-    _mDNSServer = MDNSServer(
-      MDNSServerConfig(
-        zone: service,
-        reusePort: !Platform.isAndroid,
-        logger: (log) {},
-      ),
-    );
+    if (kDebugMode) {
+      enableLogging(LogTopic.calls);
+      enableLogging(LogTopic.errors);
+    }
+    disableServiceTypeValidation(true);
 
     try {
-      await _mDNSServer!.start();
+      // Create service
+      _mdnsRegistration = await register(
+        Service(
+          name: 'BikeControl',
+          type: '_openbikecontrol._tcp',
+          port: 36867,
+          //hostName: 'KICKR BIKE SHIFT B84D.local',
+          addresses: [localIP],
+          txt: {
+            'version': Uint8List.fromList([0x01]),
+            'id': Uint8List.fromList('1337'.codeUnits),
+            'name': Uint8List.fromList('BikeControl'.codeUnits),
+            'service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
+            'manufacturer': Uint8List.fromList('OpenBikeControl'.codeUnits),
+            'model': Uint8List.fromList('BikeControl app'.codeUnits),
+          },
+        ),
+      );
+      print('Service: ${_mdnsRegistration!.id} at ${localIP.address}:$_mdnsRegistration');
       isStarted.value = true;
       print('Server started - advertising service!');
     } catch (e, s) {
@@ -86,7 +82,10 @@ class OpenBikeControlMdnsEmulator {
     if (kDebugMode) {
       print('Stopping OpenBikeControl mDNS server...');
     }
-    await _mDNSServer?.stop();
+    if (_mdnsRegistration != null) {
+      unregister(_mdnsRegistration!);
+      _mdnsRegistration = null;
+    }
     isStarted.value = false;
     isConnected.value = null;
     _socket?.destroy();

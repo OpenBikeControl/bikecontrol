@@ -11,6 +11,7 @@
 #include <gamepads_windows/gamepads_windows_plugin_c_api.h>
 #include <keypress_simulator_windows/keypress_simulator_windows_plugin_c_api.h>
 #include <media_key_detector_windows/media_key_detector_windows.h>
+#include <nsd_windows/nsd_windows_plugin_c_api.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <universal_ble/universal_ble_plugin_c_api.h>
@@ -28,6 +29,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("KeypressSimulatorWindowsPluginCApi"));
   MediaKeyDetectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("MediaKeyDetectorWindows"));
+  NsdWindowsPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("NsdWindowsPluginCApi"));
   PermissionHandlerWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
   ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(

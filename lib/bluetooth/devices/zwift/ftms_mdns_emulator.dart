@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:mdns_dart/mdns_dart.dart';
+import 'package:nsd/nsd.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' show RideKeyPadStatus;
@@ -13,7 +13,7 @@ import 'package:swift_control/utils/keymap/buttons.dart';
 
 class FtmsMdnsEmulator {
   ServerSocket? _tcpServer;
-  MDNSServer? _server;
+  Registration? _mdnsRegistration;
 
   Socket? _socket;
   var lastMessageId = 0;
@@ -44,8 +44,27 @@ class FtmsMdnsEmulator {
 
     _createTcpServer();
 
+    if (kDebugMode) {
+      enableLogging(LogTopic.calls);
+      enableLogging(LogTopic.errors);
+    }
+    disableServiceTypeValidation(true);
+
+    _mdnsRegistration = await register(
+      Service(
+        name: 'KICKR BIKE PRO 1337',
+        addresses: [localIP],
+        port: 36867,
+        type: '_wahoo-fitness-tnp._tcp',
+        txt: {
+          'ble-service-uuids': Uint8List.fromList('FC82'.codeUnits),
+          'mac-address': Uint8List.fromList('50-50-25-6C-66-9C'.codeUnits),
+          'serial-number': Uint8List.fromList('244700181'.codeUnits),
+        },
+      ),
+    );
     // Create service
-    final service = await MDNSService.create(
+    /*final service = await MDNSService.create(
       instance: 'KICKR BIKE PRO 1337',
       service: '_wahoo-fitness-tnp._tcp',
       port: 36867,
@@ -74,7 +93,7 @@ class FtmsMdnsEmulator {
       ),
     );
 
-    await _server!.start();
+    await _server!.start();*/
     isStarted.value = true;
     print('Server started - advertising service!');
   }
@@ -83,9 +102,11 @@ class FtmsMdnsEmulator {
     isStarted.value = false;
     isConnected.value = false;
     _tcpServer?.close();
-    _server?.stop();
+    if (_mdnsRegistration != null) {
+      unregister(_mdnsRegistration!);
+    }
     _tcpServer = null;
-    _server = null;
+    _mdnsRegistration = null;
     _socket = null;
     print('Stopped FtmsMdnsEmulator');
   }
