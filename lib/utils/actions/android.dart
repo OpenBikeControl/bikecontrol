@@ -27,9 +27,9 @@ class AndroidActions extends BaseActions {
       }
     });
 
-    hidKeyPressed().listen((keyPressed) {
+    hidKeyPressed().listen((keyPressed) async {
       final hidDevice = HidDevice(keyPressed.source);
-      final button = hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey))!;
+      final button = await hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey))!;
 
       var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
       if (availableDevice == null) {

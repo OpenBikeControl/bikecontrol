@@ -350,14 +350,14 @@ class MediaKeyHandler {
     });
   }
 
-  void _onMediaKeyPressedListener(PressedButton mediaKey) {
+  Future<void> _onMediaKeyPressedListener(PressedButton mediaKey) async {
     final hidDevice = HidDevice('HID Device');
     final keyPressed = mediaKey.name;
 
-    final button = hidDevice.getOrAddButton(
+    final button = await hidDevice.getOrAddButton(
       keyPressed,
       () => ControllerButton(keyPressed),
-    )!;
+    );
 
     var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
     if (availableDevice == null) {

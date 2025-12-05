@@ -51,17 +51,17 @@ class ShimanoDi2 extends BluetoothDevice {
 
       final clickedButtons = <ControllerButton>[];
 
-      channels.forEachIndexed((int value, int index) {
+      channels.forEachIndexed((int value, int index) async {
         final didChange = _lastButtons[index] != value;
         _lastButtons[index] = value;
 
         final readableIndex = index + 1;
 
-        final button = getOrAddButton(
+        final button = await getOrAddButton(
           'D-Fly Channel $readableIndex',
           () => ControllerButton('D-Fly Channel $readableIndex'),
         );
-        if (didChange && button != null) {
+        if (didChange) {
           clickedButtons.add(button);
         }
       });

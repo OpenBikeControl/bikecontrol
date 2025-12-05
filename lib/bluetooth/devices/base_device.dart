@@ -6,6 +6,7 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
+import 'package:swift_control/utils/keymap/manager.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -148,17 +149,18 @@ abstract class BaseDevice {
 
   Widget showInformation(BuildContext context);
 
-  ControllerButton? getOrAddButton(String key, ControllerButton Function() creator) {
-    if (core.actionHandler.supportedApp is CustomApp) {
-      final button = core.actionHandler.supportedApp?.keymap.getOrAddButton(key, creator);
-
-      if (button != null && availableButtons.none((e) => e.name == button.name)) {
-        availableButtons.add(button);
-        core.settings.setKeyMap(core.actionHandler.supportedApp!);
-      }
-      return button;
-    } else {
-      return null;
+  Future<ControllerButton> getOrAddButton(String key, ControllerButton Function() creator) async {
+    if (core.actionHandler.supportedApp is! CustomApp) {
+      final currentProfile = core.actionHandler.supportedApp!.name;
+      // should we display this to the user?
+      await KeymapManager().duplicate(null, currentProfile, skipName: '$currentProfile (Copy)');
     }
+    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(key, creator);
+
+    if (availableButtons.none((e) => e.name == button.name)) {
+      availableButtons.add(button);
+      core.settings.setKeyMap(core.actionHandler.supportedApp!);
+    }
+    return button;
   }
 }

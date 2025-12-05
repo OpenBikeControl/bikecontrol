@@ -231,8 +231,8 @@ class KeymapManager {
     );
   }
 
-  Future<String?> duplicate(BuildContext context, String currentProfile, {String? skipName}) async {
-    final newName = skipName ?? await _showDuplicateProfileDialog(context, currentProfile);
+  Future<String?> duplicate(BuildContext? context, String currentProfile, {String? skipName}) async {
+    final newName = skipName ?? await _showDuplicateProfileDialog(context!, currentProfile);
     if (newName != null && newName.isNotEmpty) {
       if (core.actionHandler.supportedApp is CustomApp) {
         await core.settings.duplicateCustomAppProfile(currentProfile, newName);
