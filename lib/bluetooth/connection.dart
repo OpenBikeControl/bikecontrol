@@ -57,7 +57,11 @@ class Connection {
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb) {
-        performScanning();
+        core.permissions.getScanRequirements().then((perms) {
+          if (perms.isEmpty) {
+            performScanning();
+          }
+        });
       } else if (available == AvailabilityState.poweredOff) {
         reset();
       }

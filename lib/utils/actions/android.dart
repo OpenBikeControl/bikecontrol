@@ -38,8 +38,11 @@ class AndroidActions extends BaseActions {
           core.connection.addDevices([hidDevice]);
           availableDevice = hidDevice;
         }
-        availableDevice.handleButtonsClicked([button]);
-        availableDevice.handleButtonsClicked([]);
+        if (keyPressed.keyDown) {
+          availableDevice.handleButtonsClicked([button]);
+        } else if (keyPressed.keyUp) {
+          availableDevice.handleButtonsClicked([]);
+        }
       }
     });
   }
