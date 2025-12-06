@@ -15,6 +15,15 @@ import 'package:universal_ble/universal_ble.dart';
 
 import 'custom_frame.dart';
 
+enum DeviceType {
+  android,
+  androidTablet,
+  iPhone,
+  iPad,
+  desktop,
+  noFrame,
+}
+
 Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   PackageInfo.setMockInitialValues(
@@ -45,9 +54,13 @@ Future<void> main() async {
       ..batteryLevel = 81,
   ]);
 
-  final List<(TargetPlatform type, Size size)> sizes = [
-    (TargetPlatform.android, Size(1320, 2868)),
-    (TargetPlatform.iOS, Size(1320, 2868)),
+  final List<({DeviceType type, TargetPlatform platform, Size size})> sizes = [
+    (type: DeviceType.android, platform: TargetPlatform.android, size: Size(1320, 2868)),
+    (type: DeviceType.androidTablet, platform: TargetPlatform.android, size: Size(3840, 2400)),
+    (type: DeviceType.iPhone, platform: TargetPlatform.iOS, size: Size(1242, 2688)),
+    (type: DeviceType.iPad, platform: TargetPlatform.iOS, size: Size(2752, 2064)),
+    (type: DeviceType.desktop, platform: TargetPlatform.windows, size: Size(2752, 2064)),
+    (type: DeviceType.noFrame, platform: TargetPlatform.windows, size: Size(1320, 2868) / 1.2),
     /*('iPhone', Size(1242, 2688)),
     ('macOS', Size(1280, 800)),
     ('GitHub', Size(600, 900)),*/
@@ -56,15 +69,15 @@ Future<void> main() async {
   debugDisableShadows = true;
   screenshotMode = true;
 
-  testGoldens('Device', (WidgetTester tester) async {
+  testGoldens('Init', (WidgetTester tester) async {
+    screenshotMode = true;
     await tester.loadAssets();
-
     for (final size in sizes) {
       await tester.pumpWidget(
         ScreenshotApp(
           device: ScreenshotDevice(
-            platform: size.$1,
-            resolution: size.$2,
+            platform: size.platform,
+            resolution: size.size,
             pixelRatio: 3,
             goldenSubFolder: 'iphoneScreenshots/',
             frameBuilder:
@@ -73,7 +86,37 @@ Future<void> main() async {
                   required ScreenshotFrameColors? frameColors,
                   required Widget child,
                 }) => CustomFrame(
-                  platform: size.$1,
+                  platform: size.type,
+                  title: 'BikeControl connects to your favorite controller',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.devices,
+          ),
+        ),
+      );
+
+      await tester.pump();
+    }
+  });
+  testGoldens('Device', (WidgetTester tester) async {
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.platform,
+            resolution: size.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.type,
                   title: 'BikeControl connects to your favorite controller',
                   device: device,
                   child: child,
@@ -89,19 +132,20 @@ Future<void> main() async {
       await expectLater(
         find.byType(ma.Scaffold),
         matchesGoldenFile(
-          '../screenshots/device-${size.$1.name}-${size.$2.width.toInt()}-${size.$2.height.toInt()}.png',
+          '../screenshots/device-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
         ),
       );
     }
   });
 
   testGoldens('Trainer', (WidgetTester tester) async {
+    screenshotMode = true;
     for (final size in sizes) {
       await tester.pumpWidget(
         ScreenshotApp(
           device: ScreenshotDevice(
-            platform: size.$1,
-            resolution: size.$2,
+            platform: size.platform,
+            resolution: size.size,
             pixelRatio: 3,
             goldenSubFolder: 'iphoneScreenshots/',
             frameBuilder:
@@ -110,8 +154,8 @@ Future<void> main() async {
                   required ScreenshotFrameColors? frameColors,
                   required Widget child,
                 }) => CustomFrame(
-                  platform: size.$1,
-                  title: 'BikeControl connects to your favorite controller',
+                  platform: size.type,
+                  title: 'Choose how BikeControl connects to your trainer',
                   device: device,
                   child: child,
                 ),
@@ -126,7 +170,7 @@ Future<void> main() async {
       await expectLater(
         find.byType(ma.Scaffold),
         matchesGoldenFile(
-          '../screenshots/trainer-${size.$1.name}-${size.$2.width.toInt()}-${size.$2.height.toInt()}.png',
+          '../screenshots/trainer-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
         ),
       );
     }
@@ -139,8 +183,8 @@ Future<void> main() async {
       await tester.pumpWidget(
         ScreenshotApp(
           device: ScreenshotDevice(
-            platform: size.$1,
-            resolution: size.$2,
+            platform: size.platform,
+            resolution: size.size,
             pixelRatio: 3,
             goldenSubFolder: 'iphoneScreenshots/',
             frameBuilder:
@@ -149,7 +193,7 @@ Future<void> main() async {
                   required ScreenshotFrameColors? frameColors,
                   required Widget child,
                 }) => CustomFrame(
-                  platform: size.$1,
+                  platform: size.type,
                   title: 'Customize every controller button',
                   device: device,
                   child: child,
@@ -165,7 +209,7 @@ Future<void> main() async {
       await expectLater(
         find.byType(ma.Scaffold),
         matchesGoldenFile(
-          '../screenshots/customization-${size.$1.name}-${size.$2.width.toInt()}-${size.$2.height.toInt()}.png',
+          '../screenshots/customization-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
         ),
       );
     }

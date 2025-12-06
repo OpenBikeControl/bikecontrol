@@ -16,9 +16,7 @@ class TrainingPeaks extends SupportedApp {
     : super(
         name: 'TrainingPeaks Virtual / IndieVelo',
         packageName: "com.indieVelo.client",
-        compatibleTargets: !kIsWeb && Platform.isIOS
-            ? Target.values.filterNot((e) => e == Target.thisDevice).toList()
-            : Target.values,
+        compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.otherDevice] : Target.values,
         supportsZwiftEmulation: false,
         supportsOpenBikeProtocol: false,
         keymap: Keymap(

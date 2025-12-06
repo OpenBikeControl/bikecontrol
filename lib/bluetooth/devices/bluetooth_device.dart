@@ -264,8 +264,8 @@ abstract class BluetoothDevice extends BaseDevice {
           runSpacing: 12,
           children: [
             SizedBox(
-              width: screenshotMode ? 200 : null,
-              height: screenshotMode ? 100 : null,
+              width: screenshotMode ? 160 : null,
+              height: screenshotMode ? 70 : null,
               child: Card(
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.background,
@@ -286,8 +286,8 @@ abstract class BluetoothDevice extends BaseDevice {
             ),
             if (batteryLevel != null)
               SizedBox(
-                width: screenshotMode ? 200 : null,
-                height: screenshotMode ? 100 : null,
+                width: screenshotMode ? 160 : null,
+                height: screenshotMode ? 70 : null,
                 child: Card(
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.background,
@@ -312,8 +312,8 @@ abstract class BluetoothDevice extends BaseDevice {
               ),
             if (firmwareVersion != null)
               SizedBox(
-                width: screenshotMode ? 200 : null,
-                height: screenshotMode ? 100 : null,
+                width: screenshotMode ? 160 : null,
+                height: screenshotMode ? 70 : null,
                 child: Card(
                   filled: true,
                   padding: EdgeInsets.all(12),
@@ -342,8 +342,8 @@ abstract class BluetoothDevice extends BaseDevice {
               ),
             if (rssi != null)
               SizedBox(
-                width: screenshotMode ? 200 : null,
-                height: screenshotMode ? 100 : null,
+                width: screenshotMode ? 160 : null,
+                height: screenshotMode ? 70 : null,
                 child: Card(
                   filled: true,
                   padding: EdgeInsets.all(12),

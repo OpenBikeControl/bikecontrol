@@ -173,7 +173,7 @@ jobs:
       - name: Generate screenshots for App Stores
         if: inputs.build_github
         run: |
-          flutter test test/screenshot_test.dart
+          flutter test --update-goldens
           zip -r BikeControl.storeassets.zip screenshots
           echo "Screenshots generated successfully"
 
@@ -264,7 +264,9 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            screenshots/device-GitHub-600x900.png
+            screenshots/device-noFrame-1100x2390.png
+            screenshots/trainer-noFrame-1100x2390.png
+            screenshots/customization-noFrame-1100x2390.png
             build/BikeControl.screenshots.zip
 
         #10 Extract Version
@@ -280,7 +282,7 @@ jobs:
         if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip,screenshots/device-GitHub-600x900.png"
+          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip,screenshots/device-noFrame-1100x2390.png,screenshots/trainer-noFrame-1100x2390.png,screenshots/customization-noFrame-1100x2390.png"
           allowUpdates: true
           prerelease: true
           bodyFile: /tmp/release_body.md

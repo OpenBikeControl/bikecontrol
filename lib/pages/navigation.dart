@@ -127,7 +127,9 @@ class _NavigationState extends State<Navigation> {
     return Scaffold(
       headers: [
         AppBar(
-          padding: const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) * Theme.of(context).scaling,
+          padding:
+              const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
+              (screenshotMode ? 2 : Theme.of(context).scaling),
           title: AppTitle(),
           backgroundColor: Theme.of(context).colorScheme.background,
           trailing: buildMenuButtons(

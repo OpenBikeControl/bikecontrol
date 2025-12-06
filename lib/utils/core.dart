@@ -176,6 +176,7 @@ class CoreLogic {
   AppInfo? get obpConnectedApp => core.obpMdnsEmulator.isConnected.value ?? core.obpBluetoothEmulator.isConnected.value;
 
   bool get emulatorEnabled =>
+      screenshotMode ||
       (core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) ||
       (core.settings.getZwiftBleEmulatorEnabled() && showZwiftBleEmulator) ||
       (core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator) ||
@@ -195,6 +196,7 @@ class CoreLogic {
       ((showLocalControl && core.settings.getLocalEnabled()) || (isRemoteControlEnabled));
 
   bool get hasNoConnectionMethod =>
+      !screenshotMode &&
       !isZwiftBleEnabled &&
       !isZwiftMdnsEnabled &&
       !showObpActions &&

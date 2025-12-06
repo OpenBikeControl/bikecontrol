@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
@@ -455,7 +456,7 @@ class _KeyWidget extends StatelessWidget {
           child: Text(
             label.splitByUpperCase(),
             style: TextStyle(
-              fontFamily: 'monospace',
+              fontFamily: screenshotMode ? null : 'monospace',
               fontSize: 12,
               color: Theme.of(context).colorScheme.primaryForeground,
             ),

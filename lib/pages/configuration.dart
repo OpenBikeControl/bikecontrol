@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
@@ -57,7 +58,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                   children: [
                     Select<SupportedApp>(
                       constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-                      itemBuilder: (c, app) => Text(app.name),
+                      itemBuilder: (c, app) => Text(screenshotMode ? 'Trainer app' : app.name),
                       popup: SelectPopup(
                         items: SelectItemList(
                           children: SupportedApp.supportedApps.map((app) {
@@ -94,7 +95,9 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     if (core.settings.getTrainerApp() != null) ...[
                       SizedBox(height: 8),
                       Text(
-                        context.i18n.selectTargetWhereAppRuns(core.settings.getTrainerApp()?.name ?? 'the Trainer app'),
+                        context.i18n.selectTargetWhereAppRuns(
+                          screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name ?? 'the Trainer app',
+                        ),
                       ).small,
                       Flex(
                         direction: isMobile ? Axis.vertical : Axis.horizontal,

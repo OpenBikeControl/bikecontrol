@@ -163,10 +163,10 @@ class _ButtonEditor extends StatelessWidget {
             currentProfile,
             skipName: '$currentProfile (Copy)',
           );
-          if (newName != null) {
+          if (newName != null && context.mounted) {
             buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
             final selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
-              (e) => e == this.keyPair,
+              (e) => e == keyPair,
             );
             await openDrawer(
               context: context,

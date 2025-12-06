@@ -1,5 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
@@ -13,7 +14,7 @@ class MyWhoosh extends SupportedApp {
         packageName: "com.mywhoosh.whooshgame",
         compatibleTargets: Target.values,
         supportsZwiftEmulation: false,
-        supportsOpenBikeProtocol: false,
+        supportsOpenBikeProtocol: screenshotMode,
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values

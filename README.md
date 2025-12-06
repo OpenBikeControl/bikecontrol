@@ -78,6 +78,8 @@ The app connects to your Controller devices (such as Zwift ones) automatically. 
 - Connect to the trainer app using Network
   - available on Android, iOS, macOS, Windows
   - supported by e.g. MyWhoosh, Rouvy and Zwift
+- Connect to supported trainer app using the [OpenBikeControl](https://openbikecontrol.org) protocol
+  - available on Android, iOS, macOS, Windows
 
 ## Alternatives
 - [qdomyos-zwift](https://www.qzfitness.com/) directly controls the trainer (as opposed to controlling the trainer app). This can be useful if your trainer app does not support virtual shifting.
