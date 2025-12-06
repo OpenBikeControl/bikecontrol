@@ -31,9 +31,15 @@ class TrainingPeaks extends SupportedApp {
               touchPosition: Offset(22.65384615384622, 7.0769230769229665),
             ),
             KeyPair(
-              buttons: [ZwiftButtons.shiftUpLeft],
+              buttons: [ZwiftButtons.shiftDownRight],
               physicalKey: PhysicalKeyboardKey.numpadAdd,
               logicalKey: LogicalKeyboardKey.numpadAdd,
+              touchPosition: Offset(22.61769250748708, 8.13909075507417),
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.shiftUpLeft],
+              physicalKey: PhysicalKeyboardKey.numpadSubtract,
+              logicalKey: LogicalKeyboardKey.numpadSubtract,
               touchPosition: Offset(18.14448747554958, 6.772862761010401),
             ),
             KeyPair(
@@ -41,12 +47,6 @@ class TrainingPeaks extends SupportedApp {
               physicalKey: PhysicalKeyboardKey.numpadSubtract,
               logicalKey: LogicalKeyboardKey.numpadSubtract,
               touchPosition: Offset(18.128205128205135, 6.75213675213675),
-            ),
-            KeyPair(
-              buttons: [ZwiftButtons.shiftDownRight],
-              physicalKey: PhysicalKeyboardKey.numpadSubtract,
-              logicalKey: LogicalKeyboardKey.numpadSubtract,
-              touchPosition: Offset(22.61769250748708, 8.13909075507417),
             ),
 
             // Navigation buttons (keep arrow key mappings and add touch positions)
