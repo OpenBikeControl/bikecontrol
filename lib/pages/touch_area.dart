@@ -424,7 +424,6 @@ class KeypairExplanation extends StatelessWidget {
         ] else ...[
           if (!withKey && keyPair.touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
             _KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
-          if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
         ],
         if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
       ],

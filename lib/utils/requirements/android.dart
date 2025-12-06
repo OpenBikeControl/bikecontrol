@@ -25,8 +25,9 @@ class AccessibilityRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     status = await (core.actionHandler as AndroidActions).accessibilityHandler.hasPermission();
+    return status;
   }
 
   Future<void> _showDisclosureDialog(BuildContext context, VoidCallback onUpdate) async {
@@ -64,9 +65,10 @@ class BluetoothScanRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     final state = await Permission.bluetoothScan.status;
     status = state.isGranted || state.isLimited;
+    return status;
   }
 }
 
@@ -80,9 +82,10 @@ class LocationRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     final state = await Permission.locationWhenInUse.status;
     status = state.isGranted || state.isLimited;
+    return status;
   }
 }
 
@@ -96,9 +99,10 @@ class BluetoothConnectRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     final state = await Permission.bluetoothConnect.status;
     status = state.isGranted || state.isLimited;
+    return status;
   }
 }
 
@@ -119,13 +123,14 @@ class NotificationRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     final bool granted =
         await core.flutterLocalNotificationsPlugin
             .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
             ?.areNotificationsEnabled() ??
         false;
     status = granted;
+    return status;
   }
 
   static Future<void> setup() async {

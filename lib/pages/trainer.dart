@@ -180,71 +180,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               },
             ),
             if (core.settings.getTrainerApp() != null) ...[
-              // show warning only for android when using local accessibility service
-              if (_showAutoRotationWarning && _isRunningAndroidService == true)
-                Warning(
-                  important: false,
-                  children: [
-                    Text(context.i18n.enableAutoRotation),
-                  ],
-                ),
-              if (_showMiuiWarning)
-                Warning(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.warning_amber),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(context.i18n.miuiDeviceDetected).bold,
-                        ),
-                        IconButton.destructive(
-                          icon: Icon(Icons.close),
-                          onPressed: () async {
-                            await core.settings.setMiuiWarningDismissed(true);
-                            setState(() {
-                              _showMiuiWarning = false;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      context.i18n.miuiWarningDescription,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      context.i18n.miuiEnsureProperWorking,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      context.i18n.miuiDisableBatteryOptimization,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Text(
-                      context.i18n.miuiEnableAutostart,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Text(
-                      context.i18n.miuiLockInRecentApps,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    SizedBox(height: 12),
-                    IconButton.secondary(
-                      onPressed: () async {
-                        final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                      icon: Icon(Icons.open_in_new),
-                      trailing: Text(context.i18n.viewDetailedInstructions),
-                    ),
-                  ],
-                ),
-
               SizedBox(height: 8),
               if (core.logic.hasRecommendedConnectionMethods)
                 ColoredTitle(
@@ -300,15 +235,82 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                       core.connection.signalNotification(LogNotification('Local Control: $value'));
                     }
                   },
-                  additionalChild: _isRunningAndroidService == false
-                      ? Warning(
+                  additionalChild: Column(
+                    children: [
+                      // show warning only for android when using local accessibility service
+                      if (_showAutoRotationWarning)
+                        Warning(
+                          important: false,
+                          children: [
+                            Text(context.i18n.enableAutoRotation),
+                          ],
+                        ),
+                      if (_showMiuiWarning)
+                        Warning(
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.warning_amber),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(context.i18n.miuiDeviceDetected).bold,
+                                ),
+                                IconButton.destructive(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () async {
+                                    await core.settings.setMiuiWarningDismissed(true);
+                                    setState(() {
+                                      _showMiuiWarning = false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              context.i18n.miuiWarningDescription,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              context.i18n.miuiEnsureProperWorking,
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                            Text(
+                              context.i18n.miuiDisableBatteryOptimization,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            Text(
+                              context.i18n.miuiEnableAutostart,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            Text(
+                              context.i18n.miuiLockInRecentApps,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            SizedBox(height: 12),
+                            OutlineButton(
+                              onPressed: () async {
+                                final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              leading: Icon(Icons.open_in_new),
+                              child: Text(context.i18n.viewDetailedInstructions),
+                            ),
+                          ],
+                        ),
+                      if (_isRunningAndroidService == false)
+                        Warning(
                           children: [
                             Text(context.i18n.accessibilityServiceNotRunning).xSmall,
+                            SizedBox(height: 8),
                             Row(
                               spacing: 8,
                               children: [
                                 Expanded(
-                                  child: LinkButton(
+                                  child: OutlineButton(
                                     child: Text('dontkillmyapp.com'),
                                     onPressed: () {
                                       launchUrlString('https://dontkillmyapp.com/');
@@ -331,8 +333,9 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                               ],
                             ),
                           ],
-                        )
-                      : null,
+                        ),
+                    ],
+                  ),
                 ),
               if (core.logic.showRemote) ...[
                 SizedBox(height: 8),

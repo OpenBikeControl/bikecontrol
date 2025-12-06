@@ -130,8 +130,13 @@ class KeyPair {
       logicalKey == null && physicalKey == null && touchPosition == Offset.zero && inGameAction == null;
 
   bool get hasActiveAction =>
-      (physicalKey != null && core.logic.showLocalControl && core.settings.getLocalEnabled()) ||
-      (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions) ||
+      (physicalKey != null &&
+          core.logic.showLocalControl &&
+          core.settings.getLocalEnabled() &&
+          core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ||
+      (touchPosition != Offset.zero &&
+          core.logic.showLocalRemoteOptions &&
+          core.actionHandler.supportedModes.contains(SupportedMode.touch)) ||
       (inGameAction != null && core.logic.emulatorEnabled);
 
   @override

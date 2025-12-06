@@ -7,7 +7,7 @@ abstract class PlatformRequirement {
 
   PlatformRequirement(this.name, {this.description});
 
-  Future<void> getStatus();
+  Future<bool> getStatus();
 
   Future<void> call(BuildContext context, VoidCallback onUpdate);
 

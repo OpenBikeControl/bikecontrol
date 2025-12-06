@@ -193,27 +193,17 @@ class _ButtonEditor extends StatelessWidget {
           onUpdate();
         }
       },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        spacing: 6,
-        children: [
-          if (keyPair.buttons.isNotEmpty && keyPair.hasActiveAction)
-            Expanded(
-              child: KeypairExplanation(
-                keyPair: keyPair,
-              ),
+      trailing: Icon(Icons.edit, size: 18),
+      child: (keyPair.buttons.isNotEmpty && keyPair.hasActiveAction)
+          ? KeypairExplanation(
+              keyPair: keyPair,
             )
-          else
-            Expanded(
-              child: Text(
-                core.logic.hasNoConnectionMethod
-                    ? AppLocalizations.of(context).noConnectionMethodSelected
-                    : context.i18n.noActionAssigned,
-              ).muted.xSmall,
-            ),
-          Icon(Icons.edit, size: 14),
-        ],
-      ),
+          : Text(
+              core.logic.hasNoConnectionMethod
+                  ? AppLocalizations.of(context).noConnectionMethodSelected
+                  : context.i18n.noActionAssigned,
+              style: TextStyle(height: 1),
+            ).muted.xSmall,
     );
   }
 }

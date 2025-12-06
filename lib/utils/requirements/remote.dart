@@ -272,9 +272,10 @@ class RemoteRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     status =
         (core.actionHandler is RemoteActions && (core.actionHandler as RemoteActions).isConnected) || screenshotMode;
+    return status;
   }
 }
 

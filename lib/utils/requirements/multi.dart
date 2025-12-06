@@ -29,8 +29,9 @@ class KeyboardRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     status = await keyPressSimulator.isAccessAllowed();
+    return status;
   }
 }
 
@@ -43,8 +44,9 @@ class BluetoothAdvertiseRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     status = await Permission.bluetoothAdvertise.status == PermissionStatus.granted;
+    return status;
   }
 }
 
@@ -82,11 +84,12 @@ class BluetoothTurnedOn extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     final currentState = screenshotMode
         ? AvailabilityState.poweredOn
         : await UniversalBle.getBluetoothAvailabilityState();
     status = currentState == AvailabilityState.poweredOn || screenshotMode;
+    return status;
   }
 }
 
@@ -104,7 +107,9 @@ class UnsupportedPlatform extends PlatformRequirement {
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   @override
-  Future<void> getStatus() async {}
+  Future<bool> getStatus() async {
+    return status;
+  }
 }
 
 class ErrorRequirement extends PlatformRequirement {
@@ -118,7 +123,9 @@ class ErrorRequirement extends PlatformRequirement {
   }
 
   @override
-  Future<void> getStatus() async {}
+  Future<bool> getStatus() async {
+    return false;
+  }
 }
 
 typedef BoolFunction = bool Function();
@@ -195,7 +202,8 @@ class PlaceholderRequirement extends PlatformRequirement {
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
 
   @override
-  Future<void> getStatus() async {
+  Future<bool> getStatus() async {
     status = false;
+    return false;
   }
 }

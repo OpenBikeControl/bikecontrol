@@ -74,8 +74,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (widget.requirements.isNotEmpty && widget.isEnabled && widget.isStarted == false) {
-      Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
-        final allDone = widget.requirements.every((e) => e.status);
+      Future.wait(widget.requirements.map((e) => e.getStatus())).then((states) {
+        final allDone = states.all((e) => e);
         if (allDone && widget.isEnabled) {
           widget.onChange(true);
         } else if (!allDone && widget.isEnabled) {

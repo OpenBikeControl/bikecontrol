@@ -1,3 +1,4 @@
+import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/mywhoosh/link.dart';
@@ -30,11 +31,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final keyPair = widget.keyPair;
     final trainerApp = core.settings.getTrainerApp();
 
-    final actionsWithInGameAction = trainerApp?.keymap.keyPairs.where((kp) => kp.inGameAction != null).toList();
+    final actionsWithInGameAction = trainerApp?.keymap.keyPairs
+        .where((kp) => kp.inGameAction != null)
+        .distinctBy((kp) => kp.inGameAction)
+        .toList();
 
     return IntrinsicWidth(
-      child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
+      child: Container(
+        constraints: BoxConstraints(maxWidth: 300),
+        padding: const EdgeInsets.only(right: 26.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 16,
@@ -112,7 +117,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 icon: Icons.link,
                 title: Text(context.i18n.myWhooshDirectConnectAction),
                 isActive: keyPair.inGameAction != null,
-                value: [?keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
+                value: [keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
                 onPressed: () {
                   showDropdown(
                     context: context,
