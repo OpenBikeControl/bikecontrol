@@ -27,6 +27,10 @@ class Success extends ActionResult {
   const Success(super.message);
 }
 
+class NotHandled extends ActionResult {
+  const NotHandled() : super('Not Handled');
+}
+
 class Error extends ActionResult {
   const Error(super.message);
 }
@@ -108,14 +112,33 @@ abstract class BaseActions {
     return Offset.zero;
   }
 
-  Future<ActionResult> performAction(ControllerButton action, {required bool isKeyDown, required bool isKeyUp});
+  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
+    if (supportedApp == null) {
+      return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
+    }
 
-  Future<ActionResult>? handleDirectConnect(
+    final keyPair = supportedApp!.keymap.getKeyPair(button);
+
+    if (core.logic.hasNoConnectionMethod) {
+      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (!(await core.logic.isTrainerConnected())) {
+      return Error('No connection method is connected or active.');
+    } else if (keyPair == null) {
+      return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
+    } else if (keyPair.hasNoAction) {
+      return Error('No action assigned for ${button.toString().splitByUpperCase()}');
+    }
+
+    final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
+    return directConnectHandled;
+  }
+
+  Future<ActionResult> _handleDirectConnect(
     KeyPair keyPair,
     ControllerButton button, {
     required bool isKeyDown,
     required bool isKeyUp,
-  }) {
+  }) async {
     if (keyPair.inGameAction != null) {
       if (core.obpBluetoothEmulator.isConnected.value != null) {
         return core.obpBluetoothEmulator.sendButtonPress(
@@ -156,7 +179,7 @@ abstract class BaseActions {
         );
       }
     }
-    return null;
+    return NotHandled();
   }
 }
 

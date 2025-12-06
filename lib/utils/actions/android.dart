@@ -2,7 +2,6 @@ import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
-import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
@@ -46,27 +45,13 @@ class AndroidActions extends BaseActions {
 
   @override
   Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
-    if (supportedApp == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+    if (superResult is! NotHandled) {
+      return superResult;
     }
+    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
 
-    final keyPair = supportedApp!.keymap.getKeyPair(button);
-
-    if (core.logic.hasNoConnectionMethod) {
-      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
-    } else if (!(await core.logic.isTrainerConnected())) {
-      return Error('No connection method is connected or active.');
-    } else if (keyPair == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${button.toString().splitByUpperCase()}');
-    }
-
-    final directConnectHandled = await handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
-
-    if (directConnectHandled != null) {
-      return directConnectHandled;
-    } else if (keyPair.isSpecialKey) {
+    if (keyPair.isSpecialKey) {
       await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
         PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,
         PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,

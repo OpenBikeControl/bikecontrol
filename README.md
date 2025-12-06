@@ -70,14 +70,15 @@ Check the troubleshooting guide [here](TROUBLESHOOTING.md).
 
 ## How does it work?
 The app connects to your Controller devices (such as Zwift ones) automatically. BikeControl uses different methods of connecting to the trainer app, depending on the trainer app and operating system:
-- Directly control the trainer app via Accessibility features (simulating touch and keyboard input)
-  - available on Android, macOS, Windows
-- Connect to the trainer app by simulating a Bluetooth device
+- Connect to the trainer app on the same device or on another device using Network
+    - available on Android, iOS, macOS, Windows
+    - supported by e.g. MyWhoosh, Rouvy and Zwift
+- Connect to the trainer app on another device by simulating a Bluetooth device
   - available on Android, iOS, macOS, Windows
   - supported by e.g. Rouvy and Zwift
-- Connect to the trainer app using Network
-  - available on Android, iOS, macOS, Windows
-  - supported by e.g. MyWhoosh, Rouvy and Zwift
+- Directly control the trainer app via Accessibility features (simulating touch and keyboard input)
+  - available on Android, macOS, Windows
+  - supported by all trainer apps
 - Connect to supported trainer app using the [OpenBikeControl](https://openbikecontrol.org) protocol
   - available on Android, iOS, macOS, Windows
 

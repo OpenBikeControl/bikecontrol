@@ -1,11 +1,9 @@
 import 'dart:ui';
 
 import 'package:keypress_simulator/keypress_simulator.dart';
-import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
 
 class DesktopActions extends BaseActions {
   DesktopActions({super.supportedModes = const [SupportedMode.keyboard, SupportedMode.touch, SupportedMode.media]});
@@ -13,27 +11,14 @@ class DesktopActions extends BaseActions {
   // Track keys that are currently held down in long press mode
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {required bool isKeyDown, required bool isKeyUp}) async {
-    if (supportedApp == null) {
-      return Error('Supported app is not set');
+  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+    if (superResult is! NotHandled) {
+      return superResult;
     }
+    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
 
-    final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (core.logic.hasNoConnectionMethod) {
-      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
-    } else if (!(await core.logic.isTrainerConnected())) {
-      return Error('No connection method is connected or active.');
-    } else if (keyPair == null) {
-      return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${action.toString().splitByUpperCase()}');
-    }
-
-    final directConnectHandled = await handleDirectConnect(keyPair, action, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
-
-    if (directConnectHandled != null) {
-      return directConnectHandled;
-    } else if (core.settings.getLocalEnabled()) {
+    if (core.settings.getLocalEnabled()) {
       if (keyPair.physicalKey != null) {
         if (isKeyDown && isKeyUp) {
           await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
@@ -64,7 +49,7 @@ class DesktopActions extends BaseActions {
         }
       }
     }
-    return Error('No action assigned for ${action.toString().splitByUpperCase()}');
+    return NotHandled();
   }
 
   // Release all held keys (useful for cleanup)

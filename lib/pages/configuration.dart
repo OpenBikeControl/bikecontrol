@@ -72,12 +72,29 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
                       value: core.settings.getTrainerApp(),
                       onChanged: (selectedApp) async {
-                        if (core.settings.getTrainerApp() is MyWhoosh &&
-                            selectedApp is! MyWhoosh &&
-                            core.whooshLink.isStarted.value) {
-                          core.whooshLink.stopServer();
+                        if (selectedApp is! MyWhoosh) {
+                          if (core.whooshLink.isStarted.value) {
+                            core.whooshLink.stopServer();
+                          }
                         }
-                        core.settings.setTrainerApp(selectedApp!);
+                        if (!selectedApp!.supportsZwiftEmulation) {
+                          if (core.zwiftMdnsEmulator.isStarted.value) {
+                            core.zwiftMdnsEmulator.stop();
+                          }
+                          if (core.zwiftEmulator.isStarted.value) {
+                            core.zwiftEmulator.stopAdvertising();
+                          }
+                        }
+                        if (!selectedApp.supportsOpenBikeProtocol) {
+                          if (core.obpMdnsEmulator.isStarted.value) {
+                            core.obpMdnsEmulator.stopServer();
+                          }
+                          if (core.obpBluetoothEmulator.isStarted.value) {
+                            core.obpBluetoothEmulator.stopServer();
+                          }
+                        }
+
+                        core.settings.setTrainerApp(selectedApp);
                         if (core.settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
                           await _setTarget(context, Target.thisDevice);
                         } else if (core.settings.getLastTarget() == null && Target.otherDevice.isCompatible) {

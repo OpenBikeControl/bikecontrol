@@ -2,38 +2,22 @@ import 'dart:ui';
 
 import 'package:accessibility/accessibility.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
 
 class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch]});
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {required bool isKeyDown, required bool isKeyUp}) async {
-    if (supportedApp == null) {
-      return Error('Supported app is not set');
+  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+    if (superResult is! NotHandled) {
+      return superResult;
     }
-
-    final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (core.logic.hasNoConnectionMethod) {
-      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
-    } else if (!(await core.logic.isTrainerConnected())) {
-      return Error('No connection method is connected or active.');
-    } else if (keyPair == null) {
-      return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${action.toString().splitByUpperCase()}');
-    }
-
-    final directConnectHandled = await handleDirectConnect(keyPair, action, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
-
-    if (directConnectHandled != null) {
-      return directConnectHandled;
-    } else if (!core.remotePairing.isConnected.value) {
+    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
+    if (!core.remotePairing.isConnected.value) {
       return Error('Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device');
     }
 
