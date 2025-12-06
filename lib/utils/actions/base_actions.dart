@@ -6,11 +6,13 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:swift_control/widgets/keymap_explanation.dart';
 
 import '../keymap/apps/supported_app.dart';
 
@@ -164,8 +166,22 @@ class StubActions extends BaseActions {
   final List<ControllerButton> performedActions = [];
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
+  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
     performedActions.add(action);
+    if (supportedApp == null) {
+      return Error('Supported app is not set');
+    }
+
+    final keyPair = supportedApp!.keymap.getKeyPair(action);
+    if (core.logic.hasNoConnectionMethod) {
+      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (!(await core.logic.isTrainerConnected())) {
+      return Error('No connection method is connected or active.');
+    } else if (keyPair == null) {
+      return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
+    } else if (keyPair.hasNoAction) {
+      return Error('No action assigned for ${action.toString().splitByUpperCase()}');
+    }
     return Future.value(Success(action.name));
   }
 }

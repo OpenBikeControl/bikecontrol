@@ -8,6 +8,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/utils/actions/base_actions.dart' as actions;
 import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
@@ -74,8 +75,11 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
       if (!mounted) {
         return;
       }
-      if (data is ButtonNotification) {
-        for (final button in data.buttonsClicked) {
+      if (data is ButtonNotification && data.buttonsClicked.isNotEmpty) {
+        if (core.actionHandler.supportedApp == null) {
+          buildToast(context, level: LogLevel.LOGLEVEL_WARNING, title: context.i18n.selectTrainerAppAndTarget);
+        } else {
+          final button = data.buttonsClicked.first;
           if (core.actionHandler.supportedApp is! CustomApp &&
               core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
             buildToast(
@@ -84,12 +88,12 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
               titleWidget: Text.rich(
                 TextSpan(
                   children: [
-                    const TextSpan(text: 'Use a custom keymap to support the '),
+                    TextSpan(text: '${context.i18n.useCustomKeymapForButton} '),
                     WidgetSpan(
                       child: ButtonWidget(button: button),
                     ),
-                    const TextSpan(
-                      text: ' button.',
+                    TextSpan(
+                      text: context.i18n.button,
                     ),
                   ],
                 ),
@@ -100,11 +104,10 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
             buildToast(
               context,
               location: isMobile ? ToastLocation.topCenter : ToastLocation.bottomRight,
-              titleWidget: ButtonWidget(button: button),
+              titleWidget: Wrap(children: data.buttonsClicked.map((button) => ButtonWidget(button: button)).toList()),
             );
           }
         }
-        setState(() {});
       } else if (data is ActionNotification) {
         buildToast(
           context,

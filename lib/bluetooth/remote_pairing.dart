@@ -3,47 +3,73 @@ import 'dart:io';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState;
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/widgets/ui/connection_method.dart';
 
-bool isAdvertisingPeripheral = false;
-bool _isLoading = false;
-bool _isServiceAdded = false;
-bool _isSubscribedToEvents = false;
-final peripheralManager = PeripheralManager();
+class RemotePairing {
+  ValueNotifier<bool> isConnected = ValueNotifier<bool>(false);
+  ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
+  bool get isLoading => _isLoading;
 
-class RemoteRequirement extends PlatformRequirement {
-  RemoteRequirement()
-    : super(
-        AppLocalizations.current.choosePreferredConnectionMethod,
-      );
+  late final _peripheralManager = PeripheralManager();
+  bool _isLoading = false;
+  bool _isServiceAdded = false;
+  bool _isSubscribedToEvents = false;
 
-  @override
-  Future<void> call(BuildContext context, VoidCallback onUpdate) async {}
-
-  @override
-  Widget? buildDescription() {
-    return Text(AppLocalizations.current.choosePreferredConnectionMethod);
-  }
+  Central? _central;
+  GATTCharacteristic? _inputReport;
 
   Future<void> reconnect() async {
-    await peripheralManager.stopAdvertising();
-    await peripheralManager.removeAllServices();
+    await _peripheralManager.stopAdvertising();
+    await _peripheralManager.removeAllServices();
     _isServiceAdded = false;
-    isAdvertisingPeripheral = false;
-    (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
-    startAdvertising(() {});
+    startAdvertising().catchError((e) {
+      core.settings.setRemoteControlEnabled(false);
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Remote Control pairing: $e'),
+      );
+    });
   }
 
-  Future<void> startAdvertising(VoidCallback onUpdate) async {
-    // Input report characteristic (notify)
+  Future<void> startAdvertising() async {
+    _isLoading = true;
+    isStarted.value = true;
+
+    _peripheralManager.stateChanged.forEach((state) {
+      print('Peripheral manager state: ${state.state}');
+    });
+
+    if (!kIsWeb && Platform.isAndroid) {
+      _peripheralManager.connectionStateChanged.forEach((state) {
+        print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
+        if (state.state == ConnectionState.connected) {
+        } else if (state.state == ConnectionState.disconnected) {
+          _central = null;
+          isConnected.value = false;
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.disconnected),
+          );
+        }
+      });
+
+      final status = await Permission.bluetoothAdvertise.request();
+      if (!status.isGranted) {
+        print('Bluetooth advertise permission not granted');
+        isStarted.value = false;
+        return;
+      }
+    }
+
+    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
+      print('Waiting for peripheral manager to be powered on...');
+      if (core.settings.getLastTarget() == Target.thisDevice) {
+        return;
+      }
+      await Future.delayed(Duration(seconds: 1));
+    }
     final inputReport = GATTCharacteristic.mutable(
       uuid: UUID.fromString('2A4D'),
       permissions: [GATTCharacteristicPermission.read],
@@ -57,47 +83,9 @@ class RemoteRequirement extends PlatformRequirement {
       ],
     );
 
-    peripheralManager.stateChanged.forEach((state) {
-      print('Peripheral manager state: ${state.state}');
-    });
-
-    if (!kIsWeb && Platform.isAndroid) {
-      if (Platform.isAndroid) {
-        peripheralManager.connectionStateChanged.forEach((state) {
-          print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
-          if (state.state == ConnectionState.connected) {
-            /*(actionHandler as RemoteActions).setConnectedCentral(state.central, inputReport);
-            //peripheralManager.stopAdvertising();
-            onUpdate();*/
-          } else if (state.state == ConnectionState.disconnected) {
-            (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
-            onUpdate();
-          }
-        });
-      }
-
-      final status = await Permission.bluetoothAdvertise.request();
-      if (!status.isGranted) {
-        print('Bluetooth advertise permission not granted');
-        isAdvertisingPeripheral = false;
-        onUpdate();
-        return;
-      }
-    }
-    if (kDebugMode && false) {
-      print('Continuing');
-      return;
-    }
-
-    while (peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
-      print('Waiting for peripheral manager to be powered on... ${peripheralManager.state}');
-      if (core.settings.getLastTarget() == Target.thisDevice) {
-        return;
-      }
-      await Future.delayed(Duration(seconds: 1));
-    }
     if (!_isServiceAdded) {
       await Future.delayed(Duration(seconds: 1));
+
       final reportMapDataAbsolute = Uint8List.fromList([
         0x05, 0x01, // Usage Page (Generic Desktop)
         0x09, 0x02, // Usage (Mouse)
@@ -208,29 +196,30 @@ class RemoteRequirement extends PlatformRequirement {
 
       if (!_isSubscribedToEvents) {
         _isSubscribedToEvents = true;
-        peripheralManager.characteristicReadRequested.forEach((char) {
+        _peripheralManager.characteristicReadRequested.forEach((char) {
           print('Read request for characteristic: ${char}');
           // You can respond to read requests here if needed
         });
 
-        peripheralManager.characteristicNotifyStateChanged.forEach((char) {
+        _peripheralManager.characteristicNotifyStateChanged.forEach((char) {
           if (char.characteristic.uuid == inputReport.uuid) {
             if (char.state) {
-              (core.actionHandler as RemoteActions).setConnectedCentral(char.central, char.characteristic);
+              _inputReport = char.characteristic;
+              _central = char.central;
             } else {
-              (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
+              _inputReport = null;
+              _central = null;
             }
-            onUpdate();
           }
           print(
             'Notify state changed for characteristic: ${char.characteristic.uuid} vs ${char.characteristic.uuid == inputReport.uuid}: ${char.state}',
           );
         });
       }
-      await peripheralManager.addService(hidService);
+      await _peripheralManager.addService(hidService);
 
       // 3) Optional Battery service
-      await peripheralManager.addService(
+      await _peripheralManager.addService(
         GATTService(
           uuid: UUID.fromString('180F'),
           isPrimary: true,
@@ -256,80 +245,22 @@ class RemoteRequirement extends PlatformRequirement {
               : ''}',
       serviceUUIDs: [UUID.fromString(Platform.isIOS ? '1812' : '00001812-0000-1000-8000-00805F9B34FB')],
     );
-    /*pm.connectionStateChanged.forEach((state) {
-    print('Peripheral connection state: $state');
-  });*/
-    print('Starting advertising with HID service...');
+    print('Starting advertising with Zwift service...');
 
-    await peripheralManager.startAdvertising(advertisement);
-    isAdvertisingPeripheral = true;
-    onUpdate();
+    await _peripheralManager.startAdvertising(advertisement);
+    _isLoading = false;
   }
 
-  @override
-  Widget? build(BuildContext context, VoidCallback onUpdate) {
-    return _PairWidget(onUpdate: onUpdate, requirement: this);
+  Future<void> stopAdvertising() async {
+    await _peripheralManager.stopAdvertising();
+    isStarted.value = false;
+    isConnected.value = false;
+    _isLoading = false;
   }
 
-  @override
-  Future<bool> getStatus() async {
-    status =
-        (core.actionHandler is RemoteActions && (core.actionHandler as RemoteActions).isConnected) || screenshotMode;
-    return status;
-  }
-}
-
-class _PairWidget extends StatefulWidget {
-  final RemoteRequirement requirement;
-  final VoidCallback onUpdate;
-  const _PairWidget({super.key, required this.onUpdate, required this.requirement});
-
-  @override
-  State<_PairWidget> createState() => _PairWidgetState();
-}
-
-class _PairWidgetState extends State<_PairWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return ConnectionMethod(
-      isEnabled: core.settings.getRemoteControlEnabled(),
-      isStarted: isAdvertisingPeripheral,
-      showTroubleshooting: true,
-      type: ConnectionMethodType.bluetooth,
-      title: context.i18n.enablePairingProcess,
-      description: context.i18n.pairingDescription,
-      isConnected: (core.actionHandler as RemoteActions).isConnected,
-      requirements: core.permissions.getRemoteControlRequirements(),
-      onChange: (value) async {
-        core.settings.setRemoteControlEnabled(value);
-        await toggle(value);
-        setState(() {});
-      },
-      additionalChild: isAdvertisingPeripheral
-          ? Text(
-              switch (core.settings.getLastTarget()) {
-                Target.otherDevice when Platform.isIOS => context.i18n.pairingInstructionsIOS,
-                _ => context.i18n.pairingInstructions(core.settings.getLastTarget()?.getTitle(context) ?? ''),
-              },
-            ).xSmall
-          : null,
-    );
-  }
-
-  Future<void> toggle(bool enable) async {
-    if (isAdvertisingPeripheral && !enable) {
-      peripheralManager.stopAdvertising();
-      isAdvertisingPeripheral = false;
-      (core.actionHandler as RemoteActions).setConnectedCentral(null, null);
-      widget.onUpdate();
-      _isLoading = false;
-      setState(() {});
-    } else if (!isAdvertisingPeripheral && enable) {
-      _isLoading = true;
-      setState(() {});
-      await widget.requirement.startAdvertising(widget.onUpdate);
-      _isLoading = false;
-      if (mounted) setState(() {});
+  Future<void> notifyCharacteristic(Uint8List value) async {
+    if (_inputReport != null && _central != null) {
+      await _peripheralManager.notifyCharacteristic(_central!, _inputReport!, value: value);
     }
   }
 }

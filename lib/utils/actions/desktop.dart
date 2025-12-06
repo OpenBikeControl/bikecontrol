@@ -21,6 +21,8 @@ class DesktopActions extends BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (core.logic.hasNoConnectionMethod) {
       return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (!(await core.logic.isTrainerConnected())) {
+      return Error('No connection method is connected or active.');
     } else if (keyPair == null) {
       return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     } else if (keyPair.hasNoAction) {

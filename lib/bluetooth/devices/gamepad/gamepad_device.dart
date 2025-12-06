@@ -4,12 +4,8 @@ import 'package:gamepads/gamepads.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
-
-import '../../../widgets/ui/warning.dart';
 
 class GamepadDevice extends BaseDevice {
   final String id;
@@ -53,13 +49,6 @@ class GamepadDevice extends BaseDevice {
               if (isBeta) BetaPill(),
             ],
           ),
-
-          if (core.actionHandler.supportedApp is! CustomApp)
-            Warning(
-              children: [
-                Text('Use a custom keymap to use the buttons on $name.'),
-              ],
-            ),
         ],
       ),
     );

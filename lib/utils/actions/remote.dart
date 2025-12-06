@@ -1,18 +1,13 @@
 import 'dart:ui';
 
 import 'package:accessibility/accessibility.dart';
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
-import 'package:universal_ble/universal_ble.dart';
-
-import '../requirements/remote.dart';
 
 class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch]});
@@ -26,6 +21,8 @@ class RemoteActions extends BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(action);
     if (core.logic.hasNoConnectionMethod) {
       return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (!(await core.logic.isTrainerConnected())) {
+      return Error('No connection method is connected or active.');
     } else if (keyPair == null) {
       return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
     } else if (keyPair.hasNoAction) {
@@ -36,7 +33,7 @@ class RemoteActions extends BaseActions {
 
     if (directConnectHandled != null) {
       return directConnectHandled;
-    } else if (!(core.actionHandler as RemoteActions).isConnected) {
+    } else if (!core.remotePairing.isConnected.value) {
       return Error('Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device');
     }
 
@@ -74,21 +71,9 @@ class RemoteActions extends BaseActions {
       print('Sending abs mouse report: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0'))}');
     }
 
-    await peripheralManager.notifyCharacteristic(connectedCentral!, connectedCharacteristic!, value: bytes);
+    await core.remotePairing.notifyCharacteristic(bytes);
 
     // we don't want to overwhelm the target device
     await Future.delayed(Duration(milliseconds: 10));
   }
-
-  Central? connectedCentral;
-  GATTCharacteristic? connectedCharacteristic;
-
-  void setConnectedCentral(Central? central, GATTCharacteristic? gattCharacteristic) {
-    connectedCentral = central;
-    connectedCharacteristic = gattCharacteristic;
-
-    core.connection.signalChange(ZwiftClick(BleDevice(deviceId: 'deviceId', name: 'name')));
-  }
-
-  bool get isConnected => connectedCentral != null;
 }

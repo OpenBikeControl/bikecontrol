@@ -54,6 +54,8 @@ class AndroidActions extends BaseActions {
 
     if (core.logic.hasNoConnectionMethod) {
       return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (!(await core.logic.isTrainerConnected())) {
+      return Error('No connection method is connected or active.');
     } else if (keyPair == null) {
       return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
     } else if (keyPair.hasNoAction) {

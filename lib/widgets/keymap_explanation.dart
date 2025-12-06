@@ -99,9 +99,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                       child: Text(
                         core.connection.devices.isEmpty
                             ? context.i18n.deviceButton('Device')
-                            : context.i18n.deviceButton(
-                                core.connection.devices.joinToString(transform: (d) => d.name.screenshot),
-                              ),
+                            : core.connection.devices.joinToString(transform: (d) => d.name.screenshot),
                       ).small,
                     ),
                   ),

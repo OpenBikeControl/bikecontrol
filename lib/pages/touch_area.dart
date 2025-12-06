@@ -340,30 +340,35 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                         icon: const Icon(Icons.save),
                         trailing: Text(context.i18n.save),
                       ),
-                      OutlineButton(
-                        child: Text('Menu'),
-                        onPressed: () {
-                          showDropdown(
-                            context: context,
-                            builder: (c) => DropdownMenu(
-                              children: [
-                                MenuButton(
-                                  child: Text(context.i18n.chooseAnotherScreenshot),
-                                  onPressed: (c) {
-                                    _pickScreenshot();
-                                  },
-                                ),
-                                MenuButton(
-                                  child: Text(context.i18n.reset),
-                                  onPressed: (c) {
-                                    _backgroundImage = null;
+                      Builder(
+                        builder: (context) {
+                          return OutlineButton(
+                            child: Text('Menu'),
+                            onPressed: () {
+                              showDropdown(
+                                context: context,
+                                builder: (c) => DropdownMenu(
+                                  children: [
+                                    if (_backgroundImage != null)
+                                      MenuButton(
+                                        child: Text(context.i18n.chooseAnotherScreenshot),
+                                        onPressed: (c) {
+                                          _pickScreenshot();
+                                        },
+                                      ),
+                                    MenuButton(
+                                      child: Text(context.i18n.reset),
+                                      onPressed: (c) {
+                                        _backgroundImage = null;
 
-                                    core.actionHandler.supportedApp?.keymap.reset();
-                                    setState(() {});
-                                  },
+                                        core.actionHandler.supportedApp?.keymap.reset();
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           );
                         },
                       ),

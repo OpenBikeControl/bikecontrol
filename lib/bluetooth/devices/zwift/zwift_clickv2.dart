@@ -75,20 +75,35 @@ class ZwiftClickV2 extends ZwiftRide {
             if (isConnected && _noLongerSendsEvents && core.settings.getShowZwiftClickV2ReconnectWarning())
               Warning(
                 children: [
-                  Text(
-                    AppLocalizations.of(context).clickV2Instructions,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context).clickV2Instructions,
+                        ).xSmall,
+                      ),
+                      IconButton.link(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          core.settings.setShowZwiftClickV2ReconnectWarning(false);
+                          setState(() {});
+                        },
+                      ),
+                    ],
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
                     children: [
-                      TextButton(
+                      GhostButton(
                         onPressed: () {
                           sendCommand(Opcode.RESET, null);
                         },
                         child: Text('Reset now'),
                       ),
-                      TextButton(
+                      OutlineButton(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -97,14 +112,8 @@ class ZwiftClickV2 extends ZwiftRide {
                             ),
                           );
                         },
+                        leading: const Icon(Icons.open_in_new),
                         child: Text(context.i18n.troubleshootingGuide),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          core.settings.setShowZwiftClickV2ReconnectWarning(false);
-                          setState(() {});
-                        },
-                        child: Text(context.i18n.close),
                       ),
                     ],
                   ),

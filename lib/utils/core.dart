@@ -14,6 +14,7 @@ import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/bluetooth/remote_pairing.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
@@ -42,6 +43,7 @@ class Core {
   late final zwiftMdnsEmulator = FtmsMdnsEmulator();
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
+  late final remotePairing = RemotePairing();
 
   late final mediaKeyHandler = MediaKeyHandler();
   late final logic = CoreLogic();
@@ -169,10 +171,7 @@ class CoreLogic {
   bool get showRemote => core.settings.getLastTarget() != Target.thisDevice && core.actionHandler is RemoteActions;
 
   bool get showForegroundMessage =>
-      core.actionHandler is RemoteActions &&
-      !kIsWeb &&
-      Platform.isIOS &&
-      (core.actionHandler as RemoteActions).isConnected;
+      core.actionHandler is RemoteActions && !kIsWeb && Platform.isIOS && core.remotePairing.isConnected.value;
 
   AppInfo? get obpConnectedApp => core.obpMdnsEmulator.isConnected.value ?? core.obpBluetoothEmulator.isConnected.value;
 
@@ -193,8 +192,7 @@ class CoreLogic {
 
   bool get showLocalRemoteOptions =>
       core.actionHandler.supportedModes.isNotEmpty &&
-      ((showLocalControl && core.settings.getLocalEnabled()) ||
-          (showRemote && core.settings.getRemoteControlEnabled()));
+      ((showLocalControl && core.settings.getLocalEnabled()) || (isRemoteControlEnabled));
 
   bool get hasNoConnectionMethod =>
       !isZwiftBleEnabled &&
@@ -214,34 +212,36 @@ class CoreLogic {
   Future<bool> isTrainerConnected() async {
     if (screenshotMode) {
       return true;
-    } else if (showLocalControl) {
+    } else if (showLocalControl && core.settings.getLocalEnabled()) {
       if (canRunAndroidService) {
         return isAndroidServiceRunning();
       } else {
-        return core.settings.getLocalEnabled();
+        return true;
       }
-    } else if (showMyWhooshLink) {
+    } else if (isMyWhooshLinkEnabled) {
       return core.whooshLink.isConnected.value;
-    } else if (showObpMdnsEmulator) {
+    } else if (isObpMdnsEnabled) {
       return core.obpMdnsEmulator.isConnected.value != null;
-    } else if (showObpBluetoothEmulator) {
+    } else if (isObpBleEnabled) {
       return core.obpBluetoothEmulator.isConnected.value != null;
-    } else if (showZwiftBleEmulator) {
+    } else if (isZwiftBleEnabled) {
       return core.zwiftEmulator.isConnected.value;
-    } else if (showZwiftMsdnEmulator) {
+    } else if (isZwiftMdnsEnabled) {
       return core.zwiftMdnsEmulator.isConnected.value == true;
-    } else if (showRemote) {
-      return (core.actionHandler as RemoteActions).isConnected;
+    } else if (isRemoteControlEnabled) {
+      return core.remotePairing.isConnected.value;
     } else {
       return false;
     }
   }
 
-  void initialize() async {
+  void startEnabledConnectionMethod() async {
     if (screenshotMode) {
       return;
     }
-    if (isZwiftBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
+    if (isZwiftBleEnabled &&
+        await core.permissions.getRemoteControlRequirements().allGranted &&
+        !core.zwiftEmulator.isStarted.value) {
       core.zwiftEmulator.startAdvertising(() {}).catchError((e) {
         core.settings.setZwiftBleEmulatorEnabled(false);
         core.connection.signalNotification(
@@ -249,7 +249,7 @@ class CoreLogic {
         );
       });
     }
-    if (isZwiftMdnsEnabled) {
+    if (isZwiftMdnsEnabled && !core.zwiftMdnsEmulator.isStarted.value) {
       core.zwiftMdnsEmulator.startServer().catchError((e) {
         core.settings.setZwiftMdnsEmulatorEnabled(false);
         core.connection.signalNotification(
@@ -257,7 +257,7 @@ class CoreLogic {
         );
       });
     }
-    if (isObpMdnsEnabled) {
+    if (isObpMdnsEnabled && !core.obpMdnsEmulator.isStarted.value) {
       core.obpMdnsEmulator.startServer().catchError((e) {
         core.settings.setObpMdnsEnabled(false);
         core.connection.signalNotification(
@@ -265,7 +265,9 @@ class CoreLogic {
         );
       });
     }
-    if (isObpBleEnabled && await core.permissions.getRemoteControlRequirements().allGranted) {
+    if (isObpBleEnabled &&
+        await core.permissions.getRemoteControlRequirements().allGranted &&
+        !core.obpBluetoothEmulator.isStarted.value) {
       core.obpBluetoothEmulator.startServer().catchError((e) {
         core.settings.setObpBleEnabled(false);
         core.connection.signalNotification(
@@ -274,12 +276,22 @@ class CoreLogic {
       });
     }
 
-    if (isMyWhooshLinkEnabled) {
-      core.connection.startMyWhooshServer();
+    if (isMyWhooshLinkEnabled && !core.whooshLink.isStarted.value) {
+      core.connection.startMyWhooshServer().catchError((e) {
+        core.settings.setMyWhooshLinkEnabled(false);
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start MyWhoosh Link: $e'),
+        );
+      });
     }
 
-    if (isRemoteControlEnabled) {
-      // TODO start remote control server
+    if (isRemoteControlEnabled && !core.remotePairing.isStarted.value) {
+      core.remotePairing.startAdvertising().catchError((e) {
+        core.settings.setRemoteControlEnabled(false);
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Remote Control pairing: $e'),
+        );
+      });
     }
   }
 }

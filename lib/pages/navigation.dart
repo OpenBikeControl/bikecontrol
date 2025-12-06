@@ -57,7 +57,7 @@ class _NavigationState extends State<Navigation> {
     _selectedPage = widget.page;
 
     core.connection.initialize();
-    core.logic.initialize();
+    core.logic.startEnabledConnectionMethod();
 
     core.connection.actionStream.listen((_) {
       _updateTrainerConnectionStatus();

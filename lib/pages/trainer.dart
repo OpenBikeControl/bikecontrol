@@ -11,16 +11,15 @@ import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/configuration.dart';
 import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/utils/requirements/remote.dart';
 import 'package:swift_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:swift_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:swift_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:swift_control/widgets/apps/zwift_tile.dart';
+import 'package:swift_control/widgets/pair_widget.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
@@ -119,8 +118,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       if (core.logic.showForegroundMessage) {
         UniversalBle.getBluetoothAvailabilityState().then((state) {
           if (state == AvailabilityState.poweredOn && mounted) {
-            final requirement = RemoteRequirement();
-            requirement.reconnect();
+            core.remotePairing.reconnect();
             buildToast(context, title: AppLocalizations.current.touchSimulationForegroundMessage);
           }
         });
@@ -340,11 +338,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               if (core.logic.showRemote) ...[
                 SizedBox(height: 8),
                 ColoredTitle(text: context.i18n.otherConnectionMethods),
-                RemoteRequirement().build(context, () {
-                  core.connection.signalNotification(
-                    LogNotification('Remote Control changed to ${(core.actionHandler as RemoteActions).isConnected}'),
-                  );
-                })!,
+                RemotePairingWidget(),
               ],
 
               SizedBox(),

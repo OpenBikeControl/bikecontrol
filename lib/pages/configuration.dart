@@ -7,7 +7,6 @@ import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
-import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 
 class ConfigurationPage extends StatefulWidget {
@@ -149,13 +148,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
     if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true && !core.logic.emulatorEnabled) {
       core.settings.setObpMdnsEnabled(true);
-      core.obpMdnsEmulator.startServer().catchError((e) {
-        core.settings.setObpMdnsEnabled(false);
-        buildToast(
-          context,
-          title: context.i18n.errorStartingOpenBikeControlServer,
-        );
-      });
     }
+    core.logic.startEnabledConnectionMethod();
   }
 }

@@ -12,8 +12,8 @@ import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
+import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/colors.dart';
-import 'package:swift_control/widgets/ui/gradient_text.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 
 class ButtonEditPage extends StatefulWidget {
@@ -26,6 +26,14 @@ class ButtonEditPage extends StatefulWidget {
 }
 
 class _ButtonEditPageState extends State<ButtonEditPage> {
+  late final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final keyPair = widget.keyPair;
@@ -37,373 +45,387 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         .toList();
 
     return IntrinsicWidth(
-      child: Container(
-        constraints: BoxConstraints(maxWidth: 300),
-        padding: const EdgeInsets.only(right: 26.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
-          children: [
-            SizedBox(height: 16),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 8,
+      child: Scrollbar(
+        controller: _scrollController,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 300),
+            padding: const EdgeInsets.only(right: 26.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 16,
               children: [
-                Text('Editing').h3,
-                ButtonWidget(button: widget.keyPair.buttons.first),
-                Expanded(child: SizedBox()),
-                IconButton(
-                  icon: Icon(Icons.close),
-                  variance: ButtonVariance.ghost,
-                  onPressed: () {
-                    closeDrawer(context);
-                  },
-                ),
-              ],
-            ),
-            if (core.logic.hasNoConnectionMethod)
-              ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 300),
-                child: Warning(
+                SizedBox(height: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 8,
                   children: [
-                    Text(AppLocalizations.of(context).pleaseSelectAConnectionMethodFirst),
+                    Text('Editing').h3,
+                    ButtonWidget(button: widget.keyPair.buttons.first),
+                    Expanded(child: SizedBox()),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      variance: ButtonVariance.ghost,
+                      onPressed: () {
+                        closeDrawer(context);
+                      },
+                    ),
                   ],
                 ),
-              ),
-            if (core.logic.showObpActions) ...[
-              GradientText(context.i18n.openBikeControlActions).h4,
-              SelectableCard(
-                icon: Icons.link,
-                title: Text(
-                  core.logic.obpConnectedApp == null
-                      ? 'Please connect to ${core.settings.getTrainerApp()?.name}, first.'
-                      : context.i18n.appIdActions(core.logic.obpConnectedApp!.appId),
-                ),
-                isActive: core.logic.obpConnectedApp != null && keyPair.inGameAction != null,
-                onPressed: core.logic.obpConnectedApp == null
-                    ? null
-                    : () {
-                        showDropdown(
-                          builder: (c) => DropdownMenu(
-                            children: core.logic.obpConnectedApp!.supportedButtons
-                                .map(
-                                  (button) => MenuButton(
-                                    child: Text(button.name),
-                                    onPressed: (_) {
-                                      keyPair.touchPosition = Offset.zero;
-                                      keyPair.physicalKey = null;
-                                      keyPair.logicalKey = null;
-                                      keyPair.inGameAction = button.action!;
-                                      keyPair.inGameActionValue = null;
-                                      widget.onUpdate();
-                                      setState(() {});
-                                    },
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                          context: context,
-                        );
-                      },
-              ),
-            ],
-
-            if (core.settings.getMyWhooshLinkEnabled() && core.logic.showMyWhooshLink) ...[
-              SizedBox(height: 8),
-              GradientText(context.i18n.myWhooshDirectConnectAction).h4,
-              SelectableCard(
-                icon: Icons.link,
-                title: Text(context.i18n.myWhooshDirectConnectAction),
-                isActive: keyPair.inGameAction != null,
-                value: [keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
-                onPressed: () {
-                  showDropdown(
-                    context: context,
-                    builder: (c) => DropdownMenu(
-                      children: WhooshLink.supportedActions.map(
-                        (ingame) {
-                          return MenuButton(
-                            subMenu: ingame.possibleValues
-                                ?.map(
-                                  (value) => MenuButton(
-                                    child: Text(value.toString()),
-                                    onPressed: (_) {
-                                      keyPair.inGameAction = ingame;
-                                      keyPair.inGameActionValue = value;
-                                      widget.onUpdate();
-                                      setState(() {});
-                                    },
-                                  ),
-                                )
-                                .toList(),
-                            child: Text(ingame.toString()),
-                            onPressed: (_) {
-                              keyPair.inGameAction = ingame;
-                              keyPair.inGameActionValue = null;
-                              widget.onUpdate();
-                              setState(() {});
-                            },
-                          );
-                        },
-                      ).toList(),
+                if (core.logic.hasNoConnectionMethod)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 300),
+                    child: Warning(
+                      children: [
+                        Text(AppLocalizations.of(context).pleaseSelectAConnectionMethodFirst),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ],
-            if (core.logic.isZwiftBleEnabled || core.logic.isZwiftMdnsEnabled) ...[
-              SizedBox(height: 8),
-              GradientText(context.i18n.zwiftControllerAction).h4,
-              SelectableCard(
-                icon: Icons.link,
-                title: Text(context.i18n.zwiftControllerAction),
-                isActive: keyPair.inGameAction != null,
-                value: [?keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
-                onPressed: () {
-                  showDropdown(
-                    context: context,
-                    builder: (c) => DropdownMenu(
-                      children: ZwiftEmulator.supportedActions.map(
-                        (ingame) {
-                          return MenuButton(
-                            subMenu: ingame.possibleValues
-                                ?.map(
-                                  (value) => MenuButton(
-                                    child: Text(value.toString()),
-                                    onPressed: (_) {
-                                      keyPair.inGameAction = ingame;
-                                      keyPair.inGameActionValue = value;
-                                      widget.onUpdate();
-                                      setState(() {});
-                                    },
-                                  ),
-                                )
-                                .toList(),
-                            child: Text(ingame.toString()),
-                            onPressed: (_) {
-                              keyPair.inGameAction = ingame;
-                              keyPair.inGameActionValue = null;
-                              widget.onUpdate();
-                              setState(() {});
-                            },
-                          );
-                        },
-                      ).toList(),
-                    ),
-                  );
-                },
-              ),
-            ],
-
-            if (core.logic.showLocalRemoteOptions) ...[
-              SizedBox(height: 8),
-              GradientText('Local / Remote Setting').h4,
-              if (trainerApp != null && trainerApp is! CustomApp && actionsWithInGameAction?.isEmpty != true) ...[
-                SelectableCard(
-                  icon: null,
-                  title: Text(context.i18n.predefinedAction(trainerApp.name)),
-                  isActive: false,
-                  onPressed: () {
-                    showDropdown(
-                      context: context,
-                      builder: (c) => DropdownMenu(
-                        children: actionsWithInGameAction!.map((keyPairAction) {
-                          return MenuButton(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(_formatActionDescription(keyPairAction).split(' = ').first),
-                                Text(
-                                  _formatActionDescription(keyPairAction).split(' = ').last,
-                                  style: TextStyle(fontSize: 12, color: Colors.gray),
+                  ),
+                if (core.logic.showObpActions) ...[
+                  ColoredTitle(text: context.i18n.openBikeControlActions),
+                  Builder(
+                    builder: (context) => SelectableCard(
+                      icon: Icons.link,
+                      title: Text(
+                        core.logic.obpConnectedApp == null
+                            ? 'Please connect to ${core.settings.getTrainerApp()?.name}, first.'
+                            : context.i18n.appIdActions(core.logic.obpConnectedApp!.appId),
+                      ),
+                      isActive: core.logic.obpConnectedApp != null && keyPair.inGameAction != null,
+                      onPressed: core.logic.obpConnectedApp == null
+                          ? null
+                          : () {
+                              showDropdown(
+                                builder: (c) => DropdownMenu(
+                                  children: core.logic.obpConnectedApp!.supportedButtons
+                                      .map(
+                                        (button) => MenuButton(
+                                          child: Text(button.name),
+                                          onPressed: (_) {
+                                            keyPair.touchPosition = Offset.zero;
+                                            keyPair.physicalKey = null;
+                                            keyPair.logicalKey = null;
+                                            keyPair.inGameAction = button.action!;
+                                            keyPair.inGameActionValue = null;
+                                            widget.onUpdate();
+                                            setState(() {});
+                                          },
+                                        ),
+                                      )
+                                      .toList(),
                                 ),
-                              ],
-                            ),
-                            onPressed: (_) {
-                              // Copy all properties from the selected predefined action
-                              if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
-                                keyPair.physicalKey = keyPairAction.physicalKey;
-                                keyPair.logicalKey = keyPairAction.logicalKey;
-                                keyPair.modifiers = List.of(keyPairAction.modifiers);
-                              } else {
-                                keyPair.physicalKey = null;
-                                keyPair.logicalKey = null;
-                                keyPair.modifiers = [];
-                              }
-                              if (core.actionHandler.supportedModes.contains(SupportedMode.touch)) {
-                                keyPair.touchPosition = keyPairAction.touchPosition;
-                              } else {
-                                keyPair.touchPosition = Offset.zero;
-                              }
-                              keyPair.isLongPress = keyPairAction.isLongPress;
-                              keyPair.inGameAction = keyPairAction.inGameAction;
-                              keyPair.inGameActionValue = keyPairAction.inGameActionValue;
-                              setState(() {});
+                                context: context,
+                              );
                             },
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-              if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
-                SelectableCard(
-                  icon: Icons.keyboard_alt_outlined,
-                  title: Text(context.i18n.simulateKeyboardShortcut),
-                  isActive: keyPair.physicalKey != null && !keyPair.isSpecialKey,
-                  value: 'Key: $keyPair',
-                  onPressed: () async {
-                    await showDialog<void>(
-                      context: context,
-                      barrierDismissible: false, // enable Escape key
-                      builder: (c) => HotKeyListenerDialog(
-                        customApp: core.actionHandler.supportedApp! as CustomApp,
-                        keyPair: keyPair,
-                      ),
-                    );
-                    setState(() {});
-                    widget.onUpdate();
-                  },
-                ),
-              if (core.actionHandler.supportedModes.contains(SupportedMode.touch))
-                SelectableCard(
-                  title: Text(context.i18n.simulateTouch),
-                  icon: Icons.touch_app_outlined,
-                  isActive: keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero,
-                  value: 'Coordinates: X: ${keyPair.touchPosition.dx.toInt()}, Y: ${keyPair.touchPosition.dy.toInt()}',
-                  onPressed: () async {
-                    if (keyPair.touchPosition == Offset.zero) {
-                      keyPair.touchPosition = Offset(50, 50);
-                    }
-                    keyPair.physicalKey = null;
-                    keyPair.logicalKey = null;
-                    await Navigator.of(context).push<bool?>(
-                      MaterialPageRoute(
-                        builder: (c) => TouchAreaSetupPage(
-                          keyPair: keyPair,
-                        ),
-                      ),
-                    );
-                    setState(() {});
-                    widget.onUpdate();
-                  },
-                ),
+                    ),
+                  ),
+                ],
 
-              if (core.actionHandler.supportedModes.contains(SupportedMode.media))
-                Builder(
-                  builder: (context) {
-                    return SelectableCard(
-                      icon: Icons.music_note_outlined,
-                      isActive: keyPair.isSpecialKey,
-                      title: Text(context.i18n.simulateMediaKey),
-                      value: keyPair.toString(),
+                if (core.settings.getMyWhooshLinkEnabled() && core.logic.showMyWhooshLink) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
+                  Builder(
+                    builder: (context) => SelectableCard(
+                      icon: Icons.link,
+                      title: Text(context.i18n.myWhooshDirectConnectAction),
+                      isActive: keyPair.inGameAction != null,
+                      value: [keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
                       onPressed: () {
                         showDropdown(
                           context: context,
                           builder: (c) => DropdownMenu(
-                            children: [
-                              MenuButton(
-                                child: Text(context.i18n.playPause),
-                                onPressed: (c) {
-                                  keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
-                                  keyPair.logicalKey = null;
-
-                                  setState(() {});
-                                  widget.onUpdate();
-                                },
-                              ),
-                              MenuButton(
-                                child: Text(context.i18n.stop),
-                                onPressed: (c) {
-                                  keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
-                                  keyPair.logicalKey = null;
-
-                                  setState(() {});
-                                  widget.onUpdate();
-                                },
-                              ),
-                              MenuButton(
-                                child: Text(context.i18n.previous),
-
-                                onPressed: (c) {
-                                  keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
-                                  keyPair.logicalKey = null;
-
-                                  setState(() {});
-                                  widget.onUpdate();
-                                },
-                              ),
-                              MenuButton(
-                                child: Text(context.i18n.next),
-                                onPressed: (c) {
-                                  keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
-                                  keyPair.logicalKey = null;
-
-                                  setState(() {});
-                                  widget.onUpdate();
-                                },
-                              ),
-                              MenuButton(
-                                onPressed: (c) {
-                                  keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
-                                  keyPair.logicalKey = null;
-
-                                  setState(() {});
-                                  widget.onUpdate();
-                                },
-                                child: Text(context.i18n.volumeUp),
-                              ),
-                              MenuButton(
-                                child: Text(context.i18n.volumeDown),
-                                onPressed: (c) {
-                                  keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
-                                  keyPair.logicalKey = null;
-
-                                  setState(() {});
-                                  widget.onUpdate();
-                                },
-                              ),
-                            ],
+                            children: WhooshLink.supportedActions.map(
+                              (ingame) {
+                                return MenuButton(
+                                  subMenu: ingame.possibleValues
+                                      ?.map(
+                                        (value) => MenuButton(
+                                          child: Text(value.toString()),
+                                          onPressed: (_) {
+                                            keyPair.inGameAction = ingame;
+                                            keyPair.inGameActionValue = value;
+                                            widget.onUpdate();
+                                            setState(() {});
+                                          },
+                                        ),
+                                      )
+                                      .toList(),
+                                  child: Text(ingame.toString()),
+                                  onPressed: (_) {
+                                    keyPair.inGameAction = ingame;
+                                    keyPair.inGameActionValue = null;
+                                    widget.onUpdate();
+                                    setState(() {});
+                                  },
+                                );
+                              },
+                            ).toList(),
                           ),
                         );
                       },
-                    );
+                    ),
+                  ),
+                ],
+                if (core.logic.isZwiftBleEnabled || core.logic.isZwiftMdnsEnabled) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: context.i18n.zwiftControllerAction),
+                  Builder(
+                    builder: (context) => SelectableCard(
+                      icon: Icons.link,
+                      title: Text(context.i18n.zwiftControllerAction),
+                      isActive: keyPair.inGameAction != null,
+                      value: [keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
+                      onPressed: () {
+                        showDropdown(
+                          context: context,
+                          builder: (c) => DropdownMenu(
+                            children: ZwiftEmulator.supportedActions.map(
+                              (ingame) {
+                                return MenuButton(
+                                  subMenu: ingame.possibleValues
+                                      ?.map(
+                                        (value) => MenuButton(
+                                          child: Text(value.toString()),
+                                          onPressed: (_) {
+                                            keyPair.inGameAction = ingame;
+                                            keyPair.inGameActionValue = value;
+                                            widget.onUpdate();
+                                            setState(() {});
+                                          },
+                                        ),
+                                      )
+                                      .toList(),
+                                  child: Text(ingame.toString()),
+                                  onPressed: (_) {
+                                    keyPair.inGameAction = ingame;
+                                    keyPair.inGameActionValue = null;
+                                    widget.onUpdate();
+                                    setState(() {});
+                                  },
+                                );
+                              },
+                            ).toList(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+
+                if (core.logic.showLocalRemoteOptions) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: 'Local / Remote Setting'),
+                  if (trainerApp != null && trainerApp is! CustomApp && actionsWithInGameAction?.isEmpty != true) ...[
+                    Builder(
+                      builder: (context) => SelectableCard(
+                        icon: null,
+                        title: Text(context.i18n.predefinedAction(trainerApp.name)),
+                        isActive: false,
+                        onPressed: () {
+                          showDropdown(
+                            context: context,
+                            builder: (c) => DropdownMenu(
+                              children: actionsWithInGameAction!.map((keyPairAction) {
+                                return MenuButton(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(_formatActionDescription(keyPairAction).split(' = ').first),
+                                      Text(
+                                        _formatActionDescription(keyPairAction).split(' = ').last,
+                                        style: TextStyle(fontSize: 12, color: Colors.gray),
+                                      ),
+                                    ],
+                                  ),
+                                  onPressed: (_) {
+                                    // Copy all properties from the selected predefined action
+                                    if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
+                                      keyPair.physicalKey = keyPairAction.physicalKey;
+                                      keyPair.logicalKey = keyPairAction.logicalKey;
+                                      keyPair.modifiers = List.of(keyPairAction.modifiers);
+                                    } else {
+                                      keyPair.physicalKey = null;
+                                      keyPair.logicalKey = null;
+                                      keyPair.modifiers = [];
+                                    }
+                                    if (core.actionHandler.supportedModes.contains(SupportedMode.touch)) {
+                                      keyPair.touchPosition = keyPairAction.touchPosition;
+                                    } else {
+                                      keyPair.touchPosition = Offset.zero;
+                                    }
+                                    keyPair.isLongPress = keyPairAction.isLongPress;
+                                    keyPair.inGameAction = keyPairAction.inGameAction;
+                                    keyPair.inGameActionValue = keyPairAction.inGameActionValue;
+                                    setState(() {});
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
+                    SelectableCard(
+                      icon: Icons.keyboard_alt_outlined,
+                      title: Text(context.i18n.simulateKeyboardShortcut),
+                      isActive: keyPair.physicalKey != null && !keyPair.isSpecialKey,
+                      value: 'Key: $keyPair',
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          barrierDismissible: false, // enable Escape key
+                          builder: (c) => HotKeyListenerDialog(
+                            customApp: core.actionHandler.supportedApp! as CustomApp,
+                            keyPair: keyPair,
+                          ),
+                        );
+                        setState(() {});
+                        widget.onUpdate();
+                      },
+                    ),
+                  if (core.actionHandler.supportedModes.contains(SupportedMode.touch))
+                    SelectableCard(
+                      title: Text(context.i18n.simulateTouch),
+                      icon: Icons.touch_app_outlined,
+                      isActive: keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero,
+                      value:
+                          'Coordinates: X: ${keyPair.touchPosition.dx.toInt()}, Y: ${keyPair.touchPosition.dy.toInt()}',
+                      onPressed: () async {
+                        if (keyPair.touchPosition == Offset.zero) {
+                          keyPair.touchPosition = Offset(50, 50);
+                        }
+                        keyPair.physicalKey = null;
+                        keyPair.logicalKey = null;
+                        await Navigator.of(context).push<bool?>(
+                          MaterialPageRoute(
+                            builder: (c) => TouchAreaSetupPage(
+                              keyPair: keyPair,
+                            ),
+                          ),
+                        );
+                        setState(() {});
+                        widget.onUpdate();
+                      },
+                    ),
+
+                  if (core.actionHandler.supportedModes.contains(SupportedMode.media))
+                    Builder(
+                      builder: (context) => SelectableCard(
+                        icon: Icons.music_note_outlined,
+                        isActive: keyPair.isSpecialKey,
+                        title: Text(context.i18n.simulateMediaKey),
+                        value: keyPair.toString(),
+                        onPressed: () {
+                          showDropdown(
+                            context: context,
+                            builder: (c) => DropdownMenu(
+                              children: [
+                                MenuButton(
+                                  child: Text(context.i18n.playPause),
+                                  onPressed: (c) {
+                                    keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
+                                    keyPair.logicalKey = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                ),
+                                MenuButton(
+                                  child: Text(context.i18n.stop),
+                                  onPressed: (c) {
+                                    keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
+                                    keyPair.logicalKey = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                ),
+                                MenuButton(
+                                  child: Text(context.i18n.previous),
+
+                                  onPressed: (c) {
+                                    keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
+                                    keyPair.logicalKey = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                ),
+                                MenuButton(
+                                  child: Text(context.i18n.next),
+                                  onPressed: (c) {
+                                    keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
+                                    keyPair.logicalKey = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                ),
+                                MenuButton(
+                                  onPressed: (c) {
+                                    keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
+                                    keyPair.logicalKey = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                  child: Text(context.i18n.volumeUp),
+                                ),
+                                MenuButton(
+                                  child: Text(context.i18n.volumeDown),
+                                  onPressed: (c) {
+                                    keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
+                                    keyPair.logicalKey = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+
+                SizedBox(height: 8),
+                ColoredTitle(text: context.i18n.setting),
+                SelectableCard(
+                  icon: keyPair.isLongPress ? Icons.check_box : Icons.check_box_outline_blank,
+                  title: Text(context.i18n.longPressMode),
+                  isActive: keyPair.isLongPress,
+                  onPressed: () {
+                    keyPair.isLongPress = !keyPair.isLongPress;
+                    widget.onUpdate();
+                    setState(() {});
                   },
                 ),
-            ],
-
-            SizedBox(height: 8),
-            GradientText(context.i18n.setting).h4,
-            SelectableCard(
-              icon: keyPair.isLongPress ? Icons.check_box : Icons.check_box_outline_blank,
-              title: Text(context.i18n.longPressMode),
-              isActive: keyPair.isLongPress,
-              onPressed: () {
-                keyPair.isLongPress = !keyPair.isLongPress;
-                widget.onUpdate();
-                setState(() {});
-              },
+                SizedBox(height: 8),
+                DestructiveButton(
+                  onPressed: () {
+                    keyPair.isLongPress = false;
+                    keyPair.physicalKey = null;
+                    keyPair.logicalKey = null;
+                    keyPair.modifiers = [];
+                    keyPair.touchPosition = Offset.zero;
+                    keyPair.inGameAction = null;
+                    keyPair.inGameActionValue = null;
+                    widget.onUpdate();
+                    setState(() {});
+                  },
+                  child: Text(context.i18n.unassignAction),
+                ),
+                SizedBox(height: 16),
+              ],
             ),
-            SizedBox(height: 8),
-            DestructiveButton(
-              onPressed: () {
-                keyPair.isLongPress = false;
-                keyPair.physicalKey = null;
-                keyPair.logicalKey = null;
-                keyPair.modifiers = [];
-                keyPair.touchPosition = Offset.zero;
-                keyPair.inGameAction = null;
-                keyPair.inGameActionValue = null;
-                widget.onUpdate();
-                setState(() {});
-              },
-              child: Text(context.i18n.unassignAction),
-            ),
-          ],
+          ),
         ),
       ),
     );

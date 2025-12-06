@@ -113,27 +113,21 @@ abstract class BaseDevice {
     for (final action in buttonsClicked) {
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
-      actionStreamInternal.add(
-        ActionNotification(result),
-      );
+      actionStreamInternal.add(LogNotification(result.message));
     }
   }
 
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
-      actionStreamInternal.add(
-        ActionNotification(result),
-      );
+      actionStreamInternal.add(ActionNotification(result));
     }
   }
 
   Future<void> performRelease(List<ControllerButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
       final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
-      actionStreamInternal.add(
-        ActionNotification(result),
-      );
+      actionStreamInternal.add(ActionNotification(result));
     }
   }
 

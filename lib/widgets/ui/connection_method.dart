@@ -117,8 +117,12 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             children: [
               PrimaryBadge(
                 trailing: widget.isStarted == true && (widget.isConnected == false)
-                    ? SmallProgressIndicator(
-                        color: Theme.of(context).colorScheme.primaryForeground,
+                    ? SizedBox(
+                        width: 19,
+                        height: 19,
+                        child: SmallProgressIndicator(
+                          color: Theme.of(context).colorScheme.primaryForeground,
+                        ),
                       )
                     : switch (widget.type) {
                         ConnectionMethodType.bluetooth => Icon(Icons.bluetooth),
@@ -147,7 +151,10 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
           if (widget.isEnabled) ?widget.additionalChild,
           if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(height: 8),
           if (widget.instructionLink != null)
-            OutlineButton(
+            Button(
+              style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
+                  ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
+                  : ButtonStyle.outline(),
               leading: Icon(Icons.play_circle_outline_outlined),
               onPressed: () {
                 launchUrlString(widget.instructionLink!);
@@ -155,7 +162,10 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
               child: Text(context.i18n.videoInstructions),
             ),
           if (widget.showTroubleshooting)
-            OutlineButton(
+            Button(
+              style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
+                  ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
+                  : ButtonStyle.outline(),
               leading: Icon(Icons.help_outline),
 
               onPressed: () {
