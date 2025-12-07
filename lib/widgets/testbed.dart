@@ -58,7 +58,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   final List<_TouchSample> _history = <_TouchSample>[];
 
   // ----- Keyboard tracking -----
-  // ----- Keyboard tracking -----
+  final List<_KeySample> _keys = <_KeySample>[];
   final List<_ActionSample> _actions = <_ActionSample>[];
 
   // Focus to receive key events without stealing focus from inputs.
@@ -100,12 +100,21 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
               ),
             );
           } else {
-            final isMobile = MediaQuery.sizeOf(context).width < 600;
+            /*final isMobile = MediaQuery.sizeOf(context).width < 600;
             buildToast(
               context,
               location: isMobile ? ToastLocation.topCenter : ToastLocation.bottomRight,
               titleWidget: Wrap(children: data.buttonsClicked.map((button) => ButtonWidget(button: button)).toList()),
+            );*/
+            final sample = _KeySample(
+              button: button,
+              text: '🔘 ${button.name}',
+              timestamp: DateTime.now(),
             );
+            _keys.insert(0, sample);
+            if (_keys.length > widget.maxKeyboardEvents) {
+              _keys.removeLast();
+            }
           }
         }
       } else if (data is ActionNotification) {
@@ -129,10 +138,13 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
     _ticker = createTicker((_) {
       // Cull expired touch and key samples.
       final now = DateTime.now();
+      _keys.removeWhere((s) => now.difference(s.timestamp) > widget.touchRevealDuration);
       _history.removeWhere((s) => now.difference(s.timestamp) > widget.touchRevealDuration);
       _actions.removeWhere((k) => now.difference(k.timestamp) > widget.keyboardRevealDuration);
 
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     })..start();
   }
 
@@ -243,6 +255,19 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
                       duration: widget.touchRevealDuration,
                       color: widget.touchColor,
                     ),
+                  ),
+                ),
+              ),
+            if (widget.showKeyboard)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: IgnorePointer(
+                  child: _KeyboardOverlay(
+                    items: _keys,
+                    duration: widget.keyboardRevealDuration,
+                    badgeColor: widget.keyboardBadgeColor,
+                    textStyle: widget.keyboardTextStyle,
                   ),
                 ),
               ),
