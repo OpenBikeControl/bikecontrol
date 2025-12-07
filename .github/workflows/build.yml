@@ -162,20 +162,6 @@ jobs:
           chmod +x scripts/generate_release_body.sh
           ./scripts/generate_release_body.sh > /tmp/release_body.md
 
-      - name: Set Up Flutter for Screenshots
-        if: inputs.build_github
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-
-      - name: Generate screenshots for App Stores
-        if: inputs.build_github
-        run: |
-          flutter test --update-goldens || true
-          zip -r BikeControl.screenshots.zip screenshots
-          echo "Screenshots generated successfully"
-
       - name: 🚀 Shorebird Release iOS
         if: inputs.build_ios
         uses: shorebirdtech/shorebird-release@v1
@@ -256,18 +242,6 @@ jobs:
           path: |
             build/macos/Build/Products/Release/BikeControl.macos.zip
 
-      - name: Upload Screenshots Artifacts
-        if: inputs.build_github
-        uses: actions/upload-artifact@v4
-        with:
-          overwrite: true
-          name: Releases
-          path: |
-            screenshots/device-noFrame-1100x2390.png
-            screenshots/trainer-noFrame-1100x2390.png
-            screenshots/customization-noFrame-1100x2390.png
-            build/BikeControl.screenshots.zip
-
         #10 Extract Version
       - name: Extract version from pubspec.yaml
         if: inputs.build_github
@@ -281,7 +255,7 @@ jobs:
         if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip,screenshots/device-noFrame-1100x2390.png,screenshots/trainer-noFrame-1100x2390.png,screenshots/customization-noFrame-1100x2390.png"
+          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip"
           allowUpdates: true
           prerelease: true
           bodyFile: /tmp/release_body.md

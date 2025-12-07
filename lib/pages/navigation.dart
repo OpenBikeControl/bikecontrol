@@ -373,8 +373,9 @@ class _NavigationState extends State<Navigation> {
       ),
       enabled: _isPageEnabled(page),
       child: SizedBox(
-        width: 152,
+        width: screenshotMode ? 180 : 152,
         child: Basic(
+          padding: screenshotMode ? EdgeInsets.all(0) : null,
           leading: _buildIcon(page),
           leadingAlignment: Alignment.centerLeft,
           title: Text(

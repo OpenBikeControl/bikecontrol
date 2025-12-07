@@ -59,7 +59,7 @@ Future<void> main() async {
     (type: DeviceType.androidTablet, platform: TargetPlatform.android, size: Size(3840, 2400)),
     (type: DeviceType.iPhone, platform: TargetPlatform.iOS, size: Size(1242, 2688)),
     (type: DeviceType.iPad, platform: TargetPlatform.iOS, size: Size(2752, 2064)),
-    (type: DeviceType.desktop, platform: TargetPlatform.windows, size: Size(2752, 2064)),
+    (type: DeviceType.desktop, platform: TargetPlatform.windows, size: Size(2560, 1600)),
     (type: DeviceType.noFrame, platform: TargetPlatform.windows, size: Size(1320, 2868) / 1.2),
     /*('iPhone', Size(1242, 2688)),
     ('macOS', Size(1280, 800)),

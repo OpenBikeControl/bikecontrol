@@ -1,4 +1,4 @@
-### 4.0.0 (unreleased)
+### 4.0.0 (07-12-2025)
 
 - a brand-new design
   - Accessibility Permission is now optional on Android
