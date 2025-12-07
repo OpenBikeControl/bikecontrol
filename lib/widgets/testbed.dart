@@ -63,8 +63,16 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
 
   // Focus to receive key events without stealing focus from inputs.
   late final FocusNode _focusNode;
+  bool _isMobile = false;
 
   Offset? _lastMove;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    _isMobile = MediaQuery.sizeOf(context).width < 600;
+  }
 
   @override
   void initState() {
@@ -261,7 +269,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
             if (widget.showKeyboard)
               Positioned(
                 right: 12,
-                bottom: 12,
+                bottom: _isMobile ? 92 : 12,
                 child: IgnorePointer(
                   child: _KeyboardOverlay(
                     items: _keys,
