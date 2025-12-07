@@ -259,8 +259,7 @@
   "myWhooshDirectConnectAction": "Action de connexion directe MyWhoosh",
   "myWhooshDirectConnection": " par exemple en utilisant MyWhoosh Direct Connect",
   "myWhooshLinkConnected": "MyWhoosh « Link » connecté",
-  "myWhooshLinkDescriptionLocal": "Optionnel : permet d’accéder à des fonctionnalités supplémentaires telles que les émoticônes et la navigation. L’application compagnon MyWhoosh Link ne doit PAS être exécutée simultanément.",
-  "myWhooshLinkDescriptionRemote": "Permet de se connecter à MyWhoosh via le réseau, en utilisant la connexion « Link ». L’application compagnon MyWhoosh Link ne doit PAS être exécutée simultanément.",
+  "myWhooshLinkDescriptionLocal": "Connecte-toi directement à MyWhoosh avec la méthode « Link ». Tu peux faire des trucs comme changer de vitesse, utiliser des émoticônes, indiquer la direction à prendre, et plein d'autres choses. L'appli MyWhoosh Link ne doit PAS être ouverte en même temps.",
   "nameChangeNotice": "SwiftControl devient BikeControl ! Ce logiciel fait partie du projet OpenBikeControl, qui promeut les standards ouverts pour les home trainers connectés et conçoit des contrôleurs matériels abordables !",
   "needHelpClickHelp": "Besoin d'aide ? Cliquez sur le",
   "needHelpDontHesitate": "bouton en haut et n'hésitez pas à nous contacter.",
@@ -278,8 +277,12 @@
   "next": "Suivant",
   "noActionAssigned": "Aucune action assignée",
   "noButtonAssigned": "Aucun bouton n'est attribué à votre appareil connecté.",
+  "noConnectionMethodSelected": "Aucune méthode de connexion choisie",
+  "noControllerConnected": "Aucun connecté",
   "noIgnoredDevices": "Aucun appareil ignoré.",
   "noPredefinedActionsAvailable": "Aucune action prédéfinie disponible",
+  "noTrainerSelected": "Aucun Trainer sélectionné",
+  "notConnected": "Non connecté",
   "notificationDescription": "Cela permet à l'application de rester active en arrière-plan.",
   "ok": "OK",
   "openBikeControlActions": "Actions OpenBikeControl",
@@ -316,6 +319,7 @@
     }
   },
   "playPause": "Lecture/Pause",
+  "pleaseSelectAConnectionMethodFirst": "Commence par choisir une méthode de connexion dans les paramètres du Trainer.",
   "predefinedAction": "Action prédéfinie d'{appName}",
   "@predefinedAction": {
     "placeholders": {

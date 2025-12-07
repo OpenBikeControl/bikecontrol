@@ -1,5 +1,4 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/utils/actions/remote.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -30,8 +29,6 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                   ? context.i18n.myWhooshLinkConnected
                   : isStarted
                   ? context.i18n.checkMyWhooshConnectionScreen
-                  : core.actionHandler is RemoteActions
-                  ? context.i18n.myWhooshLinkDescriptionRemote
                   : context.i18n.myWhooshLinkDescriptionLocal,
               requirements: [],
               showTroubleshooting: true,

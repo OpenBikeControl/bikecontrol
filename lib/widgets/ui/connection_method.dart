@@ -50,15 +50,9 @@ class ConnectionMethod extends StatefulWidget {
 class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.requirements.isNotEmpty && !widget.isEnabled) {
+    if (widget.requirements.isNotEmpty && widget.isEnabled) {
       if (state == AppLifecycleState.resumed) {
-        Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
-          final allDone = widget.requirements.every((e) => e.status);
-
-          if (context.mounted) {
-            widget.onChange(allDone);
-          }
-        });
+        _recheckRequirements();
       }
     }
   }
@@ -98,6 +92,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
               widget.onChange(!widget.isEnabled);
             } else {
               await openPermissionSheet(context, notDone);
+              _recheckRequirements();
               setState(() {});
             }
           });
@@ -181,6 +176,16 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
         ],
       ),
     );
+  }
+
+  void _recheckRequirements() {
+    Future.wait(widget.requirements.map((e) => e.getStatus())).then((result) {
+      final allDone = result.every((e) => e);
+
+      if (context.mounted) {
+        widget.onChange(allDone);
+      }
+    });
   }
 }
 

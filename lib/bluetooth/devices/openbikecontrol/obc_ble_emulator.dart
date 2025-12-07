@@ -44,7 +44,7 @@ class OpenBikeControlBluetoothEmulator {
       });
     }
 
-    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
+    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn && core.settings.getObpBleEnabled()) {
       print('Waiting for peripheral manager to be powered on...');
       await Future.delayed(Duration(seconds: 1));
     }

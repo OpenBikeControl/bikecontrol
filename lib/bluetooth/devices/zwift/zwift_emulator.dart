@@ -82,7 +82,8 @@ class ZwiftEmulator {
       }
     }
 
-    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn) {
+    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn &&
+        core.settings.getZwiftBleEmulatorEnabled()) {
       print('Waiting for peripheral manager to be powered on...');
       if (core.settings.getLastTarget() == Target.thisDevice) {
         return;

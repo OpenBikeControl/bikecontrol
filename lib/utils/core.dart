@@ -96,7 +96,13 @@ class Permissions {
   }
 
   List<PlatformRequirement> getRemoteControlRequirements() {
-    return [BluetoothTurnedOn(), if (Platform.isAndroid) BluetoothAdvertiseRequirement()];
+    return [
+      BluetoothTurnedOn(),
+      if (Platform.isAndroid) ...[
+        BluetoothScanRequirement(),
+        BluetoothConnectRequirement(),
+      ],
+    ];
   }
 }
 

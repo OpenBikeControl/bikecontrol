@@ -259,8 +259,7 @@
   "myWhooshDirectConnectAction": "MyWhoosh Direct Connect Action",
   "myWhooshDirectConnection": " z.B. durch die Verwendung von MyWhoosh Direct Connect",
   "myWhooshLinkConnected": "MyWhoosh „Link“ verbunden",
-  "myWhooshLinkDescriptionLocal": "Optional – ermöglicht zusätzliche Funktionen wie Emotes und Abbiegehinweise. Die Begleit-App MyWhoosh Link darf nicht gleichzeitig ausgeführt werden.",
-  "myWhooshLinkDescriptionRemote": "Ermöglicht die Verbindung zu MyWhoosh über das Netzwerk mithilfe der „Link“-Verbindung. Die zugehörige MyWhoosh Link-App darf nicht gleichzeitig ausgeführt werden.",
+  "myWhooshLinkDescriptionLocal": "Verbinde dich direkt mit MyWhoosh über die „Link”-Methode. Unterstützte Aktionen sind unter anderem Schalten, Emotes und Richtungswechsel. Die MyWhoosh Link-Begleit-App darf dabei NICHT gleichzeitig laufen.",
   "nameChangeNotice": "SwiftControl heißt jetzt BikeControl! Es ist Teil des OpenBikeControl-Projekts, das sich für offene Standards bei intelligenten Fahrradtrainern einsetzt und erschwingliche Hardware-Controller entwickelt!",
   "needHelpClickHelp": "Hilfe benötigt? Klicke auf",
   "needHelpDontHesitate": "den Button oben und zögere nicht, uns zu kontaktieren.",
@@ -278,8 +277,12 @@
   "next": "Nächste",
   "noActionAssigned": "Keine Maßnahmen zugewiesen",
   "noButtonAssigned": "Für Ihr angeschlossenes Gerät ist keine Taste zugewiesen.",
+  "noConnectionMethodSelected": "Keine Verbindungsmethode ausgewählt",
+  "noControllerConnected": "Keine Verbindung",
   "noIgnoredDevices": "Keine ignorierten Geräte.",
   "noPredefinedActionsAvailable": "Keine vordefinierten Aktionen verfügbar",
+  "noTrainerSelected": "Kein Trainer ausgewählt",
+  "notConnected": "Nicht verbunden",
   "notificationDescription": "Dadurch bleibt die App im Hintergrund aktiv.",
   "ok": "OK",
   "openBikeControlActions": "OpenBikeControl-Aktionen",
@@ -316,6 +319,7 @@
     }
   },
   "playPause": "Wiedergabe/Pause",
+  "pleaseSelectAConnectionMethodFirst": "Wähle bitte zuerst in den Trainereinstellungen eine Verbindungsmethode aus.",
   "predefinedAction": "Vordefinierte {appName} Aktion",
   "@predefinedAction": {
     "placeholders": {
