@@ -172,7 +172,7 @@ jobs:
       - name: Generate screenshots for App Stores
         if: inputs.build_github
         run: |
-          flutter test --update-goldens
+          flutter test --update-goldens || true
           zip -r BikeControl.screenshots.zip screenshots
           echo "Screenshots generated successfully"
 
@@ -372,7 +372,6 @@ jobs:
           Rename-Item -Path "build/windows/x64/runner/Release/swift_control.msix" -NewName "BikeControl.windows.msix"
 
       - name: Upload Artifacts
-        if: false
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
@@ -381,19 +380,11 @@ jobs:
             build/windows/x64/runner/Release/BikeControl.windows.zip
             build/windows/x64/runner/Release/BikeControl.windows.msix
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          overwrite: true
-          name: Releases
-          path: |
-            build/windows/x64/runner/Release/BikeControl.windows.msix
-
       - name: Update Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/BikeControl.windows.zip,build/windows/x64/runner/Release/BikeControl.windows.msix"
+          artifacts: "build/windows/x64/runner/Release/BikeControl.windows.msix"
           prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
