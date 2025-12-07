@@ -103,7 +103,6 @@ jobs:
           cache: true
 
       - name: Set Up Flutter
-        if: inputs.build_web
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
