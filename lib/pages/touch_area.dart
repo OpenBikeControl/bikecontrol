@@ -458,7 +458,7 @@ class _KeyWidget extends StatelessWidget {
             style: TextStyle(
               fontFamily: screenshotMode ? null : 'monospace',
               fontSize: 12,
-              color: Theme.of(context).colorScheme.primaryForeground,
+              color: Colors.white,
             ),
           ),
         ),

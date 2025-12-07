@@ -50,7 +50,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - CYCPLUS BC2 Virtual Shifter
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
-- Gamepads (beta)
+- Gamepads
 - Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)
   - BLE HID devices and classic Bluetooth HID devices are supported
   - works out of the box on Android

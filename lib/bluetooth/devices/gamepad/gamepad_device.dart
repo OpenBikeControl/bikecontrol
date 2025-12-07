@@ -10,7 +10,7 @@ import 'package:swift_control/widgets/ui/beta_pill.dart';
 class GamepadDevice extends BaseDevice {
   final String id;
 
-  GamepadDevice(super.name, {required this.id}) : super(availableButtons: [], isBeta: true);
+  GamepadDevice(super.name, {required this.id}) : super(availableButtons: []);
 
   List<ControllerButton> _lastButtonsClicked = [];
 

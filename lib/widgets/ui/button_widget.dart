@@ -39,7 +39,7 @@ class ButtonWidget extends StatelessWidget {
                     fontFamily: screenshotMode ? null : 'monospace',
                     fontSize: big && button.color != null ? 20 : 12,
                     fontWeight: button.color != null ? FontWeight.bold : null,
-                    color: button.color != null ? Colors.white : Theme.of(context).colorScheme.foreground,
+                    color: Colors.white,
                   ),
                 ),
         ),
