@@ -77,7 +77,7 @@ class AndroidActions extends BaseActions {
             : "up"}",
       );
     }
-    return Error('No action assigned for ${button.toString().splitByUpperCase()}');
+    return NotHandled('No action assigned for ${button.toString().splitByUpperCase()}');
   }
 
   void ignoreHidDevices() {

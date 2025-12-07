@@ -97,9 +97,6 @@ class WhooshLink {
   }
 
   ActionResult sendAction(InGameAction action, int? value, {required bool isKeyDown, required bool isKeyUp}) {
-    if (!isKeyDown) {
-      return Success('Done');
-    }
     final jsonObject = switch (action) {
       InGameAction.shiftUp => {
         'MessageType': 'Controls',
@@ -151,12 +148,18 @@ class WhooshLink {
       _ => null,
     };
 
-    if (jsonObject != null) {
+    final supportsIsKeyUpActions = [
+      InGameAction.steerLeft,
+      InGameAction.steerRight,
+    ];
+    if (jsonObject != null && !isKeyDown && !supportsIsKeyUpActions.contains(action)) {
+      return Success('No Action sent on key down for action: $action');
+    } else if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
       _socket?.writeln(jsonString);
       return Success('Sent action to MyWhoosh: $action ${value ?? ''}');
     } else {
-      return Error('No action available for button: $action');
+      return NotHandled('No action available for button: $action');
     }
   }
 

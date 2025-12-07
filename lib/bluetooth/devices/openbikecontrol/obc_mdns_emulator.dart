@@ -153,7 +153,7 @@ class OpenBikeControlMdnsEmulator {
     } else if (isConnected.value == null) {
       return Error('No app info received from central');
     } else if (!isConnected.value!.supportedButtons.containsAll(buttons)) {
-      return Error('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
+      return NotHandled('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 
     final responseData = OpenBikeProtocolParser.encodeButtonState(

@@ -49,7 +49,7 @@ class DesktopActions extends BaseActions {
         }
       }
     }
-    return NotHandled();
+    return NotHandled('Action not handled for button: $button');
   }
 
   // Release all held keys (useful for cleanup)

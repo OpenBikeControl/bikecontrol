@@ -6,6 +6,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
@@ -28,7 +29,7 @@ class Success extends ActionResult {
 }
 
 class NotHandled extends ActionResult {
-  const NotHandled() : super('Not Handled');
+  const NotHandled(super.message);
 }
 
 class Error extends ActionResult {
@@ -130,6 +131,9 @@ abstract class BaseActions {
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
+    if (directConnectHandled is NotHandled && directConnectHandled.message.isNotEmpty) {
+      core.connection.signalNotification(LogNotification(directConnectHandled.message));
+    }
     return directConnectHandled;
   }
 
@@ -179,7 +183,7 @@ abstract class BaseActions {
         );
       }
     }
-    return NotHandled();
+    return NotHandled('');
   }
 }
 

@@ -330,7 +330,7 @@ class FtmsMdnsEmulator {
     };
 
     if (button == null) {
-      return Error('Action ${inGameAction.name} not supported by Zwift Emulator');
+      return NotHandled('Action ${inGameAction.name} not supported by Zwift Emulator');
     }
 
     if (isKeyDown) {

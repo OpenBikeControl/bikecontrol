@@ -17,18 +17,32 @@ class GamepadDevice extends BaseDevice {
   @override
   Future<void> connect() async {
     Gamepads.eventsByGamepad(id).listen((event) async {
-      actionStreamInternal.add(LogNotification('Gamepad event: $event'));
+      actionStreamInternal.add(LogNotification('Gamepad event: ${event.key} value ${event.value} type ${event.type}'));
 
+      final buttonKey = event.type == KeyType.analog ? '${event.key}_${event.value.toInt()}' : event.key;
       ControllerButton button = await getOrAddButton(
-        event.key,
-        () => ControllerButton(event.key),
+        buttonKey,
+        () => ControllerButton(buttonKey),
       );
 
-      final buttonsClicked = event.value == 0.0 ? [button] : <ControllerButton>[];
-      if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
-        handleButtonsClicked(buttonsClicked);
+      switch (event.type) {
+        case KeyType.analog:
+          if (event.value.toInt() != 0) {
+            final buttonsClicked = event.value.toInt() != 0 ? [button] : <ControllerButton>[];
+            if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
+              handleButtonsClicked(buttonsClicked);
+            }
+            _lastButtonsClicked = buttonsClicked;
+          } else {
+            handleButtonsClicked([]);
+          }
+        case KeyType.button:
+          final buttonsClicked = event.value.toInt() != 1 ? [button] : <ControllerButton>[];
+          if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
+            handleButtonsClicked(buttonsClicked);
+          }
+          _lastButtonsClicked = buttonsClicked;
       }
-      _lastButtonsClicked = buttonsClicked;
     });
   }
 

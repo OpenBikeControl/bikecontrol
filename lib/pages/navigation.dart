@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/customize.dart';
 import 'package:swift_control/pages/device.dart';
@@ -200,7 +201,8 @@ class _NavigationState extends State<Navigation> {
                 _selectedPage = BCPage.values[index];
               });
             },
-            children: _tabs.map((page) => _buildNavigationItem(page, true)).toList(),
+            spacing: 4,
+            children: _tabs.map((page) => _buildNavigationItemDesktop(page)).toList(),
           ),
         ),
 
@@ -279,7 +281,45 @@ class _NavigationState extends State<Navigation> {
         });
       },
       children: _tabs.map((page) {
-        return _buildNavigationItem(page, false);
+        return NavigationItem(
+          selected: _selectedPage == page,
+          selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
+            decoration: (context, states, value) {
+              return BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [BKColor.main, BKColor.mainEnd],
+                ),
+                borderRadius: BorderRadius.circular(8),
+              );
+            },
+          ),
+          style: ButtonStyle.ghost(density: ButtonDensity.dense).copyWith(
+            decoration: (context, states, value) {
+              return BoxDecoration(
+                gradient: states.contains(WidgetState.hovered)
+                    ? const LinearGradient(
+                        colors: [BKColor.main, BKColor.mainEnd],
+                      )
+                    : null,
+                borderRadius: BorderRadius.circular(8),
+              );
+            },
+          ),
+          enabled: _isPageEnabled(page),
+          label: Text(
+            page == BCPage.trainer && !screenshotMode
+                ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
+                : page.getTitle(context),
+            style: TextStyle(
+              color: !_isPageEnabled(page)
+                  ? null
+                  : Theme.of(context).colorScheme.brightness == Brightness.dark
+                  ? Colors.white
+                  : null,
+            ),
+          ),
+          child: _buildIcon(page),
+        );
       }).toList(),
     );
   }
@@ -300,7 +340,7 @@ class _NavigationState extends State<Navigation> {
     };
   }
 
-  NavigationBarItem _buildNavigationItem(BCPage page, bool withPadding) {
+  NavigationBarItem _buildNavigationItemDesktop(BCPage page) {
     return NavigationItem(
       selected: _selectedPage == page,
       selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
@@ -312,11 +352,9 @@ class _NavigationState extends State<Navigation> {
             borderRadius: BorderRadius.circular(8),
           );
         },
-        padding: withPadding
-            ? (context, states, value) {
-                return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-              }
-            : null,
+        padding: (context, states, value) {
+          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+        },
       ),
       style: ButtonStyle.ghost(density: ButtonDensity.dense).copyWith(
         decoration: (context, states, value) {
@@ -329,26 +367,43 @@ class _NavigationState extends State<Navigation> {
             borderRadius: BorderRadius.circular(8),
           );
         },
-        padding: withPadding
-            ? (context, states, value) {
-                return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-              }
-            : null,
+        padding: (context, states, value) {
+          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+        },
       ),
       enabled: _isPageEnabled(page),
-      label: Text(
-        page == BCPage.trainer && !screenshotMode
-            ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
-            : page.getTitle(context),
-        style: TextStyle(
-          color: !_isPageEnabled(page)
-              ? null
-              : Theme.of(context).colorScheme.brightness == Brightness.dark
-              ? Colors.white
+      child: SizedBox(
+        width: 152,
+        child: Basic(
+          leading: _buildIcon(page),
+          leadingAlignment: Alignment.centerLeft,
+          title: Text(
+            page == BCPage.trainer && !screenshotMode
+                ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
+                : page.getTitle(context),
+            style: TextStyle(
+              color: !_isPageEnabled(page)
+                  ? null
+                  : Theme.of(context).colorScheme.brightness == Brightness.dark
+                  ? Colors.white
+                  : null,
+            ),
+          ),
+          subtitle: _needsAttention(page)
+              ? Text(
+                  switch (page) {
+                    BCPage.devices => AppLocalizations.of(context).noControllerConnected,
+                    BCPage.trainer when !_isTrainerConnected => AppLocalizations.of(context).notConnected,
+                    BCPage.trainer when core.settings.getTrainerApp() == null => AppLocalizations.of(
+                      context,
+                    ).noTrainerSelected,
+                    _ => '',
+                  },
+                  style: _selectedPage == page ? TextStyle(color: Colors.gray.shade300) : null,
+                )
               : null,
         ),
       ),
-      child: _buildIcon(page),
     );
   }
 }

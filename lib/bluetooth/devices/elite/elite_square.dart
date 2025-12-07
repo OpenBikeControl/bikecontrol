@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -37,19 +36,19 @@ class EliteSquare extends BluetoothDevice {
     if (characteristic == SquareConstants.CHARACTERISTIC_UUID) {
       final fullValue = _bytesToHex(bytes);
       final currentValue = _extractButtonCode(fullValue);
-      actionStreamInternal.add(LogNotification('Received $fullValue - vs $currentValue (last: $_lastValue)'));
+      if (kDebugMode) {
+        actionStreamInternal.add(LogNotification('Received $fullValue - vs $currentValue (last: $_lastValue)'));
+      }
 
       if (_lastValue != null) {
-        final currentRelevantPart = fullValue.length >= 14
-            ? fullValue.substring(6, 14)
-            : fullValue.substring(6);
-        final lastRelevantPart = _lastValue!.length >= 14
-            ? _lastValue!.substring(6, 14)
-            : _lastValue!.substring(6);
+        final currentRelevantPart = fullValue.length >= 14 ? fullValue.substring(6, 14) : fullValue.substring(6);
+        final lastRelevantPart = _lastValue!.length >= 14 ? _lastValue!.substring(6, 14) : _lastValue!.substring(6);
 
         if (currentRelevantPart != lastRelevantPart) {
           final buttonClicked = SquareConstants.BUTTON_MAPPING[currentValue];
-          actionStreamInternal.add(LogNotification('Button pressed: $buttonClicked'));
+          if (kDebugMode) {
+            actionStreamInternal.add(LogNotification('Button pressed: $buttonClicked'));
+          }
           handleButtonsClicked([
             if (buttonClicked != null) buttonClicked,
           ]);
