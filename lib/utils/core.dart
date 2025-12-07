@@ -5,7 +5,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:media_key_detector/media_key_detector.dart';
-import 'package:smtc_windows/smtc_windows.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
@@ -29,6 +28,7 @@ import '../bluetooth/connection.dart';
 import '../bluetooth/devices/mywhoosh/link.dart';
 import 'requirements/multi.dart';
 import 'requirements/platform.dart';
+import 'smtc_stub.dart' if (dart.library.io) 'package:smtc_windows/smtc_windows.dart';
 
 final core = Core();
 
@@ -285,12 +285,7 @@ class CoreLogic {
     }
 
     if (isMyWhooshLinkEnabled && !core.whooshLink.isStarted.value) {
-      core.connection.startMyWhooshServer().catchError((e) {
-        core.settings.setMyWhooshLinkEnabled(false);
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start MyWhoosh Link: $e'),
-        );
-      });
+      core.connection.startMyWhooshServer();
     }
 
     if (isRemoteControlEnabled && !core.remotePairing.isStarted.value) {

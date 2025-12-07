@@ -1,4 +1,4 @@
-**Instructions for using the MyWhoosh Direct Connect method**
+**Instructions for using the MyWhoosh "Link" connection method**
 1) launch MyWhoosh on the device of your choice
 2) launch MyWhoosh Link, check if the "Link" connection works
 3) close MyWhoosh Link

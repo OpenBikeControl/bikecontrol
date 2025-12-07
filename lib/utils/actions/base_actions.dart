@@ -193,22 +193,8 @@ class StubActions extends BaseActions {
   final List<ControllerButton> performedActions = [];
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
-    performedActions.add(action);
-    if (supportedApp == null) {
-      return Error('Supported app is not set');
-    }
-
-    final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (core.logic.hasNoConnectionMethod) {
-      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
-    } else if (!(await core.logic.isTrainerConnected())) {
-      return Error('No connection method is connected or active.');
-    } else if (keyPair == null) {
-      return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${action.toString().splitByUpperCase()}');
-    }
-    return Future.value(Success(action.name));
+  Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
+    performedActions.add(button);
+    return Future.value(Success('${button.name.splitByUpperCase()} clicked'));
   }
 }

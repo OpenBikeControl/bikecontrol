@@ -189,7 +189,7 @@ enum Target {
 
   ConnectionType get connectionType {
     return switch (this) {
-      Target.thisDevice when !Platform.isIOS => ConnectionType.local,
+      Target.thisDevice when !kIsWeb && !Platform.isIOS => ConnectionType.local,
       _ => ConnectionType.remote,
     };
   }

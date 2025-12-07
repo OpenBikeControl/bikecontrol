@@ -18,14 +18,21 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   List<ControllerButton>? _lastButtonsClicked;
 
+  BleService? customService;
+
   String get latestFirmwareVersion;
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK;
-  String get customServiceId => ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID;
   bool get canVibrate => false;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId.toLowerCase());
+    customService =
+        services.firstOrNullWhere(
+          (service) => service.uuid == ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID.toLowerCase(),
+        ) ??
+        services.firstOrNullWhere(
+          (service) => service.uuid == ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID.toLowerCase(),
+        );
 
     if (customService == null) {
       actionStreamInternal.add(
@@ -35,17 +42,17 @@ abstract class ZwiftDevice extends BluetoothDevice {
         ),
       );
       throw Exception(
-        'Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
+        'Custom service ${[ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID, ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID]} not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
       );
     }
 
-    final asyncCharacteristic = customService.characteristics.firstOrNullWhere(
+    final asyncCharacteristic = customService!.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID.toLowerCase(),
     );
-    final syncTxCharacteristic = customService.characteristics.firstOrNullWhere(
+    final syncTxCharacteristic = customService!.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID.toLowerCase(),
     );
-    syncRxCharacteristic = customService.characteristics.firstOrNullWhere(
+    syncRxCharacteristic = customService!.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID.toLowerCase(),
     );
 
@@ -53,8 +60,8 @@ abstract class ZwiftDevice extends BluetoothDevice {
       throw Exception('Characteristics not found');
     }
 
-    await UniversalBle.subscribeNotifications(device.deviceId, customService.uuid, asyncCharacteristic.uuid);
-    await UniversalBle.subscribeIndications(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
+    await UniversalBle.subscribeNotifications(device.deviceId, customService!.uuid, asyncCharacteristic.uuid);
+    await UniversalBle.subscribeIndications(device.deviceId, customService!.uuid, syncTxCharacteristic.uuid);
 
     await setupHandshake();
 
@@ -71,7 +78,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   Future<void> setupHandshake() async {
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       ZwiftConstants.RIDE_ON,
       withoutResponse: true,
@@ -178,7 +185,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
     final vibrateCommand = Uint8List.fromList([...ZwiftConstants.VIBRATE_PATTERN, 0x20]);
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       vibrateCommand,
       withoutResponse: true,

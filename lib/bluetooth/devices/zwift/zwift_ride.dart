@@ -44,9 +44,6 @@ class ZwiftRide extends ZwiftDevice {
       );
 
   @override
-  String get customServiceId => ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID;
-
-  @override
   String get latestFirmwareVersion => '1.2.0';
 
   @override
@@ -233,7 +230,7 @@ class ZwiftRide extends ZwiftDevice {
     }
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       buffer,
       withoutResponse: true,
@@ -247,7 +244,7 @@ class ZwiftRide extends ZwiftDevice {
     }
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       buffer,
       withoutResponse: true,

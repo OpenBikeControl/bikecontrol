@@ -37,7 +37,7 @@ switch the setting to None, then back to Single-Tap and it should work again
 ## BikeControl crashes on Windows when searching for the device 
 You're probably running into [this](https://github.com/OpenBikeControl/bikecontrol/issues/70) issue. Disconnect your controller device (e.g. Zwift Play) from Windows Bluetooth settings.
 
-## MyWhoosh Direct Connect never connects
+## MyWhoosh "Link" method never connects
 The same network restrictions apply for BikeControl as it applies to MyWhoosh Link app. Please verify with the MyWhoosh Link app if connection is possible at all.
 Here are some instructions that can help:
 

@@ -1,4 +1,5 @@
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/pages/markdown.dart';
@@ -6,6 +7,7 @@ import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 enum ConnectionMethodType {
@@ -83,7 +85,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
   Widget build(BuildContext context) {
     return SelectableCard(
       onPressed: () {
-        if (widget.requirements.isEmpty) {
+        if (kIsWeb) {
+          buildToast(context, title: 'Not Supported on Web :)');
+        } else if (widget.requirements.isEmpty) {
           widget.onChange(!widget.isEnabled);
         } else {
           Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) async {
