@@ -19,7 +19,13 @@ class GamepadDevice extends BaseDevice {
     Gamepads.eventsByGamepad(id).listen((event) async {
       actionStreamInternal.add(LogNotification('Gamepad event: ${event.key} value ${event.value} type ${event.type}'));
 
-      final buttonKey = event.type == KeyType.analog ? '${event.key}_${event.value.toInt()}' : event.key;
+      final int normalizedValue = switch (event.value) {
+        > 1.0 => 1,
+        < -1.0 => -1,
+        _ => event.value.toInt(),
+      };
+
+      final buttonKey = event.type == KeyType.analog ? '${event.key}_$normalizedValue' : event.key;
       ControllerButton button = await getOrAddButton(
         buttonKey,
         () => ControllerButton(buttonKey),
