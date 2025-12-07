@@ -2,118 +2,145 @@ import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show showLicensePage;
+import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:swift_control/pages/button_simulator.dart';
 import 'package:swift_control/pages/markdown.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/title.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../bluetooth/devices/zwift/zwift_click.dart';
-import 'ignored_devices_dialog.dart';
-
-List<Widget> buildMenuButtons() {
+List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
   return [
-    if (kIsWeb || (!Platform.isIOS && !Platform.isMacOS)) ...[
-      PopupMenuButton(
-        itemBuilder: (BuildContext context) {
-          return [
-            PopupMenuItem(
-              child: Text('via Credit Card, Google Pay, Apple Pay and others'),
-              onTap: () {
-                final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
-                final link = switch (currency.currencyName) {
-                  'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
-                  _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
-                };
-                launchUrlString(link);
-              },
-            ),
-            if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
-              PopupMenuItem(
-                child: Text('by buying the app from Play Store'),
-                onTap: () {
-                  launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
-                },
+    Builder(
+      builder: (context) {
+        return OutlineButton(
+          density: ButtonDensity.icon,
+          onPressed: () {
+            showDropdown(
+              context: context,
+              builder: (c) => DropdownMenu(
+                children: [
+                  if ((!Platform.isIOS && !Platform.isMacOS)) ...[
+                    MenuLabel(child: Text(context.i18n.showDonation)),
+                    MenuButton(
+                      child: Text(context.i18n.donateViaCreditCard),
+                      onPressed: (c) {
+                        final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
+                        final link = switch (currency.currencyName) {
+                          'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
+                          _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
+                        };
+                        launchUrlString(link);
+                      },
+                    ),
+                    if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
+                      MenuButton(
+                        child: Text(context.i18n.donateByBuyingFromPlayStore),
+                        onPressed: (c) {
+                          launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
+                        },
+                      ),
+                    MenuButton(
+                      child: Text(context.i18n.donateViaPaypal),
+                      onPressed: (c) {
+                        launchUrlString('https://paypal.me/boni');
+                      },
+                    ),
+                  ],
+                  MenuButton(
+                    leading: Icon(Icons.star_rate),
+                    child: Text(context.i18n.leaveAReview),
+                    onPressed: (c) async {
+                      final InAppReview inAppReview = InAppReview.instance;
+
+                      if (await inAppReview.isAvailable()) {
+                        inAppReview.requestReview();
+                      } else {
+                        inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
+                      }
+                    },
+                  ),
+                ],
               ),
-            PopupMenuItem(
-              child: Text('via PayPal'),
-              onTap: () {
-                launchUrlString('https://paypal.me/boni');
-              },
-            ),
-          ];
-        },
-        icon: Text(
-          'Donate ♥',
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-        ),
-      ),
-      SizedBox(width: 8),
-    ],
-    PopupMenuButton(
-      itemBuilder: (BuildContext context) {
-        return [
-          PopupMenuItem(
-            child: Text('Instructions'),
-            onTap: () {
-              final instructions = Platform.isAndroid
-                  ? 'INSTRUCTIONS_ANDROID.md'
-                  : Platform.isIOS
-                  ? 'INSTRUCTIONS_IOS.md'
-                  : Platform.isMacOS
-                  ? 'INSTRUCTIONS_MACOS.md'
-                  : 'INSTRUCTIONS_WINDOWS.md';
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: instructions)),
-              );
-            },
+            );
+          },
+          child: Icon(
+            Icons.favorite,
+            color: Colors.red,
+            size: 18,
           ),
-          PopupMenuItem(
-            child: Text('Troubleshooting Guide'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-              );
-            },
-          ),
-          PopupMenuItem(
-            child: Text('Provide Feedback'),
-            onTap: () {
-              launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
-            },
-          ),
-          if (!kIsWeb)
-            PopupMenuItem(
-              child: Text('Get Support'),
-              onTap: () {
-                final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
-                final suffix = isFromStore ? '' : '-sw';
-
-                String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
-                String subject = Uri.encodeComponent("Help requested for BikeControl v${packageInfoValue?.version}");
-                String body = Uri.encodeComponent("""
-                ${debugText()}
-                
-Please also attach the file ${File('${Directory.current.path}/app.logs').path}, if it exists.
-Please don't remove this information, it helps me to assist you better.""");
-                Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
-
-                launchUrl(mail);
-              },
-            ),
-        ];
+        );
       },
-      icon: Icon(Icons.help_outline),
     ),
-    SizedBox(width: 8),
-    const MenuButton(),
-    SizedBox(width: 8),
+    Gap(4),
+    Builder(
+      builder: (context) {
+        return OutlineButton(
+          density: ButtonDensity.icon,
+          onPressed: () {
+            showDropdown(
+              context: context,
+              builder: (c) => DropdownMenu(
+                children: [
+                  MenuButton(
+                    leading: Icon(Icons.help_outline),
+                    child: Text(context.i18n.troubleshootingGuide),
+                    onPressed: (c) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                      );
+                    },
+                  ),
+                  MenuButton(
+                    leading: Icon(Icons.bug_report_outlined),
+                    child: Text(context.i18n.provideFeedback),
+                    onPressed: (c) {
+                      launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
+                    },
+                  ),
+                  MenuDivider(),
+                  if (!kIsWeb)
+                    MenuButton(
+                      leading: Icon(Icons.email_outlined),
+                      child: Text(context.i18n.getSupport),
+                      onPressed: (c) {
+                        final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
+                        final suffix = isFromStore ? '' : '-sw';
+
+                        String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
+                        String subject = Uri.encodeComponent(
+                          context.i18n.helpRequested(packageInfoValue?.version ?? ''),
+                        );
+                        String body = Uri.encodeComponent("""
+                ${debugText()}
+
+${context.i18n.attachLogFile(File('${Directory.current.path}/app.logs').path)}""");
+                        Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
+
+                        launchUrl(mail);
+                      },
+                    ),
+                ],
+              ),
+            );
+          },
+          child: Icon(
+            Icons.help_outline,
+            size: 18,
+          ),
+        );
+      },
+    ),
+    Gap(4),
+    BKMenuButton(openLogs: openLogs),
   ];
 }
 
@@ -123,93 +150,88 @@ String debugText() {
 ---
 App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
 Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
-Target: ${settings.getLastTarget()?.title ?? '-'}
-Trainer App: ${settings.getTrainerApp()?.name ?? '-'}
-Connected Controllers: ${connection.devices.map((e) => e.toString()).join(', ')}
+Target: ${core.settings.getLastTarget()?.name ?? '-'}
+Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
+Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Logs: 
-${connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
+${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
 }
 
-class MenuButton extends StatelessWidget {
-  const MenuButton({super.key});
+class BKMenuButton extends StatelessWidget {
+  final VoidCallback? openLogs;
+  const BKMenuButton({super.key, this.openLogs});
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton(
-      itemBuilder: (c) => [
-        if (kDebugMode) ...[
-          PopupMenuItem(
-            child: PopupMenuButton(
-              child: Text("Simulate buttons"),
-              itemBuilder: (_) {
-                return ControllerButton.values
-                    .map(
-                      (e) => PopupMenuItem(
-                        child: Text(e.name),
-                        onTap: () {
-                          Future.delayed(Duration(seconds: 2)).then((_) {
-                            if (connection.devices.isNotEmpty) {
-                              connection.devices.firstOrNull?.handleButtonsClicked([e]);
-                              connection.devices.firstOrNull?.handleButtonsClicked([]);
-                            } else {
-                              actionHandler.performAction(e);
-                            }
-                          });
-                        },
-                      ),
-                    )
-                    .toList();
+    return OutlineButton(
+      density: ButtonDensity.icon,
+      child: Icon(Icons.more_vert, size: 18),
+      onPressed: () => showDropdown(
+        context: context,
+        builder: (c) => DropdownMenu(
+          children: [
+            if (kDebugMode) ...[
+              MenuButton(
+                onPressed: (_) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (c) => ButtonSimulator(),
+                    ),
+                  );
+                },
+                child: Text(context.i18n.simulateButtons),
+              ),
+              MenuButton(
+                child: Text(context.i18n.continueAction),
+                onPressed: (c) {
+                  core.connection.addDevices([
+                    ZwiftClickV2(
+                        BleDevice(
+                          name: 'Controller',
+                          deviceId: '00:11:22:33:44:55',
+                        ),
+                      )
+                      ..firmwareVersion = '1.2.0'
+                      ..rssi = -51
+                      ..batteryLevel = 81,
+                  ]);
+                },
+              ),
+              MenuButton(
+                child: Text(context.i18n.reset),
+                onPressed: (c) async {
+                  await core.settings.reset();
+                },
+              ),
+              MenuDivider(),
+            ],
+            if (openLogs != null)
+              MenuButton(
+                leading: Icon(Icons.article_outlined),
+                child: Text(context.i18n.logs),
+                onPressed: (c) {
+                  openLogs!();
+                },
+              ),
+            MenuButton(
+              leading: Icon(Icons.update_outlined),
+              child: Text(context.i18n.changelog),
+              onPressed: (c) {
+                Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
               },
             ),
-          ),
-          PopupMenuItem(
-            child: Text('Continue'),
-            onTap: () {
-              //Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
-              /*connection.addDevices([
-                ZwiftClick(
-                    BleDevice(
-                      name: 'Controller',
-                      deviceId: '00:11:22:33:44:55',
-                    ),
-                  )
-                  ..firmwareVersion = '1.2.0'
-                  ..rssi = -51
-                  ..batteryLevel = 81,
-              ]);*/
-            },
-          ),
-          PopupMenuItem(
-            child: Text('Reset'),
-            onTap: () async {
-              await settings.reset();
-            },
-          ),
-          PopupMenuItem(child: PopupMenuDivider()),
-        ],
-        PopupMenuItem(
-          child: Text('Changelog'),
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
-          },
+            MenuButton(
+              leading: Icon(Icons.policy_outlined),
+              child: Text(context.i18n.license),
+              onPressed: (c) {
+                showLicensePage(context: context);
+              },
+            ),
+          ],
         ),
-        PopupMenuItem(
-          child: Text('Ignored Devices'),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => IgnoredDevicesDialog(),
-            );
-          },
-        ),
-        PopupMenuItem(
-          child: Text('License'),
-          onTap: () {
-            showLicensePage(context: context);
-          },
-        ),
-      ],
+      ),
     );
   }
 }

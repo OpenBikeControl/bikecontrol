@@ -1,7 +1,9 @@
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 
 import 'apps/custom_app.dart';
 
@@ -22,120 +24,115 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('New Custom Profile'),
+        title: Text(context.i18n.newCustomProfile),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(labelText: 'Profile Name', hintText: 'e.g., Workout, Race, Event'),
+          hintText: context.i18n.profileName,
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Create')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.create)),
         ],
       ),
     );
   }
 
-  PopupMenuButton<String> getManageProfileDialog(
+  Widget getManageProfileDialog(
     BuildContext context,
     String? currentProfile, {
     required VoidCallback onDone,
   }) {
-    return PopupMenuButton(
-      itemBuilder: (context) => [
-        if (currentProfile != null && actionHandler.supportedApp is CustomApp)
-          PopupMenuItem(
-            child: Text('Rename'),
-            onTap: () async {
-              final newName = await _showRenameProfileDialog(
-                context,
-                currentProfile,
-              );
-              if (newName != null && newName.isNotEmpty && newName != currentProfile) {
-                await settings.duplicateCustomAppProfile(currentProfile, newName);
-                await settings.deleteCustomAppProfile(currentProfile);
-                final customApp = CustomApp(profileName: newName);
-                final savedKeymap = settings.getCustomAppKeymap(newName);
-                if (savedKeymap != null) {
-                  customApp.decodeKeymap(savedKeymap);
-                }
-                actionHandler.supportedApp = customApp;
-                await settings.setKeyMap(customApp);
-              }
-              onDone();
-            },
-          ),
-        if (currentProfile != null)
-          PopupMenuItem(
-            child: Text('Duplicate'),
-            onTap: () async {
-              final newName = await duplicate(
-                context,
-                currentProfile,
-              );
-              onDone();
-            },
-          ),
-        PopupMenuItem(
-          child: Text('Import'),
-          onTap: () async {
-            final jsonData = await _showImportDialog(context);
-            if (jsonData != null && jsonData.isNotEmpty) {
-              final success = await settings.importCustomAppProfile(jsonData);
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Profile imported successfully'),
-                    duration: Duration(seconds: 5),
+    return Builder(
+      builder: (context) {
+        return OutlineButton(
+          child: Text(context.i18n.manageProfile),
+          onPressed: () => showDropdown(
+            context: context,
+            builder: (c) => DropdownMenu(
+              children: [
+                if (currentProfile != null && core.actionHandler.supportedApp is CustomApp)
+                  MenuButton(
+                    child: Text(context.i18n.rename),
+                    onPressed: (c) async {
+                      final newName = await _showRenameProfileDialog(
+                        context,
+                        currentProfile,
+                      );
+                      if (newName != null && newName.isNotEmpty && newName != currentProfile) {
+                        await core.settings.duplicateCustomAppProfile(currentProfile, newName);
+                        await core.settings.deleteCustomAppProfile(currentProfile);
+                        final customApp = CustomApp(profileName: newName);
+                        final savedKeymap = core.settings.getCustomAppKeymap(newName);
+                        if (savedKeymap != null) {
+                          customApp.decodeKeymap(savedKeymap);
+                        }
+                        core.actionHandler.supportedApp = customApp;
+                        await core.settings.setKeyMap(customApp);
+                      }
+                      onDone();
+                    },
                   ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to import profile. Invalid format.'),
-                    duration: Duration(seconds: 5),
-                    backgroundColor: Colors.red,
+                if (currentProfile != null)
+                  MenuButton(
+                    child: Text(context.i18n.duplicate),
+                    onPressed: (c) async {
+                      final newName = await duplicate(
+                        context,
+                        currentProfile,
+                      );
+                      onDone();
+                    },
                   ),
-                );
-              }
-            }
-          },
-        ),
-        if (currentProfile != null)
-          PopupMenuItem(
-            child: Text('Export'),
-            onTap: () {
-              final currentProfile = (actionHandler.supportedApp as CustomApp).profileName;
-              final jsonData = settings.exportCustomAppProfile(currentProfile);
-              if (jsonData != null) {
-                Clipboard.setData(ClipboardData(text: jsonData));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Profile "$currentProfile" exported to clipboard',
+                MenuButton(
+                  child: Text(context.i18n.importAction),
+                  onPressed: (c) async {
+                    final jsonData = await _showImportDialog(context);
+                    if (jsonData != null && jsonData.isNotEmpty) {
+                      final success = await core.settings.importCustomAppProfile(jsonData);
+                      if (success) {
+                        buildToast(context, title: context.i18n.profileImportedSuccessfully);
+                      } else {
+                        buildToast(context, title: context.i18n.failedToImportProfile);
+                      }
+                    }
+                  },
+                ),
+                if (currentProfile != null)
+                  MenuButton(
+                    child: Text(context.i18n.exportAction),
+                    onPressed: (c) {
+                      final currentProfile = (core.actionHandler.supportedApp as CustomApp).profileName;
+                      final jsonData = core.settings.exportCustomAppProfile(currentProfile);
+                      if (jsonData != null) {
+                        Clipboard.setData(ClipboardData(text: jsonData));
+
+                        buildToast(context, title: context.i18n.profileExportedToClipboard(currentProfile));
+                      }
+                    },
+                  ),
+                if (currentProfile != null)
+                  MenuButton(
+                    onPressed: (c) async {
+                      final confirmed = await _showDeleteConfirmDialog(
+                        context,
+                        currentProfile,
+                      );
+                      if (confirmed == true) {
+                        await core.settings.deleteCustomAppProfile(currentProfile);
+                      }
+                      onDone();
+                    },
+                    child: Text(
+                      context.i18n.delete,
+                      style: TextStyle(color: Theme.of(context).colorScheme.destructive),
                     ),
-                    duration: Duration(seconds: 5),
                   ),
-                );
-              }
-            },
+              ],
+            ),
           ),
-        if (currentProfile != null)
-          PopupMenuItem(
-            value: 'delete',
-            onTap: () async {
-              final confirmed = await _showDeleteConfirmDialog(
-                context,
-                currentProfile,
-              );
-              if (confirmed == true) {
-                await settings.deleteCustomAppProfile(currentProfile);
-              }
-              onDone();
-            },
-            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ),
-      ],
+        );
+      },
     );
   }
 
@@ -144,15 +141,15 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Rename Profile'),
+        title: Text(context.i18n.renameProfile),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(labelText: 'Profile Name'),
+          hintText: context.i18n.profileName,
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Rename')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.rename)),
         ],
       ),
     );
@@ -163,15 +160,16 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Create new custom profile by duplicating "$currentName"'),
+        title: Text(context.i18n.createNewProfileByDuplicating(currentName)),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(labelText: 'New Profile Name'),
+          placeholder: Text(context.i18n.newProfileName),
+          hintText: context.i18n.newProfileName,
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Duplicate')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.duplicate)),
         ],
       ),
     );
@@ -181,14 +179,13 @@ class KeymapManager {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Profile'),
-        content: Text('Are you sure you want to delete "$profileName"? This action cannot be undone.'),
+        title: Text(context.i18n.deleteProfile),
+        content: Text(context.i18n.deleteProfileConfirmation(profileName)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-          TextButton(
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.i18n.cancel)),
+          DestructiveButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete'),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(context.i18n.delete),
           ),
         ],
       ),
@@ -211,46 +208,47 @@ class KeymapManager {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Import Profile'),
+        title: Text(context.i18n.importProfile),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Paste the exported JSON data below:'),
+            Text(context.i18n.pasteExportedJsonData),
             SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: InputDecoration(labelText: 'JSON Data', border: OutlineInputBorder()),
+              hintText: context.i18n.jsonData,
+              border: Border(),
               maxLines: 5,
               autofocus: true,
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text('Import')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.i18n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(context.i18n.importAction)),
         ],
       ),
     );
   }
 
-  Future<String?> duplicate(BuildContext context, String currentProfile, {String? skipName}) async {
-    final newName = skipName ?? await _showDuplicateProfileDialog(context, currentProfile);
+  Future<String?> duplicate(BuildContext? context, String currentProfile, {String? skipName}) async {
+    final newName = skipName ?? await _showDuplicateProfileDialog(context!, currentProfile);
     if (newName != null && newName.isNotEmpty) {
-      if (actionHandler.supportedApp is CustomApp) {
-        await settings.duplicateCustomAppProfile(currentProfile, newName);
+      if (core.actionHandler.supportedApp is CustomApp) {
+        await core.settings.duplicateCustomAppProfile(currentProfile, newName);
         final customApp = CustomApp(profileName: newName);
-        final savedKeymap = settings.getCustomAppKeymap(newName);
+        final savedKeymap = core.settings.getCustomAppKeymap(newName);
         if (savedKeymap != null) {
           customApp.decodeKeymap(savedKeymap);
         }
-        actionHandler.supportedApp = customApp;
-        await settings.setKeyMap(customApp);
+        core.actionHandler.supportedApp = customApp;
+        await core.settings.setKeyMap(customApp);
         return newName;
       } else {
         final customApp = CustomApp(profileName: newName);
 
-        final connectedDevice = connection.devices.firstOrNull;
-        actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
+        final connectedDevice = core.connection.devices.firstOrNull;
+        core.actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
           pair.buttons.filter((button) => connectedDevice?.availableButtons.contains(button) == true).forEachIndexed((
             button,
             indexB,
@@ -263,12 +261,13 @@ class KeymapManager {
               touchPosition: pair.touchPosition,
               inGameAction: pair.inGameAction,
               inGameActionValue: pair.inGameActionValue,
+              modifiers: pair.modifiers,
             );
           });
         });
 
-        actionHandler.supportedApp = customApp;
-        await settings.setKeyMap(customApp);
+        core.actionHandler.supportedApp = customApp;
+        await core.settings.setKeyMap(customApp);
         return newName;
       }
     }

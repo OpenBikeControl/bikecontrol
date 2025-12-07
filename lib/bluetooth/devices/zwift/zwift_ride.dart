@@ -7,7 +7,7 @@ import 'package:swift_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -42,9 +42,6 @@ class ZwiftRide extends ZwiftDevice {
               ZwiftButtons.paddleRight,
             ],
       );
-
-  @override
-  String get customServiceId => ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID;
 
   @override
   String get latestFirmwareVersion => '1.2.0';
@@ -149,7 +146,7 @@ class ZwiftRide extends ZwiftDevice {
         final notification = BatteryNotification.fromBuffer(message);
         if (batteryLevel != notification.newPercLevel) {
           batteryLevel = notification.newPercLevel;
-          connection.signalChange(this);
+          core.connection.signalChange(this);
         }
         break;
       case Opcode.CONTROLLER_NOTIFICATION:
@@ -233,7 +230,7 @@ class ZwiftRide extends ZwiftDevice {
     }
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       buffer,
       withoutResponse: true,
@@ -247,7 +244,7 @@ class ZwiftRide extends ZwiftDevice {
     }
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       buffer,
       withoutResponse: true,

@@ -8,4 +8,10 @@ enum MediaKey {
 
   /// The fast-forward media button
   fastForward,
+
+  /// The volume up button
+  volumeUp,
+
+  /// The volume down button
+  volumeDown,
 }

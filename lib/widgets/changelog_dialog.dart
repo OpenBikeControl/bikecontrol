@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 
 class ChangelogDialog extends StatelessWidget {
   final Markdown entry;
@@ -19,12 +20,9 @@ class ChangelogDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('What\'s New'),
+          Text(context.i18n.whatsNew),
           SizedBox(height: 4),
-          Text(
-            'Version ${entry.blocks.first.text}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.normal),
-          ),
+          Text(context.i18n.version(entry.blocks.first.text)),
         ],
       ),
       content: Container(
@@ -34,7 +32,7 @@ class ChangelogDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Got it!'),
+          child: Text(context.i18n.gotIt),
         ),
       ],
     );

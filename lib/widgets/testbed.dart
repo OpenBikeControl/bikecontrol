@@ -2,14 +2,17 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/utils/actions/base_actions.dart' as actions;
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/button_widget.dart';
+import 'package:swift_control/widgets/ui/button_widget.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 
 import '../bluetooth/messages/notification.dart';
 
@@ -55,80 +58,101 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   final List<_TouchSample> _history = <_TouchSample>[];
 
   // ----- Keyboard tracking -----
-  // ----- Keyboard tracking -----
   final List<_KeySample> _keys = <_KeySample>[];
   final List<_ActionSample> _actions = <_ActionSample>[];
 
   // Focus to receive key events without stealing focus from inputs.
   late final FocusNode _focusNode;
+  bool _isMobile = false;
+
+  Offset? _lastMove;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    _isMobile = MediaQuery.sizeOf(context).width < 600;
+  }
 
   @override
   void initState() {
     super.initState();
+
     _focusNode = FocusNode(debugLabel: 'TestbedFocus', canRequestFocus: true, skipTraversal: true);
-    _actionSubscription = connection.actionStream.listen((data) async {
+    _actionSubscription = core.connection.actionStream.listen((data) async {
       if (!mounted) {
         return;
       }
-      if (data is ButtonNotification) {
-        for (final button in data.buttonsClicked) {
-          final sample = _KeySample(
-            button: button,
-            text: '🔘 ${button.name}',
-            timestamp: DateTime.now(),
-          );
-          _keys.insert(0, sample);
-          if (_keys.length > widget.maxKeyboardEvents) {
-            _keys.removeLast();
-          }
-
-          if (actionHandler.supportedApp is! CustomApp &&
-              actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
-            ScaffoldMessenger.maybeOf(
+      if (data is ButtonNotification && data.buttonsClicked.isNotEmpty) {
+        if (core.actionHandler.supportedApp == null) {
+          buildToast(context, level: LogLevel.LOGLEVEL_WARNING, title: context.i18n.selectTrainerAppAndTarget);
+        } else {
+          final button = data.buttonsClicked.first;
+          if (core.actionHandler.supportedApp is! CustomApp &&
+              core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
+            buildToast(
               context,
-            )?.showSnackBar(
-              SnackBar(
-                padding: EdgeInsets.only(left: 70, top: 12, bottom: 12, right: 12),
-                content: Text.rich(
-                  TextSpan(
-                    children: [
-                      const TextSpan(text: 'Use a custom keymap to support the '),
-                      WidgetSpan(
-                        child: ButtonWidget(button: button),
-                      ),
-                      const TextSpan(
-                        text: ' button.',
-                      ),
-                    ],
-                  ),
+              level: LogLevel.LOGLEVEL_WARNING,
+              titleWidget: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: '${context.i18n.useCustomKeymapForButton} '),
+                    WidgetSpan(
+                      child: ButtonWidget(button: button),
+                    ),
+                    TextSpan(
+                      text: context.i18n.button,
+                    ),
+                  ],
                 ),
               ),
             );
+          } else {
+            /*final isMobile = MediaQuery.sizeOf(context).width < 600;
+            buildToast(
+              context,
+              location: isMobile ? ToastLocation.topCenter : ToastLocation.bottomRight,
+              titleWidget: Wrap(children: data.buttonsClicked.map((button) => ButtonWidget(button: button)).toList()),
+            );*/
+            final sample = _KeySample(
+              button: button,
+              text: '🔘 ${button.name}',
+              timestamp: DateTime.now(),
+            );
+            _keys.insert(0, sample);
+            if (_keys.length > widget.maxKeyboardEvents) {
+              _keys.removeLast();
+            }
           }
         }
-        setState(() {});
       } else if (data is ActionNotification) {
-        final sample = _ActionSample(
-          text: data.result.message,
-          timestamp: DateTime.now(),
-          isError: data.result is actions.Error,
+        buildToast(
+          context,
+          location: ToastLocation.bottomLeft,
+          level: data.result is actions.Error ? LogLevel.LOGLEVEL_WARNING : LogLevel.LOGLEVEL_INFO,
+          title: data.result.message,
+          duration: Duration(seconds: 1),
         );
-        _actions.insert(0, sample);
-        if (_actions.length > widget.maxKeyboardEvents) {
-          _actions.removeLast();
-        }
-        setState(() {});
+      } else if (data is AlertNotification) {
+        buildToast(
+          context,
+          location: ToastLocation.bottomRight,
+          level: data.level,
+          title: data.alertMessage,
+        );
       }
     });
 
     _ticker = createTicker((_) {
       // Cull expired touch and key samples.
       final now = DateTime.now();
+      _keys.removeWhere((s) => now.difference(s.timestamp) > widget.touchRevealDuration);
       _history.removeWhere((s) => now.difference(s.timestamp) > widget.touchRevealDuration);
-      _keys.removeWhere((k) => now.difference(k.timestamp) > widget.keyboardRevealDuration);
       _actions.removeWhere((k) => now.difference(k.timestamp) > widget.keyboardRevealDuration);
 
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     })..start();
   }
 
@@ -142,6 +166,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   void _onPointerDown(PointerDownEvent e) {
     if (!widget.enabled ||
         !widget.showTouches ||
+        ((_lastMove ?? Offset.zero) - e.position).distance < 5 ||
         (e.kind != PointerDeviceKind.unknown && e.kind != PointerDeviceKind.mouse)) {
       return;
     }
@@ -151,14 +176,23 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
       timestamp: DateTime.now(),
       phase: _TouchPhase.down,
     );
+
     _active[e.pointer] = sample;
     _history.add(sample);
     setState(() {});
   }
 
+  void _onPointerHover(PointerHoverEvent e) {
+    Future<void>.delayed(Duration(milliseconds: 30)).then((_) {
+      // delay a bit for better detection of a real click vs fake one
+      _lastMove = e.position;
+    });
+  }
+
   void _onPointerUp(PointerUpEvent e) {
     if (!widget.enabled ||
         !widget.showTouches ||
+        ((_lastMove ?? Offset.zero) - e.position).distance < 5 ||
         (e.kind != PointerDeviceKind.unknown && e.kind != PointerDeviceKind.mouse)) {
       return;
     }
@@ -187,24 +221,17 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
     final isDown = event is KeyDownEvent;
     final isUp = event is KeyUpEvent;
 
-    // Filter out repeat KeyDowns if desired (optional).
-    // Here we keep them; comment this block in to drop repeats:
-    // if (event.repeat) return KeyEventResult.handled;
+    buildToast(
+      context,
 
-    final sample = _KeySample(
-      text:
+      location: ToastLocation.bottomLeft,
+      title:
           '${isDown
               ? "↓"
               : isUp
               ? "↑"
               : "•"} $keyName',
-      timestamp: DateTime.now(),
     );
-    _keys.insert(0, sample);
-    if (_keys.length > widget.maxKeyboardEvents) {
-      _keys.removeLast();
-    }
-    setState(() {});
     // We don't want to prevent normal text input, so we return ignored.
     return KeyEventResult.ignored;
   }
@@ -213,6 +240,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Listener(
       onPointerDown: _onPointerDown,
+      onPointerHover: _onPointerHover,
       onPointerUp: _onPointerUp,
       onPointerCancel: _onPointerCancel,
       behavior: HitTestBehavior.translucent,
@@ -240,8 +268,8 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
               ),
             if (widget.showKeyboard)
               Positioned(
-                left: 12,
-                bottom: 12,
+                right: 12,
+                bottom: _isMobile ? 92 : 12,
                 child: IgnorePointer(
                   child: _KeyboardOverlay(
                     items: _keys,
@@ -405,16 +433,13 @@ class _KeyboardToast extends StatelessWidget {
     final t = (age.inMilliseconds / duration.inMilliseconds.clamp(1, 1 << 30)).clamp(0.0, 1.0);
     final fade = 1.0 - t;
 
-    return Material(
-      color: Colors.transparent,
-      child: Opacity(
-        opacity: fade,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
-          child: item.button != null ? ButtonWidget(button: item.button!) : Text(item.text, style: textStyle),
-        ),
+    return Opacity(
+      opacity: fade,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(12)),
+        child: item.button != null ? ButtonWidget(button: item.button!) : Text(item.text, style: textStyle),
       ),
     );
   }
@@ -483,19 +508,16 @@ class _ActionToast extends StatelessWidget {
     final t = (age.inMilliseconds / duration.inMilliseconds.clamp(1, 1 << 30)).clamp(0.0, 1.0);
     final fade = 1.0 - t;
 
-    return Material(
-      color: Colors.transparent,
-      child: Opacity(
-        opacity: fade,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: item.isError ? Colors.red.withOpacity(0.8) : badgeColor,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(item.text, style: textStyle),
+    return Opacity(
+      opacity: fade,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: item.isError ? Colors.red.withOpacity(0.8) : badgeColor,
+          borderRadius: BorderRadius.circular(12),
         ),
+        child: Text(item.text, style: textStyle),
       ),
     );
   }

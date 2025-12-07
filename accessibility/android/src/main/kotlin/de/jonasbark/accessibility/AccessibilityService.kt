@@ -78,9 +78,7 @@ class AccessibilityService : AccessibilityService(), Listener {
             )
 
             // Forward key events to the plugin (Flutter) and swallow them so they don't propagate.
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                Observable.fromServiceKeys?.onKeyEvent(event)
-            }
+            Observable.fromServiceKeys?.onKeyEvent(event)
             // Return true to indicate we've handled the event and it should be swallowed.
             return true
         } else {

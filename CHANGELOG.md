@@ -1,3 +1,16 @@
+### 4.0.0 (unreleased)
+
+- a brand-new design
+  - Accessibility Permission is now optional on Android
+- Zwift is now fully supported on all operating systems
+    - you can choose between network based control or bluetooth based control
+- MyWhoosh can now also be controlled with BikeControl running on the same iPad / iPhone
+- Translations available in German and French
+- support for Wahoo KICKR BIKE PRO
+- support for the OpenBikeControl protocol for supported Trainer apps
+  - this enables seamless and official integration, independent of the operating system
+  - learn more at https://openbikecontrol.org
+
 ### 3.6.0 (23-11-2025)
 
 SwiftControl is now called BikeControl!

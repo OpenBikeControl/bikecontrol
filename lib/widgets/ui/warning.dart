@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class Warning extends StatelessWidget {
   final bool important;
@@ -8,19 +8,19 @@ class Warning extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(4),
-      width: double.infinity,
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: important
-            ? Theme.of(context).colorScheme.errorContainer
-            : Theme.of(context).colorScheme.primaryContainer,
+        color: (important ? Theme.of(context).colorScheme.destructive : Theme.of(context).colorScheme.secondary)
+            .withAlpha(80),
+        border: Border.all(
+          color: important ? Theme.of(context).colorScheme.destructive : Theme.of(context).colorScheme.secondary,
+        ),
         borderRadius: BorderRadius.circular(8),
       ),
-      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
-        children: children,
+        children: children.map((e) => e.small).toList(),
       ),
     );
   }

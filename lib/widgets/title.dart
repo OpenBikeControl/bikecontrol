@@ -2,14 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:restart_app/restart_app.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/widgets/ui/gradient_text.dart';
+import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:version/version.dart';
 
@@ -61,12 +65,7 @@ class _AppTitleState extends State<AppTitle> {
               _showShorebirdRestartSnackbar();
             })
             .catchError((e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to update: $e'),
-                  duration: Duration(seconds: 5),
-                ),
-              );
+              buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
             });
       } else if (updateStatus == UpdateStatus.restartRequired) {
         _showShorebirdRestartSnackbar();
@@ -79,17 +78,13 @@ class _AppTitleState extends State<AppTitle> {
       try {
         final appUpdateInfo = await InAppUpdate.checkForUpdate();
         if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('New version available'),
-              duration: Duration(seconds: 1337),
-              action: SnackBarAction(
-                label: 'Update',
-                onPressed: () {
-                  InAppUpdate.performImmediateUpdate();
-                },
-              ),
-            ),
+          buildToast(
+            context,
+            title: AppLocalizations.current.newVersionAvailable,
+            closeTitle: AppLocalizations.current.update,
+            onClose: () {
+              InAppUpdate.performImmediateUpdate();
+            },
           );
         }
         isFromPlayStore = true;
@@ -144,14 +139,12 @@ class _AppTitleState extends State<AppTitle> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('BikeControl', style: TextStyle(fontWeight: FontWeight.bold)),
+        GradientText('BikeControl', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
         if (packageInfoValue != null)
           Text(
-            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' (sideloaded)' : ''}',
-            style: screenshotMode
-                ? TextStyle(fontSize: 12)
-                : TextStyle(fontFamily: "monospace", fontFamilyFallback: <String>["Courier"], fontSize: 12),
-          )
+            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' ${AppLocalizations.current.sideloaded}' : ''}',
+            style: TextStyle(fontSize: 12),
+          ).mono.muted
         else
           SmallProgressIndicator(),
       ],
@@ -159,23 +152,19 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _showShorebirdRestartSnackbar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Force-close the app to use the new version'),
-        duration: Duration(seconds: 10),
-        action: SnackBarAction(
-          label: 'Restart',
-          onPressed: () {
-            if (Platform.isIOS) {
-              connection.reset();
-              Restart.restartApp(delayBeforeRestart: 1000);
-            } else {
-              connection.reset();
-              exit(0);
-            }
-          },
-        ),
-      ),
+    buildToast(
+      context,
+      title: AppLocalizations.current.forceCloseToUpdate,
+      closeTitle: AppLocalizations.current.restart,
+      onClose: () {
+        if (Platform.isIOS) {
+          core.connection.reset();
+          Restart.restartApp(delayBeforeRestart: 1000);
+        } else {
+          core.connection.reset();
+          exit(0);
+        }
+      },
     );
   }
 
@@ -194,17 +183,13 @@ class _AppTitleState extends State<AppTitle> {
   }
 
   void _showUpdateSnackbar(Version newVersion, String url) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('New version available: ${newVersion.toString()}'),
-        duration: Duration(seconds: 1337),
-        action: SnackBarAction(
-          label: 'Download',
-          onPressed: () {
-            launchUrlString(url);
-          },
-        ),
-      ),
+    buildToast(
+      context,
+      title: AppLocalizations.current.newVersionAvailableWithVersion(newVersion.toString()),
+      closeTitle: AppLocalizations.current.download,
+      onClose: () {
+        launchUrlString(url);
+      },
     );
   }
 }

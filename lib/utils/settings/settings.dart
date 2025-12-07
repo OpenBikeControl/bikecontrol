@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:window_manager/window_manager.dart';
@@ -22,13 +23,13 @@ class Settings {
       prefs = await SharedPreferences.getInstance();
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
-      if (actionHandler is DesktopActions) {
+      if (core.actionHandler is DesktopActions) {
         // Must add this line.
         await windowManager.ensureInitialized();
       }
 
       final app = getKeyMap();
-      actionHandler.init(app);
+      core.actionHandler.init(app);
       return null;
     } catch (e, s) {
       if (!retried) {
@@ -56,7 +57,7 @@ class Settings {
 
   Future<void> reset() async {
     await prefs.clear();
-    actionHandler.init(null);
+    core.actionHandler.init(null);
   }
 
   void setTrainerApp(SupportedApp app) {
@@ -117,7 +118,7 @@ class Settings {
     await prefs.remove('customapp_$profileName');
     // If the current app is the one being deleted, reset
     if (prefs.getString('app') == profileName) {
-      actionHandler.init(null);
+      core.actionHandler.init(null);
       await prefs.remove('app');
     }
   }
@@ -188,19 +189,43 @@ class Settings {
   }
 
   bool getMyWhooshLinkEnabled() {
-    return prefs.getBool('mywhoosh_link_enabled') ?? true;
+    return prefs.getBool('mywhoosh_link_enabled') ?? false;
   }
 
   Future<void> setMyWhooshLinkEnabled(bool enabled) async {
     await prefs.setBool('mywhoosh_link_enabled', enabled);
   }
 
-  bool getZwiftEmulatorEnabled() {
-    return prefs.getBool('zwift_emulator_enabled') ?? true;
+  bool getObpMdnsEnabled() {
+    return prefs.getBool('openbikeprotocol_mdns_enabled') ?? false;
   }
 
-  Future<void> setZwiftEmulatorEnabled(bool enabled) async {
+  Future<void> setObpMdnsEnabled(bool enabled) async {
+    await prefs.setBool('openbikeprotocol_mdns_enabled', enabled);
+  }
+
+  bool getObpBleEnabled() {
+    return prefs.getBool('openbikeprotocol_ble_enabled') ?? false;
+  }
+
+  Future<void> setObpBleEnabled(bool enabled) async {
+    await prefs.setBool('openbikeprotocol_ble_enabled', enabled);
+  }
+
+  bool getZwiftBleEmulatorEnabled() {
+    return prefs.getBool('zwift_emulator_enabled') ?? false;
+  }
+
+  Future<void> setZwiftBleEmulatorEnabled(bool enabled) async {
     await prefs.setBool('zwift_emulator_enabled', enabled);
+  }
+
+  bool getZwiftMdnsEmulatorEnabled() {
+    return prefs.getBool('zwift_mdns_emulator_enabled') ?? false;
+  }
+
+  Future<void> setZwiftMdnsEmulatorEnabled(bool enabled) async {
+    await prefs.setBool('zwift_mdns_emulator_enabled', enabled);
   }
 
   bool getMiuiWarningDismissed() {
@@ -261,5 +286,21 @@ class Settings {
 
   Future<void> setShowZwiftClickV2ReconnectWarning(bool show) async {
     await prefs.setBool('zwift_click_v2_reconnect_warning', show);
+  }
+
+  void setRemoteControlEnabled(bool value) {
+    prefs.setBool('remote_control_enabled', value);
+  }
+
+  bool getRemoteControlEnabled() {
+    return prefs.getBool('remote_control_enabled') ?? false;
+  }
+
+  bool getLocalEnabled() {
+    return prefs.getBool('local_control_enabled') ?? false;
+  }
+
+  void setLocalEnabled(bool value) {
+    prefs.setBool('local_control_enabled', value);
   }
 }

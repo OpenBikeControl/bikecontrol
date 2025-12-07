@@ -1,69 +1,48 @@
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as ma;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_screenshot/golden_screenshot.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/theme.dart';
+import 'package:swift_control/pages/navigation.dart';
+import 'package:swift_control/utils/core.dart' show core;
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:test_screenshot/test_screenshot.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-void main() {
+import 'custom_frame.dart';
+
+enum DeviceType {
+  android,
+  androidTablet,
+  iPhone,
+  iPad,
+  desktop,
+  noFrame,
+}
+
+Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
-    version: '3.5.0',
+    version: '4.0.0',
     buildNumber: '1',
     buildSignature: '',
   );
   SharedPreferences.setMockInitialValues({});
 
-  group('Screenshot Tests', () {
-    final List<(String type, Size size)> sizes = [
-      ('Phone', Size(400, 800)),
-      ('iPhone', Size(1242, 2688)),
-      ('macOS', Size(1280, 800)),
-      ('GitHub', Size(600, 900)),
-    ];
+  await core.settings.init();
+  await core.settings.reset();
 
-    testWidgets('Requirements', (WidgetTester tester) async {
-      await tester.loadFonts();
-      for (final size in sizes) {
-        await _createRequirementScreenshot(tester, size);
-      }
+  core.settings.setTrainerApp(MyWhoosh());
+  core.settings.setKeyMap(MyWhoosh());
+  core.settings.setLastTarget(Target.thisDevice);
 
-      // Reset
-    });
-    testWidgets('Device', (WidgetTester tester) async {
-      await tester.loadFonts();
-      for (final size in sizes) {
-        await _createDeviceScreenshot(tester, size);
-      }
-    });
-  });
-}
-
-Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size size) spec) async {
-  // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-  tester.view.physicalSize = spec.$2;
-  tester.view.devicePixelRatio = 1;
-
-  screenshotMode = true;
-
-  await settings.init();
-  await settings.reset();
-  settings.setTrainerApp(MyWhoosh());
-  settings.setKeyMap(MyWhoosh());
-  settings.setLastTarget(Target.thisDevice);
-
-  connection.addDevices([
+  core.connection.addDevices([
     ZwiftRide(
         BleDevice(
           name: 'Controller',
@@ -75,60 +54,164 @@ Future<void> _createDeviceScreenshot(WidgetTester tester, (String type, Size siz
       ..batteryLevel = 81,
   ]);
 
-  await tester.pumpWidget(
-    Screenshotter(
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        title: 'BikeControl',
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.light,
-        home: const DevicePage(),
-      ),
-    ),
-  );
+  final List<({DeviceType type, TargetPlatform platform, Size size})> sizes = [
+    (type: DeviceType.android, platform: TargetPlatform.android, size: Size(1320, 2868)),
+    (type: DeviceType.androidTablet, platform: TargetPlatform.android, size: Size(3840, 2400)),
+    (type: DeviceType.iPhone, platform: TargetPlatform.iOS, size: Size(1242, 2688)),
+    (type: DeviceType.iPad, platform: TargetPlatform.iOS, size: Size(2752, 2064)),
+    (type: DeviceType.desktop, platform: TargetPlatform.windows, size: Size(2752, 2064)),
+    (type: DeviceType.noFrame, platform: TargetPlatform.windows, size: Size(1320, 2868) / 1.2),
+    /*('iPhone', Size(1242, 2688)),
+    ('macOS', Size(1280, 800)),
+    ('GitHub', Size(600, 900)),*/
+  ];
 
-  const wait = 1;
-
-  try {
-    await tester.pumpAndSettle(Duration(seconds: wait), EnginePhase.sendSemanticsUpdate, Duration(seconds: wait));
-  } catch (e) {
-    // Ignore timeout errors
-  }
-
-  await _takeScreenshot(tester, 'device-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png', spec.$2);
-}
-
-Future<void> _createRequirementScreenshot(WidgetTester tester, (String type, Size size) spec) async {
-  // Set phone screen size (typical Android phone - 1140x2616 to match existing)
-  tester.view.physicalSize = spec.$2;
-  tester.view.devicePixelRatio = 1;
-
-  await settings.init();
-  await settings.reset();
+  debugDisableShadows = true;
   screenshotMode = true;
-  await tester.pumpWidget(
-    Screenshotter(
-      child: SwiftPlayApp(),
-    ),
-  );
-  await tester.pumpAndSettle();
 
-  await _takeScreenshot(
-    tester,
-    'screenshot-${spec.$1}-${spec.$2.width.toInt()}x${spec.$2.height.toInt()}.png',
-    spec.$2,
-  );
-}
+  testGoldens('Init', (WidgetTester tester) async {
+    screenshotMode = true;
+    await tester.loadAssets();
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.platform,
+            resolution: size.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.type,
+                  title: 'BikeControl connects to your favorite controller',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.devices,
+          ),
+        ),
+      );
 
-Future<void> _takeScreenshot(WidgetTester tester, String path, Size size) async {
-  const FileSystem fs = LocalFileSystem();
-  final file = fs.file('screenshots/$path');
-  await fs.directory('screenshots').create();
-  print('File path: ${file.absolute.path}');
+      await tester.pump();
+    }
+  });
+  testGoldens('Device', (WidgetTester tester) async {
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.platform,
+            resolution: size.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.type,
+                  title: 'BikeControl connects to your favorite controller',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.devices,
+          ),
+        ),
+      );
 
-  await tester.screenshot(path: 'screenshots/$path');
-  final decodedImage = await decodeImageFromList(file.readAsBytesSync());
-  // resize image
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/device-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
+        ),
+      );
+    }
+  });
+
+  testGoldens('Trainer', (WidgetTester tester) async {
+    screenshotMode = true;
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.platform,
+            resolution: size.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.type,
+                  title: 'Choose how BikeControl connects to your trainer',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.trainer,
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/trainer-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
+        ),
+      );
+    }
+  });
+
+  testGoldens('Customization', (WidgetTester tester) async {
+    screenshotMode = true;
+
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.platform,
+            resolution: size.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.type,
+                  title: 'Customize every controller button',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            page: BCPage.customization,
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/customization-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
+        ),
+      );
+    }
+  });
 }

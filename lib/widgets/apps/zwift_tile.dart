@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/keymap/apps/zwift.dart';
-import 'package:swift_control/widgets/small_progress_indicator.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:swift_control/widgets/ui/connection_method.dart';
 
 class ZwiftTile extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -17,44 +18,39 @@ class _ZwiftTileState extends State<ZwiftTile> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: zwiftEmulator.isConnected,
+      valueListenable: core.zwiftEmulator.isConnected,
       builder: (context, isConnected, _) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              value: settings.getZwiftEmulatorEnabled(),
-              onChanged: (value) {
-                settings.setZwiftEmulatorEnabled(value);
-                if (!value) {
-                  zwiftEmulator.stopAdvertising();
-                } else if (value) {
-                  zwiftEmulator.startAdvertising(widget.onUpdate);
-                }
-                setState(() {});
+        return ValueListenableBuilder(
+          valueListenable: core.zwiftEmulator.isStarted,
+          builder: (context, isStarted, _) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return ConnectionMethod(
+                  isEnabled: core.settings.getZwiftBleEmulatorEnabled(),
+                  type: ConnectionMethodType.bluetooth,
+                  isStarted: isStarted,
+                  isConnected: isConnected,
+                  onChange: (value) {
+                    core.settings.setZwiftBleEmulatorEnabled(value);
+                    if (!value) {
+                      core.zwiftEmulator.stopAdvertising();
+                    } else if (value) {
+                      core.zwiftEmulator.startAdvertising(widget.onUpdate).catchError((e) {
+                        core.settings.setZwiftBleEmulatorEnabled(false);
+                        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+                      });
+                    }
+                    setState(() {});
+                  },
+                  title: context.i18n.enableZwiftControllerBluetooth,
+                  description: !isStarted
+                      ? context.i18n.zwiftControllerDescription
+                      : isConnected
+                      ? context.i18n.connected
+                      : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
+                  requirements: core.permissions.getRemoteControlRequirements(),
+                );
               },
-              title: Text('Enable Zwift Controller'),
-              subtitle: Row(
-                spacing: 12,
-                children: [
-                  if (!settings.getZwiftEmulatorEnabled())
-                    Expanded(
-                      child: Text(
-                        'Disabled. ${settings.getTrainerApp() is Zwift ? 'Virtual shifting and on screen navigation will not work.' : ''}',
-                      ),
-                    )
-                  else ...[
-                    Expanded(
-                      child: Text(
-                        isConnected
-                            ? "Connected"
-                            : "Waiting for connection. Choose BikeControl in ${settings.getTrainerApp()?.name}'s controller pairing menu.",
-                      ),
-                    ),
-                    if (!isConnected) SmallProgressIndicator(),
-                  ],
-                ],
-              ),
             );
           },
         );

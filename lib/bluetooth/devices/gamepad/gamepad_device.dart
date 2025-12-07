@@ -3,36 +3,52 @@ import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/beta_pill.dart';
-
-import '../../../widgets/warning.dart';
+import 'package:swift_control/widgets/ui/beta_pill.dart';
 
 class GamepadDevice extends BaseDevice {
   final String id;
 
-  GamepadDevice(super.name, {required this.id}) : super(availableButtons: [], isBeta: true);
+  GamepadDevice(super.name, {required this.id}) : super(availableButtons: []);
 
   List<ControllerButton> _lastButtonsClicked = [];
 
   @override
   Future<void> connect() async {
-    Gamepads.eventsByGamepad(id).listen((event) {
-      actionStreamInternal.add(LogNotification('Gamepad event: $event'));
+    Gamepads.eventsByGamepad(id).listen((event) async {
+      actionStreamInternal.add(LogNotification('Gamepad event: ${event.key} value ${event.value} type ${event.type}'));
 
-      ControllerButton? button = actionHandler.supportedApp?.keymap.getOrAddButton(
-        event.key,
-        () => ControllerButton(event.key),
+      final int normalizedValue = switch (event.value) {
+        > 1.0 => 1,
+        < -1.0 => -1,
+        _ => event.value.toInt(),
+      };
+
+      final buttonKey = event.type == KeyType.analog ? '${event.key}_$normalizedValue' : event.key;
+      ControllerButton button = await getOrAddButton(
+        buttonKey,
+        () => ControllerButton(buttonKey),
       );
 
-      final buttonsClicked = event.value == 0.0 && button != null ? [button] : <ControllerButton>[];
-      if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
-        handleButtonsClicked(buttonsClicked);
+      switch (event.type) {
+        case KeyType.analog:
+          if (event.value.toInt() != 0) {
+            final buttonsClicked = event.value.toInt() != 0 ? [button] : <ControllerButton>[];
+            if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
+              handleButtonsClicked(buttonsClicked);
+            }
+            _lastButtonsClicked = buttonsClicked;
+          } else {
+            handleButtonsClicked([]);
+          }
+        case KeyType.button:
+          final buttonsClicked = event.value.toInt() != 1 ? [button] : <ControllerButton>[];
+          if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
+            handleButtonsClicked(buttonsClicked);
+          }
+          _lastButtonsClicked = buttonsClicked;
       }
-      _lastButtonsClicked = buttonsClicked;
     });
   }
 
@@ -44,6 +60,7 @@ class GamepadDevice extends BaseDevice {
         spacing: 8,
         children: [
           Row(
+            spacing: 8,
             children: [
               Text(
                 name.screenshot,
@@ -52,13 +69,6 @@ class GamepadDevice extends BaseDevice {
               if (isBeta) BetaPill(),
             ],
           ),
-
-          if (actionHandler.supportedApp is! CustomApp)
-            Warning(
-              children: [
-                Text('Use a custom keymap to use the buttons on $name.'),
-              ],
-            ),
         ],
       ),
     );

@@ -2,7 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
@@ -35,10 +39,7 @@ class WhooshLink {
     }
   }
 
-  Future<void> startServer({
-    required void Function(Socket socket) onConnected,
-    required void Function(Socket socket) onDisconnected,
-  }) async {
+  Future<void> startServer() async {
     try {
       // Create and bind server socket
       _server = await ServerSocket.bind(
@@ -64,7 +65,9 @@ class WhooshLink {
     _server!.listen(
       (Socket socket) {
         _socket = socket;
-        onConnected(socket);
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.myWhooshLinkConnected),
+        );
         isConnected.value = true;
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
@@ -83,15 +86,17 @@ class WhooshLink {
           },
           onDone: () {
             print('Client disconnected: $socket');
-            onDisconnected(socket);
             isConnected.value = false;
+            core.connection.signalNotification(
+              AlertNotification(LogLevel.LOGLEVEL_WARNING, 'MyWhoosh Link disconnected'),
+            );
           },
         );
       },
     );
   }
 
-  ActionResult sendAction(InGameAction action, int? value) {
+  ActionResult sendAction(InGameAction action, int? value, {required bool isKeyDown, required bool isKeyUp}) {
     final jsonObject = switch (action) {
       InGameAction.shiftUp => {
         'MessageType': 'Controls',
@@ -126,13 +131,13 @@ class WhooshLink {
       InGameAction.steerLeft => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'Steering': '-1',
+          'Steering': isKeyDown ? '-1' : '0',
         },
       },
       InGameAction.steerRight => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'Steering': '1',
+          'Steering': isKeyDown ? '1' : '0',
         },
       },
       InGameAction.increaseResistance => null,
@@ -143,12 +148,18 @@ class WhooshLink {
       _ => null,
     };
 
-    if (jsonObject != null) {
+    final supportsIsKeyUpActions = [
+      InGameAction.steerLeft,
+      InGameAction.steerRight,
+    ];
+    if (jsonObject != null && !isKeyDown && !supportsIsKeyUpActions.contains(action)) {
+      return Success('No Action sent on key down for action: $action');
+    } else if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
       _socket?.writeln(jsonString);
       return Success('Sent action to MyWhoosh: $action ${value ?? ''}');
     } else {
-      return Error('No action available for button: $action');
+      return NotHandled('No action available for button: $action');
     }
   }
 
@@ -156,7 +167,7 @@ class WhooshLink {
     return kIsWeb
         ? false
         : switch (target) {
-            Target.thisDevice => Platform.isAndroid || Platform.isWindows,
+            Target.thisDevice => !Platform.isIOS,
             _ => true,
           };
   }

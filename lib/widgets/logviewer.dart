@@ -1,12 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 
 import '../bluetooth/messages/notification.dart';
-import '../main.dart';
 
 class LogViewer extends StatefulWidget {
   const LogViewer({super.key});
@@ -16,8 +18,6 @@ class LogViewer extends StatefulWidget {
 }
 
 class _LogviewerState extends State<LogViewer> {
-  List<({DateTime date, String entry})> _actions = [];
-
   late StreamSubscription<BaseNotification> _actionSubscription;
   final ScrollController _scrollController = ScrollController();
 
@@ -25,17 +25,9 @@ class _LogviewerState extends State<LogViewer> {
   void initState() {
     super.initState();
 
-    _actionSubscription = connection.actionStream.listen((data) {
+    _actionSubscription = core.connection.actionStream.listen((data) {
       if (mounted) {
-        if (data is BluetoothAvailabilityNotification) {
-          if (!data.isAvailable && Navigator.canPop(context)) {
-            Navigator.popUntil(context, (route) => route.isFirst);
-          }
-        }
-        setState(() {
-          _actions.add((date: DateTime.now(), entry: data.toString()));
-          _actions = _actions.takeLast(kIsWeb ? 1000 : 60).toList();
-        });
+        setState(() {});
         if (_scrollController.hasClients) {
           // scroll to the bottom
           _scrollController.animateTo(
@@ -57,75 +49,84 @@ class _LogviewerState extends State<LogViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return _actions.isEmpty
-        ? Container()
-        : SafeArea(
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Stack(
-                  children: [
-                    SelectionArea(
-                      child: GestureDetector(
-                        onLongPress: () {
-                          setState(() {
-                            _actions = [];
-                          });
-                        },
-                        child: ListView(
-                          physics: const NeverScrollableScrollPhysics(),
-                          controller: _scrollController,
-                          shrinkWrap: true,
-                          reverse: true,
-                          children: _actions
-                              .map(
-                                (action) => Text.rich(
-                                  TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: action.date.toString().split(" ").last,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontFeatures: [FontFeature.tabularFigures()],
-                                          fontFamily: "monospace",
-                                          fontFamilyFallback: <String>["Courier"],
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: "  ${action.entry}",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontFeatures: [FontFeature.tabularFigures()],
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        onPressed: () {
-                          final logText = _actions
-                              .map((e) => "${e.date.toString().split(" ").last}  ${e.entry}")
-                              .join("\n");
-                          Clipboard.setData(ClipboardData(text: logText));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Log copied to clipboard')),
-                          );
-                        },
-                        icon: Icon(Icons.copy),
-                      ),
-                    ),
-                  ],
-                ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(context.i18n.logViewer).bold,
+              OutlineButton(
+                child: Text(context.i18n.share),
+                onPressed: () {
+                  final logText = core.connection.lastLogEntries
+                      .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
+                      .join('\n');
+                  Clipboard.setData(ClipboardData(text: logText));
+
+                  buildToast(context, title: context.i18n.logsHaveBeenCopiedToClipboard);
+                },
               ),
-            ),
-          );
+            ],
+          ),
+          core.connection.lastLogEntries.isEmpty
+              ? Container()
+              : Expanded(
+                  child: Card(
+                    child: SelectionArea(
+                      child: ListView(
+                        controller: _scrollController,
+                        reverse: true,
+                        children: core.connection.lastLogEntries
+                            .map(
+                              (action) => Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: action.date.toString().split(" ").last,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFeatures: [FontFeature.tabularFigures()],
+                                        fontFamily: "monospace",
+                                        fontFamilyFallback: <String>["Courier"],
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: "  ${action.entry}",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFeatures: [FontFeature.tabularFigures()],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ),
+          Text(context.i18n.logsAreAlsoAt).muted.small,
+          CodeSnippet(
+            code: SelectableText(File('${Directory.current.path}/app.logs').path),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.copy),
+                variance: ButtonVariance.outline,
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
+                  buildToast(context, title: context.i18n.pathCopiedToClipboard);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

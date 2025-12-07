@@ -4,16 +4,18 @@ import 'dart:math';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/widgets/button_widget.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 import 'package:swift_control/widgets/testbed.dart';
+import 'package:swift_control/widgets/ui/button_widget.dart';
+import 'package:swift_control/widgets/ui/colors.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../utils/actions/base_actions.dart';
@@ -43,7 +45,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     if (result != null) {
       final image = File(result.path);
       final Directory tempDir = await getTemporaryDirectory();
-      final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
+      final tempImage = File('${tempDir.path}/${core.actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
       await image.copy(tempImage.path);
       _backgroundImage = tempImage.readAsBytesSync();
       await _calculateBounds();
@@ -113,7 +115,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       windowManager.setFullScreen(true);
     }
     getTemporaryDirectory().then((tempDir) async {
-      final tempImage = File('${tempDir.path}/${actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
+      final tempImage = File('${tempDir.path}/${core.actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
       if (tempImage.existsSync()) {
         _backgroundImage = tempImage.readAsBytesSync();
         setState(() {});
@@ -197,7 +199,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       left: position.dx,
       top: position.dy,
       child: Tooltip(
-        message: 'Drag to reposition',
+        tooltip: (c) => Text(context.i18n.dragToReposition),
         child: AnimatedOpacity(
           opacity: _showFaded && widget.keyPair != keyPair ? 0.2 : 1.0,
           duration: Duration(milliseconds: 300),
@@ -207,7 +209,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
               final RenderBox renderObject = context.findRenderObject() as RenderBox;
               return renderObject.globalToLocal(position).scale(scale, scale);
             },
-            feedback: Material(
+            feedback: Container(
               color: Colors.transparent,
               child: icon,
             ),
@@ -250,13 +252,13 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
+      child: LayoutBuilder(
         builder: (context, constraints) {
           if (_backgroundImage == null && constraints.biggest != _imageRect.size) {
             _imageRect = Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight);
           }
           final keyPairsToShow =
-              actionHandler.supportedApp?.keymap.keyPairs
+              core.actionHandler.supportedApp?.keymap.keyPairs
                   .where((kp) => kp.touchPosition != Offset.zero && !kp.isSpecialKey)
                   .toList() ??
               [];
@@ -314,19 +316,14 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                         children: [
                           IgnorePointer(
                             child: Text(
-                              '''1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation
-2. Load the screenshot with the button below
-3. The app is automatically set to landscape orientation for accurate mapping
-4. Press a button on your Click device to create a touch area
-5. Drag the touch areas to the desired position on the screenshot
-6. Save and close this screen''',
+                              context.i18n.touchAreaInstructions,
                             ),
                           ),
-                          ElevatedButton(
+                          PrimaryButton(
                             onPressed: () {
                               _pickScreenshot();
                             },
-                            child: Text('Load in-game screenshot for placement'),
+                            child: Text(context.i18n.loadScreenshotForPlacement),
                           ),
                         ],
                       ),
@@ -339,30 +336,42 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                   child: Row(
                     spacing: 8,
                     children: [
-                      ElevatedButton.icon(
+                      IconButton.outline(
                         onPressed: _saveAndClose,
                         icon: const Icon(Icons.save),
-                        label: const Text("Save"),
+                        trailing: Text(context.i18n.save),
                       ),
-                      PopupMenuButton(
-                        itemBuilder: (c) => [
-                          PopupMenuItem(
-                            child: Text('Choose another screenshot'),
-                            onTap: () {
-                              _pickScreenshot();
-                            },
-                          ),
-                          PopupMenuItem(
-                            child: Text('Reset'),
-                            onTap: () {
-                              _backgroundImage = null;
+                      Builder(
+                        builder: (context) {
+                          return OutlineButton(
+                            child: Text('Menu'),
+                            onPressed: () {
+                              showDropdown(
+                                context: context,
+                                builder: (c) => DropdownMenu(
+                                  children: [
+                                    if (_backgroundImage != null)
+                                      MenuButton(
+                                        child: Text(context.i18n.chooseAnotherScreenshot),
+                                        onPressed: (c) {
+                                          _pickScreenshot();
+                                        },
+                                      ),
+                                    MenuButton(
+                                      child: Text(context.i18n.reset),
+                                      onPressed: (c) {
+                                        _backgroundImage = null;
 
-                              actionHandler.supportedApp?.keymap.reset();
-                              setState(() {});
+                                        core.actionHandler.supportedApp?.keymap.reset();
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
                             },
-                          ),
-                        ],
-                        icon: Icon(Icons.more_vert),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -395,17 +404,14 @@ class KeypairExplanation extends StatelessWidget {
           )
         else
           Icon(keyPair.icon),
-        if (keyPair.inGameAction != null &&
-            ((whooshLink.isCompatible(settings.getLastTarget() ?? Target.thisDevice) &&
-                    settings.getMyWhooshLinkEnabled()) ||
-                (settings.getTrainerApp()?.supportsZwiftEmulation == true && settings.getZwiftEmulatorEnabled())))
+        if (keyPair.inGameAction != null && core.logic.emulatorEnabled)
           _KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,
               if (keyPair.inGameActionValue != null) ': ${keyPair.inGameActionValue}',
             ].joinToString(separator: ''),
           )
-        else if (keyPair.isSpecialKey && actionHandler.supportedModes.contains(SupportedMode.media))
+        else if (keyPair.isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
           _KeyWidget(
             label: switch (keyPair.physicalKey) {
               PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
@@ -417,19 +423,15 @@ class KeypairExplanation extends StatelessWidget {
               _ => 'Unknown',
             },
           )
-        else if (keyPair.physicalKey != null && actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
+        else if (keyPair.physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
           _KeyWidget(
-            label: [
-              ...keyPair.modifiers.map((e) => e.name.replaceAll('Modifier', '')),
-              keyPair.logicalKey?.keyLabel ?? 'Unknown',
-            ].joinToString(separator: '+'),
+            label: keyPair.toString(),
           ),
-          if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
         ] else ...[
-          if (!withKey && keyPair.touchPosition != Offset.zero)
+          if (!withKey && keyPair.touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
             _KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
-          if (keyPair.isLongPress) Text('long\npress', style: TextStyle(fontSize: 10)),
         ],
+        if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
       ],
     );
   }
@@ -446,9 +448,9 @@ class _KeyWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         constraints: BoxConstraints(minWidth: 30),
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).colorScheme.primary),
+          color: BKColor.main,
+          border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
           borderRadius: BorderRadius.circular(4),
-          color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: Center(
           child: Text(
@@ -456,7 +458,7 @@ class _KeyWidget extends StatelessWidget {
             style: TextStyle(
               fontFamily: screenshotMode ? null : 'monospace',
               fontSize: 12,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              color: Colors.white,
             ),
           ),
         ),

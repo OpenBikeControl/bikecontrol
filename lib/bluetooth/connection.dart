@@ -6,18 +6,17 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
-import 'package:media_key_detector/media_key_detector.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-import '../utils/keymap/apps/my_whoosh.dart';
 import 'devices/base_device.dart';
 import 'devices/zwift/constants.dart';
 import 'messages/notification.dart';
@@ -46,30 +45,23 @@ class Connection {
   final _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
-  final ValueNotifier<bool> isMediaKeyDetectionEnabled = ValueNotifier(false);
 
   Timer? _gamePadSearchTimer;
 
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
-      lastLogEntries = lastLogEntries.takeLast(20).toList();
-    });
-
-    isMediaKeyDetectionEnabled.addListener(() {
-      if (!isMediaKeyDetectionEnabled.value) {
-        mediaKeyDetector.setIsPlaying(isPlaying: false);
-        mediaKeyDetector.removeListener(_onMediaKeyDetectedListener);
-      } else {
-        mediaKeyDetector.addListener(_onMediaKeyDetectedListener);
-        mediaKeyDetector.setIsPlaying(isPlaying: true);
-      }
+      lastLogEntries = lastLogEntries.takeLast(kIsWeb ? 1000 : 60).toList();
     });
 
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb) {
-        performScanning();
+        core.permissions.getScanRequirements().then((perms) {
+          if (perms.isEmpty) {
+            performScanning();
+          }
+        });
       } else if (available == AvailabilityState.poweredOff) {
         reset();
       }
@@ -102,7 +94,9 @@ class Connection {
               .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
               ?.payload;
           if (data != null && kDebugMode) {
-            _actionStreams.add(LogNotification('Found unknown device with identifier: ${data.firstOrNull}'));
+            _actionStreams.add(
+              LogNotification('Found unknown device ${result.name} with identifier: ${data.firstOrNull}'),
+            );
           }
         }
       }
@@ -138,6 +132,14 @@ class Connection {
         _lastScanResult.removeWhere((d) => d.deviceId == deviceId);
       }
     };
+
+    if (!kIsWeb && !screenshotMode) {
+      core.permissions.getScanRequirements().then((perms) {
+        if (perms.isEmpty) {
+          performScanning();
+        }
+      });
+    }
   }
 
   Future<void> performScanning() async {
@@ -189,19 +191,6 @@ class Connection {
       });
     }
 
-    if (settings.getMyWhooshLinkEnabled() &&
-        settings.getTrainerApp() is MyWhoosh &&
-        !whooshLink.isStarted.value &&
-        whooshLink.isCompatible(settings.getLastTarget()!)) {
-      startMyWhooshServer().catchError((e) {
-        _actionStreams.add(
-          LogNotification(
-            'Error starting MyWhoosh Direct Connect server. Please make sure the "MyWhoosh Link" app is not already running on this device.\n$e',
-          ),
-        );
-      });
-    }
-
     if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
       _androidNotificationsSetup = true;
       // start foreground service only when app is in foreground
@@ -212,14 +201,20 @@ class Connection {
   }
 
   Future<void> startMyWhooshServer() {
-    return whooshLink.startServer(
-      onConnected: (socket) {},
-      onDisconnected: (socket) {},
-    );
+    return core.whooshLink.startServer().catchError((e) {
+      core.settings.setMyWhooshLinkEnabled(false);
+      _actionStreams.add(LogNotification('Error starting MyWhoosh "Link" server: $e'));
+      _actionStreams.add(
+        AlertNotification(
+          LogLevel.LOGLEVEL_ERROR,
+          'Error starting MyWhoosh "Link" server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
+        ),
+      );
+    });
   }
 
   void addDevices(List<BaseDevice> dev) {
-    final ignoredDevices = settings.getIgnoredDevices();
+    final ignoredDevices = core.settings.getIgnoredDevices();
     final ignoredDeviceIds = ignoredDevices.map((d) => d.id).toSet();
     final newDevices = dev.where((device) {
       if (devices.contains(device)) return false;
@@ -246,20 +241,27 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      _actionStreams.add(LogNotification('Connecting to: ${device.name}'));
+      _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.name}'));
       _connect(device)
           .then((_) {
             _handlingConnectionQueue = false;
-            _actionStreams.add(LogNotification('Connection finished: ${device.name}'));
+            _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.name}'));
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }
           })
           .catchError((e) {
+            device.isConnected = false;
             _handlingConnectionQueue = false;
-            _actionStreams.add(
-              LogNotification('Connection failed: ${device.name} - $e'),
-            );
+            if (e is TimeoutException) {
+              _actionStreams.add(
+                AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.name}: Timeout'),
+              );
+            } else {
+              _actionStreams.add(
+                AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.name} - $e'),
+              );
+            }
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }
@@ -277,7 +279,7 @@ class Connection {
           device.isConnected = state;
           _connectionStreams.add(device);
           if (!device.isConnected) {
-            disconnect(device, forget: false);
+            disconnect(device, forget: false, persistForget: false);
             // try reconnect
             performScanning();
           }
@@ -289,10 +291,10 @@ class Connection {
       signalChange(device);
 
       final newButtons = device.availableButtons.filter(
-        (button) => actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
+        (button) => core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
       );
       for (final button in newButtons) {
-        actionHandler.supportedApp?.keymap.addKeyPair(
+        core.actionHandler.supportedApp?.keymap.addKeyPair(
           KeyPair(
             touchPosition: Offset.zero,
             buttons: [button],
@@ -316,7 +318,7 @@ class Connection {
 
   Future<void> reset() async {
     _actionStreams.add(LogNotification('Disconnecting all devices'));
-    if (actionHandler is AndroidActions) {
+    if (core.actionHandler is AndroidActions) {
       AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
       _androidNotificationsSetup = false;
     }
@@ -347,20 +349,23 @@ class Connection {
     _connectionStreams.add(baseDevice);
   }
 
-  Future<void> disconnect(BaseDevice device, {required bool forget}) async {
+  Future<void> disconnect(BaseDevice device, {required bool persistForget, required bool forget}) async {
     if (device.isConnected) {
       await device.disconnect();
     }
 
     if (device is BluetoothDevice) {
-      if (forget) {
+      if (persistForget) {
         // Add device to ignored list when forgetting
-        await settings.addIgnoredDevice(device.device.deviceId, device.name);
+        await core.settings.addIgnoredDevice(device.device.deviceId, device.name);
         _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
+      }
+      if (!forget) {
+        // allow reconnection
+        _lastScanResult.removeWhere((d) => d.deviceId == device.device.deviceId);
       }
 
       // Clean up subscriptions and scan results for reconnection
-      _lastScanResult.removeWhere((b) => b.deviceId == device.device.deviceId);
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();
@@ -372,20 +377,5 @@ class Connection {
     }
 
     signalChange(device);
-  }
-
-  void _onMediaKeyDetectedListener(MediaKey mediaKey) {
-    final hidDevice = HidDevice('HID Device');
-    final keyPressed = mediaKey.name;
-
-    final button = actionHandler.supportedApp!.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
-
-    var availableDevice = connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
-    if (availableDevice == null) {
-      connection.addDevices([hidDevice]);
-      availableDevice = hidDevice;
-    }
-    availableDevice.handleButtonsClicked([button]);
-    availableDevice.handleButtonsClicked([]);
   }
 }

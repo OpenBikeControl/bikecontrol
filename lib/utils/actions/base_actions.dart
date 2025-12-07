@@ -6,12 +6,14 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:swift_control/widgets/keymap_explanation.dart';
 
 import '../keymap/apps/supported_app.dart';
 
@@ -24,6 +26,10 @@ sealed class ActionResult {
 
 class Success extends ActionResult {
   const Success(super.message);
+}
+
+class NotHandled extends ActionResult {
+  const NotHandled(super.message);
 }
 
 class Error extends ActionResult {
@@ -42,7 +48,7 @@ abstract class BaseActions {
     print('Supported app: ${supportedApp?.name ?? "None"}');
 
     if (supportedApp != null) {
-      final allButtons = connection.devices.map((e) => e.availableButtons).flatten().distinct();
+      final allButtons = core.connection.devices.map((e) => e.availableButtons).flatten().distinct();
 
       final newButtons = allButtons.filter(
         (button) => supportedApp.keymap.getKeyPair(button) == null,
@@ -107,17 +113,77 @@ abstract class BaseActions {
     return Offset.zero;
   }
 
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false});
+  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
+    if (supportedApp == null) {
+      return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
+    }
 
-  Future<ActionResult>? handleDirectConnect(KeyPair keyPair) {
+    final keyPair = supportedApp!.keymap.getKeyPair(button);
+
+    if (core.logic.hasNoConnectionMethod) {
+      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+    } else if (!(await core.logic.isTrainerConnected())) {
+      return Error('No connection method is connected or active.');
+    } else if (keyPair == null) {
+      return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
+    } else if (keyPair.hasNoAction) {
+      return Error('No action assigned for ${button.toString().splitByUpperCase()}');
+    }
+
+    final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
+    if (directConnectHandled is NotHandled && directConnectHandled.message.isNotEmpty) {
+      core.connection.signalNotification(LogNotification(directConnectHandled.message));
+    }
+    return directConnectHandled;
+  }
+
+  Future<ActionResult> _handleDirectConnect(
+    KeyPair keyPair,
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+  }) async {
     if (keyPair.inGameAction != null) {
-      if (whooshLink.isConnected.value) {
-        return Future.value(whooshLink.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue));
-      } else if (zwiftEmulator.isConnected.value) {
-        return zwiftEmulator.sendAction(keyPair.inGameAction!, keyPair.inGameActionValue);
+      if (core.obpBluetoothEmulator.isConnected.value != null) {
+        return core.obpBluetoothEmulator.sendButtonPress(
+          [button],
+          isKeyDown: isKeyDown,
+          isKeyUp: isKeyUp,
+        );
+      } else if (core.obpMdnsEmulator.isConnected.value != null) {
+        return Future.value(
+          core.obpMdnsEmulator.sendButtonPress(
+            [button],
+            isKeyDown: isKeyDown,
+            isKeyUp: isKeyUp,
+          ),
+        );
+      } else if (core.whooshLink.isConnected.value) {
+        return Future.value(
+          core.whooshLink.sendAction(
+            keyPair.inGameAction!,
+            keyPair.inGameActionValue,
+            isKeyDown: isKeyDown,
+            isKeyUp: isKeyUp,
+          ),
+        );
+      } else if (core.zwiftMdnsEmulator.isConnected.value) {
+        return core.zwiftMdnsEmulator.sendAction(
+          keyPair.inGameAction!,
+          keyPair.inGameActionValue,
+          isKeyDown: isKeyDown,
+          isKeyUp: isKeyUp,
+        );
+      } else if (core.zwiftEmulator.isConnected.value) {
+        return core.zwiftEmulator.sendAction(
+          keyPair.inGameAction!,
+          keyPair.inGameActionValue,
+          isKeyDown: isKeyDown,
+          isKeyUp: isKeyUp,
+        );
       }
     }
-    return null;
+    return NotHandled('');
   }
 }
 
@@ -127,8 +193,8 @@ class StubActions extends BaseActions {
   final List<ControllerButton> performedActions = [];
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) {
-    performedActions.add(action);
-    return Future.value(Success(action.name));
+  Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
+    performedActions.add(button);
+    return Future.value(Success('${button.name.splitByUpperCase()} clicked'));
   }
 }

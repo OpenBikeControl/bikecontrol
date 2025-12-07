@@ -1,9 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/pages/markdown.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:swift_control/utils/requirements/platform.dart';
+import 'package:swift_control/widgets/ui/connection_method.dart';
+import 'package:swift_control/widgets/ui/wifi_animation.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ScanWidget extends StatefulWidget {
   const ScanWidget({super.key});
@@ -13,32 +18,13 @@ class ScanWidget extends StatefulWidget {
 }
 
 class _ScanWidgetState extends State<ScanWidget> {
+  List<PlatformRequirement>? _needsPermissions;
+
   @override
   void initState() {
     super.initState();
 
-    connection.initialize();
-
-    /*_isScanningSubscription = FlutterBluePlus.isScanning.listen((state) {
-      _isScanning = state;
-      if (mounted) {
-        setState(() {});
-      }
-    });*/
-
-    // after the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // must be called from a button
-      if (!kIsWeb) {
-        Future.delayed(Duration(seconds: 1))
-            .then((_) {
-              return connection.performScanning();
-            })
-            .catchError((e) {
-              print(e);
-            });
-      }
-    });
+    _checkRequirements();
   }
 
   @override
@@ -47,67 +33,117 @@ class _ScanWidgetState extends State<ScanWidget> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ValueListenableBuilder(
-          valueListenable: connection.isScanning,
-          builder: (context, isScanning, widget) {
-            if (isScanning) {
-              return Column(
-                spacing: 12,
-                mainAxisAlignment: MainAxisAlignment.start,
+        if (_needsPermissions != null && _needsPermissions!.isNotEmpty)
+          Card(
+            child: Basic(
+              title: Column(
+                spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Scanning for devices... Make sure they are powered on and in range and not connected to another device.',
-                  ),
-                  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
-                    ValueListenableBuilder(
-                      valueListenable: connection.isMediaKeyDetectionEnabled,
-                      builder: (context, value, child) {
-                        return SwitchListTile.adaptive(
-                          value: value,
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          subtitle: Text(
-                            'Enable this option to allow BikeControl to detect bluetooth remotes. In order to do so BikeControl needs to act as a media player.',
-                          ),
-                          title: Row(
-                            children: [
-                              const Text("Enable Media Key Detection"),
-                            ],
-                          ),
-                          onChanged: (change) {
-                            connection.isMediaKeyDetectionEnabled.value = change;
-                          },
-                        );
-                      },
+                  Text(context.i18n.permissionsRequired),
+                  ..._needsPermissions!.map((e) => Text(e.name).li),
+                ],
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: PrimaryButton(
+                  child: Text(context.i18n.enablePermissions),
+                  onPressed: () async {
+                    await openPermissionSheet(context, _needsPermissions!);
+                    _checkRequirements();
+                  },
+                ),
+              ),
+            ),
+          )
+        else
+          ValueListenableBuilder(
+            valueListenable: core.connection.isScanning,
+            builder: (context, isScanning, widget) {
+              if (isScanning) {
+                return Column(
+                  spacing: 18,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(),
+                    Row(
+                      spacing: 14,
+                      children: [
+                        SizedBox(),
+                        SmoothWifiAnimation(),
+                        Expanded(
+                          child: Text(context.i18n.scanningForDevices).small.muted,
+                        ),
+                      ],
                     ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-                      );
-                    },
-                    child: const Text("Show Troubleshooting Guide"),
-                  ),
-                  SizedBox(),
-                ],
-              );
-            } else {
-              return Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      connection.performScanning();
-                    },
-                    child: const Text("SCAN"),
-                  ),
-                ],
-              );
-            }
-          },
-        ),
+                    if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
+                      ValueListenableBuilder(
+                        valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
+                        builder: (context, value, child) {
+                          return Tooltip(
+                            tooltip: (c) => TooltipContainer(
+                              child: Text(context.i18n.mediaKeyDetectionTooltip),
+                            ),
+                            child: Checkbox(
+                              state: value ? CheckboxState.checked : CheckboxState.unchecked,
+                              trailing: Text(context.i18n.enableMediaKeyDetection),
+                              onChanged: (change) {
+                                core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    SizedBox(),
+                    if (core.connection.controllerDevices.isEmpty) ...[
+                      OutlineButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                          );
+                        },
+                        child: Text(context.i18n.showTroubleshootingGuide),
+                      ),
+                      OutlineButton(
+                        onPressed: () {
+                          launchUrlString(
+                            'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
+                          );
+                        },
+                        child: Text(context.i18n.showSupportedControllers),
+                      ),
+                    ],
+                  ],
+                );
+              } else {
+                return Row(
+                  children: [
+                    PrimaryButton(
+                      onPressed: () {
+                        core.connection.performScanning();
+                      },
+                      child: Text(context.i18n.scan),
+                    ),
+                  ],
+                );
+              }
+            },
+          ),
       ],
     );
+  }
+
+  void _checkRequirements() {
+    core.permissions.getScanRequirements().then((permissions) {
+      if (!mounted) return;
+      setState(() {
+        _needsPermissions = permissions;
+      });
+      if (permissions.isEmpty && !kIsWeb) {
+        core.connection.performScanning();
+      }
+    });
   }
 }

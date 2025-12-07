@@ -16,10 +16,9 @@ class TrainingPeaks extends SupportedApp {
     : super(
         name: 'TrainingPeaks Virtual / IndieVelo',
         packageName: "com.indieVelo.client",
-        compatibleTargets: !kIsWeb && Platform.isIOS
-            ? Target.values.filterNot((e) => e == Target.thisDevice).toList()
-            : Target.values,
+        compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.otherDevice] : Target.values,
         supportsZwiftEmulation: false,
+        supportsOpenBikeProtocol: false,
         keymap: Keymap(
           keyPairs: [
             // Explicit controller-button mappings with updated touch coordinates
@@ -30,9 +29,15 @@ class TrainingPeaks extends SupportedApp {
               touchPosition: Offset(22.65384615384622, 7.0769230769229665),
             ),
             KeyPair(
-              buttons: [ZwiftButtons.shiftUpLeft],
+              buttons: [ZwiftButtons.shiftDownRight],
               physicalKey: PhysicalKeyboardKey.numpadAdd,
               logicalKey: LogicalKeyboardKey.numpadAdd,
+              touchPosition: Offset(22.61769250748708, 8.13909075507417),
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.shiftUpLeft],
+              physicalKey: PhysicalKeyboardKey.numpadSubtract,
+              logicalKey: LogicalKeyboardKey.numpadSubtract,
               touchPosition: Offset(18.14448747554958, 6.772862761010401),
             ),
             KeyPair(
@@ -41,26 +46,29 @@ class TrainingPeaks extends SupportedApp {
               logicalKey: LogicalKeyboardKey.numpadSubtract,
               touchPosition: Offset(18.128205128205135, 6.75213675213675),
             ),
-            KeyPair(
-              buttons: [ZwiftButtons.shiftDownRight],
-              physicalKey: PhysicalKeyboardKey.numpadSubtract,
-              logicalKey: LogicalKeyboardKey.numpadSubtract,
-              touchPosition: Offset(22.61769250748708, 8.13909075507417),
-            ),
 
             // Navigation buttons (keep arrow key mappings and add touch positions)
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.steerRight).toList(),
-              physicalKey: PhysicalKeyboardKey.arrowRight,
-              logicalKey: LogicalKeyboardKey.arrowRight,
-              touchPosition: Offset(56.75858807279006, 92.42753954973301),
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.steerLeft).toList(),
-              physicalKey: PhysicalKeyboardKey.arrowLeft,
-              logicalKey: LogicalKeyboardKey.arrowLeft,
-              touchPosition: Offset(41.11538461538456, 92.64957264957286),
-            ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.steerRight)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.arrowRight,
+                    logicalKey: LogicalKeyboardKey.arrowRight,
+                    touchPosition: Offset(56.75858807279006, 92.42753954973301),
+                  ),
+                ),
+
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.steerLeft)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.arrowLeft,
+                    logicalKey: LogicalKeyboardKey.arrowLeft,
+                    touchPosition: Offset(41.11538461538456, 92.64957264957286),
+                  ),
+                ),
             KeyPair(
               buttons: [ZwiftButtons.navigationUp],
               physicalKey: PhysicalKeyboardKey.arrowUp,
@@ -95,21 +103,33 @@ class TrainingPeaks extends SupportedApp {
             ),
 
             // Keep other existing mappings (toggle UI, increase/decrease resistance)
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.toggleUi).toList(),
-              physicalKey: PhysicalKeyboardKey.keyH,
-              logicalKey: LogicalKeyboardKey.keyH,
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.increaseResistance).toList(),
-              physicalKey: PhysicalKeyboardKey.pageUp,
-              logicalKey: LogicalKeyboardKey.pageUp,
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.decreaseResistance).toList(),
-              physicalKey: PhysicalKeyboardKey.pageDown,
-              logicalKey: LogicalKeyboardKey.pageDown,
-            ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.toggleUi)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.keyH,
+                    logicalKey: LogicalKeyboardKey.keyH,
+                  ),
+                ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.increaseResistance)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.pageUp,
+                    logicalKey: LogicalKeyboardKey.pageUp,
+                  ),
+                ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.decreaseResistance)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.pageDown,
+                    logicalKey: LogicalKeyboardKey.pageDown,
+                  ),
+                ),
           ],
         ),
       );

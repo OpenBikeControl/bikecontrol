@@ -1,40 +1,24 @@
 import 'dart:ui';
 
 import 'package:accessibility/accessibility.dart';
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
-import 'package:universal_ble/universal_ble.dart';
-
-import '../requirements/remote.dart';
 
 class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch]});
 
   @override
-  Future<ActionResult> performAction(ControllerButton action, {bool isKeyDown = true, bool isKeyUp = false}) async {
-    if (supportedApp == null) {
-      return Error('Supported app is not set');
+  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+    if (superResult is! NotHandled) {
+      return superResult;
     }
-
-    final keyPair = supportedApp!.keymap.getKeyPair(action);
-    if (keyPair == null) {
-      return Error('Keymap entry not found for action: ${action.toString().splitByUpperCase()}');
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${action.toString().splitByUpperCase()}');
-    }
-
-    final directConnectHandled = await handleDirectConnect(keyPair);
-
-    if (directConnectHandled != null) {
-      return directConnectHandled;
-    } else if (!(actionHandler as RemoteActions).isConnected) {
-      return Error('Not connected to a ${settings.getLastTarget()?.name ?? 'remote'} device');
+    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
+    if (!core.remotePairing.isConnected.value) {
+      return Error('Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device');
     }
 
     if (keyPair.physicalKey != null && keyPair.touchPosition == Offset.zero) {
@@ -71,21 +55,9 @@ class RemoteActions extends BaseActions {
       print('Sending abs mouse report: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0'))}');
     }
 
-    await peripheralManager.notifyCharacteristic(connectedCentral!, connectedCharacteristic!, value: bytes);
+    await core.remotePairing.notifyCharacteristic(bytes);
 
     // we don't want to overwhelm the target device
     await Future.delayed(Duration(milliseconds: 10));
   }
-
-  Central? connectedCentral;
-  GATTCharacteristic? connectedCharacteristic;
-
-  void setConnectedCentral(Central? central, GATTCharacteristic? gattCharacteristic) {
-    connectedCentral = central;
-    connectedCharacteristic = gattCharacteristic;
-
-    connection.signalChange(ZwiftClick(BleDevice(deviceId: 'deviceId', name: 'name')));
-  }
-
-  bool get isConnected => connectedCentral != null;
 }

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
@@ -14,34 +12,56 @@ class Biketerra extends SupportedApp {
         name: 'Biketerra',
         packageName: "biketerra",
         compatibleTargets: Target.values,
-        supportsZwiftEmulation: !(Platform.isIOS || Platform.isMacOS),
+        supportsZwiftEmulation: true,
+        supportsOpenBikeProtocol: false,
         keymap: Keymap(
           keyPairs: [
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftDown).toList(),
-              physicalKey: PhysicalKeyboardKey.keyS,
-              logicalKey: LogicalKeyboardKey.keyS,
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.shiftUp).toList(),
-              physicalKey: PhysicalKeyboardKey.keyW,
-              logicalKey: LogicalKeyboardKey.keyW,
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.navigateRight).toList(),
-              physicalKey: PhysicalKeyboardKey.arrowRight,
-              logicalKey: LogicalKeyboardKey.arrowRight,
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.navigateLeft).toList(),
-              physicalKey: PhysicalKeyboardKey.arrowLeft,
-              logicalKey: LogicalKeyboardKey.arrowLeft,
-            ),
-            KeyPair(
-              buttons: ControllerButton.values.filter((e) => e.action == InGameAction.toggleUi).toList(),
-              physicalKey: PhysicalKeyboardKey.keyU,
-              logicalKey: LogicalKeyboardKey.keyU,
-            ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.shiftDown)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.keyS,
+                    logicalKey: LogicalKeyboardKey.keyS,
+                  ),
+                ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.shiftUp)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.keyW,
+                    logicalKey: LogicalKeyboardKey.keyW,
+                  ),
+                ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.navigateRight)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.arrowRight,
+                    logicalKey: LogicalKeyboardKey.arrowRight,
+                  ),
+                ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.navigateLeft)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.arrowLeft,
+                    logicalKey: LogicalKeyboardKey.arrowLeft,
+                  ),
+                ),
+
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.toggleUi)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [b],
+                    physicalKey: PhysicalKeyboardKey.keyU,
+                    logicalKey: LogicalKeyboardKey.keyU,
+                  ),
+                ),
           ],
         ),
       );

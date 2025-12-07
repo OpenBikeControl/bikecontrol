@@ -1,13 +1,15 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/pages/markdown.dart';
-import 'package:swift_control/widgets/warning.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:swift_control/widgets/ui/warning.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult)
@@ -50,7 +52,8 @@ class ZwiftClickV2 extends ZwiftRide {
         bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_2)) {
       _noLongerSendsEvents = true;
       actionStreamInternal.add(
-        LogNotification(
+        AlertNotification(
+          LogLevel.LOGLEVEL_WARNING,
           'Your Zwift Click V2 no longer sends events. Connect it in the Zwift app once each session.',
         ),
       );
@@ -60,60 +63,65 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Widget showInformation(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        super.showInformation(context),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
+          children: [
+            super.showInformation(context),
 
-        if (isConnected && _noLongerSendsEvents && settings.getShowZwiftClickV2ReconnectWarning())
-          Warning(
-            children: [
-              Text(
-                '''To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that BikeControl will need to reconnect every minute.
-
-1. Open Zwift app
-2. Log in (subscription not required) and open the device connection screen
-3. Connect your Trainer, then connect the Zwift Click V2
-4. Close the Zwift app again and connect again in BikeControl''',
-              ),
-              Row(
+            if (isConnected && _noLongerSendsEvents && core.settings.getShowZwiftClickV2ReconnectWarning())
+              Warning(
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      sendCommand(Opcode.RESET, null);
-                    },
-                    child: Text('Reset now'),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context).clickV2Instructions,
+                        ).xSmall,
+                      ),
+                      IconButton.link(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          core.settings.setShowZwiftClickV2ReconnectWarning(false);
+                          setState(() {});
+                        },
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                        ),
-                      );
-                    },
-                    child: Text('Troubleshooting'),
-                  ),
-                  if (kDebugMode && false)
-                    TextButton(
-                      onPressed: () {
-                        test();
-                      },
-                      child: Text('Test'),
-                    ),
-                  Expanded(child: SizedBox()),
-                  TextButton(
-                    onPressed: () {
-                      settings.setShowZwiftClickV2ReconnectWarning(false);
-                    },
-                    child: Text('Dismiss'),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      GhostButton(
+                        onPressed: () {
+                          sendCommand(Opcode.RESET, null);
+                        },
+                        child: Text('Reset now'),
+                      ),
+                      OutlineButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                            ),
+                          );
+                        },
+                        leading: const Icon(Icons.open_in_new),
+                        child: Text(context.i18n.troubleshootingGuide),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 

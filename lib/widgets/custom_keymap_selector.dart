@@ -4,7 +4,8 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/gen/l10n.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 
@@ -31,7 +32,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   void initState() {
     super.initState();
     _pressedButton = widget.keyPair?.buttons.firstOrNull;
-    _actionSubscription = connection.actionStream.listen((data) {
+    _actionSubscription = core.connection.actionStream.listen((data) {
       if (!mounted || widget.keyPair != null) {
         return;
       }
@@ -122,7 +123,9 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
 
   String _formatKey(KeyDownEvent? key) {
     if (key == null) {
-      return _activeModifiers.isEmpty ? 'Waiting...' : '${_activeModifiers.map(_formatModifierName).join('+')}+...';
+      return _activeModifiers.isEmpty
+          ? AppLocalizations.current.waiting
+          : '${_activeModifiers.map(_formatModifierName).join('+')}+...';
     }
 
     if (_activeModifiers.isEmpty) {
@@ -138,7 +141,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       content: _pressedButton == null
-          ? Text('Press a button on your Click device')
+          ? Text(AppLocalizations.current.pressButtonOnClickDevice)
           : KeyboardListener(
               focusNode: _focusNode,
               autofocus: true,
@@ -149,13 +152,15 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 20,
                 children: [
-                  Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
+                  Text(AppLocalizations.current.pressKeyToAssign(_pressedButton.toString())),
                   Text(_formatKey(_pressedKey)),
                 ],
               ),
             ),
 
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(_pressedKey), child: Text("OK"))],
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(_pressedKey), child: Text(AppLocalizations.current.ok)),
+      ],
     );
   }
 }

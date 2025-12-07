@@ -130,6 +130,11 @@ jobs:
           channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
+      - name: Generate translation files
+        run: |
+          flutter pub global activate intl_utils;
+          flutter pub global run intl_utils:generate;
+
       - name: Build Web
         if: inputs.build_web
         run: flutter build web --release --base-href "/swiftcontrol/"
@@ -168,8 +173,8 @@ jobs:
       - name: Generate screenshots for App Stores
         if: inputs.build_github
         run: |
-          flutter test test/screenshot_test.dart
-          zip -r BikeControl.storeassets.zip screenshots
+          flutter test --update-goldens
+          zip -r BikeControl.screenshots.zip screenshots
           echo "Screenshots generated successfully"
 
       - name: 🚀 Shorebird Release iOS
@@ -217,25 +222,25 @@ jobs:
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";
 
       - name: Handle Android archives
-        if: inputs.build_android && inputs.build_github
+        if: inputs.build_android && inputs.build_github && false
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/BikeControl.android.apk
 
       - name: Code Signing of macOS app
-        if: inputs.build_mac && inputs.build_github
+        if: inputs.build_mac && inputs.build_github && false
         run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime BikeControl.app -v
         working-directory: build/macos/Build/Products/Release
         env:
           DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
 
       - name: Handle macOS archives
-        if: inputs.build_mac && inputs.build_github
+        if: inputs.build_mac && inputs.build_github && false
         run: |
           cd build/macos/Build/Products/Release/
           zip -r BikeControl.macos.zip BikeControl.app/
 
       - name: Upload Android Artifacts
-        if: inputs.build_android && inputs.build_github
+        if: inputs.build_android && inputs.build_github && false
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
@@ -244,7 +249,7 @@ jobs:
             build/app/outputs/flutter-apk/BikeControl.android.apk
 
       - name: Upload macOS Artifacts
-        if: inputs.build_mac && inputs.build_github
+        if: inputs.build_mac && inputs.build_github && false
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
@@ -259,7 +264,9 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            screenshots/device-GitHub-600x900.png
+            screenshots/device-noFrame-1100x2390.png
+            screenshots/trainer-noFrame-1100x2390.png
+            screenshots/customization-noFrame-1100x2390.png
             build/BikeControl.screenshots.zip
 
         #10 Extract Version
@@ -275,7 +282,7 @@ jobs:
         if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip,screenshots/device-GitHub-600x900.png"
+          artifacts: "build/app/outputs/flutter-apk/BikeControl.android.apk,build/macos/Build/Products/Release/BikeControl.macos.zip,build/BikeControl.screenshots.zip,screenshots/device-noFrame-1100x2390.png,screenshots/trainer-noFrame-1100x2390.png,screenshots/customization-noFrame-1100x2390.png"
           allowUpdates: true
           prerelease: true
           bodyFile: /tmp/release_body.md
@@ -362,12 +369,21 @@ jobs:
           Rename-Item -Path "build/windows/x64/runner/Release/swift_control.msix" -NewName "BikeControl.windows.msix"
 
       - name: Upload Artifacts
+        if: false
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: Releases
           path: |
             build/windows/x64/runner/Release/BikeControl.windows.zip
+            build/windows/x64/runner/Release/BikeControl.windows.msix
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Releases
+          path: |
             build/windows/x64/runner/Release/BikeControl.windows.msix
 
       - name: Update Release

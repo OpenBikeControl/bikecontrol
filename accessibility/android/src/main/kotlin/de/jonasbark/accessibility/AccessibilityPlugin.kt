@@ -1,5 +1,6 @@
 package de.jonasbark.accessibility
 
+import AKeyEvent
 import Accessibility
 import HidKeyPressedStreamHandler
 import MediaAction
@@ -116,9 +117,9 @@ class WindowEventListener : StreamEventsStreamHandler(), Receiver {
 
 class HidEventListener : HidKeyPressedStreamHandler(), Receiver {
 
-  private var keyEventSink: PigeonEventSink<String>? = null
+  private var keyEventSink: PigeonEventSink<AKeyEvent>? = null
 
-  override fun onListen(p0: Any?, sink: PigeonEventSink<String>) {
+  override fun onListen(p0: Any?, sink: PigeonEventSink<AKeyEvent>) {
     keyEventSink = sink
   }
 
@@ -128,6 +129,13 @@ class HidEventListener : HidKeyPressedStreamHandler(), Receiver {
 
   override fun onKeyEvent(event: KeyEvent) {
     val keyString = KeyEvent.keyCodeToString(event.keyCode)
-    keyEventSink?.success(keyString)
+    keyEventSink?.success(
+      AKeyEvent(
+        hidKey = keyString,
+        source = event.device.name,
+        keyUp = event.action == KeyEvent.ACTION_UP,
+        keyDown = event.action == KeyEvent.ACTION_DOWN
+      )
+    )
   }
 }

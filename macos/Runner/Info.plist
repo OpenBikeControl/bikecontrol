@@ -35,6 +35,11 @@
 	<string>BikeControl requires Bluetooth to connect to your devices.</string>
 	<key>NSLocalNetworkUsageDescription</key>
     <string>This app connects to your trainer app on your local network.</string>
+    <key>NSBonjourServices</key>
+    <array>
+      <string>_wahoo-fitness-tnp._tcp</string>
+      <string>_openbikecontrol._tcp</string>
+    </array>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMainNibFile</key>

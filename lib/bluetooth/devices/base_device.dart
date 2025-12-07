@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/keymap/apps/custom_app.dart';
+import 'package:swift_control/utils/keymap/manager.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -14,7 +16,13 @@ abstract class BaseDevice {
   final bool isBeta;
   final List<ControllerButton> availableButtons;
 
-  BaseDevice(this.name, {required this.availableButtons, this.isBeta = false});
+  BaseDevice(this.name, {required this.availableButtons, this.isBeta = false}) {
+    if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
+      // TODO we should verify where the buttons came from
+      final allButtons = core.actionHandler.supportedApp!.keymap.keyPairs.flatMap((e) => e.buttons);
+      availableButtons.addAll(allButtons);
+    }
+  }
 
   bool isConnected = false;
 
@@ -60,7 +68,7 @@ abstract class BaseDevice {
       final buttonsReleased = _previouslyPressedButtons.toList();
       final isLongPress =
           buttonsReleased.singleOrNull != null &&
-          actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && isLongPress) {
         await performRelease(buttonsReleased);
       }
@@ -72,14 +80,14 @@ abstract class BaseDevice {
       final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
       final wasLongPress =
           buttonsReleased.singleOrNull != null &&
-          actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && wasLongPress) {
         await performRelease(buttonsReleased);
       }
 
       final isLongPress =
           buttonsClicked.singleOrNull != null &&
-          actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
+          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
 
       if (!isLongPress &&
           !(buttonsClicked.singleOrNull == ZwiftButtons.onOffLeft ||
@@ -104,40 +112,49 @@ abstract class BaseDevice {
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
       // For repeated actions, don't trigger key down/up events (useful for long press)
-      final result = await actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
-      actionStreamInternal.add(
-        ActionNotification(result),
-      );
+      final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
+      actionStreamInternal.add(LogNotification(result.message));
     }
   }
 
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
-      final result = await actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
-      actionStreamInternal.add(
-        ActionNotification(result),
-      );
+      final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
+      actionStreamInternal.add(ActionNotification(result));
     }
   }
 
   Future<void> performRelease(List<ControllerButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
-      final result = await actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
-      actionStreamInternal.add(
-        ActionNotification(result),
-      );
+      final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
+      actionStreamInternal.add(ActionNotification(result));
     }
   }
 
   Future<void> disconnect() async {
     _longPressTimer?.cancel();
     // Release any held keys in long press mode
-    if (actionHandler is DesktopActions) {
-      await (actionHandler as DesktopActions).releaseAllHeldKeys(_previouslyPressedButtons.toList());
+    if (core.actionHandler is DesktopActions) {
+      await (core.actionHandler as DesktopActions).releaseAllHeldKeys(_previouslyPressedButtons.toList());
     }
     _previouslyPressedButtons.clear();
     isConnected = false;
   }
 
   Widget showInformation(BuildContext context);
+
+  Future<ControllerButton> getOrAddButton(String key, ControllerButton Function() creator) async {
+    if (core.actionHandler.supportedApp is! CustomApp) {
+      final currentProfile = core.actionHandler.supportedApp!.name;
+      // should we display this to the user?
+      await KeymapManager().duplicate(null, currentProfile, skipName: '$currentProfile (Copy)');
+    }
+    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(key, creator);
+
+    if (availableButtons.none((e) => e.name == button.name)) {
+      availableButtons.add(button);
+      core.settings.setKeyMap(core.actionHandler.supportedApp!);
+    }
+    return button;
+  }
 }

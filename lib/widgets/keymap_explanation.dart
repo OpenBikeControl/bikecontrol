@@ -1,19 +1,18 @@
 import 'dart:async';
 
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/l10n.dart';
+import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/keymap/manager.dart';
-import 'package:swift_control/widgets/button_widget.dart';
-import 'package:swift_control/widgets/custom_keymap_selector.dart';
+import 'package:swift_control/widgets/ui/button_widget.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 
-import '../bluetooth/devices/link/link.dart';
 import '../pages/touch_area.dart';
 
 class KeymapExplanation extends StatefulWidget {
@@ -55,83 +54,95 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   @override
   Widget build(BuildContext context) {
-    final availableKeypairs = widget.keymap.keyPairs;
-    final allAvailableButtons = connection.devices.flatMap((d) => d.availableButtons);
+    final allAvailableButtons = IterableFlatMap(core.connection.devices).flatMap((d) => d.availableButtons);
+    final availableKeypairs = widget.keymap.keyPairs
+        .whereNot(
+          (keyPair) => keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty,
+        )
+        .sortedBy((k) => k.buttons.first.color != null ? 0 : 1);
 
-    return ValueListenableBuilder(
-      valueListenable: whooshLink.isConnected,
-      builder: (c, _, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        spacing: 8,
-        children: [
-          Table(
-            border: TableBorder.symmetric(
-              borderRadius: BorderRadius.circular(9),
-              inside: BorderSide(
-                color: Theme.of(context).colorScheme.primaryContainer,
-              ),
-              outside: BorderSide(
-                color: Theme.of(context).colorScheme.primaryContainer,
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      spacing: 8,
+      children: [
+        Table(
+          columnWidths: {
+            0: FlexTableSize(flex: isMobile ? 1.5 : 1),
+            1: FlexTableSize(flex: 3),
+          },
+          theme: TableTheme(
+            cellTheme: TableCellTheme(
+              border: WidgetStatePropertyAll(
+                Border.all(
+                  color: Theme.of(context).colorScheme.border,
+                  strokeAlign: BorderSide.strokeAlignCenter,
+                ),
               ),
             ),
-            children: [
-              TableRow(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Text(
-                      'Button on your ${connection.devices.isEmpty ? 'Device' : connection.devices.joinToString(transform: (d) => d.name.screenshot)}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            // rounded border
+            border: Border.all(
+              color: Theme.of(context).colorScheme.border,
+              strokeAlign: BorderSide.strokeAlignCenter,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          rows: [
+            TableHeader(
+              cells: [
+                TableCell(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: OverflowMarquee(
+                      duration: Duration(seconds: 3),
+                      child: Text(
+                        core.connection.devices.isEmpty
+                            ? context.i18n.deviceButton('Device')
+                            : core.connection.devices.joinToString(transform: (d) => d.name.screenshot),
+                      ).small,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Text(
-                      'Action',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                TableCell(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(context.i18n.action).small,
+                  ),
+                ),
+              ],
+            ),
+            for (final keyPair in availableKeypairs) ...[
+              TableRow(
+                cells: [
+                  TableCell(
+                    child: Container(
+                      constraints: BoxConstraints(minHeight: 52),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        runAlignment: WrapAlignment.center,
+                        children: [
+                          if (core.actionHandler.supportedApp is! CustomApp)
+                            for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
+                              IntrinsicWidth(child: ButtonWidget(button: button))
+                          else
+                            for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
+                        ],
+                      ),
                     ),
+                  ),
+                  TableCell(
+                    child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
                   ),
                 ],
               ),
-              for (final keyPair in availableKeypairs) ...[
-                TableRow(
-                  children: [
-                    TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            if (actionHandler.supportedApp is! CustomApp)
-                              if (keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty)
-                                Text('No button assigned for your connected device')
-                              else
-                                for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                                  IntrinsicWidth(child: ButtonWidget(button: button))
-                            else
-                              for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
-                          ],
-                        ),
-                      ),
-                    ),
-                    TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -143,385 +154,55 @@ class _ButtonEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trainerApp = settings.getTrainerApp();
-    final actions = <PopupMenuEntry>[
-      if (settings.getMyWhooshLinkEnabled() && whooshLink.isCompatible(settings.getLastTarget()!))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton(
-            itemBuilder: (_) => WhooshLink.supportedActions.map(
-              (ingame) {
-                return PopupMenuItem(
-                  value: ingame,
-                  child: ingame.possibleValues != null
-                      ? PopupMenuButton(
-                          itemBuilder: (c) => ingame.possibleValues!
-                              .map(
-                                (value) => PopupMenuItem(
-                                  value: value,
-                                  child: Text(value.toString()),
-                                  onTap: () {
-                                    keyPair.inGameAction = ingame;
-                                    keyPair.inGameActionValue = value;
-                                    onUpdate();
-                                  },
-                                ),
-                              )
-                              .toList(),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(ingame.toString())),
-                              Icon(Icons.arrow_right),
-                            ],
-                          ),
-                        )
-                      : Text(ingame.toString()),
-                  onTap: () {
-                    keyPair.inGameAction = ingame;
-                    keyPair.inGameActionValue = null;
-                    onUpdate();
-                  },
-                );
-              },
-            ).toList(),
-            child: SizedBox(
-              height: 52,
-              child: Row(
-                spacing: 14,
-                children: [
-                  Icon(Icons.link),
-                  Expanded(child: Text('MyWhoosh Direct Connect Action')),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-            ),
-          ),
-        ),
-      if (settings.getZwiftEmulatorEnabled() && settings.getTrainerApp()?.supportsZwiftEmulation == true)
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton(
-            itemBuilder: (_) => ZwiftEmulator.supportedActions.map(
-              (ingame) {
-                return PopupMenuItem(
-                  value: ingame,
-                  child: ingame.possibleValues != null
-                      ? PopupMenuButton(
-                          itemBuilder: (c) => ingame.possibleValues!
-                              .map(
-                                (value) => PopupMenuItem(
-                                  value: value,
-                                  child: Text(value.toString()),
-                                  onTap: () {
-                                    keyPair.inGameAction = ingame;
-                                    keyPair.inGameActionValue = value;
-                                    onUpdate();
-                                  },
-                                ),
-                              )
-                              .toList(),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(ingame.toString())),
-                              Icon(Icons.arrow_right),
-                            ],
-                          ),
-                        )
-                      : Text(ingame.toString()),
-                  onTap: () {
-                    keyPair.inGameAction = ingame;
-                    keyPair.inGameActionValue = null;
-                    onUpdate();
-                  },
-                );
-              },
-            ).toList(),
-            child: SizedBox(
-              height: 52,
-              child: Row(
-                spacing: 14,
-                children: [
-                  Icon(Icons.link),
-                  Expanded(child: Text('Zwift Controller Action')),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-            ),
-          ),
-        ),
-      if (trainerApp != null && trainerApp is! CustomApp)
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton(
-            itemBuilder: (_) {
-              // Get actions from the current trainer app's keymap that have inGameAction
-              final actionsWithInGameAction = trainerApp.keymap.keyPairs
-                  .where((kp) => kp.inGameAction != null)
-                  .toList();
-
-              if (actionsWithInGameAction.isEmpty) {
-                return [
-                  PopupMenuItem(
-                    enabled: false,
-                    child: Text('No predefined actions available'),
-                  ),
-                ];
-              }
-
-              return actionsWithInGameAction.map((keyPairAction) {
-                return PopupMenuItem(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(_formatActionDescription(keyPairAction).split(' = ').first),
-                      Text(
-                        _formatActionDescription(keyPairAction).split(' = ').last,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    // Copy all properties from the selected predefined action
-                    keyPair.physicalKey = keyPairAction.physicalKey;
-                    keyPair.logicalKey = keyPairAction.logicalKey;
-                    keyPair.modifiers = List.of(keyPairAction.modifiers);
-                    keyPair.touchPosition = keyPairAction.touchPosition;
-                    keyPair.isLongPress = keyPairAction.isLongPress;
-                    keyPair.inGameAction = keyPairAction.inGameAction;
-                    keyPair.inGameActionValue = keyPairAction.inGameActionValue;
-                    onUpdate();
-                  },
-                );
-              }).toList();
-            },
-            child: SizedBox(
-              height: 52,
-              child: Row(
-                spacing: 14,
-                children: [
-                  Icon(Icons.file_copy_outlined),
-                  Expanded(child: Text('${trainerApp.name} action')),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-            ),
-          ),
-        ),
-      if (actionHandler.supportedModes.contains(SupportedMode.keyboard))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          value: null,
-          child: ListTile(
-            leading: Icon(Icons.keyboard_alt_outlined),
-            title: const Text('Simulate Keyboard shortcut'),
-            trailing: keyPair.physicalKey != null ? Checkbox(value: true, onChanged: null) : null,
-          ),
-          onTap: () async {
-            await showDialog<void>(
+    return TextButton(
+      onPressed: () async {
+        if (core.actionHandler.supportedApp is! CustomApp) {
+          final currentProfile = core.actionHandler.supportedApp!.name;
+          final newName = await KeymapManager().duplicate(
+            context,
+            currentProfile,
+            skipName: '$currentProfile (Copy)',
+          );
+          if (newName != null && context.mounted) {
+            buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
+            final selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
+              (e) => e == keyPair,
+            );
+            await openDrawer(
               context: context,
-              barrierDismissible: false, // enable Escape key
-              builder: (c) =>
-                  HotKeyListenerDialog(customApp: actionHandler.supportedApp! as CustomApp, keyPair: keyPair),
+              builder: (c) => ButtonEditPage(
+                keyPair: selectedKeyPair,
+                onUpdate: () {},
+              ),
+              position: OverlayPosition.end,
             );
-            onUpdate();
-          },
-        ),
-      if (actionHandler.supportedModes.contains(SupportedMode.touch))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          value: null,
-          child: ListTile(
-            title: const Text('Simulate Touch'),
-            leading: Icon(Icons.touch_app_outlined),
-            trailing: keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero
-                ? Checkbox(value: true, onChanged: null)
-                : null,
-          ),
-          onTap: () async {
-            if (keyPair.touchPosition == Offset.zero) {
-              keyPair.touchPosition = Offset(50, 50);
-            }
-            keyPair.physicalKey = null;
-            keyPair.logicalKey = null;
-            await Navigator.of(context).push<bool?>(
-              MaterialPageRoute(
-                builder: (c) => TouchAreaSetupPage(
-                  keyPair: keyPair,
-                ),
-              ),
-            );
-            onUpdate();
-          },
-        ),
-
-      if (actionHandler.supportedModes.contains(SupportedMode.media))
-        PopupMenuItem<PhysicalKeyboardKey>(
-          child: PopupMenuButton<PhysicalKeyboardKey>(
-            padding: EdgeInsets.zero,
-            itemBuilder: (context) => [
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaPlayPause,
-                child: const Text('Media: Play/Pause'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaStop,
-                child: const Text('Media: Stop'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaTrackPrevious,
-                child: const Text('Media: Previous'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.mediaTrackNext,
-                child: const Text('Media: Next'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.audioVolumeUp,
-                child: const Text('Media: Volume Up'),
-              ),
-              PopupMenuItem<PhysicalKeyboardKey>(
-                value: PhysicalKeyboardKey.audioVolumeDown,
-                child: const Text('Media: Volume Down'),
-              ),
-            ],
-            onSelected: (key) {
-              keyPair.physicalKey = key;
-              keyPair.logicalKey = null;
-
-              onUpdate();
-            },
-            child: ListTile(
-              leading: Icon(Icons.music_note_outlined),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (keyPair.isSpecialKey) Checkbox(value: true, onChanged: null),
-                  Icon(Icons.arrow_right),
-                ],
-              ),
-              title: Text('Simulate Media key'),
-            ),
-          ),
-        ),
-
-      PopupMenuDivider(),
-      PopupMenuItem<PhysicalKeyboardKey>(
-        value: null,
-        onTap: () {
-          keyPair.isLongPress = !keyPair.isLongPress;
+          }
           onUpdate();
-        },
-        padding: EdgeInsets.zero,
-        child: Row(
-          spacing: 6,
-          children: [
-            Checkbox(
-              value: keyPair.isLongPress,
-              onChanged: (value) {
-                keyPair.isLongPress = value ?? false;
+        } else {
+          await openDrawer(
+            context: context,
 
-                onUpdate();
-                Navigator.of(context).pop();
-              },
+            builder: (c) => ButtonEditPage(
+              keyPair: keyPair,
+              onUpdate: () {},
             ),
-            const Text('Long Press Mode (vs. repeating)'),
-          ],
-        ),
-      ),
-      PopupMenuItem<PhysicalKeyboardKey>(
-        value: null,
-        onTap: () {
-          keyPair.isLongPress = false;
-          keyPair.physicalKey = null;
-          keyPair.logicalKey = null;
-          keyPair.modifiers = [];
-          keyPair.touchPosition = Offset.zero;
-          keyPair.inGameAction = null;
-          keyPair.inGameActionValue = null;
+            position: OverlayPosition.end,
+          );
           onUpdate();
-        },
-        child: Row(
-          spacing: 14,
-          children: [
-            Icon(Icons.delete_outline),
-            const Text('Unassign action'),
-          ],
-        ),
-      ),
-    ];
-
-    return Container(
-      constraints: BoxConstraints(minHeight: kMinInteractiveDimension - 6),
-      padding: EdgeInsets.only(right: actionHandler.supportedApp is CustomApp ? 4 : 0),
-      child: PopupMenuButton<dynamic>(
-        itemBuilder: (c) => actions,
-        enabled: actionHandler.supportedApp is CustomApp,
-        child: InkWell(
-          onTap: actionHandler.supportedApp is! CustomApp
-              ? () async {
-                  final currentProfile = actionHandler.supportedApp!.name;
-                  final newName = await KeymapManager().duplicate(
-                    context,
-                    currentProfile,
-                    skipName: '$currentProfile (Copy)',
-                  );
-                  if (newName != null) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Created a new custom profile: $newName')));
-                  }
-                  onUpdate();
-                }
-              : null,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            spacing: 6,
-            children: [
-              if (keyPair.buttons.isNotEmpty &&
-                  (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero || keyPair.inGameAction != null))
-                Expanded(
-                  child: KeypairExplanation(
-                    keyPair: keyPair,
-                  ),
-                )
-              else
-                Expanded(
-                  child: Text(
-                    'No action assigned',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              Icon(Icons.edit, size: 14),
-            ],
-          ),
-        ),
-      ),
+        }
+      },
+      trailing: Icon(Icons.edit, size: 18),
+      child: (keyPair.buttons.isNotEmpty && keyPair.hasActiveAction)
+          ? KeypairExplanation(
+              keyPair: keyPair,
+            )
+          : Text(
+              core.logic.hasNoConnectionMethod
+                  ? AppLocalizations.of(context).noConnectionMethodSelected
+                  : context.i18n.noActionAssigned,
+              style: TextStyle(height: 1),
+            ).muted.xSmall,
     );
-  }
-
-  String _formatActionDescription(KeyPair keyPairAction) {
-    final parts = <String>[];
-
-    if (keyPairAction.inGameAction != null) {
-      parts.add(keyPairAction.inGameAction!.toString());
-      if (keyPairAction.inGameActionValue != null) {
-        parts.add('(${keyPairAction.inGameActionValue})');
-      }
-    }
-
-    // Use KeyPair's toString() which formats the key with modifiers (e.g., "Ctrl+Alt+R")
-    final keyLabel = keyPairAction.toString();
-    if (keyLabel != 'Not assigned') {
-      parts.add('Key: $keyLabel');
-    }
-
-    if (keyPairAction.touchPosition != Offset.zero) {
-      parts.add(
-        'Touch: (${keyPairAction.touchPosition.dx.toStringAsFixed(1)}, ${keyPairAction.touchPosition.dy.toStringAsFixed(1)})',
-      );
-    }
-
-    if (keyPairAction.isLongPress) {
-      parts.add('[Long Press]');
-    }
-
-    return parts.isNotEmpty ? [parts.first, ' = ', parts.skip(1).join(' • ')].join() : 'Action';
   }
 }
 

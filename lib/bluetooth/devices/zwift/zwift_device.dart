@@ -4,8 +4,9 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/single_line_exception.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -17,28 +18,41 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   List<ControllerButton>? _lastButtonsClicked;
 
+  BleService? customService;
+
   String get latestFirmwareVersion;
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK;
-  String get customServiceId => ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID;
   bool get canVibrate => false;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId.toLowerCase());
+    customService =
+        services.firstOrNullWhere(
+          (service) => service.uuid == ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID.toLowerCase(),
+        ) ??
+        services.firstOrNullWhere(
+          (service) => service.uuid == ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID.toLowerCase(),
+        );
 
     if (customService == null) {
+      actionStreamInternal.add(
+        AlertNotification(
+          LogLevel.LOGLEVEL_ERROR,
+          'You may need to update the firmware of ${scanResult.name} in Zwift Companion app',
+        ),
+      );
       throw Exception(
-        'Custom service $customServiceId not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
+        'Custom service ${[ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID, ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID]} not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
       );
     }
 
-    final asyncCharacteristic = customService.characteristics.firstOrNullWhere(
+    final asyncCharacteristic = customService!.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID.toLowerCase(),
     );
-    final syncTxCharacteristic = customService.characteristics.firstOrNullWhere(
+    final syncTxCharacteristic = customService!.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID.toLowerCase(),
     );
-    syncRxCharacteristic = customService.characteristics.firstOrNullWhere(
+    syncRxCharacteristic = customService!.characteristics.firstOrNullWhere(
       (characteristic) => characteristic.uuid == ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID.toLowerCase(),
     );
 
@@ -46,14 +60,15 @@ abstract class ZwiftDevice extends BluetoothDevice {
       throw Exception('Characteristics not found');
     }
 
-    await UniversalBle.subscribeNotifications(device.deviceId, customService.uuid, asyncCharacteristic.uuid);
-    await UniversalBle.subscribeIndications(device.deviceId, customService.uuid, syncTxCharacteristic.uuid);
+    await UniversalBle.subscribeNotifications(device.deviceId, customService!.uuid, asyncCharacteristic.uuid);
+    await UniversalBle.subscribeIndications(device.deviceId, customService!.uuid, syncTxCharacteristic.uuid);
 
     await setupHandshake();
 
     if (firmwareVersion != latestFirmwareVersion) {
       actionStreamInternal.add(
-        LogNotification(
+        AlertNotification(
+          LogLevel.LOGLEVEL_WARNING,
           'A new firmware version is available for ${device.name ?? device.rawName}: $latestFirmwareVersion (current: $firmwareVersion). Please update it in Zwift Companion app.',
         ),
       );
@@ -63,7 +78,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   Future<void> setupHandshake() async {
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       ZwiftConstants.RIDE_ON,
       withoutResponse: true,
@@ -120,7 +135,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
       case ZwiftConstants.BATTERY_LEVEL_TYPE:
         if (batteryLevel != message[1]) {
           batteryLevel = message[1];
-          connection.signalChange(this);
+          core.connection.signalChange(this);
         }
         break;
       case ZwiftConstants.CLICK_NOTIFICATION_MESSAGE_TYPE:
@@ -150,7 +165,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   @override
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
-        settings.getVibrationEnabled()) {
+        core.settings.getVibrationEnabled()) {
       await _vibrate();
     }
     return super.performDown(buttonsClicked);
@@ -159,7 +174,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
   @override
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
-        settings.getVibrationEnabled() &&
+        core.settings.getVibrationEnabled() &&
         canVibrate) {
       await _vibrate();
     }
@@ -170,7 +185,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
     final vibrateCommand = Uint8List.fromList([...ZwiftConstants.VIBRATE_PATTERN, 0x20]);
     await UniversalBle.write(
       device.deviceId,
-      customServiceId,
+      customService!.uuid,
       syncRxCharacteristic!.uuid,
       vibrateCommand,
       withoutResponse: true,

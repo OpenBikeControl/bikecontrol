@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:swift_control/main.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
 
 class AccessibilityDisclosureDialog extends StatelessWidget {
   final VoidCallback onAccept;
@@ -16,60 +16,64 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
     return PopScope(
       canPop: false, // Prevent back navigation from dismissing dialog
       child: AlertDialog(
-        title: const Text('Accessibility Service Permission Required'),
-        content: const SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'BikeControl needs to use Android\'s AccessibilityService API to function properly.',
-                style: TextStyle(fontWeight: FontWeight.bold),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(context.i18n.accessibilityServicePermissionRequired),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 16),
+        content: SizedBox(
+          height: 560,
+          child: Scrollbar(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.i18n.accessibilityServiceExplanation,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  Text(context.i18n.whyPermissionNeeded),
+                  SizedBox(height: 8),
+                  Text(context.i18n.accessibilityReasonTouch.replaceAll('• ', '')).li,
+                  Text(context.i18n.accessibilityReasonWindow.replaceAll('• ', '')).li,
+                  Text(context.i18n.accessibilityReasonControl.replaceAll('• ', '')).li,
+                  SizedBox(height: 16),
+                  Text(
+                    context.i18n.howBikeControlUsesPermission,
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: 8),
+                  Text(context.i18n.accessibilityUsageGestures.replaceAll('• ', '')).li,
+                  Text(context.i18n.accessibilityUsageMonitor.replaceAll('• ', '')).li,
+                  Text(context.i18n.accessibilityUsageNoData.replaceAll('• ', '')).li,
+                  SizedBox(height: 16),
+                  Text(
+                    context.i18n.accessibilityDisclaimer,
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    context.i18n.mustChooseAllowOrDeny,
+                    style: TextStyle(fontWeight: FontWeight.w600, color: Colors.orange),
+                  ),
+                ],
               ),
-              SizedBox(height: 16),
-              Text('Why is this permission needed?'),
-              SizedBox(height: 8),
-              Text('• To simulate touch gestures on your screen for controlling trainer apps'),
-              Text('• To detect which training app window is currently active'),
-              Text('• To enable you to control apps like MyWhoosh, IndieVelo, and others using your Zwift devices'),
-              SizedBox(height: 16),
-              Text(
-                'How does BikeControl use this permission?',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              SizedBox(height: 8),
-              Text('• When you press buttons on your Zwift Click, Zwift Ride, or Zwift Play devices, BikeControl simulates touch gestures at specific screen locations'),
-              Text('• The app monitors which training app window is active to ensure gestures are sent to the correct app'),
-              Text('• No personal data is accessed or collected through this service'),
-              SizedBox(height: 16),
-              Text(
-                'BikeControl will only access your screen to perform the gestures you configure. No other accessibility features or personal information will be accessed.',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'You must choose to either Allow or Deny this permission to continue.',
-                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.deepOrange),
-              ),
-            ],
+            ),
           ),
         ),
         actions: [
-          TextButton(
+          DestructiveButton(
             onPressed: onDeny,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
-            child: const Text('Deny'),
+            child: Text(context.i18n.deny),
           ),
-          ElevatedButton(
+          PrimaryButton(
             onPressed: onAccept,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Allow'),
+            child: Text(context.i18n.allow),
           ),
+          SizedBox(width: 8),
         ],
       ),
     );

@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gamepads_windows
   keypress_simulator_windows
   media_key_detector_windows
+  nsd_windows
   permission_handler_windows
   screen_retriever_windows
   universal_ble
@@ -17,6 +18,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   flutter_local_notifications_windows
+  smtc_windows
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

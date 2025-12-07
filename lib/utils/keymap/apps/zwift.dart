@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
@@ -13,14 +11,10 @@ class Zwift extends SupportedApp {
     : super(
         name: 'Zwift',
         packageName: "com.zwift.zwiftgame",
-        supportsZwiftEmulation: !(Platform.isIOS || Platform.isMacOS),
+        supportsZwiftEmulation: true,
         compatibleTargets: [
-          if (!Platform.isIOS) Target.thisDevice,
-          if (Platform.isAndroid) Target.otherDevice,
-          Target.macOS,
-          Target.windows,
-          Target.iOS,
-          Target.android,
+          Target.thisDevice,
+          Target.otherDevice,
         ],
         keymap: Keymap(
           keyPairs: [

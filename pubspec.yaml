@@ -1,7 +1,7 @@
 name: swift_control
 description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 3.6.1+45
+version: 4.0.0+46
 
 environment:
   sdk: ^3.9.0
@@ -20,6 +20,7 @@ dependencies:
   gamepads: ^0.1.8+2
 
   path_provider: ^2.1.5
+  smtc_windows: ^1.1.0
   intl: any
   version: ^3.0.0
   bluetooth_low_energy: ^6.1.0
@@ -28,13 +29,14 @@ dependencies:
   flutter_md: ^0.0.7
   permission_handler: ^12.0.1
   dartx: any
+  nsd: ^4.0.3
   image_picker: ^1.1.2
+  in_app_review: ^2.0.11
   window_manager: ^0.5.1
   device_info_plus: ^12.1.0
   keypress_simulator:
     path: keypress_simulator/packages/keypress_simulator
   shared_preferences: ^2.5.3
-  flex_color_scheme: ^8.3.0
   media_key_detector:
     path: media_key_detector/media_key_detector
   accessibility:
@@ -53,6 +55,10 @@ dependencies:
   package_info_plus: ^9.0.0
   in_app_update: ^4.2.5
   http: ^1.3.0
+  shadcn_flutter: ^0.0.47
+
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -60,7 +66,8 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
-  test_screenshot: 0.0.8
+  intl_utils: ^2.8.12
+  golden_screenshot: ^8.1.1
   flutter_lints: ^6.0.0
   msix: ^3.16.12
 
@@ -76,12 +83,15 @@ flutter:
   assets:
     - CHANGELOG.md
     - TROUBLESHOOTING.md
-    - INSTRUCTIONS_ANDROID.md
     - INSTRUCTIONS_IOS.md
-    - INSTRUCTIONS_WINDOWS.md
-    - INSTRUCTIONS_MACOS.md
     - shorebird.yaml
     - icon.png
+
+flutter_intl:
+  enabled: true
+  arb_dir: lib/i10n
+  class_name: AppLocalizations
+  output_dir: lib/gen
 
 msix_config:
   display_name: BikeControl

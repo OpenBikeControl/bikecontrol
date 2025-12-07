@@ -5,7 +5,8 @@
     {
       "name": "swiftcontrol",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "program": "lib/main.dart"
     },
     {
       "name": "swiftcontrol (profile mode)",

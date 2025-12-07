@@ -41,11 +41,14 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+localazy.json
 
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+lib/gen/
 
 service-account.json
 .env

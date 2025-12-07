@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/ble.dart';
 import 'package:swift_control/bluetooth/devices/base_device.dart';
+import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:swift_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_pro.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
@@ -16,7 +17,11 @@ import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/widgets/beta_pill.dart';
+import 'package:swift_control/utils/core.dart';
+import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:swift_control/widgets/ui/beta_pill.dart';
+import 'package:swift_control/widgets/ui/loading_widget.dart';
+import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'cycplus/cycplus_bc2.dart';
@@ -43,6 +48,7 @@ abstract class BluetoothDevice extends BaseDevice {
     SterzoConstants.SERVICE_UUID,
     CycplusBc2Constants.SERVICE_UUID,
     ShimanoDi2Constants.SERVICE_UUID,
+    OpenBikeControlConstants.SERVICE_UUID,
   ];
 
   static BluetoothDevice? fromScanResult(BleDevice scanResult) {
@@ -54,6 +60,7 @@ abstract class BluetoothDevice extends BaseDevice {
         'Zwift Play' => ZwiftPlay(scanResult),
         'Zwift Click' => ZwiftClickV2(scanResult),
         'SQUARE' => EliteSquare(scanResult),
+        'OpenBike' => OpenBikeControlDevice(scanResult),
         null => null,
         _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT') => WahooKickrBikeShift(scanResult),
@@ -78,6 +85,8 @@ abstract class BluetoothDevice extends BaseDevice {
           CycplusBc2(scanResult),
         _ when scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase()) => CycplusBc2(scanResult),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase()) => ShimanoDi2(scanResult),
+        _ when scanResult.services.contains(OpenBikeControlConstants.SERVICE_UUID.toLowerCase()) =>
+          OpenBikeControlDevice(scanResult),
         // otherwise the service UUIDs will be used
         _ => null,
       };
@@ -108,6 +117,7 @@ abstract class BluetoothDevice extends BaseDevice {
         //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
         ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
         //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
+        _ when scanResult.name == 'Zwift Ride' => ZwiftRide(scanResult), // e.g. old firmware
         _ => null,
       };
     } else {
@@ -136,7 +146,12 @@ abstract class BluetoothDevice extends BaseDevice {
       print("Received message: $message");
     });
 
-    await UniversalBle.connect(device.deviceId);
+    try {
+      await UniversalBle.connect(device.deviceId);
+    } catch (e) {
+      isConnected = false;
+      rethrow;
+    }
 
     if (!kIsWeb) {
       await UniversalBle.requestMtu(device.deviceId, 517);
@@ -156,7 +171,8 @@ abstract class BluetoothDevice extends BaseDevice {
         firmwareCharacteristic.uuid,
       );
       firmwareVersion = String.fromCharCodes(firmwareData);
-      connection.signalChange(this);
+
+      core.connection.signalChange(this);
     }
 
     final batteryService = services.firstOrNullWhere(
@@ -174,7 +190,7 @@ abstract class BluetoothDevice extends BaseDevice {
       );
       if (batteryData.isNotEmpty) {
         batteryLevel = batteryData.first;
-        connection.signalChange(this);
+        core.connection.signalChange(this);
       }
     }
 
@@ -192,60 +208,165 @@ abstract class BluetoothDevice extends BaseDevice {
 
   @override
   Widget showInformation(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          device.name?.screenshot ?? runtimeType.toString(),
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        if (isBeta) BetaPill(),
-        if (batteryLevel != null) ...[
-          Icon(switch (batteryLevel!) {
-            >= 80 => Icons.battery_full,
-            >= 60 => Icons.battery_6_bar,
-            >= 50 => Icons.battery_5_bar,
-            >= 25 => Icons.battery_4_bar,
-            >= 10 => Icons.battery_2_bar,
-            _ => Icons.battery_alert,
-          }),
-          Text('$batteryLevel%'),
-        ],
-        if (firmwareVersion != null) Text(' - v$firmwareVersion'),
-        if (firmwareVersion != null &&
-            this is ZwiftDevice &&
-            firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion) ...[
-          SizedBox(width: 8),
-          Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
-          Text(
-            ' (latest: ${(this as ZwiftDevice).latestFirmwareVersion})',
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
-        if (rssi != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Tooltip(
-              message: 'Signal Strength: $rssi dBm',
-              child: Icon(
-                switch (rssi!) {
-                  >= -50 => Icons.signal_cellular_4_bar,
-                  >= -60 => Icons.signal_cellular_alt_2_bar,
-                  >= -70 => Icons.signal_cellular_alt_1_bar,
-                  _ => Icons.signal_cellular_alt,
-                },
-                size: 18,
-              ),
+        Row(
+          spacing: 8,
+          children: [
+            Text(
+              device.name?.screenshot ?? runtimeType.toString(),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-          ),
-        Expanded(child: SizedBox()),
-        PopupMenuButton(
-          itemBuilder: (c) => [
-            PopupMenuItem(
-              child: Text('Disconnect and Forget'),
-              onTap: () {
-                connection.disconnect(this, forget: true);
+            if (isBeta) BetaPill(),
+            Expanded(child: SizedBox()),
+            Builder(
+              builder: (context) {
+                return LoadingWidget(
+                  futureCallback: () async {
+                    final completer = showDropdown<bool>(
+                      context: context,
+                      builder: (c) => DropdownMenu(
+                        children: [
+                          MenuButton(
+                            child: Text('Disconnect and Forget for this session'),
+                            onPressed: (context) {
+                              closeOverlay(context, false);
+                            },
+                          ),
+                          MenuButton(
+                            child: Text('Disconnect and Forget'),
+                            onPressed: (context) {
+                              closeOverlay(context, true);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+
+                    final persist = await completer.future;
+                    if (persist != null) {
+                      await core.connection.disconnect(this, forget: true, persistForget: persist);
+                    }
+                  },
+                  renderChild: (isLoading, tap) => IconButton(
+                    variance: ButtonVariance.muted,
+                    icon: isLoading ? SmallProgressIndicator() : Icon(Icons.clear),
+                    onPressed: tap,
+                  ),
+                );
               },
             ),
+          ],
+        ),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            SizedBox(
+              width: screenshotMode ? 160 : null,
+              height: screenshotMode ? 70 : null,
+              child: Card(
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.background,
+                padding: EdgeInsets.all(12),
+                child: Basic(
+                  title: Text(context.i18n.connection).xSmall,
+                  trailingAlignment: Alignment.centerRight,
+                  trailing: Icon(switch (isConnected) {
+                    true => Icons.bluetooth_connected_outlined,
+                    false => Icons.bluetooth_disabled_outlined,
+                  }),
+                  subtitle: Text(
+                    isConnected ? context.i18n.connected : context.i18n.disconnected,
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+            ),
+            if (batteryLevel != null)
+              SizedBox(
+                width: screenshotMode ? 160 : null,
+                height: screenshotMode ? 70 : null,
+                child: Card(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.background,
+                  padding: EdgeInsets.all(12),
+                  child: Basic(
+                    title: Text(context.i18n.battery).xSmall,
+                    trailingAlignment: Alignment.centerRight,
+                    trailing: Icon(switch (batteryLevel!) {
+                      >= 80 => Icons.battery_full,
+                      >= 60 => Icons.battery_6_bar,
+                      >= 50 => Icons.battery_5_bar,
+                      >= 25 => Icons.battery_4_bar,
+                      >= 10 => Icons.battery_2_bar,
+                      _ => Icons.battery_alert,
+                    }),
+                    subtitle: Text(
+                      '$batteryLevel%',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ),
+              ),
+            if (firmwareVersion != null)
+              SizedBox(
+                width: screenshotMode ? 160 : null,
+                height: screenshotMode ? 70 : null,
+                child: Card(
+                  filled: true,
+                  padding: EdgeInsets.all(12),
+                  fillColor: Theme.of(context).colorScheme.background,
+                  child: Basic(
+                    title: Text(context.i18n.firmware).xSmall,
+                    subtitle: Row(
+                      children: [
+                        Text(
+                          '$firmwareVersion',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+                          Text(
+                            ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
+                            style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
+                          ),
+                      ],
+                    ),
+                    trailingAlignment: Alignment.centerRight,
+                    trailing: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
+                        ? Icon(Icons.warning, color: Theme.of(context).colorScheme.destructive)
+                        : Icon(Icons.text_fields_sharp),
+                  ),
+                ),
+              ),
+            if (rssi != null)
+              SizedBox(
+                width: screenshotMode ? 160 : null,
+                height: screenshotMode ? 70 : null,
+                child: Card(
+                  filled: true,
+                  padding: EdgeInsets.all(12),
+                  fillColor: Theme.of(context).colorScheme.background,
+                  child: Basic(
+                    title: Text(context.i18n.signal).xSmall,
+                    trailingAlignment: Alignment.centerRight,
+                    trailing: Icon(
+                      switch (rssi!) {
+                        >= -50 => Icons.signal_cellular_4_bar,
+                        >= -60 => Icons.signal_cellular_alt_2_bar,
+                        >= -70 => Icons.signal_cellular_alt_1_bar,
+                        _ => Icons.signal_cellular_alt,
+                      },
+                      size: 18,
+                    ),
+                    subtitle: Text(
+                      '$rssi dBm',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ],

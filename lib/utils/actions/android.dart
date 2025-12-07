@@ -2,9 +2,8 @@ import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
-import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
+import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/widgets/keymap_explanation.dart';
 
@@ -27,41 +26,32 @@ class AndroidActions extends BaseActions {
       }
     });
 
-    hidKeyPressed().listen((keyPressed) {
-      if (supportedApp is CustomApp) {
-        final button = supportedApp.keymap.getOrAddButton(keyPressed, () => ControllerButton(keyPressed));
+    hidKeyPressed().listen((keyPressed) async {
+      final hidDevice = HidDevice(keyPressed.source);
+      final button = await hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey))!;
 
-        final hidDevice = HidDevice('HID Device');
-        var availableDevice = connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
-        if (availableDevice == null) {
-          connection.addDevices([hidDevice]);
-          availableDevice = hidDevice;
-        }
+      var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+      if (availableDevice == null) {
+        core.connection.addDevices([hidDevice]);
+        availableDevice = hidDevice;
+      }
+      if (keyPressed.keyDown) {
         availableDevice.handleButtonsClicked([button]);
+      } else if (keyPressed.keyUp) {
         availableDevice.handleButtonsClicked([]);
       }
     });
   }
 
   @override
-  Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
-    if (supportedApp == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
+  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+    if (superResult is! NotHandled) {
+      return superResult;
     }
+    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
 
-    final keyPair = supportedApp!.keymap.getKeyPair(button);
-
-    if (keyPair == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${button.toString().splitByUpperCase()}');
-    }
-
-    final directConnectHandled = await handleDirectConnect(keyPair);
-
-    if (directConnectHandled != null) {
-      return directConnectHandled;
-    } else if (keyPair.isSpecialKey) {
+    if (keyPair.isSpecialKey) {
       await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
         PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,
         PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,
@@ -87,7 +77,7 @@ class AndroidActions extends BaseActions {
             : "up"}",
       );
     }
-    return Error('No action assigned for ${button.toString().splitByUpperCase()}');
+    return NotHandled('No action assigned for ${button.toString().splitByUpperCase()}');
   }
 
   void ignoreHidDevices() {

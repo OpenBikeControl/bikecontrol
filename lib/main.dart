@@ -3,26 +3,22 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:swift_control/pages/requirements.dart';
-import 'package:swift_control/theme.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    show GlobalMaterialLocalizations, GlobalWidgetsLocalizations;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/actions/remote.dart';
-import 'package:swift_control/utils/settings/settings.dart';
 import 'package:swift_control/widgets/menu.dart';
+import 'package:swift_control/widgets/testbed.dart';
+import 'package:swift_control/widgets/ui/colors.dart';
 
-import 'bluetooth/connection.dart';
-import 'bluetooth/devices/link/link.dart';
+import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
+import 'utils/core.dart';
 
-final connection = Connection();
 final navigatorKey = GlobalKey<NavigatorState>();
-late BaseActions actionHandler;
-final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-final settings = Settings();
-final whooshLink = WhooshLink();
 var screenshotMode = false;
 
 void main() async {
@@ -58,12 +54,15 @@ void main() async {
 
       WidgetsFlutterBinding.ensureInitialized();
 
-      final error = await settings.init();
+      final error = await core.settings.init();
 
-      runApp(SwiftPlayApp(error: error));
+      runApp(BikeControlApp(error: error));
     },
     (Object error, StackTrace stack) {
-      // Zone-level uncaught errors (async, timers, futures)
+      if (kDebugMode) {
+        print('App crashed: $error');
+        debugPrintStack(stackTrace: stack);
+      }
       _recordError(error, stack, context: 'Zone');
     },
   );
@@ -111,7 +110,17 @@ Future<void> _persistCrash({
 
     final directory = await _getLogDirectory();
     final file = File('${directory.path}/app.logs');
+    final fileLength = await file.length();
+    if (fileLength > 5 * 1024 * 1024) {
+      // If log file exceeds 5MB, truncate it
+      final lines = await file.readAsLines();
+      final half = lines.length ~/ 2;
+      final truncatedLines = lines.sublist(half);
+      await file.writeAsString(truncatedLines.join('\n'));
+    }
+
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
+    core.connection.lastLogEntries.add((date: DateTime.now(), entry: 'App crashed: $error'));
   } catch (_) {
     // Avoid throwing from the crash logger
   }
@@ -130,47 +139,81 @@ enum ConnectionType {
   remote,
 }
 
-Future<void> initializeActions(ConnectionType connectionType) async {
+void initializeActions(ConnectionType connectionType) {
   if (kIsWeb) {
-    actionHandler = StubActions();
+    core.actionHandler = StubActions();
   } else if (Platform.isAndroid) {
-    actionHandler = switch (connectionType) {
+    core.actionHandler = switch (connectionType) {
       ConnectionType.local => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else if (Platform.isIOS) {
-    actionHandler = switch (connectionType) {
+    core.actionHandler = switch (connectionType) {
       ConnectionType.local => StubActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   } else {
-    actionHandler = switch (connectionType) {
+    core.actionHandler = switch (connectionType) {
       ConnectionType.local => DesktopActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
   }
-  actionHandler.init(settings.getKeyMap());
+  core.actionHandler.init(core.settings.getKeyMap());
 }
 
-class SwiftPlayApp extends StatelessWidget {
+class BikeControlApp extends StatelessWidget {
+  final BCPage page;
   final String? error;
-  const SwiftPlayApp({super.key, this.error});
+  const BikeControlApp({super.key, this.error, this.page = BCPage.devices});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    return ShadcnApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
+      menuHandler: PopoverOverlayHandler(),
+      popoverHandler: PopoverOverlayHandler(),
+      localizationsDelegates: [
+        ...GlobalMaterialLocalizations.delegates,
+        GlobalWidgetsLocalizations.delegate,
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.delegate.supportedLocales,
       title: 'BikeControl',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      darkTheme: ThemeData(
+        colorScheme: ColorSchemes.darkDefaultColor.copyWith(
+          card: () => Color(0xFF001A29),
+          background: () => Color(0xFF232323),
+          muted: () => Color(0xFF3A3A3A),
+        ),
+      ),
+      theme: ThemeData(
+        colorScheme: ColorSchemes.lightDefaultColor.copyWith(
+          card: () => BKColor.background,
+        ),
+      ),
+      //themeMode: ThemeMode.dark,
       home: error != null
-          ? Text('There was an error starting the App. Please contact support:\n$error')
-          : const RequirementsPage(),
+          ? Center(
+              child: Text(
+                'There was an error starting the App. Please contact support:\n$error',
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          : ToastLayer(
+              key: ValueKey('Test'),
+              padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
+              child: Stack(
+                children: [
+                  Navigation(page: page),
+                  Positioned.fill(child: Testbed()),
+                ],
+              ),
+            ),
     );
   }
 }
