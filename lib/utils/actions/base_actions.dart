@@ -148,7 +148,7 @@ abstract class BaseActions {
       // Handle Headwind actions
       if (keyPair.inGameAction == InGameAction.headwindSpeed || 
           keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
-        final headwind = core.connection.accessories.firstOrNull;
+        final WahooKickrHeadwind? headwind = core.connection.accessories.firstOrNull;
         if (headwind != null && isKeyDown) {
           try {
             if (keyPair.inGameAction == InGameAction.headwindSpeed) {

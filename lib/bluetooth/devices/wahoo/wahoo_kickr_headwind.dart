@@ -34,8 +34,10 @@ class WahooKickrHeadwind extends BluetoothDevice {
   }
 
   Future<void> setSpeed(int speedPercent) async {
-    if (speedPercent < 0 || speedPercent > 100) {
-      throw ArgumentError('Speed must be between 0 and 100');
+    // Validate against the allowed speed values
+    const allowedSpeeds = [0, 25, 50, 75, 100];
+    if (!allowedSpeeds.contains(speedPercent)) {
+      throw ArgumentError('Speed must be one of: ${allowedSpeeds.join(", ")}');
     }
 
     final service = WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase();
