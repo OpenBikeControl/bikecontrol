@@ -8,6 +8,10 @@ import 'package:universal_ble/universal_ble.dart';
 import '../bluetooth_device.dart';
 
 class WahooKickrHeadwind extends BluetoothDevice {
+  // Current mode state
+  HeadwindMode _currentMode = HeadwindMode.unknown;
+  int _currentSpeed = 0;
+
   WahooKickrHeadwind(super.scanResult)
     : super(
         availableButtons: const [],
@@ -30,7 +34,27 @@ class WahooKickrHeadwind extends BluetoothDevice {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
-    // Handle status updates if needed
+    // Analyze the received bytes to determine current state
+    if (bytes.length >= 4 && bytes[0] == 0xFD && bytes[1] == 0x01) {
+      final mode = bytes[3];
+      final speed = bytes[2];
+      
+      switch (mode) {
+        case 0x02:
+          _currentMode = HeadwindMode.heartRate;
+          break;
+        case 0x03:
+          _currentMode = HeadwindMode.speed;
+          break;
+        case 0x01:
+          _currentMode = HeadwindMode.off;
+          break;
+        case 0x04:
+          _currentMode = HeadwindMode.manual;
+          _currentSpeed = speed;
+          break;
+      }
+    }
     return Future.value();
   }
 
@@ -44,9 +68,21 @@ class WahooKickrHeadwind extends BluetoothDevice {
     final service = WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase();
     final characteristic = WahooKickrHeadwindConstants.CHARACTERISTIC_UUID.toLowerCase();
 
-    // Command format: [0x01, speed_value]
-    // Speed value: 0-100 (percentage)
-    final data = Uint8List.fromList([0x01, speedPercent]);
+    // Check if manual mode is enabled, if not enable it first
+    if (_currentMode != HeadwindMode.manual) {
+      final manualModeData = Uint8List.fromList([0x02, 0x04]);
+      await UniversalBle.write(
+        device.deviceId,
+        service,
+        characteristic,
+        manualModeData,
+      );
+      _currentMode = HeadwindMode.manual;
+    }
+
+    // Command format: [0x02, speed_value]
+    // Speed value: 0x00 to 0x64 (0-100 in hex)
+    final data = Uint8List.fromList([0x02, speedPercent]);
 
     await UniversalBle.write(
       device.deviceId,
@@ -54,14 +90,15 @@ class WahooKickrHeadwind extends BluetoothDevice {
       characteristic,
       data,
     );
+    _currentSpeed = speedPercent;
   }
 
   Future<void> setHeartRateMode() async {
     final service = WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase();
     final characteristic = WahooKickrHeadwindConstants.CHARACTERISTIC_UUID.toLowerCase();
 
-    // Command format: [0x02] for HR mode
-    final data = Uint8List.fromList([0x02]);
+    // Command format: [0x02, 0x02] for HR mode
+    final data = Uint8List.fromList([0x02, 0x02]);
 
     await UniversalBle.write(
       device.deviceId,
@@ -69,6 +106,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
       characteristic,
       data,
     );
+    _currentMode = HeadwindMode.heartRate;
   }
 
   Future<ActionResult> handleKeypair(KeyPair keyPair, {required bool isKeyDown}) async {
@@ -98,4 +136,12 @@ class WahooKickrHeadwindConstants {
   // These are standard Wahoo fitness equipment UUIDs
   static const String SERVICE_UUID = "A026E005-0A7D-4AB3-97FA-F1500F9FEB8B";
   static const String CHARACTERISTIC_UUID = "A026E038-0A7D-4AB3-97FA-F1500F9FEB8B";
+}
+
+enum HeadwindMode {
+  unknown,
+  heartRate,  // HR mode (0x02)
+  speed,      // Speed mode (0x03)
+  off,        // OFF mode (0x01)
+  manual,     // Manual speed mode (0x04)
 }
