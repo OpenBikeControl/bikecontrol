@@ -6,6 +6,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';

@@ -405,7 +405,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       isActive: keyPair.inGameAction != null && 
                                 (keyPair.inGameAction == InGameAction.headwindSpeed || 
                                  keyPair.inGameAction == InGameAction.headwindHeartRateMode),
-                      value: [keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
+                      value: keyPair.inGameAction != null 
+                          ? '${keyPair.inGameAction} ${keyPair.inGameActionValue ?? ""}'.trim()
+                          : null,
                       onPressed: () {
                         showDropdown(
                           context: context,
