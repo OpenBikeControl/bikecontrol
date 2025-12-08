@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
+import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
@@ -35,10 +37,11 @@ class WahooKickrHeadwind extends BluetoothDevice {
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
     // Analyze the received bytes to determine current state
+    actionStreamInternal.add(LogNotification('Received ${bytesToHex(bytes)} from Headwind $characteristic'));
     if (bytes.length >= 4 && bytes[0] == 0xFD && bytes[1] == 0x01) {
       final mode = bytes[3];
       final speed = bytes[2];
-      
+
       switch (mode) {
         case 0x02:
           _currentMode = HeadwindMode.heartRate;
@@ -140,8 +143,8 @@ class WahooKickrHeadwindConstants {
 
 enum HeadwindMode {
   unknown,
-  heartRate,  // HR mode (0x02)
-  speed,      // Speed mode (0x03)
-  off,        // OFF mode (0x01)
-  manual,     // Manual speed mode (0x04)
+  heartRate, // HR mode (0x02)
+  speed, // Speed mode (0x03)
+  off, // OFF mode (0x01)
+  manual, // Manual speed mode (0x04)
 }
