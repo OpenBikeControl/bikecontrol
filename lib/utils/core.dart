@@ -369,7 +369,7 @@ class MediaKeyHandler {
     final hidDevice = HidDevice('HID Device');
     final keyPressed = mediaKey.name;
 
-    final button = await hidDevice.getOrAddButton(
+    final button = hidDevice.getOrAddButton(
       keyPressed,
       () => ControllerButton(keyPressed),
     );

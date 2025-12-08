@@ -26,7 +26,7 @@ class GamepadDevice extends BaseDevice {
       };
 
       final buttonKey = event.type == KeyType.analog ? '${event.key}_$normalizedValue' : event.key;
-      ControllerButton button = await getOrAddButton(
+      ControllerButton button = getOrAddButton(
         buttonKey,
         () => ControllerButton(buttonKey),
       );

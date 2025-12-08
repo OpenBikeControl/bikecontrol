@@ -273,4 +273,43 @@ class KeymapManager {
     }
     return null;
   }
+
+  String duplicateSync(String currentProfile, String newName) {
+    if (core.actionHandler.supportedApp is CustomApp) {
+      core.settings.duplicateCustomAppProfile(currentProfile, newName);
+      final customApp = CustomApp(profileName: newName);
+      final savedKeymap = core.settings.getCustomAppKeymap(newName);
+      if (savedKeymap != null) {
+        customApp.decodeKeymap(savedKeymap);
+      }
+      core.actionHandler.supportedApp = customApp;
+      core.settings.setKeyMap(customApp);
+      return newName;
+    } else {
+      final customApp = CustomApp(profileName: newName);
+
+      final connectedDevice = core.connection.devices.firstOrNull;
+      core.actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
+        pair.buttons.filter((button) => connectedDevice?.availableButtons.contains(button) == true).forEachIndexed((
+          button,
+          indexB,
+        ) {
+          customApp.setKey(
+            button,
+            physicalKey: pair.physicalKey,
+            logicalKey: pair.logicalKey,
+            isLongPress: pair.isLongPress,
+            touchPosition: pair.touchPosition,
+            inGameAction: pair.inGameAction,
+            inGameActionValue: pair.inGameActionValue,
+            modifiers: pair.modifiers,
+          );
+        });
+      });
+
+      core.actionHandler.supportedApp = customApp;
+      core.settings.setKeyMap(customApp);
+      return newName;
+    }
+  }
 }

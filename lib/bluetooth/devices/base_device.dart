@@ -143,11 +143,11 @@ abstract class BaseDevice {
 
   Widget showInformation(BuildContext context);
 
-  Future<ControllerButton> getOrAddButton(String key, ControllerButton Function() creator) async {
+  ControllerButton getOrAddButton(String key, ControllerButton Function() creator) {
     if (core.actionHandler.supportedApp is! CustomApp) {
       final currentProfile = core.actionHandler.supportedApp!.name;
       // should we display this to the user?
-      await KeymapManager().duplicate(null, currentProfile, skipName: '$currentProfile (Copy)');
+      KeymapManager().duplicateSync(currentProfile, '$currentProfile (Copy)');
     }
     final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(key, creator);
 
