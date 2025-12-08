@@ -131,6 +131,17 @@ abstract class BaseActions {
       return Error('No action assigned for ${button.toString().splitByUpperCase()}');
     }
 
+    // Handle Headwind actions
+    if (keyPair.inGameAction == InGameAction.headwindSpeed || 
+        keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
+      final headwinds = core.connection.accessories.where((h) => h.isConnected).toList();
+      if (headwinds.isEmpty) {
+        return Error('No Headwind connected');
+      }
+      
+      return await headwinds.first.handleKeypair(keyPair, isKeyDown: isKeyDown);
+    }
+
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
     if (directConnectHandled is NotHandled && directConnectHandled.message.isNotEmpty) {
       core.connection.signalNotification(LogNotification(directConnectHandled.message));
@@ -145,27 +156,6 @@ abstract class BaseActions {
     required bool isKeyUp,
   }) async {
     if (keyPair.inGameAction != null) {
-      // Handle Headwind actions
-      if (keyPair.inGameAction == InGameAction.headwindSpeed || 
-          keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
-        final WahooKickrHeadwind? headwind = core.connection.accessories.firstOrNull;
-        if (headwind != null && isKeyDown) {
-          try {
-            if (keyPair.inGameAction == InGameAction.headwindSpeed) {
-              final speed = keyPair.inGameActionValue ?? 0;
-              await headwind.setSpeed(speed);
-              return Success('Headwind speed set to $speed%');
-            } else if (keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
-              await headwind.setHeartRateMode();
-              return Success('Headwind set to Heart Rate mode');
-            }
-          } catch (e) {
-            return Error('Failed to control Headwind: $e');
-          }
-        }
-        return Error('No Headwind connected');
-      }
-
       if (core.obpBluetoothEmulator.isConnected.value != null) {
         return core.obpBluetoothEmulator.sendButtonPress(
           [button],

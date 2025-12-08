@@ -5,7 +5,6 @@ import 'package:swift_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:swift_control/bluetooth/devices/elite/elite_sterzo.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
-import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 
 enum InGameAction {
@@ -85,7 +84,6 @@ class ControllerButton {
     ...ZwiftButtons.values,
     ...EliteSquareButtons.values,
     ...WahooKickrShiftButtons.values,
-    ...WahooKickrHeadwindButtons.values,
     ...CycplusBc2Buttons.values,
     ...OpenBikeProtocolParser.BUTTON_NAMES.values,
   ].distinct().toList();

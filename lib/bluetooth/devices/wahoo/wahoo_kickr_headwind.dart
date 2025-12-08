@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
@@ -9,7 +10,7 @@ import '../bluetooth_device.dart';
 class WahooKickrHeadwind extends BluetoothDevice {
   WahooKickrHeadwind(super.scanResult)
     : super(
-        availableButtons: WahooKickrHeadwindButtons.values,
+        availableButtons: const [],
       );
 
   @override
@@ -69,6 +70,27 @@ class WahooKickrHeadwind extends BluetoothDevice {
       data,
     );
   }
+
+  Future<ActionResult> handleKeypair(KeyPair keyPair, {required bool isKeyDown}) async {
+    if (!isKeyDown) {
+      return NotHandled('');
+    }
+
+    try {
+      if (keyPair.inGameAction == InGameAction.headwindSpeed) {
+        final speed = keyPair.inGameActionValue ?? 0;
+        await setSpeed(speed);
+        return Success('Headwind speed set to $speed%');
+      } else if (keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
+        await setHeartRateMode();
+        return Success('Headwind set to Heart Rate mode');
+      }
+    } catch (e) {
+      return Error('Failed to control Headwind: $e');
+    }
+
+    return NotHandled('');
+  }
 }
 
 class WahooKickrHeadwindConstants {
@@ -76,46 +98,4 @@ class WahooKickrHeadwindConstants {
   // These are standard Wahoo fitness equipment UUIDs
   static const String SERVICE_UUID = "A026E005-0A7D-4AB3-97FA-F1500F9FEB8B";
   static const String CHARACTERISTIC_UUID = "A026E038-0A7D-4AB3-97FA-F1500F9FEB8B";
-}
-
-class WahooKickrHeadwindButtons {
-  static const ControllerButton speed0 = ControllerButton(
-    'speed0',
-    icon: Icons.air,
-    color: Colors.grey,
-  );
-  static const ControllerButton speed25 = ControllerButton(
-    'speed25',
-    icon: Icons.air,
-    color: Colors.blue,
-  );
-  static const ControllerButton speed50 = ControllerButton(
-    'speed50',
-    icon: Icons.air,
-    color: Colors.blue,
-  );
-  static const ControllerButton speed75 = ControllerButton(
-    'speed75',
-    icon: Icons.air,
-    color: Colors.blue,
-  );
-  static const ControllerButton speed100 = ControllerButton(
-    'speed100',
-    icon: Icons.air,
-    color: Colors.blue,
-  );
-  static const ControllerButton heartRateMode = ControllerButton(
-    'heartRateMode',
-    icon: Icons.favorite,
-    color: Colors.red,
-  );
-
-  static const List<ControllerButton> values = [
-    speed0,
-    speed25,
-    speed50,
-    speed75,
-    speed100,
-    heartRateMode,
-  ];
 }
