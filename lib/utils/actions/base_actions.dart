@@ -144,6 +144,27 @@ abstract class BaseActions {
     required bool isKeyUp,
   }) async {
     if (keyPair.inGameAction != null) {
+      // Handle Headwind actions
+      if (keyPair.inGameAction == InGameAction.headwindSpeed || 
+          keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
+        final headwind = core.connection.accessories.firstOrNull;
+        if (headwind != null && isKeyDown) {
+          try {
+            if (keyPair.inGameAction == InGameAction.headwindSpeed) {
+              final speed = keyPair.inGameActionValue ?? 0;
+              await headwind.setSpeed(speed);
+              return Success('Headwind speed set to $speed%');
+            } else if (keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
+              await headwind.setHeartRateMode();
+              return Success('Headwind set to Heart Rate mode');
+            }
+          } catch (e) {
+            return Error('Failed to control Headwind: $e');
+          }
+        }
+        return Error('No Headwind connected');
+      }
+
       if (core.obpBluetoothEmulator.isConnected.value != null) {
         return core.obpBluetoothEmulator.sendButtonPress(
           [button],
