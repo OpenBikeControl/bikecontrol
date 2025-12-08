@@ -9,6 +9,7 @@ import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/utils/keymap/apps/custom_app.dart';
+import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/custom_keymap_selector.dart';
 import 'package:swift_control/widgets/ui/button_widget.dart';
@@ -402,10 +403,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     builder: (context) => SelectableCard(
                       icon: Icons.air,
                       title: Text('KICKR Headwind'),
-                      isActive: keyPair.inGameAction != null && 
-                                (keyPair.inGameAction == InGameAction.headwindSpeed || 
-                                 keyPair.inGameAction == InGameAction.headwindHeartRateMode),
-                      value: keyPair.inGameAction != null 
+                      isActive:
+                          keyPair.inGameAction != null &&
+                          (keyPair.inGameAction == InGameAction.headwindSpeed ||
+                              keyPair.inGameAction == InGameAction.headwindHeartRateMode),
+                      value: keyPair.inGameAction != null
                           ? '${keyPair.inGameAction} ${keyPair.inGameActionValue ?? ""}'.trim()
                           : null,
                       onPressed: () {
@@ -428,7 +430,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     )
                                     .toList(),
                                 child: Text('Set Speed'),
-                                onPressed: null,
                               ),
                               MenuButton(
                                 child: Text('Set to Heart Rate Mode'),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -111,20 +112,23 @@ class _LogviewerState extends State<LogViewer> {
                     ),
                   ),
                 ),
-          Text(context.i18n.logsAreAlsoAt).muted.small,
-          CodeSnippet(
-            code: SelectableText(File('${Directory.current.path}/app.logs').path),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.copy),
-                variance: ButtonVariance.outline,
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
-                  buildToast(context, title: context.i18n.pathCopiedToClipboard);
-                },
-              ),
-            ],
-          ),
+
+          if (!kIsWeb) ...[
+            Text(context.i18n.logsAreAlsoAt).muted.small,
+            CodeSnippet(
+              code: SelectableText(File('${Directory.current.path}/app.logs').path),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.copy),
+                  variance: ButtonVariance.outline,
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: File('${Directory.current.path}/app.logs').path));
+                    buildToast(context, title: context.i18n.pathCopiedToClipboard);
+                  },
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
