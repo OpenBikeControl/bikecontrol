@@ -40,6 +40,7 @@ class GamepadDevice extends BaseDevice {
             }
             _lastButtonsClicked = buttonsClicked;
           } else {
+            _lastButtonsClicked = [];
             handleButtonsClicked([]);
           }
         case KeyType.button:
