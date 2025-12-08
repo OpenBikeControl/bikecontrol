@@ -87,6 +87,24 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
               ),
             ),
 
+            if (core.connection.accessories.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: ColoredTitle(
+                  text: 'Accessories',
+                ),
+              ),
+              ...core.connection.accessories.map(
+                (device) => Card(
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.card
+                      : Theme.of(context).colorScheme.card.withLuminance(0.95),
+                  child: device.showInformation(context),
+                ),
+              ),
+            ],
+
             if (core.settings.getIgnoredDevices().isNotEmpty)
               OutlineButton(
                 child: Text(context.i18n.manageIgnoredDevices),

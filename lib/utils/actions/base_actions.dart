@@ -6,6 +6,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -128,6 +129,17 @@ abstract class BaseActions {
       return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
     } else if (keyPair.hasNoAction) {
       return Error('No action assigned for ${button.toString().splitByUpperCase()}');
+    }
+
+    // Handle Headwind actions
+    if (keyPair.inGameAction == InGameAction.headwindSpeed || 
+        keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
+      final headwind = core.connection.accessories.where((h) => h.isConnected).firstOrNull;
+      if (headwind == null) {
+        return Error('No Headwind connected');
+      }
+      
+      return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);

@@ -395,6 +395,58 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                 ],
 
+                if (core.connection.accessories.isNotEmpty) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: 'Accessory Actions'),
+                  Builder(
+                    builder: (context) => SelectableCard(
+                      icon: Icons.air,
+                      title: Text('KICKR Headwind'),
+                      isActive: keyPair.inGameAction != null && 
+                                (keyPair.inGameAction == InGameAction.headwindSpeed || 
+                                 keyPair.inGameAction == InGameAction.headwindHeartRateMode),
+                      value: keyPair.inGameAction != null 
+                          ? '${keyPair.inGameAction} ${keyPair.inGameActionValue ?? ""}'.trim()
+                          : null,
+                      onPressed: () {
+                        showDropdown(
+                          context: context,
+                          builder: (c) => DropdownMenu(
+                            children: [
+                              MenuButton(
+                                subMenu: [0, 25, 50, 75, 100]
+                                    .map(
+                                      (value) => MenuButton(
+                                        child: Text('Set Speed to $value%'),
+                                        onPressed: (_) {
+                                          keyPair.inGameAction = InGameAction.headwindSpeed;
+                                          keyPair.inGameActionValue = value;
+                                          widget.onUpdate();
+                                          setState(() {});
+                                        },
+                                      ),
+                                    )
+                                    .toList(),
+                                child: Text('Set Speed'),
+                                onPressed: null,
+                              ),
+                              MenuButton(
+                                child: Text('Set to Heart Rate Mode'),
+                                onPressed: (_) {
+                                  keyPair.inGameAction = InGameAction.headwindHeartRateMode;
+                                  keyPair.inGameActionValue = null;
+                                  widget.onUpdate();
+                                  setState(() {});
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+
                 SizedBox(height: 8),
                 ColoredTitle(text: context.i18n.setting),
                 SelectableCard(

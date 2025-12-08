@@ -28,7 +28,11 @@ enum InGameAction {
   usePowerUp('Use Power-Up'),
   select('Select'),
   back('Back'),
-  rideOnBomb('Ride On Bomb');
+  rideOnBomb('Ride On Bomb'),
+
+  // headwind
+  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100]),
+  headwindHeartRateMode('Headwind HR Mode');
 
   final String title;
   final List<int>? possibleValues;

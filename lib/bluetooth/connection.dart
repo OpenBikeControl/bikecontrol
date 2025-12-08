@@ -9,6 +9,7 @@ import 'package:gamepads/gamepads.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -26,7 +27,8 @@ class Connection {
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
-  List<BaseDevice> get controllerDevices => [...bluetoothDevices, ...gamepadDevices, ...devices.whereType<HidDevice>()];
+  List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
+  List<BaseDevice> get controllerDevices => [...bluetoothDevices.where((d) => d is! WahooKickrHeadwind), ...gamepadDevices, ...devices.whereType<HidDevice>()];
 
   var _androidNotificationsSetup = false;
 
