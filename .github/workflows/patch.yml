@@ -165,6 +165,17 @@ jobs:
         with:
           cache: true
 
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Generate translation files
+        run: |
+          flutter pub global activate intl_utils;
+          flutter pub global run intl_utils:generate;
+
       - name: 🚀 Shorebird Patch Windows
         uses: shorebirdtech/shorebird-patch@v1
         with:
