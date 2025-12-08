@@ -134,12 +134,12 @@ abstract class BaseActions {
     // Handle Headwind actions
     if (keyPair.inGameAction == InGameAction.headwindSpeed || 
         keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
-      final headwinds = core.connection.accessories.where((h) => h.isConnected).toList();
-      if (headwinds.isEmpty) {
+      final headwind = core.connection.accessories.where((h) => h.isConnected).firstOrNull;
+      if (headwind == null) {
         return Error('No Headwind connected');
       }
       
-      return await headwinds.first.handleKeypair(keyPair, isKeyDown: isKeyDown);
+      return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
