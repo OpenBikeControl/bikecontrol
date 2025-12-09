@@ -38,7 +38,7 @@ class CustomFrame extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 54, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 54, horizontal: 16),
                     child: Text(
                       title,
                       textAlign: TextAlign.center,

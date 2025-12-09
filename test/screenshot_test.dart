@@ -117,7 +117,7 @@ Future<void> main() async {
                   required Widget child,
                 }) => CustomFrame(
                   platform: size.type,
-                  title: 'BikeControl connects to your favorite controller',
+                  title: 'BikeControl connects to any controller',
                   device: device,
                   child: child,
                 ),
@@ -155,7 +155,7 @@ Future<void> main() async {
                   required Widget child,
                 }) => CustomFrame(
                   platform: size.type,
-                  title: 'Choose how BikeControl connects to your trainer',
+                  title: 'Connect BikeControl to your trainer',
                   device: device,
                   child: child,
                 ),
