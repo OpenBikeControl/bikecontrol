@@ -73,7 +73,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
 
     // Check if manual mode is enabled, if not enable it first
     if (_currentMode != HeadwindMode.manual) {
-      final manualModeData = Uint8List.fromList([0x02, 0x04]);
+      final manualModeData = Uint8List.fromList([0x04, 0x04]);
       await UniversalBle.write(
         device.deviceId,
         service,
@@ -100,8 +100,8 @@ class WahooKickrHeadwind extends BluetoothDevice {
     final service = WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase();
     final characteristic = WahooKickrHeadwindConstants.CHARACTERISTIC_UUID.toLowerCase();
 
-    // Command format: [0x02, 0x02] for HR mode
-    final data = Uint8List.fromList([0x02, 0x02]);
+    // Command format: [0x04, 0x02] for HR mode
+    final data = Uint8List.fromList([0x04, 0x02]);
 
     await UniversalBle.write(
       device.deviceId,
