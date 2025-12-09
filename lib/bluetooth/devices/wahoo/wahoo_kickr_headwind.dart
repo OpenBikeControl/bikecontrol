@@ -137,7 +137,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
 class WahooKickrHeadwindConstants {
   // Wahoo KICKR Headwind service and characteristic UUIDs
   // These are standard Wahoo fitness equipment UUIDs
-  static const String SERVICE_UUID = "A026E005-0A7D-4AB3-97FA-F1500F9FEB8B";
+  static const String SERVICE_UUID = "A026EE0C-0A7D-4AB3-97FA-F1500F9FEB8B";
   static const String CHARACTERISTIC_UUID = "A026E038-0A7D-4AB3-97FA-F1500F9FEB8B";
 }
 

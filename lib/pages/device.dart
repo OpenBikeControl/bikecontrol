@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/core.dart';
@@ -76,7 +77,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
               ),
             ),
 
-            if (core.connection.controllerDevices.isEmpty) ScanWidget(),
+            if (core.connection.controllerDevices.isEmpty || kIsWeb) ScanWidget(),
             ...core.connection.controllerDevices.map(
               (device) => Card(
                 filled: true,

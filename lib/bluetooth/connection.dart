@@ -28,7 +28,11 @@ class Connection {
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
-  List<BaseDevice> get controllerDevices => [...bluetoothDevices.where((d) => d is! WahooKickrHeadwind), ...gamepadDevices, ...devices.whereType<HidDevice>()];
+  List<BaseDevice> get controllerDevices => [
+    ...bluetoothDevices.where((d) => d is! WahooKickrHeadwind),
+    ...gamepadDevices,
+    ...devices.whereType<HidDevice>(),
+  ];
 
   var _androidNotificationsSetup = false;
 
@@ -88,7 +92,7 @@ class Connection {
         final scanResult = BluetoothDevice.fromScanResult(result);
 
         if (scanResult != null) {
-          _actionStreams.add(LogNotification('Found new device: ${scanResult.runtimeType}'));
+          _actionStreams.add(LogNotification('Found new device: ${kIsWeb ? scanResult.name : scanResult.runtimeType}'));
           addDevices([scanResult]);
         } else {
           final manufacturerData = result.manufacturerDataList;
@@ -191,6 +195,8 @@ class Connection {
         final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
         addDevices(pads);
       });
+    } else {
+      isScanning.value = false;
     }
 
     if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
