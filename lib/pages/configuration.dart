@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/pages/button_edit.dart';
@@ -168,6 +171,14 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
     if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true && !core.logic.emulatorEnabled) {
       core.settings.setObpMdnsEnabled(true);
+    }
+
+    // enable local connection on Windows if the app doesn't support OBP
+    if (target == Target.thisDevice &&
+        core.settings.getTrainerApp()?.supportsOpenBikeProtocol == false &&
+        !kIsWeb &&
+        Platform.isWindows) {
+      core.settings.setLocalEnabled(true);
     }
     core.logic.startEnabledConnectionMethod();
   }
