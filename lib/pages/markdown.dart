@@ -16,7 +16,7 @@ class MarkdownPage extends StatefulWidget {
 }
 
 class _ChangelogPageState extends State<MarkdownPage> {
-  Markdown? _markdown;
+  List<_Group>? _groups;
   String? _error;
 
   @override
@@ -28,9 +28,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
   Future<void> _loadChangelog() async {
     try {
       final md = await rootBundle.loadString(widget.assetPath);
-      setState(() {
-        _markdown = Markdown.fromString(md);
-      });
+      _parseMarkdown(md);
 
       // load latest version
       final response = await http.get(
@@ -39,9 +37,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
       if (response.statusCode == 200) {
         final latestMd = response.body;
         if (latestMd != md) {
-          setState(() {
-            _markdown = Markdown.fromString(md);
-          });
+          _parseMarkdown(md);
         }
       }
     } catch (e) {
@@ -59,55 +55,37 @@ class _ChangelogPageState extends State<MarkdownPage> {
           leading: [
             BackButton(),
           ],
-          title: Text(widget.assetPath.replaceAll('.md', '').toLowerCase().capitalize()),
+          title: Text(
+            widget.assetPath
+                .replaceAll('.md', '')
+                .split('_')
+                .joinToString(separator: ' ', transform: (s) => s.toLowerCase().capitalize()),
+          ),
         ),
       ],
       child: _error != null
           ? Center(child: Text(_error!))
-          : _markdown == null
+          : _groups == null
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: EdgeInsets.all(16),
               child: Accordion(
-                items: _markdown!.blocks.fold(<Widget>[], (acc, block) {
-                  if (block is MD$Heading) {
-                    acc.add(
-                      AccordionItem(
-                        trigger: AccordionTrigger(child: ColoredTitle(text: block.text)),
-                        content: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [],
+                items: _groups!
+                    .map(
+                      (group) => AccordionItem(
+                        trigger: AccordionTrigger(child: ColoredTitle(text: group.title)),
+                        content: MarkdownWidget(
+                          markdown: group.markdown,
+                          theme: MarkdownThemeData(
+                            textStyle: TextStyle(),
+                            onLinkTap: (title, url) {
+                              launchUrlString(url);
+                            },
+                          ),
                         ),
                       ),
-                    );
-                  } else {
-                    ((acc.last as AccordionItem).content as Column).children.add(
-                      switch (block.type) {
-                        _ when block is MD$Paragraph => Text(block.text).small,
-                        _ when block is MD$List => Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (var item in block.items) ...[
-                              if (item.children.isEmpty)
-                                fromString(item.text).li
-                              else
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    fromString(item.text),
-                                    for (var line in item.children) fromString(line.text).li,
-                                  ],
-                                ).li,
-                            ],
-                          ],
-                        ),
-                        _ when block is MD$Spacer => SizedBox(height: 16),
-                        _ => SizedBox.shrink(),
-                      },
-                    );
-                  }
-                  return acc;
-                }),
+                    )
+                    .toList(),
               ),
             ),
     );
@@ -125,4 +103,29 @@ class _ChangelogPageState extends State<MarkdownPage> {
       ),
     );
   }
+
+  void _parseMarkdown(String md) {
+    setState(() {
+      _groups = md
+          .split('## ')
+          .map((section) {
+            final lines = section.split('\n');
+            final title = lines.first.replaceFirst('# ', '').trim();
+            final content = lines.skip(1).join('\n').trim();
+            return _Group(
+              title: title,
+              markdown: Markdown.fromString('## $content'),
+            );
+          })
+          .where((group) => group.title.isNotEmpty)
+          .toList();
+    });
+  }
+}
+
+class _Group {
+  final String title;
+  final Markdown markdown;
+
+  _Group({required this.title, required this.markdown});
 }

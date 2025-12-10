@@ -1,6 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/pages/button_edit.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
@@ -8,7 +9,6 @@ import 'package:swift_control/utils/requirements/platform.dart';
 import 'package:swift_control/widgets/ui/beta_pill.dart';
 import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
 import 'package:swift_control/widgets/ui/toast.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 enum ConnectionMethodType {
   bluetooth,
@@ -154,13 +154,16 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
               style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
                   ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
                   : ButtonStyle.outline(),
-              leading: Icon(Icons.play_circle_outline_outlined),
+              leading: Icon(Icons.help_outline),
               onPressed: () {
-                launchUrlString(widget.instructionLink!);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: widget.instructionLink!)),
+                );
               },
-              child: Text(context.i18n.videoInstructions),
+              child: Text(AppLocalizations.of(context).instructions),
             ),
-          if (widget.showTroubleshooting)
+          if (widget.showTroubleshooting && widget.instructionLink == null)
             Button(
               style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
                   ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))

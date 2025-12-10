@@ -28,6 +28,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
                 return ConnectionMethod(
                   isEnabled: core.settings.getZwiftBleEmulatorEnabled(),
                   type: ConnectionMethodType.bluetooth,
+                  instructionLink: 'INSTRUCTIONS_ZWIFT.md',
                   isStarted: isStarted,
                   isConnected: isConnected,
                   onChange: (value) {

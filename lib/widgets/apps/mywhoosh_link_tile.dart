@@ -24,7 +24,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
               isEnabled: core.settings.getMyWhooshLinkEnabled(),
               type: ConnectionMethodType.network,
               title: context.i18n.connectUsingMyWhooshLink,
-              instructionLink: 'https://github.com/jonasbark/swiftcontrol/blob/main/INSTRUCTIONS_IOS.md',
+              instructionLink: 'INSTRUCTIONS_MYWHOOSH_LINK.md',
               description: isConnected
                   ? context.i18n.myWhooshLinkConnected
                   : isStarted
