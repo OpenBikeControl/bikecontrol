@@ -43,6 +43,7 @@ class WhooshLink extends TrainerConnection {
   }
 
   Future<void> startServer() async {
+    isStarted.value = true;
     try {
       // Create and bind server socket
       _server = await ServerSocket.bind(
@@ -59,7 +60,6 @@ class WhooshLink extends TrainerConnection {
       isStarted.value = false;
       rethrow;
     }
-    isStarted.value = true;
     if (kDebugMode) {
       print('Server started on port ${_server!.port}');
     }

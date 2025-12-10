@@ -40,6 +40,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
       );
 
   Future<void> startServer() async {
+    isStarted.value = true;
     print('Starting mDNS server...');
 
     // Get local IP
@@ -81,7 +82,6 @@ class FtmsMdnsEmulator extends TrainerConnection {
         },
       ),
     );
-    isStarted.value = true;
     print('Server started - advertising service!');
   }
 

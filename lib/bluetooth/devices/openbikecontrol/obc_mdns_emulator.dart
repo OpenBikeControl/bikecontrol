@@ -30,6 +30,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
 
   Future<void> startServer() async {
     print('Starting mDNS server...');
+    isStarted.value = true;
 
     // Get local IP
     final interfaces = await NetworkInterface.list();
@@ -77,7 +78,6 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
         ),
       );
       print('Service: ${_mdnsRegistration!.id} at ${localIP.address}:$_mdnsRegistration');
-      isStarted.value = true;
       print('Server started - advertising service!');
     } catch (e, s) {
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start mDNS server: $e'));
