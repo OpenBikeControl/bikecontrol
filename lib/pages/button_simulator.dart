@@ -1,6 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart' show BackButton;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/core.dart';
@@ -66,67 +67,11 @@ class ButtonSimulator extends StatelessWidget {
                                   (action) => PrimaryButton(
                                     size: ButtonSize(1.6),
                                     child: Text(action.title),
-                                    onPressed: () async {
-                                      if (action.possibleValues != null) {
-                                        showDropdown(
-                                          context: context,
-                                          builder: (context) => DropdownMenu(
-                                            children: action.possibleValues!
-                                                .map(
-                                                  (e) => MenuButton(
-                                                    child: Text(e.toString()),
-                                                    onPressed: (c) async {
-                                                      await connection.sendAction(
-                                                        KeyPair(
-                                                          buttons: [],
-                                                          physicalKey: null,
-                                                          logicalKey: null,
-                                                          inGameAction: action,
-                                                          inGameActionValue: e,
-                                                        ),
-                                                        isKeyDown: true,
-                                                        isKeyUp: false,
-                                                      );
-                                                      await connection.sendAction(
-                                                        KeyPair(
-                                                          buttons: [],
-                                                          physicalKey: null,
-                                                          logicalKey: null,
-                                                          inGameAction: action,
-                                                          inGameActionValue: e,
-                                                        ),
-                                                        isKeyDown: false,
-                                                        isKeyUp: true,
-                                                      );
-                                                    },
-                                                  ),
-                                                )
-                                                .toList(),
-                                          ),
-                                        );
-                                        return;
-                                      } else {
-                                        await connection.sendAction(
-                                          KeyPair(
-                                            buttons: [],
-                                            physicalKey: null,
-                                            logicalKey: null,
-                                            inGameAction: action,
-                                          ),
-                                          isKeyDown: true,
-                                          isKeyUp: false,
-                                        );
-                                        await connection.sendAction(
-                                          KeyPair(
-                                            buttons: [],
-                                            physicalKey: null,
-                                            logicalKey: null,
-                                            inGameAction: action,
-                                          ),
-                                          isKeyDown: false,
-                                          isKeyUp: true,
-                                        );
-                                      }
+                                    onTapDown: (c) async {
+                                      _sendKey(context, down: true, action: action, connection: connection);
+                                    },
+                                    onTapUp: (c) async {
+                                      _sendKey(context, down: false, action: action, connection: connection);
                                     },
                                   ),
                                 )
@@ -187,5 +132,53 @@ class ButtonSimulator extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _sendKey(
+    BuildContext context, {
+    required bool down,
+    required InGameAction action,
+    required TrainerConnection connection,
+  }) async {
+    if (action.possibleValues != null) {
+      if (down) return;
+      showDropdown(
+        context: context,
+        builder: (context) => DropdownMenu(
+          children: action.possibleValues!
+              .map(
+                (e) => MenuButton(
+                  child: Text(e.toString()),
+                  onPressed: (c) async {
+                    await connection.sendAction(
+                      KeyPair(
+                        buttons: [],
+                        physicalKey: null,
+                        logicalKey: null,
+                        inGameAction: action,
+                        inGameActionValue: e,
+                      ),
+                      isKeyDown: false,
+                      isKeyUp: true,
+                    );
+                  },
+                ),
+              )
+              .toList(),
+        ),
+      );
+      return;
+    } else {
+      await connection.sendAction(
+        KeyPair(
+          buttons: [],
+          physicalKey: null,
+          logicalKey: null,
+          inGameAction: action,
+        ),
+        isKeyDown: down,
+        isKeyUp: !down,
+      );
+    }
   }
 }

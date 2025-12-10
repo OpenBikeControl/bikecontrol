@@ -40,7 +40,7 @@ class MyWhoosh extends SupportedApp {
                   ),
                 ),
             ...ControllerButton.values
-                .filter((e) => e.action == InGameAction.navigateRight)
+                .filter((e) => e.action == InGameAction.steerRight)
                 .map(
                   (b) => KeyPair(
                     buttons: [b],
@@ -48,11 +48,11 @@ class MyWhoosh extends SupportedApp {
                     logicalKey: LogicalKeyboardKey.arrowRight,
                     touchPosition: Offset(60, 80),
                     isLongPress: true,
-                    inGameAction: InGameAction.navigateRight,
+                    inGameAction: InGameAction.steerRight,
                   ),
                 ),
             ...ControllerButton.values
-                .filter((e) => e.action == InGameAction.navigateLeft)
+                .filter((e) => e.action == InGameAction.steerLeft)
                 .map(
                   (b) => KeyPair(
                     buttons: [b],
@@ -60,7 +60,7 @@ class MyWhoosh extends SupportedApp {
                     logicalKey: LogicalKeyboardKey.arrowLeft,
                     touchPosition: Offset(32, 80),
                     isLongPress: true,
-                    inGameAction: InGameAction.navigateLeft,
+                    inGameAction: InGameAction.steerLeft,
                   ),
                 ),
             ...ControllerButton.values

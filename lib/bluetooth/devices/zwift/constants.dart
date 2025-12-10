@@ -71,13 +71,13 @@ class ZwiftButtons {
   );
   static const ControllerButton navigationLeft = ControllerButton(
     'navigationLeft',
-    action: InGameAction.navigateLeft,
+    action: InGameAction.steerLeft,
     icon: Icons.keyboard_arrow_left,
     color: Colors.black,
   );
   static const ControllerButton navigationRight = ControllerButton(
     'navigationRight',
-    action: InGameAction.navigateRight,
+    action: InGameAction.steerRight,
     icon: Icons.keyboard_arrow_right,
     color: Colors.black,
   );

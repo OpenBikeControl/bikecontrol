@@ -72,7 +72,7 @@ class ZwiftPlay extends ZwiftDevice {
         super.showInformation(context),
 
         Checkbox(
-          trailing: Text(context.i18n.enableVibrationFeedback),
+          trailing: Expanded(child: Text(context.i18n.enableVibrationFeedback)),
           state: core.settings.getVibrationEnabled() ? CheckboxState.checked : CheckboxState.unchecked,
           onChanged: (value) async {
             await core.settings.setVibrationEnabled(value == CheckboxState.checked);

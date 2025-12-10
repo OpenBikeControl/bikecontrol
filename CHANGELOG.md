@@ -4,7 +4,8 @@
 - control your trainer manually without requiring a controller - just like a Companion app 
 
 **Fixes**:
-- Gamepads: handle analog values correctly on Windows 
+- Gamepads: handle analog values correctly on Windows
+- MyWhoosh: updated default keymap to use steering instead of navigating 
 
 ### 4.0.0 (07-12-2025)
 
