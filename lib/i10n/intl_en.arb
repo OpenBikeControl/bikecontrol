@@ -456,5 +456,6 @@
   "notConnected": "Not connected",
   "noTrainerSelected": "No Trainer selected",
   "instructions": "Instructions",
-  "mailSupportExplanation": "Providing individual support via email is a lot of work for me.\n\nPlease consider using Reddit, Facebook or GitHub for questions and issues so that the whole community can benefit from it."
+  "mailSupportExplanation": "Providing individual support via email is a lot of work for me.\n\nPlease consider using Reddit, Facebook or GitHub for questions and issues so that the whole community can benefit from it.",
+  "myWhooshLinkInfo": "Please check the troubleshooting section if you encounter any issues. A much more reliable connection method is coming soon!"
 }

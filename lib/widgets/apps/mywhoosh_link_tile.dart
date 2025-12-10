@@ -1,4 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/ui/connection_method.dart';
@@ -37,6 +39,12 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                 if (!value) {
                   core.whooshLink.stopServer();
                 } else if (value) {
+                  buildToast(
+                    context,
+                    title: AppLocalizations.of(context).myWhooshLinkInfo,
+                    level: LogLevel.LOGLEVEL_WARNING,
+                    duration: Duration(seconds: 12),
+                  );
                   core.connection.startMyWhooshServer().catchError((e) {
                     core.settings.setMyWhooshLinkEnabled(false);
                     buildToast(

@@ -263,6 +263,7 @@
   "myWhooshLinkConnected": "MyWhoosh „Link“ verbunden",
   "myWhooshLinkDescriptionLocal": "Verbinde dich direkt mit MyWhoosh über die „Link”-Methode. Unterstützte Aktionen sind unter anderem Schalten, Emotes und Richtungswechsel. Die MyWhoosh Link-Begleit-App darf dabei NICHT gleichzeitig laufen.",
   "myWhooshLinkDescriptionRemote": "Du kannst dich über das Netzwerk mit MyWhoosh verbinden, indem du die „Link”-Verbindung nutzt. Die MyWhoosh Link-Begleit-App darf dabei NICHT gleichzeitig laufen.",
+  "myWhooshLinkInfo": "Schau mal im Abschnitt zur Fehlerbehebung nach, wenn du Probleme hast. Eine deutlich zuverlässigere Verbindungsmethode kommt bald!",
   "nameChangeNotice": "SwiftControl heißt jetzt BikeControl! Es ist Teil des OpenBikeControl-Projekts, das sich für offene Standards bei intelligenten Fahrradtrainern einsetzt und erschwingliche Hardware-Controller entwickelt!",
   "needHelpClickHelp": "Hilfe benötigt? Klicke auf",
   "needHelpDontHesitate": "den Button oben und zögere nicht, uns zu kontaktieren.",

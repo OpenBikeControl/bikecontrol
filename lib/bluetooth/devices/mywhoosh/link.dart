@@ -31,14 +31,12 @@ class WhooshLink extends TrainerConnection {
       );
 
   void stopServer() async {
-    if (isStarted.value) {
-      await _socket?.close();
-      await _server?.close();
-      isConnected.value = false;
-      isStarted.value = false;
-      if (kDebugMode) {
-        print('Server stopped.');
-      }
+    await _socket?.close();
+    await _server?.close();
+    isConnected.value = false;
+    isStarted.value = false;
+    if (kDebugMode) {
+      print('Server stopped.');
     }
   }
 
