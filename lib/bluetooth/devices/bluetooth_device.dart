@@ -152,10 +152,6 @@ abstract class BluetoothDevice extends BaseDevice {
 
   @override
   Future<void> connect() async {
-    actionStream.listen((message) {
-      print("Received message: $message");
-    });
-
     try {
       await UniversalBle.connect(device.deviceId);
     } catch (e) {

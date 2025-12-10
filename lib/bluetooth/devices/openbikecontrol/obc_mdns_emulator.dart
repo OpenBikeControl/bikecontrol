@@ -120,7 +120,9 @@ class OpenBikeControlMdnsEmulator {
         // Listen for data from the client
         socket.listen(
           (List<int> data) {
-            print('Received message: ${bytesToHex(data)}');
+            if (kDebugMode) {
+              print('Received message: ${bytesToHex(data)}');
+            }
             final messageType = data[0];
             switch (messageType) {
               case OpenBikeProtocolParser.MSG_TYPE_APP_INFO:

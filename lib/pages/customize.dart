@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' show SwitchListTile;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:swift_control/main.dart';
@@ -140,17 +139,6 @@ class _CustomizeState extends State<CustomizePage> {
               important: false,
               children: [Text(context.i18n.connectControllerToPreview).small],
             ),
-          if (canVibrate) ...[
-            SwitchListTile(
-              title: Text(context.i18n.enableVibrationFeedback),
-              value: core.settings.getVibrationEnabled(),
-              contentPadding: EdgeInsets.zero,
-              onChanged: (value) async {
-                await core.settings.setVibrationEnabled(value);
-                setState(() {});
-              },
-            ),
-          ],
         ],
       ),
     );

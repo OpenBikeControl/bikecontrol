@@ -115,7 +115,9 @@ class FtmsMdnsEmulator {
         // Listen for data from the client
         socket.listen(
           (List<int> data) {
-            print('Received message: ${bytesToHex(data)}');
+            if (kDebugMode) {
+              print('Received message: ${bytesToHex(data)}');
+            }
 
             final mutable = data.toList();
             while (mutable.isNotEmpty) {
@@ -127,7 +129,9 @@ class FtmsMdnsEmulator {
               final length = mutable.takeUInt16BE(); // Length of the message body
 
               final body = mutable.takeBytes(length);
-              print('Parsed message: ID: $msgId, Body: ${bytesToHex(body)}');
+              if (kDebugMode) {
+                print('Parsed message: ID: $msgId, Body: ${bytesToHex(body)}');
+              }
 
               Uint8List buildHeader(int responseCode, int bodyLength) {
                 return Uint8List.fromList([
