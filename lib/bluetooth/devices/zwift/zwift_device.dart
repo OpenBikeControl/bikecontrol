@@ -65,7 +65,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
     await setupHandshake();
 
-    if (firmwareVersion != latestFirmwareVersion) {
+    if (firmwareVersion != latestFirmwareVersion && firmwareVersion != null) {
       actionStreamInternal.add(
         AlertNotification(
           LogLevel.LOGLEVEL_WARNING,
