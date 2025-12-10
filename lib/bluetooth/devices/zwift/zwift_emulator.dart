@@ -4,6 +4,7 @@ import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:swift_control/bluetooth/ble.dart';
+import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
@@ -14,25 +15,11 @@ import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:swift_control/widgets/title.dart';
 
-class ZwiftEmulator {
-  static final List<InGameAction> supportedActions = [
-    InGameAction.shiftUp,
-    InGameAction.shiftDown,
-    InGameAction.uturn,
-    InGameAction.steerLeft,
-    InGameAction.steerRight,
-    InGameAction.openActionBar,
-    InGameAction.usePowerUp,
-    InGameAction.select,
-    InGameAction.back,
-    InGameAction.rideOnBomb,
-  ];
-
-  ValueNotifier<bool> isConnected = ValueNotifier<bool>(false);
-  ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
+class ZwiftEmulator extends TrainerConnection {
   bool get isLoading => _isLoading;
 
   late final _peripheralManager = PeripheralManager();
@@ -42,6 +29,23 @@ class ZwiftEmulator {
   Central? _central;
   GATTCharacteristic? _asyncCharacteristic;
   GATTCharacteristic? _syncTxCharacteristic;
+
+  ZwiftEmulator()
+    : super(
+        title: 'Zwift BLE Emulator',
+        supportedActions: [
+          InGameAction.shiftUp,
+          InGameAction.shiftDown,
+          InGameAction.uturn,
+          InGameAction.steerLeft,
+          InGameAction.steerRight,
+          InGameAction.openActionBar,
+          InGameAction.usePowerUp,
+          InGameAction.select,
+          InGameAction.back,
+          InGameAction.rideOnBomb,
+        ],
+      );
 
   Future<void> reconnect() async {
     await _peripheralManager.stopAdvertising();
@@ -308,13 +312,9 @@ class ZwiftEmulator {
     }
   }
 
-  Future<ActionResult> sendAction(
-    InGameAction inGameAction,
-    int? inGameActionValue, {
-    required bool isKeyDown,
-    required bool isKeyUp,
-  }) async {
-    final button = switch (inGameAction) {
+  @override
+  Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
+    final button = switch (keyPair.inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
       InGameAction.uturn => RideButtonMask.DOWN_BTN,
@@ -329,7 +329,7 @@ class ZwiftEmulator {
     };
 
     if (button == null) {
-      return NotHandled('Action ${inGameAction.name} not supported by Zwift Emulator');
+      return NotHandled('Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator');
     }
 
     final status = RideKeyPadStatus()
@@ -356,7 +356,7 @@ class ZwiftEmulator {
       _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
     }
 
-    return Success('Sent action: ${inGameAction.name}');
+    return Success('Sent action: ${keyPair.inGameAction!.name}');
   }
 
   Uint8List? handleWriteRequest(String characteristic, Uint8List value) {

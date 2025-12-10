@@ -180,14 +180,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
             if (core.settings.getTrainerApp() != null) ...[
               SizedBox(height: 8),
               if (core.logic.hasRecommendedConnectionMethods)
-                ColoredTitle(
-                  text: context.i18n.recommendedConnectionMethods,
-                ),
+                ColoredTitle(text: context.i18n.recommendedConnectionMethods),
 
               if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
               if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
 
-              if (core.logic.showMyWhooshLink) MyWhooshLinkTile(),
               if (core.logic.showZwiftMsdnEmulator)
                 ZwiftMdnsTile(
                   onUpdate: () {
@@ -335,6 +332,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                     ],
                   ),
                 ),
+              if (core.logic.showMyWhooshLink) MyWhooshLinkTile(),
               if (core.logic.showRemote) ...[
                 SizedBox(height: 8),
                 ColoredTitle(text: context.i18n.otherConnectionMethods),

@@ -2,30 +2,33 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
-class WhooshLink {
+class WhooshLink extends TrainerConnection {
   Socket? _socket;
   ServerSocket? _server;
 
-  static final List<InGameAction> supportedActions = [
-    InGameAction.shiftUp,
-    InGameAction.shiftDown,
-    InGameAction.cameraAngle,
-    InGameAction.emote,
-    InGameAction.uturn,
-    InGameAction.steerLeft,
-    InGameAction.steerRight,
-  ];
-
-  final ValueNotifier<bool> isStarted = ValueNotifier(false);
-  final ValueNotifier<bool> isConnected = ValueNotifier(false);
+  WhooshLink()
+    : super(
+        title: 'MyWhoosh Link',
+        supportedActions: [
+          InGameAction.shiftUp,
+          InGameAction.shiftDown,
+          InGameAction.cameraAngle,
+          InGameAction.emote,
+          InGameAction.uturn,
+          InGameAction.steerLeft,
+          InGameAction.steerRight,
+        ],
+      );
 
   void stopServer() async {
     if (isStarted.value) {
@@ -96,8 +99,9 @@ class WhooshLink {
     );
   }
 
-  ActionResult sendAction(InGameAction action, int? value, {required bool isKeyDown, required bool isKeyUp}) {
-    final jsonObject = switch (action) {
+  @override
+  Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
+    final jsonObject = switch (keyPair.inGameAction) {
       InGameAction.shiftUp => {
         'MessageType': 'Controls',
         'InGameControls': {
@@ -113,13 +117,13 @@ class WhooshLink {
       InGameAction.cameraAngle => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'CameraAngle': '$value',
+          'CameraAngle': '${keyPair.inGameActionValue}',
         },
       },
       InGameAction.emote => {
         'MessageType': 'Controls',
         'InGameControls': {
-          'Emote': '$value',
+          'Emote': '${keyPair.inGameActionValue}',
         },
       },
       InGameAction.uturn => {
@@ -152,14 +156,14 @@ class WhooshLink {
       InGameAction.steerLeft,
       InGameAction.steerRight,
     ];
-    if (jsonObject != null && !isKeyDown && !supportsIsKeyUpActions.contains(action)) {
-      return Success('No Action sent on key down for action: $action');
+    if (jsonObject != null && !isKeyDown && !supportsIsKeyUpActions.contains(keyPair.inGameAction)) {
+      return Success('No Action sent on key down for action: ${keyPair.inGameAction}');
     } else if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
       _socket?.writeln(jsonString);
-      return Success('Sent action to MyWhoosh: $action ${value ?? ''}');
+      return Success('Sent action to MyWhoosh: ${keyPair.inGameAction} ${keyPair.inGameActionValue ?? ''}');
     } else {
-      return NotHandled('No action available for button: $action');
+      return NotHandled('No action available for button: ${keyPair.inGameAction}');
     }
   }
 

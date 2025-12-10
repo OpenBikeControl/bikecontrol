@@ -1,5 +1,8 @@
 ### 4.0.1 (unreleased)
 
+**Features**:
+- control your trainer manually without requiring a controller - just like a Companion app 
+
 **Fixes**:
 - Gamepads: handle analog values correctly on Windows 
 

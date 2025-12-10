@@ -1,8 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/mywhoosh/link.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
@@ -138,7 +136,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         showDropdown(
                           context: context,
                           builder: (c) => DropdownMenu(
-                            children: WhooshLink.supportedActions.map(
+                            children: core.whooshLink.supportedActions.map(
                               (ingame) {
                                 return MenuButton(
                                   subMenu: ingame.possibleValues
@@ -183,7 +181,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         showDropdown(
                           context: context,
                           builder: (c) => DropdownMenu(
-                            children: ZwiftEmulator.supportedActions.map(
+                            children: core.zwiftEmulator.supportedActions.map(
                               (ingame) {
                                 return MenuButton(
                                   subMenu: ingame.possibleValues

@@ -7,7 +7,6 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:swift_control/pages/button_simulator.dart';
 import 'package:swift_control/pages/markdown.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
@@ -153,6 +152,7 @@ Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
 Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
+Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title).join(', ')}
 Logs: 
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
@@ -172,17 +172,6 @@ class BKMenuButton extends StatelessWidget {
         builder: (c) => DropdownMenu(
           children: [
             if (kDebugMode) ...[
-              MenuButton(
-                onPressed: (_) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (c) => ButtonSimulator(),
-                    ),
-                  );
-                },
-                child: Text(context.i18n.simulateButtons),
-              ),
               MenuButton(
                 child: Text(context.i18n.continueAction),
                 onPressed: (c) {

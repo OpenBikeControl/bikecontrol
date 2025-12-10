@@ -6,7 +6,6 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
-import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -132,13 +131,13 @@ abstract class BaseActions {
     }
 
     // Handle Headwind actions
-    if (keyPair.inGameAction == InGameAction.headwindSpeed || 
+    if (keyPair.inGameAction == InGameAction.headwindSpeed ||
         keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
       final headwind = core.connection.accessories.where((h) => h.isConnected).firstOrNull;
       if (headwind == null) {
         return Error('No Headwind connected');
       }
-      
+
       return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
     }
 
@@ -156,43 +155,17 @@ abstract class BaseActions {
     required bool isKeyUp,
   }) async {
     if (keyPair.inGameAction != null) {
-      if (core.obpBluetoothEmulator.isConnected.value != null) {
-        return core.obpBluetoothEmulator.sendButtonPress(
-          [button],
+      final actions = <ActionResult>[];
+      for (final connectedTrainer in core.logic.connectedTrainerConnections) {
+        final result = await connectedTrainer.sendAction(
+          keyPair,
           isKeyDown: isKeyDown,
           isKeyUp: isKeyUp,
         );
-      } else if (core.obpMdnsEmulator.isConnected.value != null) {
-        return Future.value(
-          core.obpMdnsEmulator.sendButtonPress(
-            [button],
-            isKeyDown: isKeyDown,
-            isKeyUp: isKeyUp,
-          ),
-        );
-      } else if (core.whooshLink.isConnected.value) {
-        return Future.value(
-          core.whooshLink.sendAction(
-            keyPair.inGameAction!,
-            keyPair.inGameActionValue,
-            isKeyDown: isKeyDown,
-            isKeyUp: isKeyUp,
-          ),
-        );
-      } else if (core.zwiftMdnsEmulator.isConnected.value) {
-        return core.zwiftMdnsEmulator.sendAction(
-          keyPair.inGameAction!,
-          keyPair.inGameActionValue,
-          isKeyDown: isKeyDown,
-          isKeyUp: isKeyUp,
-        );
-      } else if (core.zwiftEmulator.isConnected.value) {
-        return core.zwiftEmulator.sendAction(
-          keyPair.inGameAction!,
-          keyPair.inGameActionValue,
-          isKeyDown: isKeyDown,
-          isKeyUp: isKeyUp,
-        );
+        actions.add(result);
+      }
+      if (actions.isNotEmpty) {
+        return actions.first;
       }
     }
     return NotHandled('');

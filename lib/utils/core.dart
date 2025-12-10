@@ -9,6 +9,7 @@ import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
 import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/devices/zwift/zwift_emulator.dart';
@@ -183,7 +184,8 @@ class CoreLogic {
   bool get showForegroundMessage =>
       core.actionHandler is RemoteActions && !kIsWeb && Platform.isIOS && core.remotePairing.isConnected.value;
 
-  AppInfo? get obpConnectedApp => core.obpMdnsEmulator.isConnected.value ?? core.obpBluetoothEmulator.isConnected.value;
+  AppInfo? get obpConnectedApp =>
+      core.obpMdnsEmulator.connectedApp.value ?? core.obpBluetoothEmulator.connectedApp.value;
 
   bool get emulatorEnabled =>
       screenshotMode ||
@@ -221,6 +223,24 @@ class CoreLogic {
       showZwiftMsdnEmulator ||
       showMyWhooshLink;
 
+  List<TrainerConnection> get connectedTrainerConnections => [
+    if (isMyWhooshLinkEnabled) core.whooshLink,
+    if (isObpMdnsEnabled) core.obpMdnsEmulator,
+    if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isZwiftBleEnabled) core.zwiftEmulator,
+    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isRemoteControlEnabled) core.remotePairing,
+  ].filter((e) => e.isConnected.value).toList();
+
+  List<TrainerConnection> get trainerConnections => [
+    if (showMyWhooshLink) core.whooshLink,
+    if (showObpMdnsEmulator) core.obpMdnsEmulator,
+    if (showObpBluetoothEmulator) core.obpBluetoothEmulator,
+    if (showZwiftBleEmulator) core.zwiftEmulator,
+    if (showZwiftMsdnEmulator) core.zwiftMdnsEmulator,
+    if (showRemote) core.remotePairing,
+  ];
+
   Future<bool> isTrainerConnected() async {
     if (screenshotMode) {
       return true;
@@ -230,18 +250,8 @@ class CoreLogic {
       } else {
         return true;
       }
-    } else if (isMyWhooshLinkEnabled) {
-      return core.whooshLink.isConnected.value;
-    } else if (isObpMdnsEnabled) {
-      return core.obpMdnsEmulator.isConnected.value != null;
-    } else if (isObpBleEnabled) {
-      return core.obpBluetoothEmulator.isConnected.value != null;
-    } else if (isZwiftBleEnabled) {
-      return core.zwiftEmulator.isConnected.value;
-    } else if (isZwiftMdnsEnabled) {
-      return core.zwiftMdnsEmulator.isConnected.value == true;
-    } else if (isRemoteControlEnabled) {
-      return core.remotePairing.isConnected.value;
+    } else if (connectedTrainerConnections.isNotEmpty) {
+      return true;
     } else {
       return false;
     }

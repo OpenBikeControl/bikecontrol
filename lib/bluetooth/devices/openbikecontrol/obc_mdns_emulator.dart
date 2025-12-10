@@ -5,21 +5,28 @@ import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
 import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/bluetooth/messages/notification.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 
-class OpenBikeControlMdnsEmulator {
+class OpenBikeControlMdnsEmulator extends TrainerConnection {
   ServerSocket? _server;
   Registration? _mdnsRegistration;
 
-  final ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
-  final ValueNotifier<AppInfo?> isConnected = ValueNotifier<AppInfo?>(null);
+  final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(null);
 
   Socket? _socket;
+
+  OpenBikeControlMdnsEmulator()
+    : super(
+        title: 'OpenBikeControl mDNS Emulator',
+        supportedActions: InGameAction.values,
+      );
 
   Future<void> startServer() async {
     print('Starting mDNS server...');
@@ -87,7 +94,8 @@ class OpenBikeControlMdnsEmulator {
       _mdnsRegistration = null;
     }
     isStarted.value = false;
-    isConnected.value = null;
+    isConnected.value = false;
+    connectedApp.value = null;
     _socket?.destroy();
     _socket = null;
   }
@@ -127,7 +135,8 @@ class OpenBikeControlMdnsEmulator {
             switch (messageType) {
               case OpenBikeProtocolParser.MSG_TYPE_APP_INFO:
                 final appInfo = OpenBikeProtocolParser.parseAppInfo(Uint8List.fromList(data));
-                isConnected.value = appInfo;
+                isConnected.value = true;
+                connectedApp.value = appInfo;
                 core.connection.signalNotification(
                   AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
                 );
@@ -138,9 +147,10 @@ class OpenBikeControlMdnsEmulator {
           },
           onDone: () {
             core.connection.signalNotification(
-              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${isConnected.value?.appId}'),
+              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
             );
-            isConnected.value = null;
+            isConnected.value = false;
+            connectedApp.value = null;
             _socket = null;
           },
         );
@@ -148,13 +158,16 @@ class OpenBikeControlMdnsEmulator {
     );
   }
 
-  ActionResult sendButtonPress(List<ControllerButton> buttons, {required bool isKeyDown, required bool isKeyUp}) {
+  @override
+  Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
+    final buttons = keyPair.buttons;
+
     if (_socket == null) {
       print('No client connected, cannot send button press');
       return Error('No client connected');
-    } else if (isConnected.value == null) {
+    } else if (connectedApp.value == null) {
       return Error('No app info received from central');
-    } else if (!isConnected.value!.supportedButtons.containsAll(buttons)) {
+    } else if (connectedApp.value!.supportedButtons.containsAll(buttons)) {
       return NotHandled('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 

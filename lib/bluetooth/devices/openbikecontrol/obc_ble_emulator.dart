@@ -5,23 +5,30 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 import 'package:swift_control/widgets/title.dart';
 
 import '../../messages/notification.dart' show AlertNotification;
 
-class OpenBikeControlBluetoothEmulator {
+class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   late final _peripheralManager = PeripheralManager();
-  final ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
-  final ValueNotifier<AppInfo?> isConnected = ValueNotifier<AppInfo?>(null);
+  final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
   Central? _central;
 
   late GATTCharacteristic _buttonCharacteristic;
+
+  OpenBikeControlBluetoothEmulator()
+    : super(
+        title: 'OpenBikeControl BLE Emulator',
+        supportedActions: InGameAction.values,
+      );
 
   Future<void> startServer() async {
     isStarted.value = true;
@@ -36,9 +43,10 @@ class OpenBikeControlBluetoothEmulator {
         if (state.state == ConnectionState.connected) {
         } else if (state.state == ConnectionState.disconnected) {
           core.connection.signalNotification(
-            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${isConnected.value?.appId}'),
+            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
           );
-          isConnected.value = null;
+          isConnected.value = false;
+          connectedApp.value = null;
           _central = null;
         }
       });
@@ -98,7 +106,8 @@ class OpenBikeControlBluetoothEmulator {
             case OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID:
               try {
                 final appInfo = OpenBikeProtocolParser.parseAppInfo(value);
-                isConnected.value = appInfo;
+                isConnected.value = true;
+                connectedApp.value = appInfo;
                 core.connection.signalNotification(
                   AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
                 );
@@ -209,19 +218,18 @@ class OpenBikeControlBluetoothEmulator {
     }
     await _peripheralManager.stopAdvertising();
     isStarted.value = false;
-    isConnected.value = null;
+    isConnected.value = false;
+    connectedApp.value = null;
   }
 
-  Future<ActionResult> sendButtonPress(
-    List<ControllerButton> buttons, {
-    required bool isKeyDown,
-    required bool isKeyUp,
-  }) async {
+  @override
+  Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
+    final buttons = keyPair.buttons;
     if (_central == null) {
       return Error('No central connected');
-    } else if (isConnected.value == null) {
+    } else if (connectedApp.value == null) {
       return Error('No app info received from central');
-    } else if (!isConnected.value!.supportedButtons.containsAll(buttons)) {
+    } else if (!connectedApp.value!.supportedButtons.containsAll(buttons)) {
       return NotHandled('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 

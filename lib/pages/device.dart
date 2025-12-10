@@ -1,12 +1,16 @@
 import 'dart:async';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
+import 'package:swift_control/pages/button_simulator.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/i18n_extension.dart';
 import 'package:swift_control/widgets/scan.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
+import 'package:swift_control/widgets/ui/toast.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -118,8 +122,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                 },
               ),
 
-            if (core.connection.controllerDevices.isNotEmpty) ...[
-              SizedBox(),
+            SizedBox(),
+            if (core.connection.controllerDevices.isNotEmpty)
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -130,8 +134,38 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     },
                   ),
                 ],
+              )
+            else
+              PrimaryButton(
+                child: Text(
+                  'No Controller? Control ${core.settings.getTrainerApp()?.name ?? 'your trainer'} manually!',
+                ),
+                onPressed: () {
+                  if (core.settings.getTrainerApp() == null) {
+                    buildToast(
+                      context,
+                      level: LogLevel.LOGLEVEL_WARNING,
+                      title: context.i18n.selectTrainerApp,
+                    );
+                    widget.onUpdate();
+                  } else if (core.logic.connectedTrainerConnections.isEmpty) {
+                    buildToast(
+                      context,
+                      level: LogLevel.LOGLEVEL_WARNING,
+                      title:
+                          'Please connect to ${core.settings.getTrainerApp()?.name ?? 'your trainer'} with ${core.logic.trainerConnections.joinToString(transform: (t) => t.title, separator: ' or ')}, first.',
+                    );
+                    widget.onUpdate();
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (c) => ButtonSimulator(),
+                      ),
+                    );
+                  }
+                },
               ),
-            ],
           ],
         ),
       ),

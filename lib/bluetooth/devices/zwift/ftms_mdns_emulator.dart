@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart';
+import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
 import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' show RideKeyPadStatus;
@@ -12,16 +13,31 @@ import 'package:swift_control/gen/l10n.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
 import 'package:swift_control/utils/core.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 
-class FtmsMdnsEmulator {
+class FtmsMdnsEmulator extends TrainerConnection {
   ServerSocket? _tcpServer;
   Registration? _mdnsRegistration;
 
   Socket? _socket;
   var lastMessageId = 0;
 
-  ValueNotifier<bool> isConnected = ValueNotifier(false);
-  ValueNotifier<bool> isStarted = ValueNotifier(false);
+  FtmsMdnsEmulator()
+    : super(
+        title: 'Zwift Network Emulator',
+        supportedActions: [
+          InGameAction.shiftUp,
+          InGameAction.shiftDown,
+          InGameAction.uturn,
+          InGameAction.steerLeft,
+          InGameAction.steerRight,
+          InGameAction.openActionBar,
+          InGameAction.usePowerUp,
+          InGameAction.select,
+          InGameAction.back,
+          InGameAction.rideOnBomb,
+        ],
+      );
 
   Future<void> startServer() async {
     print('Starting mDNS server...');
@@ -313,13 +329,9 @@ class FtmsMdnsEmulator {
     return res;
   }
 
-  Future<ActionResult> sendAction(
-    InGameAction inGameAction,
-    int? inGameActionValue, {
-    required bool isKeyDown,
-    required bool isKeyUp,
-  }) async {
-    final button = switch (inGameAction) {
+  @override
+  Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
+    final button = switch (keyPair.inGameAction) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
       InGameAction.uturn => RideButtonMask.DOWN_BTN,
@@ -334,7 +346,7 @@ class FtmsMdnsEmulator {
     };
 
     if (button == null) {
-      return NotHandled('Action ${inGameAction.name} not supported by Zwift Emulator');
+      return NotHandled('Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator');
     }
 
     if (isKeyDown) {
@@ -363,8 +375,8 @@ class FtmsMdnsEmulator {
 
       _write(_socket!, zero);
     }
-    print('Sent action ${inGameAction.name} to Zwift Emulator');
-    return Success('Sent action: ${inGameAction.name}');
+    print('Sent action ${keyPair.inGameAction!.name} to Zwift Emulator');
+    return Success('Sent action: ${keyPair.inGameAction!.name}');
   }
 
   List<int> _buildNotify(String uuid, final List<int> data) {
