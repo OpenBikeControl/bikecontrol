@@ -167,7 +167,7 @@ class WhooshLink {
     return kIsWeb
         ? false
         : switch (target) {
-            Target.thisDevice => !Platform.isIOS,
+            Target.thisDevice => !Platform.isWindows,
             _ => true,
           };
   }

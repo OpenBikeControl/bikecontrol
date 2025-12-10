@@ -172,7 +172,10 @@ class CoreLogic {
     return core.settings.getRemoteControlEnabled() && showRemote;
   }
 
-  bool get showMyWhooshLink => core.settings.getTrainerApp() is MyWhoosh && core.settings.getLastTarget() != null;
+  bool get showMyWhooshLink =>
+      core.settings.getTrainerApp() is MyWhoosh &&
+      core.settings.getLastTarget() != null &&
+      core.whooshLink.isCompatible(core.settings.getLastTarget()!);
 
   bool get showRemote => core.settings.getLastTarget() != Target.thisDevice && core.actionHandler is RemoteActions;
 
