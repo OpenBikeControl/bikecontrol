@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
@@ -33,8 +35,10 @@ class GamepadDevice extends BaseDevice {
 
       switch (event.type) {
         case KeyType.analog:
-          if (event.value.toInt() != 0) {
-            final buttonsClicked = event.value.toInt() != 0 ? [button] : <ControllerButton>[];
+          final releasedValue = Platform.isWindows ? 1 : 0;
+
+          if (event.value.round().abs() != releasedValue) {
+            final buttonsClicked = [button];
             if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
               handleButtonsClicked(buttonsClicked);
             }

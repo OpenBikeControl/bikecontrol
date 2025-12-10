@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
@@ -176,7 +176,7 @@ class Connection {
     if (!kIsWeb) {
       _gamePadSearchTimer = Timer.periodic(Duration(seconds: 3), (_) {
         Gamepads.list().then((list) {
-          final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
+          final pads = list.map((pad) => GamepadDevice(pad.name.isEmpty ? 'Gamepad' : pad.name, id: pad.id)).toList();
           addDevices(pads);
 
           final removedDevices = gamepadDevices.where((device) => list.none((pad) => pad.id == device.id)).toList();
@@ -189,11 +189,6 @@ class Connection {
             signalChange(device);
           }
         });
-      });
-
-      Gamepads.list().then((list) {
-        final pads = list.map((pad) => GamepadDevice(pad.name, id: pad.id)).toList();
-        addDevices(pads);
       });
     } else {
       isScanning.value = false;

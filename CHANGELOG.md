@@ -1,3 +1,8 @@
+### 4.0.1 (unreleased)
+
+**Fixes**:
+- Gamepads: handle analog values correctly on Windows 
+
 ### 4.0.0 (07-12-2025)
 
 - a brand-new design
