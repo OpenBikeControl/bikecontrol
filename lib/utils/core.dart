@@ -26,6 +26,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
 import '../bluetooth/devices/mywhoosh/link.dart';
+import 'keymap/apps/rouvy.dart';
 import 'requirements/multi.dart';
 import 'requirements/platform.dart';
 import 'smtc_stub.dart' if (dart.library.io) 'package:smtc_windows/smtc_windows.dart';
@@ -156,7 +157,7 @@ class CoreLogic {
   }
 
   bool get showZwiftMsdnEmulator {
-    return core.settings.getTrainerApp()?.supportsZwiftEmulation == true;
+    return core.settings.getTrainerApp()?.supportsZwiftEmulation == true && core.settings.getTrainerApp() is! Rouvy;
   }
 
   bool get showObpMdnsEmulator {
