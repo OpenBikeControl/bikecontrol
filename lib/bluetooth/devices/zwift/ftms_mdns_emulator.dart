@@ -466,6 +466,10 @@ String bytesToHex(List<int> bytes) {
   return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 }
 
+String bytesToReadableHex(List<int> bytes) {
+  return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join(' ');
+}
+
 List<int> hexToBytes(String hex) {
   final bytes = <int>[];
   for (var i = 0; i < hex.length; i += 2) {

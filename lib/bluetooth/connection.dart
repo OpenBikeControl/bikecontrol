@@ -10,6 +10,7 @@ import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:swift_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
+import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/android.dart';
@@ -115,6 +116,14 @@ class Connection {
         UniversalBle.disconnect(deviceId);
         return;
       } else {
+        if (kIsWeb) {
+          // on web, log all characteristic changes for debugging
+          _actionStreams.add(
+            LogNotification(
+              'Characteristic update for device ${device.name}, char: $characteristicUuid, value: ${bytesToReadableHex(value)}',
+            ),
+          );
+        }
         try {
           await device.processCharacteristic(characteristicUuid, value);
         } catch (e, backtrace) {
