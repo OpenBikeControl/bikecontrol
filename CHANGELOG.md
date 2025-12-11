@@ -1,7 +1,8 @@
 ### 4.1.0 (unreleased)
 
 **Features**:
-- control your trainer manually without requiring a controller - just like a Companion app 
+- control your trainer manually without requiring a controller - just like a Companion app
+- support for Wahoo KICKR HEADWIND: control the fan via your controller 
 
 **Fixes**:
 - Gamepads: handle analog values correctly on Windows

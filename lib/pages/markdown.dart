@@ -29,21 +29,12 @@ class _ChangelogPageState extends State<MarkdownPage> {
     try {
       final md = await rootBundle.loadString(widget.assetPath);
       _parseMarkdown(md);
-
-      // load latest version
-      final response = await http.get(
-        Uri.parse('https://raw.githubusercontent.com/jonasbark/swiftcontrol/refs/heads/main/${widget.assetPath}'),
-      );
-      if (response.statusCode == 200) {
-        final latestMd = response.body;
-        if (latestMd != md) {
-          _parseMarkdown(md);
-        }
-      }
     } catch (e) {
       setState(() {
         _error = 'Failed to load changelog: $e';
       });
+    } finally {
+      _loadOnlineVersion();
     }
   }
 
@@ -106,6 +97,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
 
   void _parseMarkdown(String md) {
     setState(() {
+      _error = null;
       _groups = md
           .split('## ')
           .map((section) {
@@ -120,6 +112,17 @@ class _ChangelogPageState extends State<MarkdownPage> {
           .where((group) => group.title.isNotEmpty)
           .toList();
     });
+  }
+
+  Future<void> _loadOnlineVersion() async {
+    // load latest version
+    final response = await http.get(
+      Uri.parse('https://raw.githubusercontent.com/jonasbark/swiftcontrol/refs/heads/main/${widget.assetPath}'),
+    );
+    if (response.statusCode == 200) {
+      final latestMd = response.body;
+      _parseMarkdown(latestMd);
+    }
   }
 }
 
