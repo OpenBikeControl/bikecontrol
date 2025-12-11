@@ -58,7 +58,11 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - We're working on creating an affordable alternative based on an open standard, supported by all major trainer apps
   - register your interest [here](https://openbikecontrol.org/#HARDWARE)
 
-Support for other devices can be added; check the issues tab here on GitHub. 
+Support for other devices can be added; check the issues tab here on GitHub.
+
+## Supported Accessories
+- Wahoo KICKR HEADWIND (beta)
+    - control fan speed using your controller
 
 ## Supported Platforms
 
