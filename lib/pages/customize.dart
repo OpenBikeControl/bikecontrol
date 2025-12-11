@@ -136,7 +136,6 @@ class _CustomizeState extends State<CustomizePage> {
             )
           else if (core.connection.controllerDevices.isEmpty)
             Warning(
-              important: false,
               children: [Text(context.i18n.connectControllerToPreview).small],
             ),
         ],
