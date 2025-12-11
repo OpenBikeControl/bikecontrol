@@ -31,3 +31,6 @@ If you don't do that BikeControl will need to reconnect every minute.
 You're probably running into [this](https://github.com/OpenBikeControl/bikecontrol/issues/70) issue. Disconnect your controller device (e.g. Zwift Play) from Windows Bluetooth settings.
 
 
+## My Clicks do not get recognized in MyWhoosh, but I am connected / use local control
+*
+Make sure you've enabled Virtual Shifting in MyWhoosh's settings
