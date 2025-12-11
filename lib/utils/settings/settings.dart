@@ -303,4 +303,32 @@ class Settings {
   void setLocalEnabled(bool value) {
     prefs.setBool('local_control_enabled', value);
   }
+
+  // Button Simulator Hotkey Settings
+  Map<String, String> getButtonSimulatorHotkeys() {
+    final json = prefs.getString('button_simulator_hotkeys');
+    if (json == null) return {};
+    try {
+      final decoded = jsonDecode(json) as Map<String, dynamic>;
+      return decoded.map((key, value) => MapEntry(key, value.toString()));
+    } catch (e) {
+      return {};
+    }
+  }
+
+  Future<void> setButtonSimulatorHotkeys(Map<String, String> hotkeys) async {
+    await prefs.setString('button_simulator_hotkeys', jsonEncode(hotkeys));
+  }
+
+  Future<void> setButtonSimulatorHotkey(String actionName, String hotkey) async {
+    final hotkeys = getButtonSimulatorHotkeys();
+    hotkeys[actionName] = hotkey;
+    await setButtonSimulatorHotkeys(hotkeys);
+  }
+
+  Future<void> removeButtonSimulatorHotkey(String actionName) async {
+    final hotkeys = getButtonSimulatorHotkeys();
+    hotkeys.remove(actionName);
+    await setButtonSimulatorHotkeys(hotkeys);
+  }
 }
