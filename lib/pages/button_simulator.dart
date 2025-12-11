@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' show BackButton;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
+import 'package:swift_control/pages/touch_area.dart';
 import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/core.dart';
@@ -21,16 +22,47 @@ class ButtonSimulator extends StatefulWidget {
 
 class _ButtonSimulatorState extends State<ButtonSimulator> {
   late final FocusNode _focusNode;
-  Map<String, String> _hotkeys = {};
-  
+  Map<InGameAction, String> _hotkeys = {};
+
   // Default hotkeys for actions
   static const List<String> _defaultHotkeyOrder = [
-    '1', '2', '3', '4', '5', '6', '7', '8', '9',
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
-    'z', 'x', 'c', 'v', 'b', 'n', 'm',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'q',
+    'w',
+    'e',
+    'r',
+    't',
+    'y',
+    'u',
+    'i',
+    'o',
+    'p',
+    'a',
+    's',
+    'd',
+    'f',
+    'g',
+    'h',
+    'j',
+    'k',
+    'l',
+    'z',
+    'x',
+    'c',
+    'v',
+    'b',
+    'n',
+    'm',
   ];
-  
+
   static const Duration _keyPressDuration = Duration(milliseconds: 100);
 
   @override
@@ -38,6 +70,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     super.initState();
     _focusNode = FocusNode(debugLabel: 'ButtonSimulatorFocus', canRequestFocus: true);
     _loadHotkeys();
+    _focusNode.requestFocus();
   }
 
   @override
@@ -48,26 +81,26 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   Future<void> _loadHotkeys() async {
     final savedHotkeys = core.settings.getButtonSimulatorHotkeys();
-    
+
     // If no saved hotkeys, initialize with defaults
     if (savedHotkeys.isEmpty) {
       final connectedTrainers = core.logic.connectedTrainerConnections;
       final allActions = <InGameAction>[];
-      
+
       for (final connection in connectedTrainers) {
         allActions.addAll(connection.supportedActions);
       }
-      
+
       // Assign default hotkeys to actions
-      final Map<String, String> defaultHotkeys = {};
+      final Map<InGameAction, String> defaultHotkeys = {};
       int hotkeyIndex = 0;
       for (final action in allActions.distinct()) {
         if (hotkeyIndex < _defaultHotkeyOrder.length) {
-          defaultHotkeys[action.name] = _defaultHotkeyOrder[hotkeyIndex];
+          defaultHotkeys[action] = _defaultHotkeyOrder[hotkeyIndex];
           hotkeyIndex++;
         }
       }
-      
+
       await core.settings.setButtonSimulatorHotkeys(defaultHotkeys);
       if (mounted) {
         setState(() {
@@ -83,25 +116,18 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
-    
+
     final key = event.logicalKey.keyLabel.toLowerCase();
-    
+
     // Find the action associated with this key
-    final actionName = _hotkeys.entries
-        .firstOrNullWhere((entry) => entry.value == key)
-        ?.key;
-    
-    if (actionName == null) return KeyEventResult.ignored;
-    
-    final action = InGameAction.values.firstOrNullWhere((a) => a.name == actionName);
+    final action = _hotkeys.entries.firstOrNullWhere((entry) => entry.value == key)?.key;
+
     if (action == null) return KeyEventResult.ignored;
-    
+
     // Find the connection that supports this action
     final connectedTrainers = core.logic.connectedTrainerConnections;
-    final connection = connectedTrainers.firstOrNullWhere(
-      (c) => c.supportedActions.contains(action)
-    );
-    
+    final connection = connectedTrainers.firstOrNullWhere((c) => c.supportedActions.contains(action));
+
     if (connection != null) {
       _sendKey(context, down: true, action: action, connection: connection);
       // Schedule key up event
@@ -115,7 +141,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       );
       return KeyEventResult.handled;
     }
-    
+
     return KeyEventResult.ignored;
   }
 
@@ -133,8 +159,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
             leading: [BackButton()],
             title: Text(context.i18n.simulateButtons),
             trailing: [
-              IconButton(
-                icon: Icon(Icons.settings),
+              PrimaryButton(
+                child: Icon(Icons.settings),
                 onPressed: () => _showHotkeySettings(context, connectedTrainers),
               ),
             ],
@@ -177,39 +203,37 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                             Wrap(
                               spacing: 12,
                               runSpacing: 12,
-                              children: group.value
-                                  .map(
-                                    (action) {
-                                      final hotkey = _hotkeys[action.name];
-                                      return PrimaryButton(
-                                        size: ButtonSize(1.6),
-                                        leading: hotkey != null
-                                            ? Container(
-                                                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.withOpacity(0.3),
-                                                  borderRadius: BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  hotkey.toUpperCase(),
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              )
-                                            : null,
-                                        child: Text(action.title),
-                                        onTapDown: (c) async {
-                                          _sendKey(context, down: true, action: action, connection: connection);
-                                        },
-                                        onTapUp: (c) async {
-                                          _sendKey(context, down: false, action: action, connection: connection);
-                                        },
-                                      );
+                              children: group.value.map(
+                                (action) {
+                                  final hotkey = _hotkeys[action];
+                                  return PrimaryButton(
+                                    size: ButtonSize(1.6),
+                                    leading: hotkey != null
+                                        ? KeyWidget(
+                                            label: hotkey.toUpperCase(),
+                                          )
+                                        : null,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(action.title),
+                                        if (action.alternativeTitle != null)
+                                          Text(
+                                            action.alternativeTitle!,
+                                            style: TextStyle(fontSize: 12, color: Colors.gray),
+                                          ),
+                                      ],
+                                    ),
+                                    onPressed: () {},
+                                    onTapDown: (c) async {
+                                      _sendKey(context, down: true, action: action, connection: connection);
                                     },
-                                  )
-                                  .toList(),
+                                    onTapUp: (c) async {
+                                      _sendKey(context, down: false, action: action, connection: connection);
+                                    },
+                                  );
+                                },
+                              ).toList(),
                             ),
                             SizedBox(height: 12),
                           ],
@@ -335,8 +359,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
 class _HotkeySettingsDialog extends StatefulWidget {
   final List<TrainerConnection> connections;
-  final Map<String, String> currentHotkeys;
-  final Function(Map<String, String>) onSave;
+  final Map<InGameAction, String> currentHotkeys;
+  final Function(Map<InGameAction, String>) onSave;
 
   const _HotkeySettingsDialog({
     required this.connections,
@@ -349,10 +373,10 @@ class _HotkeySettingsDialog extends StatefulWidget {
 }
 
 class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
-  late Map<String, String> _editableHotkeys;
-  String? _editingAction;
+  late Map<InGameAction, String> _editableHotkeys;
+  InGameAction? _editingAction;
   late FocusNode _focusNode;
-  
+
   static final _validHotkeyPattern = RegExp(r'[0-9a-z]');
 
   @override
@@ -370,9 +394,9 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (_editingAction == null || event is! KeyDownEvent) return KeyEventResult.ignored;
-    
+
     final key = event.logicalKey.keyLabel.toLowerCase();
-    
+
     // Only allow single character 1-9 and a-z
     if (key.length == 1 && _validHotkeyPattern.hasMatch(key)) {
       setState(() {
@@ -381,7 +405,7 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
       });
       return KeyEventResult.handled;
     }
-    
+
     // Escape to cancel
     if (event.logicalKey == LogicalKeyboardKey.escape) {
       setState(() {
@@ -389,7 +413,7 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
       });
       return KeyEventResult.handled;
     }
-    
+
     return KeyEventResult.ignored;
   }
 
@@ -405,7 +429,7 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
       focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: _onKey,
-      child: Dialog(
+      child: AlertDialog(
         title: Text('Configure Keyboard Hotkeys'),
         content: SizedBox(
           width: 500,
@@ -421,9 +445,9 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
                   child: Column(
                     spacing: 8,
                     children: uniqueActions.map((action) {
-                      final hotkey = _editableHotkeys[action.name];
-                      final isEditing = _editingAction == action.name;
-                      
+                      final hotkey = _editableHotkeys[action];
+                      final isEditing = _editingAction == action;
+
                       return Card(
                         child: Container(
                           padding: EdgeInsets.all(12),
@@ -445,20 +469,20 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
                                 Container(
                                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.3),
+                                    color: Colors.gray.withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(hotkey.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold)),
                                 )
                               else
-                                Text('No hotkey', style: TextStyle(color: Colors.grey)),
+                                Text('No hotkey', style: TextStyle(color: Colors.gray)),
                               SizedBox(width: 8),
                               OutlineButton(
                                 size: ButtonSize.small,
                                 child: Text(isEditing ? 'Cancel' : 'Set'),
                                 onPressed: () {
                                   setState(() {
-                                    _editingAction = isEditing ? null : action.name;
+                                    _editingAction = isEditing ? null : action;
                                   });
                                 },
                               ),
@@ -469,7 +493,7 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
                                   child: Text('Clear'),
                                   onPressed: () {
                                     setState(() {
-                                      _editableHotkeys.remove(action.name);
+                                      _editableHotkeys.remove(action);
                                     });
                                   },
                                 ),

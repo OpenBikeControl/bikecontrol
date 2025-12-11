@@ -314,7 +314,9 @@ class FtmsMdnsEmulator extends TrainerConnection {
   }
 
   void _write(Socket socket, List<int> responseData) {
-    print('Sending response: ${bytesToHex(responseData)}');
+    if (kDebugMode) {
+      print('Sending response: ${bytesToHex(responseData)}');
+    }
     socket.add(responseData);
   }
 
@@ -375,8 +377,10 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
       _write(_socket!, zero);
     }
-    print('Sent action ${keyPair.inGameAction!.name} to Zwift Emulator');
-    return Success('Sent action: ${keyPair.inGameAction!.name}');
+    if (kDebugMode) {
+      print('Sent action ${keyPair.inGameAction!.title} to Zwift Emulator');
+    }
+    return Success('Sent action: ${keyPair.inGameAction!.title}');
   }
 
   List<int> _buildNotify(String uuid, final List<int> data) {

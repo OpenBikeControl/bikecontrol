@@ -405,14 +405,14 @@ class KeypairExplanation extends StatelessWidget {
         else
           Icon(keyPair.icon),
         if (keyPair.inGameAction != null && core.logic.emulatorEnabled)
-          _KeyWidget(
+          KeyWidget(
             label: [
               keyPair.inGameAction.toString().split('.').last,
               if (keyPair.inGameActionValue != null) ': ${keyPair.inGameActionValue}',
             ].joinToString(separator: ''),
           )
         else if (keyPair.isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
-          _KeyWidget(
+          KeyWidget(
             label: switch (keyPair.physicalKey) {
               PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
               PhysicalKeyboardKey.mediaStop => 'Stop',
@@ -424,12 +424,12 @@ class KeypairExplanation extends StatelessWidget {
             },
           )
         else if (keyPair.physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
-          _KeyWidget(
+          KeyWidget(
             label: keyPair.toString(),
           ),
         ] else ...[
           if (!withKey && keyPair.touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
-            _KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
+            KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
         ],
         if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
       ],
@@ -437,9 +437,9 @@ class KeypairExplanation extends StatelessWidget {
   }
 }
 
-class _KeyWidget extends StatelessWidget {
+class KeyWidget extends StatelessWidget {
   final String label;
-  const _KeyWidget({super.key, required this.label});
+  const KeyWidget({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
