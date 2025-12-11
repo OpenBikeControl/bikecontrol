@@ -16,7 +16,8 @@ If you don't do that BikeControl will need to reconnect every minute.
 1. Open Zwift app (not the Companion)
 2. Log in (subscription not required) and open the device connection screen
 3. Connect your Trainer, then connect the Click V2
-4. Close the Zwift app again and connect again in BikeControl
+4. Optional: some users report that keeping the Click connected for more than a few seconds is more reliable.
+5. Close the Zwift app again and connect again in BikeControl
 
 ## Android: Connection works, buttons work but nothing happens in MyWhoosh and similar
 *
