@@ -68,7 +68,12 @@ class _ChangelogPageState extends State<MarkdownPage> {
                         content: MarkdownWidget(
                           markdown: group.markdown,
                           theme: MarkdownThemeData(
-                            textStyle: TextStyle(),
+                            textStyle: TextStyle(
+                              fontSize: 14.0,
+                              color: Theme.of(context).colorScheme.brightness == Brightness.dark
+                                  ? Colors.white.withAlpha(255 * 70)
+                                  : Colors.black.withAlpha(87 * 255),
+                            ),
                             onLinkTap: (title, url) {
                               launchUrlString(url);
                             },
@@ -79,19 +84,6 @@ class _ChangelogPageState extends State<MarkdownPage> {
                     .toList(),
               ),
             ),
-    );
-  }
-
-  MarkdownWidget fromString(String md) {
-    final markdown = Markdown.fromString(md);
-    return MarkdownWidget(
-      markdown: markdown,
-      theme: MarkdownThemeData(
-        onLinkTap: (title, url) {
-          launchUrlString(url);
-        },
-        textStyle: TextStyle(),
-      ),
     );
   }
 
