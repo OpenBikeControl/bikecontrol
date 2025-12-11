@@ -101,9 +101,12 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     if (connection != null) {
       _sendKey(context, down: true, action: action, connection: connection);
       // Schedule key up event
-      Future.delayed(Duration(milliseconds: 100), () {
-        _sendKey(context, down: false, action: action, connection: connection);
-      });
+      Future.delayed(
+        Duration(milliseconds: 100),
+        () {
+          _sendKey(context, down: false, action: action, connection: connection);
+        },
+      );
       return KeyEventResult.handled;
     }
     
