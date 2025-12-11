@@ -372,7 +372,7 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
     final key = event.logicalKey.keyLabel.toLowerCase();
     
     // Only allow 1-9 and a-z
-    if (key.length == 1 && _validHotkeyPattern.hasMatch(key)) {
+    if (_validHotkeyPattern.hasMatch(key)) {
       setState(() {
         _editableHotkeys[_editingAction!] = key;
         _editingAction = null;
@@ -490,10 +490,12 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
           ),
           PrimaryButton(
             child: Text('Save'),
-            onPressed: () {
-              core.settings.setButtonSimulatorHotkeys(_editableHotkeys);
+            onPressed: () async {
+              await core.settings.setButtonSimulatorHotkeys(_editableHotkeys);
               widget.onSave(_editableHotkeys);
-              Navigator.of(context).pop();
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
             },
           ),
         ],
