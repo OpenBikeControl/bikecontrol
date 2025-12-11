@@ -30,6 +30,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
     'z', 'x', 'c', 'v', 'b', 'n', 'm',
   ];
+  
+  static const Duration _keyPressDuration = Duration(milliseconds: 100);
 
   @override
   void initState() {
@@ -44,7 +46,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     super.dispose();
   }
 
-  void _loadHotkeys() {
+  Future<void> _loadHotkeys() async {
     final savedHotkeys = core.settings.getButtonSimulatorHotkeys();
     
     // If no saved hotkeys, initialize with defaults
@@ -66,10 +68,12 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         }
       }
       
-      core.settings.setButtonSimulatorHotkeys(defaultHotkeys);
-      setState(() {
-        _hotkeys = defaultHotkeys;
-      });
+      await core.settings.setButtonSimulatorHotkeys(defaultHotkeys);
+      if (mounted) {
+        setState(() {
+          _hotkeys = defaultHotkeys;
+        });
+      }
     } else {
       setState(() {
         _hotkeys = savedHotkeys;
@@ -102,7 +106,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       _sendKey(context, down: true, action: action, connection: connection);
       // Schedule key up event
       Future.delayed(
-        Duration(milliseconds: 100),
+        _keyPressDuration,
         () {
           _sendKey(context, down: false, action: action, connection: connection);
         },
@@ -346,6 +350,8 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
   late Map<String, String> _editableHotkeys;
   String? _editingAction;
   late FocusNode _focusNode;
+  
+  static final _validHotkeyPattern = RegExp(r'[0-9a-z]');
 
   @override
   void initState() {
@@ -366,7 +372,7 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
     final key = event.logicalKey.keyLabel.toLowerCase();
     
     // Only allow 1-9 and a-z
-    if (key.length == 1 && (RegExp(r'[0-9a-z]').hasMatch(key))) {
+    if (key.length == 1 && _validHotkeyPattern.hasMatch(key)) {
       setState(() {
         _editableHotkeys[_editingAction!] = key;
         _editingAction = null;
