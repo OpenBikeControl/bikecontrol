@@ -124,7 +124,7 @@ class _AppTitleState extends State<AppTitle> {
       }
     } else if (Platform.isWindows) {
       final url = Uri.parse(
-        'https://raw.githubusercontent.com/OpenBikeControl/bikecontrol/refs/heads/main/WINDOWS_STORE_VERSION.txt',
+        'https://raw.githubusercontent.com/jonasbark/swiftcontrol/refs/heads/main/WINDOWS_STORE_VERSION.txt',
       );
       final res = await http.get(url, headers: {'User-Agent': 'Mozilla/5.0'});
       if (res.statusCode != 200) return null;
