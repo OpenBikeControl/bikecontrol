@@ -37,6 +37,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
                       core.zwiftEmulator.stopAdvertising();
                     } else if (value) {
                       core.zwiftEmulator.startAdvertising(widget.onUpdate).catchError((e) {
+                        core.zwiftEmulator.isStarted.value = false;
                         core.settings.setZwiftBleEmulatorEnabled(false);
                         core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
                       });

@@ -17,6 +17,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
   WahooKickrHeadwind(super.scanResult)
     : super(
         availableButtons: const [],
+        isBeta: true,
       );
 
   @override

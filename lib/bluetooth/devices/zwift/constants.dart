@@ -99,8 +99,8 @@ class ZwiftButtons {
   static const ControllerButton powerUpLeft = ControllerButton('powerUpLeft', action: InGameAction.shiftDown);
 
   // right controller
-  static const ControllerButton a = ControllerButton('a', action: null, color: Colors.lightGreen);
-  static const ControllerButton b = ControllerButton('b', action: null, color: Colors.pinkAccent);
+  static const ControllerButton a = ControllerButton('a', action: InGameAction.select, color: Colors.lightGreen);
+  static const ControllerButton b = ControllerButton('b', action: InGameAction.back, color: Colors.pinkAccent);
   static const ControllerButton z = ControllerButton('z', action: null, color: Colors.deepOrangeAccent);
   static const ControllerButton y = ControllerButton('y', action: null, color: Colors.lightBlue);
   static const ControllerButton onOffRight = ControllerButton('onOffRight', action: InGameAction.toggleUi);

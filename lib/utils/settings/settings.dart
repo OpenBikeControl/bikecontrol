@@ -14,6 +14,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../main.dart';
 import '../actions/desktop.dart';
 import '../keymap/apps/custom_app.dart';
+import '../keymap/buttons.dart';
 
 class Settings {
   late final SharedPreferences prefs;
@@ -302,5 +303,38 @@ class Settings {
 
   void setLocalEnabled(bool value) {
     prefs.setBool('local_control_enabled', value);
+  }
+
+  // Button Simulator Hotkey Settings
+  Map<InGameAction, String> getButtonSimulatorHotkeys() {
+    final json = prefs.getString('button_simulator_hotkeys');
+    if (json == null) return {};
+    try {
+      final decoded = jsonDecode(json) as Map<String, dynamic>;
+      return decoded.map(
+        (key, value) => MapEntry(InGameAction.values.firstWhere((e) => e.name == key), value.toString()),
+      );
+    } catch (e) {
+      return {};
+    }
+  }
+
+  Future<void> setButtonSimulatorHotkeys(Map<InGameAction, String> hotkeys) async {
+    await prefs.setString(
+      'button_simulator_hotkeys',
+      jsonEncode(hotkeys.map((key, value) => MapEntry(key.name, value))),
+    );
+  }
+
+  Future<void> setButtonSimulatorHotkey(InGameAction action, String hotkey) async {
+    final hotkeys = getButtonSimulatorHotkeys();
+    hotkeys[action] = hotkey;
+    await setButtonSimulatorHotkeys(hotkeys);
+  }
+
+  Future<void> removeButtonSimulatorHotkey(InGameAction action) async {
+    final hotkeys = getButtonSimulatorHotkeys();
+    hotkeys.remove(action);
+    await setButtonSimulatorHotkeys(hotkeys);
   }
 }

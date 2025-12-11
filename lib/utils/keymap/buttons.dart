@@ -10,9 +10,9 @@ import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
 enum InGameAction {
   shiftUp('Shift Up'),
   shiftDown('Shift Down'),
-  uturn('U-Turn'),
-  steerLeft('Steer Left'),
-  steerRight('Steer Right'),
+  uturn('U-Turn', alternativeTitle: 'Down'),
+  steerLeft('Steer Left', alternativeTitle: 'Left'),
+  steerRight('Steer Right', alternativeTitle: 'Right'),
 
   // mywhoosh
   cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
@@ -24,7 +24,7 @@ enum InGameAction {
   decreaseResistance('Decrease Resistance'),
 
   // zwift
-  openActionBar('Open Action Bar'),
+  openActionBar('Open Action Bar', alternativeTitle: 'Up'),
   usePowerUp('Use Power-Up'),
   select('Select'),
   back('Back'),
@@ -35,9 +35,10 @@ enum InGameAction {
   headwindHeartRateMode('Headwind HR Mode');
 
   final String title;
+  final String? alternativeTitle;
   final List<int>? possibleValues;
 
-  const InGameAction(this.title, {this.possibleValues});
+  const InGameAction(this.title, {this.possibleValues, this.alternativeTitle});
 
   @override
   String toString() {
