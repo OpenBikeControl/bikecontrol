@@ -116,10 +116,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                     child: Text('Facebook'),
                   ),
                   MenuButton(
-                    leading: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                      child: Text('G'),
-                    ),
+                    leading: Icon(RadixIcons.githubLogo),
                     onPressed: (c) {
                       launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
                     },
@@ -162,10 +159,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
                                         child: const Text('Facebook'),
                                       ),
                                       OutlineButton(
-                                        leading: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                                          child: Text('G'),
-                                        ),
+                                        leading: Icon(RadixIcons.githubLogo),
                                         onPressed: () {
                                           Navigator.pop(context);
                                           launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
