@@ -108,7 +108,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       Future.delayed(
         _keyPressDuration,
         () {
-          _sendKey(context, down: false, action: action, connection: connection);
+          if (mounted) {
+            _sendKey(context, down: false, action: action, connection: connection);
+          }
         },
       );
       return KeyEventResult.handled;
@@ -371,8 +373,8 @@ class _HotkeySettingsDialogState extends State<_HotkeySettingsDialog> {
     
     final key = event.logicalKey.keyLabel.toLowerCase();
     
-    // Only allow 1-9 and a-z
-    if (_validHotkeyPattern.hasMatch(key)) {
+    // Only allow single character 1-9 and a-z
+    if (key.length == 1 && _validHotkeyPattern.hasMatch(key)) {
       setState(() {
         _editableHotkeys[_editingAction!] = key;
         _editingAction = null;
