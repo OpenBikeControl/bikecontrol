@@ -102,6 +102,9 @@ class IAPManager {
   
   /// Check if the user can execute a command
   bool get canExecuteCommand {
+    // If IAP is not initialized or not available, allow commands
+    if (_iapService == null && _windowsIapService == null) return true;
+    
     if (_iapService != null) {
       return _iapService!.canExecuteCommand;
     } else if (_windowsIapService != null) {

@@ -31,10 +31,19 @@ class IAPService {
     if (_isInitialized) return;
     
     try {
+      // Skip IAP initialization on web
+      if (kIsWeb) {
+        debugPrint('IAP not supported on web');
+        _isInitialized = true;
+        return;
+      }
+      
       // Check if IAP is available on this platform
       final available = await _inAppPurchase.isAvailable();
       if (!available) {
-        debugPrint('IAP not available on this platform');
+        debugPrint('IAP not available on this platform - allowing unlimited access');
+        // Set as purchased to allow unlimited access when IAP is not available
+        _isPurchased = true;
         _isInitialized = true;
         return;
       }
@@ -43,7 +52,11 @@ class IAPService {
       _subscription = _inAppPurchase.purchaseStream.listen(
         _onPurchaseUpdate,
         onDone: () => _subscription?.cancel(),
-        onError: (error) => debugPrint('IAP Error: $error'),
+        onError: (error) {
+          debugPrint('IAP Error: $error');
+          // On error, default to allowing access
+          _isPurchased = true;
+        },
       );
       
       // Check if already purchased
@@ -51,7 +64,9 @@ class IAPService {
       
       _isInitialized = true;
     } catch (e) {
-      debugPrint('Failed to initialize IAP: $e');
+      debugPrint('Failed to initialize IAP: $e - allowing unlimited access');
+      // On initialization failure, default to allowing access
+      _isPurchased = true;
       _isInitialized = true;
     }
   }
