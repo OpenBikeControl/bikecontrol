@@ -10,6 +10,7 @@ import 'package:swift_control/utils/keymap/apps/custom_app.dart';
 import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:swift_control/utils/keymap/apps/supported_app.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:swift_control/widgets/iap_status_widget.dart';
 import 'package:swift_control/widgets/ui/colored_title.dart';
 import 'package:swift_control/widgets/ui/warning.dart';
 
@@ -29,6 +30,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // IAP Status Widget
+        IAPStatusWidget(),
         Text.rich(
           TextSpan(
             children: [

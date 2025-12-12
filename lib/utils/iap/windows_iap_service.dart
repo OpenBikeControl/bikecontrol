@@ -1,0 +1,199 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Windows-specific IAP service
+/// Note: This is a stub implementation. For actual Windows Store integration,
+/// you would need to use the Windows Store APIs through platform channels.
+class WindowsIAPService {
+  static const String productId = 'full_access_unlock';
+  static const int trialDays = 5;
+  static const int dailyCommandLimit = 15;
+  
+  static const String _trialStartDateKey = 'iap_trial_start_date';
+  static const String _purchaseStatusKey = 'iap_purchase_status';
+  static const String _dailyCommandCountKey = 'iap_daily_command_count';
+  static const String _lastCommandDateKey = 'iap_last_command_date';
+  
+  final SharedPreferences _prefs;
+  
+  bool _isPurchased = false;
+  bool _isInitialized = false;
+  
+  WindowsIAPService(this._prefs);
+  
+  /// Initialize the Windows IAP service
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    
+    try {
+      // Check if already purchased
+      await _checkExistingPurchase();
+      
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint('Failed to initialize Windows IAP: $e');
+      _isInitialized = true;
+    }
+  }
+  
+  /// Check if the user has already purchased the app
+  Future<void> _checkExistingPurchase() async {
+    // First check if we have a stored purchase status
+    final storedStatus = _prefs.getBool(_purchaseStatusKey);
+    if (storedStatus == true) {
+      _isPurchased = true;
+      return;
+    }
+    
+    // TODO: Add Windows Store API integration
+    // Check if the app was purchased from the Windows Store
+    // This would require platform channel implementation to call Windows Store APIs
+    
+    // For now, we'll check if there's a previous version installed
+    await _checkPreviousVersion();
+  }
+  
+  /// Check if user had the paid version before
+  Future<void> _checkPreviousVersion() async {
+    try {
+      // If the user has a last seen version, they're an existing user
+      final lastSeenVersion = _prefs.getString('last_seen_version');
+      if (lastSeenVersion != null && lastSeenVersion.isNotEmpty) {
+        _isPurchased = true;
+        await _prefs.setBool(_purchaseStatusKey, true);
+        debugPrint('Existing Windows user detected - granting full access');
+      }
+    } catch (e) {
+      debugPrint('Error checking Windows previous version: $e');
+    }
+  }
+  
+  /// Purchase the full version
+  /// TODO: Implement actual Windows Store purchase flow
+  Future<bool> purchaseFullVersion() async {
+    try {
+      debugPrint('Windows Store purchase would be triggered here');
+      // This would call the Windows Store IAP APIs through a platform channel
+      return false;
+    } catch (e) {
+      debugPrint('Error purchasing on Windows: $e');
+      return false;
+    }
+  }
+  
+  /// Get remaining trial days from Windows Store
+  /// TODO: Implement Windows Store trial API
+  Future<int> getRemainingTrialDays() async {
+    try {
+      // This would call Windows Store APIs to get trial information
+      // For now, use local calculation
+      return trialDaysRemaining;
+    } catch (e) {
+      debugPrint('Error getting trial days from Windows Store: $e');
+      return trialDaysRemaining;
+    }
+  }
+  
+  /// Check if the user has purchased the full version
+  bool get isPurchased => _isPurchased;
+  
+  /// Check if the trial period has started
+  bool get hasTrialStarted {
+    final trialStart = _prefs.getString(_trialStartDateKey);
+    return trialStart != null;
+  }
+  
+  /// Start the trial period
+  Future<void> startTrial() async {
+    if (!hasTrialStarted) {
+      await _prefs.setString(_trialStartDateKey, DateTime.now().toIso8601String());
+    }
+  }
+  
+  /// Get the number of days remaining in the trial
+  int get trialDaysRemaining {
+    if (_isPurchased) return 0;
+    
+    final trialStart = _prefs.getString(_trialStartDateKey);
+    if (trialStart == null) return trialDays;
+    
+    final startDate = DateTime.parse(trialStart);
+    final now = DateTime.now();
+    final daysPassed = now.difference(startDate).inDays;
+    final remaining = trialDays - daysPassed;
+    
+    return remaining > 0 ? remaining : 0;
+  }
+  
+  /// Check if the trial has expired
+  bool get isTrialExpired {
+    return !_isPurchased && hasTrialStarted && trialDaysRemaining <= 0;
+  }
+  
+  /// Check if the user has access (purchased or still in trial)
+  bool get hasAccess {
+    return _isPurchased || !isTrialExpired;
+  }
+  
+  /// Get the number of commands executed today
+  int get dailyCommandCount {
+    final lastDate = _prefs.getString(_lastCommandDateKey);
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    
+    if (lastDate != today) {
+      // Reset counter for new day
+      return 0;
+    }
+    
+    return _prefs.getInt(_dailyCommandCountKey) ?? 0;
+  }
+  
+  /// Increment the daily command count
+  Future<void> incrementCommandCount() async {
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final lastDate = _prefs.getString(_lastCommandDateKey);
+    
+    if (lastDate != today) {
+      // Reset counter for new day
+      await _prefs.setString(_lastCommandDateKey, today);
+      await _prefs.setInt(_dailyCommandCountKey, 1);
+    } else {
+      final count = _prefs.getInt(_dailyCommandCountKey) ?? 0;
+      await _prefs.setInt(_dailyCommandCountKey, count + 1);
+    }
+  }
+  
+  /// Check if the user can execute a command
+  bool get canExecuteCommand {
+    if (_isPurchased) return true;
+    if (!isTrialExpired) return true;
+    return dailyCommandCount < dailyCommandLimit;
+  }
+  
+  /// Get the number of commands remaining today (for free tier after trial)
+  int get commandsRemainingToday {
+    if (_isPurchased || !isTrialExpired) return -1; // Unlimited
+    return dailyCommandLimit - dailyCommandCount;
+  }
+  
+  /// Get a status message for the user
+  String getStatusMessage() {
+    if (_isPurchased) {
+      return 'Full version unlocked';
+    } else if (!hasTrialStarted) {
+      return '$trialDays day trial available';
+    } else if (!isTrialExpired) {
+      return '$trialDaysRemaining days remaining in trial';
+    } else {
+      return '$commandsRemainingToday/$dailyCommandLimit commands remaining today';
+    }
+  }
+  
+  /// Dispose the service
+  void dispose() {
+    // Nothing to dispose for Windows
+  }
+}
