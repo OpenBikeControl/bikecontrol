@@ -59,7 +59,9 @@ class WindowsIAPService {
   /// Check if user had the paid version before
   Future<void> _checkPreviousVersion() async {
     try {
-      // If the user has a last seen version, they're an existing user
+      // IMPORTANT: This assumes the app is currently paid and this update will be released
+      // while the app is still paid. Only users who downloaded the paid version will have
+      // a last_seen_version. After changing the app to free, new users won't have this set.
       final lastSeenVersion = _prefs.getString('last_seen_version');
       if (lastSeenVersion != null && lastSeenVersion.isNotEmpty) {
         _isPurchased = true;

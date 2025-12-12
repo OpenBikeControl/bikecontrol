@@ -111,19 +111,15 @@ class IAPService {
   Future<void> _checkAndroidPreviousPurchase() async {
     try {
       // On Android, we use the last seen version to determine if they had the paid version
-      // If the version exists and is from before the IAP transition, grant access
+      // IMPORTANT: This assumes the app is currently paid and this update will be released
+      // while the app is still paid. Only users who downloaded the paid version will have
+      // a last_seen_version. After changing the app to free, new users won't have this set.
       final lastSeenVersion = _prefs.getString('last_seen_version');
-      if (lastSeenVersion != null) {
-        // If they had a previous version, they're an existing user
-        final packageInfo = await PackageInfo.fromPlatform();
-        final currentVersion = packageInfo.version;
-        
-        // If last seen version exists and is different from first install, they're existing users
-        if (lastSeenVersion.isNotEmpty) {
-          _isPurchased = true;
-          await _prefs.setBool(_purchaseStatusKey, true);
-          debugPrint('Existing Android user detected - granting full access');
-        }
+      if (lastSeenVersion != null && lastSeenVersion.isNotEmpty) {
+        // If they had a previous version, they're an existing paid user
+        _isPurchased = true;
+        await _prefs.setBool(_purchaseStatusKey, true);
+        debugPrint('Existing Android user detected - granting full access');
       }
     } catch (e) {
       debugPrint('Error checking Android previous purchase: $e');
