@@ -11,6 +11,7 @@ class IAPStatusWidget extends StatefulWidget {
 }
 
 class _IAPStatusWidgetState extends State<IAPStatusWidget> {
+  static const int _dailyCommandLimit = 15; // Should match IAPService.dailyCommandLimit
   bool _isPurchasing = false;
 
   @override
@@ -95,7 +96,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(
-                value: dailyCommandCount / 15,
+                value: dailyCommandCount / _dailyCommandLimit,
                 backgroundColor: Colors.grey[300],
                 valueColor: AlwaysStoppedAnimation<Color>(
                   commandsRemaining > 0 ? Colors.orange : Colors.red,
@@ -104,8 +105,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
               const SizedBox(height: 8),
               Text(
                 commandsRemaining >= 0
-                    ? '$commandsRemaining commands remaining today (${dailyCommandCount}/15 used)'
-                    : 'Daily limit reached (15/15 used)',
+                    ? '$commandsRemaining commands remaining today (${dailyCommandCount}/$_dailyCommandLimit used)'
+                    : 'Daily limit reached ($_dailyCommandLimit/$_dailyCommandLimit used)',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

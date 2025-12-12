@@ -110,18 +110,19 @@ abstract class BaseDevice {
     }
   }
 
+  String _getCommandLimitMessage() {
+    final remaining = IAPManager.instance.commandsRemainingToday;
+    const dailyLimit = 15; // Should match IAPService.dailyCommandLimit
+    return remaining > 0 
+      ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
+      : 'Daily command limit reached (0/$dailyLimit). Upgrade to unlock unlimited commands or try again tomorrow.';
+  }
+
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
       // Check IAP status before executing command
       if (!IAPManager.instance.canExecuteCommand) {
-        final remaining = IAPManager.instance.commandsRemainingToday;
-        actionStreamInternal.add(
-          LogNotification(
-            remaining > 0 
-              ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
-              : 'Daily command limit reached (0/15). Upgrade to unlock unlimited commands or try again tomorrow.',
-          ),
-        );
+        actionStreamInternal.add(LogNotification(_getCommandLimitMessage()));
         continue;
       }
       
@@ -138,14 +139,7 @@ abstract class BaseDevice {
     for (final action in buttonsClicked) {
       // Check IAP status before executing command
       if (!IAPManager.instance.canExecuteCommand) {
-        final remaining = IAPManager.instance.commandsRemainingToday;
-        actionStreamInternal.add(
-          LogNotification(
-            remaining > 0 
-              ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
-              : 'Daily command limit reached (0/15). Upgrade to unlock unlimited commands or try again tomorrow.',
-          ),
-        );
+        actionStreamInternal.add(LogNotification(_getCommandLimitMessage()));
         continue;
       }
       
@@ -161,14 +155,7 @@ abstract class BaseDevice {
     for (final action in buttonsReleased) {
       // Check IAP status before executing command
       if (!IAPManager.instance.canExecuteCommand) {
-        final remaining = IAPManager.instance.commandsRemainingToday;
-        actionStreamInternal.add(
-          LogNotification(
-            remaining > 0 
-              ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
-              : 'Daily command limit reached (0/15). Upgrade to unlock unlimited commands or try again tomorrow.',
-          ),
-        );
+        actionStreamInternal.add(LogNotification(_getCommandLimitMessage()));
         continue;
       }
       
