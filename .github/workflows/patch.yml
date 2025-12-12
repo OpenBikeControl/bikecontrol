@@ -39,6 +39,7 @@ jobs:
           flutter pub global run intl_utils:generate;
 
       - name: Install certificates
+        if: false
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
           DEVELOPER_ID_INSTALLER_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
@@ -101,6 +102,7 @@ jobs:
           args: '--allow-asset-diffs --allow-native-diffs'
 
       - name: 🚀 Shorebird Patch iOS
+        if: false
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: ios
@@ -154,6 +156,7 @@ jobs:
   windows:
     name: Patch Windows
     runs-on: windows-latest
+    if: false
 
     steps:
       #1 Checkout Repository
