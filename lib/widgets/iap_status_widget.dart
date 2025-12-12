@@ -135,6 +135,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                 ),
               ),
               const SizedBox(height: 8),
+              OutlineButton(
+                onPressed: _isPurchasing ? null : _handleRestorePurchases,
+                child: Text('Restore Purchases'),
+              ),
+              const SizedBox(height: 8),
               Text(
                 'Get unlimited commands with a one-time purchase.',
                 style: Theme.of(context).textTheme.bodySmall,
@@ -182,6 +187,56 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
           builder: (context) => Toast(
             title: const Text('Error'),
             description: Text('An error occurred: $e'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPurchasing = false;
+        });
+      }
+    }
+  }
+  
+  Future<void> _handleRestorePurchases() async {
+    setState(() {
+      _isPurchasing = true;
+    });
+
+    try {
+      await IAPManager.instance.restorePurchases();
+      
+      if (mounted) {
+        // Wait a moment for the purchase stream to process
+        await Future.delayed(Duration(seconds: 1));
+        
+        if (IAPManager.instance.isPurchased) {
+          showToast(
+            context: context,
+            builder: (context) => Toast(
+              title: const Text('Restore Successful'),
+              description: const Text('Your purchase has been restored!'),
+            ),
+          );
+          setState(() {});
+        } else {
+          showToast(
+            context: context,
+            builder: (context) => Toast(
+              title: const Text('No Purchases Found'),
+              description: const Text('No previous purchases found to restore.'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showToast(
+          context: context,
+          builder: (context) => Toast(
+            title: const Text('Error'),
+            description: Text('Failed to restore purchases: $e'),
           ),
         );
       }

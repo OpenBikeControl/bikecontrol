@@ -91,7 +91,7 @@ class IAPService {
     
     // Also check for IAP purchase
     if (!_isPurchased) {
-      await _restorePurchases();
+      await restorePurchases();
     }
   }
   
@@ -101,7 +101,7 @@ class IAPService {
       // If there's an app store receipt, the app was purchased
       // This is a simplified check - in production you'd verify the receipt
       // For now, we'll check if we can restore purchases
-      await _restorePurchases();
+      await restorePurchases();
     } catch (e) {
       debugPrint('Error checking Apple receipt: $e');
     }
@@ -127,7 +127,7 @@ class IAPService {
   }
   
   /// Restore previous purchases
-  Future<void> _restorePurchases() async {
+  Future<void> restorePurchases() async {
     try {
       await _inAppPurchase.restorePurchases();
       // The purchase stream will be called with restored purchases

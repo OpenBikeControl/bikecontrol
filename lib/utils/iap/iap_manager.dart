@@ -162,6 +162,14 @@ class IAPManager {
     return false;
   }
   
+  /// Restore previous purchases
+  Future<void> restorePurchases() async {
+    if (_iapService != null) {
+      await _iapService!.restorePurchases();
+    }
+    // Windows doesn't have a separate restore mechanism in the stub
+  }
+  
   /// Dispose the manager
   void dispose() {
     _iapService?.dispose();
