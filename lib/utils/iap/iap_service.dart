@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 /// Service to handle in-app purchase functionality and trial period management
 class IAPService {
@@ -267,7 +266,8 @@ class IAPService {
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
     if (_isPurchased || !isTrialExpired) return -1; // Unlimited
-    return dailyCommandLimit - dailyCommandCount;
+    final remaining = dailyCommandLimit - dailyCommandCount;
+    return remaining > 0 ? remaining : 0; // Never return negative
   }
   
   /// Get a status message for the user

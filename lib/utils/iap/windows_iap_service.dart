@@ -178,7 +178,8 @@ class WindowsIAPService {
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
     if (_isPurchased || !isTrialExpired) return -1; // Unlimited
-    return dailyCommandLimit - dailyCommandCount;
+    final remaining = dailyCommandLimit - dailyCommandCount;
+    return remaining > 0 ? remaining : 0; // Never return negative
   }
   
   /// Get a status message for the user

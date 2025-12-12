@@ -114,9 +114,12 @@ abstract class BaseDevice {
     for (final action in buttonsClicked) {
       // Check IAP status before executing command
       if (!IAPManager.instance.canExecuteCommand) {
+        final remaining = IAPManager.instance.commandsRemainingToday;
         actionStreamInternal.add(
           LogNotification(
-            'Command limit reached. ${IAPManager.instance.commandsRemainingToday} commands remaining today. Upgrade to unlock unlimited commands.',
+            remaining > 0 
+              ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
+              : 'Daily command limit reached (0/15). Upgrade to unlock unlimited commands or try again tomorrow.',
           ),
         );
         continue;
@@ -158,9 +161,12 @@ abstract class BaseDevice {
     for (final action in buttonsReleased) {
       // Check IAP status before executing command
       if (!IAPManager.instance.canExecuteCommand) {
+        final remaining = IAPManager.instance.commandsRemainingToday;
         actionStreamInternal.add(
           LogNotification(
-            'Command limit reached. ${IAPManager.instance.commandsRemainingToday} commands remaining today. Upgrade to unlock unlimited commands.',
+            remaining > 0 
+              ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
+              : 'Daily command limit reached (0/15). Upgrade to unlock unlimited commands or try again tomorrow.',
           ),
         );
         continue;
