@@ -6,10 +6,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   bluetooth_low_energy_linux
   file_selector_linux
   gamepads_linux
+  gtk
   media_key_detector_linux
   screen_retriever_linux
   url_launcher_linux
   window_manager
+  yaru_window_linux
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
