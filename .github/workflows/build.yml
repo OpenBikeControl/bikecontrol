@@ -36,7 +36,7 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.35.5
+  FLUTTER_VERSION: 3.38.5
 
 jobs:
   build:
