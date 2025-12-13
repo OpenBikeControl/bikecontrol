@@ -51,6 +51,9 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
 - Gamepads
+- Keyboard input
+  - some trainers do not support keyboard input for all functions - now they do!
+  - useful when remapping keys from other devices using e.g. AutoHotkey
 - Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)
   - BLE HID devices and classic Bluetooth HID devices are supported
   - works out of the box on Android
