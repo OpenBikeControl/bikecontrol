@@ -1,10 +1,5 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/customize.dart';
@@ -12,10 +7,16 @@ import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../widgets/changelog_dialog.dart';
 
@@ -155,32 +156,43 @@ class _NavigationState extends State<Navigation> {
             VerticalDivider(),
           ],
           Expanded(
-            child: Container(
-              alignment: Alignment.topLeft,
-              child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 200),
-                child: switch (_selectedPage) {
-                  BCPage.devices => DevicePage(
-                    onUpdate: () {
-                      setState(() {
-                        _selectedPage = BCPage.trainer;
-                      });
-                    },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: IAPStatusWidget(),
+                ),
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.topLeft,
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 200),
+                      child: switch (_selectedPage) {
+                        BCPage.devices => DevicePage(
+                          onUpdate: () {
+                            setState(() {
+                              _selectedPage = BCPage.trainer;
+                            });
+                          },
+                        ),
+                        BCPage.trainer => TrainerPage(
+                          onUpdate: () {
+                            setState(() {});
+                          },
+                          goToNextPage: () {
+                            setState(() {
+                              _selectedPage = BCPage.customization;
+                            });
+                          },
+                        ),
+                        BCPage.customization => CustomizePage(),
+                        BCPage.logs => LogViewer(),
+                      },
+                    ),
                   ),
-                  BCPage.trainer => TrainerPage(
-                    onUpdate: () {
-                      setState(() {});
-                    },
-                    goToNextPage: () {
-                      setState(() {
-                        _selectedPage = BCPage.customization;
-                      });
-                    },
-                  ),
-                  BCPage.customization => CustomizePage(),
-                  BCPage.logs => LogViewer(),
-                },
-              ),
+                ),
+              ],
             ),
           ),
         ],

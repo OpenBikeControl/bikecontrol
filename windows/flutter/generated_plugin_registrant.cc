@@ -8,6 +8,7 @@
 
 #include <bluetooth_low_energy_windows/bluetooth_low_energy_windows_plugin_c_api.h>
 #include <file_selector_windows/file_selector_windows.h>
+#include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <gamepads_windows/gamepads_windows_plugin_c_api.h>
 #include <keypress_simulator_windows/keypress_simulator_windows_plugin_c_api.h>
 #include <media_key_detector_windows/media_key_detector_windows.h>
@@ -23,6 +24,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("BluetoothLowEnergyWindowsPluginCApi"));
   FileSelectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FileSelectorWindows"));
+  FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
   GamepadsWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("GamepadsWindowsPluginCApi"));
   KeypressSimulatorWindowsPluginCApiRegisterWithRegistrar(

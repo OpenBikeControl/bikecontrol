@@ -1,6 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_update/in_app_update.dart';
@@ -8,12 +15,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
-import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
-import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/widgets/ui/gradient_text.dart';
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:version/version.dart';
 
@@ -142,7 +143,7 @@ class _AppTitleState extends State<AppTitle> {
         GradientText('BikeControl', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
         if (packageInfoValue != null)
           Text(
-            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}${kIsWeb || (Platform.isAndroid && isFromPlayStore == false) ? ' ${AppLocalizations.current.sideloaded}' : ''}',
+            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${IAPManager.instance.getStatusMessage()}',
             style: TextStyle(fontSize: 12),
           ).mono.muted
         else

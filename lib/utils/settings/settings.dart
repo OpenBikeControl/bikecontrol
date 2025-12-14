@@ -34,7 +34,7 @@ class Settings {
       core.actionHandler.init(app);
 
       // Initialize IAP manager
-      await IAPManager.instance.initialize(prefs);
+      await IAPManager.instance.initialize();
 
       // Start trial if this is the first launch
       if (!IAPManager.instance.hasTrialStarted && !IAPManager.instance.isPurchased) {

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:bike_control/utils/iap/iap_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Unified IAP manager that handles platform-specific IAP services
 class IAPManager {
@@ -15,13 +15,12 @@ class IAPManager {
 
   IAPService? _iapService;
   WindowsIAPService? _windowsIapService;
-  SharedPreferences? _prefs;
 
   IAPManager._();
 
   /// Initialize the IAP manager
-  Future<void> initialize(SharedPreferences prefs) async {
-    _prefs = prefs;
+  Future<void> initialize() async {
+    final prefs = FlutterSecureStorage(aOptions: AndroidOptions());
 
     if (kIsWeb) {
       // Web doesn't support IAP
@@ -88,16 +87,6 @@ class IAPManager {
       return _windowsIapService!.isTrialExpired;
     }
     return false;
-  }
-
-  /// Check if the user has access (purchased or still in trial)
-  bool get hasAccess {
-    if (_iapService != null) {
-      return _iapService!.hasAccess;
-    } else if (_windowsIapService != null) {
-      return _windowsIapService!.hasAccess;
-    }
-    return true; // Default to true for platforms without IAP
   }
 
   /// Check if the user can execute a command
