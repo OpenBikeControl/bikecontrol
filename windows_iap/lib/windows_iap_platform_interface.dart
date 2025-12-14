@@ -1,6 +1,7 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:windows_iap/models/product.dart';
 import 'package:windows_iap/models/store_license.dart';
+import 'package:windows_iap/models/trial.dart';
 
 import 'windows_iap.dart';
 import 'windows_iap_method_channel.dart';
@@ -35,6 +36,10 @@ abstract class WindowsIapPlatform extends PlatformInterface {
   }
 
   Future<bool> checkPurchase({required String storeId}) {
+    throw UnimplementedError('checkPurchase() has not been implemented.');
+  }
+
+  Future<Trial> getTrialStatusAndRemainingDays() {
     throw UnimplementedError('checkPurchase() has not been implemented.');
   }
 

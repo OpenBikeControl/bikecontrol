@@ -64,8 +64,6 @@ class IAPManager {
   Future<void> startTrial() async {
     if (_iapService != null) {
       await _iapService!.startTrial();
-    } else if (_windowsIapService != null) {
-      await _windowsIapService!.startTrial();
     }
   }
 

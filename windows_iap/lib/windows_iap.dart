@@ -4,10 +4,10 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:windows_iap/models/product.dart';
+import 'package:windows_iap/models/trial.dart';
 
 import 'models/store_license.dart';
 import 'windows_iap_platform_interface.dart';
-
 
 enum StorePurchaseStatus {
   succeeded,
@@ -63,5 +63,9 @@ class WindowsIap {
   /// info for the add-on.
   Future<Map<String, StoreLicense>> getAddonLicenses() {
     return WindowsIapPlatform.instance.getAddonLicenses();
+  }
+
+  Future<Trial> getTrialStatusAndRemainingDays() {
+    return WindowsIapPlatform.instance.getTrialStatusAndRemainingDays();
   }
 }

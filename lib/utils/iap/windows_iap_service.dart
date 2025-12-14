@@ -1,20 +1,17 @@
 import 'dart:async';
 
-import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:version/version.dart';
 import 'package:windows_iap/windows_iap.dart';
 
 /// Windows-specific IAP service
 /// Note: This is a stub implementation. For actual Windows Store integration,
 /// you would need to use the Windows Store APIs through platform channels.
 class WindowsIAPService {
-  static const String productId = 'full_access_unlock';
+  static const String productId = '9NP42GS03Z26';
   static const int trialDays = 5;
   static const int dailyCommandLimit = 15;
 
-  static const String _trialStartDateKey = 'iap_trial_start_date';
   static const String _purchaseStatusKey = 'iap_purchase_status';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
   static const String _lastCommandDateKey = 'iap_last_command_date';
@@ -24,7 +21,6 @@ class WindowsIAPService {
   bool _isPurchased = false;
   bool _isInitialized = false;
 
-  String? _trialStartDate;
   String? _lastCommandDate;
   int? _dailyCommandCount;
 
@@ -40,7 +36,6 @@ class WindowsIAPService {
       // Check if already purchased
       await _checkExistingPurchase();
 
-      _trialStartDate = await _prefs.read(key: _trialStartDateKey);
       _lastCommandDate = await _prefs.read(key: _lastCommandDateKey);
       _dailyCommandCount = int.tryParse(await _prefs.read(key: _dailyCommandCountKey) ?? '0');
       _isInitialized = true;
@@ -58,33 +53,13 @@ class WindowsIAPService {
       _isPurchased = true;
       return;
     }
-    _windowsIapPlugin.
-    // TODO: Add Windows Store API integration
-    // Check if the app was purchased from the Windows Store
-    // This would require platform channel implementation to call Windows Store APIs
-
-    // For now, we'll check if there's a previous version installed
-    await _checkPreviousVersion();
-  }
-
-  /// Check if user had the paid version before
-  Future<void> _checkPreviousVersion() async {
-    try {
-      // IMPORTANT: This assumes the app is currently paid and this update will be released
-      // while the app is still paid. Only users who downloaded the paid version will have
-      // a last_seen_version. After changing the app to free, new users won't have this set.
-      final lastSeenVersion = core.settings.getLastSeenVersion();
-      if (lastSeenVersion != null && lastSeenVersion.isNotEmpty) {
-        Version lastVersion = Version.parse(lastSeenVersion);
-        // If they had a previous version, they're an existing paid user
-        _isPurchased = lastVersion < Version(4, 2, 0);
-        if (_isPurchased) {
-          await _prefs.write(key: _purchaseStatusKey, value: "true");
-        }
-        debugPrint('Existing Android user detected - granting full access');
-      }
-    } catch (e) {
-      debugPrint('Error checking Windows previous version: $e');
+    final trial = await _windowsIapPlugin.getTrialStatusAndRemainingDays();
+    trialDaysRemaining = trial.remainingDays;
+    if (!trial.isTrial && trial.remainingDays <= 0) {
+      _isPurchased = true;
+      await _prefs.write(key: _purchaseStatusKey, value: "true");
+    } else {
+      _isPurchased = false;
     }
   }
 
@@ -92,25 +67,11 @@ class WindowsIAPService {
   /// TODO: Implement actual Windows Store purchase flow
   Future<bool> purchaseFullVersion() async {
     try {
-      debugPrint('Windows Store purchase would be triggered here');
-      // This would call the Windows Store IAP APIs through a platform channel
-      return false;
+      final status = await _windowsIapPlugin.makePurchase(productId);
+      return status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased;
     } catch (e) {
       debugPrint('Error purchasing on Windows: $e');
       return false;
-    }
-  }
-
-  /// Get remaining trial days from Windows Store
-  /// TODO: Implement Windows Store trial API
-  Future<int> getRemainingTrialDays() async {
-    try {
-      // This would call Windows Store APIs to get trial information
-      // For now, use local calculation
-      return trialDaysRemaining;
-    } catch (e) {
-      debugPrint('Error getting trial days from Windows Store: $e');
-      return trialDaysRemaining;
     }
   }
 
@@ -118,29 +79,10 @@ class WindowsIAPService {
   bool get isPurchased => _isPurchased;
 
   /// Check if the trial period has started
-  bool get hasTrialStarted => _trialStartDate != null;
-
-  /// Start the trial period
-  Future<void> startTrial() async {
-    if (!hasTrialStarted) {
-      await _prefs.write(key: _trialStartDateKey, value: DateTime.now().toIso8601String());
-    }
-  }
+  bool get hasTrialStarted => trialDaysRemaining > 0;
 
   /// Get the number of days remaining in the trial
-  int get trialDaysRemaining {
-    if (_isPurchased) return 0;
-
-    final trialStart = _trialStartDate;
-    if (trialStart == null) return trialDays;
-
-    final startDate = DateTime.parse(trialStart);
-    final now = DateTime.now();
-    final daysPassed = now.difference(startDate).inDays;
-    final remaining = trialDays - daysPassed;
-
-    return remaining > 0 ? remaining : 0;
-  }
+  int trialDaysRemaining = 0;
 
   /// Check if the trial has expired
   bool get isTrialExpired {

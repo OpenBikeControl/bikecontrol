@@ -226,8 +226,60 @@ namespace windows_iap {
 		}
 	}
 
+    /// <summary>
+/// need to test in real app on store
+/// </summary>
+    /// <summary>
+/// need to test in real app on store
+/// </summary>
+    foundation::IAsyncAction getTrialStatusAndRemainingDays(
+            std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> resultCallback)
+    {
+        auto license = co_await getStore().GetAppLicenseAsync();
 
-	//////////////////////////////////////////////////////////////////////// END OF MY CODE //////////////////////////////////////////////////////////////
+        flutter::EncodableMap result;
+        result[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(false);
+        result[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue(0);
+
+        if (!license.IsActive()) {
+            resultCallback->Success(flutter::EncodableValue(result));
+            co_return;
+        }
+
+        if (license.IsTrial()) {
+            result[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(true);
+
+            auto expiration = license.TrialExpirationDate();
+
+            if (expiration.UniversalTime != 0) {
+                // Convert Windows DateTime (100ns ticks since 1601-01-01) to Unix time
+                int64_t ticks = expiration.UniversalTime;
+                time_t expirationUnix =
+                        (ticks - 116444736000000000LL) / 10000000LL;
+
+                time_t nowUnix;
+                time(&nowUnix);
+
+                if (expirationUnix > nowUnix) {
+                    double secondsLeft = difftime(expirationUnix, nowUnix);
+                    int remainingDays = static_cast<int>(secondsLeft / (60 * 60 * 24));
+
+                    // Round up to include partial day
+                    if (secondsLeft > remainingDays * 86400) {
+                        remainingDays += 1;
+                    }
+
+                    result[flutter::EncodableValue("remainingDays")] =
+                            flutter::EncodableValue(remainingDays);
+                }
+            }
+        }
+
+        resultCallback->Success(flutter::EncodableValue(result));
+    }
+
+
+    //////////////////////////////////////////////////////////////////////// END OF MY CODE //////////////////////////////////////////////////////////////
 
 // static
 	void WindowsIapPlugin::RegisterWithRegistrar(
@@ -271,6 +323,9 @@ namespace windows_iap {
 		}
 		else if (method_call.method_name().compare("getAddonLicenses") == 0) {
 			getAddonLicenses(std::move(result));
+		}
+		else if (method_call.method_name().compare("getTrialStatusAndRemainingDays") == 0) {
+            getTrialStatusAndRemainingDays(std::move(result));
 		}
 		else {
 			result->NotImplemented();
