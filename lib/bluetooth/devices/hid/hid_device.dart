@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:swift_control/bluetooth/devices/base_device.dart';
-import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/core.dart';
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/utils/actions/android.dart';
+import 'package:bike_control/utils/core.dart';
 
 class HidDevice extends BaseDevice {
   HidDevice(super.name) : super(availableButtons: []);

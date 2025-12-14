@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 
 class ZwiftConstants {
   static const ZWIFT_CUSTOM_SERVICE_UUID = "00000001-19CA-4651-86E5-FA29DCDD09D1";

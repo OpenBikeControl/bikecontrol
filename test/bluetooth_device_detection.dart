@@ -1,17 +1,17 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
-import 'package:swift_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
-import 'package:swift_control/bluetooth/devices/elite/elite_square.dart';
-import 'package:swift_control/bluetooth/devices/elite/elite_sterzo.dart';
-import 'package:swift_control/bluetooth/devices/shimano/shimano_di2.dart';
-import 'package:swift_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
-import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_click.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_play.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
+import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
+import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
+import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
+import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {

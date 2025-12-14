@@ -1,11 +1,11 @@
 import 'package:accessibility/accessibility.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/bluetooth/devices/hid/hid_device.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
+import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
 
 import '../keymap/apps/supported_app.dart';
 import '../single_line_exception.dart';

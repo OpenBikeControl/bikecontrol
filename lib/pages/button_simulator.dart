@@ -2,16 +2,16 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart' show BackButton;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
-import 'package:swift_control/pages/touch_area.dart';
-import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
-import 'package:swift_control/widgets/ui/gradient_text.dart';
-import 'package:swift_control/widgets/ui/warning.dart';
+import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/pages/touch_area.dart';
+import 'package:bike_control/utils/actions/android.dart';
+import 'package:bike_control/utils/actions/desktop.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/warning.dart';
 
 class ButtonSimulator extends StatefulWidget {
   const ButtonSimulator({super.key});

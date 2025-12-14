@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/settings/settings.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/settings/settings.dart';
 
 void main() {
   group('Custom Profile Tests', () {

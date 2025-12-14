@@ -8,12 +8,12 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
-import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/widgets/ui/gradient_text.dart';
-import 'package:swift_control/widgets/ui/small_progress_indicator.dart';
-import 'package:swift_control/widgets/ui/toast.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:version/version.dart';
 

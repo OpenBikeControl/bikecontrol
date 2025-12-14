@@ -1,5 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 
 class AccessibilityDisclosureDialog extends StatelessWidget {
   final VoidCallback onAccept;

@@ -3,15 +3,15 @@ import 'dart:io';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
-import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
-import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
-import 'package:swift_control/widgets/title.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/title.dart';
 
 import '../../messages/notification.dart' show AlertNotification;
 

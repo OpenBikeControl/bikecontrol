@@ -2,16 +2,16 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/button_edit.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
-import 'package:swift_control/utils/keymap/apps/supported_app.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
-import 'package:swift_control/widgets/ui/colored_title.dart';
-import 'package:swift_control/widgets/ui/warning.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/button_edit.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/warning.dart';
 
 class ConfigurationPage extends StatefulWidget {
   final VoidCallback onUpdate;

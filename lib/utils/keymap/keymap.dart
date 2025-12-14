@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 
 import '../actions/base_actions.dart';
 import 'apps/custom_app.dart';

@@ -1,15 +1,15 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/apps/supported_app.dart';
-import 'package:swift_control/utils/keymap/manager.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
-import 'package:swift_control/widgets/ui/beta_pill.dart';
-import 'package:swift_control/widgets/ui/colored_title.dart';
-import 'package:swift_control/widgets/ui/warning.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
+import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/warning.dart';
 
 class CustomizePage extends StatefulWidget {
   const CustomizePage({super.key});

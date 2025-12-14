@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/manager.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/utils/actions/desktop.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/manager.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';

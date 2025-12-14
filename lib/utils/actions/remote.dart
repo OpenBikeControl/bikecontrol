@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:accessibility/accessibility.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 
 class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch]});

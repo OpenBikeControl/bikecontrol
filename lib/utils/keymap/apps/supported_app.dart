@@ -1,9 +1,9 @@
-import 'package:swift_control/utils/keymap/apps/biketerra.dart';
-import 'package:swift_control/utils/keymap/apps/openbikecontrol.dart';
-import 'package:swift_control/utils/keymap/apps/rouvy.dart';
-import 'package:swift_control/utils/keymap/apps/training_peaks.dart';
-import 'package:swift_control/utils/keymap/apps/zwift.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/keymap/apps/biketerra.dart';
+import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 
 import '../keymap.dart';
 import 'custom_app.dart';

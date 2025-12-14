@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 
 class ZwiftPlay extends ZwiftDevice {
   ZwiftPlay(super.scanResult)

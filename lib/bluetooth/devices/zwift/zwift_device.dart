@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
-import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
-import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/single_line_exception.dart';
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/single_line_exception.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 abstract class ZwiftDevice extends BluetoothDevice {

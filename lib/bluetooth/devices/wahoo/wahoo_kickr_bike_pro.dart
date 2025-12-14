@@ -1,4 +1,4 @@
-import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 
 import '../zwift/constants.dart';
 

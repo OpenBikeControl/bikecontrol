@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 
 class ProtocolParseException implements Exception {
   final String message;

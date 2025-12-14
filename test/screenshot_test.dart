@@ -5,12 +5,12 @@ import 'package:integration_test/integration_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/navigation.dart';
-import 'package:swift_control/utils/core.dart' show core;
-import 'package:swift_control/utils/keymap/apps/my_whoosh.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/utils/core.dart' show core;
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'custom_frame.dart';

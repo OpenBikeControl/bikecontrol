@@ -3,17 +3,17 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart';
-import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
-import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' show RideKeyPadStatus;
-import 'package:swift_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zwift.pb.dart' show RideKeyPadStatus;
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 
 class FtmsMdnsEmulator extends TrainerConnection {
   ServerSocket? _tcpServer;

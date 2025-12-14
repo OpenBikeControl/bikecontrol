@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:golden_screenshot/golden_screenshot.dart';
-import 'package:swift_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 
 import 'screenshot_test.dart';
 

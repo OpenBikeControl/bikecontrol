@@ -5,14 +5,14 @@ import 'dart:ui';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
-import 'package:swift_control/utils/actions/base_actions.dart' as actions;
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/ui/button_widget.dart';
-import 'package:swift_control/widgets/ui/toast.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/utils/actions/base_actions.dart' as actions;
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/ui/button_widget.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 
 import '../bluetooth/messages/notification.dart';
 

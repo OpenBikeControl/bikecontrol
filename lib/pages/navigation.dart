@@ -5,17 +5,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/pages/customize.dart';
-import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/pages/trainer.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/widgets/logviewer.dart';
-import 'package:swift_control/widgets/menu.dart';
-import 'package:swift_control/widgets/title.dart';
-import 'package:swift_control/widgets/ui/colors.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/customize.dart';
+import 'package:bike_control/pages/device.dart';
+import 'package:bike_control/pages/trainer.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/logviewer.dart';
+import 'package:bike_control/widgets/menu.dart';
+import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 
 import '../widgets/changelog_dialog.dart';
 

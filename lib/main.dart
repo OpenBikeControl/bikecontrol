@@ -6,13 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalMaterialLocalizations, GlobalWidgetsLocalizations;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/actions/remote.dart';
-import 'package:swift_control/widgets/menu.dart';
-import 'package:swift_control/widgets/testbed.dart';
-import 'package:swift_control/widgets/ui/colors.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/actions/android.dart';
+import 'package:bike_control/utils/actions/desktop.dart';
+import 'package:bike_control/utils/actions/remote.dart';
+import 'package:bike_control/widgets/menu.dart';
+import 'package:bike_control/widgets/testbed.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';

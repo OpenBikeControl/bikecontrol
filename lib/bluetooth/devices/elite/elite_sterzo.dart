@@ -5,8 +5,8 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:swift_control/bluetooth/devices/bluetooth_device.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../messages/notification.dart';

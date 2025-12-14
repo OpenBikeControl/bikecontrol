@@ -1,4 +1,4 @@
-name: swift_control
+name: bike_control
 description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 4.1.0+50
