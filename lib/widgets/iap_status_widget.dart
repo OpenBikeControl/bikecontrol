@@ -1,4 +1,6 @@
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Widget to display IAP status and allow purchases
@@ -29,10 +31,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'License Status',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            ColoredTitle(text: 'License Status'),
             const SizedBox(height: 16),
             if (isPurchased) ...[
               Row(
@@ -41,7 +40,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                   const SizedBox(width: 8),
                   Text(
                     'Full Version Unlocked',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: TextStyle(
                       color: Colors.green,
                     ),
                   ),
@@ -50,63 +49,40 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
               const SizedBox(height: 8),
               Text(
                 'You have unlimited access to all features.',
-                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ] else if (!isTrialExpired) ...[
               Row(
                 children: [
                   Icon(Icons.access_time, color: Colors.blue),
                   const SizedBox(width: 8),
-                  Text(
-                    'Trial Period Active',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.blue,
-                    ),
-                  ),
+                  Text('Trial Period Active'),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
-                '$trialDaysRemaining days remaining in trial',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text('$trialDaysRemaining days remaining in trial'),
               const SizedBox(height: 4),
-              Text(
-                'Enjoy unlimited commands during your trial period.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              Text('Enjoy unlimited commands during your trial period.'),
             ] else ...[
               Row(
                 children: [
                   Icon(Icons.info, color: Colors.orange),
                   const SizedBox(width: 8),
-                  Text(
-                    'Free Version',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.orange,
-                    ),
-                  ),
+                  Text('Free Version'),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
-                'Trial expired. Commands limited to 15 per day.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text('Trial expired. Commands limited to 15 per day.'),
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: dailyCommandCount / _dailyCommandLimit,
-                backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  commandsRemaining > 0 ? Colors.orange : Colors.red,
-                ),
+                backgroundColor: Colors.gray[300],
+                color: commandsRemaining > 0 ? Colors.orange : Colors.red,
               ),
               const SizedBox(height: 8),
               Text(
                 commandsRemaining >= 0
-                    ? '$commandsRemaining commands remaining today (${dailyCommandCount}/$_dailyCommandLimit used)'
+                    ? '$commandsRemaining commands remaining today ($dailyCommandCount/$_dailyCommandLimit used)'
                     : 'Daily limit reached ($_dailyCommandLimit/$_dailyCommandLimit used)',
-                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
             if (!isPurchased) ...[
@@ -142,9 +118,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
               const SizedBox(height: 8),
               Text(
                 'Get unlimited commands with a one-time purchase.',
-                style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
-              ),
+              ).small,
             ],
           ],
         ),
@@ -162,32 +137,26 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
 
       if (mounted) {
         if (success) {
-          showToast(
-            context: context,
-            builder: (context) => Toast(
-              title: const Text('Purchase Successful'),
-              description: const Text('Thank you for your purchase! You now have unlimited access.'),
-            ),
+          buildToast(
+            context,
+            title: 'Purchase Successful',
+            subtitle: 'Thank you for your purchase! You now have unlimited access.',
           );
           setState(() {});
         } else {
-          showToast(
-            context: context,
-            builder: (context) => Toast(
-              title: const Text('Purchase Failed'),
-              description: const Text('Unable to complete purchase. Please try again later.'),
-            ),
+          buildToast(
+            context,
+            title: 'Purchase Failed',
+            subtitle: 'Unable to complete purchase. Please try again later.',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        showToast(
-          context: context,
-          builder: (context) => Toast(
-            title: const Text('Error'),
-            description: Text('An error occurred: $e'),
-          ),
+        buildToast(
+          context,
+          title: 'Error',
+          subtitle: 'An error occurred: $e',
         );
       }
     } finally {
@@ -212,32 +181,26 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
         await Future.delayed(Duration(seconds: 1));
 
         if (IAPManager.instance.isPurchased) {
-          showToast(
-            context: context,
-            builder: (context) => Toast(
-              title: const Text('Restore Successful'),
-              description: const Text('Your purchase has been restored!'),
-            ),
+          buildToast(
+            context,
+            title: 'Restore Successful',
+            subtitle: 'Your purchase has been restored!',
           );
           setState(() {});
         } else {
-          showToast(
-            context: context,
-            builder: (context) => Toast(
-              title: const Text('No Purchases Found'),
-              description: const Text('No previous purchases found to restore.'),
-            ),
+          buildToast(
+            context,
+            title: 'No Purchases Found',
+            subtitle: 'No previous purchases found to restore.',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        showToast(
-          context: context,
-          builder: (context) => Toast(
-            title: const Text('Error'),
-            description: Text('Failed to restore purchases: $e'),
-          ),
+        buildToast(
+          context,
+          title: 'Error',
+          subtitle: 'Failed to restore purchases: $e',
         );
       }
     } finally {
