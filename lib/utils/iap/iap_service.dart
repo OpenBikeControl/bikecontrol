@@ -11,7 +11,6 @@ import 'package:version/version.dart';
 
 /// Service to handle in-app purchase functionality and trial period management
 class IAPService {
-  static const String productId = 'full_access_unlock';
   static const int trialDays = 5;
   static const int dailyCommandLimit = 15;
 
@@ -227,6 +226,8 @@ class IAPService {
         debugPrint('IAP not available');
         return false;
       }
+
+      final productId = Platform.isIOS || Platform.isMacOS ? 'full_access_unlock' : 'full-access-unlock';
 
       // Query product details
       final response = await _inAppPurchase.queryProductDetails({productId});
