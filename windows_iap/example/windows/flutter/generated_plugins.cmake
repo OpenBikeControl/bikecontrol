@@ -3,24 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  bluetooth_low_energy_windows
-  file_selector_windows
-  flutter_secure_storage_windows
-  gamepads_windows
-  keypress_simulator_windows
-  media_key_detector_windows
-  nsd_windows
-  permission_handler_windows
-  screen_retriever_windows
-  universal_ble
-  url_launcher_windows
-  window_manager
   windows_iap
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  flutter_local_notifications_windows
-  smtc_windows
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:version/version.dart';
+import 'package:windows_iap/windows_iap.dart';
 
 /// Windows-specific IAP service
 /// Note: This is a stub implementation. For actual Windows Store integration,
@@ -24,6 +27,8 @@ class WindowsIAPService {
   String? _trialStartDate;
   String? _lastCommandDate;
   int? _dailyCommandCount;
+
+  final _windowsIapPlugin = WindowsIap();
 
   WindowsIAPService(this._prefs);
 
@@ -53,7 +58,7 @@ class WindowsIAPService {
       _isPurchased = true;
       return;
     }
-
+    _windowsIapPlugin.
     // TODO: Add Windows Store API integration
     // Check if the app was purchased from the Windows Store
     // This would require platform channel implementation to call Windows Store APIs
@@ -68,11 +73,15 @@ class WindowsIAPService {
       // IMPORTANT: This assumes the app is currently paid and this update will be released
       // while the app is still paid. Only users who downloaded the paid version will have
       // a last_seen_version. After changing the app to free, new users won't have this set.
-      final lastSeenVersion = await _prefs.read(key: 'last_seen_version');
+      final lastSeenVersion = core.settings.getLastSeenVersion();
       if (lastSeenVersion != null && lastSeenVersion.isNotEmpty) {
-        _isPurchased = true;
-        await _prefs.write(key: _purchaseStatusKey, value: "true");
-        debugPrint('Existing Windows user detected - granting full access');
+        Version lastVersion = Version.parse(lastSeenVersion);
+        // If they had a previous version, they're an existing paid user
+        _isPurchased = lastVersion < Version(4, 2, 0);
+        if (_isPurchased) {
+          await _prefs.write(key: _purchaseStatusKey, value: "true");
+        }
+        debugPrint('Existing Android user detected - granting full access');
       }
     } catch (e) {
       debugPrint('Error checking Windows previous version: $e');

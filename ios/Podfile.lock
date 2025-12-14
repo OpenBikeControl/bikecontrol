@@ -7,13 +7,21 @@ PODS:
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - flutter_secure_storage_darwin (10.0.0):
+    - Flutter
+    - FlutterMacOS
   - gamepads_ios (0.1.1):
     - Flutter
   - image_picker_ios (0.0.1):
     - Flutter
+  - in_app_purchase_storekit (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - in_app_review (2.0.0):
     - Flutter
   - integration_test (0.0.1):
+    - Flutter
+  - ios_receipt (0.0.1):
     - Flutter
   - media_key_detector_ios (0.0.1):
     - Flutter
@@ -44,10 +52,13 @@ DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - gamepads_ios (from `.symlinks/plugins/gamepads_ios/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - ios_receipt (from `.symlinks/plugins/ios_receipt/ios`)
   - media_key_detector_ios (from `.symlinks/plugins/media_key_detector_ios/ios`)
   - nsd_ios (from `.symlinks/plugins/nsd_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -68,14 +79,20 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_secure_storage_darwin:
+    :path: ".symlinks/plugins/flutter_secure_storage_darwin/darwin"
   gamepads_ios:
     :path: ".symlinks/plugins/gamepads_ios/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
+  in_app_purchase_storekit:
+    :path: ".symlinks/plugins/in_app_purchase_storekit/darwin"
   in_app_review:
     :path: ".symlinks/plugins/in_app_review/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  ios_receipt:
+    :path: ".symlinks/plugins/ios_receipt/ios"
   media_key_detector_ios:
     :path: ".symlinks/plugins/media_key_detector_ios/ios"
   nsd_ios:
@@ -102,10 +119,13 @@ SPEC CHECKSUMS:
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
+  flutter_secure_storage_darwin: 557817588b80e60213cbecb573c45c76b788018d
   gamepads_ios: 1d2930c7a4450a9a1b57444ebf305a6a6cbeea0b
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
+  in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
   in_app_review: 436034b18594851a7328d7f1c2ed5ec235b79cfc
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
+  ios_receipt: c2d5b4c36953c377a024992393976214ce6951e6
   media_key_detector_ios: 7ff9aefdfea00bb7b71e184132381b7d0e7e1269
   nsd_ios: 8c37babdc6538e3350dbed3a52674d2edde98173
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
@@ -117,6 +137,6 @@ SPEC CHECKSUMS:
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
   wakelock_plus: 76957ab028e12bfa4e66813c99e46637f367fc7e
 
-PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+PODFILE CHECKSUM: 7ebd5c9b932b3af79d5c67e3af873118b74e970f
 
 COCOAPODS: 1.16.2
