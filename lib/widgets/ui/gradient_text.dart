@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:swift_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 
 class GradientText extends StatelessWidget {
   const GradientText(

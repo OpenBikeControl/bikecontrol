@@ -1,8 +1,8 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/main.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/widgets/keymap_explanation.dart';
-import 'package:swift_control/widgets/ui/colors.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 
 class ButtonWidget extends StatelessWidget {
   final ControllerButton button;

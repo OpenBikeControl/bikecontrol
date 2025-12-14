@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:swift_control/utils/keymap/apps/supported_app.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';

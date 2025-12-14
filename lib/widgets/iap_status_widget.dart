@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/utils/iap/iap_manager.dart';
 
 /// Widget to display IAP status and allow purchases
 class IAPStatusWidget extends StatefulWidget {
@@ -43,8 +42,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                   Text(
                     'Full Version Unlocked',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.green,
-                        ),
+                      color: Colors.green,
+                    ),
                   ),
                 ],
               ),
@@ -61,8 +60,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                   Text(
                     'Trial Period Active',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.blue,
-                        ),
+                      color: Colors.blue,
+                    ),
                   ),
                 ],
               ),
@@ -84,8 +83,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                   Text(
                     'Free Version',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.orange,
-                        ),
+                      color: Colors.orange,
+                    ),
                   ),
                 ],
               ),
@@ -160,7 +159,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
 
     try {
       final success = await IAPManager.instance.purchaseFullVersion();
-      
+
       if (mounted) {
         if (success) {
           showToast(
@@ -199,7 +198,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
       }
     }
   }
-  
+
   Future<void> _handleRestorePurchases() async {
     setState(() {
       _isPurchasing = true;
@@ -207,11 +206,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
 
     try {
       await IAPManager.instance.restorePurchases();
-      
+
       if (mounted) {
         // Wait a moment for the purchase stream to process
         await Future.delayed(Duration(seconds: 1));
-        
+
         if (IAPManager.instance.isPurchased) {
           showToast(
             context: context,

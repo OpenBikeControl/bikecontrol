@@ -10,6 +10,7 @@ import device_info_plus
 import file_selector_macos
 import flutter_local_notifications
 import gamepads_darwin
+import in_app_purchase_storekit
 import in_app_review
 import keypress_simulator_macos
 import media_key_detector_macos
@@ -29,6 +30,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))
   FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
   GamepadsDarwinPlugin.register(with: registry.registrar(forPlugin: "GamepadsDarwinPlugin"))
+  InAppPurchasePlugin.register(with: registry.registrar(forPlugin: "InAppPurchasePlugin"))
   InAppReviewPlugin.register(with: registry.registrar(forPlugin: "InAppReviewPlugin"))
   KeypressSimulatorMacosPlugin.register(with: registry.registrar(forPlugin: "KeypressSimulatorMacosPlugin"))
   MediaKeyDetectorPlugin.register(with: registry.registrar(forPlugin: "MediaKeyDetectorPlugin"))

@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
-import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/widgets/title.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/widgets/title.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';

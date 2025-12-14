@@ -1,5 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/gradient_text.dart';
 
 class ColoredTitle extends StatelessWidget {
   final String text;

@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:swift_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 
 void main() {
   group('Zwift Emulation', () {

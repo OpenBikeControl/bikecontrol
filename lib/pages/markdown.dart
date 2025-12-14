@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
 import 'package:http/http.dart' as http;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class MarkdownPage extends StatefulWidget {

@@ -1,14 +1,14 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
-import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
-import 'package:swift_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:swift_control/bluetooth/messages/notification.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class ZwiftRide extends ZwiftDevice {

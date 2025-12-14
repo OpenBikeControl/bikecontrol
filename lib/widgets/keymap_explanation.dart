@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/pages/button_edit.dart';
-import 'package:swift_control/pages/device.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
-import 'package:swift_control/utils/keymap/manager.dart';
-import 'package:swift_control/widgets/ui/button_widget.dart';
-import 'package:swift_control/widgets/ui/toast.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/pages/button_edit.dart';
+import 'package:bike_control/pages/device.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/ui/button_widget.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 
 import '../pages/touch_area.dart';
 

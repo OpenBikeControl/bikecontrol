@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/iap/iap_manager.dart';
-import 'package:swift_control/utils/keymap/apps/supported_app.dart';
-import 'package:swift_control/utils/requirements/multi.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../main.dart';
@@ -32,15 +32,15 @@ class Settings {
 
       final app = getKeyMap();
       core.actionHandler.init(app);
-      
+
       // Initialize IAP manager
       await IAPManager.instance.initialize(prefs);
-      
+
       // Start trial if this is the first launch
       if (!IAPManager.instance.hasTrialStarted && !IAPManager.instance.isPurchased) {
         await IAPManager.instance.startTrial();
       }
-      
+
       return null;
     } catch (e, s) {
       if (!retried) {

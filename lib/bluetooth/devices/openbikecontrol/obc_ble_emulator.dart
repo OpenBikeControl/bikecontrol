@@ -1,17 +1,17 @@
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/title.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:swift_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
-import 'package:swift_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
-import 'package:swift_control/bluetooth/devices/trainer_connection.dart';
-import 'package:swift_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
-import 'package:swift_control/widgets/title.dart';
 
 import '../../messages/notification.dart' show AlertNotification;
 
@@ -124,37 +124,38 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
         });
       }
 
-      // Device Information
-      await _peripheralManager.addService(
-        GATTService(
-          uuid: UUID.fromString('180A'),
-          isPrimary: true,
-          characteristics: [
-            GATTCharacteristic.immutable(
-              uuid: UUID.fromString('2A29'),
-              value: Uint8List.fromList('BikeControl'.codeUnits),
-              descriptors: [],
-            ),
-            GATTCharacteristic.immutable(
-              uuid: UUID.fromString('2A25'),
-              value: Uint8List.fromList('1337'.codeUnits),
-              descriptors: [],
-            ),
-            GATTCharacteristic.immutable(
-              uuid: UUID.fromString('2A27'),
-              value: Uint8List.fromList('1.0'.codeUnits),
-              descriptors: [],
-            ),
-            GATTCharacteristic.immutable(
-              uuid: UUID.fromString('2A26'),
-              value: Uint8List.fromList((packageInfoValue?.version ?? '1.0.0').codeUnits),
-              descriptors: [],
-            ),
-          ],
-          includedServices: [],
-        ),
-      );
-
+      if (!Platform.isWindows) {
+        // Device Information
+        await _peripheralManager.addService(
+          GATTService(
+            uuid: UUID.fromString('180A'),
+            isPrimary: true,
+            characteristics: [
+              GATTCharacteristic.immutable(
+                uuid: UUID.fromString('2A29'),
+                value: Uint8List.fromList('BikeControl'.codeUnits),
+                descriptors: [],
+              ),
+              GATTCharacteristic.immutable(
+                uuid: UUID.fromString('2A25'),
+                value: Uint8List.fromList('1337'.codeUnits),
+                descriptors: [],
+              ),
+              GATTCharacteristic.immutable(
+                uuid: UUID.fromString('2A27'),
+                value: Uint8List.fromList('1.0'.codeUnits),
+                descriptors: [],
+              ),
+              GATTCharacteristic.immutable(
+                uuid: UUID.fromString('2A26'),
+                value: Uint8List.fromList((packageInfoValue?.version ?? '1.0.0').codeUnits),
+                descriptors: [],
+              ),
+            ],
+            includedServices: [],
+          ),
+        );
+      }
       // Battery Service
       await _peripheralManager.addService(
         GATTService(

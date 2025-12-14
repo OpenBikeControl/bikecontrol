@@ -4,11 +4,11 @@ import 'dart:ui';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/utils/actions/android.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/requirements/platform.dart';
-import 'package:swift_control/widgets/accessibility_disclosure_dialog.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/actions/android.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/requirements/platform.dart';
+import 'package:bike_control/widgets/accessibility_disclosure_dialog.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class AccessibilityRequirement extends PlatformRequirement {

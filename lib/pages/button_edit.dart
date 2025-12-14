@@ -1,19 +1,19 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:swift_control/gen/l10n.dart';
-import 'package:swift_control/pages/touch_area.dart';
-import 'package:swift_control/utils/actions/base_actions.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/i18n_extension.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/buttons.dart';
-import 'package:swift_control/utils/keymap/keymap.dart';
-import 'package:swift_control/widgets/custom_keymap_selector.dart';
-import 'package:swift_control/widgets/ui/button_widget.dart';
-import 'package:swift_control/widgets/ui/colored_title.dart';
-import 'package:swift_control/widgets/ui/colors.dart';
-import 'package:swift_control/widgets/ui/warning.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/pages/touch_area.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/custom_keymap_selector.dart';
+import 'package:bike_control/widgets/ui/button_widget.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/warning.dart';
 
 class ButtonEditPage extends StatefulWidget {
   final KeyPair keyPair;

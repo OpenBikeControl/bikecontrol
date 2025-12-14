@@ -1,13 +1,13 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/utils/actions/desktop.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_control/bluetooth/devices/zwift/constants.dart';
-import 'package:swift_control/utils/actions/desktop.dart';
-import 'package:swift_control/utils/core.dart';
-import 'package:swift_control/utils/iap/iap_manager.dart';
-import 'package:swift_control/utils/keymap/apps/custom_app.dart';
-import 'package:swift_control/utils/keymap/manager.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -113,9 +113,9 @@ abstract class BaseDevice {
   String _getCommandLimitMessage() {
     final remaining = IAPManager.instance.commandsRemainingToday;
     const dailyLimit = 15; // Should match IAPService.dailyCommandLimit
-    return remaining > 0 
-      ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
-      : 'Daily command limit reached (0/$dailyLimit). Upgrade to unlock unlimited commands or try again tomorrow.';
+    return remaining > 0
+        ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
+        : 'Daily command limit reached (0/$dailyLimit). Upgrade to unlock unlimited commands or try again tomorrow.';
   }
 
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
@@ -125,11 +125,11 @@ abstract class BaseDevice {
         actionStreamInternal.add(LogNotification(_getCommandLimitMessage()));
         continue;
       }
-      
+
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
       actionStreamInternal.add(LogNotification(result.message));
-      
+
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
     }
@@ -142,10 +142,10 @@ abstract class BaseDevice {
         actionStreamInternal.add(LogNotification(_getCommandLimitMessage()));
         continue;
       }
-      
+
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
       actionStreamInternal.add(ActionNotification(result));
-      
+
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
     }
@@ -158,10 +158,10 @@ abstract class BaseDevice {
         actionStreamInternal.add(LogNotification(_getCommandLimitMessage()));
         continue;
       }
-      
+
       final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
       actionStreamInternal.add(ActionNotification(result));
-      
+
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
     }

@@ -36,7 +36,7 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.35.5
+  FLUTTER_VERSION: 3.38.5
 
 jobs:
   build:
@@ -324,7 +324,7 @@ jobs:
               Write-Warning "$dll not found in $source"
             }
           }
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/BikeControl.windows.zip"
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/bike_control.windows.zip"
 
       - uses: microsoft/setup-msstore-cli@v1
         if: false
@@ -340,25 +340,20 @@ jobs:
         if: false
         run: msstore publish -v "build/windows/x64/runner/Release/"
 
-      - name: Rename swift_control.msix to BikeControl.windows.msix
-        shell: pwsh
-        run: |
-          Rename-Item -Path "build/windows/x64/runner/Release/swift_control.msix" -NewName "BikeControl.windows.msix"
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: Releases
           path: |
-            build/windows/x64/runner/Release/BikeControl.windows.zip
-            build/windows/x64/runner/Release/BikeControl.windows.msix
+            build/windows/x64/runner/Release/bike_control.windows.zip
+            build/windows/x64/runner/Release/bike_control.windows.msix
 
       - name: Update Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/BikeControl.windows.msix"
+          artifacts: "build/windows/x64/runner/Release/bike_control.windows.msix"
           prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
