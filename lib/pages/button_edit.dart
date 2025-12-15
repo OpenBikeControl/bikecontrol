@@ -1,6 +1,3 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/services.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -14,6 +11,9 @@ import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ButtonEditPage extends StatefulWidget {
   final KeyPair keyPair;
@@ -99,15 +99,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           : () {
                               showDropdown(
                                 builder: (c) => DropdownMenu(
-                                  children: core.logic.obpConnectedApp!.supportedButtons
+                                  children: core.logic.obpConnectedApp!.supportedActions
                                       .map(
-                                        (button) => MenuButton(
-                                          child: Text(button.name),
+                                        (action) => MenuButton(
+                                          child: Text(action.name),
                                           onPressed: (_) {
                                             keyPair.touchPosition = Offset.zero;
                                             keyPair.physicalKey = null;
                                             keyPair.logicalKey = null;
-                                            keyPair.inGameAction = button.action!;
+                                            keyPair.inGameAction = action;
                                             keyPair.inGameActionValue = null;
                                             widget.onUpdate();
                                             setState(() {});

@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/buttons.dart';
 
 import '../actions/base_actions.dart';
 import 'apps/custom_app.dart';
@@ -137,6 +137,9 @@ class KeyPair {
       (touchPosition != Offset.zero &&
           core.logic.showLocalRemoteOptions &&
           core.actionHandler.supportedModes.contains(SupportedMode.touch)) ||
+      (inGameAction != null &&
+          core.logic.obpConnectedApp != null &&
+          core.logic.obpConnectedApp!.supportedActions.contains(inGameAction)) ||
       (inGameAction != null && core.logic.emulatorEnabled);
 
   @override

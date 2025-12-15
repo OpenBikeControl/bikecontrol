@@ -8,8 +8,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dartx/dartx.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:dartx/dartx.dart';
 
 class ProtocolParseException implements Exception {
   final String message;
@@ -224,7 +224,12 @@ class OpenBikeProtocolParser {
 
     final controllerButtons = buttonIds.mapNotNull((id) => BUTTON_NAMES[id]).toList();
 
-    return AppInfo(appId: appId, appVersion: appVersion, supportedButtons: controllerButtons);
+    return AppInfo(
+      appId: appId,
+      appVersion: appVersion,
+      supportedButtons: controllerButtons,
+      supportedActions: controllerButtons.mapNotNull((b) => b.action).toList(),
+    );
   }
 }
 
@@ -232,11 +237,18 @@ class AppInfo {
   final String appId;
   final String appVersion;
   final List<ControllerButton> supportedButtons;
+  final List<InGameAction> supportedActions;
 
-  AppInfo({required this.appId, required this.appVersion, required this.supportedButtons});
+  AppInfo({
+    required this.appId,
+    required this.appVersion,
+    required this.supportedButtons,
+    required this.supportedActions,
+  });
 
   @override
-  String toString() => 'AppInfo(appId: $appId, appVersion: $appVersion, supportedButtons: $supportedButtons)';
+  String toString() =>
+      'AppInfo(appId: $appId, appVersion: $appVersion, supportedButtons: $supportedButtons, supportedActions: $supportedActions)';
 }
 
 /// DeviceStatus message representation
