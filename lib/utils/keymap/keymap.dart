@@ -140,7 +140,18 @@ class KeyPair {
       (inGameAction != null &&
           core.logic.obpConnectedApp != null &&
           core.logic.obpConnectedApp!.supportedActions.contains(inGameAction)) ||
-      (inGameAction != null && core.logic.emulatorEnabled);
+      (inGameAction != null &&
+          core.logic.showMyWhooshLink &&
+          core.settings.getMyWhooshLinkEnabled() &&
+          core.whooshLink.supportedActions.contains(inGameAction)) ||
+      (inGameAction != null &&
+          core.logic.showZwiftBleEmulator &&
+          core.settings.getZwiftBleEmulatorEnabled() &&
+          core.zwiftEmulator.supportedActions.contains(inGameAction)) ||
+      (inGameAction != null &&
+          core.logic.showZwiftMsdnEmulator &&
+          core.settings.getZwiftMdnsEmulatorEnabled() &&
+          core.zwiftMdnsEmulator.supportedActions.contains(inGameAction));
 
   @override
   String toString() {

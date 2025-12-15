@@ -130,7 +130,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     builder: (context) => SelectableCard(
                       icon: Icons.link,
                       title: Text(context.i18n.myWhooshDirectConnectAction),
-                      isActive: keyPair.inGameAction != null,
+                      isActive:
+                          keyPair.inGameAction != null &&
+                          core.whooshLink.supportedActions.contains(keyPair.inGameAction),
                       value: [keyPair.inGameAction.toString(), ?keyPair.inGameActionValue?.toString()].join(' '),
                       onPressed: () {
                         showDropdown(
