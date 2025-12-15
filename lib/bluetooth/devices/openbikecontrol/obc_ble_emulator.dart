@@ -42,9 +42,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
         print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
         if (state.state == ConnectionState.connected) {
         } else if (state.state == ConnectionState.disconnected) {
-          core.connection.signalNotification(
-            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
-          );
+          if (connectedApp.value != null) {
+            core.connection.signalNotification(
+              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
+            );
+          }
           isConnected.value = false;
           connectedApp.value = null;
           _central = null;
@@ -108,6 +110,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
                 final appInfo = OpenBikeProtocolParser.parseAppInfo(value);
                 isConnected.value = true;
                 connectedApp.value = appInfo;
+                supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
                 core.connection.signalNotification(
                   AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
                 );
@@ -225,18 +228,20 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
-    final buttons = keyPair.buttons;
+    final inGameAction = keyPair.inGameAction;
 
     final mappedButtons = connectedApp.value!.supportedButtons.filter(
-      (supportedButton) => buttons.any((b) => b.action == supportedButton.action),
+      (supportedButton) => supportedButton.action == inGameAction,
     );
 
-    if (_central == null) {
+    if (inGameAction == null) {
+      return Error('Invalid in-game action for key pair: $keyPair');
+    } else if (_central == null) {
       return Error('No central connected');
     } else if (connectedApp.value == null) {
       return Error('No app info received from central');
     } else if (mappedButtons.isEmpty) {
-      return NotHandled('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
+      return NotHandled('App does not support all buttons for action: ${inGameAction.title}');
     }
 
     if (isKeyDown && isKeyUp) {
@@ -255,6 +260,6 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
       await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
     }
 
-    return Success('Buttons ${buttons.map((b) => b.name).join(', ')} sent');
+    return Success('Buttons ${inGameAction?.title} sent');
   }
 }

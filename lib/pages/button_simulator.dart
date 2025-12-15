@@ -1,17 +1,19 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart' show BackButton;
-import 'package:flutter/services.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/android.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/material.dart' show BackButton;
+import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ButtonSimulator extends StatefulWidget {
   const ButtonSimulator({super.key});
@@ -328,7 +330,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       );
       return;
     } else {
-      await connection.sendAction(
+      final result = await connection.sendAction(
         KeyPair(
           buttons: [],
           physicalKey: null,
@@ -338,6 +340,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         isKeyDown: down,
         isKeyUp: !down,
       );
+      if (result is! Success) {
+        buildToast(context, title: result.message);
+      }
     }
   }
 
