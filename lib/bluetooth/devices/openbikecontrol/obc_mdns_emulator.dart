@@ -1,8 +1,5 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:nsd/nsd.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -13,6 +10,9 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:nsd/nsd.dart';
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection {
   ServerSocket? _server;
@@ -162,19 +162,34 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
     final buttons = keyPair.buttons;
 
+    final mappedButtons = connectedApp.value!.supportedButtons.filter(
+      (supportedButton) => buttons.any((b) => b.action == supportedButton.action),
+    );
+
     if (_socket == null) {
       print('No client connected, cannot send button press');
       return Error('No client connected');
     } else if (connectedApp.value == null) {
       return Error('No app info received from central');
-    } else if (connectedApp.value!.supportedButtons.containsAll(buttons)) {
+    } else if (mappedButtons.isEmpty) {
       return NotHandled('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 
-    final responseData = OpenBikeProtocolParser.encodeButtonState(
-      buttons.map((b) => ButtonState(b, isKeyDown ? 1 : 0)).toList(),
-    );
-    _write(_socket!, responseData);
+    if (isKeyDown && isKeyUp) {
+      final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
+        mappedButtons.map((b) => ButtonState(b, 1)).toList(),
+      );
+      _write(_socket!, responseDataDown);
+      final responseDataUp = OpenBikeProtocolParser.encodeButtonState(
+        mappedButtons.map((b) => ButtonState(b, 0)).toList(),
+      );
+      _write(_socket!, responseDataUp);
+    } else {
+      final responseData = OpenBikeProtocolParser.encodeButtonState(
+        mappedButtons.map((b) => ButtonState(b, isKeyDown ? 1 : 0)).toList(),
+      );
+      _write(_socket!, responseData);
+    }
 
     return Success('Sent ${buttons.map((b) => b.name).join(', ')} button press');
   }

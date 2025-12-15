@@ -226,25 +226,34 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
     final buttons = keyPair.buttons;
+
+    final mappedButtons = connectedApp.value!.supportedButtons.filter(
+      (supportedButton) => buttons.any((b) => b.action == supportedButton.action),
+    );
+
     if (_central == null) {
       return Error('No central connected');
     } else if (connectedApp.value == null) {
       return Error('No app info received from central');
-    } else if (!connectedApp.value!.supportedButtons.containsAll(buttons)) {
+    } else if (mappedButtons.isEmpty) {
       return NotHandled('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
     }
 
-    final responseData = OpenBikeProtocolParser.encodeButtonState(
-      buttons
-          .map(
-            (b) => ButtonState(
-              b,
-              isKeyDown ? 1 : 0,
-            ),
-          )
-          .toList(),
-    );
-    await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
+    if (isKeyDown && isKeyUp) {
+      final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
+        mappedButtons.map((b) => ButtonState(b, 1)).toList(),
+      );
+      await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseDataDown);
+      final responseDataUp = OpenBikeProtocolParser.encodeButtonState(
+        mappedButtons.map((b) => ButtonState(b, 0)).toList(),
+      );
+      await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseDataUp);
+    } else {
+      final responseData = OpenBikeProtocolParser.encodeButtonState(
+        mappedButtons.map((b) => ButtonState(b, isKeyDown ? 1 : 0)).toList(),
+      );
+      await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
+    }
 
     return Success('Buttons ${buttons.map((b) => b.name).join(', ')} sent');
   }
