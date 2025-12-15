@@ -19,6 +19,8 @@
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler.h>
 #include <flutter/event_stream_handler_functions.h>
+#include <winrt/base.h>
+#include <winrt/base.h>
 
 using namespace winrt;
 using namespace Windows::Services::Store;
@@ -249,30 +251,10 @@ namespace windows_iap {
         if (license.IsTrial()) {
             result[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(true);
 
-            auto expiration = license.TrialExpirationDate();
-
-            if (expiration.UniversalTime != 0) {
-                // Convert Windows DateTime (100ns ticks since 1601-01-01) to Unix time
-                int64_t ticks = expiration.UniversalTime;
-                time_t expirationUnix =
-                        (ticks - 116444736000000000LL) / 10000000LL;
-
-                time_t nowUnix;
-                time(&nowUnix);
-
-                if (expirationUnix > nowUnix) {
-                    double secondsLeft = difftime(expirationUnix, nowUnix);
-                    int remainingDays = static_cast<int>(secondsLeft / (60 * 60 * 24));
-
-                    // Round up to include partial day
-                    if (secondsLeft > remainingDays * 86400) {
-                        remainingDays += 1;
-                    }
-
-                    result[flutter::EncodableValue("remainingDays")] =
-                            flutter::EncodableValue(remainingDays);
-                }
-            }
+			winrt::Windows::Foundation::TimeSpan expiration = license.TrialTimeRemaining();
+			const auto inDays = std::chrono::duration_cast<std::chrono::hours>(expiration).count() / 24.0;
+			
+	        result[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue(inDays);
         }
 
         resultCallback->Success(flutter::EncodableValue(result));

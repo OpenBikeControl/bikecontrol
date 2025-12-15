@@ -134,7 +134,7 @@ class WindowsIAPService {
   /// Get a status message for the user
   String getStatusMessage() {
     if (IAPManager.instance.isPurchased.value) {
-      return 'Full version unlocked';
+      return 'Full Version';
     } else if (!hasTrialStarted) {
       return '$trialDays day trial available';
     } else if (!isTrialExpired) {
