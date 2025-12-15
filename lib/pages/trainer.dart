@@ -141,11 +141,21 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
               if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
               if (core.logic.showRemote || showLocalAsOther || showWhooshLinkAsOther) ...[
-                SizedBox(height: 32),
-                ColoredTitle(text: context.i18n.otherConnectionMethods),
-                if (core.logic.showRemote) RemotePairingWidget(),
-                if (showLocalAsOther) LocalTile(),
-                if (showWhooshLinkAsOther) MyWhooshLinkTile(),
+                SizedBox(height: 16),
+                Accordion(
+                  items: [
+                    AccordionItem(
+                      trigger: AccordionTrigger(child: ColoredTitle(text: context.i18n.otherConnectionMethods)),
+                      content: Column(
+                        children: [
+                          if (core.logic.showRemote) RemotePairingWidget(),
+                          if (showLocalAsOther) LocalTile(),
+                          if (showWhooshLinkAsOther) MyWhooshLinkTile(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
 
               SizedBox(),

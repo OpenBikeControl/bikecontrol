@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
@@ -12,6 +10,8 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ConfigurationPage extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -61,13 +61,25 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                   children: [
                     Select<SupportedApp>(
                       constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-                      itemBuilder: (c, app) => Text(screenshotMode ? 'Trainer app' : app.name),
+                      itemBuilder: (c, app) => Row(
+                        spacing: 4,
+                        children: [
+                          Text(screenshotMode ? 'Trainer app' : app.name),
+                          if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                        ],
+                      ),
                       popup: SelectPopup(
                         items: SelectItemList(
                           children: SupportedApp.supportedApps.map((app) {
                             return SelectItemButton(
                               value: app,
-                              child: Text(app.name),
+                              child: Row(
+                                spacing: 4,
+                                children: [
+                                  Text(app.name),
+                                  if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                                ],
+                              ),
                             );
                           }).toList(),
                         ),
@@ -113,6 +125,10 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       },
                     ),
                     if (core.settings.getTrainerApp() != null) ...[
+                      if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true)
+                        Text(
+                          'Great news - ${core.settings.getTrainerApp()!.name} supports the OpenBikeControl Protocol, so you\'ll the best possible experience!',
+                        ).xSmall,
                       SizedBox(height: 8),
                       Text(
                         context.i18n.selectTargetWhereAppRuns(
