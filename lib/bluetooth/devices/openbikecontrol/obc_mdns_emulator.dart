@@ -137,6 +137,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
                 final appInfo = OpenBikeProtocolParser.parseAppInfo(Uint8List.fromList(data));
                 isConnected.value = true;
                 connectedApp.value = appInfo;
+
+                supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
                 core.connection.signalNotification(
                   AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
                 );
@@ -160,19 +162,21 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
-    final buttons = keyPair.buttons;
+    final inGameAction = keyPair.inGameAction;
 
     final mappedButtons = connectedApp.value!.supportedButtons.filter(
-      (supportedButton) => buttons.any((b) => b.action == supportedButton.action),
+      (supportedButton) => supportedButton.action == inGameAction,
     );
 
-    if (_socket == null) {
+    if (inGameAction == null) {
+      return Error('Invalid in-game action for key pair: $keyPair');
+    } else if (_socket == null) {
       print('No client connected, cannot send button press');
       return Error('No client connected');
     } else if (connectedApp.value == null) {
       return Error('No app info received from central');
     } else if (mappedButtons.isEmpty) {
-      return NotHandled('App does not support all buttons: ${buttons.map((b) => b.name).join(', ')}');
+      return NotHandled('App does not support: ${inGameAction.title}');
     }
 
     if (isKeyDown && isKeyUp) {
@@ -191,7 +195,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
       _write(_socket!, responseData);
     }
 
-    return Success('Sent ${buttons.map((b) => b.name).join(', ')} button press');
+    return Success('Sent ${inGameAction.title} button press');
   }
 
   void _write(Socket socket, List<int> responseData) {
