@@ -1,9 +1,10 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OpenBikeControlBluetoothTile extends StatefulWidget {
   const OpenBikeControlBluetoothTile({super.key});
@@ -36,7 +37,8 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
                 if (!value) {
                   core.obpBluetoothEmulator.stopServer();
                 } else if (value) {
-                  core.obpBluetoothEmulator.startServer().catchError((e) {
+                  core.obpBluetoothEmulator.startServer().catchError((e, s) {
+                    recordError(e, s, context: 'OBP BLE Emulator');
                     core.settings.setObpBleEnabled(false);
                     buildToast(
                       context,

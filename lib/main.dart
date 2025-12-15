@@ -2,10 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'
-    show GlobalMaterialLocalizations, GlobalWidgetsLocalizations;
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
@@ -13,6 +9,10 @@ import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    show GlobalMaterialLocalizations, GlobalWidgetsLocalizations;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
@@ -31,7 +31,7 @@ void main() async {
         final List<dynamic> errorAndStack = pair as List<dynamic>;
         final error = errorAndStack.first;
         final stack = errorAndStack.last as StackTrace?;
-        _recordError(error, stack, context: 'Isolate');
+        recordError(error, stack, context: 'Isolate');
       }).sendPort,
     );
   }
@@ -47,7 +47,7 @@ void main() async {
 
       // Catch errors from platform dispatcher (async)
       PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-        _recordError(error, stack, context: 'PlatformDispatcher');
+        recordError(error, stack, context: 'PlatformDispatcher');
         // Return true means "handled"
         return true;
       };
@@ -63,7 +63,7 @@ void main() async {
         print('App crashed: $error');
         debugPrintStack(stackTrace: stack);
       }
-      _recordError(error, stack, context: 'Zone');
+      recordError(error, stack, context: 'Zone');
     },
   );
 }
@@ -77,7 +77,7 @@ Future<void> _recordFlutterError(FlutterErrorDetails details) async {
   );
 }
 
-Future<void> _recordError(
+Future<void> recordError(
   Object error,
   StackTrace? stack, {
   required String context,

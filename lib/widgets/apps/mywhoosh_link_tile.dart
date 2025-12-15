@@ -1,10 +1,11 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class MyWhooshLinkTile extends StatefulWidget {
   const MyWhooshLinkTile({super.key});
@@ -45,7 +46,8 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                     level: LogLevel.LOGLEVEL_WARNING,
                     duration: Duration(seconds: 12),
                   );
-                  core.connection.startMyWhooshServer().catchError((e) {
+                  core.connection.startMyWhooshServer().catchError((e, s) {
+                    recordError(e, s, context: 'MyWhoosh Link Server');
                     core.settings.setMyWhooshLinkEnabled(false);
                     buildToast(
                       context,

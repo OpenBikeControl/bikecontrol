@@ -200,9 +200,7 @@ class _LocalTileState extends State<LocalTile> {
                     ),
                     IconButton.secondary(
                       onPressed: () {
-                        core.logic.isAndroidServiceRunning().then((
-                          isRunning,
-                        ) {
+                        core.logic.isAndroidServiceRunning().then((isRunning) {
                           core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
                           setState(() {
                             _isRunningAndroidService = isRunning;
