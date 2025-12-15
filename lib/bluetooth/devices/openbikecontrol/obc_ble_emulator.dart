@@ -260,6 +260,6 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
       await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
     }
 
-    return Success('Buttons ${inGameAction?.title} sent');
+    return Success('Buttons ${inGameAction.title} sent');
   }
 }
