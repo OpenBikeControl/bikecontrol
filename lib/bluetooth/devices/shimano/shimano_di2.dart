@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/material.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
@@ -96,6 +96,7 @@ class ShimanoDi2 extends BluetoothDevice {
 
 class ShimanoDi2Constants {
   static const String SERVICE_UUID = "000018ef-5348-494d-414e-4f5f424c4500";
+  static const String SERVICE_UUID_ALTERNATIVE = "000018ff-5348-494d-414e-4f5f424c4500";
 
   static const String D_FLY_CHANNEL_UUID = "00002ac2-5348-494d-414e-4f5f424c4500";
 }

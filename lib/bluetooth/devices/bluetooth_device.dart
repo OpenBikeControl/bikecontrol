@@ -1,8 +1,5 @@
 import 'dart:async';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
@@ -23,6 +20,9 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'cycplus/cycplus_bc2.dart';
@@ -50,6 +50,7 @@ abstract class BluetoothDevice extends BaseDevice {
     SterzoConstants.SERVICE_UUID,
     CycplusBc2Constants.SERVICE_UUID,
     ShimanoDi2Constants.SERVICE_UUID,
+    ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE,
     OpenBikeControlConstants.SERVICE_UUID,
   ];
 
@@ -89,6 +90,9 @@ abstract class BluetoothDevice extends BaseDevice {
           CycplusBc2(scanResult),
         _ when scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase()) => CycplusBc2(scanResult),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase()) => ShimanoDi2(scanResult),
+        _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase()) => ShimanoDi2(
+          scanResult,
+        ),
         _ when scanResult.services.contains(OpenBikeControlConstants.SERVICE_UUID.toLowerCase()) =>
           OpenBikeControlDevice(scanResult),
         _ when scanResult.services.contains(WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase()) =>
