@@ -37,7 +37,7 @@ class Settings {
       await IAPManager.instance.initialize();
 
       // Start trial if this is the first launch
-      if (!IAPManager.instance.hasTrialStarted && !IAPManager.instance.isPurchased) {
+      if (!IAPManager.instance.hasTrialStarted && !IAPManager.instance.isPurchased.value) {
         await IAPManager.instance.startTrial();
       }
 

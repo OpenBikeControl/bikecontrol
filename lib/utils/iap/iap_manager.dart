@@ -15,6 +15,7 @@ class IAPManager {
 
   IAPService? _iapService;
   WindowsIAPService? _windowsIapService;
+  ValueNotifier<bool> isPurchased = ValueNotifier<bool>(false);
 
   IAPManager._();
 
@@ -38,16 +39,6 @@ class IAPManager {
     } catch (e) {
       debugPrint('Error initializing IAP manager: $e');
     }
-  }
-
-  /// Check if the user has purchased the full version
-  bool get isPurchased {
-    if (_iapService != null) {
-      return _iapService!.isPurchased;
-    } else if (_windowsIapService != null) {
-      return _windowsIapService!.isPurchased;
-    }
-    return false;
   }
 
   /// Check if the trial period has started

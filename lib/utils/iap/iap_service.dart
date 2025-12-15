@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -23,7 +24,6 @@ class IAPService {
   final FlutterSecureStorage _prefs;
 
   StreamSubscription<List<PurchaseDetails>>? _subscription;
-  bool _isPurchased = false;
   bool _isInitialized = false;
   String? _trialStartDate;
   String? _lastCommandDate;
@@ -48,7 +48,7 @@ class IAPService {
       if (!available) {
         debugPrint('IAP not available on this platform -');
         // Set as purchased to allow unlimited access when IAP is not available
-        _isPurchased = false;
+        IAPManager.instance.isPurchased.value = false;
         _isInitialized = true;
         return;
       }
@@ -60,7 +60,7 @@ class IAPService {
         onError: (error) {
           debugPrint('IAP Error: $error');
           // On error, default to allowing access
-          _isPurchased = false;
+          IAPManager.instance.isPurchased.value = false;
         },
       );
 
@@ -75,7 +75,7 @@ class IAPService {
     } catch (e) {
       debugPrint('Failed to initialize IAP: $e');
       // On initialization failure, default to allowing access
-      _isPurchased = false;
+      IAPManager.instance.isPurchased.value = false;
       _isInitialized = true;
     }
   }
@@ -85,7 +85,7 @@ class IAPService {
     // First check if we have a stored purchase status
     final storedStatus = await _prefs.read(key: _purchaseStatusKey);
     if (storedStatus == "true") {
-      _isPurchased = true;
+      IAPManager.instance.isPurchased.value = true;
       return;
     }
 
@@ -99,7 +99,7 @@ class IAPService {
     }
 
     // Also check for IAP purchase
-    if (!_isPurchased) {
+    if (!IAPManager.instance.isPurchased.value) {
       await restorePurchases();
     }
   }
@@ -154,8 +154,8 @@ class IAPService {
 
       final Map<String, dynamic> json = jsonDecode(responseBody) as Map<String, dynamic>;
       final purchasedVersion = json['receipt']["original_application_version"];
-      _isPurchased = Version.parse(purchasedVersion) < Version(4, 2, 0);
-      if (_isPurchased) {
+      IAPManager.instance.isPurchased.value = Version.parse(purchasedVersion) < Version(4, 2, 0);
+      if (IAPManager.instance.isPurchased.value) {
         debugPrint('Apple receipt validation successful - granting full access');
         await _prefs.write(key: _purchaseStatusKey, value: "true");
       } else {
@@ -177,8 +177,8 @@ class IAPService {
       if (lastSeenVersion != null && lastSeenVersion.isNotEmpty) {
         Version lastVersion = Version.parse(lastSeenVersion);
         // If they had a previous version, they're an existing paid user
-        _isPurchased = lastVersion < Version(4, 2, 0);
-        if (_isPurchased) {
+        IAPManager.instance.isPurchased.value = lastVersion < Version(4, 2, 0);
+        if (IAPManager.instance.isPurchased.value) {
           await _prefs.write(key: _purchaseStatusKey, value: "true");
         }
         debugPrint('Existing Android user detected - granting full access');
@@ -202,7 +202,7 @@ class IAPService {
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
     for (final purchase in purchaseDetailsList) {
       if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
-        _isPurchased = true;
+        IAPManager.instance.isPurchased.value = true;
         await _prefs.write(key: _purchaseStatusKey, value: 'true');
         debugPrint('Purchase successful or restored');
       }
@@ -227,7 +227,7 @@ class IAPService {
         return false;
       }
 
-      final productId = Platform.isIOS || Platform.isMacOS ? 'full_access_unlock' : 'full-access-unlock';
+      final productId = 'full_access_unlock';
 
       // Query product details
       final response = await _inAppPurchase.queryProductDetails({productId});
@@ -244,15 +244,17 @@ class IAPService {
       final product = response.productDetails.first;
       final purchaseParam = PurchaseParam(productDetails: product);
 
-      return await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+      final bought = await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+      if (bought) {
+        IAPManager.instance.isPurchased.value = true;
+        await _prefs.write(key: _purchaseStatusKey, value: 'true');
+      }
+      return bought;
     } catch (e) {
       debugPrint('Error purchasing: $e');
       return false;
     }
   }
-
-  /// Check if the user has purchased the full version
-  bool get isPurchased => _isPurchased;
 
   /// Check if the trial period has started
   bool get hasTrialStarted {
@@ -268,7 +270,7 @@ class IAPService {
 
   /// Get the number of days remaining in the trial
   int get trialDaysRemaining {
-    if (_isPurchased) return 0;
+    if (IAPManager.instance.isPurchased.value) return 0;
 
     final trialStart = _trialStartDate;
     if (trialStart == null) return trialDays;
@@ -283,7 +285,7 @@ class IAPService {
 
   /// Check if the trial has expired
   bool get isTrialExpired {
-    return (!_isPurchased && hasTrialStarted && trialDaysRemaining <= 0);
+    return (!IAPManager.instance.isPurchased.value && hasTrialStarted && trialDaysRemaining <= 0);
   }
 
   /// Get the number of commands executed today
@@ -319,21 +321,21 @@ class IAPService {
 
   /// Check if the user can execute a command
   bool get canExecuteCommand {
-    if (_isPurchased) return true;
+    if (IAPManager.instance.isPurchased.value) return true;
     if (!isTrialExpired) return true;
     return dailyCommandCount < dailyCommandLimit;
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (_isPurchased || !isTrialExpired) return -1; // Unlimited
+    if (IAPManager.instance.isPurchased.value || !isTrialExpired) return -1; // Unlimited
     final remaining = dailyCommandLimit - dailyCommandCount;
     return remaining > 0 ? remaining : 0; // Never return negative
   }
 
   /// Get a status message for the user
   String getStatusMessage() {
-    if (_isPurchased) {
+    if (IAPManager.instance.isPurchased.value) {
       return 'Full Version';
     } else if (!hasTrialStarted) {
       return '$trialDays day trial available';

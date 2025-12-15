@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:windows_iap/windows_iap.dart';
@@ -18,7 +19,6 @@ class WindowsIAPService {
 
   final FlutterSecureStorage _prefs;
 
-  bool _isPurchased = false;
   bool _isInitialized = false;
 
   String? _lastCommandDate;
@@ -50,16 +50,16 @@ class WindowsIAPService {
     // First check if we have a stored purchase status
     final storedStatus = await _prefs.read(key: _purchaseStatusKey);
     if (storedStatus == "true") {
-      _isPurchased = true;
+      IAPManager.instance.isPurchased.value = true;
       return;
     }
     final trial = await _windowsIapPlugin.getTrialStatusAndRemainingDays();
     trialDaysRemaining = trial.remainingDays;
     if (!trial.isTrial && trial.remainingDays <= 0) {
-      _isPurchased = true;
+      IAPManager.instance.isPurchased.value = true;
       await _prefs.write(key: _purchaseStatusKey, value: "true");
     } else {
-      _isPurchased = false;
+      IAPManager.instance.isPurchased.value = false;
     }
   }
 
@@ -75,9 +75,6 @@ class WindowsIAPService {
     }
   }
 
-  /// Check if the user has purchased the full version
-  bool get isPurchased => _isPurchased;
-
   /// Check if the trial period has started
   bool get hasTrialStarted => trialDaysRemaining > 0;
 
@@ -86,7 +83,7 @@ class WindowsIAPService {
 
   /// Check if the trial has expired
   bool get isTrialExpired {
-    return !_isPurchased && hasTrialStarted && trialDaysRemaining <= 0;
+    return !IAPManager.instance.isPurchased.value && hasTrialStarted && trialDaysRemaining <= 0;
   }
 
   /// Get the number of commands executed today
@@ -122,21 +119,21 @@ class WindowsIAPService {
 
   /// Check if the user can execute a command
   bool get canExecuteCommand {
-    if (_isPurchased) return true;
+    if (IAPManager.instance.isPurchased.value) return true;
     if (!isTrialExpired) return true;
     return dailyCommandCount < dailyCommandLimit;
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (_isPurchased || !isTrialExpired) return -1; // Unlimited
+    if (IAPManager.instance.isPurchased.value || !isTrialExpired) return -1; // Unlimited
     final remaining = dailyCommandLimit - dailyCommandCount;
     return remaining > 0 ? remaining : 0; // Never return negative
   }
 
   /// Get a status message for the user
   String getStatusMessage() {
-    if (_isPurchased) {
+    if (IAPManager.instance.isPurchased.value) {
       return 'Full version unlocked';
     } else if (!hasTrialStarted) {
       return '$trialDays day trial available';

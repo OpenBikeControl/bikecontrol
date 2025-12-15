@@ -7,6 +7,7 @@ import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
@@ -159,9 +160,14 @@ class _NavigationState extends State<Navigation> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: IAPStatusWidget(),
+                ValueListenableBuilder(
+                  valueListenable: IAPManager.instance.isPurchased,
+                  builder: (context, value, child) => value
+                      ? SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: IAPStatusWidget(),
+                        ),
                 ),
                 Expanded(
                   child: Container(
