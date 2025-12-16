@@ -1,4 +1,4 @@
-### 4.1.0 (unreleased)
+### 4.1.0 (16-12-2025)
 
 **Features**:
 - control your trainer manually without requiring a controller - just like a Companion app
@@ -6,7 +6,7 @@
 
 **Fixes**:
 - Gamepads: handle analog values correctly on Windows
-- MyWhoosh: updated default keymap to use steering instead of navigating 
+- MyWhoosh: updated default keymap to use the new A+D keys for steering 
 
 ### 4.0.0 (07-12-2025)
 
