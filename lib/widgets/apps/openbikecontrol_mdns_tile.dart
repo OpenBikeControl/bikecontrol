@@ -1,9 +1,10 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OpenBikeControlMdnsTile extends StatefulWidget {
   const OpenBikeControlMdnsTile({super.key});
@@ -37,7 +38,8 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                 if (!value) {
                   core.obpMdnsEmulator.stopServer();
                 } else if (value) {
-                  core.obpMdnsEmulator.startServer().catchError((e) {
+                  core.obpMdnsEmulator.startServer().catchError((e, s) {
+                    recordError(e, s, context: 'OBP mDNS Emulator');
                     core.settings.setObpMdnsEnabled(false);
                     core.connection.signalNotification(
                       AlertNotification(

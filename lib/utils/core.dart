@@ -1,10 +1,5 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:media_key_detector/media_key_detector.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
@@ -23,6 +18,11 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/settings/settings.dart';
+import 'package:dartx/dartx.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:media_key_detector/media_key_detector.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
@@ -76,14 +76,14 @@ class Permissions {
       final deviceInfoPlugin = DeviceInfoPlugin();
       final deviceInfo = await deviceInfoPlugin.androidInfo;
       list = [
-        BluetoothTurnedOn(),
-        NotificationRequirement(),
         if (deviceInfo.version.sdkInt <= 30)
           LocationRequirement()
         else ...[
           BluetoothScanRequirement(),
           BluetoothConnectRequirement(),
         ],
+        BluetoothTurnedOn(),
+        NotificationRequirement(),
       ];
     } else {
       list = [UnsupportedPlatform()];
@@ -243,7 +243,9 @@ class CoreLogic {
   Future<bool> isTrainerConnected() async {
     if (screenshotMode) {
       return true;
-    } else if (showLocalControl && core.settings.getLocalEnabled()) {
+    } else if (showLocalControl &&
+        core.settings.getLocalEnabled() &&
+        core.settings.getTrainerApp()?.supportsOpenBikeProtocol == false) {
       if (canRunAndroidService) {
         return isAndroidServiceRunning();
       } else {
@@ -263,7 +265,8 @@ class CoreLogic {
     if (isZwiftBleEnabled &&
         await core.permissions.getRemoteControlRequirements().allGranted &&
         !core.zwiftEmulator.isStarted.value) {
-      core.zwiftEmulator.startAdvertising(() {}).catchError((e) {
+      core.zwiftEmulator.startAdvertising(() {}).catchError((e, s) {
+        recordError(e, s, context: 'Zwift BLE Emulator');
         core.settings.setZwiftBleEmulatorEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
@@ -271,7 +274,8 @@ class CoreLogic {
       });
     }
     if (isZwiftMdnsEnabled && !core.zwiftMdnsEmulator.isStarted.value) {
-      core.zwiftMdnsEmulator.startServer().catchError((e) {
+      core.zwiftMdnsEmulator.startServer().catchError((e, s) {
+        recordError(e, s, context: 'Zwift mDNS Emulator');
         core.settings.setZwiftMdnsEmulatorEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
@@ -279,7 +283,8 @@ class CoreLogic {
       });
     }
     if (isObpMdnsEnabled && !core.obpMdnsEmulator.isStarted.value) {
-      core.obpMdnsEmulator.startServer().catchError((e) {
+      core.obpMdnsEmulator.startServer().catchError((e, s) {
+        recordError(e, s, context: 'OBP mDNS Emulator');
         core.settings.setObpMdnsEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl mDNS Emulator: $e'),
@@ -289,7 +294,8 @@ class CoreLogic {
     if (isObpBleEnabled &&
         await core.permissions.getRemoteControlRequirements().allGranted &&
         !core.obpBluetoothEmulator.isStarted.value) {
-      core.obpBluetoothEmulator.startServer().catchError((e) {
+      core.obpBluetoothEmulator.startServer().catchError((e, s) {
+        recordError(e, s, context: 'OBP BLE Emulator');
         core.settings.setObpBleEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl BLE Emulator: $e'),
@@ -302,7 +308,8 @@ class CoreLogic {
     }
 
     if (isRemoteControlEnabled && !core.remotePairing.isStarted.value) {
-      core.remotePairing.startAdvertising().catchError((e) {
+      core.remotePairing.startAdvertising().catchError((e, s) {
+        recordError(e, s, context: 'Remote Pairing');
         core.settings.setRemoteControlEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Remote Control pairing: $e'),

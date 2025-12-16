@@ -2,13 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -16,6 +9,13 @@ import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../utils/actions/base_actions.dart';
@@ -407,9 +407,9 @@ class KeypairExplanation extends StatelessWidget {
         if (keyPair.inGameAction != null && core.logic.emulatorEnabled)
           KeyWidget(
             label: [
-              keyPair.inGameAction.toString().split('.').last,
-              if (keyPair.inGameActionValue != null) ': ${keyPair.inGameActionValue}',
-            ].joinToString(separator: ''),
+              keyPair.inGameAction!.title,
+              if (keyPair.inGameActionValue != null) '${keyPair.inGameActionValue}',
+            ].joinToString(separator: ': '),
           )
         else if (keyPair.isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
           KeyWidget(

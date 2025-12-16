@@ -199,7 +199,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
   }
 
   void _write(Socket socket, List<int> responseData) {
-    print('Sending response: ${bytesToHex(responseData)}');
+    debugPrint('Sending response: ${bytesToHex(responseData)}');
     socket.add(responseData);
   }
 }

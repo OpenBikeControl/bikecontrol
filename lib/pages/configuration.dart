@@ -61,13 +61,25 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                   children: [
                     Select<SupportedApp>(
                       constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-                      itemBuilder: (c, app) => Text(screenshotMode ? 'Trainer app' : app.name),
+                      itemBuilder: (c, app) => Row(
+                        spacing: 4,
+                        children: [
+                          Text(screenshotMode ? 'Trainer app' : app.name),
+                          if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                        ],
+                      ),
                       popup: SelectPopup(
                         items: SelectItemList(
                           children: SupportedApp.supportedApps.map((app) {
                             return SelectItemButton(
                               value: app,
-                              child: Text(app.name),
+                              child: Row(
+                                spacing: 4,
+                                children: [
+                                  Text(app.name),
+                                  if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                                ],
+                              ),
                             );
                           }).toList(),
                         ),
@@ -113,6 +125,10 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       },
                     ),
                     if (core.settings.getTrainerApp() != null) ...[
+                      if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true)
+                        Text(
+                          'Great news - ${core.settings.getTrainerApp()!.name} supports the OpenBikeControl Protocol, so you\'ll the best possible experience!',
+                        ).xSmall,
                       SizedBox(height: 8),
                       Text(
                         context.i18n.selectTargetWhereAppRuns(
