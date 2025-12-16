@@ -32,6 +32,10 @@ class NotHandled extends ActionResult {
   const NotHandled(super.message);
 }
 
+class Ignored extends ActionResult {
+  const Ignored(super.message);
+}
+
 class Error extends ActionResult {
   const Error(super.message);
 }

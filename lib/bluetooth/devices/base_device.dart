@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/material.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -113,7 +113,7 @@ abstract class BaseDevice {
     for (final action in buttonsClicked) {
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
-      actionStreamInternal.add(LogNotification(result.message));
+      actionStreamInternal.add(ActionNotification(result));
     }
   }
 
@@ -127,7 +127,7 @@ abstract class BaseDevice {
   Future<void> performRelease(List<ControllerButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
       final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
-      actionStreamInternal.add(ActionNotification(result));
+      actionStreamInternal.add(LogNotification(result.message));
     }
   }
 

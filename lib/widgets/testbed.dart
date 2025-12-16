@@ -2,9 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/utils/actions/base_actions.dart' as actions;
 import 'package:bike_control/utils/core.dart';
@@ -13,6 +10,9 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/messages/notification.dart';
 
@@ -125,7 +125,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
             }
           }
         }
-      } else if (data is ActionNotification) {
+      } else if (data is ActionNotification && data.result is! actions.Ignored) {
         buildToast(
           context,
           location: ToastLocation.bottomLeft,

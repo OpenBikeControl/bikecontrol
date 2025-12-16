@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -11,6 +10,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:flutter/foundation.dart';
 
 class WhooshLink extends TrainerConnection {
   Socket? _socket;
@@ -155,7 +155,7 @@ class WhooshLink extends TrainerConnection {
       InGameAction.steerRight,
     ];
     if (jsonObject != null && !isKeyDown && !supportsIsKeyUpActions.contains(keyPair.inGameAction)) {
-      return Success('No Action sent on key down for action: ${keyPair.inGameAction}');
+      return Ignored('No Action sent on key down for action: ${keyPair.inGameAction}');
     } else if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
       _socket?.writeln(jsonString);
