@@ -40,6 +40,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+  animation_kit:
+    dependency: transitive
+    description:
+      name: animation_kit
+      sha256: d9b0944b3ee02fae3fedbc6cb04d9a9ea26ad1d29f3261e0b55443b1e0bfba63
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   archive:
     dependency: transitive
     description:
@@ -1242,6 +1250,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  pubghost:
+    dependency: "direct dev"
+    description:
+      name: pubghost
+      sha256: feb4c76c873b9c8cbbf53a45085fc5ff1705dd88e63554bb0de10ecb96ec1ba9
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.7"
   quiver:
     dependency: transitive
     description:
@@ -1310,11 +1326,12 @@ packages:
   shadcn_flutter:
     dependency: "direct main"
     description:
-      name: shadcn_flutter
-      sha256: "1fd4f798c39d6308dc8f7e94d9e870b5db39fbf417ea95c423c7555ce8227a1c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.47"
+      path: "."
+      ref: HEAD
+      resolved-ref: "3e49867dadd504ccf5c036adc967ef9229643111"
+      url: "https://github.com/sunarya-thito/shadcn_flutter.git"
+    source: git
+    version: "0.0.48"
   shared_preferences:
     dependency: "direct main"
     description:

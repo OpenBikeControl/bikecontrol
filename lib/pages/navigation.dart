@@ -165,7 +165,7 @@ class _NavigationState extends State<Navigation> {
                   builder: (context, value, child) => value
                       ? SizedBox.shrink()
                       : Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(16.0),
                           child: IAPStatusWidget(),
                         ),
                 ),
@@ -267,7 +267,7 @@ class _NavigationState extends State<Navigation> {
               reverseDuration: Duration(seconds: 1),
               start: 10,
               end: 12,
-              mode: RepeatMode.pingPong,
+              mode: LoopingMode.pingPong,
               builder: (context, value, child) {
                 return Container(
                   width: value,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
@@ -120,7 +121,7 @@ Future<void> _persistCrash({
     }
 
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
-    core.connection.lastLogEntries.add((date: DateTime.now(), entry: 'App crashed: $error'));
+    core.connection.signalNotification(LogNotification('App crashed: $error'));
   } catch (_) {
     // Avoid throwing from the crash logger
   }
@@ -180,6 +181,7 @@ class BikeControlApp extends StatelessWidget {
       localizationsDelegates: [
         ...GlobalMaterialLocalizations.delegates,
         GlobalWidgetsLocalizations.delegate,
+        ShadcnLocalizations.delegate,
         AppLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.delegate.supportedLocales,

@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:flutter/foundation.dart';
@@ -13,7 +16,6 @@ import 'package:version/version.dart';
 /// Service to handle in-app purchase functionality and trial period management
 class IAPService {
   static const int trialDays = 5;
-  static const int dailyCommandLimit = 15;
 
   static const String _trialStartDateKey = 'iap_trial_start_date';
   static const String _purchaseStatusKey = 'iap_purchase_status';
@@ -72,7 +74,11 @@ class IAPService {
       await _checkExistingPurchase();
 
       _isInitialized = true;
-    } catch (e) {
+    } catch (e, s) {
+      recordError(e, s, context: 'Initializing IAP Service');
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_ERROR, 'There was an error checking purchase status: ${e.toString()}'),
+      );
       debugPrint('Failed to initialize IAP: $e');
       // On initialization failure, default to allowing access
       IAPManager.instance.isPurchased.value = false;
@@ -109,7 +115,7 @@ class IAPService {
     try {
       final receiptContent = await IosReceipt.getAppleReceipt();
       if (receiptContent != null) {
-        debugPrint('Existing Apple user detected - granting full access $receiptContent');
+        debugPrint('Existing Apple user detected - validating receipt $receiptContent');
         await validateReceipt(
           base64Receipt: receiptContent,
           sharedSecret:
@@ -193,7 +199,11 @@ class IAPService {
     try {
       await _inAppPurchase.restorePurchases();
       // The purchase stream will be called with restored purchases
-    } catch (e) {
+    } catch (e, s) {
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_ERROR, 'There was an error restoring purchases: ${e.toString()}'),
+      );
+      recordError(e, s, context: 'Restore Purchases');
       debugPrint('Error restoring purchases: $e');
     }
   }
@@ -250,8 +260,12 @@ class IAPService {
         await _prefs.write(key: _purchaseStatusKey, value: 'true');
       }
       return bought;
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('Error purchasing: $e');
+      recordError(e, s, context: 'Error purchasing');
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_ERROR, 'There was an error during purchasing: ${e.toString()}'),
+      );
       return false;
     }
   }
@@ -323,31 +337,22 @@ class IAPService {
   bool get canExecuteCommand {
     if (IAPManager.instance.isPurchased.value) return true;
     if (!isTrialExpired) return true;
-    return dailyCommandCount < dailyCommandLimit;
+    return dailyCommandCount < IAPManager.dailyCommandLimit;
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
     if (IAPManager.instance.isPurchased.value || !isTrialExpired) return -1; // Unlimited
-    final remaining = dailyCommandLimit - dailyCommandCount;
+    final remaining = IAPManager.dailyCommandLimit - dailyCommandCount;
     return remaining > 0 ? remaining : 0; // Never return negative
-  }
-
-  /// Get a status message for the user
-  String getStatusMessage() {
-    if (IAPManager.instance.isPurchased.value) {
-      return 'Full Version';
-    } else if (!hasTrialStarted) {
-      return '$trialDays day trial available';
-    } else if (!isTrialExpired) {
-      return '$trialDaysRemaining days remaining in trial';
-    } else {
-      return '$commandsRemainingToday/$dailyCommandLimit commands remaining today';
-    }
   }
 
   /// Dispose the service
   void dispose() {
     _subscription?.cancel();
+  }
+
+  void reset() {
+    _prefs.deleteAll();
   }
 }

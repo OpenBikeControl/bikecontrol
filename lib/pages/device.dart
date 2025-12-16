@@ -8,11 +8,9 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
 import '../widgets/ignored_devices_dialog.dart';
@@ -27,13 +25,11 @@ class DevicePage extends StatefulWidget {
 
 class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
-  bool _showNameChangeWarning = false;
 
   @override
   void initState() {
     super.initState();
 
-    _showNameChangeWarning = !core.settings.knowsAboutNameChange();
     _connectionStateSubscription = core.connection.connectionStream.listen((state) async {
       setState(() {});
     });
@@ -54,24 +50,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
-            if (_showNameChangeWarning && !screenshotMode)
-              Warning(
-                important: false,
-                children: [
-                  Text(context.i18n.nameChangeNotice),
-                  SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _showNameChangeWarning = false;
-                      });
-                      launchUrlString('https://openbikecontrol.org');
-                    },
-                    child: Text(context.i18n.moreInformation),
-                  ),
-                ],
-              ),
-
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: ColoredTitle(

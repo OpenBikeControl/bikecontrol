@@ -68,6 +68,7 @@ class Settings {
 
   Future<void> reset() async {
     await prefs.clear();
+    IAPManager.instance.reset();
     core.actionHandler.init(null);
   }
 
@@ -81,12 +82,6 @@ class Settings {
       return null;
     }
     return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
-  }
-
-  bool knowsAboutNameChange() {
-    final knows = prefs.getBool('name_change') == true;
-    prefs.setBool('name_change', true);
-    return knows;
   }
 
   Future<void> setKeyMap(SupportedApp app) async {

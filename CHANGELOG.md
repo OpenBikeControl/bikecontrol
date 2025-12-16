@@ -1,4 +1,6 @@
-### 4.1.0 (unreleased)
+### 4.2.0 (unreleased)
+
+BikeControl now offers a free trial period of 5 days for all features, so you can test everything before deciding to purchase a license. Please contact the support if you experience any issues!
 
 **Features**:
 - control your trainer manually without requiring a controller - just like a Companion app

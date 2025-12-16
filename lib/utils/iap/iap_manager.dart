@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/iap/iap_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
 import 'package:flutter/foundation.dart';
@@ -13,6 +14,7 @@ class IAPManager {
     return _instance!;
   }
 
+  static const int dailyCommandLimit = 15;
   IAPService? _iapService;
   WindowsIAPService? _windowsIapService;
   ValueNotifier<bool> isPurchased = ValueNotifier<bool>(false);
@@ -122,12 +124,16 @@ class IAPManager {
 
   /// Get a status message for the user
   String getStatusMessage() {
-    if (_iapService != null) {
-      return _iapService!.getStatusMessage();
-    } else if (_windowsIapService != null) {
-      return _windowsIapService!.getStatusMessage();
+    /// Get a status message for the user
+    if (IAPManager.instance.isPurchased.value) {
+      return AppLocalizations.current.fullVersion;
+    } else if (!hasTrialStarted) {
+      return '${_iapService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining} day trial available';
+    } else if (!isTrialExpired) {
+      return AppLocalizations.current.trialDaysRemaining(trialDaysRemaining);
+    } else {
+      return AppLocalizations.current.commandsRemainingToday(commandsRemainingToday, dailyCommandLimit);
     }
-    return 'Full access';
   }
 
   /// Purchase the full version
@@ -152,5 +158,10 @@ class IAPManager {
   void dispose() {
     _iapService?.dispose();
     _windowsIapService?.dispose();
+  }
+
+  void reset() {
+    _windowsIapService?.reset();
+    _iapService?.reset();
   }
 }

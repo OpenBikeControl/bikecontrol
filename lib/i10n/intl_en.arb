@@ -19,7 +19,6 @@
   "enableMediaKeyDetection": "Enable Media Key Detection",
   "mediaKeyDetectionTooltip": "Enable this option to allow BikeControl to detect bluetooth remotes.\nIn order to do so BikeControl needs to act as a media player.",
 
-  "nameChangeNotice": "SwiftControl is now BikeControl!\nIt is part of the OpenBikeControl project, advocating for open standards in smart bike trainers - and building affordable hardware controllers!",
   "moreInformation": "More Information",
 
   "manageIgnoredDevices": "Manage Ignored Devices",
@@ -30,27 +29,12 @@
 
   "connectToTrainerApp": "Connect to Trainer app",
 
-  "trainerSetup": "Trainer setup: {appName} on {targetName}",
-  "@trainerSetup": {
-    "placeholders": {
-      "appName": { "type": "String" },
-      "targetName": { "type": "String" }
-    }
-  },
   "setupTrainer": "Setup Trainer",
-  "adjust": "Adjust",
 
   "selectTrainerApp": "Select Trainer App",
   "selectTrainerAppPlaceholder": "Select Trainer app",
-  "selectTargetDevice": "Select Target device",
   "selectTargetWhereAppRuns": "Select Target where {appName} runs on",
   "@selectTargetWhereAppRuns": {
-    "placeholders": {
-      "appName": { "type": "String" }
-    }
-  },
-  "selectOtherDeviceWhereAppRuns": "Select the other device where {appName} runs on",
-  "@selectOtherDeviceWhereAppRuns": {
     "placeholders": {
       "appName": { "type": "String" }
     }
@@ -58,10 +42,6 @@
 
   "targetThisDevice": "This Device",
   "targetOtherDevice": "Other Device",
-  "targetIOS": "iPhone / iPad / Apple TV",
-  "targetAndroid": "Android Device",
-  "targetMacOS": "Mac",
-  "targetWindows": "Windows PC",
 
   "runAppOnThisDevice": "Run {appName} on this device.",
   "@runAppOnThisDevice": {
@@ -84,19 +64,6 @@
     }
   },
   "platformRestrictionNotSupported": "Due to platform restrictions this scenario is not supported.",
-
-  "selectThisDeviceWarning": "Select 'This device' unless you want to control another {platform} device. Are you sure?",
-  "@selectThisDeviceWarning": {
-    "placeholders": {
-      "platform": { "type": "String" }
-    }
-  },
-  "recommendDownloadBikeControl": "We highly recommended to download and use BikeControl on that {platform} device.",
-  "@recommendDownloadBikeControl": {
-    "placeholders": {
-      "platform": { "type": "String" }
-    }
-  },
 
   "errorStartingOpenBikeControlServer": "Error starting OpenBikeControl server.",
   "errorStartingOpenBikeControlBluetoothServer": "Error starting OpenBikeControl Bluetooth server.",
@@ -139,7 +106,6 @@
   "connectUsingMyWhooshLink": "Connect using MyWhoosh \"Link\"",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" connected",
   "checkMyWhooshConnectionScreen": "Check the connection screen in MyWhoosh to see if \"Link\" is connected.",
-  "myWhooshLinkDescriptionRemote": "Allows you to connect to MyWhoosh over the network, using the \"Link\" connection. The MyWhoosh Link companion app must NOT be running at the same time.",
   "myWhooshLinkDescriptionLocal": "Optional - allows you to do some additional features such as Emotes and turn directions. The MyWhoosh Link companion app must NOT be running at the same time.",
   "errorStartingMyWhooshLink": "Error starting MyWhoosh Link server. Please make sure the \"MyWhoosh Link\" app is not already running on this device.",
 
@@ -200,7 +166,6 @@
     }
   },
   "action": "Action",
-  "noButtonAssigned": "No button assigned for your connected device",
   "noActionAssigned": "No action assigned",
 
   "openBikeControlActions": "OpenBikeControl actions",
@@ -212,14 +177,12 @@
   },
   "myWhooshDirectConnectAction": "MyWhoosh Direct Connect Action",
   "zwiftControllerAction": "Zwift Controller Action",
-  "custom": "Custom",
   "predefinedAction": "Predefined {appName} action",
   "@predefinedAction": {
     "placeholders": {
       "appName": { "type": "String" }
     }
   },
-  "noPredefinedActionsAvailable": "No predefined actions available",
   "simulateKeyboardShortcut": "Simulate Keyboard shortcut",
   "simulateTouch": "Simulate Touch",
   "simulateMediaKey": "Simulate Media key",
@@ -297,11 +260,9 @@
   "dragToReposition": "Drag to reposition",
   "longPress": "long\npress",
 
-  "videoInstructions": "Video Instructions",
   "theFollowingPermissionsRequired": "The following permissions are required:",
   "granted": "Granted",
   "grant": "Grant",
-  "choosePreferredConnectionMethod": "Choose your preferred connection method",
 
   "showDonation": "Show your appreciation by donating",
   "donateViaCreditCard": "via Credit Card, Google Pay, Apple Pay and others",
@@ -309,18 +270,11 @@
   "donateViaPaypal": "via PayPal",
   "leaveAReview": "Leave a Review",
 
-  "provideFeedback": "Provide Feedback",
   "getSupport": "Get Support",
   "helpRequested": "Help requested for BikeControl v{version}",
   "@helpRequested": {
     "placeholders": {
       "version": { "type": "String" }
-    }
-  },
-  "attachLogFile": "Please also attach the file {logPath}, if it exists.\nPlease don't remove this information, it helps me to assist you better.",
-  "@attachLogFile": {
-    "placeholders": {
-      "logPath": { "type": "String" }
     }
   },
 
@@ -345,14 +299,6 @@
   "logsAreAlsoAt": "Logs are also at",
   "pathCopiedToClipboard": "Path has been copied to clipboard",
 
-  "appStartError": "There was an error starting the App. Please contact support:\n{error}",
-  "@appStartError": {
-    "placeholders": {
-      "error": { "type": "String" }
-    }
-  },
-
-  "sideloaded": "(sideloaded)",
   "newVersionAvailable": "New version available",
   "newVersionAvailableWithVersion": "New version available: {version}",
   "@newVersionAvailableWithVersion": {
@@ -421,7 +367,6 @@
   },
   "browserNotSupported": "This Browser does not support Web Bluetooth and platform is not supported :(",
   "selectTrainerAppAndTarget": "Select Trainer App & Target Device",
-  "selectTargetDeviceDescription": "Select your Target Device where you want to run your trainer app on",
   "requirement": "Requirement",
 
   "needHelpClickHelp": "Need help? Click on the",
@@ -435,20 +380,6 @@
   "openBikeControlConnection": " e.g. by using OpenBikeControl connection",
   "myWhooshDirectConnection": " e.g. by using MyWhoosh Direct Connect",
 
-  "appNameOnTargetName": "{appName} on {targetName}",
-  "@appNameOnTargetName": {
-    "placeholders": {
-      "appName": { "type": "String" },
-      "targetName": { "type": "String" }
-    }
-  },
-
-  "bikeControlPlatform": "BikeControl {platform}",
-  "@bikeControlPlatform": {
-    "placeholders": {
-      "platform": { "type": "String" }
-    }
-  },
   "clickV2Instructions": "To make your Zwift Click V2 work best you should connect it in the Zwift app once each day.\nIf you don't do that the Click V2 will stop working after a minute.\n\n1. Open Zwift app\n2. Log in (subscription not required) and open the device connection screen\n3. Connect your Trainer, then connect the Zwift Click V2\n4. Close the Zwift app again and connect again in BikeControl",
   "pleaseSelectAConnectionMethodFirst": "Please select a connection method in the Trainer settings, first.",
   "noConnectionMethodSelected": "No Connection Method selected",
@@ -458,5 +389,14 @@
   "instructions": "Instructions",
   "mailSupportExplanation": "Providing individual support via email is a lot of work for me.\n\nPlease consider using Reddit, Facebook or GitHub for questions and issues so that the whole community can benefit from it.",
   "myWhooshLinkInfo": "Please check the troubleshooting section if you encounter any issues. A much more reliable connection method is coming soon!",
-  "clickV2EventInfo": "Your Click V2 may no longer send button events. Please check by tapping a few buttons and see if they are visible in BikeControl."
+  "clickV2EventInfo": "Your Click V2 may no longer send button events. Please check by tapping a few buttons and see if they are visible in BikeControl.",
+  "commandsRemainingToday": "{commandsRemainingToday}/{dailyCommandLimit} commands remaining today",
+  "trialDaysRemaining": "{trialDaysRemaining} days remaining",
+  "fullVersion": "Full Version",
+  "licenseStatus": "License Status",
+  "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
+  "trialPeriodDescription": "Enjoy unlimited commands during your trial period. After the trial, commands will be limited to {dailyCommandLimit} per day.",
+  "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
+  "dailyLimitReached": "Daily limit reached ({dailyCommandCount}/{dailyCommandLimit} used)",
+  "unlockFullVersion": "Unlock Full Version"
 }
