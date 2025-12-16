@@ -76,14 +76,14 @@ class Permissions {
       final deviceInfoPlugin = DeviceInfoPlugin();
       final deviceInfo = await deviceInfoPlugin.androidInfo;
       list = [
-        BluetoothTurnedOn(),
-        NotificationRequirement(),
         if (deviceInfo.version.sdkInt <= 30)
           LocationRequirement()
         else ...[
           BluetoothScanRequirement(),
           BluetoothConnectRequirement(),
         ],
+        BluetoothTurnedOn(),
+        NotificationRequirement(),
       ];
     } else {
       list = [UnsupportedPlatform()];
