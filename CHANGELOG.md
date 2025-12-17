@@ -3,7 +3,7 @@
 BikeControl now offers a free trial period of 5 days for all features, so you can test everything before deciding to purchase a license. Please contact the support if you experience any issues!
 
 **Features**:
-- You will now be notified when connection to your controller is lost
+- You will now be notified when a connection to your controller is lost
 
 ### 4.1.0 (16-12-2025)
 
