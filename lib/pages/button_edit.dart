@@ -88,7 +88,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ColoredTitle(text: context.i18n.openBikeControlActions),
                   Builder(
                     builder: (context) => SelectableCard(
-                      icon: Icons.link,
+                      icon: keyPair.inGameAction?.icon ?? Icons.link,
                       title: Text(
                         core.logic.obpConnectedApp == null
                             ? 'Please connect to ${core.settings.getTrainerApp()?.name}, first.'
@@ -130,7 +130,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
                   Builder(
                     builder: (context) => SelectableCard(
-                      icon: Icons.link,
+                      icon: keyPair.inGameAction?.icon ?? Icons.link,
                       title: Text(context.i18n.myWhooshDirectConnectAction),
                       isActive:
                           keyPair.inGameAction != null &&
