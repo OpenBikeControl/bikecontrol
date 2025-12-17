@@ -207,7 +207,7 @@ class Connection {
     if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
       _androidNotificationsSetup = true;
       // start foreground service only when app is in foreground
-      NotificationRequirement.setup().catchError((e) {
+      NotificationRequirement.addPersistentNotification().catchError((e) {
         _actionStreams.add(LogNotification(e.toString()));
       });
     }

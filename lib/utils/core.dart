@@ -63,7 +63,10 @@ class Permissions {
         list = [BluetoothTurnedOn()];
       }
     } else if (Platform.isMacOS) {
-      list = [BluetoothTurnedOn()];
+      list = [
+        BluetoothTurnedOn(),
+        NotificationRequirement(),
+      ];
     } else if (Platform.isIOS) {
       list = [
         BluetoothTurnedOn(),

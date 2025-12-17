@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
 
   url_launcher: ^6.3.1
-  flutter_local_notifications: ^19.4.1
+  flutter_local_notifications: ^19.5.0
 
   # fork to allow iOS background BLE connections
   universal_ble:

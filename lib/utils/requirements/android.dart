@@ -162,6 +162,9 @@ class NotificationRequirement extends PlatformRequirement {
     } else {
       status = true;
     }
+    if (status) {
+      await setup();
+    }
     return status;
   }
 
@@ -171,13 +174,23 @@ class NotificationRequirement extends PlatformRequirement {
     );
 
     await core.flutterLocalNotificationsPlugin.initialize(
-      InitializationSettings(android: initializationSettingsAndroid),
+      InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+        ),
+        macOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+        ),
+      ),
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       onDidReceiveNotificationResponse: (n) {
         notificationTapBackground(n);
       },
     );
+  }
 
+  static Future<void> addPersistentNotification() async {
     const String channelGroupId = 'BikeControl';
     // create the group first
     await core.flutterLocalNotificationsPlugin
