@@ -400,5 +400,9 @@
   "dailyLimitReached": "Daily limit reached ({dailyCommandCount}/{dailyCommandLimit} used)",
   "unlockFullVersion": "Unlock Full Version",
   "dailyCommandLimitReachedNotification": "Daily command limit reached for today. Upgrade to unlock the full version with unlimited commands.",
-  "tryingToConnectAgain": "Trying to connect again..."
+  "tryingToConnectAgain": "Trying to connect again...",
+  "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
+  "noActionAssignedForButton": "Could not perform {button}: No action assigned",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Could not perform {button}: No keymap set",
+  "purchase": "Purchase"
 }

@@ -199,7 +199,16 @@ abstract class BaseDevice {
   }
 
   void _showCommandLimitAlert() {
-    actionStreamInternal.add(AlertNotification(LogLevel.LOGLEVEL_ERROR, _getCommandLimitMessage()));
+    actionStreamInternal.add(
+      AlertNotification(
+        LogLevel.LOGLEVEL_ERROR,
+        _getCommandLimitMessage(),
+        buttonTitle: AppLocalizations.current.purchase,
+        onTap: () {
+          IAPManager.instance.purchaseFullVersion();
+        },
+      ),
+    );
     core.flutterLocalNotificationsPlugin.show(
       1337,
       _getCommandLimitTitle(),

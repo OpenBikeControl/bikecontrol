@@ -72,6 +72,7 @@
     }
   },
   "controllers": "Controller",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "{button} konnte nicht ausgeführt werden: Keine Konfiguration festgelegt",
   "create": "Erstellen",
   "createNewKeymap": "Neue Tastaturbelegung erstellen",
   "createNewProfileByDuplicating": "Erstelle ein neues benutzerdefiniertes Profil, indem „{profileName} “ dupliziert wird.",
@@ -131,7 +132,7 @@
   "enableAutoRotation": "Aktiviere die automatische Drehung auf Ihrem Gerät, um sicherzustellen, dass die App ordnungsgemäß funktioniert.",
   "enableBluetooth": "Bluetooth aktivieren",
   "enableKeyboardAccessMessage": "Aktiviere im folgenden Bildschirm die Tastatursteuerung für BikeControl. Falls BikeControl nicht angezeigt wird, füge es bitte manuell hinzu.",
-  "enableKeyboardMouseControl": "Aktiviere die Tastatur- und Maussteuerung für eine bessere Interaktion mit {appName}.",
+  "enableKeyboardMouseControl": "Aktiviere die Tastatur- und Maussteuerung für eine bessere Interaktion mit {appName}. Sobald die Funktion aktiviert ist, sind keine weiteren Aktionen oder Verbindungen erforderlich. BikeControl sendet die Maus- oder Tastatureingaben direkt an {appName} weiter.",
   "@enableKeyboardMouseControl": {
     "placeholders": {
       "appName": {
@@ -246,6 +247,8 @@
   },
   "next": "Nächste",
   "noActionAssigned": "Keine Maßnahmen zugewiesen",
+  "noActionAssignedForButton": "{button} konnte nicht ausgeführt werden: Keine Aktion zugewiesen",
+  "noConnectionMethodIsConnectedOrActive": "Es ist keine Verbindungsmethode verbunden oder aktiv.",
   "noConnectionMethodSelected": "Keine Verbindungsmethode ausgewählt",
   "noControllerConnected": "Keine Verbindung",
   "noIgnoredDevices": "Keine ignorierten Geräte.",
@@ -316,6 +319,7 @@
   },
   "profileImportedSuccessfully": "Profil erfolgreich importiert",
   "profileName": "Profilname",
+  "purchase": "Kaufen",
   "recommendedConnectionMethods": "Empfohlene Verbindungsmethoden",
   "removeFromIgnoredList": "Aus der Ignorierliste entfernen",
   "rename": "Umbenennen",
@@ -383,6 +387,7 @@
   "trialPeriodActive": "Testphase aktiv - {trialDaysRemaining} verbleibende Tage",
   "trialPeriodDescription": "Während der Testphase stehen unbegrenzt viele Befehle zur Verfügung. Nach Ablauf der Testphase sind die Befehle auf {dailyCommandLimit} pro Tag eingeschränkt.",
   "troubleshootingGuide": "Leitfaden zur Fehlerbehebung",
+  "tryingToConnectAgain": "Verbinde erneut...",
   "unassignAction": "Zuweisung aufheben",
   "unlockFullVersion": "Vollversion freischalten",
   "update": "Aktualisieren",

@@ -72,6 +72,7 @@
     }
   },
   "controllers": "Contrôleurs",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Impossible d'effectuer {button}: Aucun clavier défini",
   "create": "Créer",
   "createNewKeymap": "Créer un nouveau clavier",
   "createNewProfileByDuplicating": "Créer un nouveau profil personnalisé en dupliquant «{profileName} ».",
@@ -131,7 +132,7 @@
   "enableAutoRotation": "Activez la rotation automatique sur votre appareil pour vous assurer que l'application fonctionne correctement.",
   "enableBluetooth": "Activer le Bluetooth",
   "enableKeyboardAccessMessage": "Activez l'accès au clavier dans l'écran suivant pour BikeControl. Si vous ne voyez pas BikeControl, veuillez l'ajouter manuellement.",
-  "enableKeyboardMouseControl": "Activez le contrôle du clavier et de la souris pour une meilleure interaction avec {appName}.",
+  "enableKeyboardMouseControl": "Activez le contrôle du clavier et de la souris pour une meilleure interaction avec {appName} Une fois activé, aucune autre action ni connexion n'est nécessaire. BikeControl enverra directement les entrées de la souris ou du clavier à {appName} .",
   "@enableKeyboardMouseControl": {
     "placeholders": {
       "appName": {
@@ -246,6 +247,8 @@
   },
   "next": "Suivant",
   "noActionAssigned": "Aucune action assignée",
+  "noActionAssignedForButton": "Impossible d'effectuer {button}: Aucune action assignée",
+  "noConnectionMethodIsConnectedOrActive": "Aucune méthode de connexion n'est établie ou active.",
   "noConnectionMethodSelected": "Aucune méthode de connexion choisie",
   "noControllerConnected": "Aucun connecté",
   "noIgnoredDevices": "Aucun appareil ignoré.",
@@ -316,6 +319,7 @@
   },
   "profileImportedSuccessfully": "Profil importé avec succès",
   "profileName": "Nom du profil",
+  "purchase": "Achat",
   "recommendedConnectionMethods": "Méthodes de connexion recommandées",
   "removeFromIgnoredList": "Supprimer de la liste ignorée",
   "rename": "Rebaptiser",
@@ -383,6 +387,7 @@
   "trialPeriodActive": "Période d'essai active -{trialDaysRemaining} jours restants",
   "trialPeriodDescription": "Profitez de commandes illimitées pendant votre période d'essai. Après la période d'essai, le nombre de commandes sera limité à {dailyCommandLimit} par jour.",
   "troubleshootingGuide": "Guide de dépannage",
+  "tryingToConnectAgain": "Tentative de reconnexion...",
   "unassignAction": "Action de désaffectation",
   "unlockFullVersion": "Débloquer la version complète",
   "update": "Mise à jour",

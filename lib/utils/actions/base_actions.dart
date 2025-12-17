@@ -121,7 +121,9 @@ abstract class BaseActions {
 
   Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
     if (supportedApp == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
+      return Error(
+        AppLocalizations.current.couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet(button.name.splitByUpperCase()),
+      );
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(button);
@@ -129,11 +131,9 @@ abstract class BaseActions {
     if (core.logic.hasNoConnectionMethod) {
       return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
     } else if (!(await core.logic.isTrainerConnected())) {
-      return Error('No connection method is connected or active.');
-    } else if (keyPair == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${button.toString().splitByUpperCase()}');
+      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive);
+    } else if (keyPair == null || keyPair.hasNoAction) {
+      return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
     }
 
     // Handle Headwind actions
