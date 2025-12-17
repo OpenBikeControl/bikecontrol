@@ -215,6 +215,9 @@ class NotificationRequirement extends PlatformRequirement {
             showsUserInterface: false,
           ),
         ],
+        ongoing: true,
+        silent: true,
+        autoCancel: false,
       ),
     );
 

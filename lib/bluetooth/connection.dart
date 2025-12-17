@@ -88,7 +88,7 @@ class Connection {
         _lastScanResult.add(result);
 
         if (kDebugMode) {
-          print('Scan result: ${result.name} - ${result.deviceId}');
+          debugPrint('Scan result: ${result.name} - ${result.deviceId}');
         }
 
         final scanResult = BluetoothDevice.fromScanResult(result);
@@ -288,7 +288,7 @@ class Connection {
         _actionStreams.add(data);
       });
       if (device is BluetoothDevice) {
-        final connectionStateSubscription = UniversalBle.connectionStream(device.device.deviceId).listen((state) {
+        final connectionStateSubscription = device.device.connectionStream.listen((state) {
           device.isConnected = state;
           _connectionStreams.add(device);
           core.flutterLocalNotificationsPlugin.show(
