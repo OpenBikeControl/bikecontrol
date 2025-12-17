@@ -67,6 +67,7 @@ class Permissions {
     } else if (Platform.isIOS) {
       list = [
         BluetoothTurnedOn(),
+        NotificationRequirement(),
       ];
     } else if (Platform.isWindows) {
       list = [

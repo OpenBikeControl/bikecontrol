@@ -68,12 +68,17 @@ class IAPService {
 
       _trialStartDate = await _prefs.read(key: _trialStartDateKey);
       _lastCommandDate = await _prefs.read(key: _lastCommandDateKey);
-      _dailyCommandCount = int.tryParse(await _prefs.read(key: _dailyCommandCountKey) ?? '0');
 
+      final commandCount = await _prefs.read(key: _dailyCommandCountKey) ?? '0';
+      _dailyCommandCount = int.tryParse(commandCount);
       // Check if already purchased
       await _checkExistingPurchase();
 
       _isInitialized = true;
+
+      if (!isTrialExpired && Platform.isAndroid) {
+        IAPManager.dailyCommandLimit = 80;
+      }
     } catch (e, s) {
       recordError(e, s, context: 'Initializing IAP Service');
       core.connection.signalNotification(
@@ -212,8 +217,8 @@ class IAPService {
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
     for (final purchase in purchaseDetailsList) {
       if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
-        IAPManager.instance.isPurchased.value = true;
-        await _prefs.write(key: _purchaseStatusKey, value: 'true');
+        IAPManager.instance.isPurchased.value = !kDebugMode;
+        await _prefs.write(key: _purchaseStatusKey, value: IAPManager.instance.isPurchased.value.toString());
         debugPrint('Purchase successful or restored');
       }
 
@@ -303,7 +308,8 @@ class IAPService {
 
     if (lastDate != today) {
       // Reset counter for new day
-      return 0;
+      _lastCommandDate = today;
+      _dailyCommandCount = 0;
     }
 
     return _dailyCommandCount ?? 0;
@@ -323,20 +329,20 @@ class IAPService {
     } else {
       final count = _dailyCommandCount ?? 0;
       _dailyCommandCount = count + 1;
-      await _prefs.write(key: _dailyCommandCountKey, value: _dailyCommandCountKey.toString());
+      await _prefs.write(key: _dailyCommandCountKey, value: _dailyCommandCount.toString());
     }
   }
 
   /// Check if the user can execute a command
   bool get canExecuteCommand {
     if (IAPManager.instance.isPurchased.value) return true;
-    if (!isTrialExpired) return true;
+    if (!isTrialExpired && !Platform.isAndroid) return true;
     return dailyCommandCount < IAPManager.dailyCommandLimit;
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (IAPManager.instance.isPurchased.value || !isTrialExpired) return -1; // Unlimited
+    if (IAPManager.instance.isPurchased.value || (!isTrialExpired && !Platform.isAndroid)) return -1; // Unlimited
     final remaining = IAPManager.dailyCommandLimit - dailyCommandCount;
     return remaining > 0 ? remaining : 0; // Never return negative
   }

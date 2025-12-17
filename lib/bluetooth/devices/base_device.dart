@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart' show LogLevel;
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -9,6 +10,7 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -112,10 +114,16 @@ abstract class BaseDevice {
   }
 
   String _getCommandLimitMessage() {
-    final remaining = IAPManager.instance.commandsRemainingToday;
-    return remaining > 0
-        ? 'Command limit: $remaining commands remaining today. Upgrade to unlock unlimited commands.'
-        : 'Daily command limit reached. Upgrade to unlock unlimited commands or try again tomorrow.';
+    return AppLocalizations.current.dailyCommandLimitReachedNotification;
+  }
+
+  String _getCommandLimitTitle() {
+    return AppLocalizations.current
+        .dailyLimitReached(IAPManager.dailyCommandLimit, IAPManager.dailyCommandLimit)
+        .replaceAll(
+          '${IAPManager.dailyCommandLimit}/${IAPManager.dailyCommandLimit}',
+          IAPManager.dailyCommandLimit.toString(),
+        );
   }
 
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
@@ -129,8 +137,6 @@ abstract class BaseDevice {
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
 
-      // Increment command count after successful execution
-      await IAPManager.instance.incrementCommandCount();
       actionStreamInternal.add(ActionNotification(result));
     }
   }
@@ -139,15 +145,12 @@ abstract class BaseDevice {
     for (final action in buttonsClicked) {
       // Check IAP status before executing command
       if (!IAPManager.instance.canExecuteCommand) {
-        actionStreamInternal.add(AlertNotification(LogLevel.LOGLEVEL_ERROR, _getCommandLimitMessage()));
+        _showCommandLimitAlert();
         continue;
       }
 
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
       actionStreamInternal.add(ActionNotification(result));
-
-      // Increment command count after successful execution
-      await IAPManager.instance.incrementCommandCount();
     }
   }
 
@@ -155,14 +158,11 @@ abstract class BaseDevice {
     for (final action in buttonsReleased) {
       // Check IAP status before executing command
       if (!IAPManager.instance.canExecuteCommand) {
-        actionStreamInternal.add(AlertNotification(LogLevel.LOGLEVEL_ERROR, _getCommandLimitMessage()));
+        _showCommandLimitAlert();
         continue;
       }
 
       final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
-
-      // Increment command count after successful execution
-      await IAPManager.instance.incrementCommandCount();
       actionStreamInternal.add(LogNotification(result.message));
     }
   }
@@ -192,5 +192,17 @@ abstract class BaseDevice {
       core.settings.setKeyMap(core.actionHandler.supportedApp!);
     }
     return button;
+  }
+
+  void _showCommandLimitAlert() {
+    actionStreamInternal.add(AlertNotification(LogLevel.LOGLEVEL_ERROR, _getCommandLimitMessage()));
+    core.flutterLocalNotificationsPlugin.show(
+      1337,
+      _getCommandLimitTitle(),
+      _getCommandLimitMessage(),
+      NotificationDetails(
+        android: AndroidNotificationDetails('Limit', 'Limit reached'),
+      ),
+    );
   }
 }

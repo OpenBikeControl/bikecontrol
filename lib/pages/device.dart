@@ -5,6 +5,8 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -50,6 +52,10 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
+            ValueListenableBuilder(
+              valueListenable: IAPManager.instance.isPurchased,
+              builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
+            ),
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: ColoredTitle(

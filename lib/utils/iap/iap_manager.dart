@@ -14,7 +14,7 @@ class IAPManager {
     return _instance!;
   }
 
-  static const int dailyCommandLimit = 15;
+  static int dailyCommandLimit = 15;
   IAPService? _iapService;
   WindowsIAPService? _windowsIapService;
   ValueNotifier<bool> isPurchased = ValueNotifier<bool>(false);

@@ -1,11 +1,12 @@
 import 'package:accessibility/accessibility.dart';
-import 'package:dartx/dartx.dart';
-import 'package:flutter/services.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/services.dart';
 
 import '../keymap/apps/supported_app.dart';
 import '../single_line_exception.dart';
@@ -47,6 +48,7 @@ class AndroidActions extends BaseActions {
   Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
     final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
     if (superResult is! NotHandled) {
+      // Increment command count after successful execution
       return superResult;
     }
     final keyPair = supportedApp!.keymap.getKeyPair(button)!;
@@ -59,6 +61,8 @@ class AndroidActions extends BaseActions {
         PhysicalKeyboardKey.audioVolumeDown => MediaAction.volumeDown,
         _ => throw SingleLineException("No action for key: ${keyPair.physicalKey}"),
       });
+      // Increment command count after successful execution
+      await IAPManager.instance.incrementCommandCount();
       return Success("Key pressed: ${keyPair.toString()}");
     }
 
@@ -69,6 +73,8 @@ class AndroidActions extends BaseActions {
       } on PlatformException catch (e) {
         return Error("Accessibility Service not working. Follow instructions at https://dontkillmyapp.com/");
       }
+      // Increment command count after successful execution
+      await IAPManager.instance.incrementCommandCount();
       return Success(
         "Touch performed at: ${point.dx.toInt()}, ${point.dy.toInt()} -> ${isKeyDown && isKeyUp
             ? "click"

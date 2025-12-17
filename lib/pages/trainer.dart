@@ -4,6 +4,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
@@ -11,6 +12,7 @@ import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
+import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/pair_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -97,6 +99,10 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
+            ValueListenableBuilder(
+              valueListenable: IAPManager.instance.isPurchased,
+              builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
+            ),
             ConfigurationPage(
               onUpdate: () {
                 setState(() {});

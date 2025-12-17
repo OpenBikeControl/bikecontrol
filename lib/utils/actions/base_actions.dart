@@ -7,6 +7,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
@@ -143,12 +144,17 @@ abstract class BaseActions {
         return Error('No Headwind connected');
       }
 
+      // Increment command count after successful execution
+      await IAPManager.instance.incrementCommandCount();
       return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
     if (directConnectHandled is NotHandled && directConnectHandled.message.isNotEmpty) {
       core.connection.signalNotification(LogNotification(directConnectHandled.message));
+    } else if (directConnectHandled is! NotHandled) {
+      // Increment command count after successful execution
+      await IAPManager.instance.incrementCommandCount();
     }
     return directConnectHandled;
   }

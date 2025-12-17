@@ -1,14 +1,14 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/accessibility_disclosure_dialog.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class AccessibilityRequirement extends PlatformRequirement {
@@ -115,21 +115,15 @@ class NotificationRequirement extends PlatformRequirement {
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    await core.flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    await Permission.notification.request();
     await getStatus();
     return;
   }
 
   @override
   Future<bool> getStatus() async {
-    final bool granted =
-        await core.flutterLocalNotificationsPlugin
-            .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-            ?.areNotificationsEnabled() ??
-        false;
-    status = granted;
+    final PermissionStatus permissionStatus = await Permission.notification.status;
+    status = permissionStatus == PermissionStatus.granted || permissionStatus == PermissionStatus.limited;
     return status;
   }
 
