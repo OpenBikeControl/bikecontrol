@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:windows_iap/windows_iap.dart';
@@ -67,14 +68,19 @@ class WindowsIAPService {
 
   /// Purchase the full version
   /// TODO: Implement actual Windows Store purchase flow
-  Future<bool> purchaseFullVersion() async {
+  Future<void> purchaseFullVersion() async {
     try {
       final status = await _windowsIapPlugin.makePurchase(productId);
-      return status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased;
+      if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
+        buildToast(
+          navigatorKey.currentContext!,
+          title: 'Purchase Successful',
+          subtitle: 'Thank you for your purchase! You now have unlimited access.',
+        );
+      }
     } catch (e, s) {
       recordError(e, s, context: 'Purchasing on Windows');
       debugPrint('Error purchasing on Windows: $e');
-      return false;
     }
   }
 

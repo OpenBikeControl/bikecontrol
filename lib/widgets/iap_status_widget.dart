@@ -119,24 +119,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     });
 
     try {
-      final success = await IAPManager.instance.purchaseFullVersion();
-
-      if (mounted) {
-        if (success) {
-          buildToast(
-            context,
-            title: 'Purchase Successful',
-            subtitle: 'Thank you for your purchase! You now have unlimited access.',
-          );
-          setState(() {});
-        } else {
-          buildToast(
-            context,
-            title: 'Purchase Failed',
-            subtitle: 'Unable to complete purchase. Please try again later.',
-          );
-        }
-      }
+      await IAPManager.instance.purchaseFullVersion();
     } catch (e) {
       if (mounted) {
         buildToast(

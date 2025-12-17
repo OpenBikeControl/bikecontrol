@@ -225,7 +225,7 @@ class IAPService {
   }
 
   /// Purchase the full version
-  Future<bool> purchaseFullVersion() async {
+  Future<void> purchaseFullVersion() async {
     try {
       if (!_isInitialized) {
         await initialize();
@@ -234,7 +234,7 @@ class IAPService {
       final available = await _inAppPurchase.isAvailable();
       if (!available) {
         debugPrint('IAP not available');
-        return false;
+        return;
       }
 
       final productId = 'full_access_unlock';
@@ -243,30 +243,24 @@ class IAPService {
       final response = await _inAppPurchase.queryProductDetails({productId});
       if (response.error != null) {
         debugPrint('Error querying products: ${response.error}');
-        return false;
+        return;
       }
 
       if (response.productDetails.isEmpty) {
         debugPrint('Product not found: $productId');
-        return false;
+        return;
       }
 
       final product = response.productDetails.first;
       final purchaseParam = PurchaseParam(productDetails: product);
 
-      final bought = await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
-      if (bought) {
-        IAPManager.instance.isPurchased.value = true;
-        await _prefs.write(key: _purchaseStatusKey, value: 'true');
-      }
-      return bought;
+      await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
     } catch (e, s) {
       debugPrint('Error purchasing: $e');
       recordError(e, s, context: 'Error purchasing');
       core.connection.signalNotification(
         AlertNotification(LogLevel.LOGLEVEL_ERROR, 'There was an error during purchasing: ${e.toString()}'),
       );
-      return false;
     }
   }
 

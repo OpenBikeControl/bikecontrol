@@ -137,13 +137,12 @@ class IAPManager {
   }
 
   /// Purchase the full version
-  Future<bool> purchaseFullVersion() async {
+  Future<void> purchaseFullVersion() async {
     if (_iapService != null) {
       return await _iapService!.purchaseFullVersion();
     } else if (_windowsIapService != null) {
       return await _windowsIapService!.purchaseFullVersion();
     }
-    return false;
   }
 
   /// Restore previous purchases
