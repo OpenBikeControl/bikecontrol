@@ -13,6 +13,13 @@ public class IosReceiptPlugin: NSObject, FlutterPlugin {
         return data?.base64EncodedString()
     }
 
+    private func isSandbox() -> Bool {
+        guard let path = Bundle.main.appStoreReceiptURL?.path else {
+            return false
+        }
+        return path.contains("CoreSimulator") || path.contains("sandboxReceipt")
+    }
+
     private func getAllTransactions() async -> [[String: Any]] {
         var list: [[String: Any]] = []
         if #available(iOS 15.0, *) {
@@ -21,7 +28,7 @@ public class IosReceiptPlugin: NSObject, FlutterPlugin {
                 case .verified(let tx):
                     var item: [String: Any] = [
                         "productId": tx.productID,
-                        "transactionId": String(tx.id),               
+                        "transactionId": String(tx.id),
                         "originalTransactionId": String(tx.originalID),
                         "purchaseDate": ISO8601DateFormatter().string(from: tx.purchaseDate)
                     ]
@@ -55,6 +62,8 @@ public class IosReceiptPlugin: NSObject, FlutterPlugin {
 
         case "getAppleReceipt":
             result(getAppleReceipt())
+        case "isSandbox":
+            result(isSandbox())
         case "getAllTransactions":
             Task { result(await self.getAllTransactions()) }
         default:

@@ -30,4 +30,8 @@ abstract class IosReceiptPlatform extends PlatformInterface {
   Future<List<Map<String, dynamic>>> getAllTransactions() {
     throw UnimplementedError('getAllTransactions() has not been implemented.');
   }
+
+  Future<bool> isSandbox() async {
+    throw UnimplementedError('isSandbox() has not been implemented.');
+  }
 }

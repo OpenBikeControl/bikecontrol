@@ -20,4 +20,10 @@ class MethodChannelIosReceipt extends IosReceiptPlatform {
     final list = await methodChannel.invokeMethod('getAllTransactions');
     return (list as List).map((e) => Map<String, dynamic>.from(e)).toList();
   }
+
+  @override
+  Future<bool> isSandbox() async {
+    final isSandbox = await methodChannel.invokeMethod<bool>('isSandbox');
+    return isSandbox ?? false;
+  }
 }

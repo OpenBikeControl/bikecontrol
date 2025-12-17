@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -121,10 +122,16 @@ class IAPService {
       final receiptContent = await IosReceipt.getAppleReceipt();
       if (receiptContent != null) {
         debugPrint('Existing Apple user detected - validating receipt $receiptContent');
+        final sharedSecret =
+            Platform.environment['VERIFYING_SHARED_SECRET'] ?? String.fromEnvironment("VERIFYING_SHARED_SECRET");
+
+        if (sharedSecret.isEmpty) {
+          core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Shared Secret is empty'));
+        }
+        debugPrint('Using shared secret: ${sharedSecret.characters.take(15).join()}');
         await validateReceipt(
           base64Receipt: receiptContent,
-          sharedSecret:
-              Platform.environment['VERIFYING_SHARED_SECRET'] ?? String.fromEnvironment("VERIFYING_SHARED_SECRET"),
+          sharedSecret: sharedSecret,
         );
       } else {
         debugPrint('No Apple receipt found');
@@ -138,10 +145,10 @@ class IAPService {
     required String base64Receipt,
     required String sharedSecret,
   }) async {
-    final bool isDebug = kDebugMode;
+    final bool isSandbox = await IosReceipt.isSandbox();
 
     final Uri url = Uri.parse(
-      isDebug ? 'https://sandbox.itunes.apple.com/verifyReceipt' : 'https://buy.itunes.apple.com/verifyReceipt',
+      isSandbox ? 'https://sandbox.itunes.apple.com/verifyReceipt' : 'https://buy.itunes.apple.com/verifyReceipt',
     );
 
     final Map<String, dynamic> requestData = {

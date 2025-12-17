@@ -4,6 +4,13 @@ import StoreKit
 
 public class IosReceiptPlugin: NSObject, FlutterPlugin {
 
+    private func isSandbox() -> Bool {
+        guard let path = Bundle.main.appStoreReceiptURL?.path else {
+            return false
+        }
+        return path.contains("CoreSimulator") || path.contains("sandboxReceipt")
+    }
+
     private func getAppleReceipt() -> String? {
         guard let url = Bundle.main.appStoreReceiptURL,
               FileManager.default.fileExists(atPath: url.path) else {
@@ -55,6 +62,8 @@ public class IosReceiptPlugin: NSObject, FlutterPlugin {
 
         case "getAppleReceipt":
             result(getAppleReceipt())
+        case "isSandbox":
+            result(isSandbox())
         case "getAllTransactions":
             Task { result(await self.getAllTransactions()) }
         default:

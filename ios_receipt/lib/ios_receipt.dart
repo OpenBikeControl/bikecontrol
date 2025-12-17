@@ -3,9 +3,12 @@ import 'package:ios_receipt/models/transaction.dart';
 import 'ios_receipt_platform_interface.dart';
 
 class IosReceipt {
-  @Deprecated('Use getAllTransactions from StoreKit2')
   static Future<String?> getAppleReceipt() {
     return IosReceiptPlatform.instance.getAppleReceipt();
+  }
+
+  static Future<bool> isSandbox() {
+    return IosReceiptPlatform.instance.isSandbox();
   }
 
   static Future<List<Transaction>> getAllTransactions() async {
