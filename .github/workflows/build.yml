@@ -36,7 +36,7 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.38.5
+  FLUTTER_VERSION: 3.38.4
 
 jobs:
   build:
@@ -348,13 +348,13 @@ jobs:
           name: Releases
           path: |
             build/windows/x64/runner/Release/bike_control.windows.zip
-            build/windows/x64/runner/Release/bike_control.windows.msix
+            build/windows/x64/runner/Release/bike_control.msix
 
       - name: Update Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/bike_control.windows.msix"
+          artifacts: "build/windows/x64/runner/Release/bike_control.msix"
           prerelease: true
           tag: v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}

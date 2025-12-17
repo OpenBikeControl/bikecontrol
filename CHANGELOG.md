@@ -2,13 +2,15 @@
 
 BikeControl now offers a free trial period of 5 days for all features, so you can test everything before deciding to purchase a license. Please contact the support if you experience any issues!
 
+### 4.1.0 (16-12-2025)
+
 **Features**:
 - control your trainer manually without requiring a controller - just like a Companion app
 - support for Wahoo KICKR HEADWIND: control the fan via your controller 
 
 **Fixes**:
 - Gamepads: handle analog values correctly on Windows
-- MyWhoosh: updated default keymap to use steering instead of navigating 
+- MyWhoosh: updated default keymap to use the new A+D keys for steering 
 
 ### 4.0.0 (07-12-2025)
 

@@ -128,10 +128,10 @@ abstract class BaseDevice {
 
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
-      actionStreamInternal.add(LogNotification(result.message));
 
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
+      actionStreamInternal.add(ActionNotification(result));
     }
   }
 
@@ -160,10 +160,10 @@ abstract class BaseDevice {
       }
 
       final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
-      actionStreamInternal.add(ActionNotification(result));
 
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
+      actionStreamInternal.add(LogNotification(result.message));
     }
   }
 
