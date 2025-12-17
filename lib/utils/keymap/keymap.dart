@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../actions/base_actions.dart';
 import 'apps/custom_app.dart';
@@ -111,7 +113,8 @@ class KeyPair {
 
   IconData? get icon {
     return switch (physicalKey) {
-      _ when inGameAction != null && core.logic.emulatorEnabled => Icons.link,
+      //_ when inGameAction != null && core.logic.emulatorEnabled => Icons.link,
+      _ when inGameAction != null && inGameAction!.icon != null => inGameAction!.icon,
 
       PhysicalKeyboardKey.mediaPlayPause ||
       PhysicalKeyboardKey.mediaStop ||
@@ -120,8 +123,13 @@ class KeyPair {
       PhysicalKeyboardKey.audioVolumeUp ||
       PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
-        Icons.keyboard,
-      _ when touchPosition != Offset.zero && core.logic.showLocalRemoteOptions => Icons.touch_app,
+        RadixIcons.keyboard,
+      _
+          when touchPosition != Offset.zero &&
+              core.logic.showLocalRemoteOptions &&
+              core.actionHandler is AndroidActions =>
+        Icons.touch_app,
+      _ when touchPosition != Offset.zero && core.logic.showLocalRemoteOptions => BootstrapIcons.mouse,
       _ => null,
     };
   }
@@ -155,17 +163,30 @@ class KeyPair {
 
   @override
   String toString() {
-    final baseKey =
-        logicalKey?.keyLabel ??
-        switch (physicalKey) {
-          PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
-          PhysicalKeyboardKey.mediaTrackNext => 'Next Track',
-          PhysicalKeyboardKey.mediaTrackPrevious => 'Previous Track',
-          PhysicalKeyboardKey.mediaStop => 'Stop',
-          PhysicalKeyboardKey.audioVolumeUp => 'Volume Up',
-          PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
-          _ => 'Not assigned',
-        };
+    final text = (inGameAction != null && core.logic.emulatorEnabled)
+        ? [
+            inGameAction!.title,
+            if (inGameActionValue != null) '$inGameActionValue',
+          ].joinToString(separator: ': ')
+        : (isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
+        ? switch (physicalKey) {
+            PhysicalKeyboardKey.mediaPlayPause => AppLocalizations.current.playPause,
+            PhysicalKeyboardKey.mediaStop => AppLocalizations.current.stop,
+            PhysicalKeyboardKey.mediaTrackPrevious => AppLocalizations.current.previous,
+            PhysicalKeyboardKey.mediaTrackNext => AppLocalizations.current.next,
+            PhysicalKeyboardKey.audioVolumeUp => AppLocalizations.current.volumeUp,
+            PhysicalKeyboardKey.audioVolumeDown => AppLocalizations.current.volumeDown,
+            _ => 'Unknown',
+          }
+        : (physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
+        ? null
+        : (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
+        ? 'X:${touchPosition.dx.toInt()}, Y:${touchPosition.dy.toInt()}'
+        : '';
+    if (text != null && text.isNotEmpty) {
+      return text;
+    }
+    final baseKey = logicalKey?.keyLabel ?? text ?? 'Not assigned';
 
     if (modifiers.isEmpty || baseKey == 'Not assigned') {
       if (baseKey.trim().isEmpty) {

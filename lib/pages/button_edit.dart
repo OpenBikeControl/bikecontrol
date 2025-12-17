@@ -1,5 +1,6 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/touch_area.dart';
+import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -102,7 +103,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   children: core.logic.obpConnectedApp!.supportedActions
                                       .map(
                                         (action) => MenuButton(
-                                          child: Text(action.name),
+                                          leading: action.icon != null ? Icon(action.icon) : null,
                                           onPressed: (_) {
                                             keyPair.touchPosition = Offset.zero;
                                             keyPair.physicalKey = null;
@@ -112,6 +113,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                             widget.onUpdate();
                                             setState(() {});
                                           },
+                                          child: Text(action.name),
                                         ),
                                       )
                                       .toList(),
@@ -154,6 +156,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         ),
                                       )
                                       .toList(),
+                                  leading: ingame.icon != null ? Icon(ingame.icon) : null,
                                   child: Text(ingame.toString()),
                                   onPressed: (_) {
                                     keyPair.inGameAction = ingame;
@@ -175,7 +178,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ColoredTitle(text: context.i18n.zwiftControllerAction),
                   Builder(
                     builder: (context) => SelectableCard(
-                      icon: Icons.link,
+                      icon: keyPair.inGameAction?.icon ?? Icons.link,
                       title: Text(context.i18n.zwiftControllerAction),
                       isActive:
                           keyPair.inGameAction != null &&
@@ -201,13 +204,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         ),
                                       )
                                       .toList(),
-                                  child: Text(ingame.toString()),
+                                  leading: ingame.icon != null ? Icon(ingame.icon) : null,
                                   onPressed: (_) {
                                     keyPair.inGameAction = ingame;
                                     keyPair.inGameActionValue = null;
                                     widget.onUpdate();
                                     setState(() {});
                                   },
+                                  child: Text(ingame.toString()),
                                 );
                               },
                             ).toList(),
@@ -233,17 +237,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             builder: (c) => DropdownMenu(
                               children: actionsWithInGameAction!.map((keyPairAction) {
                                 return MenuButton(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(_formatActionDescription(keyPairAction).split(' = ').first),
-                                      Text(
-                                        _formatActionDescription(keyPairAction).split(' = ').last,
-                                        style: TextStyle(fontSize: 12, color: Colors.gray),
-                                      ),
-                                    ],
-                                  ),
+                                  leading: keyPairAction.inGameAction?.icon != null
+                                      ? Icon(keyPairAction.inGameAction!.icon)
+                                      : null,
                                   onPressed: (_) {
                                     // Copy all properties from the selected predefined action
                                     if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
@@ -265,6 +261,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     keyPair.inGameActionValue = keyPairAction.inGameActionValue;
                                     setState(() {});
                                   },
+                                  child: Text(keyPairAction.toString()),
                                 );
                               }).toList(),
                             ),
@@ -275,10 +272,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ],
                   if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
                     SelectableCard(
-                      icon: Icons.keyboard_alt_outlined,
+                      icon: RadixIcons.keyboard,
                       title: Text(context.i18n.simulateKeyboardShortcut),
                       isActive: keyPair.physicalKey != null && !keyPair.isSpecialKey,
-                      value: 'Key: $keyPair',
+                      value: keyPair.toString(),
                       onPressed: () async {
                         await showDialog<void>(
                           context: context,
@@ -295,10 +292,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   if (core.actionHandler.supportedModes.contains(SupportedMode.touch))
                     SelectableCard(
                       title: Text(context.i18n.simulateTouch),
-                      icon: Icons.touch_app_outlined,
+                      icon: core.actionHandler is AndroidActions ? Icons.touch_app_outlined : BootstrapIcons.mouse,
                       isActive: keyPair.physicalKey == null && keyPair.touchPosition != Offset.zero,
-                      value:
-                          'Coordinates: X: ${keyPair.touchPosition.dx.toInt()}, Y: ${keyPair.touchPosition.dy.toInt()}',
+                      value: keyPair.toString(),
                       onPressed: () async {
                         if (keyPair.touchPosition == Offset.zero) {
                           keyPair.touchPosition = Offset(50, 50);
@@ -484,35 +480,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ),
       ),
     );
-  }
-
-  String _formatActionDescription(KeyPair keyPairAction) {
-    final parts = <String>[];
-
-    if (keyPairAction.inGameAction != null) {
-      parts.add(keyPairAction.inGameAction!.toString());
-      if (keyPairAction.inGameActionValue != null) {
-        parts.add('(${keyPairAction.inGameActionValue})');
-      }
-    }
-
-    // Use KeyPair's toString() which formats the key with modifiers (e.g., "Ctrl+Alt+R")
-    final keyLabel = keyPairAction.toString();
-    if (keyLabel != 'Not assigned') {
-      parts.add('Key: $keyLabel');
-    }
-
-    if (keyPairAction.touchPosition != Offset.zero) {
-      parts.add(
-        'Touch: ${keyPairAction.touchPosition.dx.toInt()}, ${keyPairAction.touchPosition.dy.toInt()}',
-      );
-    }
-
-    if (keyPairAction.isLongPress) {
-      parts.add('[Long Press]');
-    }
-
-    return parts.isNotEmpty ? [parts.first, ' = ', parts.skip(1).join(' • ')].join() : 'Action';
   }
 }
 

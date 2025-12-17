@@ -305,14 +305,17 @@ abstract class BluetoothDevice extends BaseDevice {
                   child: Basic(
                     title: Text(context.i18n.battery).xSmall,
                     trailingAlignment: Alignment.centerRight,
-                    trailing: Icon(switch (batteryLevel!) {
-                      >= 80 => Icons.battery_full,
-                      >= 60 => Icons.battery_6_bar,
-                      >= 50 => Icons.battery_5_bar,
-                      >= 25 => Icons.battery_4_bar,
-                      >= 10 => Icons.battery_2_bar,
-                      _ => Icons.battery_alert,
-                    }),
+                    trailing: Icon(
+                      switch (batteryLevel!) {
+                        >= 80 => Icons.battery_full,
+                        >= 60 => Icons.battery_6_bar,
+                        >= 50 => Icons.battery_5_bar,
+                        >= 25 => Icons.battery_4_bar,
+                        >= 10 => Icons.battery_2_bar,
+                        _ => Icons.battery_alert,
+                      },
+                      color: batteryLevel! <= 10 ? Theme.of(context).colorScheme.destructive : null,
+                    ),
                     subtitle: Text(
                       '$batteryLevel%',
                       style: TextStyle(fontSize: 12),

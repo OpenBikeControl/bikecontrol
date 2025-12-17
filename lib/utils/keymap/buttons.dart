@@ -1,44 +1,45 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:dartx/dartx.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 enum InGameAction {
-  shiftUp('Shift Up'),
-  shiftDown('Shift Down'),
-  uturn('U-Turn', alternativeTitle: 'Down'),
-  steerLeft('Steer Left', alternativeTitle: 'Left'),
-  steerRight('Steer Right', alternativeTitle: 'Right'),
+  shiftUp('Shift Up', icon: BootstrapIcons.patchPlus),
+  shiftDown('Shift Down', icon: BootstrapIcons.patchMinus),
+  uturn('U-Turn', alternativeTitle: 'Down', icon: BootstrapIcons.arrowDownUp),
+  steerLeft('Steer Left', alternativeTitle: 'Left', icon: RadixIcons.doubleArrowLeft),
+  steerRight('Steer Right', alternativeTitle: 'Right', icon: RadixIcons.doubleArrowRight),
 
   // mywhoosh
-  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6]),
-  toggleUi('Toggle UI'),
-  navigateLeft('Navigate Left'),
-  navigateRight('Navigate Right'),
+  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], icon: BootstrapIcons.camera),
+  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6], icon: BootstrapIcons.personRaisedHand),
+  toggleUi('Toggle UI', icon: RadixIcons.iconSwitch),
+  navigateLeft('Navigate Left', icon: BootstrapIcons.signTurnLeft),
+  navigateRight('Navigate Right', icon: BootstrapIcons.signTurnRight),
   increaseResistance('Increase Resistance'),
   decreaseResistance('Decrease Resistance'),
 
   // zwift
-  openActionBar('Open Action Bar', alternativeTitle: 'Up'),
-  usePowerUp('Use Power-Up'),
-  select('Select'),
-  back('Back'),
-  rideOnBomb('Ride On Bomb'),
+  openActionBar('Open Action Bar', alternativeTitle: 'Up', icon: BootstrapIcons.menuApp),
+  usePowerUp('Use Power-Up', icon: Icons.flash_on_outlined),
+  select('Select', icon: LucideIcons.mousePointerClick),
+  back('Back', icon: BootstrapIcons.arrowLeft),
+  rideOnBomb('Ride On Bomb', icon: LucideIcons.bomb),
 
   // headwind
   headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100]),
   headwindHeartRateMode('Headwind HR Mode');
 
   final String title;
+  final IconData? icon;
   final String? alternativeTitle;
   final List<int>? possibleValues;
 
-  const InGameAction(this.title, {this.possibleValues, this.alternativeTitle});
+  const InGameAction(this.title, {this.possibleValues, this.alternativeTitle, this.icon});
 
   @override
   String toString() {
