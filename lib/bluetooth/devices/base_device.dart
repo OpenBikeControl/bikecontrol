@@ -9,7 +9,6 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -149,7 +148,7 @@ abstract class BaseDevice {
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
       // Check IAP status before executing command
-      if (!IAPManager.instance.canExecuteCommand || kDebugMode) {
+      if (!IAPManager.instance.canExecuteCommand) {
         _showCommandLimitAlert();
         continue;
       }

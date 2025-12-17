@@ -1,22 +1,23 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:gamepads/gamepads.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:gamepads/gamepads.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'devices/base_device.dart';
@@ -290,6 +291,15 @@ class Connection {
         final connectionStateSubscription = UniversalBle.connectionStream(device.device.deviceId).listen((state) {
           device.isConnected = state;
           _connectionStreams.add(device);
+          core.flutterLocalNotificationsPlugin.show(
+            1338,
+            '${device.name} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+            !state ? AppLocalizations.current.tryingToConnectAgain : null,
+            NotificationDetails(
+              android: AndroidNotificationDetails('Connection', 'Connection Status'),
+              iOS: DarwinNotificationDetails(presentAlert: true),
+            ),
+          );
           if (!device.isConnected) {
             disconnect(device, forget: false, persistForget: false);
             // try reconnect
