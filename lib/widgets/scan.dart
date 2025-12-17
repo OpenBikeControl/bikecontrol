@@ -40,7 +40,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                 spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(context.i18n.permissionsRequired),
+                  Text(context.i18n.permissionsRequired).xSmall,
                   ..._needsPermissions!.map((e) => Text(e.name).li),
                 ],
               ),

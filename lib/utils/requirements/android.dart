@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -112,18 +113,55 @@ class NotificationRequirement extends PlatformRequirement {
         AppLocalizations.current.allowPersistentNotification,
         description: AppLocalizations.current.notificationDescription,
       );
-
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    await Permission.notification.request();
+    if (Platform.isAndroid) {
+      await core.flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    } else if (Platform.isIOS) {
+      await core.flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: false,
+            sound: false,
+          );
+    } else if (Platform.isMacOS) {
+      await core.flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: false,
+            sound: false,
+          );
+    }
     await getStatus();
     return;
   }
 
   @override
   Future<bool> getStatus() async {
-    final PermissionStatus permissionStatus = await Permission.notification.status;
-    status = permissionStatus == PermissionStatus.granted || permissionStatus == PermissionStatus.limited;
+    if (Platform.isAndroid) {
+      final bool granted =
+          await core.flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+              ?.areNotificationsEnabled() ??
+          false;
+      status = granted;
+    } else if (Platform.isIOS) {
+      final permissions = await core.flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.checkPermissions();
+      status = permissions?.isEnabled == true;
+    } else if (Platform.isMacOS) {
+      final permissions = await core.flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
+          ?.checkPermissions();
+      status = permissions?.isEnabled == true;
+    } else {
+      status = true;
+    }
     return status;
   }
 

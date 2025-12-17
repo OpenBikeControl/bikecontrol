@@ -1,6 +1,3 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/markdown.dart';
@@ -9,6 +6,9 @@ import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 enum ConnectionMethodType {
   bluetooth,
@@ -247,9 +247,9 @@ class _PermissionListState extends State<_PermissionList> with WidgetsBindingObs
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16),
-      height: 120 + widget.requirements.length * 70,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         spacing: 18,
         children: [
           Text(
