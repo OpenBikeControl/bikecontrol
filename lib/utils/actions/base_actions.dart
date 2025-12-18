@@ -53,23 +53,8 @@ abstract class BaseActions {
     debugPrint('Supported app: ${supportedApp?.name ?? "None"}');
 
     if (supportedApp != null) {
-      final allButtons = core.connection.devices.map((e) => e.availableButtons).flatten().distinct();
-
-      final newButtons = allButtons.filter(
-        (button) => supportedApp.keymap.getKeyPair(button) == null,
-      );
-      for (final button in newButtons) {
-        supportedApp.keymap.addKeyPair(
-          KeyPair(
-            touchPosition: Offset.zero,
-            buttons: [button],
-            inGameAction: button.action,
-            physicalKey: null,
-            logicalKey: null,
-            isLongPress: false,
-          ),
-        );
-      }
+      final allButtons = core.connection.devices.map((e) => e.availableButtons).flatten().distinct().toList();
+      supportedApp.keymap.addNewButtons(allButtons);
     }
   }
 

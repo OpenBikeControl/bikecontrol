@@ -1,8 +1,5 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:nsd/nsd.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
@@ -14,17 +11,22 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:nsd/nsd.dart';
 
 class FtmsMdnsEmulator extends TrainerConnection {
   ServerSocket? _tcpServer;
   Registration? _mdnsRegistration;
+
+  static const String connectionTitle = 'Zwift Network Emulator';
 
   Socket? _socket;
   var lastMessageId = 0;
 
   FtmsMdnsEmulator()
     : super(
-        title: 'Zwift Network Emulator',
+        title: connectionTitle,
         supportedActions: [
           InGameAction.shiftUp,
           InGameAction.shiftDown,

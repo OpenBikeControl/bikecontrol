@@ -16,9 +16,11 @@ class WhooshLink extends TrainerConnection {
   Socket? _socket;
   ServerSocket? _server;
 
+  static const String connectionTitle = 'MyWhoosh Link';
+
   WhooshLink()
     : super(
-        title: 'MyWhoosh Link',
+        title: connectionTitle,
         supportedActions: [
           InGameAction.shiftUp,
           InGameAction.shiftDown,

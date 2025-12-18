@@ -12,13 +12,11 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'devices/base_device.dart';
@@ -327,20 +325,7 @@ class Connection {
       await device.connect();
       signalChange(device);
 
-      final newButtons = device.availableButtons.filter(
-        (button) => core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
-      );
-      for (final button in newButtons) {
-        core.actionHandler.supportedApp?.keymap.addKeyPair(
-          KeyPair(
-            touchPosition: Offset.zero,
-            buttons: [button],
-            physicalKey: null,
-            logicalKey: null,
-            isLongPress: false,
-          ),
-        );
-      }
+      core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
 
       _streamSubscriptions[device] = actionSubscription;
     } catch (e, backtrace) {

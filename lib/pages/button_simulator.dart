@@ -1,4 +1,10 @@
+import 'package:bike_control/bluetooth/devices/mywhoosh/link.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
+import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -7,6 +13,12 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
+import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
+import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/zwift_tile.dart';
+import 'package:bike_control/widgets/pair_widget.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -149,7 +161,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   @override
   Widget build(BuildContext context) {
-    final connectedTrainers = core.logic.connectedTrainerConnections;
+    final connectedTrainers = core.logic.enabledTrainerConnections;
 
     return Focus(
       focusNode: _focusNode,
@@ -178,9 +190,27 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                 if (connectedTrainers.isEmpty)
                   Warning(
                     children: [
-                      Text('No connected trainers found. Connect a trainer to simulate button presses.'),
+                      Text('No suitable connection method activated. Connect a trainer to simulate button presses.'),
                     ],
                   ),
+                for (final connectedTrainer in connectedTrainers)
+                  switch (connectedTrainer.title) {
+                    WhooshLink.connectionTitle => MyWhooshLinkTile(),
+                    ZwiftEmulator.connectionTitle => ZwiftTile(
+                      onUpdate: () {
+                        setState(() {});
+                      },
+                    ),
+                    FtmsMdnsEmulator.connectionTitle => ZwiftMdnsTile(
+                      onUpdate: () {
+                        setState(() {});
+                      },
+                    ),
+                    OpenBikeControlMdnsEmulator.connectionTitle => OpenBikeControlMdnsTile(),
+                    OpenBikeControlBluetoothEmulator.connectionTitle => OpenBikeControlBluetoothTile(),
+                    RemotePairing.connectionTitle => RemotePairingWidget(),
+                    _ => SizedBox.shrink(),
+                  },
                 ...connectedTrainers.map(
                   (connection) {
                     final supportedActions = connection.supportedActions;
@@ -208,30 +238,34 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                               children: group.value.map(
                                 (action) {
                                   final hotkey = _hotkeys[action];
-                                  return PrimaryButton(
-                                    size: ButtonSize(1.6),
-                                    leading: hotkey != null
-                                        ? KeyWidget(
-                                            label: hotkey.toUpperCase(),
-                                          )
-                                        : null,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(action.title),
-                                        if (action.alternativeTitle != null)
-                                          Text(
-                                            action.alternativeTitle!,
-                                            style: TextStyle(fontSize: 12, color: Colors.gray),
-                                          ),
-                                      ],
-                                    ),
-                                    onPressed: () {},
-                                    onTapDown: (c) async {
-                                      _sendKey(context, down: true, action: action, connection: connection);
-                                    },
-                                    onTapUp: (c) async {
-                                      _sendKey(context, down: false, action: action, connection: connection);
+                                  return Builder(
+                                    builder: (context) {
+                                      return PrimaryButton(
+                                        size: ButtonSize(1.6),
+                                        leading: hotkey != null
+                                            ? KeyWidget(
+                                                label: hotkey.toUpperCase(),
+                                              )
+                                            : null,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(action.title),
+                                            if (action.alternativeTitle != null)
+                                              Text(
+                                                action.alternativeTitle!,
+                                                style: TextStyle(fontSize: 12, color: Colors.gray),
+                                              ),
+                                          ],
+                                        ),
+                                        onPressed: () {},
+                                        onTapDown: (c) async {
+                                          _sendKey(context, down: true, action: action, connection: connection);
+                                        },
+                                        onTapUp: (c) async {
+                                          _sendKey(context, down: false, action: action, connection: connection);
+                                        },
+                                      );
                                     },
                                   );
                                 },

@@ -24,9 +24,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
 
   late GATTCharacteristic _buttonCharacteristic;
 
+  static const String connectionTitle = 'OpenBikeControl BLE Emulator';
+
   OpenBikeControlBluetoothEmulator()
     : super(
-        title: 'OpenBikeControl BLE Emulator',
+        title: connectionTitle,
         supportedActions: InGameAction.values,
       );
 

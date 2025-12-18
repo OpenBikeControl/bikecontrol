@@ -22,6 +22,8 @@ import 'package:permission_handler/permission_handler.dart';
 class ZwiftEmulator extends TrainerConnection {
   bool get isLoading => _isLoading;
 
+  static const String connectionTitle = 'Zwift BLE Emulator';
+
   late final _peripheralManager = PeripheralManager();
   bool _isLoading = false;
   bool _isServiceAdded = false;
@@ -32,7 +34,7 @@ class ZwiftEmulator extends TrainerConnection {
 
   ZwiftEmulator()
     : super(
-        title: 'Zwift BLE Emulator',
+        title: connectionTitle,
         supportedActions: [
           InGameAction.shiftUp,
           InGameAction.shiftDown,

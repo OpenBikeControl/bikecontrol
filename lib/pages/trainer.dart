@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -20,6 +21,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+
+import '../bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 
 class TrainerPage extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -166,8 +169,32 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
 
               SizedBox(),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  PrimaryButton(
+                    child: Text(
+                      AppLocalizations.of(
+                        context,
+                      ).manualyControllingButton(core.settings.getTrainerApp()?.name ?? 'your trainer'),
+                    ),
+                    onPressed: () {
+                      if (core.settings.getTrainerApp() == null) {
+                        buildToast(
+                          context,
+                          level: LogLevel.LOGLEVEL_WARNING,
+                          title: context.i18n.selectTrainerApp,
+                        );
+                        widget.onUpdate();
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (c) => ButtonSimulator(),
+                          ),
+                        );
+                      }
+                    },
+                  ),
                   PrimaryButton(
                     child: Text(context.i18n.adjustControllerButtons),
                     onPressed: () {
