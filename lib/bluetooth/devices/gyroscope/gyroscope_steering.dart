@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/pages/device.dart';
@@ -28,29 +28,15 @@ class GyroscopeSteering extends BaseDevice {
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
 
   // Calibration state
-  final List<double> _calibrationSamplesYaw = [];
-  final List<double> _calibrationSamplesRoll = [];
-  double _calibrationOffsetYaw = 0.0;
-  double _calibrationOffsetRoll = 0.0;
+  final SteeringEstimator _estimator = SteeringEstimator();
   bool _isCalibrated = false;
   ControllerButton? _lastSteeringButton;
 
-  // Current orientation
-  double _currentYaw = 0.0;
-  double _currentRoll = 0.0;
-  double _currentPitch = 0.0;
-
   // Accelerometer raw data
-  double _accelX = 0.0;
-  double _accelY = 0.0;
-  double _accelZ = 0.0;
   bool _hasAccelData = false;
 
   // Time tracking for integration
   DateTime? _lastGyroUpdate;
-
-  // Filtered angle for steering
-  double _filteredSteeringAngle = 0.0;
 
   // Last rounded angle for change detection
   int? _lastRoundedAngle;
@@ -60,8 +46,7 @@ class GyroscopeSteering extends BaseDevice {
   bool _isProcessingKeypresses = false;
 
   // Configuration (can be made customizable later)
-  static const int CALIBRATION_SAMPLE_COUNT = 30;
-  static const double STEERING_THRESHOLD = 7.0; // degrees
+  static const double STEERING_THRESHOLD = 6.0; // degrees
   static const double LEVEL_DEGREE_STEP = 10.0; // degrees per level
   static const int MAX_LEVELS = 5;
   static const int KEY_REPEAT_INTERVAL_MS = 40;
@@ -93,14 +78,13 @@ class GyroscopeSteering extends BaseDevice {
       isConnected = true;
       actionStreamInternal.add(LogNotification('Gyroscope Steering: Connected - Calibrating...'));
 
-      // Reset calibration
+      // Reset calibration/estimator
       _isCalibrated = false;
       _hasAccelData = false;
-      _calibrationSamplesYaw.clear();
-      _calibrationSamplesRoll.clear();
-      _calibrationOffsetYaw = 0.0;
-      _calibrationOffsetRoll = 0.0;
+      _estimator.reset();
       _lastGyroUpdate = null;
+      _lastRoundedAngle = null;
+      _lastSteeringButton = null;
     } catch (e) {
       actionStreamInternal.add(LogNotification('Failed to connect Gyroscope Steering: $e'));
       isConnected = false;
@@ -111,100 +95,56 @@ class GyroscopeSteering extends BaseDevice {
   void _handleGyroscopeEvent(GyroscopeEvent event) {
     final now = DateTime.now();
 
-    // Skip if we haven't received accelerometer data yet
     if (!_hasAccelData) {
       _lastGyroUpdate = now;
       return;
     }
 
-    // Calculate time delta
     final dt = _lastGyroUpdate != null ? (now.difference(_lastGyroUpdate!).inMicroseconds / 1000000.0) : 0.0;
     _lastGyroUpdate = now;
 
-    if (dt > 0 && dt < 1.0) {
-      // Assuming phone is mounted on handlebar in landscape mode
-      // - event.z (yaw rate) represents rotation around vertical axis (steering)
-      // - event.x (roll rate) can be used as backup/additional input
-      // - event.y (pitch rate) represents forward/backward rotation
-
-      // Integrate gyroscope to get angles (in degrees)
-      final gyroYawDelta = event.z * dt * (180.0 / pi);
-      final gyroRollDelta = event.x * dt * (180.0 / pi);
-
-      // Update yaw and roll from gyroscope
-      _currentYaw += gyroYawDelta;
-      _currentRoll += gyroRollDelta;
-
-      // Apply complementary filter: combine gyroscope and accelerometer
-      // Gyroscope provides short-term accuracy, accelerometer provides long-term stability
-      _currentRoll = COMPLEMENTARY_FILTER_ALPHA * _currentRoll + (1 - COMPLEMENTARY_FILTER_ALPHA) * _getAccelRoll();
-
-      if (!_isCalibrated) {
-        _collectCalibrationSamples();
-      } else {
-        _processSteeringAngle();
-      }
+    if (dt <= 0 || dt >= 1.0) {
+      return;
     }
+
+    // iOS drift fix:
+    // - integrate bias-corrected gyro z (yaw) into an estimator
+    // - learn bias while the device is still
+    final angleDeg = _estimator.updateGyro(wz: event.z, dt: dt);
+
+    if (!_isCalibrated) {
+      // Consider calibration complete once we have a bit of stillness and sensor data.
+      // This gives the bias estimator time to settle.
+      if (_estimator.stillTimeSec >= 0.6) {
+        _estimator.calibrate(seedBiasZRadPerSec: _estimator.biasZRadPerSec);
+        _isCalibrated = true;
+        actionStreamInternal.add(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibration complete.'),
+        );
+      }
+      return;
+    }
+
+    _processSteeringAngle(angleDeg);
   }
 
   void _handleAccelerometerEvent(AccelerometerEvent event) {
-    // Store accelerometer readings for complementary filter
-    _accelX = event.x;
-    _accelY = event.y;
-    _accelZ = event.z;
     _hasAccelData = true;
-
-    // Calculate roll and pitch from accelerometer
-    // Assuming phone is in landscape orientation on handlebar
-    _currentPitch = atan2(event.y, sqrt(event.x * event.x + event.z * event.z)) * (180.0 / pi);
+    _estimator.updateAccel(x: event.x, y: event.y, z: event.z);
   }
 
-  double _getAccelRoll() {
-    // Calculate roll from accelerometer data
-    // Roll is rotation around the longitudinal axis (phone's length)
-    // For landscape orientation: roll = atan2(accelY, accelZ)
-    return atan2(_accelY, _accelZ) * (180.0 / pi);
-  }
+  void _processSteeringAngle(double steeringAngleDeg) {
+    final roundedAngle = steeringAngleDeg.round();
 
-  void _collectCalibrationSamples() {
-    _calibrationSamplesYaw.add(_currentYaw);
-    _calibrationSamplesRoll.add(_currentRoll);
-
-    if (_calibrationSamplesYaw.length >= CALIBRATION_SAMPLE_COUNT) {
-      // Compute average offset from collected samples
-      _calibrationOffsetYaw = _calibrationSamplesYaw.reduce((a, b) => a + b) / _calibrationSamplesYaw.length;
-      _calibrationOffsetRoll = _calibrationSamplesRoll.reduce((a, b) => a + b) / _calibrationSamplesRoll.length;
-      _isCalibrated = true;
-
-      actionStreamInternal.add(
-        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibration complete.'),
-      );
-
-      // Reset integrated angles to start from calibrated zero
-      _currentYaw = 0.0;
-      _currentRoll = 0.0;
-    }
-  }
-
-  void _processSteeringAngle() {
-    // Apply calibration offset to yaw (primary steering input)
-    final calibratedYaw = _currentYaw - _calibrationOffsetYaw;
-
-    // Apply low-pass filter to smooth out noise
-    _filteredSteeringAngle =
-        LOW_PASS_FILTER_ALPHA * _filteredSteeringAngle + (1 - LOW_PASS_FILTER_ALPHA) * calibratedYaw;
-
-    // Round to whole degrees to reduce noise
-    final roundedAngle = _filteredSteeringAngle.round();
-
-    // Only process steering when rounded value changes
     if (_lastRoundedAngle != roundedAngle) {
       if (kDebugMode) {
-        actionStreamInternal.add(LogNotification('Steering angle: $roundedAngle°'));
+        actionStreamInternal.add(
+          LogNotification(
+            'Steering angle: $roundedAngle° (biasZ=${_estimator.biasZRadPerSec.toStringAsFixed(4)} rad/s)',
+          ),
+        );
       }
       _lastRoundedAngle = roundedAngle;
-
-      // Apply PWM-like steering behavior
       _applyPWMSteering(roundedAngle);
     }
   }
@@ -226,49 +166,12 @@ class GyroscopeSteering extends BaseDevice {
         return;
       }
 
-      /*
-      // Calculate number of keypress levels based on angle magnitude
-      final levels = _calculateKeypressLevels(roundedAngle.abs());
-
-      // Schedule repeated keypresses
-      _scheduleRepeatedKeypresses(button, levels);
-      */
-
       handleButtonsClicked([button]);
     } else {
       _lastSteeringButton = null;
       // Center position - release any held buttons
       handleButtonsClicked([]);
     }
-  }
-
-  /// Calculates the number of keypress levels based on angle magnitude
-  int _calculateKeypressLevels(int absAngle) {
-    final levels = ((absAngle - STEERING_THRESHOLD) / LEVEL_DEGREE_STEP).floor() + 1;
-    return levels.clamp(1, MAX_LEVELS);
-  }
-
-  /// Schedules repeated keypresses to simulate PWM behavior
-  Future<void> _scheduleRepeatedKeypresses(ControllerButton button, int levels) async {
-    // Don't overlap keypress sequences
-    if (_isProcessingKeypresses) {
-      return;
-    }
-
-    _isProcessingKeypresses = true;
-
-    // Send keypresses in sequence with delays between them
-    for (int i = 0; i < levels; i++) {
-      // Send keypress immediately on first iteration, then wait before subsequent ones
-      handleButtonsClicked([button]);
-
-      // Don't wait after the last keypress
-      if (i < levels - 1) {
-        await Future.delayed(Duration(milliseconds: KEY_REPEAT_INTERVAL_MS));
-      }
-    }
-
-    _isProcessingKeypresses = false;
   }
 
   @override
@@ -281,8 +184,7 @@ class GyroscopeSteering extends BaseDevice {
     isConnected = false;
     _isCalibrated = false;
     _hasAccelData = false;
-    _calibrationSamplesYaw.clear();
-    _calibrationSamplesRoll.clear();
+    _estimator.reset();
     actionStreamInternal.add(LogNotification('Gyroscope Steering: Disconnected'));
   }
 
@@ -316,8 +218,14 @@ class GyroscopeSteering extends BaseDevice {
               DeviceInfo(
                 title: 'Steering Angle',
                 icon: RadixIcons.angle,
-                value: _isCalibrated ? '${_filteredSteeringAngle.toStringAsFixed(2)}°' : 'Calibrating...',
+                value: _isCalibrated ? '${_estimator.angleDeg.toStringAsFixed(2)}°' : 'Calibrating...',
               ),
+              if (kDebugMode)
+                DeviceInfo(
+                  title: 'Gyro Bias',
+                  icon: BootstrapIcons.speedometer,
+                  value: '${_estimator.biasZRadPerSec.toStringAsFixed(4)} rad/s',
+                ),
             ],
           ),
           Row(
@@ -332,14 +240,14 @@ class GyroscopeSteering extends BaseDevice {
                         // Reset calibration
                         _isCalibrated = false;
                         _hasAccelData = false;
-                        _calibrationSamplesYaw.clear();
-                        _calibrationSamplesRoll.clear();
-                        _calibrationOffsetYaw = 0.0;
-                        _calibrationOffsetRoll = 0.0;
+                        _estimator.reset();
                         _lastGyroUpdate = null;
+                        _lastRoundedAngle = null;
+                        _lastSteeringButton = null;
                         actionStreamInternal.add(
                           AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibrating the sensors now.'),
                         );
+                        setState(() {});
                       },
                 child: Text(_isCalibrated ? 'Calibrate' : 'Calibrating...'),
               ),
@@ -382,7 +290,7 @@ class GyroscopeSteering extends BaseDevice {
           ),
           if (!_isCalibrated)
             Text(
-              'Calibrating the sensors now. Attach your phone/tablet on your handlebar and make sure the steering angle will show a low value after calibration.',
+              'Calibrating the sensors now. Attach your phone/tablet on your handlebar and keep it still for a second.',
             ).xSmall,
         ],
       ),
