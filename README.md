@@ -50,6 +50,9 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - CYCPLUS BC2 Virtual Shifter
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
+- Gyroscope/Accelerometer Steering (for mobile devices)
+  - Mount your phone on the handlebar for steering detection
+  - Available on Android and iOS
 - Gamepads
 - Keyboard input
   - some trainers do not support keyboard input for all functions - now they do!
