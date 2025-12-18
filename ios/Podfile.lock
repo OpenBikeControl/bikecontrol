@@ -36,6 +36,8 @@ PODS:
     - Flutter
   - restart_app (0.0.1):
     - Flutter
+  - sensors_plus (0.0.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -65,6 +67,7 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - restart_app (from `.symlinks/plugins/restart_app/ios`)
+  - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - universal_ble (from `.symlinks/plugins/universal_ble/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -105,6 +108,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   restart_app:
     :path: ".symlinks/plugins/restart_app/ios"
+  sensors_plus:
+    :path: ".symlinks/plugins/sensors_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   universal_ble:
@@ -132,6 +137,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   restart_app: 806659942bf932f6ce51c5372f91ce5e81c8c14a
+  sensors_plus: 7229095999f30740798f0eeef5cd120357a8f4f2
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   universal_ble: cf52a7b3fd2e7c14d6d7262e9fdadb72ab6b88a6
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe

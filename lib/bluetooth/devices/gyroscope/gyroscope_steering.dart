@@ -61,7 +61,7 @@ class GyroscopeSteering extends BaseDevice {
 
   // Configuration (can be made customizable later)
   static const int CALIBRATION_SAMPLE_COUNT = 30;
-  static const double STEERING_THRESHOLD = 5.0; // degrees
+  static const double STEERING_THRESHOLD = 7.0; // degrees
   static const double LEVEL_DEGREE_STEP = 10.0; // degrees per level
   static const int MAX_LEVELS = 5;
   static const int KEY_REPEAT_INTERVAL_MS = 40;
