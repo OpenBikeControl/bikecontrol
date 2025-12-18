@@ -95,6 +95,20 @@ class _ScanWidgetState extends State<ScanWidget> {
                           );
                         },
                       ),
+                    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
+                      Tooltip(
+                        tooltip: (c) => TooltipContainer(
+                          child: Text('Use your phone\'s gyroscope and accelerometer for steering. Mount your phone on the handlebar.'),
+                        ),
+                        child: Checkbox(
+                          state: core.connection.gyroscopeDevices.isNotEmpty ? CheckboxState.checked : CheckboxState.unchecked,
+                          trailing: Expanded(child: Text('Enable Gyroscope Steering')),
+                          onChanged: (change) {
+                            core.connection.toggleGyroscopeSteering();
+                            setState(() {});
+                          },
+                        ),
+                      ),
                     SizedBox(),
                     if (core.connection.controllerDevices.isEmpty) ...[
                       OutlineButton(

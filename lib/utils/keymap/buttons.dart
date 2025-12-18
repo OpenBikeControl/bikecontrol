@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
@@ -83,6 +84,7 @@ class ControllerButton {
 
   static List<ControllerButton> get values => [
     ...SterzoButtons.values,
+    ...GyroscopeSteeringButtons.values,
     ...ZwiftButtons.values,
     ...EliteSquareButtons.values,
     ...WahooKickrShiftButtons.values,
