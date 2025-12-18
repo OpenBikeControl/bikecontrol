@@ -16,8 +16,8 @@ enum InGameAction {
   steerRight('Steer Right', alternativeTitle: 'Right', icon: RadixIcons.doubleArrowRight),
 
   // mywhoosh
-  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], icon: BootstrapIcons.camera),
-  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6], icon: BootstrapIcons.personRaisedHand),
+  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], icon: BootstrapIcons.cameraReels),
+  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6], icon: BootstrapIcons.emojiSmile),
   toggleUi('Toggle UI', icon: RadixIcons.iconSwitch),
   navigateLeft('Navigate Left', icon: BootstrapIcons.signTurnLeft),
   navigateRight('Navigate Right', icon: BootstrapIcons.signTurnRight),

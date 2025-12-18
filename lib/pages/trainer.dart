@@ -92,7 +92,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
     final showWhooshLinkAsOther =
         (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
 
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = MediaQuery.sizeOf(context).width < 800;
     return Scrollbar(
       controller: _scrollController,
       child: SingleChildScrollView(

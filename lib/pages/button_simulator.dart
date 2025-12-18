@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bike_control/bluetooth/devices/mywhoosh/link.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
@@ -79,6 +81,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   static const Duration _keyPressDuration = Duration(milliseconds: 100);
 
+  InGameAction? _pressedAction;
+
   @override
   void initState() {
     super.initState();
@@ -98,7 +102,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
     // If no saved hotkeys, initialize with defaults
     if (savedHotkeys.isEmpty) {
-      final connectedTrainers = core.logic.connectedTrainerConnections;
+      final connectedTrainers = core.logic.enabledTrainerConnections;
       final allActions = <InGameAction>[];
 
       for (final connection in connectedTrainers) {
@@ -138,6 +142,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
     if (action == null) return KeyEventResult.ignored;
 
+    _pressedAction = action;
+    setState(() {});
+
     // Find the connection that supports this action
     final connectedTrainers = core.logic.connectedTrainerConnections;
     final connection = connectedTrainers.firstOrNullWhere((c) => c.supportedActions.contains(action));
@@ -149,11 +156,17 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         _keyPressDuration,
         () {
           if (mounted) {
+            _pressedAction = null;
+            setState(() {});
             _sendKey(context, down: false, action: action, connection: connection);
           }
         },
       );
       return KeyEventResult.handled;
+    } else {
+      _pressedAction = null;
+      setState(() {});
+      buildToast(context, title: 'No connected trainer.');
     }
 
     return KeyEventResult.ignored;
@@ -162,6 +175,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   @override
   Widget build(BuildContext context) {
     final connectedTrainers = core.logic.enabledTrainerConnections;
+
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
 
     return Focus(
       focusNode: _focusNode,
@@ -220,60 +235,100 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                           supportedActions.contains(InGameAction.shiftDown))
                         'Shifting': [InGameAction.shiftUp, InGameAction.shiftDown],
                       'Other': supportedActions
-                          .where((action) => action != InGameAction.shiftUp && action != InGameAction.shiftDown)
+                          .where(
+                            (action) =>
+                                action != InGameAction.shiftUp &&
+                                action != InGameAction.shiftDown &&
+                                action != InGameAction.steerLeft &&
+                                action != InGameAction.steerRight,
+                          )
                           .toList(),
+                      if (supportedActions.contains(InGameAction.steerLeft) &&
+                          supportedActions.contains(InGameAction.steerRight))
+                        'Steering': [InGameAction.steerLeft, InGameAction.steerRight],
                     };
 
                     return [
                       GradientText(connection.title).bold.large,
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 12,
-                        children: [
-                          for (final group in actionGroups.entries) ...[
-                            Text(group.key).bold,
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: group.value.map(
-                                (action) {
-                                  final hotkey = _hotkeys[action];
-                                  return Builder(
-                                    builder: (context) {
-                                      return PrimaryButton(
-                                        size: ButtonSize(1.6),
-                                        leading: hotkey != null
-                                            ? KeyWidget(
-                                                label: hotkey.toUpperCase(),
-                                              )
-                                            : null,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 800),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 12,
+                          children: [
+                            for (final group in actionGroups.entries) ...[
+                              Text(group.key.toUpperCase()).bold.muted,
+                              GridView.count(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                crossAxisCount: min(group.value.length, 3),
+                                childAspectRatio: isMobile ? 1.4 : 2.4,
+                                children: group.value.map(
+                                  (action) {
+                                    final hotkey = _hotkeys[action];
+                                    return Builder(
+                                      builder: (context) {
+                                        return Stack(
+                                          alignment: Alignment.topRight,
+                                          fit: StackFit.expand,
                                           children: [
-                                            Text(action.title),
-                                            if (action.alternativeTitle != null)
-                                              Text(
-                                                action.alternativeTitle!,
-                                                style: TextStyle(fontSize: 12, color: Colors.gray),
+                                            Button(
+                                              style: _pressedAction == action
+                                                  ? ButtonStyle.outline()
+                                                  : group.key == 'Other'
+                                                  ? ButtonStyle.outline()
+                                                  : ButtonStyle.primary(),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  if (action.icon != null) ...[
+                                                    Icon(action.icon),
+                                                    SizedBox(height: 8),
+                                                  ],
+                                                  Text(
+                                                    action.title,
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(height: 1),
+                                                    maxLines: 2,
+                                                  ).bold,
+                                                  if (action.alternativeTitle != null)
+                                                    Text(
+                                                      action.alternativeTitle!.toUpperCase(),
+                                                      style: TextStyle(fontSize: 10, color: Colors.gray),
+                                                    ),
+                                                ],
+                                              ),
+                                              onPressed: () {},
+                                              onTapDown: (c) async {
+                                                _sendKey(context, down: true, action: action, connection: connection);
+                                              },
+                                              onTapUp: (c) async {
+                                                _sendKey(context, down: false, action: action, connection: connection);
+                                              },
+                                            ),
+
+                                            if (hotkey != null)
+                                              Positioned(
+                                                top: -4,
+                                                right: -4,
+                                                child: KeyWidget(
+                                                  label: hotkey.toUpperCase(),
+                                                ),
                                               ),
                                           ],
-                                        ),
-                                        onPressed: () {},
-                                        onTapDown: (c) async {
-                                          _sendKey(context, down: true, action: action, connection: connection);
-                                        },
-                                        onTapUp: (c) async {
-                                          _sendKey(context, down: false, action: action, connection: connection);
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
-                              ).toList(),
-                            ),
-                            SizedBox(height: 12),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ).toList(),
+                              ),
+                              SizedBox(height: 12),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ];
                   },
@@ -335,6 +390,13 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     required InGameAction action,
     required TrainerConnection connection,
   }) async {
+    if (!connection.isConnected.value) {
+      if (down) {
+        buildToast(context, title: 'No connected trainer.');
+      }
+
+      return;
+    }
     if (action.possibleValues != null) {
       if (down) return;
       showDropdown(
