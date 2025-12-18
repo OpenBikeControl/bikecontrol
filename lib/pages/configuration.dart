@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
@@ -127,8 +128,23 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     if (core.settings.getTrainerApp() != null) ...[
                       if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true)
                         Text(
-                          'Great news - ${core.settings.getTrainerApp()!.name} supports the OpenBikeControl Protocol, so you\'ll the best possible experience!',
-                        ).xSmall,
+                          AppLocalizations.of(context).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
+                        ).xSmall
+                      else if (core.settings.getTrainerApp()!.star == true)
+                        Row(
+                          spacing: 8,
+                          children: [
+                            Icon(Icons.star),
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).newConnectionMethodAnnouncement(core.settings.getTrainerApp()!.name),
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
                       SizedBox(height: 8),
                       Text(
                         context.i18n.selectTargetWhereAppRuns(

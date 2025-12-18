@@ -404,5 +404,7 @@
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Could not perform {button}: No keymap set",
-  "purchase": "Purchase"
+  "purchase": "Purchase",
+  "openBikeControlAnnouncement": "Great news - {trainerApp} supports the OpenBikeControl Protocol, so you'll have the best possible experience!",
+  "newConnectionMethodAnnouncement": "{trainerApp} will soon support much better an reliable connection methods - stay tuned for updates!"
 }

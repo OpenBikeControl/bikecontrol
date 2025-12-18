@@ -15,6 +15,7 @@ class MyWhoosh extends SupportedApp {
         compatibleTargets: Target.values,
         supportsZwiftEmulation: false,
         supportsOpenBikeProtocol: screenshotMode,
+        star: true,
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values
