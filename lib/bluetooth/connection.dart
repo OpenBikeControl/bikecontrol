@@ -156,6 +156,9 @@ class Connection {
           performScanning();
         }
       });
+      if (core.settings.getPhoneSteeringEnabled()) {
+        toggleGyroscopeSteering();
+      }
     }
   }
 

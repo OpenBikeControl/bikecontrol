@@ -13,11 +13,11 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:dartx/dartx.dart';
@@ -273,112 +273,53 @@ abstract class BluetoothDevice extends BaseDevice {
           spacing: 12,
           runSpacing: 12,
           children: [
-            SizedBox(
-              width: screenshotMode ? 160 : null,
-              height: screenshotMode ? 70 : null,
-              child: Card(
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.background,
-                padding: EdgeInsets.all(12),
-                child: Basic(
-                  title: Text(context.i18n.connection).xSmall,
-                  trailingAlignment: Alignment.centerRight,
-                  trailing: Icon(switch (isConnected) {
-                    true => Icons.bluetooth_connected_outlined,
-                    false => Icons.bluetooth_disabled_outlined,
-                  }),
-                  subtitle: Text(
-                    isConnected ? context.i18n.connected : context.i18n.disconnected,
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ),
+            DeviceInfo(
+              title: context.i18n.connection,
+              icon: switch (isConnected) {
+                true => Icons.bluetooth_connected_outlined,
+                false => Icons.bluetooth_disabled_outlined,
+              },
+              value: isConnected ? context.i18n.connected : context.i18n.disconnected,
             ),
+
             if (batteryLevel != null)
-              SizedBox(
-                width: screenshotMode ? 160 : null,
-                height: screenshotMode ? 70 : null,
-                child: Card(
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.background,
-                  padding: EdgeInsets.all(12),
-                  child: Basic(
-                    title: Text(context.i18n.battery).xSmall,
-                    trailingAlignment: Alignment.centerRight,
-                    trailing: Icon(
-                      switch (batteryLevel!) {
-                        >= 80 => Icons.battery_full,
-                        >= 60 => Icons.battery_6_bar,
-                        >= 50 => Icons.battery_5_bar,
-                        >= 25 => Icons.battery_4_bar,
-                        >= 10 => Icons.battery_2_bar,
-                        _ => Icons.battery_alert,
-                      },
-                      color: batteryLevel! <= 10 ? Theme.of(context).colorScheme.destructive : null,
-                    ),
-                    subtitle: Text(
-                      '$batteryLevel%',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ),
+              DeviceInfo(
+                title: context.i18n.battery,
+                icon: switch (batteryLevel!) {
+                  >= 80 => Icons.battery_full,
+                  >= 60 => Icons.battery_6_bar,
+                  >= 50 => Icons.battery_5_bar,
+                  >= 25 => Icons.battery_4_bar,
+                  >= 10 => Icons.battery_2_bar,
+                  _ => Icons.battery_alert,
+                },
+                value: '$batteryLevel%',
               ),
             if (firmwareVersion != null)
-              SizedBox(
-                width: screenshotMode ? 160 : null,
-                height: screenshotMode ? 70 : null,
-                child: Card(
-                  filled: true,
-                  padding: EdgeInsets.all(12),
-                  fillColor: Theme.of(context).colorScheme.background,
-                  child: Basic(
-                    title: Text(context.i18n.firmware).xSmall,
-                    subtitle: Row(
-                      children: [
-                        Text(
-                          '$firmwareVersion',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
-                          Text(
-                            ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
-                            style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
-                          ),
-                      ],
-                    ),
-                    trailingAlignment: Alignment.centerRight,
-                    trailing: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
-                        ? Icon(Icons.warning, color: Theme.of(context).colorScheme.destructive)
-                        : Icon(Icons.text_fields_sharp),
-                  ),
-                ),
+              DeviceInfo(
+                title: context.i18n.signal,
+                icon: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
+                    ? Icons.warning
+                    : Icons.text_fields_sharp,
+                value: firmwareVersion!,
+                additionalInfo: (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+                    ? Text(
+                        ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
+                        style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
+                      )
+                    : null,
               ),
+
             if (rssi != null)
-              SizedBox(
-                width: screenshotMode ? 160 : null,
-                height: screenshotMode ? 70 : null,
-                child: Card(
-                  filled: true,
-                  padding: EdgeInsets.all(12),
-                  fillColor: Theme.of(context).colorScheme.background,
-                  child: Basic(
-                    title: Text(context.i18n.signal).xSmall,
-                    trailingAlignment: Alignment.centerRight,
-                    trailing: Icon(
-                      switch (rssi!) {
-                        >= -50 => Icons.signal_cellular_4_bar,
-                        >= -60 => Icons.signal_cellular_alt_2_bar,
-                        >= -70 => Icons.signal_cellular_alt_1_bar,
-                        _ => Icons.signal_cellular_alt,
-                      },
-                      size: 18,
-                    ),
-                    subtitle: Text(
-                      '$rssi dBm',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ),
+              DeviceInfo(
+                title: context.i18n.signal,
+                icon: switch (rssi!) {
+                  >= -50 => Icons.signal_cellular_4_bar,
+                  >= -60 => Icons.signal_cellular_alt_2_bar,
+                  >= -70 => Icons.signal_cellular_alt_1_bar,
+                  _ => Icons.signal_cellular_alt,
+                },
+                value: '$rssi dBm',
               ),
           ],
         ),

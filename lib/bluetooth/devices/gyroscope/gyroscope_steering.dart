@@ -2,15 +2,27 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/pages/device.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/device_info.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Gyroscope and Accelerometer based steering device
 /// Detects handlebar movement when the phone is mounted on the handlebar
 class GyroscopeSteering extends BaseDevice {
-  GyroscopeSteering() : super('Gyroscope Steering', availableButtons: GyroscopeSteeringButtons.values);
+  GyroscopeSteering()
+    : super(
+        'Phone Steering',
+        availableButtons: GyroscopeSteeringButtons.values,
+        isBeta: true,
+      );
 
   StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
@@ -21,6 +33,7 @@ class GyroscopeSteering extends BaseDevice {
   double _calibrationOffsetYaw = 0.0;
   double _calibrationOffsetRoll = 0.0;
   bool _isCalibrated = false;
+  ControllerButton? _lastSteeringButton;
 
   // Current orientation
   double _currentYaw = 0.0;
@@ -48,7 +61,7 @@ class GyroscopeSteering extends BaseDevice {
 
   // Configuration (can be made customizable later)
   static const int CALIBRATION_SAMPLE_COUNT = 30;
-  static const double STEERING_THRESHOLD = 15.0; // degrees
+  static const double STEERING_THRESHOLD = 5.0; // degrees
   static const double LEVEL_DEGREE_STEP = 10.0; // degrees per level
   static const int MAX_LEVELS = 5;
   static const int KEY_REPEAT_INTERVAL_MS = 40;
@@ -164,11 +177,7 @@ class GyroscopeSteering extends BaseDevice {
       _isCalibrated = true;
 
       actionStreamInternal.add(
-        LogNotification(
-          'Gyroscope Steering: Calibration complete. '
-          'Yaw offset: ${_calibrationOffsetYaw.toStringAsFixed(2)}°, '
-          'Roll offset: ${_calibrationOffsetRoll.toStringAsFixed(2)}°',
-        ),
+        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibration complete.'),
       );
 
       // Reset integrated angles to start from calibrated zero
@@ -182,7 +191,8 @@ class GyroscopeSteering extends BaseDevice {
     final calibratedYaw = _currentYaw - _calibrationOffsetYaw;
 
     // Apply low-pass filter to smooth out noise
-    _filteredSteeringAngle = LOW_PASS_FILTER_ALPHA * _filteredSteeringAngle + (1 - LOW_PASS_FILTER_ALPHA) * calibratedYaw;
+    _filteredSteeringAngle =
+        LOW_PASS_FILTER_ALPHA * _filteredSteeringAngle + (1 - LOW_PASS_FILTER_ALPHA) * calibratedYaw;
 
     // Round to whole degrees to reduce noise
     final roundedAngle = _filteredSteeringAngle.round();
@@ -205,16 +215,28 @@ class GyroscopeSteering extends BaseDevice {
     _keypressTimer?.cancel();
 
     // Determine if we're steering
-    if (roundedAngle.abs() > STEERING_THRESHOLD) {
+    if (roundedAngle.abs() > core.settings.getPhoneSteeringThreshold()) {
       // Determine direction
-      final button = roundedAngle > 0 ? GyroscopeSteeringButtons.rightSteer : GyroscopeSteeringButtons.leftSteer;
+      final button = roundedAngle < 0 ? GyroscopeSteeringButtons.rightSteer : GyroscopeSteeringButtons.leftSteer;
 
+      if (_lastSteeringButton != button) {
+        // New steering direction - reset any previous state
+        _lastSteeringButton = button;
+      } else {
+        return;
+      }
+
+      /*
       // Calculate number of keypress levels based on angle magnitude
       final levels = _calculateKeypressLevels(roundedAngle.abs());
 
       // Schedule repeated keypresses
       _scheduleRepeatedKeypresses(button, levels);
+      */
+
+      handleButtonsClicked([button]);
     } else {
+      _lastSteeringButton = null;
       // Center position - release any held buttons
       handleButtonsClicked([]);
     }
@@ -239,7 +261,7 @@ class GyroscopeSteering extends BaseDevice {
     for (int i = 0; i < levels; i++) {
       // Send keypress immediately on first iteration, then wait before subsequent ones
       handleButtonsClicked([button]);
-      
+
       // Don't wait after the last keypress
       if (i < levels - 1) {
         await Future.delayed(Duration(milliseconds: KEY_REPEAT_INTERVAL_MS));
@@ -263,6 +285,109 @@ class GyroscopeSteering extends BaseDevice {
     _calibrationSamplesRoll.clear();
     actionStreamInternal.add(LogNotification('Gyroscope Steering: Disconnected'));
   }
+
+  @override
+  Widget showInformation(BuildContext context) {
+    return StatefulBuilder(
+      builder: (c, setState) => Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
+        children: [
+          Row(
+            spacing: 12,
+            children: [
+              Text(
+                name.screenshot,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              if (isBeta) BetaPill(),
+            ],
+          ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              DeviceInfo(
+                title: 'Calibration',
+                icon: BootstrapIcons.wrenchAdjustable,
+                value: _isCalibrated ? 'Complete' : 'In Progress',
+              ),
+              DeviceInfo(
+                title: 'Steering Angle',
+                icon: RadixIcons.angle,
+                value: _isCalibrated ? '${_filteredSteeringAngle.toStringAsFixed(2)}°' : 'Calibrating...',
+              ),
+            ],
+          ),
+          Row(
+            spacing: 8,
+            children: [
+              PrimaryButton(
+                size: ButtonSize.small,
+                leading: !_isCalibrated ? SmallProgressIndicator() : null,
+                onPressed: !_isCalibrated
+                    ? null
+                    : () {
+                        // Reset calibration
+                        _isCalibrated = false;
+                        _hasAccelData = false;
+                        _calibrationSamplesYaw.clear();
+                        _calibrationSamplesRoll.clear();
+                        _calibrationOffsetYaw = 0.0;
+                        _calibrationOffsetRoll = 0.0;
+                        _lastGyroUpdate = null;
+                        actionStreamInternal.add(
+                          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibrating the sensors now.'),
+                        );
+                      },
+                child: Text(_isCalibrated ? 'Calibrate' : 'Calibrating...'),
+              ),
+              Builder(
+                builder: (context) {
+                  return PrimaryButton(
+                    size: ButtonSize.small,
+                    trailing: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.destructive,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text('${core.settings.getPhoneSteeringThreshold().toInt()}°'),
+                    ),
+                    onPressed: () {
+                      final values = [for (var i = 3; i <= 12; i += 1) i];
+                      showDropdown(
+                        context: context,
+                        builder: (b) => DropdownMenu(
+                          children: values
+                              .map(
+                                (v) => MenuButton(
+                                  child: Text('$v°'),
+                                  onPressed: (c) {
+                                    core.settings.setPhoneSteeringThreshold(v);
+                                    setState(() {});
+                                  },
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      );
+                    },
+                    child: Text('Trigger Threshold:'),
+                  );
+                },
+              ),
+            ],
+          ),
+          if (!_isCalibrated)
+            Text(
+              'Calibrating the sensors now. Attach your phone/tablet on your handlebar and make sure the steering angle will show a low value after calibration.',
+            ).xSmall,
+        ],
+      ),
+    );
+  }
 }
 
 class GyroscopeSteeringButtons {
@@ -276,7 +401,7 @@ class GyroscopeSteeringButtons {
   );
 
   static List<ControllerButton> get values => [
-        leftSteer,
-        rightSteer,
-      ];
+    leftSteer,
+    rightSteer,
+  ];
 }
