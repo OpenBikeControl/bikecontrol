@@ -80,6 +80,21 @@ class Keymap {
       return allButtons.firstWhere((b) => b.name == name);
     }
   }
+
+  void addNewButtons(List<ControllerButton> availableButtons) {
+    final newButtons = availableButtons.filter((button) => getKeyPair(button) == null);
+    for (final button in newButtons) {
+      addKeyPair(
+        KeyPair(
+          touchPosition: Offset.zero,
+          buttons: [button],
+          physicalKey: null,
+          logicalKey: null,
+          isLongPress: false,
+        ),
+      );
+    }
+  }
 }
 
 class KeyPair {

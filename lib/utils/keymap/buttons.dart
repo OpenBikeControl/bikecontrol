@@ -20,8 +20,8 @@ enum InGameAction {
   toggleUi('Toggle UI', icon: RadixIcons.iconSwitch),
   navigateLeft('Navigate Left', icon: BootstrapIcons.signTurnLeft),
   navigateRight('Navigate Right', icon: BootstrapIcons.signTurnRight),
-  increaseResistance('Increase Resistance'),
-  decreaseResistance('Decrease Resistance'),
+  increaseResistance('Increase Resistance', icon: LucideIcons.chartNoAxesColumnIncreasing),
+  decreaseResistance('Decrease Resistance', icon: LucideIcons.chartNoAxesColumnDecreasing),
 
   // zwift
   openActionBar('Open Action Bar', alternativeTitle: 'Up', icon: BootstrapIcons.menuApp),

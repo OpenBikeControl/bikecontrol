@@ -97,10 +97,11 @@ class _CustomizeState extends State<CustomizePage> {
                   final customApp = CustomApp(profileName: profileName);
                   core.actionHandler.init(customApp);
                   await core.settings.setKeyMap(customApp);
+
                   setState(() {});
                 }
               } else {
-                core.actionHandler.supportedApp = app;
+                core.actionHandler.init(app);
                 await core.settings.setKeyMap(app);
                 setState(() {});
               }
