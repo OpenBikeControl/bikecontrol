@@ -27,6 +27,12 @@ class GyroscopeSteering extends BaseDevice {
   double _currentRoll = 0.0;
   double _currentPitch = 0.0;
 
+  // Accelerometer raw data
+  double _accelX = 0.0;
+  double _accelY = 0.0;
+  double _accelZ = 0.0;
+  bool _hasAccelData = false;
+
   // Time tracking for integration
   DateTime? _lastGyroUpdate;
 
@@ -76,8 +82,11 @@ class GyroscopeSteering extends BaseDevice {
 
       // Reset calibration
       _isCalibrated = false;
+      _hasAccelData = false;
       _calibrationSamplesYaw.clear();
       _calibrationSamplesRoll.clear();
+      _calibrationOffsetYaw = 0.0;
+      _calibrationOffsetRoll = 0.0;
       _lastGyroUpdate = null;
     } catch (e) {
       actionStreamInternal.add(LogNotification('Failed to connect Gyroscope Steering: $e'));
@@ -90,7 +99,7 @@ class GyroscopeSteering extends BaseDevice {
     final now = DateTime.now();
 
     // Skip if we haven't received accelerometer data yet
-    if (_currentPitch == 0.0 && _currentRoll == 0.0) {
+    if (!_hasAccelData) {
       _lastGyroUpdate = now;
       return;
     }
@@ -127,15 +136,21 @@ class GyroscopeSteering extends BaseDevice {
 
   void _handleAccelerometerEvent(AccelerometerEvent event) {
     // Store accelerometer readings for complementary filter
+    _accelX = event.x;
+    _accelY = event.y;
+    _accelZ = event.z;
+    _hasAccelData = true;
+
     // Calculate roll and pitch from accelerometer
     // Assuming phone is in landscape orientation on handlebar
     _currentPitch = atan2(event.y, sqrt(event.x * event.x + event.z * event.z)) * (180.0 / pi);
   }
 
   double _getAccelRoll() {
-    // Calculate roll from stored pitch (already calculated from accelerometer)
-    // This is a simplified approach - in real implementation might need full orientation matrix
-    return _currentRoll;
+    // Calculate roll from accelerometer data
+    // Roll is rotation around the longitudinal axis (phone's length)
+    // For landscape orientation: roll = atan2(accelY, accelZ)
+    return atan2(_accelY, _accelZ) * (180.0 / pi);
   }
 
   void _collectCalibrationSamples() {
@@ -222,8 +237,13 @@ class GyroscopeSteering extends BaseDevice {
 
     // Send keypresses in sequence with delays between them
     for (int i = 0; i < levels; i++) {
-      await Future.delayed(Duration(milliseconds: KEY_REPEAT_INTERVAL_MS));
+      // Send keypress immediately on first iteration, then wait before subsequent ones
       handleButtonsClicked([button]);
+      
+      // Don't wait after the last keypress
+      if (i < levels - 1) {
+        await Future.delayed(Duration(milliseconds: KEY_REPEAT_INTERVAL_MS));
+      }
     }
 
     _isProcessingKeypresses = false;
@@ -238,6 +258,7 @@ class GyroscopeSteering extends BaseDevice {
     _keypressTimer?.cancel();
     isConnected = false;
     _isCalibrated = false;
+    _hasAccelData = false;
     _calibrationSamplesYaw.clear();
     _calibrationSamplesRoll.clear();
     actionStreamInternal.add(LogNotification('Gyroscope Steering: Disconnected'));
