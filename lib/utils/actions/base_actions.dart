@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:accessibility/accessibility.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
@@ -114,7 +115,11 @@ abstract class BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(button);
 
     if (core.logic.hasNoConnectionMethod) {
-      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+      if (GyroscopeSteeringButtons.values.contains(button)) {
+        return Ignored('Too many messages from gyroscope steering');
+      } else {
+        return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+      }
     } else if (!(await core.logic.isTrainerConnected())) {
       return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive);
     } else if (keyPair == null || keyPair.hasNoAction) {

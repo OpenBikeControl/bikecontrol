@@ -3,6 +3,9 @@
 BikeControl now offers a free trial period of 5 days for all features, so you can test everything before deciding to purchase a license. Please contact the support if you experience any issues!
 
 **Features**:
+- use your phone/tablet for steering by attaching your device on your handlebar!
+
+**Fixes**:
 - You will now be notified when a connection to your controller is lost
 - improved UI of the Keymap customization screen
 
