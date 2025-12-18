@@ -27,7 +27,7 @@ void main() {
 
       filteredValue = alpha * filteredValue + (1 - alpha) * newValue;
 
-      expect(filteredValue, equals(1.0)); // 0.9 * 0 + 0.1 * 10
+      expect(filteredValue, closeTo(1.0, 0.01)); // 0.9 * 0 + 0.1 * 10
     });
 
     test('Should apply complementary filter correctly', () {

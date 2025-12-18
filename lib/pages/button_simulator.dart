@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -209,23 +210,24 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                     ],
                   ),
                 for (final connectedTrainer in connectedTrainers)
-                  switch (connectedTrainer.title) {
-                    WhooshLink.connectionTitle => MyWhooshLinkTile(),
-                    ZwiftEmulator.connectionTitle => ZwiftTile(
-                      onUpdate: () {
-                        setState(() {});
-                      },
-                    ),
-                    FtmsMdnsEmulator.connectionTitle => ZwiftMdnsTile(
-                      onUpdate: () {
-                        setState(() {});
-                      },
-                    ),
-                    OpenBikeControlMdnsEmulator.connectionTitle => OpenBikeControlMdnsTile(),
-                    OpenBikeControlBluetoothEmulator.connectionTitle => OpenBikeControlBluetoothTile(),
-                    RemotePairing.connectionTitle => RemotePairingWidget(),
-                    _ => SizedBox.shrink(),
-                  },
+                  if (!screenshotMode)
+                    switch (connectedTrainer.title) {
+                      WhooshLink.connectionTitle => MyWhooshLinkTile(),
+                      ZwiftEmulator.connectionTitle => ZwiftTile(
+                        onUpdate: () {
+                          setState(() {});
+                        },
+                      ),
+                      FtmsMdnsEmulator.connectionTitle => ZwiftMdnsTile(
+                        onUpdate: () {
+                          setState(() {});
+                        },
+                      ),
+                      OpenBikeControlMdnsEmulator.connectionTitle => OpenBikeControlMdnsTile(),
+                      OpenBikeControlBluetoothEmulator.connectionTitle => OpenBikeControlBluetoothTile(),
+                      RemotePairing.connectionTitle => RemotePairingWidget(),
+                      _ => SizedBox.shrink(),
+                    },
                 ...connectedTrainers.map(
                   (connection) {
                     final supportedActions = connection.supportedActions;
@@ -258,73 +260,64 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                           children: [
                             for (final group in actionGroups.entries) ...[
                               Text(group.key.toUpperCase()).bold.muted,
-                              GridView.count(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                crossAxisCount: min(group.value.length, 3),
-                                childAspectRatio: isMobile ? 1.4 : 2.4,
-                                children: group.value.map(
-                                  (action) {
-                                    final hotkey = _hotkeys[action];
-                                    return Builder(
-                                      builder: (context) {
-                                        return Stack(
-                                          alignment: Alignment.topRight,
-                                          fit: StackFit.expand,
+                              if (group.value.length == 2)
+                                Row(
+                                  spacing: 8,
+                                  children: group.value.map(
+                                    (action) {
+                                      final hotkey = _hotkeys[action];
+                                      return Expanded(
+                                        child: Stack(
                                           children: [
-                                            Button(
-                                              style: _pressedAction == action
-                                                  ? ButtonStyle.outline()
-                                                  : group.key == 'Other'
-                                                  ? ButtonStyle.outline()
-                                                  : ButtonStyle.primary(),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  if (action.icon != null) ...[
-                                                    Icon(action.icon),
-                                                    SizedBox(height: 8),
-                                                  ],
-                                                  Text(
-                                                    action.title,
-                                                    textAlign: TextAlign.center,
-                                                    style: TextStyle(height: 1),
-                                                    maxLines: 2,
-                                                  ).bold,
-                                                  if (action.alternativeTitle != null)
-                                                    Text(
-                                                      action.alternativeTitle!.toUpperCase(),
-                                                      style: TextStyle(fontSize: 10, color: Colors.gray),
-                                                    ),
-                                                ],
-                                              ),
-                                              onPressed: () {},
-                                              onTapDown: (c) async {
-                                                _sendKey(context, down: true, action: action, connection: connection);
-                                              },
-                                              onTapUp: (c) async {
-                                                _sendKey(context, down: false, action: action, connection: connection);
-                                              },
+                                            SizedBox(
+                                              height: 150,
+                                              width: double.infinity,
+                                              child: _buildButton(action, group, connection, isMobile),
                                             ),
-
                                             if (hotkey != null)
                                               Positioned(
                                                 top: -4,
                                                 right: -4,
                                                 child: KeyWidget(
                                                   label: hotkey.toUpperCase(),
+                                                  invert: true,
                                                 ),
                                               ),
                                           ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                ).toList(),
-                              ),
+                                        ),
+                                      );
+                                    },
+                                  ).toList(),
+                                )
+                              else
+                                GridView.count(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                  crossAxisCount: min(group.value.length, 3),
+                                  childAspectRatio: isMobile ? 1 : 2.4,
+                                  children: group.value.map(
+                                    (action) {
+                                      final hotkey = _hotkeys[action];
+                                      return Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          _buildButton(action, group, connection, isMobile),
+
+                                          if (hotkey != null)
+                                            Positioned(
+                                              top: -4,
+                                              right: -4,
+                                              child: KeyWidget(
+                                                label: hotkey.toUpperCase(),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  ).toList(),
+                                ),
                               SizedBox(height: 12),
                             ],
                           ],
@@ -381,6 +374,53 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildButton(
+    InGameAction action,
+    MapEntry<String, List<InGameAction>> group,
+    TrainerConnection connection,
+    bool isMobile,
+  ) {
+    return Builder(
+      builder: (context) {
+        return Button(
+          style: _pressedAction == action
+              ? ButtonStyle.outline()
+              : group.key == 'Other'
+              ? ButtonStyle.outline()
+              : ButtonStyle.primary(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (action.icon != null) ...[
+                Icon(action.icon),
+                SizedBox(height: 8),
+              ],
+              Text(
+                action.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(height: 1),
+                maxLines: 2,
+              ).bold,
+              if (action.alternativeTitle != null)
+                Text(
+                  action.alternativeTitle!.toUpperCase(),
+                  style: TextStyle(fontSize: 10, color: Colors.gray),
+                ),
+            ],
+          ),
+          onPressed: () {},
+          onTapDown: (c) async {
+            _sendKey(context, down: true, action: action, connection: connection);
+          },
+          onTapUp: (c) async {
+            _sendKey(context, down: false, action: action, connection: connection);
+          },
+        );
+      },
     );
   }
 

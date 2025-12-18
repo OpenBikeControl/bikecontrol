@@ -55,6 +55,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
   - Available on Android and iOS
 - Gamepads
 - Keyboard input
+  - like a Companion App
   - some trainers do not support keyboard input for all functions - now they do!
   - useful when remapping keys from other devices using e.g. AutoHotkey
 - Cheap Bluetooth buttons such as [these](https://www.amazon.com/s?k=bluetooth+remote) (beta)

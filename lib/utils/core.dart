@@ -55,7 +55,9 @@ class Core {
 class Permissions {
   Future<List<PlatformRequirement>> getScanRequirements() async {
     final List<PlatformRequirement> list;
-    if (kIsWeb) {
+    if (screenshotMode) {
+      list = [];
+    } else if (kIsWeb) {
       final availablity = await UniversalBle.getBluetoothAvailabilityState();
       if (availablity == AvailabilityState.unsupported) {
         list = [UnsupportedPlatform()];

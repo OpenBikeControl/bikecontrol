@@ -1,16 +1,18 @@
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/button_simulator.dart';
+import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/utils/core.dart' show core;
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:flutter/material.dart' as ma;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/navigation.dart';
-import 'package:bike_control/utils/core.dart' show core;
-import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'custom_frame.dart';
@@ -33,6 +35,7 @@ Future<void> main() async {
     buildNumber: '1',
     buildSignature: '',
   );
+  FlutterSecureStorage.setMockInitialValues({});
   SharedPreferences.setMockInitialValues({});
 
   await core.settings.init();
@@ -210,6 +213,47 @@ Future<void> main() async {
         find.byType(ma.Scaffold),
         matchesGoldenFile(
           '../screenshots/customization-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
+        ),
+      );
+    }
+  });
+
+  testGoldens('Trainer Controls', (WidgetTester tester) async {
+    screenshotMode = true;
+
+    core.settings.setMyWhooshLinkEnabled(true);
+    core.whooshLink.isConnected.value = true;
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.platform,
+            resolution: size.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.type,
+                  title: 'Companion App mode with custom hotkeys',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(
+            customChild: ButtonSimulator(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/companion-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
         ),
       );
     }

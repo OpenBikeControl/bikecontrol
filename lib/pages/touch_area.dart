@@ -405,7 +405,8 @@ class KeypairExplanation extends StatelessWidget {
 
 class KeyWidget extends StatelessWidget {
   final String label;
-  const KeyWidget({super.key, required this.label});
+  final bool invert;
+  const KeyWidget({super.key, required this.label, this.invert = false});
 
   @override
   Widget build(BuildContext context) {
@@ -414,7 +415,7 @@ class KeyWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         constraints: BoxConstraints(minWidth: 30),
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: invert ? Colors.white : Colors.black,
           border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
           borderRadius: BorderRadius.circular(4),
         ),
@@ -424,7 +425,7 @@ class KeyWidget extends StatelessWidget {
             style: TextStyle(
               fontFamily: screenshotMode ? null : 'monospace',
               fontSize: 12,
-              color: Colors.white,
+              color: invert ? Colors.black : Colors.white,
             ),
           ),
         ),

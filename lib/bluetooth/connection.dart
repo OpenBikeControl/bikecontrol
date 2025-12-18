@@ -169,6 +169,10 @@ class Connection {
     isScanning.value = true;
     _actionStreams.add(LogNotification('Scanning for devices...'));
 
+    if (screenshotMode) {
+      return;
+    }
+
     // does not work on web, may not work on Windows
     if (!kIsWeb && !Platform.isWindows) {
       UniversalBle.getSystemDevices(
