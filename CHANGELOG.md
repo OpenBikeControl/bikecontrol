@@ -4,6 +4,7 @@ BikeControl now offers a free trial period of 5 days for all features, so you ca
 
 **Features**:
 - You will now be notified when a connection to your controller is lost
+- improved UI of the Keymap customization screen
 
 ### 4.1.0 (16-12-2025)
 
