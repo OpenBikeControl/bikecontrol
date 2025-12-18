@@ -1,4 +1,3 @@
-import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -23,10 +22,6 @@ class CustomizePage extends StatefulWidget {
 class _CustomizeState extends State<CustomizePage> {
   @override
   Widget build(BuildContext context) {
-    final canVibrate = core.connection.bluetoothDevices.any(
-      (device) => device.isConnected && device is ZwiftDevice && device.canVibrate,
-    );
-
     return SingleChildScrollView(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -62,7 +57,10 @@ class _CustomizeState extends State<CustomizePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(child: Text(a.name)),
-                          if (a is CustomApp) BetaPill(text: 'CUSTOM'),
+                          if (a is CustomApp)
+                            BetaPill(text: 'CUSTOM')
+                          else if (a.supportsOpenBikeProtocol)
+                            Icon(Icons.star, size: 16),
                         ],
                       ),
                     ),
@@ -88,12 +86,6 @@ class _CustomizeState extends State<CustomizePage> {
                 if (app is CustomApp) BetaPill(text: 'CUSTOM'),
               ],
             ),
-            /*DropdownMenuEntry(
-                                  value: CustomApp(profileName: 'New'),
-                                  label: 'Create new keymap',
-                                  labelWidget: Text('Create new keymap'),
-                                  leadingIcon: Icon(Icons.add),
-                                ),*/
             placeholder: Text(context.i18n.selectKeymap),
 
             onChanged: (app) async {

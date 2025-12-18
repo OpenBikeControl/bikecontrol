@@ -12,6 +12,7 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../bluetooth/messages/notification.dart';
 import '../pages/touch_area.dart';
 
 class KeymapExplanation extends StatefulWidget {
@@ -26,12 +27,37 @@ class KeymapExplanation extends StatefulWidget {
 class _KeymapExplanationState extends State<KeymapExplanation> {
   late StreamSubscription<void> _updateStreamListener;
 
+  late StreamSubscription<BaseNotification> _actionSubscription;
+
+  bool _isDrawerOpen = false;
+
   @override
   void initState() {
     super.initState();
     _updateStreamListener = widget.keymap.updateStream.listen((_) {
       setState(() {});
     });
+    _actionSubscription = core.connection.actionStream.listen((data) async {
+      if (!mounted) {
+        return;
+      }
+      if (data is ButtonNotification && data.buttonsClicked.length == 1) {
+        final clickedButton = data.buttonsClicked.first;
+        final keyPair = widget.keymap.keyPairs.firstOrNullWhere(
+          (kp) => kp.buttons.contains(clickedButton),
+        );
+        if (keyPair != null && !_isDrawerOpen) {
+          await _openKeyPairEditor(keyPair);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _updateStreamListener.cancel();
+    _actionSubscription.cancel();
   }
 
   @override
@@ -43,12 +69,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         setState(() {});
       });
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _updateStreamListener.cancel();
   }
 
   @override
@@ -64,6 +84,12 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
+        if (core.connection.controllerDevices.isNotEmpty)
+          Text(
+            'Click a button on your controller to edit its action or tap the edit icon.',
+            style: TextStyle(fontSize: 12),
+          ).muted,
+
         for (final keyPair in availableKeypairs) ...[
           Button.card(
             style: ButtonStyle.card().withBackgroundColor(color: Theme.of(context).colorScheme.background),
@@ -80,31 +106,10 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                   final selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
                     (e) => e == keyPair,
                   );
-                  await openDrawer(
-                    context: context,
-                    builder: (c) => ButtonEditPage(
-                      keyPair: selectedKeyPair,
-                      onUpdate: () {
-                        widget.onUpdate();
-                      },
-                    ),
-                    position: OverlayPosition.end,
-                  );
+                  _openKeyPairEditor(selectedKeyPair);
                 }
-                widget.onUpdate();
               } else {
-                await openDrawer(
-                  context: context,
-
-                  builder: (c) => ButtonEditPage(
-                    keyPair: keyPair,
-                    onUpdate: () {
-                      widget.onUpdate();
-                    },
-                  ),
-                  position: OverlayPosition.end,
-                );
-                widget.onUpdate();
+                _openKeyPairEditor(keyPair);
               }
             },
             child: Row(
@@ -157,6 +162,23 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         ],
       ],
     );
+  }
+
+  Future<void> _openKeyPairEditor(KeyPair selectedKeyPair) async {
+    _isDrawerOpen = true;
+    await openDrawer(
+      context: context,
+      builder: (c) => ButtonEditPage(
+        keyPair: selectedKeyPair,
+        keymap: widget.keymap,
+        onUpdate: () {
+          widget.onUpdate();
+        },
+      ),
+      position: OverlayPosition.end,
+    );
+    widget.onUpdate();
+    _isDrawerOpen = false;
   }
 }
 
