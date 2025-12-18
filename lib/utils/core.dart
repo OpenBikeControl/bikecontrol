@@ -235,6 +235,15 @@ class CoreLogic {
     if (isRemoteControlEnabled) core.remotePairing,
   ].filter((e) => e.isConnected.value).toList();
 
+  List<TrainerConnection> get enabledTrainerConnections => [
+    if (isMyWhooshLinkEnabled) core.whooshLink,
+    if (isObpMdnsEnabled) core.obpMdnsEmulator,
+    if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isZwiftBleEnabled) core.zwiftEmulator,
+    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isRemoteControlEnabled) core.remotePairing,
+  ];
+
   List<TrainerConnection> get trainerConnections => [
     if (showMyWhooshLink) core.whooshLink,
     if (showObpMdnsEmulator) core.obpMdnsEmulator,

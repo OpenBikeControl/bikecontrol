@@ -1,17 +1,13 @@
 import 'dart:async';
 
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/devices/base_device.dart';
@@ -56,16 +52,22 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
               valueListenable: IAPManager.instance.isPurchased,
               builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: ColoredTitle(
-                text: core.connection.controllerDevices.isEmpty
-                    ? context.i18n.connectControllers
-                    : context.i18n.connectedControllers,
-              ),
-            ),
 
-            if (core.connection.controllerDevices.isEmpty || kIsWeb) ScanWidget(),
+            if (core.connection.controllerDevices.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: ColoredTitle(text: context.i18n.connectControllers),
+              ),
+
+            // leave it in for the extra scanning options
+            ScanWidget(),
+
+            if (core.connection.controllerDevices.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: ColoredTitle(text: context.i18n.connectedControllers),
+              ),
+
             ...core.connection.controllerDevices.map(
               (device) => Card(
                 filled: true,
@@ -79,9 +81,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
             if (core.connection.accessories.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: ColoredTitle(
-                  text: 'Accessories',
-                ),
+                child: ColoredTitle(text: AppLocalizations.of(context).accessories),
               ),
               ...core.connection.accessories.map(
                 (device) => Card(
@@ -109,7 +109,8 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
             SizedBox(),
             if (core.connection.controllerDevices.isNotEmpty)
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                spacing: 8,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   PrimaryButton(
                     child: Text(context.i18n.connectToTrainerApp),
@@ -118,37 +119,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     },
                   ),
                 ],
-              )
-            else
-              PrimaryButton(
-                child: Text(
-                  'No Controller? Control ${core.settings.getTrainerApp()?.name ?? 'your trainer'} manually!',
-                ),
-                onPressed: () {
-                  if (core.settings.getTrainerApp() == null) {
-                    buildToast(
-                      context,
-                      level: LogLevel.LOGLEVEL_WARNING,
-                      title: context.i18n.selectTrainerApp,
-                    );
-                    widget.onUpdate();
-                  } else if (core.logic.connectedTrainerConnections.isEmpty) {
-                    buildToast(
-                      context,
-                      level: LogLevel.LOGLEVEL_WARNING,
-                      title:
-                          'Please connect to ${core.settings.getTrainerApp()?.name ?? 'your trainer'} with ${core.logic.trainerConnections.joinToString(transform: (t) => t.title, separator: ' or ')}, first.',
-                    );
-                    widget.onUpdate();
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (c) => ButtonSimulator(),
-                      ),
-                    );
-                  }
-                },
               ),
           ],
         ),

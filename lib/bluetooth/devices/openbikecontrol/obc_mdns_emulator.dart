@@ -18,13 +18,15 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
   ServerSocket? _server;
   Registration? _mdnsRegistration;
 
+  static const String connectionTitle = 'OpenBikeControl mDNS Emulator';
+
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(null);
 
   Socket? _socket;
 
   OpenBikeControlMdnsEmulator()
     : super(
-        title: 'OpenBikeControl mDNS Emulator',
+        title: connectionTitle,
         supportedActions: InGameAction.values,
       );
 
