@@ -47,6 +47,7 @@ dependencies:
     path: media_key_detector/media_key_detector
   accessibility:
     path: accessibility
+  sensors_plus: ^7.0.0
 
   device_auto_rotate_checker:
     git:

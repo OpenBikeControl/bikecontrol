@@ -95,6 +95,18 @@ class _ScanWidgetState extends State<ScanWidget> {
                           );
                         },
                       ),
+                    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
+                      Checkbox(
+                        state: core.settings.getPhoneSteeringEnabled()
+                            ? CheckboxState.checked
+                            : CheckboxState.unchecked,
+                        trailing: Expanded(child: Text('Enable Steering using your phone\'s sensors')),
+                        onChanged: (change) {
+                          core.settings.setPhoneSteeringEnabled(change == CheckboxState.checked);
+                          core.connection.toggleGyroscopeSteering();
+                          setState(() {});
+                        },
+                      ),
                     SizedBox(),
                     if (core.connection.controllerDevices.isEmpty) ...[
                       OutlineButton(

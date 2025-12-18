@@ -142,7 +142,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                                   context,
                                 ).newConnectionMethodAnnouncement(core.settings.getTrainerApp()!.name),
                                 style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
+                              ).small,
                             ),
                           ],
                         ),

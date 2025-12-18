@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
@@ -27,10 +28,12 @@ class Connection {
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
+  List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
   List<BaseDevice> get controllerDevices => [
     ...bluetoothDevices.where((d) => d is! WahooKickrHeadwind),
     ...gamepadDevices,
+    ...gyroscopeDevices,
     ...devices.whereType<HidDevice>(),
   ];
 
@@ -153,6 +156,9 @@ class Connection {
           performScanning();
         }
       });
+      if (core.settings.getPhoneSteeringEnabled()) {
+        toggleGyroscopeSteering();
+      }
     }
   }
 
@@ -245,6 +251,18 @@ class Connection {
     _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
+  }
+
+  void toggleGyroscopeSteering() {
+    final existing = gyroscopeDevices.firstOrNull;
+    if (existing != null) {
+      // Remove gyroscope steering
+      disconnect(existing, forget: true, persistForget: false);
+    } else {
+      // Add gyroscope steering
+      final gyroDevice = GyroscopeSteering();
+      addDevices([gyroDevice]);
+    }
   }
 
   void _handleConnectionQueue() {

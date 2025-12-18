@@ -176,6 +176,6 @@ class StubActions extends BaseActions {
   @override
   Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
     performedActions.add(button);
-    return Future.value(Success('${button.name.splitByUpperCase()} clicked'));
+    return Future.value(Ignored('${button.name.splitByUpperCase()} clicked'));
   }
 }

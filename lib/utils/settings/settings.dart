@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -341,5 +342,21 @@ class Settings {
     final hotkeys = getButtonSimulatorHotkeys();
     hotkeys.remove(action);
     await setButtonSimulatorHotkeys(hotkeys);
+  }
+
+  void setPhoneSteeringEnabled(bool value) {
+    prefs.setBool('phone_steering_enabled', value);
+  }
+
+  bool getPhoneSteeringEnabled() {
+    return prefs.getBool('phone_steering_enabled') ?? false;
+  }
+
+  void setPhoneSteeringThreshold(int value) {
+    prefs.setInt('phone_steering_threshold', value);
+  }
+
+  double getPhoneSteeringThreshold() {
+    return prefs.getInt('phone_steering_threshold')?.toDouble() ?? GyroscopeSteering.STEERING_THRESHOLD;
   }
 }
