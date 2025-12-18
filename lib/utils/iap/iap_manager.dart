@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/iap/iap_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
 import 'package:flutter/foundation.dart';
@@ -25,7 +26,7 @@ class IAPManager {
   Future<void> initialize() async {
     final prefs = FlutterSecureStorage(aOptions: AndroidOptions());
 
-    if (kIsWeb) {
+    if (kIsWeb || screenshotMode) {
       // Web doesn't support IAP
       return;
     }

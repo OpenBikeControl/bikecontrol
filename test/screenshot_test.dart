@@ -3,6 +3,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/utils/core.dart' show core;
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:flutter/material.dart' as ma;
@@ -35,8 +36,11 @@ Future<void> main() async {
     buildNumber: '1',
     buildSignature: '',
   );
+  IAPManager.instance.isPurchased.value = true;
   FlutterSecureStorage.setMockInitialValues({});
   SharedPreferences.setMockInitialValues({});
+
+  screenshotMode = true;
 
   await core.settings.init();
   await core.settings.reset();
@@ -70,7 +74,6 @@ Future<void> main() async {
   ];
 
   debugDisableShadows = true;
-  screenshotMode = true;
 
   testGoldens('Init', (WidgetTester tester) async {
     screenshotMode = true;
