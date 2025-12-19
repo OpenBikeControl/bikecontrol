@@ -464,8 +464,8 @@ extension on List<int> {
   }
 }
 
-String bytesToHex(List<int> bytes) {
-  return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+String bytesToHex(List<int> bytes, {bool spaced = false}) {
+  return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join(spaced ? ' ' : '');
 }
 
 String bytesToReadableHex(List<int> bytes) {

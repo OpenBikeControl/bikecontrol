@@ -45,6 +45,8 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Zwift Play
 - Shimano Di2
   - Configure your levers to use D-Fly channels with Shimano E-Tube app
+- SRAM AXS/eTap
+  - only single or double click is supported (no individual button mapping possible, yet)
 - Wahoo Kickr Bike Shift
 - Wahoo Kickr Bike Pro
 - CYCPLUS BC2 Virtual Shifter

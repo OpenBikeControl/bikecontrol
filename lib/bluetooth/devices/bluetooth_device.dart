@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
+import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_pro.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
@@ -72,6 +73,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') && scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('RDR') => ShimanoDi2(scanResult),
+        _ when scanResult.name!.toUpperCase().startsWith('SRAM') => SramAxs(scanResult),
         _ => null,
       };
     } else {
@@ -91,6 +93,9 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase()) => CycplusBc2(scanResult),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase()) => ShimanoDi2(scanResult),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase()) => ShimanoDi2(
+          scanResult,
+        ),
+        _ when scanResult.services.contains(SramAxsConstants.SERVICE_UUID.toLowerCase()) => SramAxs(
           scanResult,
         ),
         _ when scanResult.services.contains(OpenBikeControlConstants.SERVICE_UUID.toLowerCase()) =>
@@ -325,5 +330,20 @@ abstract class BluetoothDevice extends BaseDevice {
         ),
       ],
     );
+  }
+
+  void debugSubscribeToAll(List<BleService> services) {
+    for (final service in services) {
+      for (final characteristic in service.characteristics) {
+        if (characteristic.properties.contains(CharacteristicProperty.indicate)) {
+          debugPrint('Subscribing to indications for ${service.uuid} / ${characteristic.uuid}');
+          UniversalBle.subscribeIndications(device.deviceId, service.uuid, characteristic.uuid);
+        }
+        if (characteristic.properties.contains(CharacteristicProperty.notify)) {
+          debugPrint('Subscribing to notifications for ${service.uuid} / ${characteristic.uuid}');
+          UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
+        }
+      }
+    }
   }
 }
