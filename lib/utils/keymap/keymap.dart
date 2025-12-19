@@ -6,6 +6,7 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -72,7 +73,7 @@ class Keymap {
           buttons: [newButton],
           physicalKey: null,
           logicalKey: null,
-          isLongPress: false,
+          inGameAction: newButton.action,
         ),
       );
       return newButton;

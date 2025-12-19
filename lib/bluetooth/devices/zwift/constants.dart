@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:flutter/material.dart';
 
 class ZwiftConstants {
   static const ZWIFT_CUSTOM_SERVICE_UUID = "00000001-19CA-4651-86E5-FA29DCDD09D1";
@@ -101,7 +101,11 @@ class ZwiftButtons {
   // right controller
   static const ControllerButton a = ControllerButton('a', action: InGameAction.select, color: Colors.lightGreen);
   static const ControllerButton b = ControllerButton('b', action: InGameAction.back, color: Colors.pinkAccent);
-  static const ControllerButton z = ControllerButton('z', action: null, color: Colors.deepOrangeAccent);
+  static const ControllerButton z = ControllerButton(
+    'z',
+    action: InGameAction.rideOnBomb,
+    color: Colors.deepOrangeAccent,
+  );
   static const ControllerButton y = ControllerButton('y', action: null, color: Colors.lightBlue);
   static const ControllerButton onOffRight = ControllerButton('onOffRight', action: InGameAction.toggleUi);
   static const ControllerButton sideButtonRight = ControllerButton('sideButtonRight', action: InGameAction.shiftUp);

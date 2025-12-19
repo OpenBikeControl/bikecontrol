@@ -157,7 +157,7 @@ class Connection {
         }
       });
       if (core.settings.getPhoneSteeringEnabled()) {
-        toggleGyroscopeSteering();
+        toggleGyroscopeSteering(true);
       }
     }
   }
@@ -257,12 +257,12 @@ class Connection {
     hasDevices.value = devices.isNotEmpty;
   }
 
-  void toggleGyroscopeSteering() {
+  void toggleGyroscopeSteering(bool enable) {
     final existing = gyroscopeDevices.firstOrNull;
-    if (existing != null) {
+    if (existing != null && !enable) {
       // Remove gyroscope steering
       disconnect(existing, forget: true, persistForget: false);
-    } else {
+    } else if (enable) {
       // Add gyroscope steering
       final gyroDevice = GyroscopeSteering();
       addDevices([gyroDevice]);
@@ -395,6 +395,16 @@ class Connection {
       }
 
       // Clean up subscriptions and scan results for reconnection
+      _streamSubscriptions[device]?.cancel();
+      _streamSubscriptions.remove(device);
+      _connectionSubscriptions[device]?.cancel();
+      _connectionSubscriptions.remove(device);
+
+      // Remove device from the list
+      devices.remove(device);
+      hasDevices.value = devices.isNotEmpty;
+    } else if (device is GyroscopeSteering) {
+      // Clean up subscriptions
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();

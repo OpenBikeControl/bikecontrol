@@ -107,6 +107,8 @@ class Permissions {
     return [
       BluetoothTurnedOn(),
       if (Platform.isAndroid) ...[
+        BluetoothScanRequirement(),
+        BluetoothConnectRequirement(),
         BluetoothAdvertiseRequirement(),
       ],
     ];

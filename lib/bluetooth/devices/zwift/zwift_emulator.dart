@@ -308,7 +308,7 @@ class ZwiftEmulator extends TrainerConnection {
 
   Future<void> _sendKeepAlive() async {
     await Future.delayed(const Duration(seconds: 5));
-    if (isConnected.value) {
+    if (isConnected.value && _central != null) {
       final zero = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
       _peripheralManager.notifyCharacteristic(_central!, _syncTxCharacteristic!, value: zero);
       _sendKeepAlive();
@@ -460,5 +460,16 @@ class ZwiftEmulator extends TrainerConnection {
         print('Unhandled write request for characteristic: $characteristic $value');
     }
     return null;
+  }
+
+  void cleanup() {
+    _peripheralManager.stopAdvertising();
+    _peripheralManager.removeAllServices();
+    _isServiceAdded = false;
+    _isSubscribedToEvents = false;
+    _central = null;
+    isConnected.value = false;
+    isStarted.value = false;
+    _isLoading = false;
   }
 }

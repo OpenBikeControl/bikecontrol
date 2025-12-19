@@ -142,10 +142,12 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               if (core.logic.showZwiftBleEmulator)
                 ZwiftTile(
                   onUpdate: () {
-                    core.connection.signalNotification(
-                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                    );
-                    setState(() {});
+                    if (mounted) {
+                      core.connection.signalNotification(
+                        LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                      );
+                      setState(() {});
+                    }
                   },
                 ),
               if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),

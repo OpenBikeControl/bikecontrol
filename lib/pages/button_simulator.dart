@@ -14,6 +14,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
@@ -80,9 +81,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     'm',
   ];
 
-  static const Duration _keyPressDuration = Duration(milliseconds: 100);
+  static const Duration _keyPressDuration = Duration(milliseconds: 200);
 
   InGameAction? _pressedAction;
+
+  DateTime? _lastDown;
 
   @override
   void initState() {
@@ -215,7 +218,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                       WhooshLink.connectionTitle => MyWhooshLinkTile(),
                       ZwiftEmulator.connectionTitle => ZwiftTile(
                         onUpdate: () {
-                          setState(() {});
+                          if (mounted) setState(() {});
                         },
                       ),
                       FtmsMdnsEmulator.connectionTitle => ZwiftMdnsTile(
@@ -235,7 +238,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                     final actionGroups = {
                       if (supportedActions.contains(InGameAction.shiftUp) &&
                           supportedActions.contains(InGameAction.shiftDown))
-                        'Shifting': [InGameAction.shiftUp, InGameAction.shiftDown],
+                        'Shifting': [InGameAction.shiftDown, InGameAction.shiftUp],
                       'Other': supportedActions
                           .where(
                             (action) =>
@@ -415,6 +418,10 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           onPressed: () {},
           onTapDown: (c) async {
             _sendKey(context, down: true, action: action, connection: connection);
+            /*final device = HidDevice('Simulator');
+            final button = ControllerButton('action', action: InGameAction.openActionBar);
+            device.getOrAddButton(button.name, () => button);
+            device.handleButtonsClickedWithoutLongPressSupport([button]);*/
           },
           onTapUp: (c) async {
             _sendKey(context, down: false, action: action, connection: connection);
@@ -466,6 +473,16 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       );
       return;
     } else {
+      if (!down && _lastDown != null) {
+        final timeSinceLastDown = DateTime.now().difference(_lastDown!);
+        if (timeSinceLastDown < Duration(milliseconds: 400)) {
+          // wait a bit so actions actually get applied correctly for some trainer apps
+          await Future.delayed(Duration(milliseconds: 800) - timeSinceLastDown);
+        }
+      } else if (down) {
+        _lastDown = DateTime.now();
+      }
+
       final result = await connection.sendAction(
         KeyPair(
           buttons: [],
@@ -476,6 +493,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         isKeyDown: down,
         isKeyUp: !down,
       );
+      await IAPManager.instance.incrementCommandCount();
       if (result is! Success) {
         buildToast(context, title: result.message);
       }

@@ -39,6 +39,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
                     } else if (value) {
                       core.zwiftEmulator.startAdvertising(widget.onUpdate).catchError((e, s) {
                         recordError(e, s, context: 'Zwift BLE Emulator');
+                        core.zwiftEmulator.cleanup();
                         core.zwiftEmulator.isStarted.value = false;
                         core.settings.setZwiftBleEmulatorEnabled(false);
                         core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));

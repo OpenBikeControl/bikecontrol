@@ -51,6 +51,22 @@ abstract class BaseDevice {
 
   Future<void> connect();
 
+  Future<void> handleButtonsClickedWithoutLongPressSupport(List<ControllerButton> clickedButtons) async {
+    await handleButtonsClicked(clickedButtons);
+    if (clickedButtons.length == 1) {
+      final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(clickedButtons.single);
+      if (keyPair != null && keyPair.isLongPress) {
+        // simulate release after click
+        await Future.delayed(const Duration(milliseconds: 800));
+        await handleButtonsClicked([]);
+      } else {
+        await handleButtonsClicked([]);
+      }
+    } else {
+      await handleButtonsClicked([]);
+    }
+  }
+
   Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked) async {
     try {
       await _handleButtonsClickedInternal(buttonsClicked);

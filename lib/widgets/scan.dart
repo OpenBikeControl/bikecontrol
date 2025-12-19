@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -100,10 +101,10 @@ class _ScanWidgetState extends State<ScanWidget> {
                         state: core.settings.getPhoneSteeringEnabled()
                             ? CheckboxState.checked
                             : CheckboxState.unchecked,
-                        trailing: Expanded(child: Text('Enable Steering using your phone\'s sensors')),
+                        trailing: Expanded(child: Text(AppLocalizations.of(context).enableSteeringWithPhone)),
                         onChanged: (change) {
                           core.settings.setPhoneSteeringEnabled(change == CheckboxState.checked);
-                          core.connection.toggleGyroscopeSteering();
+                          core.connection.toggleGyroscopeSteering(change == CheckboxState.checked);
                           setState(() {});
                         },
                       ),
