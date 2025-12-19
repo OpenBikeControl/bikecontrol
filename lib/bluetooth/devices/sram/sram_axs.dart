@@ -10,7 +10,7 @@ import 'package:universal_ble/universal_ble.dart';
 import '../bluetooth_device.dart';
 
 class SramAxs extends BluetoothDevice {
-  SramAxs(super.scanResult) : super(availableButtons: []);
+  SramAxs(super.scanResult) : super(availableButtons: [], isBeta: true);
 
   Timer? _singleClickTimer;
   int _tapCount = 0;
@@ -35,16 +35,20 @@ class SramAxs extends BluetoothDevice {
     );
 
     await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
+
+    // add both buttons
+    _singleClickButton();
+    _doubleClickButton();
   }
 
   ControllerButton _singleClickButton() => getOrAddButton(
-    'SRAM Action (Single Click)',
-    () => const ControllerButton('SRAM Action (Single Click)', action: InGameAction.shiftUp),
+    'SRAM Tap',
+    () => const ControllerButton('SRAM Tap', action: InGameAction.shiftUp),
   );
 
   ControllerButton _doubleClickButton() => getOrAddButton(
-    'SRAM Action (Double Click)',
-    () => const ControllerButton('SRAM Action (Double Click)', action: InGameAction.shiftDown),
+    'SRAM Double Tap',
+    () => const ControllerButton('SRAM Double Tap', action: InGameAction.shiftDown),
   );
 
   void _emitClick(ControllerButton button) {
@@ -131,7 +135,7 @@ class SramAxs extends BluetoothDevice {
               ),
               onPressed: () {
                 final values = [
-                  for (var v = 150; v <= 800; v += 50) v,
+                  for (var v = 150; v <= 600; v += 50) v,
                 ];
                 showDropdown(
                   context: context,

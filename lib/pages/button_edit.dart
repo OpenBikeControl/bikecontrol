@@ -116,6 +116,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       width: _keyPair.buttons.first.color != null ? baseHeight : null,
                       height: _keyPair.buttons.first.color != null ? baseHeight : null,
                       padding: EdgeInsets.all(_bumped ? 0 : 6.0),
+                      constraints: BoxConstraints(maxWidth: 120),
                       child: ButtonWidget(button: _keyPair.buttons.first),
                     ),
                     Expanded(child: SizedBox()),

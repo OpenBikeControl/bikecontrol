@@ -208,7 +208,7 @@ class KeyPair {
       if (baseKey.trim().isEmpty) {
         return 'Space';
       }
-      return baseKey;
+      return baseKey + (inGameAction != null ? ' (${inGameAction!.title})' : '');
     }
 
     // Format modifiers + key (e.g., "Ctrl+Alt+R")
