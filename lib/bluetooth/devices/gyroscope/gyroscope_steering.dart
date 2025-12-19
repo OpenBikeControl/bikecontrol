@@ -46,7 +46,7 @@ class GyroscopeSteering extends BaseDevice {
   bool _isProcessingKeypresses = false;
 
   // Configuration (can be made customizable later)
-  static const double STEERING_THRESHOLD = 6.0; // degrees
+  static const double STEERING_THRESHOLD = 5.0; // degrees
   static const double LEVEL_DEGREE_STEP = 10.0; // degrees per level
   static const int MAX_LEVELS = 5;
   static const int KEY_REPEAT_INTERVAL_MS = 40;

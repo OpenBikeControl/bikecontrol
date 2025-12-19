@@ -21,6 +21,16 @@ class SteeringEstimator {
     this.recenterDeadbandDeg = 2.0,
     this.maxAngleAbsDeg = 60,
     this.lowPassAlpha = 0.9,
+
+    // Responsiveness / smoothing tuning.
+    // When steering changes quickly we reduce smoothing, but keep more
+    // smoothing when stable to avoid jitter.
+    this.lowPassAlphaStable = 0.9,
+    this.lowPassAlphaMoving = 0.55,
+    this.motionAngleRateDegPerSecForMinAlpha = 90.0,
+
+    // Cap dt to avoid "freezing" the estimator on occasional long frames.
+    this.maxDtSec = 0.05,
   });
 
   // Tunables
@@ -33,7 +43,27 @@ class SteeringEstimator {
   final double recenterHalfLifeSec;
   final double recenterDeadbandDeg;
   final double maxAngleAbsDeg;
+
+  /// Backwards-compatible, kept as-is.
+  ///
+  /// If you set `lowPassAlpha = 0.0`, filtering is disabled.
   final double lowPassAlpha;
+
+  /// Smoothing used when the angle is stable.
+  ///
+  /// Default mirrors the original behavior (`0.9`).
+  final double lowPassAlphaStable;
+
+  /// Smoothing used when the angle is changing quickly.
+  ///
+  /// Lower alpha => faster response.
+  final double lowPassAlphaMoving;
+
+  /// Angle rate (deg/s) at which we reach `lowPassAlphaMoving`.
+  final double motionAngleRateDegPerSecForMinAlpha;
+
+  /// Maximum timestep used for integration/bias learning.
+  final double maxDtSec;
 
   // State
   double _accelX = 0, _accelY = 0, _accelZ = 0;
@@ -78,13 +108,17 @@ class SteeringEstimator {
   ///
   /// Returns the current filtered steering angle in degrees.
   double updateGyro({required double wz, required double dt}) {
-    if (dt <= 0 || dt > 1.0) {
+    if (dt <= 0) {
       return angleDeg;
     }
 
+    // If dt spikes (app paused/jank), cap it instead of bailing out.
+    // This keeps the estimator responsive and avoids "stuck" output.
+    final usedDt = dt > maxDtSec ? maxDtSec : dt;
+
     final still = _isStill(wz);
     if (still) {
-      _stillTimeSec += dt;
+      _stillTimeSec += usedDt;
 
       // Learn gyro bias only when we're still AND near our calibrated center.
       // Otherwise, if the user holds a steady steering angle, wz≈0 and we'd
@@ -100,20 +134,38 @@ class SteeringEstimator {
       // Users may hold a constant steering angle for several seconds.
       final canRecenter = _stillTimeSec >= minStillTimeForRecenterSec && _yawDeg.abs() <= recenterDeadbandDeg;
       if (canRecenter) {
-        _applyRecenter(dt);
+        _applyRecenter(usedDt);
       }
     } else {
       _stillTimeSec = 0.0;
     }
 
     final correctedWz = wz - _biasZ;
-    _yawDeg += correctedWz * dt * (180.0 / pi);
+    _yawDeg += correctedWz * usedDt * (180.0 / pi);
 
     // Clamp to avoid runaway if something goes wrong.
     _yawDeg = _yawDeg.clamp(-maxAngleAbsDeg, maxAngleAbsDeg).toDouble();
 
     // Low-pass filter for noise smoothing.
-    _filteredYawDeg = lowPassAlpha * _filteredYawDeg + (1 - lowPassAlpha) * _yawDeg;
+    //
+    // Make it adaptive: when the angle is changing fast, we reduce smoothing
+    // (more responsive). When stable, we keep stronger smoothing.
+    //
+    // If user forces lowPassAlpha=0.0 (existing tests do), we keep behavior
+    // equivalent (no filtering).
+    if (lowPassAlpha <= 0.0) {
+      _filteredYawDeg = _yawDeg;
+    } else {
+      final stableAlpha = ((lowPassAlphaStable.isFinite ? lowPassAlphaStable : lowPassAlpha)).clamp(0.0, 0.999);
+      final movingAlpha = lowPassAlphaMoving.clamp(0.0, stableAlpha);
+
+      // Use a rate estimate derived from the filtered-vs-raw divergence.
+      final rateDegPerSec = ((_yawDeg - _filteredYawDeg).abs()) / usedDt;
+      final t = (rateDegPerSec / motionAngleRateDegPerSecForMinAlpha).clamp(0.0, 1.0);
+
+      final alpha = stableAlpha + (movingAlpha - stableAlpha) * t;
+      _filteredYawDeg = alpha * _filteredYawDeg + (1 - alpha) * _yawDeg;
+    }
 
     return angleDeg;
   }

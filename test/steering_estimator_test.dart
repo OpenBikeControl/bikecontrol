@@ -39,25 +39,30 @@ void main() {
       minStillTimeForBiasSec: 999.0,
       minStillTimeForRecenterSec: 0.2,
       recenterHalfLifeSec: 0.2,
+      recenterDeadbandDeg: 2.0,
       lowPassAlpha: 0.0,
       maxAngleAbsDeg: 180,
     );
 
     est.updateAccel(x: 0, y: 0, z: 9.80665);
 
-    // Create a non-zero yaw by integrating a brief pulse.
-    for (var i = 0; i < 10; i++) {
+    // Create a small non-zero yaw within the deadband (so auto-recenter is allowed).
+    // 1.0 rad/s for 0.02s => ~1.15 deg.
+    for (var i = 0; i < 2; i++) {
       est.updateGyro(wz: 1.0, dt: 0.01);
     }
+
     final initial = est.angleDeg.abs();
     expect(initial, greaterThan(0.1));
+    expect(initial, lessThan(2.0));
 
-    // Now still: wz near 0, should trigger recentering.
-    for (var i = 0; i < 100; i++) {
+    // Hold still long enough to pass the recenter delay + apply decay.
+    for (var i = 0; i < 150; i++) {
       est.updateGyro(wz: 0.0, dt: 0.01);
     }
 
-    expect(est.angleDeg.abs(), lessThan(initial));
+    // It should have decayed noticeably.
+    expect(est.angleDeg.abs(), lessThan(initial * 0.9));
   });
 
   test("doesn't recenter while user holds a constant steering angle", () {
@@ -134,5 +139,35 @@ void main() {
 
     // Bias should not have drifted significantly.
     expect(est.biasZRadPerSec, closeTo(biasBeforeHold, 0.003));
+  });
+
+  test('responds quickly to a fast steering change with default filtering', () {
+    final est = SteeringEstimator(
+      // Keep defaults for filtering/responsiveness.
+      // Ensure stillness detector is satisfied when we later go still.
+      gyroStillThresholdRadPerSec: 1.0,
+      accelStillThresholdMS2: 2.0,
+      maxAngleAbsDeg: 180,
+    );
+
+    est.updateAccel(x: 0, y: 0, z: 9.80665);
+
+    const dt = 0.01;
+    const wz = 1.8; // rad/s (~103 deg/s)
+
+    // Integrate for 0.2s => ~20.6 deg raw.
+    for (var i = 0; i < 20; i++) {
+      est.updateGyro(wz: wz, dt: dt);
+    }
+
+    // With the adaptive low-pass, the filtered output should have caught up
+    // substantially by now (the old fixed alpha=0.9 could feel ~1s laggy).
+    expect(est.angleDeg.abs(), greaterThan(14.0));
+
+    // After another 0.2s it should be very close.
+    for (var i = 0; i < 20; i++) {
+      est.updateGyro(wz: wz, dt: dt);
+    }
+    expect(est.angleDeg.abs(), greaterThan(35.0));
   });
 }
