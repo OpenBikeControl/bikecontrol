@@ -146,9 +146,8 @@ class IAPService {
   Future<void> validateReceipt({
     required String base64Receipt,
     required String sharedSecret,
+    bool isSandbox = false,
   }) async {
-    final bool isSandbox = await IosReceipt.isSandbox();
-
     final Uri url = Uri.parse(
       isSandbox ? 'https://sandbox.itunes.apple.com/verifyReceipt' : 'https://buy.itunes.apple.com/verifyReceipt',
     );
@@ -173,6 +172,22 @@ class IAPService {
       final String responseBody = await response.transform(utf8.decoder).join();
 
       final Map<String, dynamic> json = jsonDecode(responseBody) as Map<String, dynamic>;
+
+      if (json['status'] == 21007) {
+        // Receipt is from sandbox, retry with sandbox URL
+        debugPrint('Receipt is from sandbox, retrying with sandbox URL');
+        return validateReceipt(
+          base64Receipt: base64Receipt,
+          sharedSecret: sharedSecret,
+          isSandbox: true,
+        );
+      } else if (json['status'] != 0) {
+        core.connection.signalNotification(
+          LogNotification('Apple receipt validation failed with status: ${json['status']}'),
+        );
+        return;
+      }
+
       final purchasedVersion = json['receipt']["original_application_version"];
       IAPManager.instance.isPurchased.value = Version.parse(purchasedVersion) < Version(4, 2, 0);
       if (IAPManager.instance.isPurchased.value) {
