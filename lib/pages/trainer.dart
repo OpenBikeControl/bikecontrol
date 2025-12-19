@@ -105,7 +105,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
           children: [
             ValueListenableBuilder(
               valueListenable: IAPManager.instance.isPurchased,
-              builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
+              builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
             ),
             ConfigurationPage(
               onUpdate: () {

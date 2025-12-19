@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -119,6 +120,18 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     },
                   ),
                 ],
+              )
+            else
+              PrimaryButton(
+                child: Text(AppLocalizations.of(context).noControllerUseCompanionMode),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (c) => ButtonSimulator(),
+                    ),
+                  );
+                },
               ),
           ],
         ),

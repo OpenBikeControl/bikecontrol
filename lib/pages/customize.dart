@@ -31,7 +31,7 @@ class _CustomizeState extends State<CustomizePage> {
         children: [
           ValueListenableBuilder(
             valueListenable: IAPManager.instance.isPurchased,
-            builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
+            builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
           ),
           Container(
             margin: const EdgeInsets.only(bottom: 8.0),

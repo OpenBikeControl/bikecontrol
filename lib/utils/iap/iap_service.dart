@@ -128,7 +128,9 @@ class IAPService {
         if (sharedSecret.isEmpty) {
           core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Shared Secret is empty'));
         }
-        debugPrint('Using shared secret: ${sharedSecret.characters.take(15).join()}');
+        core.connection.signalNotification(
+          LogNotification('Using shared secret: ${sharedSecret.characters.take(15).join()}'),
+        );
         await validateReceipt(
           base64Receipt: receiptContent,
           sharedSecret: sharedSecret,

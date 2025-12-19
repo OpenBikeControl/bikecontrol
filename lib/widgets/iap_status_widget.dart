@@ -81,7 +81,10 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                       leadingAlignment: Alignment.centerLeft,
                       leading: Icon(Icons.access_time, color: Colors.blue),
                       title: Text(AppLocalizations.of(context).trialPeriodActive(trialDaysRemaining)),
-                      subtitle: Text(AppLocalizations.of(context).trialPeriodDescription(IAPManager.dailyCommandLimit)),
+                      subtitle: widget.small
+                          ? null
+                          : Text(AppLocalizations.of(context).trialPeriodDescription(IAPManager.dailyCommandLimit)),
+                      trailing: widget.small ? Icon(Icons.expand_more) : null,
                     )
                   else
                     Basic(
