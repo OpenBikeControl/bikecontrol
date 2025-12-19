@@ -162,7 +162,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                         ],
                       ),
                     ],
-                    if (core.settings.getTrainerApp()!.star == true)
+                    if (core.settings.getTrainerApp()?.star == true)
                       Row(
                         spacing: 8,
                         children: [
