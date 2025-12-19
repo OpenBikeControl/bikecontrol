@@ -31,21 +31,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(text: '${context.i18n.needHelpClickHelp} '),
-              WidgetSpan(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Icon(Icons.help_outline),
-                ),
-              ),
-              TextSpan(text: ' ${context.i18n.needHelpDontHesitate}'),
-            ],
-          ),
-        ).small.muted,
-        SizedBox(height: 4),
         ColoredTitle(text: context.i18n.setupTrainer),
         Card(
           fillColor: Theme.of(context).colorScheme.background,
@@ -54,7 +39,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
           borderColor: Theme.of(context).colorScheme.border,
           child: Builder(
             builder: (context) {
-              final isMobile = MediaQuery.sizeOf(context).width < 600;
               return StatefulBuilder(
                 builder: (c, setState) => Column(
                   spacing: 8,
@@ -130,50 +114,39 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true)
                         Text(
                           AppLocalizations.of(context).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
-                        ).xSmall
-                      else if (core.settings.getTrainerApp()!.star == true)
-                        Row(
-                          spacing: 8,
-                          children: [
-                            Icon(Icons.star),
-                            Expanded(
-                              child: Text(
-                                AppLocalizations.of(
-                                  context,
-                                ).newConnectionMethodAnnouncement(core.settings.getTrainerApp()!.name),
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ).small,
-                            ),
-                          ],
-                        ),
-                      SizedBox(height: 8),
+                        ).xSmall,
+                      SizedBox(height: 0),
                       Text(
                         context.i18n.selectTargetWhereAppRuns(
                           screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name ?? 'the Trainer app',
                         ),
                       ).small,
-                      Flex(
-                        direction: isMobile ? Axis.vertical : Axis.horizontal,
+                      Row(
                         spacing: 8,
                         children: [Target.thisDevice, Target.otherDevice]
                             .map(
-                              (target) => SelectableCard(
-                                title: Text(target.getTitle(context)),
-                                icon: target.icon,
-                                isActive: target == core.settings.getLastTarget(),
-                                subtitle: !target.isCompatible
-                                    ? Text(context.i18n.platformRestrictionNotSupported)
-                                    : null,
-                                onPressed: !target.isCompatible
-                                    ? null
-                                    : () async {
-                                        await _setTarget(context, target);
-                                        setState(() {});
-                                        widget.onUpdate();
-                                      },
+                              (target) => Expanded(
+                                child: SelectableCard(
+                                  title: Center(child: Icon(target.icon)),
+                                  isActive: target == core.settings.getLastTarget(),
+                                  subtitle: Center(
+                                    child: Column(
+                                      children: [
+                                        Text(target.getTitle(context)),
+                                        if (!target.isCompatible) Text(context.i18n.platformRestrictionNotSupported),
+                                      ],
+                                    ),
+                                  ),
+                                  onPressed: !target.isCompatible
+                                      ? null
+                                      : () async {
+                                          await _setTarget(context, target);
+                                          setState(() {});
+                                          widget.onUpdate();
+                                        },
+                                ),
                               ),
                             )
-                            .map((e) => !isMobile ? Expanded(child: e) : e)
                             .toList(),
                       ),
                     ],
@@ -189,6 +162,21 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                         ],
                       ),
                     ],
+                    if (core.settings.getTrainerApp()!.star == true)
+                      Row(
+                        spacing: 8,
+                        children: [
+                          Icon(Icons.star),
+                          Expanded(
+                            child: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).newConnectionMethodAnnouncement(core.settings.getTrainerApp()!.name),
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ).xSmall,
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               );

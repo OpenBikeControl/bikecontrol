@@ -163,6 +163,7 @@
   "firmware": "Firmware",
   "forceCloseToUpdate": "Force-close the app to use the new version",
   "fullVersion": "Full Version",
+  "fullVersionDescription": "The full version includes:\n- Unlimited commands per day\n- Access to all future updates\n- No subscription! A one-time fee only :)",
   "getSupport": "Get Support",
   "gotIt": "Got it!",
   "grant": "Grant",
@@ -254,6 +255,7 @@
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
   "noConnectionMethodSelected": "No Connection Method selected",
   "noControllerConnected": "None connected",
+  "noControllerUseCompanionMode": "No Controller? Use Companion Mode.",
   "noIgnoredDevices": "No ignored devices.",
   "noTrainerSelected": "No Trainer selected",
   "notConnected": "Not connected",
@@ -419,6 +421,5 @@
   "whatsNew": "What's New",
   "whyPermissionNeeded": "Why is this permission needed?",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "noControllerUseCompanionMode": "No Controller? Use Companion Mode."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }

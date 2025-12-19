@@ -97,7 +97,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       controller: _scrollController,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,6 +168,21 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 ),
               ],
 
+              SizedBox(height: 4),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: '${context.i18n.needHelpClickHelp} '),
+                    WidgetSpan(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Icon(Icons.help_outline),
+                      ),
+                    ),
+                    TextSpan(text: ' ${context.i18n.needHelpDontHesitate}'),
+                  ],
+                ),
+              ).small.muted,
               SizedBox(),
               Flex(
                 direction: isMobile ? Axis.vertical : Axis.horizontal,

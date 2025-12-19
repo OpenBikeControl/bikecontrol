@@ -23,7 +23,7 @@ class _CustomizeState extends State<CustomizePage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
       child: Column(
         spacing: 12,
         mainAxisAlignment: MainAxisAlignment.start,
