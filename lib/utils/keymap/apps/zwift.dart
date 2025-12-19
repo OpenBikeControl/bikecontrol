@@ -83,6 +83,7 @@ class Zwift extends SupportedApp {
               physicalKey: PhysicalKeyboardKey.space,
               logicalKey: LogicalKeyboardKey.space,
               inGameAction: InGameAction.usePowerUp,
+              isLongPress: true,
             ),
             KeyPair(
               buttons: [ZwiftButtons.a],

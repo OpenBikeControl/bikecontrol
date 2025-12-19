@@ -25,22 +25,23 @@ enum InGameAction {
   decreaseResistance('Decrease Resistance', icon: LucideIcons.chartNoAxesColumnDecreasing),
 
   // zwift
-  openActionBar('Open Action Bar', alternativeTitle: 'Up', icon: BootstrapIcons.menuApp),
-  usePowerUp('Use Power-Up', icon: Icons.flash_on_outlined),
+  openActionBar('Open Action Bar', alternativeTitle: 'Up', icon: BootstrapIcons.menuApp, isLongPress: true),
+  usePowerUp('Use Power-Up', icon: Icons.flash_on_outlined, isLongPress: true),
   select('Select', icon: LucideIcons.mousePointerClick),
   back('Back', icon: BootstrapIcons.arrowLeft),
-  rideOnBomb('Ride On Bomb', icon: LucideIcons.bomb),
+  rideOnBomb('Ride On Bomb', icon: LucideIcons.bomb, isLongPress: true),
 
   // headwind
   headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100]),
   headwindHeartRateMode('Headwind HR Mode');
 
   final String title;
+  final bool isLongPress;
   final IconData? icon;
   final String? alternativeTitle;
   final List<int>? possibleValues;
 
-  const InGameAction(this.title, {this.possibleValues, this.alternativeTitle, this.icon});
+  const InGameAction(this.title, {this.possibleValues, this.alternativeTitle, this.icon, this.isLongPress = false});
 
   @override
   String toString() {

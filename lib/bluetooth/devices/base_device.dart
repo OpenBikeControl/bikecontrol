@@ -55,8 +55,9 @@ abstract class BaseDevice {
     await handleButtonsClicked(clickedButtons);
     if (clickedButtons.length == 1) {
       final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(clickedButtons.single);
-      if (keyPair != null && keyPair.isLongPress) {
+      if (keyPair != null && (keyPair.isLongPress || keyPair.inGameAction?.isLongPress == true)) {
         // simulate release after click
+        _longPressTimer?.cancel();
         await Future.delayed(const Duration(milliseconds: 800));
         await handleButtonsClicked([]);
       } else {
