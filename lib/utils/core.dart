@@ -416,7 +416,6 @@ class MediaKeyHandler {
       core.connection.addDevices([hidDevice]);
       availableDevice = hidDevice;
     }
-    availableDevice.handleButtonsClicked([button]);
-    availableDevice.handleButtonsClicked([]);
+    availableDevice.handleButtonsClickedWithoutLongPressSupport([button]);
   }
 }
