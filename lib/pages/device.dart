@@ -44,7 +44,7 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scrollbar(
       child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
