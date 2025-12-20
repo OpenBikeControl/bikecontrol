@@ -123,7 +123,7 @@ Future<void> main() async {
                   required Widget child,
                 }) => CustomFrame(
                   platform: size.type,
-                  title: 'BikeControl connects to any controller',
+                  title: 'Control your favorite trainer app using ANY controller',
                   device: device,
                   child: child,
                 ),

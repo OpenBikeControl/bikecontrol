@@ -302,7 +302,7 @@ abstract class BluetoothDevice extends BaseDevice {
               ),
             if (firmwareVersion != null)
               DeviceInfo(
-                title: context.i18n.signal,
+                title: context.i18n.firmware,
                 icon: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
                     ? Icons.warning
                     : Icons.text_fields_sharp,
