@@ -6,6 +6,7 @@ BikeControl now offers a free trial period of 5 days for all features, so you ca
 - support for SRAM AXS/eTap
   - only single or double click is supported (no individual button mapping possible, yet)
 - use your phone/tablet for steering by attaching your device on your handlebar!
+- App is now available in Polish (thanks to Wandrocet)
 
 **Fixes**:
 - You will now be notified when a connection to your controller is lost
