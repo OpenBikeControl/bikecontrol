@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -154,6 +155,7 @@ class KeyPair {
       logicalKey == null && physicalKey == null && touchPosition == Offset.zero && inGameAction == null;
 
   bool get hasActiveAction =>
+      screenshotMode ||
       (physicalKey != null &&
           core.logic.showLocalControl &&
           core.settings.getLocalEnabled() &&

@@ -86,7 +86,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       children: [
         if (core.connection.controllerDevices.isNotEmpty)
           Text(
-            'Click a button on your controller to edit its action or tap the edit icon.',
+            AppLocalizations.of(context).clickAButtonOnYourController,
             style: TextStyle(fontSize: 12),
           ).muted,
 

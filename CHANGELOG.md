@@ -1,4 +1,4 @@
-### 4.2.0 (unreleased)
+### 4.2.0 (20-12-2025)
 
 BikeControl now offers a free trial period of 5 days for all features, so you can test everything before deciding to purchase a license. Please contact the support if you experience any issues!
 
