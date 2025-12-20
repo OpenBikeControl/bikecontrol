@@ -1,7 +1,7 @@
 name: bike_control
 description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 4.1.1+53
+version: 4.2.0+57
 
 environment:
   sdk: ^3.9.0
@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
 
   url_launcher: ^6.3.1
-  flutter_local_notifications: ^19.4.1
+  flutter_local_notifications: ^19.5.0
 
   # fork to allow iOS background BLE connections
   universal_ble:
@@ -32,6 +32,12 @@ dependencies:
   nsd: ^4.0.3
   image_picker: ^1.1.2
   in_app_review: ^2.0.11
+  ios_receipt:
+    path: ios_receipt
+  flutter_secure_storage: ^10.0.0
+  in_app_purchase: ^3.2.1
+  windows_iap:
+    path: windows_iap
   window_manager: ^0.5.1
   device_info_plus: ^12.1.0
   keypress_simulator:
@@ -41,6 +47,7 @@ dependencies:
     path: media_key_detector/media_key_detector
   accessibility:
     path: accessibility
+  sensors_plus: ^7.0.0
 
   device_auto_rotate_checker:
     git:
@@ -55,7 +62,9 @@ dependencies:
   package_info_plus: ^9.0.0
   in_app_update: ^4.2.5
   http: ^1.3.0
-  shadcn_flutter: ^0.0.47
+  shadcn_flutter:
+    git:
+      url: https://github.com/sunarya-thito/shadcn_flutter.git
 
   flutter_localizations:
     sdk: flutter
@@ -66,6 +75,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
+  pubghost: ^1.0.7
   intl_utils: ^2.8.12
   golden_screenshot: ^8.1.1
   flutter_lints: ^6.0.0

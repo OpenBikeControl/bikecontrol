@@ -1,15 +1,16 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class CustomizePage extends StatefulWidget {
   const CustomizePage({super.key});
@@ -21,10 +22,6 @@ class CustomizePage extends StatefulWidget {
 class _CustomizeState extends State<CustomizePage> {
   @override
   Widget build(BuildContext context) {
-    final canVibrate = core.connection.bluetoothDevices.any(
-      (device) => device.isConnected && device is ZwiftDevice && device.canVibrate,
-    );
-
     return SingleChildScrollView(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -32,6 +29,10 @@ class _CustomizeState extends State<CustomizePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          ValueListenableBuilder(
+            valueListenable: IAPManager.instance.isPurchased,
+            builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
+          ),
           Container(
             margin: const EdgeInsets.only(bottom: 8.0),
             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -56,7 +57,10 @@ class _CustomizeState extends State<CustomizePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(child: Text(a.name)),
-                          if (a is CustomApp) BetaPill(text: 'CUSTOM'),
+                          if (a is CustomApp)
+                            BetaPill(text: 'CUSTOM')
+                          else if (a.supportsOpenBikeProtocol)
+                            Icon(Icons.star, size: 16),
                         ],
                       ),
                     ),
@@ -82,12 +86,6 @@ class _CustomizeState extends State<CustomizePage> {
                 if (app is CustomApp) BetaPill(text: 'CUSTOM'),
               ],
             ),
-            /*DropdownMenuEntry(
-                                  value: CustomApp(profileName: 'New'),
-                                  label: 'Create new keymap',
-                                  labelWidget: Text('Create new keymap'),
-                                  leadingIcon: Icon(Icons.add),
-                                ),*/
             placeholder: Text(context.i18n.selectKeymap),
 
             onChanged: (app) async {
@@ -99,10 +97,11 @@ class _CustomizeState extends State<CustomizePage> {
                   final customApp = CustomApp(profileName: profileName);
                   core.actionHandler.init(customApp);
                   await core.settings.setKeyMap(customApp);
+
                   setState(() {});
                 }
               } else {
-                core.actionHandler.supportedApp = app;
+                core.actionHandler.init(app);
                 await core.settings.setKeyMap(app);
                 setState(() {});
               }

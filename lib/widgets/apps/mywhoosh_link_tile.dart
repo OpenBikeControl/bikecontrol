@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
@@ -43,8 +44,17 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                   buildToast(
                     context,
                     title: AppLocalizations.of(context).myWhooshLinkInfo,
-                    level: LogLevel.LOGLEVEL_WARNING,
-                    duration: Duration(seconds: 12),
+                    level: LogLevel.LOGLEVEL_INFO,
+                    duration: Duration(seconds: 6),
+                    closeTitle: 'Open',
+                    onClose: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MarkdownPage(assetPath: 'INSTRUCTIONS_MYWHOOSH_LINK.md'),
+                        ),
+                      );
+                    },
                   );
                   core.connection.startMyWhooshServer().catchError((e, s) {
                     recordError(e, s, context: 'MyWhoosh Link Server');

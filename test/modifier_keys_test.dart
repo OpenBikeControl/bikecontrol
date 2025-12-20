@@ -1,9 +1,24 @@
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+Future<void> main() async {
+  FlutterSecureStorage.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues({});
+
+  await core.settings.init();
+  await core.settings.reset();
+
+  core.settings.setTrainerApp(MyWhoosh());
+  core.settings.setKeyMap(MyWhoosh());
+  core.settings.setLastTarget(Target.thisDevice);
+
   group('Modifier Keys KeyPair Tests', () {
     test('KeyPair should encode and decode modifiers property', () {
       // Create a KeyPair with modifiers

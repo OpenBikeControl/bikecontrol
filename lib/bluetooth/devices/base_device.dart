@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart' show LogLevel;
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -47,9 +51,26 @@ abstract class BaseDevice {
 
   Future<void> connect();
 
-  Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked) async {
+  Future<void> handleButtonsClickedWithoutLongPressSupport(List<ControllerButton> clickedButtons) async {
+    await handleButtonsClicked(clickedButtons, longPress: true);
+    if (clickedButtons.length == 1) {
+      final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(clickedButtons.single);
+      if (keyPair != null && (keyPair.isLongPress || keyPair.inGameAction?.isLongPress == true)) {
+        // simulate release after click
+        _longPressTimer?.cancel();
+        await Future.delayed(const Duration(milliseconds: 800));
+        await handleButtonsClicked([], longPress: true);
+      } else {
+        await handleButtonsClicked([], longPress: true);
+      }
+    } else {
+      await handleButtonsClicked([]);
+    }
+  }
+
+  Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked, {bool longPress = false}) async {
     try {
-      await _handleButtonsClickedInternal(buttonsClicked);
+      await _handleButtonsClickedInternal(buttonsClicked, longPress: longPress);
     } catch (e, st) {
       actionStreamInternal.add(
         LogNotification('Error handling button clicks: $e\n$st'),
@@ -57,7 +78,7 @@ abstract class BaseDevice {
     }
   }
 
-  Future<void> _handleButtonsClickedInternal(List<ControllerButton>? buttonsClicked) async {
+  Future<void> _handleButtonsClickedInternal(List<ControllerButton>? buttonsClicked, {required bool longPress}) async {
     if (buttonsClicked == null) {
       // ignore, no changes
     } else if (buttonsClicked.isEmpty) {
@@ -67,8 +88,9 @@ abstract class BaseDevice {
       // Handle release events for long press keys
       final buttonsReleased = _previouslyPressedButtons.toList();
       final isLongPress =
+          longPress ||
           buttonsReleased.singleOrNull != null &&
-          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && isLongPress) {
         await performRelease(buttonsReleased);
       }
@@ -79,15 +101,17 @@ abstract class BaseDevice {
       // Handle release events for buttons that are no longer pressed
       final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
       final wasLongPress =
+          longPress ||
           buttonsReleased.singleOrNull != null &&
-          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && wasLongPress) {
         await performRelease(buttonsReleased);
       }
 
       final isLongPress =
+          longPress ||
           buttonsClicked.singleOrNull != null &&
-          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
+              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
 
       if (!isLongPress &&
           !(buttonsClicked.singleOrNull == ZwiftButtons.onOffLeft ||
@@ -109,16 +133,46 @@ abstract class BaseDevice {
     }
   }
 
+  String _getCommandLimitMessage() {
+    return AppLocalizations.current.dailyCommandLimitReachedNotification;
+  }
+
+  String _getCommandLimitTitle() {
+    return AppLocalizations.current
+        .dailyLimitReached(IAPManager.dailyCommandLimit, IAPManager.dailyCommandLimit)
+        .replaceAll(
+          '${IAPManager.dailyCommandLimit}/${IAPManager.dailyCommandLimit}',
+          IAPManager.dailyCommandLimit.toString(),
+        )
+        .replaceAll(
+          '${IAPManager.dailyCommandLimit} / ${IAPManager.dailyCommandLimit}',
+          IAPManager.dailyCommandLimit.toString(),
+        );
+  }
+
   Future<void> performDown(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
+      // Check IAP status before executing command
+      if (!IAPManager.instance.canExecuteCommand) {
+        //actionStreamInternal.add(AlertNotification(LogLevel.LOGLEVEL_ERROR, _getCommandLimitMessage()));
+        continue;
+      }
+
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
+
       actionStreamInternal.add(ActionNotification(result));
     }
   }
 
   Future<void> performClick(List<ControllerButton> buttonsClicked) async {
     for (final action in buttonsClicked) {
+      // Check IAP status before executing command
+      if (!IAPManager.instance.canExecuteCommand) {
+        _showCommandLimitAlert();
+        continue;
+      }
+
       final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
       actionStreamInternal.add(ActionNotification(result));
     }
@@ -126,6 +180,12 @@ abstract class BaseDevice {
 
   Future<void> performRelease(List<ControllerButton> buttonsReleased) async {
     for (final action in buttonsReleased) {
+      // Check IAP status before executing command
+      if (!IAPManager.instance.canExecuteCommand) {
+        _showCommandLimitAlert();
+        continue;
+      }
+
       final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
       actionStreamInternal.add(LogNotification(result.message));
     }
@@ -144,6 +204,9 @@ abstract class BaseDevice {
   Widget showInformation(BuildContext context);
 
   ControllerButton getOrAddButton(String key, ControllerButton Function() creator) {
+    if (core.actionHandler.supportedApp == null) {
+      return creator();
+    }
     if (core.actionHandler.supportedApp is! CustomApp) {
       final currentProfile = core.actionHandler.supportedApp!.name;
       // should we display this to the user?
@@ -156,5 +219,27 @@ abstract class BaseDevice {
       core.settings.setKeyMap(core.actionHandler.supportedApp!);
     }
     return button;
+  }
+
+  void _showCommandLimitAlert() {
+    actionStreamInternal.add(
+      AlertNotification(
+        LogLevel.LOGLEVEL_ERROR,
+        _getCommandLimitMessage(),
+        buttonTitle: AppLocalizations.current.purchase,
+        onTap: () {
+          IAPManager.instance.purchaseFullVersion();
+        },
+      ),
+    );
+    core.flutterLocalNotificationsPlugin.show(
+      1337,
+      _getCommandLimitTitle(),
+      _getCommandLimitMessage(),
+      NotificationDetails(
+        android: AndroidNotificationDetails('Limit', 'Limit reached'),
+        iOS: DarwinNotificationDetails(presentAlert: true),
+      ),
+    );
   }
 }

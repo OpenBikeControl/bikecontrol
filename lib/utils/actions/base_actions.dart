@@ -2,11 +2,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:accessibility/accessibility.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
@@ -52,23 +54,8 @@ abstract class BaseActions {
     debugPrint('Supported app: ${supportedApp?.name ?? "None"}');
 
     if (supportedApp != null) {
-      final allButtons = core.connection.devices.map((e) => e.availableButtons).flatten().distinct();
-
-      final newButtons = allButtons.filter(
-        (button) => supportedApp.keymap.getKeyPair(button) == null,
-      );
-      for (final button in newButtons) {
-        supportedApp.keymap.addKeyPair(
-          KeyPair(
-            touchPosition: Offset.zero,
-            buttons: [button],
-            inGameAction: button.action,
-            physicalKey: null,
-            logicalKey: null,
-            isLongPress: false,
-          ),
-        );
-      }
+      final allButtons = core.connection.devices.map((e) => e.availableButtons).flatten().distinct().toList();
+      supportedApp.keymap.addNewButtons(allButtons);
     }
   }
 
@@ -120,19 +107,23 @@ abstract class BaseActions {
 
   Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
     if (supportedApp == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No keymap set");
+      return Error(
+        AppLocalizations.current.couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet(button.name.splitByUpperCase()),
+      );
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(button);
 
     if (core.logic.hasNoConnectionMethod) {
-      return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+      if (GyroscopeSteeringButtons.values.contains(button)) {
+        return Ignored('Too many messages from gyroscope steering');
+      } else {
+        return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+      }
     } else if (!(await core.logic.isTrainerConnected())) {
-      return Error('No connection method is connected or active.');
-    } else if (keyPair == null) {
-      return Error("Could not perform ${button.name.splitByUpperCase()}: No action assigned");
-    } else if (keyPair.hasNoAction) {
-      return Error('No action assigned for ${button.toString().splitByUpperCase()}');
+      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive);
+    } else if (keyPair == null || keyPair.hasNoAction) {
+      return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
     }
 
     // Handle Headwind actions
@@ -143,12 +134,17 @@ abstract class BaseActions {
         return Error('No Headwind connected');
       }
 
+      // Increment command count after successful execution
+      await IAPManager.instance.incrementCommandCount();
       return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
     if (directConnectHandled is NotHandled && directConnectHandled.message.isNotEmpty) {
       core.connection.signalNotification(LogNotification(directConnectHandled.message));
+    } else if (directConnectHandled is! NotHandled) {
+      // Increment command count after successful execution
+      await IAPManager.instance.incrementCommandCount();
     }
     return directConnectHandled;
   }
@@ -185,6 +181,6 @@ class StubActions extends BaseActions {
   @override
   Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
     performedActions.add(button);
-    return Future.value(Success('${button.name.splitByUpperCase()} clicked'));
+    return Future.value(Ignored('${button.name.splitByUpperCase()} clicked'));
   }
 }

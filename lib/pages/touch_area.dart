@@ -8,8 +8,6 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +16,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../utils/actions/base_actions.dart';
 import '../utils/keymap/keymap.dart';
 
 final touchAreaSize = 42.0;
@@ -393,53 +390,24 @@ class KeypairExplanation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        if (withKey)
-          Row(
-            children: keyPair.buttons.map((b) => ButtonWidget(button: b, big: true)).toList(),
-          )
-        else
-          Icon(keyPair.icon),
-        if (keyPair.inGameAction != null && core.logic.emulatorEnabled)
-          KeyWidget(
-            label: [
-              keyPair.inGameAction!.title,
-              if (keyPair.inGameActionValue != null) '${keyPair.inGameActionValue}',
-            ].joinToString(separator: ': '),
-          )
-        else if (keyPair.isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
-          KeyWidget(
-            label: switch (keyPair.physicalKey) {
-              PhysicalKeyboardKey.mediaPlayPause => 'Play/Pause',
-              PhysicalKeyboardKey.mediaStop => 'Stop',
-              PhysicalKeyboardKey.mediaTrackPrevious => 'Previous',
-              PhysicalKeyboardKey.mediaTrackNext => 'Next',
-              PhysicalKeyboardKey.audioVolumeUp => 'Volume Up',
-              PhysicalKeyboardKey.audioVolumeDown => 'Volume Down',
-              _ => 'Unknown',
-            },
-          )
-        else if (keyPair.physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ...[
-          KeyWidget(
-            label: keyPair.toString(),
-          ),
-        ] else ...[
-          if (!withKey && keyPair.touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
-            KeyWidget(label: 'X:${keyPair.touchPosition.dx.toInt()}, Y:${keyPair.touchPosition.dy.toInt()}'),
-        ],
-        if (keyPair.isLongPress) Text(context.i18n.longPress, style: TextStyle(fontSize: 10)),
-      ],
+    return Basic(
+      leading: withKey
+          ? Row(
+              children: keyPair.buttons.map((b) => ButtonWidget(button: b, big: true)).toList(),
+            )
+          : Icon(keyPair.icon),
+      leadingAlignment: Alignment.centerLeft,
+      contentSpacing: 10,
+      subtitle: keyPair.isLongPress ? Text(context.i18n.longPress.replaceAll('\n', ' ')).muted.xSmall : null,
+      title: Text(keyPair.toString()),
     );
   }
 }
 
 class KeyWidget extends StatelessWidget {
   final String label;
-  const KeyWidget({super.key, required this.label});
+  final bool invert;
+  const KeyWidget({super.key, required this.label, this.invert = false});
 
   @override
   Widget build(BuildContext context) {
@@ -448,7 +416,7 @@ class KeyWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         constraints: BoxConstraints(minWidth: 30),
         decoration: BoxDecoration(
-          color: BKColor.main,
+          color: invert ? Colors.white : Colors.black,
           border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
           borderRadius: BorderRadius.circular(4),
         ),
@@ -458,7 +426,7 @@ class KeyWidget extends StatelessWidget {
             style: TextStyle(
               fontFamily: screenshotMode ? null : 'monospace',
               fontSize: 12,
-              color: Colors.white,
+              color: invert ? Colors.black : Colors.white,
             ),
           ),
         ),

@@ -1,3 +1,17 @@
+### 4.2.0 (unreleased)
+
+BikeControl now offers a free trial period of 5 days for all features, so you can test everything before deciding to purchase a license. Please contact the support if you experience any issues!
+
+**Features**:
+- support for SRAM AXS/eTap
+  - only single or double click is supported (no individual button mapping possible, yet)
+- use your phone/tablet for steering by attaching your device on your handlebar!
+- App is now available in Polish (thanks to Wandrocet)
+
+**Fixes**:
+- You will now be notified when a connection to your controller is lost
+- improved UI of the Keymap customization screen
+
 ### 4.1.0 (16-12-2025)
 
 **Features**:

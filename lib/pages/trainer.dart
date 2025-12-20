@@ -1,9 +1,12 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
+import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
@@ -11,6 +14,7 @@ import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
+import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/pair_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -18,6 +22,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+
+import '../bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 
 class TrainerPage extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -87,6 +93,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
     final showWhooshLinkAsOther =
         (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
 
+    final isMobile = MediaQuery.sizeOf(context).width < 800;
     return Scrollbar(
       controller: _scrollController,
       child: SingleChildScrollView(
@@ -97,6 +104,10 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
+            ValueListenableBuilder(
+              valueListenable: IAPManager.instance.isPurchased,
+              builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
+            ),
             ConfigurationPage(
               onUpdate: () {
                 setState(() {});
@@ -132,14 +143,31 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               if (core.logic.showZwiftBleEmulator)
                 ZwiftTile(
                   onUpdate: () {
-                    core.connection.signalNotification(
-                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                    );
-                    setState(() {});
+                    if (mounted) {
+                      core.connection.signalNotification(
+                        LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+                      );
+                      setState(() {});
+                    }
                   },
                 ),
               if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
               if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
+
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: '${context.i18n.needHelpClickHelp} '),
+                    WidgetSpan(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Icon(Icons.help_outline),
+                      ),
+                    ),
+                    TextSpan(text: ' ${context.i18n.needHelpDontHesitate}'),
+                  ],
+                ),
+              ).small.muted,
               if (core.logic.showRemote || showLocalAsOther || showWhooshLinkAsOther) ...[
                 SizedBox(height: 16),
                 Accordion(
@@ -158,15 +186,44 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 ),
               ],
 
-              SizedBox(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              SizedBox(height: 4),
+              Flex(
+                direction: isMobile ? Axis.vertical : Axis.horizontal,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
                 children: [
                   PrimaryButton(
-                    child: Text(context.i18n.adjustControllerButtons),
+                    leading: Icon(Icons.computer_outlined),
+                    child: Text(
+                      AppLocalizations.of(
+                        context,
+                      ).manualyControllingButton(core.settings.getTrainerApp()?.name ?? 'your trainer'),
+                    ),
+                    onPressed: () {
+                      if (core.settings.getTrainerApp() == null) {
+                        buildToast(
+                          context,
+                          level: LogLevel.LOGLEVEL_WARNING,
+                          title: context.i18n.selectTrainerApp,
+                        );
+                        widget.onUpdate();
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (c) => ButtonSimulator(),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  PrimaryButton(
+                    leading: Icon(BCPage.customization.icon),
                     onPressed: () {
                       widget.goToNextPage();
                     },
+                    child: Text(context.i18n.adjustControllerButtons),
                   ),
                 ],
               ),

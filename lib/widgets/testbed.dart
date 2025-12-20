@@ -139,6 +139,8 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
           location: ToastLocation.bottomRight,
           level: data.level,
           title: data.alertMessage,
+          closeTitle: data.buttonTitle ?? 'Close',
+          onClose: data.onTap,
         );
       }
     });

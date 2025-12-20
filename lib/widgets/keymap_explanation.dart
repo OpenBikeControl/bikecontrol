@@ -1,10 +1,7 @@
 import 'dart:async';
 
-import 'package:dartx/dartx.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
-import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
@@ -12,7 +9,10 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../bluetooth/messages/notification.dart';
 import '../pages/touch_area.dart';
 
 class KeymapExplanation extends StatefulWidget {
@@ -27,12 +27,37 @@ class KeymapExplanation extends StatefulWidget {
 class _KeymapExplanationState extends State<KeymapExplanation> {
   late StreamSubscription<void> _updateStreamListener;
 
+  late StreamSubscription<BaseNotification> _actionSubscription;
+
+  bool _isDrawerOpen = false;
+
   @override
   void initState() {
     super.initState();
     _updateStreamListener = widget.keymap.updateStream.listen((_) {
       setState(() {});
     });
+    _actionSubscription = core.connection.actionStream.listen((data) async {
+      if (!mounted) {
+        return;
+      }
+      if (data is ButtonNotification && data.buttonsClicked.length == 1) {
+        final clickedButton = data.buttonsClicked.first;
+        final keyPair = widget.keymap.keyPairs.firstOrNullWhere(
+          (kp) => kp.buttons.contains(clickedButton),
+        );
+        if (keyPair != null && !_isDrawerOpen) {
+          await _openKeyPairEditor(keyPair);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _updateStreamListener.cancel();
+    _actionSubscription.cancel();
   }
 
   @override
@@ -47,12 +72,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-    _updateStreamListener.cancel();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final allAvailableButtons = IterableFlatMap(core.connection.devices).flatMap((d) => d.availableButtons);
     final availableKeypairs = widget.keymap.keyPairs
@@ -61,64 +80,44 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         )
         .sortedBy((k) => k.buttons.first.color != null ? 0 : 1);
 
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        Table(
-          columnWidths: {
-            0: FlexTableSize(flex: isMobile ? 1.5 : 1),
-            1: FlexTableSize(flex: 3),
-          },
-          theme: TableTheme(
-            cellTheme: TableCellTheme(
-              border: WidgetStatePropertyAll(
-                Border.all(
-                  color: Theme.of(context).colorScheme.border,
-                  strokeAlign: BorderSide.strokeAlignCenter,
-                ),
-              ),
-            ),
-            // rounded border
-            border: Border.all(
-              color: Theme.of(context).colorScheme.border,
-              strokeAlign: BorderSide.strokeAlignCenter,
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          rows: [
-            TableHeader(
-              cells: [
-                TableCell(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: OverflowMarquee(
-                      duration: Duration(seconds: 3),
-                      child: Text(
-                        core.connection.devices.isEmpty
-                            ? context.i18n.deviceButton('Device')
-                            : core.connection.devices.joinToString(transform: (d) => d.name.screenshot),
-                      ).small,
-                    ),
-                  ),
-                ),
-                TableCell(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(context.i18n.action).small,
-                  ),
-                ),
-              ],
-            ),
-            for (final keyPair in availableKeypairs) ...[
-              TableRow(
-                cells: [
-                  TableCell(
-                    child: Container(
-                      constraints: BoxConstraints(minHeight: 52),
-                      padding: const EdgeInsets.all(8.0),
+        if (core.connection.controllerDevices.isNotEmpty)
+          Text(
+            'Click a button on your controller to edit its action or tap the edit icon.',
+            style: TextStyle(fontSize: 12),
+          ).muted,
+
+        for (final keyPair in availableKeypairs) ...[
+          Button.card(
+            style: ButtonStyle.card().withBackgroundColor(color: Theme.of(context).colorScheme.background),
+            onPressed: () async {
+              if (core.actionHandler.supportedApp is! CustomApp) {
+                final currentProfile = core.actionHandler.supportedApp!.name;
+                final newName = await KeymapManager().duplicate(
+                  context,
+                  currentProfile,
+                  skipName: '$currentProfile (Copy)',
+                );
+                if (newName != null && context.mounted) {
+                  buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
+                  final selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
+                    (e) => e == keyPair,
+                  );
+                  _openKeyPairEditor(selectedKeyPair);
+                }
+              } else {
+                _openKeyPairEditor(keyPair);
+              }
+            },
+            child: Row(
+              children: [
+                Expanded(
+                  child: Basic(
+                    leading: SizedBox(
+                      width: 68,
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -127,82 +126,59 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                         children: [
                           if (core.actionHandler.supportedApp is! CustomApp)
                             for (final button in keyPair.buttons.filter((b) => allAvailableButtons.contains(b)))
-                              IntrinsicWidth(child: ButtonWidget(button: button))
+                              IntrinsicWidth(
+                                child: ButtonWidget(
+                                  button: button,
+                                  big: true,
+                                ),
+                              )
                           else
-                            for (final button in keyPair.buttons) IntrinsicWidth(child: ButtonWidget(button: button)),
+                            for (final button in keyPair.buttons)
+                              IntrinsicWidth(
+                                child: ButtonWidget(
+                                  button: button,
+                                  big: true,
+                                ),
+                              ),
                         ],
                       ),
                     ),
+                    content: (keyPair.buttons.isNotEmpty && keyPair.hasActiveAction)
+                        ? KeypairExplanation(
+                            keyPair: keyPair,
+                          )
+                        : Text(
+                            core.logic.hasNoConnectionMethod
+                                ? AppLocalizations.of(context).noConnectionMethodSelected
+                                : context.i18n.noActionAssigned,
+                            style: TextStyle(height: 1),
+                          ).muted,
                   ),
-                  TableCell(
-                    child: _ButtonEditor(keyPair: keyPair, onUpdate: widget.onUpdate),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
+                ),
+                Icon(Icons.edit_outlined, size: 26),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
-}
 
-class _ButtonEditor extends StatelessWidget {
-  final KeyPair keyPair;
-  final VoidCallback onUpdate;
-  const _ButtonEditor({required this.onUpdate, super.key, required this.keyPair});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: () async {
-        if (core.actionHandler.supportedApp is! CustomApp) {
-          final currentProfile = core.actionHandler.supportedApp!.name;
-          final newName = await KeymapManager().duplicate(
-            context,
-            currentProfile,
-            skipName: '$currentProfile (Copy)',
-          );
-          if (newName != null && context.mounted) {
-            buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
-            final selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
-              (e) => e == keyPair,
-            );
-            await openDrawer(
-              context: context,
-              builder: (c) => ButtonEditPage(
-                keyPair: selectedKeyPair,
-                onUpdate: () {},
-              ),
-              position: OverlayPosition.end,
-            );
-          }
-          onUpdate();
-        } else {
-          await openDrawer(
-            context: context,
-
-            builder: (c) => ButtonEditPage(
-              keyPair: keyPair,
-              onUpdate: () {},
-            ),
-            position: OverlayPosition.end,
-          );
-          onUpdate();
-        }
-      },
-      trailing: Icon(Icons.edit, size: 18),
-      child: (keyPair.buttons.isNotEmpty && keyPair.hasActiveAction)
-          ? KeypairExplanation(
-              keyPair: keyPair,
-            )
-          : Text(
-              core.logic.hasNoConnectionMethod
-                  ? AppLocalizations.of(context).noConnectionMethodSelected
-                  : context.i18n.noActionAssigned,
-              style: TextStyle(height: 1),
-            ).muted.xSmall,
+  Future<void> _openKeyPairEditor(KeyPair selectedKeyPair) async {
+    _isDrawerOpen = true;
+    await openDrawer(
+      context: context,
+      builder: (c) => ButtonEditPage(
+        keyPair: selectedKeyPair,
+        keymap: widget.keymap,
+        onUpdate: () {
+          widget.onUpdate();
+        },
+      ),
+      position: OverlayPosition.end,
     );
+    widget.onUpdate();
+    _isDrawerOpen = false;
   }
 }
 

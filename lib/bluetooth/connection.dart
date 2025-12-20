@@ -1,22 +1,22 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:gamepads/gamepads.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:gamepads/gamepads.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'devices/base_device.dart';
@@ -28,10 +28,12 @@ class Connection {
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
+  List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
   List<BaseDevice> get controllerDevices => [
     ...bluetoothDevices.where((d) => d is! WahooKickrHeadwind),
     ...gamepadDevices,
+    ...gyroscopeDevices,
     ...devices.whereType<HidDevice>(),
   ];
 
@@ -87,7 +89,7 @@ class Connection {
         _lastScanResult.add(result);
 
         if (kDebugMode) {
-          print('Scan result: ${result.name} - ${result.deviceId}');
+          debugPrint('Scan result: ${result.name} - ${result.deviceId}');
         }
 
         final scanResult = BluetoothDevice.fromScanResult(result);
@@ -154,6 +156,9 @@ class Connection {
           performScanning();
         }
       });
+      if (core.settings.getPhoneSteeringEnabled()) {
+        toggleGyroscopeSteering(true);
+      }
     }
   }
 
@@ -163,6 +168,10 @@ class Connection {
     }
     isScanning.value = true;
     _actionStreams.add(LogNotification('Scanning for devices...'));
+
+    if (screenshotMode) {
+      return;
+    }
 
     // does not work on web, may not work on Windows
     if (!kIsWeb && !Platform.isWindows) {
@@ -206,7 +215,7 @@ class Connection {
     if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
       _androidNotificationsSetup = true;
       // start foreground service only when app is in foreground
-      NotificationRequirement.setup().catchError((e) {
+      NotificationRequirement.addPersistentNotification().catchError((e) {
         _actionStreams.add(LogNotification(e.toString()));
       });
     }
@@ -248,6 +257,18 @@ class Connection {
     hasDevices.value = devices.isNotEmpty;
   }
 
+  void toggleGyroscopeSteering(bool enable) {
+    final existing = gyroscopeDevices.firstOrNull;
+    if (existing != null && !enable) {
+      // Remove gyroscope steering
+      disconnect(existing, forget: true, persistForget: false);
+    } else if (enable) {
+      // Add gyroscope steering
+      final gyroDevice = GyroscopeSteering();
+      addDevices([gyroDevice]);
+    }
+  }
+
   void _handleConnectionQueue() {
     // windows apparently has issues when connecting to multiple devices at once, so don't
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
@@ -287,9 +308,18 @@ class Connection {
         _actionStreams.add(data);
       });
       if (device is BluetoothDevice) {
-        final connectionStateSubscription = UniversalBle.connectionStream(device.device.deviceId).listen((state) {
+        final connectionStateSubscription = device.device.connectionStream.listen((state) {
           device.isConnected = state;
           _connectionStreams.add(device);
+          core.flutterLocalNotificationsPlugin.show(
+            1338,
+            '${device.name} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+            !state ? AppLocalizations.current.tryingToConnectAgain : null,
+            NotificationDetails(
+              android: AndroidNotificationDetails('Connection', 'Connection Status'),
+              iOS: DarwinNotificationDetails(presentAlert: true),
+            ),
+          );
           if (!device.isConnected) {
             disconnect(device, forget: false, persistForget: false);
             // try reconnect
@@ -302,20 +332,7 @@ class Connection {
       await device.connect();
       signalChange(device);
 
-      final newButtons = device.availableButtons.filter(
-        (button) => core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null,
-      );
-      for (final button in newButtons) {
-        core.actionHandler.supportedApp?.keymap.addKeyPair(
-          KeyPair(
-            touchPosition: Offset.zero,
-            buttons: [button],
-            physicalKey: null,
-            logicalKey: null,
-            isLongPress: false,
-          ),
-        );
-      }
+      core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
 
       _streamSubscriptions[device] = actionSubscription;
     } catch (e, backtrace) {
@@ -378,6 +395,16 @@ class Connection {
       }
 
       // Clean up subscriptions and scan results for reconnection
+      _streamSubscriptions[device]?.cancel();
+      _streamSubscriptions.remove(device);
+      _connectionSubscriptions[device]?.cancel();
+      _connectionSubscriptions.remove(device);
+
+      // Remove device from the list
+      devices.remove(device);
+      hasDevices.value = devices.isNotEmpty;
+    } else if (device is GyroscopeSteering) {
+      // Clean up subscriptions
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();

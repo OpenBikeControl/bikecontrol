@@ -91,6 +91,103 @@ class _LocalTileState extends State<LocalTile> {
 
   @override
   Widget build(BuildContext context) {
+    final children = [
+      // show warning only for android when using local accessibility service
+      if (_showAutoRotationWarning)
+        Warning(
+          important: false,
+          children: [
+            Text(context.i18n.enableAutoRotation),
+          ],
+        ),
+      if (_showMiuiWarning)
+        Warning(
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(context.i18n.miuiDeviceDetected).bold,
+                ),
+                IconButton.destructive(
+                  icon: Icon(Icons.close),
+                  onPressed: () async {
+                    await core.settings.setMiuiWarningDismissed(true);
+                    setState(() {
+                      _showMiuiWarning = false;
+                    });
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              context.i18n.miuiWarningDescription,
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 8),
+            Text(
+              context.i18n.miuiEnsureProperWorking,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            Text(
+              context.i18n.miuiDisableBatteryOptimization,
+              style: TextStyle(fontSize: 14),
+            ),
+            Text(
+              context.i18n.miuiEnableAutostart,
+              style: TextStyle(fontSize: 14),
+            ),
+            Text(
+              context.i18n.miuiLockInRecentApps,
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 12),
+            OutlineButton(
+              onPressed: () async {
+                final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              leading: Icon(Icons.open_in_new),
+              child: Text(context.i18n.viewDetailedInstructions),
+            ),
+          ],
+        ),
+      if (_isRunningAndroidService == false)
+        Warning(
+          children: [
+            Text(context.i18n.accessibilityServiceNotRunning).xSmall,
+            SizedBox(height: 8),
+            Row(
+              spacing: 8,
+              children: [
+                Expanded(
+                  child: OutlineButton(
+                    child: Text('dontkillmyapp.com'),
+                    onPressed: () {
+                      launchUrlString('https://dontkillmyapp.com/');
+                    },
+                  ),
+                ),
+                IconButton.secondary(
+                  onPressed: () {
+                    core.logic.isAndroidServiceRunning().then((isRunning) {
+                      core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+                      setState(() {
+                        _isRunningAndroidService = isRunning;
+                      });
+                    });
+                  },
+                  icon: Icon(Icons.refresh),
+                ),
+              ],
+            ),
+          ],
+        ),
+    ];
     return ConnectionMethod(
       isEnabled: core.settings.getLocalEnabled(),
       type: ConnectionMethodType.local,
@@ -116,105 +213,11 @@ class _LocalTileState extends State<LocalTile> {
           core.connection.signalNotification(LogNotification('Local Control: $value'));
         }
       },
-      additionalChild: Column(
-        children: [
-          // show warning only for android when using local accessibility service
-          if (_showAutoRotationWarning)
-            Warning(
-              important: false,
-              children: [
-                Text(context.i18n.enableAutoRotation),
-              ],
-            ),
-          if (_showMiuiWarning)
-            Warning(
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.warning_amber),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(context.i18n.miuiDeviceDetected).bold,
-                    ),
-                    IconButton.destructive(
-                      icon: Icon(Icons.close),
-                      onPressed: () async {
-                        await core.settings.setMiuiWarningDismissed(true);
-                        setState(() {
-                          _showMiuiWarning = false;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text(
-                  context.i18n.miuiWarningDescription,
-                  style: TextStyle(fontSize: 14),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  context.i18n.miuiEnsureProperWorking,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  context.i18n.miuiDisableBatteryOptimization,
-                  style: TextStyle(fontSize: 14),
-                ),
-                Text(
-                  context.i18n.miuiEnableAutostart,
-                  style: TextStyle(fontSize: 14),
-                ),
-                Text(
-                  context.i18n.miuiLockInRecentApps,
-                  style: TextStyle(fontSize: 14),
-                ),
-                SizedBox(height: 12),
-                OutlineButton(
-                  onPressed: () async {
-                    final url = Uri.parse('https://dontkillmyapp.com/xiaomi');
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                  leading: Icon(Icons.open_in_new),
-                  child: Text(context.i18n.viewDetailedInstructions),
-                ),
-              ],
-            ),
-          if (_isRunningAndroidService == false)
-            Warning(
-              children: [
-                Text(context.i18n.accessibilityServiceNotRunning).xSmall,
-                SizedBox(height: 8),
-                Row(
-                  spacing: 8,
-                  children: [
-                    Expanded(
-                      child: OutlineButton(
-                        child: Text('dontkillmyapp.com'),
-                        onPressed: () {
-                          launchUrlString('https://dontkillmyapp.com/');
-                        },
-                      ),
-                    ),
-                    IconButton.secondary(
-                      onPressed: () {
-                        core.logic.isAndroidServiceRunning().then((isRunning) {
-                          core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-                          setState(() {
-                            _isRunningAndroidService = isRunning;
-                          });
-                        });
-                      },
-                      icon: Icon(Icons.refresh),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-        ],
-      ),
+      additionalChild: children.isNotEmpty
+          ? Column(
+              children: children,
+            )
+          : null,
     );
   }
 }

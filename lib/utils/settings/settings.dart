@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
-import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/apps/supported_app.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../main.dart';
@@ -31,6 +33,15 @@ class Settings {
 
       final app = getKeyMap();
       core.actionHandler.init(app);
+
+      // Initialize IAP manager
+      await IAPManager.instance.initialize();
+
+      // Start trial if this is the first launch
+      if (!IAPManager.instance.hasTrialStarted && !IAPManager.instance.isPurchased.value) {
+        await IAPManager.instance.startTrial();
+      }
+
       return null;
     } catch (e, s) {
       if (!retried) {
@@ -58,7 +69,8 @@ class Settings {
 
   Future<void> reset() async {
     await prefs.clear();
-    core.actionHandler.init(null);
+    IAPManager.instance.reset(true);
+    init();
   }
 
   void setTrainerApp(SupportedApp app) {
@@ -71,12 +83,6 @@ class Settings {
       return null;
     }
     return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
-  }
-
-  bool knowsAboutNameChange() {
-    final knows = prefs.getBool('name_change') == true;
-    prefs.setBool('name_change', true);
-    return knows;
   }
 
   Future<void> setKeyMap(SupportedApp app) async {
@@ -336,5 +342,36 @@ class Settings {
     final hotkeys = getButtonSimulatorHotkeys();
     hotkeys.remove(action);
     await setButtonSimulatorHotkeys(hotkeys);
+  }
+
+  void setPhoneSteeringEnabled(bool value) {
+    prefs.setBool('phone_steering_enabled', value);
+  }
+
+  bool getPhoneSteeringEnabled() {
+    return prefs.getBool('phone_steering_enabled') ?? false;
+  }
+
+  void setPhoneSteeringThreshold(int value) {
+    prefs.setInt('phone_steering_threshold', value);
+  }
+
+  double getPhoneSteeringThreshold() {
+    return prefs.getInt('phone_steering_threshold')?.toDouble() ?? GyroscopeSteering.STEERING_THRESHOLD;
+  }
+
+  // SRAM AXS Settings
+  static const int _sramAxsDoubleClickWindowDefaultMs = 350;
+  static const int _sramAxsDoubleClickWindowMinMs = 150;
+  static const int _sramAxsDoubleClickWindowMaxMs = 800;
+
+  int getSramAxsDoubleClickWindowMs() {
+    final v = prefs.getInt('sram_axs_double_click_window_ms') ?? _sramAxsDoubleClickWindowDefaultMs;
+    return v.clamp(_sramAxsDoubleClickWindowMinMs, _sramAxsDoubleClickWindowMaxMs);
+  }
+
+  Future<void> setSramAxsDoubleClickWindowMs(int ms) async {
+    final v = ms.clamp(_sramAxsDoubleClickWindowMinMs, _sramAxsDoubleClickWindowMaxMs);
+    await prefs.setInt('sram_axs_double_click_window_ms', v);
   }
 }

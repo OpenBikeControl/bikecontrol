@@ -585,6 +585,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				PRODUCT_BUNDLE_IDENTIFIER = de.jonasbark.swiftcontrol.darwin;
 				PRODUCT_NAME = BikeControl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -726,6 +727,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				PRODUCT_BUNDLE_IDENTIFIER = de.jonasbark.swiftcontrol.darwin;
 				PRODUCT_NAME = BikeControl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -756,6 +758,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				PRODUCT_BUNDLE_IDENTIFIER = de.jonasbark.swiftcontrol.darwin;
 				PRODUCT_NAME = BikeControl;
 				PROVISIONING_PROFILE_SPECIFIER = "";

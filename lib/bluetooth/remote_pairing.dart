@@ -1,8 +1,5 @@
 import 'dart:io';
 
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:flutter/foundation.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -12,6 +9,9 @@ import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
+import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../utils/keymap/keymap.dart';
 
@@ -26,9 +26,11 @@ class RemotePairing extends TrainerConnection {
   Central? _central;
   GATTCharacteristic? _inputReport;
 
+  static const String connectionTitle = 'Remote Control';
+
   RemotePairing()
     : super(
-        title: 'Remote Control',
+        title: connectionTitle,
         supportedActions: InGameAction.values,
       );
 

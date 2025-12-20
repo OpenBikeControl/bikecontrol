@@ -55,7 +55,9 @@ class Core {
 class Permissions {
   Future<List<PlatformRequirement>> getScanRequirements() async {
     final List<PlatformRequirement> list;
-    if (kIsWeb) {
+    if (screenshotMode) {
+      list = [];
+    } else if (kIsWeb) {
       final availablity = await UniversalBle.getBluetoothAvailabilityState();
       if (availablity == AvailabilityState.unsupported) {
         list = [UnsupportedPlatform()];
@@ -63,10 +65,14 @@ class Permissions {
         list = [BluetoothTurnedOn()];
       }
     } else if (Platform.isMacOS) {
-      list = [BluetoothTurnedOn()];
+      list = [
+        BluetoothTurnedOn(),
+        NotificationRequirement(),
+      ];
     } else if (Platform.isIOS) {
       list = [
         BluetoothTurnedOn(),
+        NotificationRequirement(),
       ];
     } else if (Platform.isWindows) {
       list = [
@@ -101,6 +107,8 @@ class Permissions {
     return [
       BluetoothTurnedOn(),
       if (Platform.isAndroid) ...[
+        BluetoothScanRequirement(),
+        BluetoothConnectRequirement(),
         BluetoothAdvertiseRequirement(),
       ],
     ];
@@ -230,6 +238,15 @@ class CoreLogic {
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
     if (isRemoteControlEnabled) core.remotePairing,
   ].filter((e) => e.isConnected.value).toList();
+
+  List<TrainerConnection> get enabledTrainerConnections => [
+    if (isMyWhooshLinkEnabled) core.whooshLink,
+    if (isObpMdnsEnabled) core.obpMdnsEmulator,
+    if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isZwiftBleEnabled) core.zwiftEmulator,
+    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isRemoteControlEnabled) core.remotePairing,
+  ];
 
   List<TrainerConnection> get trainerConnections => [
     if (showMyWhooshLink) core.whooshLink,
@@ -399,7 +416,6 @@ class MediaKeyHandler {
       core.connection.addDevices([hidDevice]);
       availableDevice = hidDevice;
     }
-    availableDevice.handleButtonsClicked([button]);
-    availableDevice.handleButtonsClicked([]);
+    availableDevice.handleButtonsClickedWithoutLongPressSupport([button]);
   }
 }

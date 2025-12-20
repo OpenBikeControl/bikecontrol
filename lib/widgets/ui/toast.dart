@@ -1,6 +1,6 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 void buildToast(
   BuildContext context, {
@@ -18,9 +18,9 @@ void buildToast(
     location: location,
     showDuration: switch (level) {
       LogLevel.LOGLEVEL_DEBUG => const Duration(seconds: 2),
-      LogLevel.LOGLEVEL_INFO => const Duration(seconds: 3),
-      LogLevel.LOGLEVEL_WARNING => const Duration(seconds: 5),
-      LogLevel.LOGLEVEL_ERROR => const Duration(seconds: 7),
+      LogLevel.LOGLEVEL_INFO => duration ?? const Duration(seconds: 3),
+      LogLevel.LOGLEVEL_WARNING => duration ?? const Duration(seconds: 5),
+      LogLevel.LOGLEVEL_ERROR => duration ?? const Duration(seconds: 7),
       _ => duration ?? const Duration(seconds: 3),
     },
     builder: (context, overlay) => SurfaceCard(

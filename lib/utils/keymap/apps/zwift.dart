@@ -1,8 +1,8 @@
-import 'package:flutter/services.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:flutter/services.dart';
 
 import '../keymap.dart';
 
@@ -83,6 +83,7 @@ class Zwift extends SupportedApp {
               physicalKey: PhysicalKeyboardKey.space,
               logicalKey: LogicalKeyboardKey.space,
               inGameAction: InGameAction.usePowerUp,
+              isLongPress: true,
             ),
             KeyPair(
               buttons: [ZwiftButtons.a],
@@ -101,6 +102,7 @@ class Zwift extends SupportedApp {
               physicalKey: null,
               logicalKey: null,
               inGameAction: InGameAction.rideOnBomb,
+              isLongPress: true,
             ),
           ],
         ),

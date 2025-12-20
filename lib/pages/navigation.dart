@@ -1,10 +1,5 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/customize.dart';
@@ -16,6 +11,11 @@ import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../widgets/changelog_dialog.dart';
 
@@ -135,6 +135,7 @@ class _NavigationState extends State<Navigation> {
           backgroundColor: Theme.of(context).colorScheme.background,
           trailing: buildMenuButtons(
             context,
+            _selectedPage,
             _isMobile
                 ? () {
                     setState(() {
@@ -249,7 +250,7 @@ class _NavigationState extends State<Navigation> {
               reverseDuration: Duration(seconds: 1),
               start: 10,
               end: 12,
-              mode: RepeatMode.pingPong,
+              mode: LoopingMode.pingPong,
               builder: (context, value, child) {
                 return Container(
                   width: value,

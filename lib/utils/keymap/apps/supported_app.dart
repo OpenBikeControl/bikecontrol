@@ -16,6 +16,7 @@ abstract class SupportedApp {
   final Keymap keymap;
   final bool supportsZwiftEmulation;
   final bool supportsOpenBikeProtocol;
+  final bool star;
 
   const SupportedApp({
     required this.name,
@@ -24,6 +25,7 @@ abstract class SupportedApp {
     required this.compatibleTargets,
     required this.supportsZwiftEmulation,
     this.supportsOpenBikeProtocol = false,
+    this.star = false,
   });
 
   static final List<SupportedApp> supportedApps = [
