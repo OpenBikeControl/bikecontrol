@@ -335,7 +335,9 @@ jobs:
         run: msstore reconfigure --tenantId $ --clientId $ --clientSecret $ --sellerId $
 
       - name: Create MSIX package
-        run: dart run msix:create
+        run: |
+          $version = "${{ env.VERSION }}" -replace '\+', '.'
+          dart run msix:create --version $version
 
       - name: Publish MSIX to the Microsoft Store
         if: false
