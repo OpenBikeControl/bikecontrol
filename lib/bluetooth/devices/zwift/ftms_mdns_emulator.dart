@@ -63,7 +63,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
       throw 'Could not find network interface';
     }
 
-    _createTcpServer();
+    await _createTcpServer();
 
     if (kDebugMode) {
       enableLogging(LogTopic.calls);
