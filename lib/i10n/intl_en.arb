@@ -144,6 +144,7 @@
   "enableMediaKeyDetection": "Enable Media Key Detection",
   "enablePairingProcess": "Enable Pairing Process",
   "enablePermissions": "Enable Permissions",
+  "enableSteeringWithPhone": "Enable Phones' sensors to enable e.g. steering",
   "enableVibrationFeedback": "Enable vibration feedback when shifting gears",
   "enableZwiftControllerBluetooth": "Enable Zwift Controller (Bluetooth)",
   "enableZwiftControllerNetwork": "Enable Zwift Controller (Network)",
@@ -421,6 +422,5 @@
   "whatsNew": "What's New",
   "whyPermissionNeeded": "Why is this permission needed?",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "enableSteeringWithPhone": "Enable Steering using your phone's sensors"
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }

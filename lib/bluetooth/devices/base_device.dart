@@ -52,25 +52,25 @@ abstract class BaseDevice {
   Future<void> connect();
 
   Future<void> handleButtonsClickedWithoutLongPressSupport(List<ControllerButton> clickedButtons) async {
-    await handleButtonsClicked(clickedButtons);
+    await handleButtonsClicked(clickedButtons, longPress: true);
     if (clickedButtons.length == 1) {
       final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(clickedButtons.single);
       if (keyPair != null && (keyPair.isLongPress || keyPair.inGameAction?.isLongPress == true)) {
         // simulate release after click
         _longPressTimer?.cancel();
         await Future.delayed(const Duration(milliseconds: 800));
-        await handleButtonsClicked([]);
+        await handleButtonsClicked([], longPress: true);
       } else {
-        await handleButtonsClicked([]);
+        await handleButtonsClicked([], longPress: true);
       }
     } else {
       await handleButtonsClicked([]);
     }
   }
 
-  Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked) async {
+  Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked, {bool longPress = false}) async {
     try {
-      await _handleButtonsClickedInternal(buttonsClicked);
+      await _handleButtonsClickedInternal(buttonsClicked, longPress: longPress);
     } catch (e, st) {
       actionStreamInternal.add(
         LogNotification('Error handling button clicks: $e\n$st'),
@@ -78,7 +78,7 @@ abstract class BaseDevice {
     }
   }
 
-  Future<void> _handleButtonsClickedInternal(List<ControllerButton>? buttonsClicked) async {
+  Future<void> _handleButtonsClickedInternal(List<ControllerButton>? buttonsClicked, {required bool longPress}) async {
     if (buttonsClicked == null) {
       // ignore, no changes
     } else if (buttonsClicked.isEmpty) {
@@ -88,8 +88,9 @@ abstract class BaseDevice {
       // Handle release events for long press keys
       final buttonsReleased = _previouslyPressedButtons.toList();
       final isLongPress =
+          longPress ||
           buttonsReleased.singleOrNull != null &&
-          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && isLongPress) {
         await performRelease(buttonsReleased);
       }
@@ -100,15 +101,17 @@ abstract class BaseDevice {
       // Handle release events for buttons that are no longer pressed
       final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
       final wasLongPress =
+          longPress ||
           buttonsReleased.singleOrNull != null &&
-          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
+              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
       if (buttonsReleased.isNotEmpty && wasLongPress) {
         await performRelease(buttonsReleased);
       }
 
       final isLongPress =
+          longPress ||
           buttonsClicked.singleOrNull != null &&
-          core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
+              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
 
       if (!isLongPress &&
           !(buttonsClicked.singleOrNull == ZwiftButtons.onOffLeft ||
@@ -201,6 +204,9 @@ abstract class BaseDevice {
   Widget showInformation(BuildContext context);
 
   ControllerButton getOrAddButton(String key, ControllerButton Function() creator) {
+    if (core.actionHandler.supportedApp == null) {
+      return creator();
+    }
     if (core.actionHandler.supportedApp is! CustomApp) {
       final currentProfile = core.actionHandler.supportedApp!.name;
       // should we display this to the user?

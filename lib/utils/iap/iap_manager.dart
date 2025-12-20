@@ -160,8 +160,8 @@ class IAPManager {
     _windowsIapService?.dispose();
   }
 
-  void reset() {
+  void reset(bool fullReset) {
     _windowsIapService?.reset();
-    _iapService?.reset();
+    _iapService?.reset(fullReset);
   }
 }

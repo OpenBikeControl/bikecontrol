@@ -144,6 +144,7 @@
   "enableMediaKeyDetection": "Activer la détection des touches multimédias",
   "enablePairingProcess": "Activer le processus d'appairage",
   "enablePermissions": "Activer les autorisations",
+  "enableSteeringWithPhone": "Activez les capteurs du téléphone pour permettre, par exemple, la direction.",
   "enableVibrationFeedback": "Activer le retour haptique par vibration lors du changement de vitesse",
   "enableZwiftControllerBluetooth": "Activer le contrôleur Zwift (Bluetooth)",
   "enableZwiftControllerNetwork": "Activer le contrôleur Zwift (réseau)",

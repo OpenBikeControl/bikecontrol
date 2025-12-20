@@ -69,8 +69,8 @@ class Settings {
 
   Future<void> reset() async {
     await prefs.clear();
-    IAPManager.instance.reset();
-    core.actionHandler.init(null);
+    IAPManager.instance.reset(true);
+    init();
   }
 
   void setTrainerApp(SupportedApp app) {

@@ -53,8 +53,7 @@ class SramAxs extends BluetoothDevice {
 
   void _emitClick(ControllerButton button) {
     // Use the common pipeline so long-press handling and app action execution stays consistent.
-    handleButtonsClicked([button]);
-    handleButtonsClicked([]);
+    handleButtonsClickedWithoutLongPressSupport([button]);
   }
 
   void _registerTap() {
@@ -117,10 +116,10 @@ class SramAxs extends BluetoothDevice {
         Text(
           "Unfortunately, at the moment it's not possible to determine which physical button was pressed on your SRAM AXS device. Let us know if you have a contact at SRAM who can help :)\n\n"
           'So the app exposes two logical buttons:\n'
-          '• SRAM Action (Single Click), assigned to Shift Up\n'
-          '• SRAM Action (Double Click), assigned to Shift Down\n\n'
+          '• SRAM Tap, assigned to Shift Up\n'
+          '• SRAM Double Tap, assigned to Shift Down\n\n'
           'You can assign an action to each in the app settings.',
-        ).small,
+        ).xSmall,
         Builder(
           builder: (context) {
             return PrimaryButton(

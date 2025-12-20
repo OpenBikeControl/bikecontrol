@@ -62,6 +62,9 @@ class IAPService {
         onDone: () => _subscription?.cancel(),
         onError: (error) {
           debugPrint('IAP Error: $error');
+          core.connection.signalNotification(
+            LogNotification('There was an error with in-app purchases: ${error.toString()}'),
+          );
           // On error, default to allowing access
           IAPManager.instance.isPurchased.value = false;
         },
@@ -189,6 +192,9 @@ class IAPService {
       }
 
       final purchasedVersion = json['receipt']["original_application_version"];
+      core.connection.signalNotification(
+        LogNotification('Apple receipt validated for version: $purchasedVersion'),
+      );
       IAPManager.instance.isPurchased.value = Version.parse(purchasedVersion) < Version(4, 2, 0);
       if (IAPManager.instance.isPurchased.value) {
         debugPrint('Apple receipt validation successful - granting full access');
@@ -218,8 +224,9 @@ class IAPService {
         }
         debugPrint('Existing Android user detected - granting full access');
       }
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('Error checking Android previous purchase: $e');
+      recordError(e, s, context: 'Checking Android previous purchase');
     }
   }
 
@@ -240,6 +247,9 @@ class IAPService {
   /// Handle purchase updates
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
     for (final purchase in purchaseDetailsList) {
+      core.connection.signalNotification(
+        LogNotification('Purchase found: ${purchase.productID} - ${purchase.status}'),
+      );
       if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
         IAPManager.instance.isPurchased.value = !kDebugMode;
         await _prefs.write(key: _purchaseStatusKey, value: IAPManager.instance.isPurchased.value.toString());
@@ -376,7 +386,13 @@ class IAPService {
     _subscription?.cancel();
   }
 
-  void reset() {
-    _prefs.deleteAll();
+  void reset(bool fullReset) {
+    if (fullReset) {
+      _prefs.deleteAll();
+    } else {
+      _prefs.delete(key: _purchaseStatusKey);
+      _isInitialized = false;
+      initialize();
+    }
   }
 }

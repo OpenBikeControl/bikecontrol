@@ -3,6 +3,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
+import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -97,7 +98,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       controller: _scrollController,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        padding: EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,6 +153,21 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 ),
               if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
               if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
+
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: '${context.i18n.needHelpClickHelp} '),
+                    WidgetSpan(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Icon(Icons.help_outline),
+                      ),
+                    ),
+                    TextSpan(text: ' ${context.i18n.needHelpDontHesitate}'),
+                  ],
+                ),
+              ).small.muted,
               if (core.logic.showRemote || showLocalAsOther || showWhooshLinkAsOther) ...[
                 SizedBox(height: 16),
                 Accordion(
@@ -171,21 +187,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ],
 
               SizedBox(height: 4),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(text: '${context.i18n.needHelpClickHelp} '),
-                    WidgetSpan(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Icon(Icons.help_outline),
-                      ),
-                    ),
-                    TextSpan(text: ' ${context.i18n.needHelpDontHesitate}'),
-                  ],
-                ),
-              ).small.muted,
-              SizedBox(),
               Flex(
                 direction: isMobile ? Axis.vertical : Axis.horizontal,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -193,6 +194,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 spacing: 8,
                 children: [
                   PrimaryButton(
+                    leading: Icon(Icons.computer_outlined),
                     child: Text(
                       AppLocalizations.of(
                         context,
@@ -217,10 +219,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                     },
                   ),
                   PrimaryButton(
-                    child: Text(context.i18n.adjustControllerButtons),
+                    leading: Icon(BCPage.customization.icon),
                     onPressed: () {
                       widget.goToNextPage();
                     },
+                    child: Text(context.i18n.adjustControllerButtons),
                   ),
                 ],
               ),

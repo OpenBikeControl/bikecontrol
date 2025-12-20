@@ -380,7 +380,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
       _write(_socket!, zero);
     }
     if (kDebugMode) {
-      print('Sent action ${keyPair.inGameAction!.title} to Zwift Emulator');
+      print('Sent action $isKeyUp vs $isKeyDown ${keyPair.inGameAction!.title} to Zwift Emulator');
     }
     return Success('Sent action: ${keyPair.inGameAction!.title}');
   }

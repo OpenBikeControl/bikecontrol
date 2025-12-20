@@ -40,18 +40,25 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   Widget build(BuildContext context) {
     final iapManager = IAPManager.instance;
     final isTrialExpired = iapManager.isTrialExpired;
+    if (isTrialExpired) {
+      _isSmall = false;
+    }
     final trialDaysRemaining = iapManager.trialDaysRemaining;
     final commandsRemaining = iapManager.commandsRemainingToday;
     final dailyCommandCount = iapManager.dailyCommandCount;
 
-    return CardButton(
+    return Button(
       onPressed: _isSmall
           ? () {
               setState(() {
                 _isSmall = false;
               });
             }
-          : null,
+          : _handlePurchase,
+      style: ButtonStyle.card().withBackgroundColor(
+        color: Theme.of(context).colorScheme.muted,
+        hoverColor: Theme.of(context).colorScheme.primaryForeground,
+      ),
       child: AnimatedContainer(
         duration: Duration(milliseconds: 700),
         width: double.infinity,
@@ -127,6 +134,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                     leadingAlignment: Alignment.centerLeft,
                     leading: Icon(Icons.lock),
                     title: Text(AppLocalizations.of(context).trialExpired(IAPManager.dailyCommandLimit)),
+                    trailing: _isSmall ? Icon(Icons.expand_more) : null,
+                    trailingAlignment: Alignment.centerRight,
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 6,

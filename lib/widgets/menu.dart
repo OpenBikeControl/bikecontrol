@@ -1,22 +1,25 @@
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/pages/markdown.dart';
+import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/title.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/markdown.dart';
-import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/widgets/title.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
+import '../utils/iap/iap_manager.dart';
+
+List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCallback? openLogs) {
   return [
     Builder(
       builder: (context) {
@@ -210,7 +213,7 @@ List<Widget> buildMenuButtons(BuildContext context, VoidCallback? openLogs) {
       },
     ),
     Gap(4),
-    BKMenuButton(openLogs: openLogs),
+    BKMenuButton(openLogs: openLogs, currentPage: currentPage),
   ];
 }
 
@@ -231,7 +234,8 @@ ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transfor
 
 class BKMenuButton extends StatelessWidget {
   final VoidCallback? openLogs;
-  const BKMenuButton({super.key, this.openLogs});
+  final BCPage currentPage;
+  const BKMenuButton({super.key, this.openLogs, required this.currentPage});
 
   @override
   Widget build(BuildContext context) {
@@ -263,6 +267,16 @@ class BKMenuButton extends StatelessWidget {
                 child: Text(context.i18n.reset),
                 onPressed: (c) async {
                   await core.settings.reset();
+                },
+              ),
+              MenuDivider(),
+            ],
+            if (currentPage == BCPage.logs) ...[
+              MenuButton(
+                child: Text('Reset IAP State'),
+                onPressed: (c) async {
+                  IAPManager.instance.reset(false);
+                  core.settings.init();
                 },
               ),
               MenuDivider(),

@@ -135,6 +135,7 @@ class _NavigationState extends State<Navigation> {
           backgroundColor: Theme.of(context).colorScheme.background,
           trailing: buildMenuButtons(
             context,
+            _selectedPage,
             _isMobile
                 ? () {
                     setState(() {

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -12,7 +11,6 @@ import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/devices/base_device.dart';
-import '../widgets/ignored_devices_dialog.dart';
 
 class DevicePage extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -96,18 +94,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
               ),
             ],
 
-            if (core.settings.getIgnoredDevices().isNotEmpty)
-              OutlineButton(
-                child: Text(context.i18n.manageIgnoredDevices),
-                onPressed: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => IgnoredDevicesDialog(),
-                  );
-                  setState(() {});
-                },
-              ),
-
             SizedBox(),
             if (core.connection.controllerDevices.isNotEmpty)
               Row(
@@ -121,18 +107,6 @@ class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
                     },
                   ),
                 ],
-              )
-            else
-              PrimaryButton(
-                child: Text(AppLocalizations.of(context).noControllerUseCompanionMode),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (c) => ButtonSimulator(),
-                    ),
-                  );
-                },
               ),
           ],
         ),
