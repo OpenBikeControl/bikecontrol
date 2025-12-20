@@ -111,7 +111,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       },
                     ),
                     if (core.settings.getTrainerApp() != null) ...[
-                      if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true)
+                      if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true && !screenshotMode)
                         Text(
                           AppLocalizations.of(context).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
                         ).xSmall,
@@ -162,7 +162,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                         ],
                       ),
                     ],
-                    if (core.settings.getTrainerApp()?.star == true)
+                    if (core.settings.getTrainerApp()?.star == true && !screenshotMode)
                       Row(
                         spacing: 8,
                         children: [

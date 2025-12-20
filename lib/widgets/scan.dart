@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
@@ -112,57 +113,58 @@ class _ScanWidgetState extends State<ScanWidget> {
                         },
                       ),
                     SizedBox(),
-                    Column(
-                      spacing: 8,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        OutlineButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-                            );
-                          },
-                          leading: Icon(Icons.help_outline),
-                          child: Text(context.i18n.showTroubleshootingGuide),
-                        ),
-                        OutlineButton(
-                          onPressed: () {
-                            launchUrlString(
-                              'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
-                            );
-                          },
-                          leading: Icon(Icons.gamepad_outlined),
-                          child: Text(context.i18n.showSupportedControllers),
-                        ),
-                        if (core.settings.getIgnoredDevices().isNotEmpty)
+                    if (!screenshotMode)
+                      Column(
+                        spacing: 8,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           OutlineButton(
-                            leading: Icon(Icons.block_outlined),
-                            onPressed: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => IgnoredDevicesDialog(),
-                              );
-                              setState(() {});
-                            },
-                            child: Text(context.i18n.manageIgnoredDevices),
-                          ),
-
-                        if (core.connection.controllerDevices.isEmpty)
-                          PrimaryButton(
-                            leading: Icon(Icons.computer_outlined),
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (c) => ButtonSimulator(),
-                                ),
+                                MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
                               );
                             },
-                            child: Text(AppLocalizations.of(context).noControllerUseCompanionMode),
+                            leading: Icon(Icons.help_outline),
+                            child: Text(context.i18n.showTroubleshootingGuide),
                           ),
-                      ],
-                    ),
+                          OutlineButton(
+                            onPressed: () {
+                              launchUrlString(
+                                'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
+                              );
+                            },
+                            leading: Icon(Icons.gamepad_outlined),
+                            child: Text(context.i18n.showSupportedControllers),
+                          ),
+                          if (core.settings.getIgnoredDevices().isNotEmpty)
+                            OutlineButton(
+                              leading: Icon(Icons.block_outlined),
+                              onPressed: () async {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) => IgnoredDevicesDialog(),
+                                );
+                                setState(() {});
+                              },
+                              child: Text(context.i18n.manageIgnoredDevices),
+                            ),
+
+                          if (core.connection.controllerDevices.isEmpty)
+                            PrimaryButton(
+                              leading: Icon(Icons.computer_outlined),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (c) => ButtonSimulator(),
+                                  ),
+                                );
+                              },
+                              child: Text(AppLocalizations.of(context).noControllerUseCompanionMode),
+                            ),
+                        ],
+                      ),
                   ],
                 );
               } else {
