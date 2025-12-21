@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,7 +16,7 @@ class WindowsIAPService {
   static const int trialDays = 7;
   static const int dailyCommandLimit = 15;
 
-  static const String _purchaseStatusKey = 'iap_purchase_status';
+  static const String _purchaseStatusKey = 'iap_purchase_status_2';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
   static const String _lastCommandDateKey = 'iap_last_command_date';
 
@@ -51,13 +53,15 @@ class WindowsIAPService {
   Future<void> _checkExistingPurchase() async {
     // First check if we have a stored purchase status
     final storedStatus = await _prefs.read(key: _purchaseStatusKey);
+    core.connection.signalNotification(LogNotification('Is purchased status: $storedStatus'));
     if (storedStatus == "true") {
       IAPManager.instance.isPurchased.value = true;
       return;
     }
     final trial = await _windowsIapPlugin.getTrialStatusAndRemainingDays();
+    core.connection.signalNotification(LogNotification('Trial status: $trial'));
     trialDaysRemaining = trial.remainingDays;
-    if (!trial.isTrial && trial.remainingDays <= 0) {
+    if (trial.isActive && !trial.isTrial && trial.remainingDays <= 0) {
       IAPManager.instance.isPurchased.value = true;
       await _prefs.write(key: _purchaseStatusKey, value: "true");
     } else {
@@ -71,6 +75,7 @@ class WindowsIAPService {
     try {
       final status = await _windowsIapPlugin.makePurchase(productId);
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
+        IAPManager.instance.isPurchased.value = true;
         /*buildToast(
           navigatorKey.currentContext!,
           title: 'Purchase Successful',
