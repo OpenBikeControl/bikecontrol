@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -406,7 +408,10 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
       return false;
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final body = response.body;
+    final decoded = jsonDecode(body) as Map<String, dynamic>;
+
+    core.connection.signalNotification(LogNotification(body));
 
     return decoded['success'] == true;
   }
