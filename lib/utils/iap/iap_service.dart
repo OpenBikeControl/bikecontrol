@@ -7,10 +7,11 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:intl/intl.dart';
 import 'package:ios_receipt/ios_receipt.dart';
 import 'package:version/version.dart';
 
@@ -22,6 +23,7 @@ class IAPService {
   static const String _purchaseStatusKey = 'iap_purchase_status';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
   static const String _lastCommandDateKey = 'iap_last_command_date';
+  static const String _lastPurchaseCheckKey = 'iap_last_purchase_check';
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   final FlutterSecureStorage _prefs;
@@ -99,10 +101,16 @@ class IAPService {
   Future<void> _checkExistingPurchase() async {
     // First check if we have a stored purchase status
     final storedStatus = await _prefs.read(key: _purchaseStatusKey);
-    if (storedStatus == "true") {
+    final lastPurchaseCheck = await _prefs.read(key: _lastPurchaseCheckKey);
+
+    String todayDate = DateFormat('yMd').format(DateTime.now());
+
+    if (storedStatus == "true" && lastPurchaseCheck == todayDate) {
       IAPManager.instance.isPurchased.value = true;
       return;
     }
+
+    await _prefs.write(key: _lastPurchaseCheckKey, value: todayDate);
 
     // Platform-specific checks for existing paid app purchases
     if (Platform.isIOS || Platform.isMacOS) {
