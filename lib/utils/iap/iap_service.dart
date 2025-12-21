@@ -215,6 +215,7 @@ class IAPService {
       // while the app is still paid. Only users who downloaded the paid version will have
       // a last_seen_version. After changing the app to free, new users won't have this set.
       final lastSeenVersion = core.settings.getLastSeenVersion();
+      core.connection.signalNotification(LogNotification('Android last seen version: $lastSeenVersion'));
       if (lastSeenVersion != null && lastSeenVersion.isNotEmpty) {
         Version lastVersion = Version.parse(lastSeenVersion);
         // If they had a previous version, they're an existing paid user

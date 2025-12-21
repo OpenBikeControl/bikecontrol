@@ -6,6 +6,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Widget to display IAP status and allow purchases
 class IAPStatusWidget extends StatefulWidget {
@@ -185,6 +186,29 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                     padding: const EdgeInsets.only(left: 42.0, top: 8.0),
                     child: Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
                   ),
+                  if (Platform.isAndroid)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 42.0, top: 8.0),
+                      child: Column(
+                        spacing: 8,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Divider(),
+                          Text(
+                            AppLocalizations.of(context).alreadyBoughtTheApp,
+                          ).small,
+                          OutlineButton(
+                            child: Text(context.i18n.getSupport),
+                            onPressed: () {
+                              String email = Uri.encodeComponent('jonas@bikecontrol.app');
+                              Uri mail = Uri.parse("mailto:$email?subject=Unlock full version");
+
+                              launchUrl(mail);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ],
             );

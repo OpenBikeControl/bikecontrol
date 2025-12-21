@@ -20,6 +20,7 @@
   "allowLocationForBluetooth": "Standortzugriff erlauben, damit Bluetooth-Scan funktioniert",
   "allowPersistentNotification": "Benachrichtigungen zulassen",
   "allowsRunningInBackground": "Ermöglicht es BikeControl, im Hintergrund weiterzulaufen.",
+  "alreadyBoughtTheApp": "App bereits gekauft? Tut mir leid, Du solltest eigentlich schon die Vollversion haben. \nSchreibe mir bitte eine E-Mail mit Deinem Android-Kaufbeleg, dann kümmere ich mich darum!",
   "appIdActions": "{appId} Aktionen",
   "@appIdActions": {
     "placeholders": {
