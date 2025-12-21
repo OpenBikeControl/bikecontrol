@@ -20,7 +20,8 @@
   "allowLocationForBluetooth": "Autoriser la localisation pour que la recherche Bluetooth fonctionne",
   "allowPersistentNotification": "Autoriser les notifications",
   "allowsRunningInBackground": "Permet à BikeControl de continuer à fonctionner en arrière-plan",
-  "alreadyBoughtTheApp": "Already bought the app? Sorry about that, you should have the full version already.\nPlease write a mail and attach your Android purchase receipt and I'll get it resolved!",
+  "alreadyBoughtTheApp": "Vous avez déjà acheté l'application ? Désolé, vous n'avez pas besoin de payer BikeControl une seconde fois. En raison de difficultés techniques, il nous est impossible de déterminer si vous l'avez déjà achetée. \n\nVeuillez nous envoyer un e-mail avec votre reçu d'achat Android en pièce jointe et nous réglerons le problème.",
+  "alreadyBoughtTheAppPreviously": "Vous avez déjà acheté l'application ?",
   "appIdActions": "{appId} actions",
   "@appIdActions": {
     "placeholders": {
@@ -253,6 +254,7 @@
     }
   },
   "next": "Suivant",
+  "no": "Non",
   "noActionAssigned": "Aucune action assignée",
   "noActionAssignedForButton": "Impossible d'effectuer {button}: Aucune action assignée",
   "noConnectionMethodIsConnectedOrActive": "Aucune méthode de connexion n'est établie ou active.",
@@ -423,6 +425,7 @@
   },
   "whatsNew": "Quoi de neuf",
   "whyPermissionNeeded": "Pourquoi cette autorisation est-elle nécessaire ?",
+  "yes": "Oui",
   "zwiftControllerAction": "Action du contrôleur Zwift",
   "zwiftControllerDescription": "Permet à BikeControl de fonctionner comme une manette compatible avec Zwift."
 }

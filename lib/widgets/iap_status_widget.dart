@@ -17,9 +17,12 @@ class IAPStatusWidget extends StatefulWidget {
   State<IAPStatusWidget> createState() => _IAPStatusWidgetState();
 }
 
+final _normalDate = DateTime(2026, 1, 15, 0, 0, 0, 0, 0);
+
 class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   bool _isPurchasing = false;
   bool _isSmall = false;
+  bool? _alreadyBoughtQuestion = null;
 
   @override
   void initState() {
@@ -163,52 +166,97 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                   ),
                 ],
                 if (!IAPManager.instance.isPurchased.value && !_isSmall) ...[
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 42.0),
-                    child: PrimaryButton(
-                      onPressed: _isPurchasing ? null : _handlePurchase,
-                      leading: Icon(Icons.star),
-                      child: _isPurchasing
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SmallProgressIndicator(),
-                                const SizedBox(width: 8),
-                                Text('Processing...'),
-                              ],
-                            )
-                          : Text(AppLocalizations.of(context).unlockFullVersion),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 42.0, top: 8.0),
-                    child: Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
-                  ),
                   if (Platform.isAndroid)
                     Padding(
-                      padding: const EdgeInsets.only(left: 42.0, top: 8.0),
+                      padding: const EdgeInsets.only(left: 42.0, top: 16.0),
                       child: Column(
                         spacing: 8,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Divider(),
-                          Text(
-                            AppLocalizations.of(context).alreadyBoughtTheApp,
-                          ).small,
-                          OutlineButton(
-                            child: Text(context.i18n.getSupport),
-                            onPressed: () {
-                              String email = Uri.encodeComponent('jonas@bikecontrol.app');
-                              Uri mail = Uri.parse("mailto:$email?subject=Unlock full version");
+                          const SizedBox(),
+                          if (_alreadyBoughtQuestion == null && DateTime.now().isBefore(_normalDate)) ...[
+                            Text(AppLocalizations.of(context).alreadyBoughtTheAppPreviously).small,
+                            Row(
+                              children: [
+                                OutlineButton(
+                                  child: Text(AppLocalizations.of(context).yes),
+                                  onPressed: () {
+                                    setState(() {
+                                      _alreadyBoughtQuestion = true;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                OutlineButton(
+                                  child: Text(AppLocalizations.of(context).no),
+                                  onPressed: () {
+                                    setState(() {
+                                      _alreadyBoughtQuestion = false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ] else if (_alreadyBoughtQuestion == true) ...[
+                            Text(
+                              AppLocalizations.of(context).alreadyBoughtTheApp,
+                            ).small,
+                            OutlineButton(
+                              child: Text(context.i18n.getSupport),
+                              onPressed: () {
+                                String email = Uri.encodeComponent('jonas@bikecontrol.app');
+                                Uri mail = Uri.parse("mailto:$email?subject=Please unlock full version");
 
-                              launchUrl(mail);
-                            },
-                          ),
+                                launchUrl(mail);
+                              },
+                            ),
+                          ] else if (_alreadyBoughtQuestion == false) ...[
+                            PrimaryButton(
+                              onPressed: _isPurchasing ? null : _handlePurchase,
+                              leading: Icon(Icons.star),
+                              child: _isPurchasing
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SmallProgressIndicator(),
+                                        const SizedBox(width: 8),
+                                        Text('Processing...'),
+                                      ],
+                                    )
+                                  : Text(AppLocalizations.of(context).unlockFullVersion),
+                            ),
+                            Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
+                          ],
                         ],
                       ),
+                    )
+                  else ...[
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 42.0),
+                      child: PrimaryButton(
+                        onPressed: _isPurchasing ? null : _handlePurchase,
+                        leading: Icon(Icons.star),
+                        child: _isPurchasing
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SmallProgressIndicator(),
+                                  const SizedBox(width: 8),
+                                  Text('Processing...'),
+                                ],
+                              )
+                            : Text(AppLocalizations.of(context).unlockFullVersion),
+                      ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 42.0, top: 8.0),
+                      child: Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
+                    ),
+                  ],
                 ],
               ],
             );

@@ -21,6 +21,7 @@
   "allowPersistentNotification": "Zezwól na powiadomienia",
   "allowsRunningInBackground": "Umożliwia działanie BikeControl w tle",
   "alreadyBoughtTheApp": "Już kupiłeś aplikację? Przepraszamy, powinieneś już mieć pełną wersję.\nNapisz maila i dołącz dowód zakupu Androida, a ja to rozwiążę!",
+  "alreadyBoughtTheAppPreviously": "Już wcześniej kupiłeś aplikację?",
   "appIdActions": "{appId} działania",
   "@appIdActions": {
     "placeholders": {
@@ -253,6 +254,7 @@
     }
   },
   "next": "Dalej",
+  "no": "Nie",
   "noActionAssigned": "Brak przypisanej akcji",
   "noActionAssignedForButton": "Nie można wykonać {button}: Brak przypisanej akcji",
   "noConnectionMethodIsConnectedOrActive": "Żadna metoda połączenia nie jest podłączona lub aktywna.",
@@ -423,6 +425,7 @@
   },
   "whatsNew": "Co nowego",
   "whyPermissionNeeded": "Dlaczego to uprawnienie jest potrzebne?",
+  "yes": "Tak",
   "zwiftControllerAction": "Akcja kontrolera Zwift",
   "zwiftControllerDescription": "Umożliwia BikeControl działanie jako kontroler kompatybilny ze Zwift."
 }

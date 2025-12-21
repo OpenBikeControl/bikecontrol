@@ -20,7 +20,8 @@
   "allowLocationForBluetooth": "Allow Location so Bluetooth scan works",
   "allowPersistentNotification": "Allow Notifications",
   "allowsRunningInBackground": "Allows BikeControl to keep running in background",
-  "alreadyBoughtTheApp": "Already bought the app? Sorry about that, you should have the full version already.\nPlease write a mail and attach your Android purchase receipt and I'll get it resolved!",
+  "alreadyBoughtTheApp": "Already bought the app? Sorry about that, you don't need to pay for BikeControl, again. Due to technical difficulties it's not possible to determine if the app was bought already.\n\nPlease write a mail and attach your Android purchase receipt and I'll get it resolved!",
+  "alreadyBoughtTheAppPreviously": "Already bought the app previously?",
   "appIdActions": "{appId} actions",
   "@appIdActions": {
     "placeholders": {
@@ -253,6 +254,7 @@
     }
   },
   "next": "Next",
+  "no": "No",
   "noActionAssigned": "No action assigned",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
@@ -423,6 +425,7 @@
   },
   "whatsNew": "What's New",
   "whyPermissionNeeded": "Why is this permission needed?",
+  "yes": "Yes",
   "zwiftControllerAction": "Zwift Controller Action",
   "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }
