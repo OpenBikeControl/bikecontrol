@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -5,8 +6,9 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:http/http.dart' as http;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 /// Widget to display IAP status and allow purchases
 class IAPStatusWidget extends StatefulWidget {
@@ -23,6 +25,10 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   bool _isPurchasing = false;
   bool _isSmall = false;
   bool? _alreadyBoughtQuestion = null;
+
+  final _purchaseIdField = const TextFieldKey(#purchaseId);
+
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -58,7 +64,15 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                 _isSmall = false;
               });
             }
-          : _handlePurchase,
+          : () {
+              if (Platform.isAndroid) {
+                if (_alreadyBoughtQuestion == false) {
+                  _handlePurchase();
+                }
+              } else {
+                _handlePurchase();
+              }
+            },
       style: ButtonStyle.card().withBackgroundColor(
         color: Theme.of(context).colorScheme.muted,
         hoverColor: Theme.of(context).colorScheme.primaryForeground,
@@ -202,14 +216,92 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                             Text(
                               AppLocalizations.of(context).alreadyBoughtTheApp,
                             ).small,
-                            OutlineButton(
-                              child: Text(context.i18n.getSupport),
-                              onPressed: () {
-                                String email = Uri.encodeComponent('jonas@bikecontrol.app');
-                                Uri mail = Uri.parse("mailto:$email?subject=Please unlock full version");
-
-                                launchUrl(mail);
+                            Form(
+                              onSubmit: (context, values) async {
+                                String purchaseId = _purchaseIdField[values]!;
+                                setState(() {
+                                  _isLoading = true;
+                                });
+                                final redeemed = await _redeemPurchase(
+                                  purchaseId: purchaseId,
+                                  supabaseAnonKey:
+                                      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpa3JjeXlub3Zkdm9ncmxkZm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNjMyMzksImV4cCI6MjA4MTYzOTIzOX0.oxJovYahRiZ6XvCVR-qww6OQ5jY6cjOyUiFHJsW9MVk',
+                                  supabaseUrl: 'https://pikrcyynovdvogrldfnw.supabase.co',
+                                );
+                                if (redeemed) {
+                                  await IAPManager.instance.redeem();
+                                  buildToast(context, title: 'Success', subtitle: 'Purchase redeemed successfully!');
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                } else {
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                  if (mounted) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: Text('Error'),
+                                          content: Text(
+                                            'Failed to redeem purchase. Please check your Purchase ID and try again or contact me directly. Sorry about that!',
+                                          ),
+                                          actions: [
+                                            OutlineButton(
+                                              child: Text(context.i18n.getSupport),
+                                              onPressed: () {
+                                                launchUrlString(
+                                                  'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help',
+                                                );
+                                              },
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('OK'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }
+                                }
                               },
+                              child: Row(
+                                spacing: 8,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: FormField(
+                                      showErrors: {
+                                        FormValidationMode.submitted,
+                                        FormValidationMode.changed,
+                                      },
+                                      key: _purchaseIdField,
+                                      label: Text('Purchase ID'),
+                                      validator: RegexValidator(
+                                        RegExp(r'GPA.[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{5}'),
+                                        message: 'Please enter a valid Purchase ID.',
+                                      ),
+                                      child: TextField(
+                                        placeholder: Text('GPA.****-****-****-*****'),
+                                      ),
+                                    ),
+                                  ),
+                                  FormErrorBuilder(
+                                    builder: (context, errors, child) {
+                                      return PrimaryButton(
+                                        onPressed: errors.isEmpty ? () => context.submitForm() : null,
+                                        child: _isLoading
+                                            ? SmallProgressIndicator(color: Colors.black)
+                                            : const Text('Submit'),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ] else if (_alreadyBoughtQuestion == false) ...[
                             PrimaryButton(
@@ -288,5 +380,34 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
         });
       }
     }
+  }
+
+  Future<bool> _redeemPurchase({
+    required String supabaseUrl,
+    required String supabaseAnonKey,
+    required String purchaseId,
+  }) async {
+    final uri = Uri.parse(
+      '$supabaseUrl/functions/v1/redeem-purchase',
+    );
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $supabaseAnonKey',
+      },
+      body: jsonEncode({
+        'purchaseId': purchaseId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      return false;
+    }
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+
+    return decoded['success'] == true;
   }
 }

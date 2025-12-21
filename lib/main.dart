@@ -11,8 +11,6 @@ import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'
-    show GlobalMaterialLocalizations, GlobalWidgetsLocalizations;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'pages/navigation.dart';
@@ -180,9 +178,8 @@ class BikeControlApp extends StatelessWidget {
       menuHandler: PopoverOverlayHandler(),
       popoverHandler: PopoverOverlayHandler(),
       localizationsDelegates: [
-        ...GlobalMaterialLocalizations.delegates,
-        GlobalWidgetsLocalizations.delegate,
-        ShadcnLocalizations.delegate,
+        ...ShadcnLocalizations.localizationsDelegates,
+        OtherLocalizationsDelegate(),
         AppLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
@@ -219,4 +216,20 @@ class BikeControlApp extends StatelessWidget {
             ),
     );
   }
+}
+
+class OtherLocalizationsDelegate extends LocalizationsDelegate<ShadcnLocalizations> {
+  const OtherLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) =>
+      AppLocalizations.delegate.supportedLocales.map((e) => e.languageCode).contains(locale.languageCode);
+
+  @override
+  Future<ShadcnLocalizations> load(Locale locale) async {
+    return SynchronousFuture<ShadcnLocalizations>(lookupShadcnLocalizations(Locale('en')));
+  }
+
+  @override
+  bool shouldReload(covariant LocalizationsDelegate<ShadcnLocalizations> old) => false;
 }

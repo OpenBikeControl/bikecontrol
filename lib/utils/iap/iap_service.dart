@@ -24,6 +24,7 @@ class IAPService {
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
   static const String _lastCommandDateKey = 'iap_last_command_date';
   static const String _lastPurchaseCheckKey = 'iap_last_purchase_check';
+  static const String _hasPurchasedKey = 'iap_has_purchased';
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   final FlutterSecureStorage _prefs;
@@ -102,11 +103,19 @@ class IAPService {
     // First check if we have a stored purchase status
     final storedStatus = await _prefs.read(key: _purchaseStatusKey);
     final lastPurchaseCheck = await _prefs.read(key: _lastPurchaseCheckKey);
+    final hasPurchased = await _prefs.read(key: _hasPurchasedKey);
 
     String todayDate = DateFormat('yMd').format(DateTime.now());
 
-    if (storedStatus == "true" && lastPurchaseCheck == todayDate) {
-      IAPManager.instance.isPurchased.value = true;
+    if (storedStatus == "true") {
+      if (Platform.isAndroid) {
+        if (lastPurchaseCheck == todayDate || hasPurchased == null) {
+          // hasPurchased means it was redeemed manually, so we skip the daily check
+          IAPManager.instance.isPurchased.value = true;
+        }
+      } else {
+        IAPManager.instance.isPurchased.value = true;
+      }
       return;
     }
 
@@ -261,6 +270,8 @@ class IAPService {
       );
       if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
         IAPManager.instance.isPurchased.value = !kDebugMode;
+
+        await _prefs.write(key: _hasPurchasedKey, value: "true");
         await _prefs.write(key: _purchaseStatusKey, value: IAPManager.instance.isPurchased.value.toString());
         debugPrint('Purchase successful or restored');
       }
@@ -403,5 +414,10 @@ class IAPService {
       _isInitialized = false;
       initialize();
     }
+  }
+
+  Future<void> redeem() async {
+    IAPManager.instance.isPurchased.value = true;
+    await _prefs.write(key: _purchaseStatusKey, value: IAPManager.instance.isPurchased.value.toString());
   }
 }

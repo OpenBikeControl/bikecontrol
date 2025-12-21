@@ -164,4 +164,8 @@ class IAPManager {
     _windowsIapService?.reset();
     _iapService?.reset(fullReset);
   }
+
+  Future<void> redeem() async {
+    await _iapService!.redeem();
+  }
 }
