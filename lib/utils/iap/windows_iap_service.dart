@@ -62,7 +62,12 @@ class WindowsIAPService {
     core.connection.signalNotification(LogNotification('Trial status: $trial'));
     final trialEndDate = trial.remainingDays;
     if (trial.isTrial && trialEndDate.isNotEmpty && !trialEndDate.contains("?")) {
-      trialDaysRemaining = DateTime.parse(trialEndDate).difference(DateTime.now()).inDays;
+      try {
+        trialDaysRemaining = DateTime.parse(trialEndDate).difference(DateTime.now()).inDays;
+      } catch (e) {
+        core.connection.signalNotification(LogNotification('Error parsing trial end date: $e'));
+        trialDaysRemaining = 0;
+      }
     } else {
       trialDaysRemaining = 0;
     }
