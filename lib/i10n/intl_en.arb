@@ -20,7 +20,7 @@
   "allowLocationForBluetooth": "Allow Location so Bluetooth scan works",
   "allowPersistentNotification": "Allow Notifications",
   "allowsRunningInBackground": "Allows BikeControl to keep running in background",
-  "alreadyBoughtTheApp": "Already bought the app? Sorry about that, you don't need to pay for BikeControl, again. Due to technical difficulties it's not possible to determine if the app was bought already.\n\nPlease write a mail and attach your Android purchase receipt and I'll get it resolved!",
+  "alreadyBoughtTheApp": "Already bought the app? You don't need to pay for BikeControl, again. Due to technical difficulties, it's not possible to determine if the app was bought already.\n\nEnter your Play Store purchase ID (e.g. GPA.3356-1337-1338-1339) to unlock the full version. If you can't find it, please get in touch with me directly.",
   "alreadyBoughtTheAppPreviously": "Already bought the app previously?",
   "appIdActions": "{appId} actions",
   "@appIdActions": {

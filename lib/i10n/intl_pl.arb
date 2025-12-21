@@ -20,7 +20,7 @@
   "allowLocationForBluetooth": "Zezwól na dostęp do lokalizacji, aby umożliwić skanowanie Bluetooth",
   "allowPersistentNotification": "Zezwól na powiadomienia",
   "allowsRunningInBackground": "Umożliwia działanie BikeControl w tle",
-  "alreadyBoughtTheApp": "Już kupiłeś aplikację? Przepraszamy, powinieneś już mieć pełną wersję.\nNapisz maila i dołącz dowód zakupu Androida, a ja to rozwiążę!",
+  "alreadyBoughtTheApp": "Kupiłeś już aplikację? Nie musisz płacić za BikeControl. Z powodu problemów technicznych nie można ustalić, czy aplikacja została już zakupiona. \n\nWprowadź swój identyfikator zakupu w Sklepie Play (np. GPA.3356-1337-1338-1339), aby odblokować pełną wersję. Jeśli nie możesz jej znaleźć, skontaktuj się ze mną bezpośrednio.",
   "alreadyBoughtTheAppPreviously": "Już wcześniej kupiłeś aplikację?",
   "appIdActions": "{appId} działania",
   "@appIdActions": {
