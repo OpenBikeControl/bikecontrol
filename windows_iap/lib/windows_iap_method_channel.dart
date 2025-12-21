@@ -112,7 +112,8 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
       isActive: result?['isActive'] as bool? ?? false,
       isTrialOwnedByThisUser:
           result?['isTrialOwnedByThisUser'] as bool? ?? false,
-      remainingDays: result?['remainingDays'] as int? ?? 0,
+      remainingDays: result?['remainingDays'] as String? ??
+          DateTime.now().add(Duration(days: 7)).toString(),
     );
   }
 

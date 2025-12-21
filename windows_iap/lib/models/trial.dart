@@ -1,6 +1,6 @@
 class Trial {
   final bool isTrial;
-  final int remainingDays;
+  final String remainingDays;
   final bool isActive;
   final bool isTrialOwnedByThisUser;
 

@@ -15,6 +15,8 @@
 #include <winrt/Windows.Foundation.Collections.h>
 #include <shobjidl.h>
 
+#include <chrono>
+#include <iomanip>
 #include <flutter/event_sink.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_stream_handler.h>
@@ -267,7 +269,7 @@ namespace windows_iap
 
 		flutter::EncodableMap result;
 		result[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(true);
-		result[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue(0);
+		result[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue("");
 		result[flutter::EncodableValue("isActive")] = flutter::EncodableValue(license.IsActive());
 		result[flutter::EncodableValue("isTrialOwnedByThisUser")] = flutter::EncodableValue(license.IsTrialOwnedByThisUser());
 		
@@ -282,10 +284,24 @@ namespace windows_iap
 		{
 			result[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(true);
 
-			winrt::Windows::Foundation::TimeSpan expiration = license.TrialTimeRemaining();
-			const auto inDays = std::chrono::duration_cast<std::chrono::hours>(expiration).count() / 24.0;
+			auto expirationDate = license.ExpirationDate();
 
-			result[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue(inDays);
+			// dt is your winrt::Windows::Foundation::DateTime
+			std::time_t t = winrt::clock::to_time_t(expirationDate);  // Convert to time_t (UTC seconds since 1970)
+			std::tm tm_buf;
+			localtime_s(&tm_buf, &t);  // Safe version
+
+			std::wstringstream wss;
+			wss << std::put_time(&tm_buf, L"%Y-%m-%d %H:%M:%S");  // Custom format
+
+			winrt::hstring readable = winrt::hstring{ wss.str() };
+			std::string utf8 = winrt::to_string(readable);  // Converts hstring to UTF-8 std::string
+
+			result[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue(utf8);
+		}
+		else {
+			result[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(false);
+
 		}
 
 		resultCallback->Success(flutter::EncodableValue(result));

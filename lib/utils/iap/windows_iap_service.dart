@@ -60,8 +60,13 @@ class WindowsIAPService {
     }
     final trial = await _windowsIapPlugin.getTrialStatusAndRemainingDays();
     core.connection.signalNotification(LogNotification('Trial status: $trial'));
-    trialDaysRemaining = trial.remainingDays;
-    if (trial.isActive && !trial.isTrial && trial.remainingDays <= 0) {
+    final trialEndDate = trial.remainingDays;
+    if (trial.isTrial && trialEndDate.isNotEmpty && !trialEndDate.contains("?")) {
+      trialDaysRemaining = DateTime.parse(trialEndDate).difference(DateTime.now()).inDays;
+    } else {
+      trialDaysRemaining = 0;
+    }
+    if (trial.isActive && !trial.isTrial && trialDaysRemaining <= 0) {
       IAPManager.instance.isPurchased.value = true;
       await _prefs.write(key: _purchaseStatusKey, value: "true");
     } else {
