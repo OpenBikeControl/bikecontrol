@@ -208,11 +208,11 @@ class IAPService {
         return;
       }
 
-      final purchasedVersion = json['receipt']["original_application_version"];
+      final purchasedVersion = json['receipt']["original_application_version"] as int;
       core.connection.signalNotification(
         LogNotification('Apple receipt validated for version: $purchasedVersion'),
       );
-      IAPManager.instance.isPurchased.value = Version.parse(purchasedVersion) < Version(4, 2, 0);
+      IAPManager.instance.isPurchased.value = purchasedVersion < (Platform.isMacOS ? 61 : 58);
       if (IAPManager.instance.isPurchased.value) {
         debugPrint('Apple receipt validation successful - granting full access');
         await _prefs.write(key: _purchaseStatusKey, value: "true");
