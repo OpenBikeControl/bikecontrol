@@ -119,7 +119,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
-          args: "--dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }}"
+          args: "-- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }}"
 
       - name: Decode Keystore
         if: inputs.build_android
@@ -169,7 +169,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: ios
-          args: "--export-options-plist ios/ExportOptions.plist --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }}"
+          args: "--export-options-plist ios/ExportOptions.plist -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }}"
 
       - name: Prepare App Store authentication key
         if: inputs.build_ios || inputs.build_mac

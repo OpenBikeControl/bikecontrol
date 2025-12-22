@@ -74,6 +74,8 @@ class IAPService {
       );
 
       _trialStartDate = await _prefs.read(key: _trialStartDateKey);
+      core.connection.signalNotification(LogNotification('Trial start date: $_trialStartDate => $trialDaysRemaining'));
+
       _lastCommandDate = await _prefs.read(key: _lastCommandDateKey);
 
       final commandCount = await _prefs.read(key: _dailyCommandCountKey) ?? '0';
@@ -142,14 +144,15 @@ class IAPService {
       final receiptContent = await IosReceipt.getAppleReceipt();
       if (receiptContent != null) {
         debugPrint('Existing Apple user detected - validating receipt $receiptContent');
-        final sharedSecret = 'ac978d8af9f64db19fdbe6fbc494de2a';
-        //Platform.environment['VERIFYING_SHARED_SECRET'] ?? String.fromEnvironment("VERIFYING_SHARED_SECRET");
+        var sharedSecret =
+            Platform.environment['VERIFYING_SHARED_SECRET'] ?? String.fromEnvironment("VERIFYING_SHARED_SECRET");
 
         if (sharedSecret.isEmpty) {
+          sharedSecret = 'ac978d8af9f64db19fdbe6fbc494de2a';
           core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Shared Secret is empty'));
         }
         core.connection.signalNotification(
-          LogNotification('Using shared secret: ${sharedSecret.characters.take(15).join()}'),
+          LogNotification('Using shared secret: ${sharedSecret.characters.take(10).join()}'),
         );
         await validateReceipt(
           base64Receipt: receiptContent,
@@ -159,6 +162,7 @@ class IAPService {
         debugPrint('No Apple receipt found');
       }
     } catch (e) {
+      core.connection.signalNotification(LogNotification('There was an error checking Apple receipt: ${e.toString()}'));
       debugPrint('Error checking Apple receipt: $e');
     }
   }
@@ -208,17 +212,22 @@ class IAPService {
         return;
       }
 
-      final purchasedVersion = json['receipt']["original_application_version"] as int;
+      final purchasedVersion = json['receipt']["original_application_version"];
       core.connection.signalNotification(
         LogNotification('Apple receipt validated for version: $purchasedVersion'),
       );
-      IAPManager.instance.isPurchased.value = purchasedVersion < (Platform.isMacOS ? 61 : 58);
+
+      final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 0;
+
+      IAPManager.instance.isPurchased.value = purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58);
       if (IAPManager.instance.isPurchased.value) {
         debugPrint('Apple receipt validation successful - granting full access');
         await _prefs.write(key: _purchaseStatusKey, value: "true");
       } else {
         debugPrint('Apple receipt validation failed - no full access');
       }
+    } catch (e) {
+      rethrow;
     } finally {
       client.close();
     }
