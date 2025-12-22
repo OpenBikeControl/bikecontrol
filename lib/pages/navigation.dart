@@ -51,6 +51,13 @@ class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
   late BCPage _selectedPage;
 
+  final Map<BCPage, Key> _pageKeys = {
+    BCPage.devices: Key('devices_page'),
+    BCPage.trainer: Key('trainer_page'),
+    BCPage.customization: Key('customization_page'),
+    BCPage.logs: Key('logs_page'),
+  };
+
   @override
   void initState() {
     super.initState();
@@ -162,6 +169,7 @@ class _NavigationState extends State<Navigation> {
                 duration: Duration(milliseconds: 200),
                 child: switch (_selectedPage) {
                   BCPage.devices => DevicePage(
+                    key: _pageKeys[BCPage.devices],
                     onUpdate: () {
                       setState(() {
                         _selectedPage = BCPage.trainer;
@@ -169,6 +177,7 @@ class _NavigationState extends State<Navigation> {
                     },
                   ),
                   BCPage.trainer => TrainerPage(
+                    key: _pageKeys[BCPage.trainer],
                     onUpdate: () {
                       setState(() {});
                     },
@@ -178,8 +187,12 @@ class _NavigationState extends State<Navigation> {
                       });
                     },
                   ),
-                  BCPage.customization => CustomizePage(),
-                  BCPage.logs => LogViewer(),
+                  BCPage.customization => CustomizePage(
+                    key: _pageKeys[BCPage.customization],
+                  ),
+                  BCPage.logs => LogViewer(
+                    key: _pageKeys[BCPage.logs],
+                  ),
                 },
               ),
             ),

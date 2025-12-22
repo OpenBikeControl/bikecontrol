@@ -7,6 +7,7 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/accessibility_disclosure_dialog.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -222,8 +223,14 @@ class NotificationRequirement extends PlatformRequirement {
         'Keep Alive',
         actions: [
           AndroidNotificationAction(
+            'disconnect',
             AppLocalizations.current.disconnectDevices,
-            AppLocalizations.current.disconnectDevices,
+            cancelNotification: true,
+            showsUserInterface: false,
+          ),
+          AndroidNotificationAction(
+            'close',
+            AppLocalizations.current.close,
             cancelNotification: true,
             showsUserInterface: false,
           ),
@@ -234,9 +241,18 @@ class NotificationRequirement extends PlatformRequirement {
     final receivePort = ReceivePort();
     IsolateNameServer.registerPortWithName(receivePort.sendPort, '_backgroundChannelKey');
     final backgroundMessagePort = receivePort.asBroadcastStream();
-    backgroundMessagePort.listen((_) {
-      UniversalBle.onAvailabilityChange = null;
-      core.connection.reset();
+    backgroundMessagePort.listen((message) {
+      if (message == 'disconnect' || message == 'close') {
+        UniversalBle.onAvailabilityChange = null;
+        core.connection.disconnectAll();
+      }
+      if (message == 'close') {
+        core.connection.stop();
+        SystemNavigator.pop();
+        AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
+        AndroidFlutterLocalNotificationsPlugin().cancelAll();
+      }
+
       //exit(0);
     });
   }
@@ -246,7 +262,7 @@ class NotificationRequirement extends PlatformRequirement {
 void notificationTapBackground(NotificationResponse notificationResponse) {
   if (notificationResponse.actionId != null) {
     final sendPort = IsolateNameServer.lookupPortByName('_backgroundChannelKey');
-    sendPort?.send('notificationResponse');
+    sendPort?.send(notificationResponse.actionId);
     //exit(0);
   }
 }

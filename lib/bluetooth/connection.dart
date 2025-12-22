@@ -10,7 +10,6 @@ import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
-import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:dartx/dartx.dart';
@@ -72,7 +71,8 @@ class Connection {
           }
         });
       } else if (available == AvailabilityState.poweredOff) {
-        reset();
+        disconnectAll();
+        stop();
       }
     };
     UniversalBle.onScanResult = (result) {
@@ -211,14 +211,6 @@ class Connection {
     } else {
       isScanning.value = false;
     }
-
-    if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
-      _androidNotificationsSetup = true;
-      // start foreground service only when app is in foreground
-      NotificationRequirement.addPersistentNotification().catchError((e) {
-        _actionStreams.add(LogNotification(e.toString()));
-      });
-    }
   }
 
   Future<void> startMyWhooshServer() {
@@ -335,6 +327,14 @@ class Connection {
       core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
 
       _streamSubscriptions[device] = actionSubscription;
+
+      if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
+        _androidNotificationsSetup = true;
+        // start foreground service only when app is in foreground
+        NotificationRequirement.addPersistentNotification().catchError((e) {
+          _actionStreams.add(LogNotification(e.toString()));
+        });
+      }
     } catch (e, backtrace) {
       _actionStreams.add(LogNotification("$e\n$backtrace"));
       if (kDebugMode) {
@@ -343,31 +343,6 @@ class Connection {
       }
       rethrow;
     }
-  }
-
-  Future<void> reset() async {
-    _actionStreams.add(LogNotification('Disconnecting all devices'));
-    if (core.actionHandler is AndroidActions) {
-      AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
-      _androidNotificationsSetup = false;
-    }
-    final isBtEnabled = (await UniversalBle.getBluetoothAvailabilityState()) == AvailabilityState.poweredOn;
-    if (isBtEnabled) {
-      UniversalBle.stopScan();
-    }
-    isScanning.value = false;
-    for (var device in bluetoothDevices) {
-      _streamSubscriptions[device]?.cancel();
-      _streamSubscriptions.remove(device);
-      _connectionSubscriptions[device]?.cancel();
-      _connectionSubscriptions.remove(device);
-      UniversalBle.disconnect(device.device.deviceId);
-      signalChange(device);
-    }
-    _gamePadSearchTimer?.cancel();
-    _lastScanResult.clear();
-    hasDevices.value = false;
-    devices.clear();
   }
 
   void signalNotification(BaseNotification notification) {
@@ -416,5 +391,30 @@ class Connection {
     }
 
     signalChange(device);
+  }
+
+  Future<void> disconnectAll() async {
+    _actionStreams.add(LogNotification('Disconnecting all devices'));
+    for (var device in bluetoothDevices) {
+      _streamSubscriptions[device]?.cancel();
+      _streamSubscriptions.remove(device);
+      _connectionSubscriptions[device]?.cancel();
+      _connectionSubscriptions.remove(device);
+      device.disconnect();
+      signalChange(device);
+      devices.remove(device);
+    }
+    _gamePadSearchTimer?.cancel();
+    _lastScanResult.clear();
+    hasDevices.value = false;
+  }
+
+  Future<void> stop() async {
+    final isBtEnabled = (await UniversalBle.getBluetoothAvailabilityState()) == AvailabilityState.poweredOn;
+    if (isBtEnabled) {
+      UniversalBle.stopScan();
+    }
+    isScanning.value = false;
+    _androidNotificationsSetup = false;
   }
 }

@@ -4,7 +4,6 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 
@@ -83,7 +82,7 @@ class AndroidActions extends BaseActions {
             : "up"}",
       );
     }
-    return NotHandled('No action assigned for ${button.toString().splitByUpperCase()}');
+    return NotHandled('No action assigned for ${button.name}');
   }
 
   void ignoreHidDevices() {

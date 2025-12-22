@@ -158,11 +158,11 @@ class _AppTitleState extends State<AppTitle> {
       title: AppLocalizations.current.forceCloseToUpdate,
       closeTitle: AppLocalizations.current.restart,
       onClose: () {
+        core.connection.disconnectAll();
+        core.connection.stop();
         if (Platform.isIOS) {
-          core.connection.reset();
           Restart.restartApp(delayBeforeRestart: 1000);
         } else {
-          core.connection.reset();
           exit(0);
         }
       },
