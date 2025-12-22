@@ -46,6 +46,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Shimano Di2
   - Configure your levers to use D-Fly channels with Shimano E-Tube app
 - SRAM AXS/eTap
+  - Configure your levers not to do any action in the "SRAM AXS" app
   - only single or double click is supported (no individual button mapping possible, yet)
 - Wahoo Kickr Bike Shift
 - Wahoo Kickr Bike Pro
@@ -92,7 +93,7 @@ The app connects to your Controller devices (such as Zwift ones) automatically. 
 - Directly control the trainer app via Accessibility features (simulating touch and keyboard input)
   - available on Android, macOS, Windows
   - supported by all trainer apps
-- Connect to supported trainer app using the [OpenBikeControl](https://openbikecontrol.org) protocol
+- Connect to the supported trainer app using the [OpenBikeControl](https://openbikecontrol.org) protocol
   - available on Android, iOS, macOS, Windows
 
 ## Donate
