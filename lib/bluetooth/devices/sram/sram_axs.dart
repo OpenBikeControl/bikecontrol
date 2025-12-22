@@ -114,6 +114,7 @@ class SramAxs extends BluetoothDevice {
       children: [
         super.showInformation(context),
         Text(
+          "Don't forget to turn off the function of the button you want to use in the SRAM AXS app!\n"
           "Unfortunately, at the moment it's not possible to determine which physical button was pressed on your SRAM AXS device. Let us know if you have a contact at SRAM who can help :)\n\n"
           'So the app exposes two logical buttons:\n'
           '• SRAM Tap, assigned to Shift Up\n'
