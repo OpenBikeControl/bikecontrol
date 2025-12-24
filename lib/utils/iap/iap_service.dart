@@ -323,6 +323,7 @@ class IAPService {
       final purchaseParam = PurchaseParam(productDetails: product);
 
       await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+      await restorePurchases();
     } catch (e, s) {
       debugPrint('Error purchasing: $e');
       recordError(e, s, context: 'Error purchasing');
