@@ -7,6 +7,7 @@ import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
@@ -47,7 +48,7 @@ class Navigation extends StatefulWidget {
   State<Navigation> createState() => _NavigationState();
 }
 
-class _NavigationState extends State<Navigation> {
+class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
   bool _isMobile = false;
   late BCPage _selectedPage;
 
@@ -62,6 +63,7 @@ class _NavigationState extends State<Navigation> {
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addObserver(this);
     _selectedPage = widget.page;
 
     core.connection.initialize();
@@ -84,12 +86,25 @@ class _NavigationState extends State<Navigation> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
   void didUpdateWidget(covariant Navigation oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.page != oldWidget.page) {
       setState(() {
         _selectedPage = widget.page;
       });
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      IAPManager.instance.restorePurchases();
     }
   }
 

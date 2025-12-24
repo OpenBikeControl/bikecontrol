@@ -20,7 +20,7 @@ class DevicePage extends StatefulWidget {
   State<DevicePage> createState() => _DevicePageState();
 }
 
-class _DevicePageState extends State<DevicePage> with WidgetsBindingObserver {
+class _DevicePageState extends State<DevicePage> {
   late StreamSubscription<BaseDevice> _connectionStateSubscription;
 
   @override
