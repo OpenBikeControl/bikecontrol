@@ -302,6 +302,9 @@ class IAPService {
       final available = await _inAppPurchase.isAvailable();
       if (!available) {
         debugPrint('IAP not available');
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, 'IAP is not available on this platform.'),
+        );
         return;
       }
 
@@ -311,11 +314,15 @@ class IAPService {
       final response = await _inAppPurchase.queryProductDetails({productId});
       if (response.error != null) {
         debugPrint('Error querying products: ${response.error}');
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, 'IAP issue: ${response.error!.toString()}'),
+        );
         return;
       }
 
       if (response.productDetails.isEmpty) {
         debugPrint('Product not found: $productId');
+        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_INFO, 'IAP issue: Product not found.'));
         return;
       }
 
