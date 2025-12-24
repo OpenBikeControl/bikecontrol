@@ -107,7 +107,7 @@ class IAPService {
     final lastPurchaseCheck = await _prefs.read(key: _lastPurchaseCheckKey);
     final hasPurchased = await _prefs.read(key: _hasPurchasedKey);
 
-    String todayDate = DateFormat('yMd').format(DateTime.now());
+    String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     if (storedStatus == "true") {
       if (Platform.isAndroid) {
@@ -275,10 +275,10 @@ class IAPService {
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
     for (final purchase in purchaseDetailsList) {
       core.connection.signalNotification(
-        LogNotification('Purchase found: ${purchase.productID} - ${purchase.status}'),
+        LogNotification('Purchase found: ${purchase.purchaseID} ${purchase.productID} - ${purchase.status}'),
       );
       if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
-        IAPManager.instance.isPurchased.value = !kDebugMode;
+        IAPManager.instance.isPurchased.value = true;
 
         await _prefs.write(key: _hasPurchasedKey, value: "true");
         await _prefs.write(key: _purchaseStatusKey, value: IAPManager.instance.isPurchased.value.toString());
