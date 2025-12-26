@@ -138,7 +138,7 @@ class RevenueCatService {
     try {
       // Check current entitlement status from RevenueCat
       final customerInfo = await Purchases.getCustomerInfo();
-      _handleCustomerInfoUpdate(customerInfo);
+      await _handleCustomerInfoUpdate(customerInfo);
     } catch (e, s) {
       debugPrint('Error checking existing purchase: $e');
       recordError(e, s, context: 'Checking existing purchase');
@@ -146,18 +146,20 @@ class RevenueCatService {
   }
 
   /// Handle customer info updates from RevenueCat
-  void _handleCustomerInfoUpdate(CustomerInfo customerInfo) {
+  Future<void> _handleCustomerInfoUpdate(CustomerInfo customerInfo) async {
     final hasEntitlement = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
 
-    debugPrint('RevenueCat entitlement check: $hasEntitlement');
-    core.connection.signalNotification(
-      LogNotification('Full Version entitlement: $hasEntitlement'),
-    );
+    core.connection.signalNotification(LogNotification('Full Version entitlement: $hasEntitlement'));
 
-    isPurchasedNotifier.value = hasEntitlement;
-
-    if (hasEntitlement) {
-      _prefs.write(key: _purchaseStatusKey, value: "true");
+    if (!hasEntitlement) {
+      final storedStatus = await _prefs.read(key: _purchaseStatusKey);
+      if (storedStatus == "true") {
+        core.connection.signalNotification(LogNotification('Setting full version based on stored status'));
+        await Purchases.setAttributes({_purchaseStatusKey: "true"});
+        isPurchasedNotifier.value = true;
+      }
+    } else {
+      isPurchasedNotifier.value = hasEntitlement;
     }
   }
 
@@ -356,6 +358,5 @@ class RevenueCatService {
     await Purchases.setAttributes({"purchase_id": purchaseId});
     await Purchases.syncPurchases();
     isPurchasedNotifier.value = true;
-    await _prefs.write(key: _purchaseStatusKey, value: isPurchasedNotifier.value.toString());
   }
 }
