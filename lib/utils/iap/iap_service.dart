@@ -314,9 +314,19 @@ class IAPService {
       final response = await _inAppPurchase.queryProductDetails({productId});
       if (response.error != null) {
         debugPrint('Error querying products: ${response.error}');
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, 'IAP issue: ${response.error!.toString()}'),
-        );
+        if (response.error!.code == 'storekit_no_response') {
+          _trialStartDate = DateTime.now().toIso8601String();
+          core.connection.signalNotification(
+            AlertNotification(
+              LogLevel.LOGLEVEL_WARNING,
+              'Unlock will be available, soon! Trial days have been extended.',
+            ),
+          );
+        } else {
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, 'IAP issue: ${response.error!.toString()}'),
+          );
+        }
         return;
       }
 
