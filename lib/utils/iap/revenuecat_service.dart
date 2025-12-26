@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -24,6 +23,9 @@ class RevenueCatService {
   static const String fullVersionEntitlement = 'Full Version';
 
   final FlutterSecureStorage _prefs;
+  final ValueNotifier<bool> isPurchasedNotifier;
+  final int Function() getDailyCommandLimit;
+  final void Function(int limit) setDailyCommandLimit;
 
   bool _isInitialized = false;
   String? _trialStartDate;
@@ -31,7 +33,12 @@ class RevenueCatService {
   int? _dailyCommandCount;
   StreamSubscription<CustomerInfo>? _customerInfoSubscription;
 
-  RevenueCatService(this._prefs);
+  RevenueCatService(
+    this._prefs, {
+    required this.isPurchasedNotifier,
+    required this.getDailyCommandLimit,
+    required this.setDailyCommandLimit,
+  });
 
   /// Initialize the RevenueCat service
   Future<void> initialize() async {
@@ -54,7 +61,7 @@ class RevenueCatService {
         core.connection.signalNotification(
           LogNotification('RevenueCat API key not configured'),
         );
-        IAPManager.instance.isPurchased.value = false;
+        isPurchasedNotifier.value = false;
         _isInitialized = true;
         return;
       }
@@ -94,7 +101,7 @@ class RevenueCatService {
       _isInitialized = true;
 
       if (!isTrialExpired && Platform.isAndroid) {
-        IAPManager.dailyCommandLimit = 80;
+        setDailyCommandLimit(80);
       }
     } catch (e, s) {
       recordError(e, s, context: 'Initializing RevenueCat Service');
@@ -105,7 +112,7 @@ class RevenueCatService {
         ),
       );
       debugPrint('Failed to initialize RevenueCat: $e');
-      IAPManager.instance.isPurchased.value = false;
+      isPurchasedNotifier.value = false;
       _isInitialized = true;
     }
   }
@@ -122,11 +129,11 @@ class RevenueCatService {
       if (storedStatus == "true") {
         if (Platform.isAndroid) {
           if (lastPurchaseCheck == todayDate) {
-            IAPManager.instance.isPurchased.value = true;
+            isPurchasedNotifier.value = true;
             return;
           }
         } else {
-          IAPManager.instance.isPurchased.value = true;
+          isPurchasedNotifier.value = true;
           return;
         }
       }
@@ -151,7 +158,7 @@ class RevenueCatService {
       LogNotification('Full Version entitlement: $hasEntitlement'),
     );
 
-    IAPManager.instance.isPurchased.value = hasEntitlement;
+    isPurchasedNotifier.value = hasEntitlement;
 
     if (hasEntitlement) {
       _prefs.write(key: _purchaseStatusKey, value: "true");
@@ -243,7 +250,7 @@ class RevenueCatService {
 
   /// Get the number of days remaining in the trial
   int get trialDaysRemaining {
-    if (IAPManager.instance.isPurchased.value) return 0;
+    if (isPurchasedNotifier.value) return 0;
 
     final trialStart = _trialStartDate;
     if (trialStart == null) return trialDays;
@@ -258,7 +265,7 @@ class RevenueCatService {
 
   /// Check if the trial has expired
   bool get isTrialExpired {
-    return (!IAPManager.instance.isPurchased.value && hasTrialStarted && trialDaysRemaining <= 0);
+    return (!isPurchasedNotifier.value && hasTrialStarted && trialDaysRemaining <= 0);
   }
 
   /// Get the number of commands executed today
@@ -295,15 +302,15 @@ class RevenueCatService {
 
   /// Check if the user can execute a command
   bool get canExecuteCommand {
-    if (IAPManager.instance.isPurchased.value) return true;
+    if (isPurchasedNotifier.value) return true;
     if (!isTrialExpired && !Platform.isAndroid) return true;
-    return dailyCommandCount < IAPManager.dailyCommandLimit;
+    return dailyCommandCount < getDailyCommandLimit();
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (IAPManager.instance.isPurchased.value || (!isTrialExpired && !Platform.isAndroid)) return -1; // Unlimited
-    final remaining = IAPManager.dailyCommandLimit - dailyCommandCount;
+    if (isPurchasedNotifier.value || (!isTrialExpired && !Platform.isAndroid)) return -1; // Unlimited
+    final remaining = getDailyCommandLimit() - dailyCommandCount;
     return remaining > 0 ? remaining : 0; // Never return negative
   }
 
@@ -312,19 +319,19 @@ class RevenueCatService {
     _customerInfoSubscription?.cancel();
   }
 
-  void reset(bool fullReset) {
+  void reset(bool fullReset) async {
     if (fullReset) {
-      _prefs.deleteAll();
+      await _prefs.deleteAll();
     } else {
-      _prefs.delete(key: _purchaseStatusKey);
+      await _prefs.delete(key: _purchaseStatusKey);
       _isInitialized = false;
-      initialize();
+      await initialize();
     }
   }
 
   Future<void> redeem() async {
-    IAPManager.instance.isPurchased.value = true;
-    await _prefs.write(key: _purchaseStatusKey, value: IAPManager.instance.isPurchased.value.toString());
+    isPurchasedNotifier.value = true;
+    await _prefs.write(key: _purchaseStatusKey, value: isPurchasedNotifier.value.toString());
   }
 
   /// Get customer info from RevenueCat

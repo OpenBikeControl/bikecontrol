@@ -46,7 +46,12 @@ class IAPManager {
         if (hasRevenueCatKey) {
           // Use RevenueCat for supported platforms when API key is available
           debugPrint('Using RevenueCat service for IAP');
-          _revenueCatService = RevenueCatService(prefs);
+          _revenueCatService = RevenueCatService(
+            prefs,
+            isPurchasedNotifier: isPurchased,
+            getDailyCommandLimit: () => dailyCommandLimit,
+            setDailyCommandLimit: (limit) => dailyCommandLimit = limit,
+          );
           await _revenueCatService!.initialize();
         } else {
           // Fall back to legacy IAP service
@@ -217,10 +222,10 @@ class IAPManager {
     _windowsIapService?.dispose();
   }
 
-  void reset(bool fullReset) {
-    _windowsIapService?.reset();
-    _revenueCatService?.reset(fullReset);
-    _iapService?.reset(fullReset);
+  Future<void> reset(bool fullReset) async {
+    await _windowsIapService?.reset();
+    await _revenueCatService?.reset(fullReset);
+    await _iapService?.reset(fullReset);
   }
 
   Future<void> redeem() async {
