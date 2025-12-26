@@ -39,26 +39,19 @@ class IAPManager {
         _windowsIapService = WindowsIAPService(prefs);
         await _windowsIapService!.initialize();
       } else if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
-        // Check if RevenueCat API key is available
-        final hasRevenueCatKey = (Platform.environment['REVENUECAT_API_KEY'] ?? 
-                                  String.fromEnvironment('REVENUECAT_API_KEY')).isNotEmpty;
-        
-        if (hasRevenueCatKey) {
-          // Use RevenueCat for supported platforms when API key is available
-          debugPrint('Using RevenueCat service for IAP');
-          _revenueCatService = RevenueCatService(
-            prefs,
-            isPurchasedNotifier: isPurchased,
-            getDailyCommandLimit: () => dailyCommandLimit,
-            setDailyCommandLimit: (limit) => dailyCommandLimit = limit,
-          );
-          await _revenueCatService!.initialize();
-        } else {
-          // Fall back to legacy IAP service
-          debugPrint('Using legacy IAP service (no RevenueCat key)');
-          _iapService = IAPService(prefs);
-          await _iapService!.initialize();
-        }
+        // Use RevenueCat for supported platforms when API key is available
+        _revenueCatService = RevenueCatService(
+          prefs,
+          isPurchasedNotifier: isPurchased,
+          getDailyCommandLimit: () => dailyCommandLimit,
+          setDailyCommandLimit: (limit) => dailyCommandLimit = limit,
+        );
+        await _revenueCatService!.initialize();
+      } else {
+        // Fall back to legacy IAP service
+        debugPrint('Using legacy IAP service (no RevenueCat key)');
+        _iapService = IAPService(prefs);
+        await _iapService!.initialize();
       }
     } catch (e) {
       debugPrint('Error initializing IAP manager: $e');
@@ -205,13 +198,6 @@ class IAPManager {
     }
   }
 
-  /// Present the Customer Center (only available when using RevenueCat)
-  Future<void> presentCustomerCenter() async {
-    if (_revenueCatService != null) {
-      await _revenueCatService!.presentCustomerCenter();
-    }
-  }
-
   /// Check if RevenueCat is being used
   bool get isUsingRevenueCat => _revenueCatService != null;
 
@@ -223,14 +209,15 @@ class IAPManager {
   }
 
   Future<void> reset(bool fullReset) async {
+    isPurchased.value = false;
     _windowsIapService?.reset();
     await _revenueCatService?.reset(fullReset);
     await _iapService?.reset(fullReset);
   }
 
-  Future<void> redeem() async {
+  Future<void> redeem(String purchaseId) async {
     if (_revenueCatService != null) {
-      await _revenueCatService!.redeem();
+      await _revenueCatService!.redeem(purchaseId);
     } else if (_iapService != null) {
       await _iapService!.redeem();
     }

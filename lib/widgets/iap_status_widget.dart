@@ -9,6 +9,8 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -22,11 +24,14 @@ class IAPStatusWidget extends StatefulWidget {
 }
 
 final _normalDate = DateTime(2026, 1, 15, 0, 0, 0, 0, 0);
+final _iapDate = DateTime(2025, 12, 21, 0, 0, 0, 0, 0);
+
+enum AlreadyBoughtOption { fullPurchase, iap, no }
 
 class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   bool _isPurchasing = false;
   bool _isSmall = false;
-  bool? _alreadyBoughtQuestion = null;
+  AlreadyBoughtOption? _alreadyBoughtQuestion;
 
   final _purchaseIdField = const TextFieldKey(#purchaseId);
 
@@ -68,7 +73,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
             }
           : () {
               if (Platform.isAndroid) {
-                if (_alreadyBoughtQuestion == false) {
+                if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) {
                   _handlePurchase();
                 }
               } else {
@@ -100,16 +105,6 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                           color: Colors.green,
                         ),
                       ),
-                      if (IAPManager.instance.isUsingRevenueCat) ...[
-                        const Spacer(),
-                        OutlineButton(
-                          size: ButtonSize.small,
-                          onPressed: () async {
-                            await IAPManager.instance.presentCustomerCenter();
-                          },
-                          child: Text('Manage'),
-                        ),
-                      ],
                     ],
                   ),
                 ] else if (!isTrialExpired) ...[
@@ -205,12 +200,36 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                             Text(AppLocalizations.of(context).alreadyBoughtTheAppPreviously).small,
                             Row(
                               children: [
-                                OutlineButton(
-                                  child: Text(AppLocalizations.of(context).yes),
-                                  onPressed: () {
-                                    setState(() {
-                                      _alreadyBoughtQuestion = true;
-                                    });
+                                Builder(
+                                  builder: (context) {
+                                    return OutlineButton(
+                                      child: Text(AppLocalizations.of(context).yes),
+                                      onPressed: () {
+                                        showDropdown(
+                                          context: context,
+                                          builder: (c) => DropdownMenu(
+                                            children: [
+                                              MenuButton(
+                                                child: Text('Before ${DateFormat.yMMMd().format(_iapDate)}'),
+                                                onPressed: (c) {
+                                                  setState(() {
+                                                    _alreadyBoughtQuestion = AlreadyBoughtOption.fullPurchase;
+                                                  });
+                                                },
+                                              ),
+                                              MenuButton(
+                                                child: Text('After ${DateFormat.yMMMd().format(_iapDate)}'),
+                                                onPressed: (c) {
+                                                  setState(() {
+                                                    _alreadyBoughtQuestion = AlreadyBoughtOption.iap;
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
                                   },
                                 ),
                                 const SizedBox(width: 8),
@@ -218,19 +237,19 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   child: Text(AppLocalizations.of(context).no),
                                   onPressed: () {
                                     setState(() {
-                                      _alreadyBoughtQuestion = false;
+                                      _alreadyBoughtQuestion = AlreadyBoughtOption.no;
                                     });
                                   },
                                 ),
                               ],
                             ),
-                          ] else if (_alreadyBoughtQuestion == true) ...[
+                          ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.fullPurchase) ...[
                             Text(
                               AppLocalizations.of(context).alreadyBoughtTheApp,
                             ).small,
                             Form(
                               onSubmit: (context, values) async {
-                                String purchaseId = _purchaseIdField[values]!;
+                                String purchaseId = _purchaseIdField[values]!.trim();
                                 setState(() {
                                   _isLoading = true;
                                 });
@@ -241,7 +260,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   supabaseUrl: 'https://pikrcyynovdvogrldfnw.supabase.co',
                                 );
                                 if (redeemed) {
-                                  await IAPManager.instance.redeem();
+                                  await IAPManager.instance.redeem(purchaseId);
                                   buildToast(context, title: 'Success', subtitle: 'Purchase redeemed successfully!');
                                   setState(() {
                                     _isLoading = false;
@@ -262,9 +281,10 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                           actions: [
                                             OutlineButton(
                                               child: Text(context.i18n.getSupport),
-                                              onPressed: () {
+                                              onPressed: () async {
+                                                final appUserId = await Purchases.appUserID;
                                                 launchUrlString(
-                                                  'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help',
+                                                  'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help%20for%20$appUserId',
                                                 );
                                               },
                                             ),
@@ -315,7 +335,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                 ],
                               ),
                             ),
-                          ] else if (_alreadyBoughtQuestion == false) ...[
+                          ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.no) ...[
                             PrimaryButton(
                               onPressed: _isPurchasing ? null : _handlePurchase,
                               leading: Icon(Icons.star),
@@ -332,6 +352,34 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   : Text(AppLocalizations.of(context).unlockFullVersion),
                             ),
                             Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
+                          ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
+                            PrimaryButton(
+                              onPressed: _isPurchasing ? null : _handlePurchase,
+                              leading: Icon(Icons.star),
+                              child: _isPurchasing
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SmallProgressIndicator(),
+                                        const SizedBox(width: 8),
+                                        Text('Processing...'),
+                                      ],
+                                    )
+                                  : Text(AppLocalizations.of(context).unlockFullVersion),
+                            ),
+                            Text(
+                              'Click on the button above, then on "Restore Purchases". Please contact me directly if you have any issues.',
+                            ).xSmall,
+                            OutlineButton(
+                              child: Text(context.i18n.getSupport),
+                              onPressed: () async {
+                                final appUserId = await Purchases.appUserID;
+                                launchUrlString(
+                                  'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help%20for%20$appUserId',
+                                );
+                              },
+                            ),
                           ],
                         ],
                       ),
@@ -404,9 +452,9 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     required String supabaseAnonKey,
     required String purchaseId,
   }) async {
-    final uri = Uri.parse(
-      '$supabaseUrl/functions/v1/redeem-purchase',
-    );
+    final uri = Uri.parse('$supabaseUrl/functions/v1/redeem-purchase');
+
+    final appUserId = await Purchases.appUserID;
 
     final response = await http.post(
       uri,
@@ -416,6 +464,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
       },
       body: jsonEncode({
         'purchaseId': purchaseId,
+        'userId': appUserId,
       }),
     );
 

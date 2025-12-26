@@ -5,10 +5,10 @@ import android.os.Handler
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import org.flame_engine.gamepads_android.GamepadsCompatibleActivity
 
-class MainActivity: FlutterActivity(), GamepadsCompatibleActivity {
+class MainActivity: FlutterFragmentActivity(), GamepadsCompatibleActivity {
     var keyListener: ((KeyEvent) -> Boolean)? = null
     var motionListener: ((MotionEvent) -> Boolean)? = null
 

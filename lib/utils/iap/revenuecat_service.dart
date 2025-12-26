@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart' as zp;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -17,7 +18,6 @@ class RevenueCatService {
   static const String _purchaseStatusKey = 'iap_purchase_status';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
   static const String _lastCommandDateKey = 'iap_last_command_date';
-  static const String _lastPurchaseCheckKey = 'iap_last_purchase_check';
 
   // RevenueCat entitlement identifier
   static const String fullVersionEntitlement = 'Full Version';
@@ -53,8 +53,19 @@ class RevenueCatService {
       }
 
       // Get API key from environment variable
-      final apiKey = Platform.environment['REVENUECAT_API_KEY'] ?? 
-                     String.fromEnvironment('REVENUECAT_API_KEY');
+      final String apiKey;
+
+      if (Platform.isAndroid) {
+        apiKey =
+            Platform.environment['REVENUECAT_API_KEY_ANDROID'] ??
+            const String.fromEnvironment('REVENUECAT_API_KEY_ANDROID', defaultValue: '');
+      } else if (Platform.isIOS || Platform.isMacOS) {
+        apiKey =
+            Platform.environment['REVENUECAT_API_KEY_IOS'] ??
+            const String.fromEnvironment('REVENUECAT_API_KEY_IOS', defaultValue: '');
+      } else {
+        apiKey = '';
+      }
 
       if (apiKey.isEmpty) {
         debugPrint('RevenueCat API key not found in environment');
@@ -68,10 +79,10 @@ class RevenueCatService {
 
       // Configure RevenueCat
       final configuration = PurchasesConfiguration(apiKey);
-      
+
       // Enable debug logs in debug mode
       if (kDebugMode) {
-        configuration.logLevel = LogLevel.debug;
+        await Purchases.setLogLevel(LogLevel.debug);
       }
 
       await Purchases.configure(configuration);
@@ -82,7 +93,7 @@ class RevenueCatService {
       );
 
       // Listen for customer info updates
-      _customerInfoSubscription = Purchases.addCustomerInfoUpdateListener((customerInfo) {
+      Purchases.addCustomerInfoUpdateListener((customerInfo) {
         _handleCustomerInfoUpdate(customerInfo);
       });
 
@@ -107,7 +118,7 @@ class RevenueCatService {
       recordError(e, s, context: 'Initializing RevenueCat Service');
       core.connection.signalNotification(
         AlertNotification(
-          LogLevel.LOGLEVEL_ERROR,
+          zp.LogLevel.LOGLEVEL_ERROR,
           'There was an error initializing RevenueCat. Please check your configuration.',
         ),
       );
@@ -120,26 +131,6 @@ class RevenueCatService {
   /// Check if the user has an active entitlement
   Future<void> _checkExistingPurchase() async {
     try {
-      // First check if we have a stored purchase status
-      final storedStatus = await _prefs.read(key: _purchaseStatusKey);
-      final lastPurchaseCheck = await _prefs.read(key: _lastPurchaseCheckKey);
-      
-      final todayDate = DateTime.now().toIso8601String().split('T')[0];
-
-      if (storedStatus == "true") {
-        if (Platform.isAndroid) {
-          if (lastPurchaseCheck == todayDate) {
-            isPurchasedNotifier.value = true;
-            return;
-          }
-        } else {
-          isPurchasedNotifier.value = true;
-          return;
-        }
-      }
-
-      await _prefs.write(key: _lastPurchaseCheckKey, value: todayDate);
-
       // Check current entitlement status from RevenueCat
       final customerInfo = await Purchases.getCustomerInfo();
       _handleCustomerInfoUpdate(customerInfo);
@@ -152,7 +143,7 @@ class RevenueCatService {
   /// Handle customer info updates from RevenueCat
   void _handleCustomerInfoUpdate(CustomerInfo customerInfo) {
     final hasEntitlement = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
-    
+
     debugPrint('RevenueCat entitlement check: $hasEntitlement');
     core.connection.signalNotification(
       LogNotification('Full Version entitlement: $hasEntitlement'),
@@ -172,38 +163,18 @@ class RevenueCatService {
         await initialize();
       }
 
-      final paywallResult = await RevenueCatUI.presentPaywall();
-      
+      final paywallResult = await RevenueCatUI.presentPaywall(displayCloseButton: true);
+
       debugPrint('Paywall result: $paywallResult');
-      
+
       // The customer info listener will handle the purchase update
     } catch (e, s) {
       debugPrint('Error presenting paywall: $e');
       recordError(e, s, context: 'Presenting paywall');
       core.connection.signalNotification(
         AlertNotification(
-          LogLevel.LOGLEVEL_ERROR,
+          zp.LogLevel.LOGLEVEL_ERROR,
           'There was an error displaying the paywall. Please try again.',
-        ),
-      );
-    }
-  }
-
-  /// Present the Customer Center
-  Future<void> presentCustomerCenter() async {
-    try {
-      if (!_isInitialized) {
-        await initialize();
-      }
-
-      await RevenueCatUI.presentCustomerCenter();
-    } catch (e, s) {
-      debugPrint('Error presenting customer center: $e');
-      recordError(e, s, context: 'Presenting customer center');
-      core.connection.signalNotification(
-        AlertNotification(
-          LogLevel.LOGLEVEL_ERROR,
-          'There was an error displaying customer center. Please try again.',
         ),
       );
     }
@@ -214,14 +185,14 @@ class RevenueCatService {
     try {
       final customerInfo = await Purchases.restorePurchases();
       _handleCustomerInfoUpdate(customerInfo);
-      
+
       core.connection.signalNotification(
         LogNotification('Purchases restored'),
       );
     } catch (e, s) {
       core.connection.signalNotification(
         AlertNotification(
-          LogLevel.LOGLEVEL_ERROR,
+          zp.LogLevel.LOGLEVEL_ERROR,
           'There was an error restoring purchases. Please try again.',
         ),
       );
@@ -329,28 +300,10 @@ class RevenueCatService {
     }
   }
 
-  Future<void> redeem() async {
+  Future<void> redeem(String purchaseId) async {
+    await Purchases.setAttributes({"purchase_id": purchaseId});
+    await Purchases.syncPurchases();
     isPurchasedNotifier.value = true;
     await _prefs.write(key: _purchaseStatusKey, value: isPurchasedNotifier.value.toString());
-  }
-
-  /// Get customer info from RevenueCat
-  Future<CustomerInfo?> getCustomerInfo() async {
-    try {
-      return await Purchases.getCustomerInfo();
-    } catch (e) {
-      debugPrint('Error getting customer info: $e');
-      return null;
-    }
-  }
-
-  /// Get available offerings
-  Future<Offerings?> getOfferings() async {
-    try {
-      return await Purchases.getOfferings();
-    } catch (e) {
-      debugPrint('Error getting offerings: $e');
-      return null;
-    }
   }
 }
