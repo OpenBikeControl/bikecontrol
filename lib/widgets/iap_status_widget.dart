@@ -100,6 +100,16 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                           color: Colors.green,
                         ),
                       ),
+                      if (IAPManager.instance.isUsingRevenueCat) ...[
+                        const Spacer(),
+                        OutlineButton(
+                          size: ButtonSize.small,
+                          onPressed: () async {
+                            await IAPManager.instance.presentCustomerCenter();
+                          },
+                          child: Text('Manage'),
+                        ),
+                      ],
                     ],
                   ),
                 ] else if (!isTrialExpired) ...[
@@ -366,7 +376,12 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     });
 
     try {
-      await IAPManager.instance.purchaseFullVersion();
+      // Use RevenueCat paywall if available, otherwise fall back to legacy
+      if (IAPManager.instance.isUsingRevenueCat) {
+        await IAPManager.instance.presentPaywall();
+      } else {
+        await IAPManager.instance.purchaseFullVersion();
+      }
     } catch (e) {
       if (mounted) {
         buildToast(

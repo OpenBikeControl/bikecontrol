@@ -36,6 +36,8 @@ dependencies:
     path: ios_receipt
   flutter_secure_storage: ^10.0.0
   in_app_purchase: ^3.2.1
+  purchases_flutter: ^8.2.2
+  purchases_ui_flutter: ^8.2.2
   windows_iap:
     path: windows_iap
   window_manager: ^0.5.1
