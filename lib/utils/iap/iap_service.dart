@@ -423,13 +423,13 @@ class IAPService {
     _subscription?.cancel();
   }
 
-  void reset(bool fullReset) {
+  Future<void> reset(bool fullReset) async {
     if (fullReset) {
-      _prefs.deleteAll();
+      await _prefs.deleteAll();
     } else {
-      _prefs.delete(key: _purchaseStatusKey);
+      await _prefs.delete(key: _purchaseStatusKey);
       _isInitialized = false;
-      initialize();
+      await initialize();
     }
   }
 

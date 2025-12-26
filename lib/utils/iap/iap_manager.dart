@@ -223,7 +223,7 @@ class IAPManager {
   }
 
   Future<void> reset(bool fullReset) async {
-    await _windowsIapService?.reset();
+    _windowsIapService?.reset();
     await _revenueCatService?.reset(fullReset);
     await _iapService?.reset(fullReset);
   }

@@ -108,7 +108,7 @@ class RevenueCatService {
       core.connection.signalNotification(
         AlertNotification(
           LogLevel.LOGLEVEL_ERROR,
-          'There was an error initializing RevenueCat: ${e.toString()}',
+          'There was an error initializing RevenueCat. Please check your configuration.',
         ),
       );
       debugPrint('Failed to initialize RevenueCat: $e');
@@ -183,7 +183,7 @@ class RevenueCatService {
       core.connection.signalNotification(
         AlertNotification(
           LogLevel.LOGLEVEL_ERROR,
-          'There was an error displaying the paywall: ${e.toString()}',
+          'There was an error displaying the paywall. Please try again.',
         ),
       );
     }
@@ -203,7 +203,7 @@ class RevenueCatService {
       core.connection.signalNotification(
         AlertNotification(
           LogLevel.LOGLEVEL_ERROR,
-          'There was an error displaying customer center: ${e.toString()}',
+          'There was an error displaying customer center. Please try again.',
         ),
       );
     }
@@ -222,7 +222,7 @@ class RevenueCatService {
       core.connection.signalNotification(
         AlertNotification(
           LogLevel.LOGLEVEL_ERROR,
-          'There was an error restoring purchases: ${e.toString()}',
+          'There was an error restoring purchases. Please try again.',
         ),
       );
       recordError(e, s, context: 'Restore Purchases');
@@ -319,7 +319,7 @@ class RevenueCatService {
     _customerInfoSubscription?.cancel();
   }
 
-  void reset(bool fullReset) async {
+  Future<void> reset(bool fullReset) async {
     if (fullReset) {
       await _prefs.deleteAll();
     } else {
