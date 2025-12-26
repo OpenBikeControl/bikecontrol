@@ -13,6 +13,7 @@
   "accessories": "Accessoires",
   "action": "Action",
   "adjustControllerButtons": "Ajuster les boutons de la manette",
+  "afterDate": "Après {date}",
   "allow": "Permettre",
   "allowAccessibilityService": "Autoriser le service d'accessibilité",
   "allowBluetoothConnections": "Autoriser les connexions Bluetooth",
@@ -31,6 +32,7 @@
     }
   },
   "battery": "Batterie",
+  "beforeDate": "Avant {date}",
   "bluetoothAdvertiseAccess": "Accès à la publicité Bluetooth",
   "bluetoothTurnedOn": "Bluetooth activé",
   "browserNotSupported": "Ce navigateur ne prend pas en charge Web Bluetooth et la plateforme n'est pas prise en charge :(",
@@ -338,6 +340,7 @@
   "requirement": "Exigence",
   "reset": "Réinitialiser",
   "restart": "Redémarrage",
+  "restorePurchaseInfo": "Cliquez sur le bouton ci-dessus, puis sur « Restaurer l’achat ». Veuillez me contacter directement en cas de problème.",
   "runAppOnPlatformRemotely": "Exécutez {appName} sur {platform} et contrôlez-le à distance depuis cet appareil{preferredConnection}.",
   "@runAppOnPlatformRemotely": {
     "placeholders": {

@@ -5,10 +5,15 @@ import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart' as zp;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// RevenueCat-based IAP service for iOS, macOS, and Android
 class RevenueCatService {
@@ -202,9 +207,56 @@ class RevenueCatService {
   }
 
   /// Purchase the full version (use paywall instead)
-  Future<void> purchaseFullVersion() async {
+  Future<void> purchaseFullVersion(BuildContext context) async {
     // Direct the user to the paywall for a better experience
-    await presentPaywall();
+    if (Platform.isMacOS) {
+      showDropdown(
+        context: context,
+        builder: (c) => DropdownMenu(
+          children: [
+            MenuButton(
+              child: LoadingWidget(
+                futureCallback: () async {
+                  await restorePurchases();
+                  closeOverlay(c);
+                },
+                renderChild: (isLoading, tap) => TextButton(
+                  onPressed: tap,
+                  child: isLoading ? SmallProgressIndicator() : const Text('Restore Purchase').small,
+                ),
+              ),
+            ),
+            MenuButton(
+              child: LoadingWidget(
+                futureCallback: () async {
+                  try {
+                    final offerings = await Purchases.getOfferings();
+                    final purchaseParams = PurchaseParams.package(offerings.current!.availablePackages.first);
+                    PurchaseResult result = await Purchases.purchase(purchaseParams);
+                    core.connection.signalNotification(
+                      LogNotification('Purchase result: $result'),
+                    );
+                    closeOverlay(c);
+                  } on PlatformException catch (e) {
+                    var errorCode = PurchasesErrorHelper.getErrorCode(e);
+                    if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
+                      buildToast(context, title: e.message);
+                    }
+                    closeOverlay(c);
+                  }
+                },
+                renderChild: (isLoading, tap) => TextButton(
+                  onPressed: tap,
+                  child: isLoading ? SmallProgressIndicator() : const Text('Purchase'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      await presentPaywall();
+    }
   }
 
   /// Check if the trial period has started

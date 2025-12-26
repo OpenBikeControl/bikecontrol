@@ -5,6 +5,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/iap/iap_service.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -168,9 +169,9 @@ class IAPManager {
   }
 
   /// Purchase the full version
-  Future<void> purchaseFullVersion() async {
+  Future<void> purchaseFullVersion(BuildContext context) async {
     if (_revenueCatService != null) {
-      return await _revenueCatService!.purchaseFullVersion();
+      return await _revenueCatService!.purchaseFullVersion(context);
     } else if (_iapService != null) {
       return await _iapService!.purchaseFullVersion();
     } else if (_windowsIapService != null) {
@@ -186,16 +187,6 @@ class IAPManager {
       await _iapService!.restorePurchases();
     }
     // Windows doesn't have a separate restore mechanism in the stub
-  }
-
-  /// Present the RevenueCat paywall (only available when using RevenueCat)
-  Future<void> presentPaywall() async {
-    if (_revenueCatService != null) {
-      await _revenueCatService!.presentPaywall();
-    } else {
-      // Fall back to legacy purchase flow
-      await purchaseFullVersion();
-    }
   }
 
   /// Check if RevenueCat is being used

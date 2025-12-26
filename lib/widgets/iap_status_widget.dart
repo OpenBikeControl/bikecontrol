@@ -210,7 +210,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                           builder: (c) => DropdownMenu(
                                             children: [
                                               MenuButton(
-                                                child: Text('Before ${DateFormat.yMMMd().format(_iapDate)}'),
+                                                child: Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  ).beforeDate(DateFormat.yMMMd().format(_iapDate)),
+                                                ),
                                                 onPressed: (c) {
                                                   setState(() {
                                                     _alreadyBoughtQuestion = AlreadyBoughtOption.fullPurchase;
@@ -218,7 +222,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                                 },
                                               ),
                                               MenuButton(
-                                                child: Text('After ${DateFormat.yMMMd().format(_iapDate)}'),
+                                                child: Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  ).afterDate(DateFormat.yMMMd().format(_iapDate)),
+                                                ),
                                                 onPressed: (c) {
                                                   setState(() {
                                                     _alreadyBoughtQuestion = AlreadyBoughtOption.iap;
@@ -369,7 +377,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   : Text(AppLocalizations.of(context).unlockFullVersion),
                             ),
                             Text(
-                              'Click on the button above, then on "Restore Purchases". Please contact me directly if you have any issues.',
+                              AppLocalizations.of(context).restorePurchaseInfo,
                             ).xSmall,
                             OutlineButton(
                               child: Text(context.i18n.getSupport),
@@ -425,11 +433,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
 
     try {
       // Use RevenueCat paywall if available, otherwise fall back to legacy
-      if (IAPManager.instance.isUsingRevenueCat) {
-        await IAPManager.instance.presentPaywall();
-      } else {
-        await IAPManager.instance.purchaseFullVersion();
-      }
+      await IAPManager.instance.purchaseFullVersion(context);
     } catch (e) {
       if (mounted) {
         buildToast(
