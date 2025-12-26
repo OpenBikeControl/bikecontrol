@@ -1,8 +1,8 @@
+import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:bike_control/main.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 
 class ChangelogDialog extends StatelessWidget {
   final Markdown entry;
@@ -26,8 +26,10 @@ class ChangelogDialog extends StatelessWidget {
         ],
       ),
       content: Container(
-        constraints: BoxConstraints(minWidth: 460),
-        child: MarkdownWidget(markdown: latestVersion),
+        constraints: BoxConstraints(minWidth: 460, maxHeight: 500),
+        child: Scrollbar(
+          child: SingleChildScrollView(child: MarkdownWidget(markdown: latestVersion)),
+        ),
       ),
       actions: [
         TextButton(

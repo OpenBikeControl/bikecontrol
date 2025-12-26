@@ -250,6 +250,7 @@ class BKMenuButton extends StatelessWidget {
               MenuButton(
                 child: Text(context.i18n.continueAction),
                 onPressed: (c) {
+                  IAPManager.instance.purchaseFullVersion(context);
                   core.connection.addDevices([
                     ZwiftClickV2(
                         BleDevice(

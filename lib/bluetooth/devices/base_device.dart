@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart' show LogLevel;
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -228,7 +229,7 @@ abstract class BaseDevice {
         _getCommandLimitMessage(),
         buttonTitle: AppLocalizations.current.purchase,
         onTap: () {
-          IAPManager.instance.purchaseFullVersion();
+          IAPManager.instance.purchaseFullVersion(navigatorKey.currentContext!);
         },
       ),
     );

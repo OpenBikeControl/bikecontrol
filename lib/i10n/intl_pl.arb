@@ -13,6 +13,7 @@
   "accessories": "Akcesoria",
   "action": "Działanie",
   "adjustControllerButtons": "Dostosuj przyciski kontrolera",
+  "afterDate": "Po {date}",
   "allow": "Zezwól",
   "allowAccessibilityService": "Zezwól na usługę ułatwień dostępu",
   "allowBluetoothConnections": "Zezwól na połączenia Bluetooth",
@@ -31,6 +32,7 @@
     }
   },
   "battery": "Bateria",
+  "beforeDate": "Zanim {date}",
   "bluetoothAdvertiseAccess": "Dostęp do reklamy Bluetooth",
   "bluetoothTurnedOn": "Włączono Bluetooth",
   "browserNotSupported": "Ta przeglądarka nie obsługuje technologii Web Bluetooth i platforma nie jest obsługiwana :(",
@@ -241,7 +243,7 @@
   "myWhooshLinkInfo": "W razie napotkania błędów prosimy o sprawdzenie sekcji rozwiązywania problemów. Wkrótce pojawi się znacznie bardziej niezawodna metoda połączenia!",
   "needHelpClickHelp": "Potrzebujesz pomocy? Kliknij",
   "needHelpDontHesitate": "przycisk na górze i prosimy o kontakt.",
-  "newConnectionMethodAnnouncement": "{trainerApp} już wkrótce będziemy wspierać znacznie lepsze i bardziej niezawodne metody połączeń — bądźcie na bieżąco z aktualizacjami!",
+  "newConnectionMethodAnnouncement": "{trainerApp} już wkrótce będzie wspierać znacznie lepsze i bardziej niezawodne metody połączeń — bądź na bieżąco z aktualizacjami!",
   "newCustomProfile": "Nowy profil niestandardowy",
   "newProfileName": "Nowa nazwa profilu",
   "newVersionAvailable": "Dostępna jest nowa wersja",
@@ -262,7 +264,7 @@
   "noControllerConnected": "Brak połączenia",
   "noControllerUseCompanionMode": "Nie masz kontrolera? Użyj Companion Mode.",
   "noIgnoredDevices": "Brak ignorowanych urządzeń.",
-  "noTrainerSelected": "Nie wybrano aplikacji treningowej",
+  "noTrainerSelected": "Nie wybrano trenażera",
   "notConnected": "Nie połączono",
   "notificationDescription": "Dzięki temu aplikacja działa w tle i powiadamia Cię o każdej zmianie połączenia z Twoim urządzeniem.",
   "ok": "OK",
@@ -301,7 +303,7 @@
     }
   },
   "playPause": "Start/Pauza",
-  "pleaseSelectAConnectionMethodFirst": "Najpierw wybierz metodę połączenia w ustawieniach aplikacji treningowej.",
+  "pleaseSelectAConnectionMethodFirst": "Najpierw wybierz metodę połączenia w ustawieniach trenażera.",
   "predefinedAction": "Predefiniowana akcja {appName}",
   "@predefinedAction": {
     "placeholders": {
@@ -338,6 +340,7 @@
   "requirement": "Wymóg",
   "reset": "Reset",
   "restart": "Uruchom ponownie",
+  "restorePurchaseInfo": "Kliknij przycisk powyżej, a następnie „Przywróć zakup”. W razie jakichkolwiek problemów skontaktuj się ze mną bezpośrednio.",
   "runAppOnPlatformRemotely": "Uruchom {appName} na {platform} i steruj nim zdalnie z tego urządzenia {preferredConnection}.",
   "@runAppOnPlatformRemotely": {
     "placeholders": {
