@@ -149,14 +149,24 @@ class RevenueCatService {
   Future<void> _handleCustomerInfoUpdate(CustomerInfo customerInfo) async {
     final hasEntitlement = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
 
+    final userId = await Purchases.appUserID;
+    core.connection.signalNotification(LogNotification('User ID: $userId at ${customerInfo.requestDate}'));
     core.connection.signalNotification(LogNotification('Full Version entitlement: $hasEntitlement'));
 
     if (!hasEntitlement) {
-      final storedStatus = await _prefs.read(key: _purchaseStatusKey);
-      if (storedStatus == "true") {
-        core.connection.signalNotification(LogNotification('Setting full version based on stored status'));
-        await Purchases.setAttributes({_purchaseStatusKey: "true"});
-        isPurchasedNotifier.value = true;
+      // purchased before IAP migration
+      if (Platform.isAndroid) {
+        final storedStatus = await _prefs.read(key: _purchaseStatusKey);
+        if (storedStatus == "true") {
+          core.connection.signalNotification(LogNotification('Setting full version based on stored status'));
+          await Purchases.setAttributes({_purchaseStatusKey: "true"});
+          isPurchasedNotifier.value = true;
+        }
+      } else {
+        final purchasedVersion = customerInfo.originalApplicationVersion;
+        core.connection.signalNotification(LogNotification('Apple receipt validated for version: $purchasedVersion'));
+        final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 0;
+        isPurchasedNotifier.value = purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58);
       }
     } else {
       isPurchasedNotifier.value = hasEntitlement;
@@ -350,13 +360,17 @@ class RevenueCatService {
     } else {
       await _prefs.delete(key: _purchaseStatusKey);
       _isInitialized = false;
+      Purchases.invalidateCustomerInfoCache();
       await initialize();
+      _checkExistingPurchase();
     }
   }
 
   Future<void> redeem(String purchaseId) async {
     await Purchases.setAttributes({"purchase_id": purchaseId});
-    await Purchases.syncPurchases();
+    core.connection.signalNotification(LogNotification('Redeemed purchase ID: $purchaseId'));
+    Purchases.invalidateCustomerInfoCache();
+    _checkExistingPurchase();
     isPurchasedNotifier.value = true;
   }
 }
