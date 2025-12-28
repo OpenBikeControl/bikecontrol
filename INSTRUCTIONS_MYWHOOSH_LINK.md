@@ -1,11 +1,10 @@
 ## Instructions for using the MyWhoosh "Link" connection method
 *
 1) launch MyWhoosh on the device of your choice
-2) launch MyWhoosh Link, check if the "Link" connection works
-3) **close MyWhoosh Link** - very important! 
-4) open BikeControl, follow on screen instructions
+2) OPTIONAL: launch MyWhoosh Link, confirm the "Link" connection works at all. **close MyWhoosh Link** - very important! 
+3) open BikeControl, follow the on-screen instructions
 
-Once you've confirmed the connection in BikeControl you won't have to repeat step 2 and 3 again in the future. This is just to make sure the connection works in general.
+Once you've confirmed the connection in BikeControl you won't have to do step 2 in the future. This is just to make sure the connection works in general.
 
 And here's a video with a few explanations:
 
