@@ -11,6 +11,7 @@ import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -323,6 +324,8 @@ class Connection {
 
       await device.connect();
       signalChange(device);
+
+      IAPManager.instance.setAttributes();
 
       core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
 

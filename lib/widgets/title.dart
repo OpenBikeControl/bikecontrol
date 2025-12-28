@@ -113,7 +113,7 @@ class _AppTitleState extends State<AppTitle> {
 
       final body = res.body;
       final regex = RegExp(
-        r'whats-new__latest__version">Version ([0-9]{1,2}\.[0-9]{1,2}.[0-9]{1,2})</p>',
+        r'>Version ([0-9]{1,2}\.[0-9]{1,2}.[0-9]{1,2})</h4>',
         dotAll: true,
       );
       final match = regex.firstMatch(body);

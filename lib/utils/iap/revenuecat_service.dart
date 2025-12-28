@@ -8,6 +8,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -372,5 +373,18 @@ class RevenueCatService {
     Purchases.invalidateCustomerInfoCache();
     _checkExistingPurchase();
     isPurchasedNotifier.value = true;
+  }
+
+  Future<void> setAttributes() async {
+    // attributes are fully anonymous
+    await Purchases.setAttributes({
+      "bikecontrol_trainer": core.settings.getTrainerApp()?.name ?? '-',
+      "bikecontrol_target": core.settings.getLastTarget()?.name ?? '-',
+      'bikecontrol_controllers': core.connection.controllerDevices.joinToString(
+        transform: (d) => d.name,
+        separator: ',',
+      ),
+      'bikecontrol_keymap': core.settings.getKeyMap()?.name ?? '-',
+    });
   }
 }

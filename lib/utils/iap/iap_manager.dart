@@ -213,4 +213,8 @@ class IAPManager {
       await _iapService!.redeem();
     }
   }
+
+  void setAttributes() {
+    _revenueCatService?.setAttributes();
+  }
 }
