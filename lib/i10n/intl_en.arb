@@ -13,6 +13,7 @@
   "accessories": "Accessories",
   "action": "Action",
   "adjustControllerButtons": "Adjust Controller Buttons",
+  "afterDate": "After {date}",
   "allow": "Allow",
   "allowAccessibilityService": "Allow Accessibility Service",
   "allowBluetoothConnections": "Allow Bluetooth Connections",
@@ -31,6 +32,7 @@
     }
   },
   "battery": "Battery",
+  "beforeDate": "Before {date}",
   "bluetoothAdvertiseAccess": "Bluetooth Advertise access",
   "bluetoothTurnedOn": "Bluetooth turned on",
   "browserNotSupported": "This Browser does not support Web Bluetooth and platform is not supported :(",
@@ -338,6 +340,7 @@
   "requirement": "Requirement",
   "reset": "Reset",
   "restart": "Restart",
+  "restorePurchaseInfo": "Click on the button above, then on \"Restore Purchase\". Please contact me directly if you have any issues.",
   "runAppOnPlatformRemotely": "Run {appName} on {platform} and control it remotely from this device{preferredConnection}.",
   "@runAppOnPlatformRemotely": {
     "placeholders": {

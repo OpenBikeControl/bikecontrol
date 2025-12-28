@@ -181,6 +181,7 @@ class Settings {
   Future<void> setLastTarget(Target target) async {
     await prefs.setString('last_target', target.name);
     initializeActions(target.connectionType);
+    IAPManager.instance.setAttributes();
   }
 
   Future<void> setLastSeenVersion(String version) async {

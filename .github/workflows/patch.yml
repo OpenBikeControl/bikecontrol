@@ -91,21 +91,21 @@ jobs:
         with:
           platform: macos
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}'
 
       - name: 🚀 Shorebird Patch Android
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: android
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}'
 
       - name: 🚀 Shorebird Patch iOS
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: ios
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}'
 
       # shorebird struggles with the app from GitHub
       - name: Build macOS

@@ -13,6 +13,7 @@
   "accessories": "Zubehör",
   "action": "Aktion",
   "adjustControllerButtons": "Controller-Tasten anpassen",
+  "afterDate": "Nach dem {date}",
   "allow": "Erlauben",
   "allowAccessibilityService": "Barrierefreiheitsdienst zulassen",
   "allowBluetoothConnections": "Bluetooth-Verbindungen zulassen",
@@ -31,6 +32,7 @@
     }
   },
   "battery": "Batterie",
+  "beforeDate": "Vor dem {date}",
   "bluetoothAdvertiseAccess": "Bluetooth-Zugriff",
   "bluetoothTurnedOn": "Bluetooth ist eingeschaltet",
   "browserNotSupported": "Dieser Browser unterstützt kein Web-Bluetooth und die Plattform wird nicht unterstützt :(",
@@ -338,6 +340,7 @@
   "requirement": "Anforderung",
   "reset": "Zurücksetzen",
   "restart": "Neustart",
+  "restorePurchaseInfo": "Klicke auf den Knopf oben und anschließend auf „Kauf wiederherstellen“. Bei Problemen kontaktiere mich bitte direkt.",
   "runAppOnPlatformRemotely": "{appName} auf {platform} laufen lassen und es von diesem Gerät aus fernsteuern via {preferredConnection}.",
   "@runAppOnPlatformRemotely": {
     "placeholders": {

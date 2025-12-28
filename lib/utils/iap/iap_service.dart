@@ -145,10 +145,9 @@ class IAPService {
       if (receiptContent != null) {
         debugPrint('Existing Apple user detected - validating receipt $receiptContent');
         var sharedSecret =
-            Platform.environment['VERIFYING_SHARED_SECRET'] ?? String.fromEnvironment("VERIFYING_SHARED_SECRET");
+            Platform.environment['VERIFYING_SHARED_SECRET'] ?? const String.fromEnvironment("VERIFYING_SHARED_SECRET");
 
         if (sharedSecret.isEmpty) {
-          sharedSecret = 'ac978d8af9f64db19fdbe6fbc494de2a';
           core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Shared Secret is empty'));
         }
         core.connection.signalNotification(
@@ -433,13 +432,13 @@ class IAPService {
     _subscription?.cancel();
   }
 
-  void reset(bool fullReset) {
+  Future<void> reset(bool fullReset) async {
     if (fullReset) {
-      _prefs.deleteAll();
+      await _prefs.deleteAll();
     } else {
-      _prefs.delete(key: _purchaseStatusKey);
+      await _prefs.delete(key: _purchaseStatusKey);
       _isInitialized = false;
-      initialize();
+      await initialize();
     }
   }
 
