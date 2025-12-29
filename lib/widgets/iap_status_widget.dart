@@ -74,10 +74,10 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
           : () {
               if (Platform.isAndroid) {
                 if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) {
-                  _handlePurchase();
+                  _handlePurchase(context);
                 }
               } else {
-                _handlePurchase();
+                _handlePurchase(context);
               }
             },
       style: ButtonStyle.card().withBackgroundColor(
@@ -186,7 +186,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                     ),
                   ),
                 ],
-                if (!IAPManager.instance.isPurchased.value && !_isSmall) ...[
+                if (!isPurchased && !_isSmall) ...[
                   if (Platform.isAndroid)
                     Padding(
                       padding: const EdgeInsets.only(left: 42.0, top: 16.0),
@@ -345,7 +345,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                             ),
                           ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.no) ...[
                             PrimaryButton(
-                              onPressed: _isPurchasing ? null : _handlePurchase,
+                              onPressed: _isPurchasing ? null : () => _handlePurchase(context),
                               leading: Icon(Icons.star),
                               child: _isPurchasing
                                   ? Row(
@@ -362,7 +362,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                             Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
                           ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
                             PrimaryButton(
-                              onPressed: _isPurchasing ? null : _handlePurchase,
+                              onPressed: _isPurchasing ? null : () => _handlePurchase(context),
                               leading: Icon(Icons.star),
                               child: _isPurchasing
                                   ? Row(
@@ -396,20 +396,24 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.only(left: 42.0),
-                      child: PrimaryButton(
-                        onPressed: _isPurchasing ? null : _handlePurchase,
-                        leading: Icon(Icons.star),
-                        child: _isPurchasing
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SmallProgressIndicator(),
-                                  const SizedBox(width: 8),
-                                  Text('Processing...'),
-                                ],
-                              )
-                            : Text(AppLocalizations.of(context).unlockFullVersion),
+                      child: Builder(
+                        builder: (context) {
+                          return PrimaryButton(
+                            onPressed: _isPurchasing ? null : () => _handlePurchase(context),
+                            leading: Icon(Icons.star),
+                            child: _isPurchasing
+                                ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SmallProgressIndicator(),
+                                      const SizedBox(width: 8),
+                                      Text('Processing...'),
+                                    ],
+                                  )
+                                : Text(AppLocalizations.of(context).unlockFullVersion),
+                          );
+                        },
                       ),
                     ),
                     Padding(
@@ -426,7 +430,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     );
   }
 
-  Future<void> _handlePurchase() async {
+  Future<void> _handlePurchase(BuildContext context) async {
     setState(() {
       _isPurchasing = true;
     });

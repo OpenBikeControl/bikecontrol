@@ -147,7 +147,7 @@ class RevenueCatService {
   }
 
   /// Handle customer info updates from RevenueCat
-  Future<void> _handleCustomerInfoUpdate(CustomerInfo customerInfo) async {
+  Future<bool> _handleCustomerInfoUpdate(CustomerInfo customerInfo) async {
     final hasEntitlement = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
 
     final userId = await Purchases.appUserID;
@@ -172,6 +172,7 @@ class RevenueCatService {
     } else {
       isPurchasedNotifier.value = hasEntitlement;
     }
+    return isPurchasedNotifier.value;
   }
 
   /// Present the RevenueCat paywall
@@ -202,11 +203,13 @@ class RevenueCatService {
   Future<void> restorePurchases() async {
     try {
       final customerInfo = await Purchases.restorePurchases();
-      _handleCustomerInfoUpdate(customerInfo);
+      final result = await _handleCustomerInfoUpdate(customerInfo);
 
-      core.connection.signalNotification(
-        LogNotification('Purchases restored'),
-      );
+      if (result) {
+        core.connection.signalNotification(
+          AlertNotification(zp.LogLevel.LOGLEVEL_INFO, 'Purchase restored'),
+        );
+      }
     } catch (e, s) {
       core.connection.signalNotification(
         AlertNotification(
