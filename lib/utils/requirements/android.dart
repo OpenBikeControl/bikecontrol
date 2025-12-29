@@ -3,15 +3,18 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/accessibility_disclosure_dialog.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class AccessibilityRequirement extends PlatformRequirement {
   AccessibilityRequirement()
@@ -121,21 +124,35 @@ class NotificationRequirement extends PlatformRequirement {
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
     } else if (Platform.isIOS) {
-      await core.flutterLocalNotificationsPlugin
+      final result = await core.flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
             alert: true,
             badge: false,
             sound: false,
           );
+      if (result == false) {
+        buildToast(
+          navigatorKey.currentContext!,
+          title: 'Enable notifications for BikeControl in System Preferences → Notifications → Bike Control',
+        );
+        launchUrlString('x-apple.systempreferences:com.apple.preference.notifications');
+      }
     } else if (Platform.isMacOS) {
-      await core.flutterLocalNotificationsPlugin
+      final result = await core.flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
             alert: true,
             badge: false,
             sound: false,
           );
+      if (result == false) {
+        buildToast(
+          navigatorKey.currentContext!,
+          title: 'Enable notifications for BikeControl in System Preferences → Notifications → Bike Control',
+        );
+        launchUrlString('x-apple.systempreferences:com.apple.preference.notifications');
+      }
     }
     await getStatus();
     return;

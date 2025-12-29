@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:windows_iap/windows_iap.dart';
@@ -86,11 +87,11 @@ class WindowsIAPService {
       final status = await _windowsIapPlugin.makePurchase(productId);
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
         IAPManager.instance.isPurchased.value = true;
-        /*buildToast(
+        buildToast(
           navigatorKey.currentContext!,
           title: 'Purchase Successful',
           subtitle: 'Thank you for your purchase! You now have unlimited access.',
-        );*/
+        );
       }
     } catch (e, s) {
       recordError(e, s, context: 'Purchasing on Windows');
