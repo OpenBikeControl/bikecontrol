@@ -383,10 +383,11 @@ class RevenueCatService {
     await Purchases.setAttributes({
       "bikecontrol_trainer": core.settings.getTrainerApp()?.name ?? '-',
       "bikecontrol_target": core.settings.getLastTarget()?.name ?? '-',
-      'bikecontrol_controllers': core.connection.controllerDevices.joinToString(
-        transform: (d) => d.name,
-        separator: ',',
-      ),
+      if (core.connection.controllerDevices.isNotEmpty)
+        'bikecontrol_controllers': core.connection.controllerDevices.joinToString(
+          transform: (d) => d.name,
+          separator: ',',
+        ),
       'bikecontrol_keymap': core.settings.getKeyMap()?.name ?? '-',
     });
   }

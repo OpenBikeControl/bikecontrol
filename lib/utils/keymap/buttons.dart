@@ -33,7 +33,11 @@ enum InGameAction {
 
   // headwind
   headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100]),
-  headwindHeartRateMode('Headwind HR Mode');
+  headwindHeartRateMode('Headwind HR Mode'),
+
+  // openbikecontrol
+  up('Up', icon: RadixIcons.arrowUp),
+  down('Down', icon: RadixIcons.arrowDown);
 
   final String title;
   final bool isLongPress;
