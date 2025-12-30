@@ -298,7 +298,11 @@ void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
   inputs[1].ki.wVk = vkCode;
   inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
 
-  SendInput(2, inputs, sizeof(INPUT));
+  UINT eventsSent = SendInput(2, inputs, sizeof(INPUT));
+  if (eventsSent != 2) {
+    result->Error("SEND_INPUT_FAILED", "Failed to send media key input events");
+    return;
+  }
 
   result->Success(flutter::EncodableValue(true));
 }
