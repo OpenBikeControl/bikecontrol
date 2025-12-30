@@ -9,6 +9,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/accessibility_disclosure_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -199,6 +200,11 @@ class NotificationRequirement extends PlatformRequirement {
         ),
         macOS: DarwinInitializationSettings(
           requestAlertPermission: false,
+        ),
+        windows: WindowsInitializationSettings(
+          appName: 'BikeControl',
+          appUserModelId: 'OpenBikeControl.BikeControl',
+          guid: UUID.short(0x12).toString(),
         ),
       ),
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,

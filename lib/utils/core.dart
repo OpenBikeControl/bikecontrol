@@ -77,6 +77,7 @@ class Permissions {
     } else if (Platform.isWindows) {
       list = [
         BluetoothTurnedOn(),
+        NotificationRequirement(),
       ];
     } else if (Platform.isAndroid) {
       final deviceInfoPlugin = DeviceInfoPlugin();
