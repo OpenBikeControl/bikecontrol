@@ -130,15 +130,18 @@ class KeyPair {
 
   IconData? get icon {
     return switch (physicalKey) {
+      _ when isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media) => switch (physicalKey) {
+        PhysicalKeyboardKey.mediaPlayPause => Icons.play_arrow_outlined,
+        PhysicalKeyboardKey.mediaStop => Icons.stop,
+        PhysicalKeyboardKey.mediaTrackPrevious => Icons.skip_previous,
+        PhysicalKeyboardKey.mediaTrackNext => Icons.skip_next,
+        PhysicalKeyboardKey.audioVolumeUp => Icons.volume_up,
+        PhysicalKeyboardKey.audioVolumeDown => Icons.volume_down,
+        _ => Icons.keyboard,
+      },
       //_ when inGameAction != null && core.logic.emulatorEnabled => Icons.link,
       _ when inGameAction != null && inGameAction!.icon != null => inGameAction!.icon,
 
-      PhysicalKeyboardKey.mediaPlayPause ||
-      PhysicalKeyboardKey.mediaStop ||
-      PhysicalKeyboardKey.mediaTrackPrevious ||
-      PhysicalKeyboardKey.mediaTrackNext ||
-      PhysicalKeyboardKey.audioVolumeUp ||
-      PhysicalKeyboardKey.audioVolumeDown => Icons.music_note_outlined,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         RadixIcons.keyboard,
       _

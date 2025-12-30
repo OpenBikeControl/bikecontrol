@@ -269,7 +269,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             builder: (c) => DropdownMenu(
                               children: [
                                 MenuButton(
-                                  child: Text(context.i18n.playPause),
+                                  leading: Icon(Icons.play_arrow_outlined),
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
                                     _keyPair.logicalKey = null;
@@ -277,9 +277,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     setState(() {});
                                     widget.onUpdate();
                                   },
+                                  child: Text(context.i18n.playPause),
                                 ),
                                 MenuButton(
-                                  child: Text(context.i18n.stop),
+                                  leading: Icon(Icons.stop_outlined),
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
                                     _keyPair.logicalKey = null;
@@ -287,10 +288,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     setState(() {});
                                     widget.onUpdate();
                                   },
+                                  child: Text(context.i18n.stop),
                                 ),
                                 MenuButton(
-                                  child: Text(context.i18n.previous),
-
+                                  leading: Icon(Icons.skip_previous_outlined),
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
                                     _keyPair.logicalKey = null;
@@ -298,9 +299,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     setState(() {});
                                     widget.onUpdate();
                                   },
+                                  child: Text(context.i18n.previous),
                                 ),
                                 MenuButton(
-                                  child: Text(context.i18n.next),
+                                  leading: Icon(Icons.skip_next_outlined),
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
                                     _keyPair.logicalKey = null;
@@ -308,8 +310,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     setState(() {});
                                     widget.onUpdate();
                                   },
+                                  child: Text(context.i18n.next),
                                 ),
                                 MenuButton(
+                                  leading: Icon(Icons.volume_up_outlined),
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
                                     _keyPair.logicalKey = null;
@@ -320,6 +324,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   child: Text(context.i18n.volumeUp),
                                 ),
                                 MenuButton(
+                                  leading: Icon(Icons.volume_down_outlined),
                                   child: Text(context.i18n.volumeDown),
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
