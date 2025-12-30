@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <sstream>
+#include <unordered_map>
 
 using flutter::EncodableList;
 using flutter::EncodableMap;
@@ -261,23 +262,21 @@ void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
   std::string keyIdentifier = std::get<std::string>(args.at(EncodableValue("key")));
 
   // Map string identifier to Windows virtual key codes
-  UINT vkCode = 0;
-  if (keyIdentifier == "playPause") {
-    vkCode = VK_MEDIA_PLAY_PAUSE;
-  } else if (keyIdentifier == "stop") {
-    vkCode = VK_MEDIA_STOP;
-  } else if (keyIdentifier == "next") {
-    vkCode = VK_MEDIA_NEXT_TRACK;
-  } else if (keyIdentifier == "previous") {
-    vkCode = VK_MEDIA_PREV_TRACK;
-  } else if (keyIdentifier == "volumeUp") {
-    vkCode = VK_VOLUME_UP;
-  } else if (keyIdentifier == "volumeDown") {
-    vkCode = VK_VOLUME_DOWN;
-  } else {
+  static const std::unordered_map<std::string, UINT> keyMap = {
+    {"playPause", VK_MEDIA_PLAY_PAUSE},
+    {"stop", VK_MEDIA_STOP},
+    {"next", VK_MEDIA_NEXT_TRACK},
+    {"previous", VK_MEDIA_PREV_TRACK},
+    {"volumeUp", VK_VOLUME_UP},
+    {"volumeDown", VK_VOLUME_DOWN}
+  };
+
+  auto it = keyMap.find(keyIdentifier);
+  if (it == keyMap.end()) {
     result->Error("UNSUPPORTED_KEY", "Unsupported media key identifier");
     return;
   }
+  UINT vkCode = it->second;
 
   // Send key down event
   INPUT inputs[2] = {};
