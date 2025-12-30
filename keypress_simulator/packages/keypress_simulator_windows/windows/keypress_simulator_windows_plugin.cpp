@@ -281,12 +281,12 @@ void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
   // Send key down event
   INPUT inputs[2] = {};
   inputs[0].type = INPUT_KEYBOARD;
-  inputs[0].ki.wVk = vkCode;
+  inputs[0].ki.wVk = static_cast<WORD>(vkCode);
   inputs[0].ki.dwFlags = 0; // Key down
 
   // Send key up event
   inputs[1].type = INPUT_KEYBOARD;
-  inputs[1].ki.wVk = vkCode;
+  inputs[1].ki.wVk = static_cast<WORD>(vkCode);
   inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
 
   UINT eventsSent = SendInput(2, inputs, sizeof(INPUT));
