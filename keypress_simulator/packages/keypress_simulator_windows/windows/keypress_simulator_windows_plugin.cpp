@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <sstream>
+#include <unordered_map>
 
 using flutter::EncodableList;
 using flutter::EncodableMap;
@@ -253,6 +254,49 @@ HWND FindTargetWindow(const std::string& processName, const std::string& windowT
   return data.foundWindow;
 }
 
+void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
+    const flutter::MethodCall<flutter::EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+
+  const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
+  std::string keyIdentifier = std::get<std::string>(args.at(EncodableValue("key")));
+
+  // Map string identifier to Windows virtual key codes
+  static const std::unordered_map<std::string, UINT> keyMap = {
+    {"playPause", VK_MEDIA_PLAY_PAUSE},
+    {"stop", VK_MEDIA_STOP},
+    {"next", VK_MEDIA_NEXT_TRACK},
+    {"previous", VK_MEDIA_PREV_TRACK},
+    {"volumeUp", VK_VOLUME_UP},
+    {"volumeDown", VK_VOLUME_DOWN}
+  };
+
+  auto it = keyMap.find(keyIdentifier);
+  if (it == keyMap.end()) {
+    result->Error("UNSUPPORTED_KEY", "Unsupported media key identifier");
+    return;
+  }
+  UINT vkCode = it->second;
+
+  // Send key down event
+  INPUT inputs[2] = {};
+  inputs[0].type = INPUT_KEYBOARD;
+  inputs[0].ki.wVk = static_cast<WORD>(vkCode);
+  inputs[0].ki.dwFlags = 0; // Key down
+
+  // Send key up event
+  inputs[1].type = INPUT_KEYBOARD;
+  inputs[1].ki.wVk = static_cast<WORD>(vkCode);
+  inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+  UINT eventsSent = SendInput(2, inputs, sizeof(INPUT));
+  if (eventsSent != 2) {
+    result->Error("SEND_INPUT_FAILED", "Failed to send media key input events");
+    return;
+  }
+
+  result->Success(flutter::EncodableValue(true));
+}
 
 
 void KeypressSimulatorWindowsPlugin::HandleMethodCall(
@@ -262,6 +306,8 @@ void KeypressSimulatorWindowsPlugin::HandleMethodCall(
     SimulateKeyPress(method_call, std::move(result));
   } else if (method_call.method_name().compare("simulateMouseClick") == 0) {
     SimulateMouseClick(method_call, std::move(result));
+  } else if (method_call.method_name().compare("simulateMediaKey") == 0) {
+    SimulateMediaKey(method_call, std::move(result));
   } else {
     result->NotImplemented();
   }

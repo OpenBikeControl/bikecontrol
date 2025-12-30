@@ -61,4 +61,27 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
     };
     await methodChannel.invokeMethod('simulateMouseClick', arguments);
   }
+
+  @override
+  Future<void> simulateMediaKey(PhysicalKeyboardKey mediaKey) async {
+    // Map PhysicalKeyboardKey to string identifier since keyCode is null for media keys
+    final keyMap = {
+      PhysicalKeyboardKey.mediaPlayPause: 'playPause',
+      PhysicalKeyboardKey.mediaStop: 'stop',
+      PhysicalKeyboardKey.mediaTrackNext: 'next',
+      PhysicalKeyboardKey.mediaTrackPrevious: 'previous',
+      PhysicalKeyboardKey.audioVolumeUp: 'volumeUp',
+      PhysicalKeyboardKey.audioVolumeDown: 'volumeDown',
+    };
+
+    final keyIdentifier = keyMap[mediaKey];
+    if (keyIdentifier == null) {
+      throw UnsupportedError('Unsupported media key: $mediaKey');
+    }
+
+    final Map<String, Object?> arguments = {
+      'key': keyIdentifier,
+    };
+    await methodChannel.invokeMethod('simulateMediaKey', arguments);
+  }
 }
