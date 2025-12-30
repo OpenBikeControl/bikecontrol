@@ -281,6 +281,10 @@ void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
   // Send key down event
   INPUT inputs[2] = {};
   inputs[0].type = INPUT_KEYBOARD;
+  /* C:\Users\\Downloads\swiftcontrol\windows\flutter\ephemeral\.plugin_symlinks\keypress_simulator_windows\windows\keypress_simulator_windows_plugin.cpp(284,22): error C2220: Die folgende Warnung wird als Fehler behandelt. [C:\Users\Acker\Downloads\swiftcontrol\build\windows\x64\plugins\keypress_simulator_windows\keypress_simulator_windows_plugin.vcxproj]
+C:\Users\\Downloads\swiftcontrol\windows\flutter\ephemeral\.plugin_symlinks\keypress_simulator_windows\windows\keypress_simulator_windows_plugin.cpp(284,22): warning C4244: "=": Konvertierung von "UINT" in "WORD", möglicher Datenverlust [C:\Users\Acker\Downloads\swiftcontrol\build\windows\x64\plugins\keypress_simulator_windows\keypress_simulator_windows_plugin.vcxproj]
+C:\Users\\Downloads\swiftcontrol\windows\flutter\ephemeral\.plugin_symlinks\keypress_simulator_windows\windows\keypress_simulator_windows_plugin.cpp(289,22): warning C4244: "=": Konvertierung von "UINT" in "WORD", möglicher Datenverlust [C:\Users\Acker\Downloads\swiftcontrol\build\windows\x64\plugins\keypress_simulator_windows\keypress_simulator_windows_plugin.vcxproj]
+Error: Build process failed.*/
   inputs[0].ki.wVk = vkCode;
   inputs[0].ki.dwFlags = 0; // Key down
 
