@@ -439,6 +439,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             title: Text(action.title),
             subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
                 ? Text(_keyPair.inGameActionValue!.toString())
+                : action.alternativeTitle != null
+                ? Text(action.alternativeTitle!)
                 : null,
             isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
             onPressed: () {
