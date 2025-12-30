@@ -86,6 +86,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   InGameAction? _pressedAction;
 
   DateTime? _lastDown;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -98,6 +99,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   @override
   void dispose() {
     _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -200,7 +202,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           ),
         ],
         child: Scrollbar(
+          controller: _scrollController,
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +477,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       );
       return;
     } else {
-      if (!down && _lastDown != null) {
+      if (!down && _lastDown != null && action.isLongPress) {
         final timeSinceLastDown = DateTime.now().difference(_lastDown!);
         if (timeSinceLastDown < Duration(milliseconds: 400)) {
           // wait a bit so actions actually get applied correctly for some trainer apps
