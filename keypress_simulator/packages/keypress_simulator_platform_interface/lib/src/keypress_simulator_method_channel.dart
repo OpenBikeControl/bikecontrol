@@ -65,7 +65,7 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
   @override
   Future<void> simulateMediaKey(PhysicalKeyboardKey mediaKey) async {
     // Map PhysicalKeyboardKey to string identifier since keyCode is null for media keys
-    final keyMap = {
+    static const keyMap = {
       PhysicalKeyboardKey.mediaPlayPause: 'playPause',
       PhysicalKeyboardKey.mediaStop: 'stop',
       PhysicalKeyboardKey.mediaTrackNext: 'next',

@@ -268,7 +268,7 @@ void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
     {"next", VK_MEDIA_NEXT_TRACK},
     {"previous", VK_MEDIA_PREV_TRACK},
     {"volumeUp", VK_VOLUME_UP},
-    {"volumeDown", VK_VOLUME_DOWN}
+    {"volumeDown", VK_VOLUME_DOWN},
   };
 
   auto it = keyMap.find(keyIdentifier);
