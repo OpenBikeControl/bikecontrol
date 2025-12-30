@@ -38,6 +38,11 @@ class KeyPressSimulator {
     return _platform.simulateKeyPress(key: key, modifiers: modifiers, keyDown: false);
   }
 
+  /// Simulate media key press.
+  Future<void> simulateMediaKey(PhysicalKeyboardKey mediaKey) {
+    return _platform.simulateMediaKey(mediaKey);
+  }
+
   @Deprecated('Please use simulateKeyDown & simulateKeyUp methods.')
   Future<void> simulateCtrlCKeyPress() async {
     const key = PhysicalKeyboardKey.keyC;

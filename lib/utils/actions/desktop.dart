@@ -20,6 +20,14 @@ class DesktopActions extends BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(button)!;
 
     if (core.settings.getLocalEnabled()) {
+      // Handle media keys
+      if (keyPair.isSpecialKey) {
+        // Increment command count after successful execution
+        await IAPManager.instance.incrementCommandCount();
+        await keyPressSimulator.simulateMediaKey(keyPair.physicalKey!);
+        return Success('Media key pressed: $keyPair');
+      }
+      
       if (keyPair.physicalKey != null) {
         // Increment command count after successful execution
         await IAPManager.instance.incrementCommandCount();

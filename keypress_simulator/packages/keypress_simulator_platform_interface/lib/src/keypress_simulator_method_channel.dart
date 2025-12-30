@@ -61,4 +61,12 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
     };
     await methodChannel.invokeMethod('simulateMouseClick', arguments);
   }
+
+  @override
+  Future<void> simulateMediaKey(PhysicalKeyboardKey mediaKey) async {
+    final Map<String, Object?> arguments = {
+      'keyCode': mediaKey.keyCode,
+    };
+    await methodChannel.invokeMethod('simulateMediaKey', arguments);
+  }
 }

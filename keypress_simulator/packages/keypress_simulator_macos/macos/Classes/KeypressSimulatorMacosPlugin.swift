@@ -22,6 +22,9 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
         case "simulateMouseClick":
             simulateMouseClick(call, result: result)
             break
+        case "simulateMediaKey":
+            simulateMediaKey(call, result: result)
+            break
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -113,5 +116,62 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
         let eventKeyPress = CGEvent(keyboardEventSource: nil, virtualKey: virtualKey, keyDown: keyDown);
         eventKeyPress!.flags = flags
         return eventKeyPress!
+    }
+
+    public func simulateMediaKey(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args:[String: Any] = call.arguments as! [String: Any]
+        let keyCode: Int64 = args["keyCode"] as! Int64
+
+        // Map Flutter media key codes to macOS NX key codes
+        // Flutter uses USB HID usage codes in the format 0x0007XXXX
+        var mediaKeyCode: Int32 = 0
+        switch keyCode {
+        case 0x000700CD: // PhysicalKeyboardKey.mediaPlayPause
+            mediaKeyCode = NX_KEYTYPE_PLAY
+        case 0x000700B7: // PhysicalKeyboardKey.mediaStop
+            // macOS doesn't have a direct stop key, use play/pause
+            mediaKeyCode = NX_KEYTYPE_PLAY
+        case 0x000700B5: // PhysicalKeyboardKey.mediaTrackNext
+            mediaKeyCode = NX_KEYTYPE_FAST
+        case 0x000700B6: // PhysicalKeyboardKey.mediaTrackPrevious
+            mediaKeyCode = NX_KEYTYPE_REWIND
+        case 0x000700E9: // PhysicalKeyboardKey.audioVolumeUp
+            mediaKeyCode = NX_KEYTYPE_SOUND_UP
+        case 0x000700EA: // PhysicalKeyboardKey.audioVolumeDown
+            mediaKeyCode = NX_KEYTYPE_SOUND_DOWN
+        default:
+            result(FlutterError(code: "UNSUPPORTED_KEY", message: "Unsupported media key code", details: nil))
+            return
+        }
+
+        // Create and post the media key event (key down)
+        let eventDown = NSEvent.otherEvent(
+            with: .systemDefined,
+            location: NSPoint.zero,
+            modifierFlags: NSEvent.ModifierFlags(rawValue: 0xa00),
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            subtype: 8,
+            data1: Int((mediaKeyCode << 16) | (0xa << 8)),
+            data2: -1
+        )
+        eventDown?.cgEvent?.post(tap: .cghidEventTap)
+
+        // Create and post the media key event (key up)
+        let eventUp = NSEvent.otherEvent(
+            with: .systemDefined,
+            location: NSPoint.zero,
+            modifierFlags: NSEvent.ModifierFlags(rawValue: 0xb00),
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            subtype: 8,
+            data1: Int((mediaKeyCode << 16) | (0xb << 8)),
+            data2: -1
+        )
+        eventUp?.cgEvent?.post(tap: .cghidEventTap)
+
+        result(true)
     }
 }
