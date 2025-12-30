@@ -49,7 +49,7 @@ class Testbed extends StatefulWidget {
   State<Testbed> createState() => _TestbedState();
 }
 
-class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
+class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final Ticker _ticker;
   late StreamSubscription<BaseNotification> _actionSubscription;
 
@@ -67,6 +67,8 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
 
   Offset? _lastMove;
 
+  bool _isInBackground = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -75,12 +77,18 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isInBackground = state == AppLifecycleState.paused || state == AppLifecycleState.hidden;
+  }
+
+  @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _focusNode = FocusNode(debugLabel: 'TestbedFocus', canRequestFocus: true, skipTraversal: true);
     _actionSubscription = core.connection.actionStream.listen((data) async {
-      if (!mounted) {
+      if (!mounted || (_isInBackground && data is! AlertNotification)) {
         return;
       }
       if (data is ButtonNotification && data.buttonsClicked.isNotEmpty) {
@@ -162,6 +170,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin {
   void dispose() {
     _ticker.dispose();
     _focusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
