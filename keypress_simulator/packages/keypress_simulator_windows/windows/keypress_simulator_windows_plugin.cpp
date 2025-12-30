@@ -258,7 +258,7 @@ void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
 
   const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
-  int64_t keyCode = std::get<int>(args.at(EncodableValue("keyCode")));
+  int64_t keyCode = std::get<std::int64_t>(args.at(EncodableValue("keyCode")));
 
   // Map Flutter media key codes to Windows virtual key codes
   // Flutter uses USB HID usage codes in the format 0x0007XXXX
