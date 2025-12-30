@@ -73,7 +73,7 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
       PhysicalKeyboardKey.audioVolumeUp: 'volumeUp',
       PhysicalKeyboardKey.audioVolumeDown: 'volumeDown',
     };
-    
+
     final keyIdentifier = keyMap[mediaKey];
     if (keyIdentifier == null) {
       throw UnsupportedError('Unsupported media key: $mediaKey');
