@@ -120,29 +120,28 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
 
     public func simulateMediaKey(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args:[String: Any] = call.arguments as! [String: Any]
-        let keyCode: Int64 = args["keyCode"] as! Int64
+        let keyIdentifier: String = args["key"] as! String
 
-        // Map Flutter media key codes to macOS NX key codes
-        // Flutter uses USB HID usage codes in the format 0x0007XXXX
+        // Map string identifier to macOS NX key codes
         var mediaKeyCode: Int32 = 0
-        switch keyCode {
-        case 0x000700CD: // PhysicalKeyboardKey.mediaPlayPause
+        switch keyIdentifier {
+        case "playPause":
             mediaKeyCode = NX_KEYTYPE_PLAY
-        case 0x000700B7: // PhysicalKeyboardKey.mediaStop
+        case "stop":
             // macOS doesn't have a dedicated stop key in its media control API.
             // Following macOS conventions, we map stop to play/pause which toggles playback.
             // This matches the behavior of the physical media keys on Mac keyboards.
             mediaKeyCode = NX_KEYTYPE_PLAY
-        case 0x000700B5: // PhysicalKeyboardKey.mediaTrackNext
+        case "next":
             mediaKeyCode = NX_KEYTYPE_FAST
-        case 0x000700B6: // PhysicalKeyboardKey.mediaTrackPrevious
+        case "previous":
             mediaKeyCode = NX_KEYTYPE_REWIND
-        case 0x000700E9: // PhysicalKeyboardKey.audioVolumeUp
+        case "volumeUp":
             mediaKeyCode = NX_KEYTYPE_SOUND_UP
-        case 0x000700EA: // PhysicalKeyboardKey.audioVolumeDown
+        case "volumeDown":
             mediaKeyCode = NX_KEYTYPE_SOUND_DOWN
         default:
-            result(FlutterError(code: "UNSUPPORTED_KEY", message: "Unsupported media key code", details: nil))
+            result(FlutterError(code: "UNSUPPORTED_KEY", message: "Unsupported media key identifier", details: nil))
             return
         }
 

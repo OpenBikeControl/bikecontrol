@@ -258,33 +258,25 @@ void KeypressSimulatorWindowsPlugin::SimulateMediaKey(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
 
   const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
-  int64_t keyCode = std::get<std::int64_t>(args.at(EncodableValue("keyCode")));
+  std::string keyIdentifier = std::get<std::string>(args.at(EncodableValue("key")));
 
-  // Map Flutter media key codes to Windows virtual key codes
-  // Flutter uses USB HID usage codes in the format 0x0007XXXX
+  // Map string identifier to Windows virtual key codes
   UINT vkCode = 0;
-  switch (keyCode) {
-    case 0x000700CD: // PhysicalKeyboardKey.mediaPlayPause
-      vkCode = VK_MEDIA_PLAY_PAUSE;
-      break;
-    case 0x000700B7: // PhysicalKeyboardKey.mediaStop
-      vkCode = VK_MEDIA_STOP;
-      break;
-    case 0x000700B5: // PhysicalKeyboardKey.mediaTrackNext
-      vkCode = VK_MEDIA_NEXT_TRACK;
-      break;
-    case 0x000700B6: // PhysicalKeyboardKey.mediaTrackPrevious
-      vkCode = VK_MEDIA_PREV_TRACK;
-      break;
-    case 0x000700E9: // PhysicalKeyboardKey.audioVolumeUp
-      vkCode = VK_VOLUME_UP;
-      break;
-    case 0x000700EA: // PhysicalKeyboardKey.audioVolumeDown
-      vkCode = VK_VOLUME_DOWN;
-      break;
-    default:
-      result->Error("UNSUPPORTED_KEY", "Unsupported media key code");
-      return;
+  if (keyIdentifier == "playPause") {
+    vkCode = VK_MEDIA_PLAY_PAUSE;
+  } else if (keyIdentifier == "stop") {
+    vkCode = VK_MEDIA_STOP;
+  } else if (keyIdentifier == "next") {
+    vkCode = VK_MEDIA_NEXT_TRACK;
+  } else if (keyIdentifier == "previous") {
+    vkCode = VK_MEDIA_PREV_TRACK;
+  } else if (keyIdentifier == "volumeUp") {
+    vkCode = VK_VOLUME_UP;
+  } else if (keyIdentifier == "volumeDown") {
+    vkCode = VK_VOLUME_DOWN;
+  } else {
+    result->Error("UNSUPPORTED_KEY", "Unsupported media key identifier");
+    return;
   }
 
   // Send key down event
