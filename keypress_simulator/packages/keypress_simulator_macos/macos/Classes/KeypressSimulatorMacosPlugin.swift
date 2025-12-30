@@ -129,7 +129,9 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
         case 0x000700CD: // PhysicalKeyboardKey.mediaPlayPause
             mediaKeyCode = NX_KEYTYPE_PLAY
         case 0x000700B7: // PhysicalKeyboardKey.mediaStop
-            // macOS doesn't have a direct stop key, use play/pause
+            // macOS doesn't have a dedicated stop key in its media control API.
+            // Following macOS conventions, we map stop to play/pause which toggles playback.
+            // This matches the behavior of the physical media keys on Mac keyboards.
             mediaKeyCode = NX_KEYTYPE_PLAY
         case 0x000700B5: // PhysicalKeyboardKey.mediaTrackNext
             mediaKeyCode = NX_KEYTYPE_FAST
