@@ -404,6 +404,7 @@
   "tryingToConnectAgain": "Verbinde erneut...",
   "unassignAction": "Zuweisung aufheben",
   "unlockFullVersion": "Vollversion freischalten",
+  "unlockingNotPossible": "Aufgrund technischer Probleme ist eine Entsperrung derzeit nicht möglich; daher kann die App solange uneingeschränkt verwendet werden.",
   "update": "Aktualisieren",
   "useCustomKeymapForButton": "Verwende eine benutzerdefinierte Tastaturbelegung, um die",
   "version": "Version {version}",

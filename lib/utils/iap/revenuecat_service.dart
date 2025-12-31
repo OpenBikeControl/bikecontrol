@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart' as zp;
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
@@ -33,6 +34,7 @@ class RevenueCatService {
   final int Function() getDailyCommandLimit;
   final void Function(int limit) setDailyCommandLimit;
 
+  static const _isAndroidWorking = false;
   bool _isInitialized = false;
   String? _trialStartDate;
   String? _lastCommandDate;
@@ -117,7 +119,9 @@ class RevenueCatService {
 
       _isInitialized = true;
 
-      if (!isTrialExpired && Platform.isAndroid) {
+      if (Platform.isAndroid && !isPurchasedNotifier.value && !_isAndroidWorking) {
+        setDailyCommandLimit(10000);
+      } else if (!isTrialExpired && Platform.isAndroid) {
         setDailyCommandLimit(80);
       }
     } catch (e, s) {
@@ -225,7 +229,14 @@ class RevenueCatService {
   /// Purchase the full version (use paywall instead)
   Future<void> purchaseFullVersion(BuildContext context) async {
     // Direct the user to the paywall for a better experience
-    if (Platform.isMacOS) {
+    if (Platform.isAndroid && !_isAndroidWorking) {
+      buildToast(
+        context,
+        title: AppLocalizations.of(context).unlockingNotPossible,
+        duration: Duration(seconds: 5),
+      );
+      setDailyCommandLimit(10000);
+    } else if (Platform.isMacOS) {
       showDropdown(
         context: context,
         builder: (c) => DropdownMenu(

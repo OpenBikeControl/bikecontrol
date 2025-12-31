@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -171,7 +172,7 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
                                       ),
                                       SecondaryButton(
                                         leading: Icon(Icons.mail_outlined),
-                                        onPressed: () {
+                                        onPressed: () async {
                                           Navigator.pop(context);
 
                                           final isFromStore = (Platform.isAndroid
@@ -183,8 +184,10 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
                                           String subject = Uri.encodeComponent(
                                             context.i18n.helpRequested(packageInfoValue?.version ?? ''),
                                           );
+                                          final dbg = await debugText();
                                           String body = Uri.encodeComponent("""
-                ${debugText()}""");
+                
+${dbg}""");
                                           Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
 
                                           launchUrl(mail);
@@ -217,7 +220,8 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
   ];
 }
 
-String debugText() {
+Future<String> debugText() async {
+  final userId = IAPManager.instance.isUsingRevenueCat ? (await Purchases.appUserID) : null;
   return '''
                 
 ---
@@ -227,6 +231,7 @@ Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title).join(', ')}
+Status: ${IAPManager.instance.isPurchased.value ? 'Full Version' : 'Test Version'}${userId != null ? ' (User ID: $userId)' : ''}
 Logs: 
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';

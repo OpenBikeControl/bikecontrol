@@ -404,6 +404,7 @@
   "tryingToConnectAgain": "Tentative de reconnexion...",
   "unassignAction": "Action de désaffectation",
   "unlockFullVersion": "Débloquer la version complète",
+  "unlockingNotPossible": "En raison de problèmes techniques, le déverrouillage est actuellement impossible. Profitez donc d'une utilisation illimitée pour le moment !",
   "update": "Mise à jour",
   "useCustomKeymapForButton": "Utilisez une configuration de touches personnalisée pour prendre en charge",
   "version": "Version {version}",
