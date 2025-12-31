@@ -65,59 +65,62 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ],
         ),
       ],
+      floatingFooter: true,
       footers: [
         Center(child: HelpButton()),
       ],
       child: Center(
         child: Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.symmetric(vertical: !_isMobile ? 42 : 22.0, horizontal: 16),
           constraints: !_isMobile ? BoxConstraints(maxWidth: 500) : null,
-          child: AnimatedSwitcher(
-            duration: Duration(milliseconds: 600),
-            child: switch (_currentStep) {
-              _OnboardingStep.permissions => _PermissionsOnboardingStep(
-                onComplete: () {
-                  setState(() {
-                    _currentStep = _OnboardingStep.connect;
-                  });
-                },
-              ),
-              _OnboardingStep.connect => _ConnectOnboardingStep(
-                onComplete: () {
-                  setState(() {
-                    _currentStep = _OnboardingStep.trainer;
-                  });
-                },
-              ),
-              _OnboardingStep.trainer => _TrainerOnboardingStep(
-                onComplete: () {
-                  setState(() {
-                    _currentStep = _OnboardingStep.finish;
-                  });
-                },
-              ),
-              _OnboardingStep.finish => Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 12,
-                children: [
-                  ColoredTitle(text: 'Setup Complete!'),
-                  Text(
-                    'As a final step you\'ll get to choose how to connect to ${core.settings.getTrainerApp()?.name}.',
-                  ),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(vertical: !_isMobile ? 42 : 22.0, horizontal: 16),
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 600),
+              child: switch (_currentStep) {
+                _OnboardingStep.permissions => _PermissionsOnboardingStep(
+                  onComplete: () {
+                    setState(() {
+                      _currentStep = _OnboardingStep.connect;
+                    });
+                  },
+                ),
+                _OnboardingStep.connect => _ConnectOnboardingStep(
+                  onComplete: () {
+                    setState(() {
+                      _currentStep = _OnboardingStep.trainer;
+                    });
+                  },
+                ),
+                _OnboardingStep.trainer => _TrainerOnboardingStep(
+                  onComplete: () {
+                    setState(() {
+                      _currentStep = _OnboardingStep.finish;
+                    });
+                  },
+                ),
+                _OnboardingStep.finish => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 12,
+                  children: [
+                    ColoredTitle(text: 'Setup Complete!'),
+                    Text(
+                      'As a final step you\'ll get to choose how to connect to ${core.settings.getTrainerApp()?.name}.',
+                    ),
 
-                  PrimaryButton(
-                    leading: Icon(Icons.check),
-                    onPressed: () {
-                      core.settings.setShowOnboarding(false);
-                      widget.onComplete();
-                    },
-                    child: Text('Continue'),
-                  ),
-                ],
-              ),
-            },
+                    PrimaryButton(
+                      leading: Icon(Icons.check),
+                      onPressed: () {
+                        core.settings.setShowOnboarding(false);
+                        widget.onComplete();
+                      },
+                      child: Text('Continue'),
+                    ),
+                  ],
+                ),
+              },
+            ),
           ),
         ),
       ),
