@@ -40,6 +40,11 @@ class ZwiftClickV2 extends ZwiftRide {
   bool get canVibrate => false;
 
   @override
+  String toString() {
+    return "$name V2";
+  }
+
+  @override
   Future<void> setupHandshake() async {
     super.setupHandshake();
     await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));

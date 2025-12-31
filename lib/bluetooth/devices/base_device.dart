@@ -36,7 +36,8 @@ abstract class BaseDevice {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is BaseDevice && runtimeType == other.runtimeType && name == other.name;
+      identical(this, other) ||
+      other is BaseDevice && runtimeType == other.runtimeType && toString() == other.toString();
 
   @override
   int get hashCode => name.hashCode;

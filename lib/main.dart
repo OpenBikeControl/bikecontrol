@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/pages/onboarding.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
@@ -163,11 +164,25 @@ void initializeActions(ConnectionType connectionType) {
   core.actionHandler.init(core.settings.getKeyMap());
 }
 
-class BikeControlApp extends StatelessWidget {
+class BikeControlApp extends StatefulWidget {
   final Widget? customChild;
   final BCPage page;
   final String? error;
   const BikeControlApp({super.key, this.error, this.page = BCPage.devices, this.customChild});
+
+  @override
+  State<BikeControlApp> createState() => _BikeControlAppState();
+}
+
+class _BikeControlAppState extends State<BikeControlApp> {
+  BCPage? _showPage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    core.connection.initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,10 +212,10 @@ class BikeControlApp extends StatelessWidget {
         ),
       ),
       //themeMode: ThemeMode.dark,
-      home: error != null
+      home: widget.error != null
           ? Center(
               child: Text(
-                'There was an error starting the App. Please contact support:\n$error',
+                'There was an error starting the App. Please contact support:\n${widget.error}',
                 style: TextStyle(color: Colors.white),
               ),
             )
@@ -209,7 +224,19 @@ class BikeControlApp extends StatelessWidget {
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
               child: Stack(
                 children: [
-                  customChild ?? Navigation(page: page),
+                  widget.customChild ??
+                      (AnimatedSwitcher(
+                        duration: Duration(milliseconds: 600),
+                        child: core.settings.getShowOnboarding()
+                            ? OnboardingPage(
+                                onComplete: () {
+                                  setState(() {
+                                    _showPage = BCPage.trainer;
+                                  });
+                                },
+                              )
+                            : Navigation(page: _showPage ?? widget.page),
+                      )),
                   Positioned.fill(child: Testbed()),
                 ],
               ),

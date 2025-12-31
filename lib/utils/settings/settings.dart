@@ -26,6 +26,12 @@ class Settings {
       prefs = await SharedPreferences.getInstance();
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
+      if (getShowOnboarding() && getTrainerApp() != null) {
+        // If onboarding is to be shown, but a trainer app is already set,
+        // skip onboarding and set to not show again.
+        await setShowOnboarding(false);
+      }
+
       if (core.actionHandler is DesktopActions) {
         // Must add this line.
         await windowManager.ensureInitialized();
@@ -374,5 +380,13 @@ class Settings {
   Future<void> setSramAxsDoubleClickWindowMs(int ms) async {
     final v = ms.clamp(_sramAxsDoubleClickWindowMinMs, _sramAxsDoubleClickWindowMaxMs);
     await prefs.setInt('sram_axs_double_click_window_ms', v);
+  }
+
+  bool getShowOnboarding() {
+    return prefs.getBool('show_onboarding') ?? true;
+  }
+
+  Future<void> setShowOnboarding(bool show) async {
+    await prefs.setBool('show_onboarding', show);
   }
 }

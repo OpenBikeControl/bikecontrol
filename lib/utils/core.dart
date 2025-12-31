@@ -412,7 +412,9 @@ class MediaKeyHandler {
       () => ControllerButton(keyPressed),
     );
 
-    var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+    var availableDevice = core.connection.controllerDevices.firstOrNullWhere(
+      (e) => e.toString() == hidDevice.toString(),
+    );
     if (availableDevice == null) {
       core.connection.addDevices([hidDevice]);
       availableDevice = hidDevice;

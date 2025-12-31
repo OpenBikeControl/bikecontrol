@@ -31,6 +31,7 @@ class _ScanWidgetState extends State<ScanWidget> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (_needsPermissions != null && _needsPermissions!.isNotEmpty)
           Card(

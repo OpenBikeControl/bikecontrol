@@ -4,6 +4,7 @@ import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/permissions_list.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -183,94 +184,7 @@ Future openPermissionSheet(BuildContext context, List<PlatformRequirement> notDo
   return openSheet(
     context: context,
     draggable: true,
-    builder: (context) => _PermissionList(requirements: notDone),
+    builder: (context) => PermissionList(requirements: notDone),
     position: OverlayPosition.bottom,
   );
-}
-
-class _PermissionList extends StatefulWidget {
-  final List<PlatformRequirement> requirements;
-  const _PermissionList({super.key, required this.requirements});
-
-  @override
-  State<_PermissionList> createState() => _PermissionListState();
-}
-
-class _PermissionListState extends State<_PermissionList> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.requirements.isNotEmpty) {
-      if (state == AppLifecycleState.resumed) {
-        Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
-          final allDone = widget.requirements.every((e) => e.status);
-          if (allDone && context.mounted) {
-            closeSheet(context);
-          } else if (context.mounted) {
-            setState(() {});
-          }
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        spacing: 18,
-        children: [
-          Text(
-            context.i18n.theFollowingPermissionsRequired,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          ...widget.requirements.map(
-            (e) => Row(
-              children: [
-                Expanded(
-                  child: Basic(
-                    title: Text(e.name),
-                    subtitle: e.description != null ? Text(e.description!) : null,
-                    trailing: Button(
-                      style: e.status ? ButtonStyle.secondary() : ButtonStyle.primary(),
-                      onPressed: e.status
-                          ? null
-                          : () {
-                              e
-                                  .call(context, () {
-                                    setState(() {});
-                                  })
-                                  .then((_) {
-                                    setState(() {});
-                                    if (widget.requirements.all((e) => e.status)) {
-                                      closeSheet(context);
-                                    }
-                                  });
-                            },
-                      child: e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

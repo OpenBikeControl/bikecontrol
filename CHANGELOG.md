@@ -1,5 +1,6 @@
 ### 4.3.0 (unreleased)
 **Features**:
+- Onboarding for new users
 - media key support for Windows and macOS
 - App is now available in Italian (thanks to Connect_Thanks2613)
 

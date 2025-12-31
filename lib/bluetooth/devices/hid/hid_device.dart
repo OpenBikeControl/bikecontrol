@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:flutter/material.dart';
 
 class HidDevice extends BaseDevice {
   HidDevice(super.name) : super(availableButtons: []);
@@ -15,7 +15,7 @@ class HidDevice extends BaseDevice {
   Widget showInformation(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(name)),
+        Expanded(child: Text(toString())),
         PopupMenuButton(
           itemBuilder: (c) => [
             PopupMenuItem(

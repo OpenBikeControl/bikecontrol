@@ -152,11 +152,6 @@ abstract class BluetoothDevice extends BaseDevice {
   @override
   int get hashCode => scanResult.deviceId.hashCode;
 
-  @override
-  String toString() {
-    return name + (firmwareVersion != null ? ' v$firmwareVersion' : '');
-  }
-
   BleDevice get device => scanResult;
 
   @override
@@ -230,7 +225,7 @@ abstract class BluetoothDevice extends BaseDevice {
           spacing: 8,
           children: [
             Text(
-              device.name?.screenshot ?? runtimeType.toString(),
+              toString().screenshot ?? runtimeType.toString(),
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             if (isBeta) BetaPill(),

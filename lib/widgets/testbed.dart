@@ -92,7 +92,18 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
         return;
       }
       if (data is ButtonNotification && data.buttonsClicked.isNotEmpty) {
-        if (core.actionHandler.supportedApp == null) {
+        if (core.settings.getShowOnboarding()) {
+          final button = data.buttonsClicked.first;
+          final sample = _KeySample(
+            button: button,
+            text: '🔘 ${button.name}',
+            timestamp: DateTime.now(),
+          );
+          _keys.insert(0, sample);
+          if (_keys.length > widget.maxKeyboardEvents) {
+            _keys.removeLast();
+          }
+        } else if (core.actionHandler.supportedApp == null) {
           buildToast(context, level: LogLevel.LOGLEVEL_WARNING, title: context.i18n.selectTrainerAppAndTarget);
         } else {
           final button = data.buttonsClicked.first;

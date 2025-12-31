@@ -7,7 +7,6 @@ import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
@@ -24,6 +23,7 @@ import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import '../utils/keymap/apps/supported_app.dart';
 
 class TrainerPage extends StatefulWidget {
   final bool isMobile;
@@ -90,7 +90,9 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final showLocalAsOther =
-        (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showLocalControl;
+        (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) &&
+        core.logic.showLocalControl &&
+        !core.settings.getLocalEnabled();
     final showWhooshLinkAsOther =
         (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
 
@@ -109,21 +111,58 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               valueListenable: IAPManager.instance.isPurchased,
               builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
             ),
-            ConfigurationPage(
-              onUpdate: () {
-                setState(() {});
-                widget.onUpdate();
-                if (_scrollController.position.pixels != _scrollController.position.maxScrollExtent &&
-                    core.settings.getLastTarget() == Target.otherDevice) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _scrollController.animateTo(
-                      _scrollController.offset + 300,
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  });
-                }
-              },
+            Accordion(
+              items: [
+                AccordionItem(
+                  trigger: AccordionTrigger(
+                    child: IgnorePointer(
+                      child: Row(
+                        spacing: 12,
+                        children: [
+                          Select<SupportedApp>(
+                            itemBuilder: (c, app) => Row(
+                              spacing: 4,
+                              children: [
+                                Text(screenshotMode ? 'Trainer app' : app.name),
+                                if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                              ],
+                            ),
+                            popup: SelectPopup(
+                              items: SelectItemList(
+                                children: SupportedApp.supportedApps.map((app) {
+                                  return SelectItemButton(
+                                    value: app,
+                                    child: Row(
+                                      spacing: 4,
+                                      children: [
+                                        Text(app.name),
+                                        if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ).call,
+                            placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
+                            value: core.settings.getTrainerApp(),
+                            onChanged: (selectedApp) async {},
+                          ),
+                          if (core.settings.getLastTarget() != null) ...[
+                            Icon(core.settings.getLastTarget()!.icon),
+                            Text(core.settings.getLastTarget()!.getTitle(context)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  content: ConfigurationPage(
+                    onUpdate: () {
+                      setState(() {});
+                      widget.onUpdate();
+                    },
+                  ),
+                ),
+              ],
             ),
             if (core.settings.getTrainerApp() != null) ...[
               SizedBox(height: 8),

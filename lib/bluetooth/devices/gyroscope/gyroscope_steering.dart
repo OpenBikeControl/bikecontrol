@@ -200,7 +200,7 @@ class GyroscopeSteering extends BaseDevice {
             spacing: 12,
             children: [
               Text(
-                name.screenshot,
+                toString().screenshot,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               if (isBeta) BetaPill(),

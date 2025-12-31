@@ -396,7 +396,7 @@ class RevenueCatService {
       "bikecontrol_target": core.settings.getLastTarget()?.name ?? '-',
       if (core.connection.controllerDevices.isNotEmpty)
         'bikecontrol_controllers': core.connection.controllerDevices.joinToString(
-          transform: (d) => d.name,
+          transform: (d) => d.toString(),
           separator: ',',
         ),
       'bikecontrol_keymap': core.settings.getKeyMap()?.name ?? '-',

@@ -96,7 +96,9 @@ class Connection {
         final scanResult = BluetoothDevice.fromScanResult(result);
 
         if (scanResult != null) {
-          _actionStreams.add(LogNotification('Found new device: ${kIsWeb ? scanResult.name : scanResult.runtimeType}'));
+          _actionStreams.add(
+            LogNotification('Found new device: ${kIsWeb ? scanResult.toString() : scanResult.runtimeType}'),
+          );
           addDevices([scanResult]);
         } else {
           final manufacturerData = result.manufacturerDataList;
@@ -123,7 +125,7 @@ class Connection {
           // on web, log all characteristic changes for debugging
           _actionStreams.add(
             LogNotification(
-              'Characteristic update for device ${device.name}, char: $characteristicUuid, value: ${bytesToReadableHex(value)}',
+              'Characteristic update for device ${device.toString()}, char: $characteristicUuid, value: ${bytesToReadableHex(value)}',
             ),
           );
         }
@@ -132,7 +134,7 @@ class Connection {
         } catch (e, backtrace) {
           _actionStreams.add(
             LogNotification(
-              "Error processing characteristic for device ${device.name} and char: $characteristicUuid: $e\n$backtrace",
+              "Error processing characteristic for device ${device.toString()} and char: $characteristicUuid: $e\n$backtrace",
             ),
           );
           if (kDebugMode) {
@@ -267,11 +269,11 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.name}'));
+      _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
       _connect(device)
           .then((_) {
             _handlingConnectionQueue = false;
-            _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.name}'));
+            _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'));
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }
@@ -281,11 +283,11 @@ class Connection {
             _handlingConnectionQueue = false;
             if (e is TimeoutException) {
               _actionStreams.add(
-                AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.name}: Timeout'),
+                AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.toString()}: Timeout'),
               );
             } else {
               _actionStreams.add(
-                AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.name} - $e'),
+                AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.toString()} - $e'),
               );
             }
             if (_connectionQueue.isNotEmpty) {
@@ -306,7 +308,7 @@ class Connection {
           _connectionStreams.add(device);
           core.flutterLocalNotificationsPlugin.show(
             1338,
-            '${device.name} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+            '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
             !state ? AppLocalizations.current.tryingToConnectAgain : null,
             NotificationDetails(
               android: AndroidNotificationDetails('Connection', 'Connection Status'),
@@ -364,8 +366,8 @@ class Connection {
     if (device is BluetoothDevice) {
       if (persistForget) {
         // Add device to ignored list when forgetting
-        await core.settings.addIgnoredDevice(device.device.deviceId, device.name);
-        _actionStreams.add(LogNotification('Device ignored: ${device.name}'));
+        await core.settings.addIgnoredDevice(device.device.deviceId, device.toString());
+        _actionStreams.add(LogNotification('Device ignored: ${device.toString()}'));
       }
       if (!forget) {
         // allow reconnection

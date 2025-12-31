@@ -140,10 +140,13 @@ class _AppTitleState extends State<AppTitle> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GradientText('BikeControl', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+        GradientText(
+          'BikeControl',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        ),
         if (packageInfoValue != null)
           Text(
-            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${IAPManager.instance.getStatusMessage()}',
+            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${core.settings.getShowOnboarding() ? 'Onboarding' : IAPManager.instance.getStatusMessage()}',
             style: TextStyle(fontSize: 12),
           ).mono.muted
         else

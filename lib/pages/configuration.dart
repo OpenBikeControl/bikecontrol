@@ -16,8 +16,9 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ConfigurationPage extends StatefulWidget {
+  final bool onboardingMode;
   final VoidCallback onUpdate;
-  const ConfigurationPage({super.key, required this.onUpdate});
+  const ConfigurationPage({super.key, required this.onUpdate, this.onboardingMode = false});
 
   @override
   State<ConfigurationPage> createState() => _ConfigurationPageState();
@@ -28,6 +29,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
   Widget build(BuildContext context) {
     return Column(
       spacing: 12,
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -111,7 +113,9 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       },
                     ),
                     if (core.settings.getTrainerApp() != null) ...[
-                      if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true && !screenshotMode)
+                      if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol == true &&
+                          !screenshotMode &&
+                          !widget.onboardingMode)
                         Text(
                           AppLocalizations.of(context).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
                         ).xSmall,
@@ -162,7 +166,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                         ],
                       ),
                     ],
-                    if (core.settings.getTrainerApp()?.star == true && !screenshotMode)
+                    if (core.settings.getTrainerApp()?.star == true && !screenshotMode && !widget.onboardingMode)
                       Row(
                         spacing: 8,
                         children: [

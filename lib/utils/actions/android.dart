@@ -30,7 +30,9 @@ class AndroidActions extends BaseActions {
       final hidDevice = HidDevice(keyPressed.source);
       final button = hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey));
 
-      var availableDevice = core.connection.controllerDevices.firstOrNullWhere((e) => e.name == hidDevice.name);
+      var availableDevice = core.connection.controllerDevices.firstOrNullWhere(
+        (e) => e.toString() == hidDevice.toString(),
+      );
       if (availableDevice == null) {
         core.connection.addDevices([hidDevice]);
         availableDevice = hidDevice;
