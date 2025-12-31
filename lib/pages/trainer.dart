@@ -101,7 +101,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       controller: _scrollController,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: EdgeInsets.only(top: widget.isMobile ? 46 : 16, left: 16, right: 16, bottom: 16),
+        padding: EdgeInsets.only(top: widget.isMobile ? 166 : 16, left: 16, right: 16, bottom: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,

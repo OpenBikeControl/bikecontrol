@@ -5,8 +5,9 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../utils/i18n_extension.dart';
 
 class PermissionList extends StatefulWidget {
+  final VoidCallback onDone;
   final List<PlatformRequirement> requirements;
-  const PermissionList({super.key, required this.requirements});
+  const PermissionList({super.key, required this.requirements, required this.onDone});
 
   @override
   State<PermissionList> createState() => _PermissionListState();
@@ -74,7 +75,7 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
                                   .then((_) {
                                     setState(() {});
                                     if (widget.requirements.all((e) => e.status)) {
-                                      closeSheet(context);
+                                      widget.onDone();
                                     }
                                   });
                             },

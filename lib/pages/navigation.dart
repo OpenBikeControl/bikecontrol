@@ -155,7 +155,9 @@ class _NavigationState extends State<Navigation> {
               ),
             ),
             Divider(),
+            if (_isMobile) Center(child: HelpButton()),
           ],
+          floatingHeader: _isMobile,
           footers: _isMobile ? [Divider(), _buildNavigationBar()] : [],
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,8 +197,11 @@ class _NavigationState extends State<Navigation> {
                         isMobile: _isMobile,
                         key: _pageKeys[BCPage.customization],
                       ),
-                      BCPage.logs => LogViewer(
-                        key: _pageKeys[BCPage.logs],
+                      BCPage.logs => Padding(
+                        padding: EdgeInsets.only(top: _isMobile ? 166 : 16, left: 16, right: 16, bottom: 16),
+                        child: LogViewer(
+                          key: _pageKeys[BCPage.logs],
+                        ),
                       ),
                     },
                   ),
@@ -206,11 +211,11 @@ class _NavigationState extends State<Navigation> {
           ),
         ),
 
-        Container(
-          alignment: Alignment.topCenter,
-          padding: _isMobile ? EdgeInsets.only(top: 65) : null,
-          child: HelpButton(),
-        ),
+        if (!_isMobile)
+          Container(
+            alignment: Alignment.topCenter,
+            child: HelpButton(),
+          ),
       ],
     );
   }

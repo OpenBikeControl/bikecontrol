@@ -184,7 +184,12 @@ Future openPermissionSheet(BuildContext context, List<PlatformRequirement> notDo
   return openSheet(
     context: context,
     draggable: true,
-    builder: (context) => PermissionList(requirements: notDone),
+    builder: (context) => PermissionList(
+      requirements: notDone,
+      onDone: () {
+        closeSheet(context);
+      },
+    ),
     position: OverlayPosition.bottom,
   );
 }

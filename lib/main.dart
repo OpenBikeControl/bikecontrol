@@ -178,13 +178,6 @@ class _BikeControlAppState extends State<BikeControlApp> {
   BCPage? _showPage;
 
   @override
-  void initState() {
-    super.initState();
-
-    core.connection.initialize();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
     return ShadcnApp(
@@ -222,26 +215,50 @@ class _BikeControlAppState extends State<BikeControlApp> {
           : ToastLayer(
               key: ValueKey('Test'),
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
-              child: Stack(
-                children: [
-                  widget.customChild ??
-                      (AnimatedSwitcher(
-                        duration: Duration(milliseconds: 600),
-                        child: core.settings.getShowOnboarding()
-                            ? OnboardingPage(
-                                onComplete: () {
-                                  setState(() {
-                                    _showPage = BCPage.trainer;
-                                  });
-                                },
-                              )
-                            : Navigation(page: _showPage ?? widget.page),
-                      )),
-                  Positioned.fill(child: Testbed()),
-                ],
+              child: _Starter(
+                child: Stack(
+                  children: [
+                    widget.customChild ??
+                        (AnimatedSwitcher(
+                          duration: Duration(milliseconds: 600),
+                          child: core.settings.getShowOnboarding()
+                              ? OnboardingPage(
+                                  onComplete: () {
+                                    setState(() {
+                                      _showPage = BCPage.trainer;
+                                    });
+                                  },
+                                )
+                              : Navigation(page: _showPage ?? widget.page),
+                        )),
+                    Positioned.fill(child: Testbed()),
+                  ],
+                ),
               ),
             ),
     );
+  }
+}
+
+class _Starter extends StatefulWidget {
+  final Widget child;
+  const _Starter({super.key, required this.child});
+
+  @override
+  State<_Starter> createState() => _StarterState();
+}
+
+class _StarterState extends State<_Starter> {
+  @override
+  void initState() {
+    super.initState();
+
+    core.connection.initialize();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
 

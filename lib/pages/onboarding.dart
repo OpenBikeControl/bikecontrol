@@ -159,9 +159,14 @@ class _PermissionsOnboardingStepState extends State<_PermissionsOnboardingStep> 
     return Column(
       spacing: 12,
       children: [
-        ColoredTitle(text: 'Let\'s get you set up!\n\nFirst, we need to request some permissions.'),
+        ColoredTitle(text: 'Let\'s get you set up!'),
         if (_needsPermissions != null && _needsPermissions!.isNotEmpty)
-          PermissionList(requirements: _needsPermissions!),
+          PermissionList(
+            requirements: _needsPermissions!,
+            onDone: () {
+              widget.onComplete();
+            },
+          ),
       ],
     );
   }

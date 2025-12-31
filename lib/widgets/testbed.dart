@@ -291,7 +291,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
             if (widget.showKeyboard)
               Positioned(
                 right: 12,
-                bottom: _isMobile ? 92 : 12,
+                bottom: _isMobile && !core.settings.getShowOnboarding() ? 92 : 12,
                 child: IgnorePointer(
                   child: _KeyboardOverlay(
                     items: _keys,

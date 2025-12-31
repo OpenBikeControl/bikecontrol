@@ -95,7 +95,7 @@ class _ScanWidgetState extends State<ScanWidget> {
                           );
                         },
                       ),
-                    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
+                    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS) && !core.settings.getShowOnboarding())
                       Checkbox(
                         state: core.settings.getPhoneSteeringEnabled()
                             ? CheckboxState.checked
