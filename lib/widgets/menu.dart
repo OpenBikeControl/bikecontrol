@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/utils/core.dart';
@@ -15,7 +14,6 @@ import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../utils/iap/iap_manager.dart';
@@ -84,138 +82,7 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
       },
     ),
     Gap(4),
-    Builder(
-      builder: (context) {
-        return OutlineButton(
-          density: ButtonDensity.icon,
-          onPressed: () {
-            showDropdown(
-              context: context,
-              builder: (c) => DropdownMenu(
-                children: [
-                  MenuButton(
-                    leading: Icon(Icons.help_outline),
-                    child: Text(context.i18n.troubleshootingGuide),
-                    onPressed: (c) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-                      );
-                    },
-                  ),
-                  MenuDivider(),
-                  MenuLabel(child: Text(context.i18n.getSupport)),
-                  MenuButton(
-                    leading: Icon(Icons.reddit_outlined),
-                    onPressed: (c) {
-                      launchUrlString('https://www.reddit.com/r/BikeControl/');
-                    },
-                    child: Text('Reddit'),
-                  ),
-                  MenuButton(
-                    leading: Icon(Icons.facebook_outlined),
-                    onPressed: (c) {
-                      launchUrlString('https://www.facebook.com/groups/1892836898778912');
-                    },
-                    child: Text('Facebook'),
-                  ),
-                  MenuButton(
-                    leading: Icon(RadixIcons.githubLogo),
-                    onPressed: (c) {
-                      launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
-                    },
-                    child: Text('GitHub'),
-                  ),
-                  if (!kIsWeb) ...[
-                    MenuButton(
-                      leading: Icon(Icons.email_outlined),
-                      child: Text('Mail'),
-                      onPressed: (c) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Mail Support'),
-                              content: Container(
-                                constraints: BoxConstraints(maxWidth: 400),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  spacing: 16,
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(context).mailSupportExplanation,
-                                    ),
-                                    ...[
-                                      OutlineButton(
-                                        leading: Icon(Icons.reddit_outlined),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          launchUrlString('https://www.reddit.com/r/BikeControl/');
-                                        },
-                                        child: const Text('Reddit'),
-                                      ),
-                                      OutlineButton(
-                                        leading: Icon(Icons.facebook_outlined),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          launchUrlString('https://www.facebook.com/groups/1892836898778912');
-                                        },
-                                        child: const Text('Facebook'),
-                                      ),
-                                      OutlineButton(
-                                        leading: Icon(RadixIcons.githubLogo),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
-                                        },
-                                        child: const Text('GitHub'),
-                                      ),
-                                      SecondaryButton(
-                                        leading: Icon(Icons.mail_outlined),
-                                        onPressed: () async {
-                                          Navigator.pop(context);
 
-                                          final isFromStore = (Platform.isAndroid
-                                              ? isFromPlayStore == true
-                                              : Platform.isIOS);
-                                          final suffix = isFromStore ? '' : '-sw';
-
-                                          String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
-                                          String subject = Uri.encodeComponent(
-                                            context.i18n.helpRequested(packageInfoValue?.version ?? ''),
-                                          );
-                                          final dbg = await debugText();
-                                          String body = Uri.encodeComponent("""
-                
-${dbg}""");
-                                          Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
-
-                                          launchUrl(mail);
-                                        },
-                                        child: const Text('Mail'),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ],
-              ),
-            );
-          },
-          child: Icon(
-            Icons.help_outline,
-            size: 18,
-          ),
-        );
-      },
-    ),
-    Gap(4),
     BKMenuButton(openLogs: openLogs, currentPage: currentPage),
   ];
 }

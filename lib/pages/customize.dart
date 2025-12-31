@@ -13,7 +13,8 @@ import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class CustomizePage extends StatefulWidget {
-  const CustomizePage({super.key});
+  final bool isMobile;
+  const CustomizePage({super.key, required this.isMobile});
 
   @override
   State<CustomizePage> createState() => _CustomizeState();
@@ -23,7 +24,7 @@ class _CustomizeState extends State<CustomizePage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.only(top: widget.isMobile ? 46 : 16, left: 16, right: 16, bottom: 16),
       child: Column(
         spacing: 12,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -44,77 +45,83 @@ class _CustomizeState extends State<CustomizePage> {
             ),
           ),
 
-          Select<SupportedApp?>(
-            constraints: BoxConstraints(minWidth: 300),
-            value: core.actionHandler.supportedApp,
-            popup: SelectPopup(
-              items: SelectItemList(
-                children: [
-                  ..._getAllApps().map(
-                    (a) => SelectItemButton(
-                      value: a,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(child: Text(a.name)),
-                          if (a is CustomApp)
-                            BetaPill(text: 'CUSTOM')
-                          else if (a.supportsOpenBikeProtocol)
-                            Icon(Icons.star, size: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SelectItemButton(
-                    value: CustomApp(profileName: 'New'),
-                    child: Row(
-                      spacing: 6,
+          Row(
+            spacing: 8,
+            children: [
+              Flexible(
+                child: Select<SupportedApp?>(
+                  value: core.actionHandler.supportedApp,
+                  popup: SelectPopup(
+                    items: SelectItemList(
                       children: [
-                        Icon(Icons.add, color: Theme.of(context).colorScheme.mutedForeground),
-                        Expanded(child: Text(context.i18n.createNewKeymap).normal.muted),
+                        ..._getAllApps().map(
+                          (a) => SelectItemButton(
+                            value: a,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(child: Text(a.name)),
+                                if (a is CustomApp)
+                                  BetaPill(text: 'CUSTOM')
+                                else if (a.supportsOpenBikeProtocol)
+                                  Icon(Icons.star, size: 16),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SelectItemButton(
+                          value: CustomApp(profileName: 'New'),
+                          child: Row(
+                            spacing: 6,
+                            children: [
+                              Icon(Icons.add, color: Theme.of(context).colorScheme.mutedForeground),
+                              Expanded(child: Text(context.i18n.createNewKeymap).normal.muted),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
+                  ).call,
+                  itemBuilder: (c, app) => Row(
+                    spacing: 8,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: Text(screenshotMode ? 'Trainer app' : app!.name)),
+                      if (app is CustomApp) BetaPill(text: 'CUSTOM'),
+                    ],
                   ),
-                ],
+                  placeholder: Text(context.i18n.selectKeymap),
+
+                  onChanged: (app) async {
+                    if (app == null) {
+                      return;
+                    } else if (app.name == 'New') {
+                      final profileName = await KeymapManager().showNewProfileDialog(context);
+                      if (profileName != null && profileName.isNotEmpty) {
+                        final customApp = CustomApp(profileName: profileName);
+                        core.actionHandler.init(customApp);
+                        await core.settings.setKeyMap(customApp);
+
+                        setState(() {});
+                      }
+                    } else {
+                      core.actionHandler.init(app);
+                      await core.settings.setKeyMap(app);
+                      setState(() {});
+                    }
+                  },
+                ),
               ),
-            ).call,
-            itemBuilder: (c, app) => Row(
-              spacing: 8,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text(screenshotMode ? 'Trainer app' : app!.name)),
-                if (app is CustomApp) BetaPill(text: 'CUSTOM'),
-              ],
-            ),
-            placeholder: Text(context.i18n.selectKeymap),
-
-            onChanged: (app) async {
-              if (app == null) {
-                return;
-              } else if (app.name == 'New') {
-                final profileName = await KeymapManager().showNewProfileDialog(context);
-                if (profileName != null && profileName.isNotEmpty) {
-                  final customApp = CustomApp(profileName: profileName);
-                  core.actionHandler.init(customApp);
-                  await core.settings.setKeyMap(customApp);
-
+              KeymapManager().getManageProfileDialog(
+                context,
+                core.actionHandler.supportedApp is CustomApp ? core.actionHandler.supportedApp?.name : null,
+                onDone: () {
                   setState(() {});
-                }
-              } else {
-                core.actionHandler.init(app);
-                await core.settings.setKeyMap(app);
-                setState(() {});
-              }
-            },
+                },
+              ),
+            ],
           ),
 
-          KeymapManager().getManageProfileDialog(
-            context,
-            core.actionHandler.supportedApp is CustomApp ? core.actionHandler.supportedApp?.name : null,
-            onDone: () {
-              setState(() {});
-            },
-          ),
           if (core.actionHandler.supportedApp is! CustomApp)
             Text(
               context.i18n.customizeKeymapHint,

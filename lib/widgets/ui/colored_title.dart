@@ -1,5 +1,5 @@
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ColoredTitle extends StatelessWidget {
   final String text;
@@ -7,6 +7,6 @@ class ColoredTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GradientText(text, style: TextStyle(fontSize: 18)).bold;
+    return GradientText(text, style: TextStyle(fontSize: 20)).bold;
   }
 }

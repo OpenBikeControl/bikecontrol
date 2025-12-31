@@ -1,9 +1,9 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/services.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'apps/custom_app.dart';
 
@@ -45,8 +45,8 @@ class KeymapManager {
   }) {
     return Builder(
       builder: (context) {
-        return OutlineButton(
-          child: Text(context.i18n.manageProfile),
+        return Button.outline(
+          child: Icon(Icons.settings),
           onPressed: () => showDropdown(
             context: context,
             builder: (c) => DropdownMenu(

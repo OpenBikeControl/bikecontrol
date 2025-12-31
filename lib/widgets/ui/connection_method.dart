@@ -163,23 +163,6 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
               },
               child: Text(AppLocalizations.of(context).instructions),
             ),
-          if (widget.showTroubleshooting && widget.instructionLink == null)
-            Button(
-              style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
-                  ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
-                  : ButtonStyle.outline(),
-              leading: Icon(Icons.help_outline),
-
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                  ),
-                );
-              },
-              child: Text(context.i18n.troubleshootingGuide),
-            ),
         ],
       ),
     );

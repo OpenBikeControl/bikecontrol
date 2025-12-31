@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/pages/device.dart';
+import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -16,6 +17,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../widgets/changelog_dialog.dart';
 
@@ -132,73 +135,86 @@ class _NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      headers: [
-        AppBar(
-          padding:
-              const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
-              (screenshotMode ? 2 : Theme.of(context).scaling),
-          title: AppTitle(),
-          backgroundColor: Theme.of(context).colorScheme.background,
-          trailing: buildMenuButtons(
-            context,
-            _selectedPage,
-            _isMobile
-                ? () {
-                    setState(() {
-                      _selectedPage = BCPage.logs;
-                    });
-                  }
-                : null,
-          ),
-        ),
-        Divider(),
-      ],
-      footers: _isMobile ? [Divider(), _buildNavigationBar()] : [],
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!_isMobile) ...[
-            _buildNavigationMenu(),
-            VerticalDivider(),
-          ],
-          Expanded(
-            child: Container(
-              alignment: Alignment.topLeft,
-              child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 200),
-                child: switch (_selectedPage) {
-                  BCPage.devices => DevicePage(
-                    key: _pageKeys[BCPage.devices],
-                    onUpdate: () {
-                      setState(() {
-                        _selectedPage = BCPage.trainer;
-                      });
-                    },
-                  ),
-                  BCPage.trainer => TrainerPage(
-                    key: _pageKeys[BCPage.trainer],
-                    onUpdate: () {
-                      setState(() {});
-                    },
-                    goToNextPage: () {
-                      setState(() {
-                        _selectedPage = BCPage.customization;
-                      });
-                    },
-                  ),
-                  BCPage.customization => CustomizePage(
-                    key: _pageKeys[BCPage.customization],
-                  ),
-                  BCPage.logs => LogViewer(
-                    key: _pageKeys[BCPage.logs],
-                  ),
-                },
+    return Stack(
+      children: [
+        Scaffold(
+          headers: [
+            AppBar(
+              padding:
+                  const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
+                  (screenshotMode ? 2 : Theme.of(context).scaling),
+              title: AppTitle(),
+              backgroundColor: Theme.of(context).colorScheme.background,
+              trailing: buildMenuButtons(
+                context,
+                _selectedPage,
+                _isMobile
+                    ? () {
+                        setState(() {
+                          _selectedPage = BCPage.logs;
+                        });
+                      }
+                    : null,
               ),
             ),
+            Divider(),
+          ],
+          footers: _isMobile ? [Divider(), _buildNavigationBar()] : [],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!_isMobile) ...[
+                _buildNavigationMenu(),
+                VerticalDivider(),
+              ],
+              Expanded(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 200),
+                    child: switch (_selectedPage) {
+                      BCPage.devices => DevicePage(
+                        isMobile: _isMobile,
+                        key: _pageKeys[BCPage.devices],
+                        onUpdate: () {
+                          setState(() {
+                            _selectedPage = BCPage.trainer;
+                          });
+                        },
+                      ),
+                      BCPage.trainer => TrainerPage(
+                        key: _pageKeys[BCPage.trainer],
+                        onUpdate: () {
+                          setState(() {});
+                        },
+                        goToNextPage: () {
+                          setState(() {
+                            _selectedPage = BCPage.customization;
+                          });
+                        },
+                        isMobile: _isMobile,
+                      ),
+                      BCPage.customization => CustomizePage(
+                        isMobile: _isMobile,
+                        key: _pageKeys[BCPage.customization],
+                      ),
+                      BCPage.logs => LogViewer(
+                        key: _pageKeys[BCPage.logs],
+                      ),
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+
+        Container(
+          alignment: Alignment.topCenter,
+          padding: _isMobile ? EdgeInsets.only(top: 65) : null,
+          child: _buildHelpBanner(context),
+        ),
+      ],
     );
   }
 
@@ -418,6 +434,149 @@ class _NavigationState extends State<Navigation> {
                 )
               : null,
         ),
+      ),
+    );
+  }
+
+  Widget _buildHelpBanner(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(8), bottomRight: Radius.circular(8)),
+      ),
+      child: Builder(
+        builder: (context) {
+          return Button(
+            onPressed: () {
+              showDropdown(
+                context: context,
+                builder: (c) => DropdownMenu(
+                  children: [
+                    MenuButton(
+                      leading: Icon(Icons.help_outline),
+                      child: Text(context.i18n.troubleshootingGuide),
+                      onPressed: (c) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                        );
+                      },
+                    ),
+                    MenuDivider(),
+                    MenuLabel(child: Text(context.i18n.getSupport)),
+                    MenuButton(
+                      leading: Icon(Icons.reddit_outlined),
+                      onPressed: (c) {
+                        launchUrlString('https://www.reddit.com/r/BikeControl/');
+                      },
+                      child: Text('Reddit'),
+                    ),
+                    MenuButton(
+                      leading: Icon(Icons.facebook_outlined),
+                      onPressed: (c) {
+                        launchUrlString('https://www.facebook.com/groups/1892836898778912');
+                      },
+                      child: Text('Facebook'),
+                    ),
+                    MenuButton(
+                      leading: Icon(RadixIcons.githubLogo),
+                      onPressed: (c) {
+                        launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
+                      },
+                      child: Text('GitHub'),
+                    ),
+                    if (!kIsWeb) ...[
+                      MenuButton(
+                        leading: Icon(Icons.email_outlined),
+                        child: Text('Mail'),
+                        onPressed: (c) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Mail Support'),
+                                content: Container(
+                                  constraints: BoxConstraints(maxWidth: 400),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    spacing: 16,
+                                    children: [
+                                      Text(
+                                        AppLocalizations.of(context).mailSupportExplanation,
+                                      ),
+                                      ...[
+                                        OutlineButton(
+                                          leading: Icon(Icons.reddit_outlined),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            launchUrlString('https://www.reddit.com/r/BikeControl/');
+                                          },
+                                          child: const Text('Reddit'),
+                                        ),
+                                        OutlineButton(
+                                          leading: Icon(Icons.facebook_outlined),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            launchUrlString('https://www.facebook.com/groups/1892836898778912');
+                                          },
+                                          child: const Text('Facebook'),
+                                        ),
+                                        OutlineButton(
+                                          leading: Icon(RadixIcons.githubLogo),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
+                                          },
+                                          child: const Text('GitHub'),
+                                        ),
+                                        SecondaryButton(
+                                          leading: Icon(Icons.mail_outlined),
+                                          onPressed: () async {
+                                            Navigator.pop(context);
+
+                                            final isFromStore = (Platform.isAndroid
+                                                ? isFromPlayStore == true
+                                                : Platform.isIOS);
+                                            final suffix = isFromStore ? '' : '-sw';
+
+                                            String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
+                                            String subject = Uri.encodeComponent(
+                                              context.i18n.helpRequested(packageInfoValue?.version ?? ''),
+                                            );
+                                            final dbg = await debugText();
+                                            String body = Uri.encodeComponent("""
+                
+        $dbg""");
+                                            Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
+
+                                            launchUrl(mail);
+                                          },
+                                          child: const Text('Mail'),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+            leading: Icon(Icons.help_outline),
+            style: ButtonVariance.primary.withBorderRadius(
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+              hoverBorderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
+            child: Text(context.i18n.troubleshootingGuide),
+          );
+        },
       ),
     );
   }

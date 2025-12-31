@@ -138,7 +138,7 @@
   "enableAutoRotation": "Enable auto-rotation on your device to make sure the app works correctly.",
   "enableBluetooth": "Enable Bluetooth",
   "enableKeyboardAccessMessage": "Enable keyboard access in the following screen for BikeControl. If you don't see BikeControl, please add it manually.",
-  "enableKeyboardMouseControl": "Enable keyboard and mouse control for better interaction with {appName}. Once active, no further action or connection is needed. BikeControl will directly send the mouse or keyboard input to {appName}.",
+  "enableKeyboardMouseControl": "BikeControl will send mouse or keyboard actions to control {appName}.",
   "@enableKeyboardMouseControl": {
     "placeholders": {
       "appName": {
@@ -383,7 +383,6 @@
   "share": "Share",
   "showDonation": "Show your appreciation by donating",
   "showSupportedControllers": "Show Supported Controllers",
-  "showTroubleshootingGuide": "Show Troubleshooting Guide",
   "signal": "Signal",
   "simulateButtons": "Trainer Controls",
   "simulateKeyboardShortcut": "Simulate Keyboard shortcut",
@@ -400,7 +399,7 @@
   "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
   "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
   "trialPeriodDescription": "Enjoy unlimited commands during your trial period. After the trial, commands will be limited to {dailyCommandLimit} per day.",
-  "troubleshootingGuide": "Troubleshooting Guide",
+  "troubleshootingGuide": "Questions & Answers",
   "tryingToConnectAgain": "Trying to connect again...",
   "unassignAction": "Unassign action",
   "unlockFullVersion": "Unlock Full Version",

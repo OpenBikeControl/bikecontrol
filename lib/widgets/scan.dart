@@ -65,7 +65,6 @@ class _ScanWidgetState extends State<ScanWidget> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(),
                     Row(
                       spacing: 14,
                       children: [

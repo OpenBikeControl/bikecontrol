@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
-import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -17,8 +16,9 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../bluetooth/devices/base_device.dart';
 
 class DevicePage extends StatefulWidget {
+  final bool isMobile;
   final VoidCallback onUpdate;
-  const DevicePage({super.key, required this.onUpdate});
+  const DevicePage({super.key, required this.onUpdate, required this.isMobile});
 
   @override
   State<DevicePage> createState() => _DevicePageState();
@@ -47,7 +47,7 @@ class _DevicePageState extends State<DevicePage> {
     return Scrollbar(
       child: SingleChildScrollView(
         primary: true,
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.only(top: widget.isMobile ? 46 : 16, left: 16, right: 16, bottom: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
@@ -103,16 +103,6 @@ class _DevicePageState extends State<DevicePage> {
                 spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  OutlineButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-                      );
-                    },
-                    leading: Icon(Icons.help_outline),
-                    child: Text(context.i18n.showTroubleshootingGuide),
-                  ),
                   OutlineButton(
                     onPressed: () {
                       launchUrlString(

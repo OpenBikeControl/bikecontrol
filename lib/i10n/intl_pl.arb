@@ -138,7 +138,7 @@
   "enableAutoRotation": "Włącz funkcję automatycznego obracania na urządzeniu, aby mieć pewność, że aplikacja będzie działać prawidłowo.",
   "enableBluetooth": "Włącz Bluetooth",
   "enableKeyboardAccessMessage": "Włącz dostęp do klawiatury dla BikeControl na poniższym ekranie. Jeśli nie widzisz BikeControl, dodaj go ręcznie.",
-  "enableKeyboardMouseControl": "Włącz sterowanie klawiaturą i myszą, aby zapewnić lepszą interakcję z {appName}. Po aktywacji nie jest wymagane żadne dalsze działanie, ani połączenie. BikeControl będzie bezpośrednio wysyłał dane z myszy lub klawiatury do {appName}.",
+  "enableKeyboardMouseControl": "BikeControl będzie wysyłał akcje myszy lub klawiatury do kontrolera {appName} .",
   "@enableKeyboardMouseControl": {
     "placeholders": {
       "appName": {
@@ -383,7 +383,6 @@
   "share": "Udostępnij",
   "showDonation": "Wyraź swoją wdzięczność poprzez darowiznę",
   "showSupportedControllers": "Pokaż wspierane kontrolery",
-  "showTroubleshootingGuide": "Pokaż instrukcję rozwiązywania problemów",
   "signal": "Sygnał",
   "simulateButtons": "Sterowanie trenażerem",
   "simulateKeyboardShortcut": "Symuluj skrót klawiaturowy",
@@ -400,7 +399,7 @@
   "trialExpired": "Wersja próbna wygasła. Liczba poleceń ograniczona do {dailyCommandLimit} na dzień.",
   "trialPeriodActive": "Okres próbny jest aktywny - pozostało {trialDaysRemaining} dni",
   "trialPeriodDescription": "Korzystaj z nieograniczonej liczby poleceń w okresie próbnym. Po zakończeniu okresu próbnego polecenia będą ograniczone do {dailyCommandLimit} na dzień.",
-  "troubleshootingGuide": "Instrukcja rozwiązywania problemów",
+  "troubleshootingGuide": "Pytania i odpowiedzi",
   "tryingToConnectAgain": "Próba ponownego połączenia...",
   "unassignAction": "Anuluj przypisanie akcji",
   "unlockFullVersion": "Odblokuj pełną wersję",

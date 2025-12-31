@@ -26,9 +26,10 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 
 class TrainerPage extends StatefulWidget {
+  final bool isMobile;
   final VoidCallback onUpdate;
   final VoidCallback goToNextPage;
-  const TrainerPage({super.key, required this.onUpdate, required this.goToNextPage});
+  const TrainerPage({super.key, required this.onUpdate, required this.goToNextPage, required this.isMobile});
 
   @override
   State<TrainerPage> createState() => _TrainerPageState();
@@ -98,7 +99,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       controller: _scrollController,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.only(top: widget.isMobile ? 46 : 16, left: 16, right: 16, bottom: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -138,7 +138,7 @@
   "enableAutoRotation": "Aktiviere die automatische Drehung auf Ihrem Gerät, um sicherzustellen, dass die App ordnungsgemäß funktioniert.",
   "enableBluetooth": "Bluetooth aktivieren",
   "enableKeyboardAccessMessage": "Aktiviere im folgenden Bildschirm die Tastatursteuerung für BikeControl. Falls BikeControl nicht angezeigt wird, füge es bitte manuell hinzu.",
-  "enableKeyboardMouseControl": "Aktiviere die Tastatur- und Maussteuerung für eine bessere Interaktion mit {appName}. Sobald die Funktion aktiviert ist, sind keine weiteren Aktionen oder Verbindungen erforderlich. BikeControl sendet die Maus- oder Tastatureingaben direkt an {appName} weiter.",
+  "enableKeyboardMouseControl": "BikeControl sendet Maus- oder Tastaturkommandos an {appName}",
   "@enableKeyboardMouseControl": {
     "placeholders": {
       "appName": {
@@ -383,7 +383,6 @@
   "share": "Teilen",
   "showDonation": "Zeige Deine Wertschätzung durch eine Spende.",
   "showSupportedControllers": "Unterstützte Controller anzeigen",
-  "showTroubleshootingGuide": "Anleitung zur Fehlerbehebung anzeigen",
   "signal": "Signal",
   "simulateButtons": "Trainersteuerung",
   "simulateKeyboardShortcut": "Tastenkombination simulieren",
@@ -400,7 +399,7 @@
   "trialExpired": "Testphase abgelaufen. Befehle beschränkt auf {dailyCommandLimit} pro Tag.",
   "trialPeriodActive": "Testphase aktiv - {trialDaysRemaining} verbleibende Tage",
   "trialPeriodDescription": "Während der Testphase stehen unbegrenzt viele Befehle zur Verfügung. Nach Ablauf der Testphase sind die Befehle auf {dailyCommandLimit} pro Tag eingeschränkt.",
-  "troubleshootingGuide": "Leitfaden zur Fehlerbehebung",
+  "troubleshootingGuide": "Fragen und Antworten",
   "tryingToConnectAgain": "Verbinde erneut...",
   "unassignAction": "Zuweisung aufheben",
   "unlockFullVersion": "Vollversion freischalten",
