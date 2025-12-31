@@ -1,6 +1,3 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
@@ -9,6 +6,9 @@ import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult)
@@ -91,12 +91,14 @@ class ZwiftClickV2 extends ZwiftRide {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 8,
                       children: [
-                        GhostButton(
-                          onPressed: () {
-                            sendCommand(Opcode.RESET, null);
-                          },
-                          child: Text('Reset now'),
-                        ),
+                        if (kDebugMode)
+                          GhostButton(
+                            onPressed: () {
+                              sendCommand(Opcode.RESET, null);
+                            },
+                            child: Text('Reset now'),
+                          ),
+
                         OutlineButton(
                           onPressed: () {
                             Navigator.push(
