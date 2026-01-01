@@ -24,7 +24,7 @@ class _CustomizeState extends State<CustomizePage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.only(bottom: widget.isMobile ? 126 : 16, left: 16, right: 16, top: 16),
+      padding: EdgeInsets.only(bottom: widget.isMobile ? 146 : 16, left: 16, right: 16, top: 16),
       child: Column(
         spacing: 12,
         mainAxisAlignment: MainAxisAlignment.start,

@@ -27,9 +27,9 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
       if (state == AppLifecycleState.resumed) {
         Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
           final allDone = widget.requirements.every((e) => e.status);
-          if (allDone && context.mounted) {
+          if (allDone && mounted) {
             closeSheet(context);
-          } else if (context.mounted) {
+          } else if (mounted) {
             setState(() {});
           }
         });
@@ -52,39 +52,63 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
         mainAxisSize: MainAxisSize.min,
         spacing: 18,
         children: [
-          Text(
-            context.i18n.theFollowingPermissionsRequired,
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Center(
+            child: Text(
+              context.i18n.theFollowingPermissionsRequired,
+              textAlign: TextAlign.center,
+            ).muted.small,
           ),
           ...widget.requirements.map(
-            (e) => Row(
-              children: [
-                Expanded(
+            (e) {
+              final onPressed = e.status
+                  ? null
+                  : () {
+                      e
+                          .call(context, () {
+                            setState(() {});
+                          })
+                          .then((_) {
+                            setState(() {});
+                            if (widget.requirements.all((e) => e.status)) {
+                              widget.onDone();
+                            }
+                          });
+                    };
+              return SizedBox(
+                width: double.infinity,
+                child: Button(
+                  onPressed: onPressed,
+                  style: ButtonStyle.card().withBackgroundColor(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.card
+                        : Theme.of(context).colorScheme.card.withLuminance(0.95),
+                  ),
                   child: Basic(
-                    title: Text(e.name),
-                    subtitle: e.description != null ? Text(e.description!) : null,
-                    trailing: Button(
-                      style: e.status ? ButtonStyle.secondary() : ButtonStyle.primary(),
-                      onPressed: e.status
-                          ? null
-                          : () {
-                              e
-                                  .call(context, () {
-                                    setState(() {});
-                                  })
-                                  .then((_) {
-                                    setState(() {});
-                                    if (widget.requirements.all((e) => e.status)) {
-                                      widget.onDone();
-                                    }
-                                  });
-                            },
-                      child: e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
+                    leading: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.primaryForeground,
+                      ),
+                      padding: EdgeInsets.all(8),
+                      child: Icon(e.icon),
                     ),
+                    title: Row(
+                      children: [
+                        Expanded(child: Text(e.name)),
+                        Button(
+                          style: e.status
+                              ? ButtonStyle.secondary(size: ButtonSize.small)
+                              : ButtonStyle.primary(size: ButtonSize.small),
+                          onPressed: onPressed,
+                          child: e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
+                        ),
+                      ],
+                    ),
+                    subtitle: e.description != null ? Text(e.description!) : null,
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),

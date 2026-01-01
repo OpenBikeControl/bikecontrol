@@ -208,7 +208,7 @@ class _NavigationState extends State<Navigation> {
                       child: CustomizePage(isMobile: _isMobile),
                     ),
                     BCPage.logs => Padding(
-                      padding: EdgeInsets.only(bottom: _isMobile ? 126 : 16, left: 16, right: 16, top: 16),
+                      padding: EdgeInsets.only(bottom: _isMobile ? 146 : 16, left: 16, right: 16, top: 16),
                       child: LogViewer(
                         key: _pageKeys[BCPage.logs],
                       ),

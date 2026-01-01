@@ -47,7 +47,7 @@ class _DevicePageState extends State<DevicePage> {
     return Scrollbar(
       child: SingleChildScrollView(
         primary: true,
-        padding: EdgeInsets.only(bottom: widget.isMobile ? 126 : 16, left: 16, right: 16, top: 16),
+        padding: EdgeInsets.only(bottom: widget.isMobile ? 146 : 16, left: 16, right: 16, top: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
@@ -149,7 +149,19 @@ class _DevicePageState extends State<DevicePage> {
                           ),
                         );
                       },
-                      child: Text(AppLocalizations.of(context).noControllerUseCompanionMode),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "${AppLocalizations.of(context).noControllerUseCompanionMode.split("?").first}?\n",
+                            ),
+                            TextSpan(
+                              text: AppLocalizations.of(context).noControllerUseCompanionMode.split("? ").last,
+                              style: TextStyle(color: Theme.of(context).colorScheme.muted, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                 ],
               ),

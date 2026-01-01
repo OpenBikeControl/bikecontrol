@@ -42,7 +42,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                   core.whooshLink.stopServer();
                 } else if (value) {
                   buildToast(
-                    context,
+                    navigatorKey.currentContext!,
                     title: AppLocalizations.of(context).myWhooshLinkInfo,
                     level: LogLevel.LOGLEVEL_INFO,
                     duration: Duration(seconds: 6),

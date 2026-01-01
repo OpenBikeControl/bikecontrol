@@ -7,6 +7,6 @@ class ColoredTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GradientText(text, style: TextStyle(fontSize: 20)).bold;
+    return GradientText(text, style: TextStyle(fontSize: 22)).bold;
   }
 }

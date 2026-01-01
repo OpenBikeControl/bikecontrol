@@ -22,6 +22,7 @@ class AccessibilityRequirement extends PlatformRequirement {
     : super(
         AppLocalizations.current.allowAccessibilityService,
         description: AppLocalizations.current.accessibilityDescription,
+        icon: Icons.accessibility_new,
       );
 
   @override
@@ -62,7 +63,7 @@ class AccessibilityRequirement extends PlatformRequirement {
 }
 
 class BluetoothScanRequirement extends PlatformRequirement {
-  BluetoothScanRequirement() : super(AppLocalizations.current.allowBluetoothScan);
+  BluetoothScanRequirement() : super(AppLocalizations.current.allowBluetoothScan, icon: Icons.bluetooth_searching);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -79,7 +80,7 @@ class BluetoothScanRequirement extends PlatformRequirement {
 }
 
 class LocationRequirement extends PlatformRequirement {
-  LocationRequirement() : super(AppLocalizations.current.allowLocationForBluetooth);
+  LocationRequirement() : super(AppLocalizations.current.allowLocationForBluetooth, icon: Icons.location_on);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -96,7 +97,8 @@ class LocationRequirement extends PlatformRequirement {
 }
 
 class BluetoothConnectRequirement extends PlatformRequirement {
-  BluetoothConnectRequirement() : super(AppLocalizations.current.allowBluetoothConnections);
+  BluetoothConnectRequirement()
+    : super(AppLocalizations.current.allowBluetoothConnections, icon: Icons.bluetooth_connected);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -117,13 +119,20 @@ class NotificationRequirement extends PlatformRequirement {
     : super(
         AppLocalizations.current.allowPersistentNotification,
         description: AppLocalizations.current.notificationDescription,
+        icon: Icons.notifications_active,
       );
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     if (Platform.isAndroid) {
-      await core.flutterLocalNotificationsPlugin
+      final result = await core.flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
+      if (result == false) {
+        buildToast(
+          navigatorKey.currentContext!,
+          title: 'Enable notifications for BikeControl in Android Settings',
+        );
+      }
     } else if (Platform.isIOS) {
       final result = await core.flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()

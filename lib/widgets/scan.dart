@@ -66,16 +66,18 @@ class _ScanWidgetState extends State<ScanWidget> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      spacing: 14,
-                      children: [
-                        SizedBox(),
-                        SmoothWifiAnimation(),
-                        Expanded(
-                          child: Text(context.i18n.scanningForDevices).small.muted,
-                        ),
-                      ],
-                    ),
+                    if (core.connection.controllerDevices.isEmpty)
+                      Column(
+                        spacing: 14,
+                        children: [
+                          SizedBox(),
+                          SmoothWifiAnimation(),
+                          Text(
+                            context.i18n.scanningForDevices,
+                            textAlign: TextAlign.center,
+                          ).small.muted,
+                        ],
+                      ),
                     SizedBox(),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
                       ValueListenableBuilder(

@@ -72,30 +72,23 @@ class ZwiftClickV2 extends ZwiftRide {
 
             if (isConnected && _noLongerSendsEvents)
               if (core.settings.getShowZwiftClickV2ReconnectWarning())
-                Warning(
+                Stack(
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Warning(
                       children: [
-                        Expanded(
-                          child: Text(
-                            AppLocalizations.of(context).clickV2Instructions,
-                          ).small,
-                        ),
-                        IconButton.link(
-                          icon: Icon(Icons.close),
-                          onPressed: () {
-                            core.settings.setShowZwiftClickV2ReconnectWarning(false);
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
+                        Text(
+                          'Important Setup Information',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.destructive,
+                          ),
+                        ).small,
+                        Text(
+                          AppLocalizations.of(context).clickV2Instructions,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.destructive,
+                          ),
+                        ).xSmall,
                         if (kDebugMode)
                           GhostButton(
                             onPressed: () {
@@ -104,7 +97,7 @@ class ZwiftClickV2 extends ZwiftRide {
                             child: Text('Reset now'),
                           ),
 
-                        OutlineButton(
+                        Button.secondary(
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -117,6 +110,19 @@ class ZwiftClickV2 extends ZwiftRide {
                           child: Text(context.i18n.instructions),
                         ),
                       ],
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton.link(
+                        icon: Icon(
+                          Icons.close,
+                          color: Theme.of(context).colorScheme.destructive,
+                        ),
+                        onPressed: () {
+                          core.settings.setShowZwiftClickV2ReconnectWarning(false);
+                          setState(() {});
+                        },
+                      ),
                     ),
                   ],
                 )

@@ -49,6 +49,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       loadingProgress: _OnboardingStep.values.indexOf(_currentStep) / (_OnboardingStep.values.length - 1),
       headers: [
         AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primaryForeground,
           leading: [
             Image.asset('icon.png', height: 40),
             SizedBox(width: 10),
@@ -64,6 +65,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
           ],
         ),
+        Divider(),
       ],
       floatingFooter: true,
       footers: [
@@ -105,14 +107,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
                 _OnboardingStep.finish => Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 12,
                   children: [
+                    SizedBox(height: 30),
+                    Icon(Icons.check_circle, size: 58, color: Colors.green),
                     ColoredTitle(text: 'Setup Complete!'),
                     Text(
-                      'As a final step you\'ll get to choose how to connect to ${core.settings.getTrainerApp()?.name}.',
-                    ),
+                      "As a final step you'll choose how to connect to ${core.settings.getTrainerApp()?.name}.",
+                      textAlign: TextAlign.center,
+                    ).small.muted,
 
+                    SizedBox(height: 30),
                     PrimaryButton(
                       leading: Icon(Icons.check),
                       onPressed: () {
@@ -164,9 +170,9 @@ class _PermissionsOnboardingStepState extends State<_PermissionsOnboardingStep> 
   @override
   Widget build(BuildContext context) {
     return Column(
-      spacing: 12,
       children: [
-        ColoredTitle(text: 'Let\'s get you set up!'),
+        SizedBox(height: 8),
+        Text('Let\'s get you set up!').h3,
         if (_needsPermissions != null && _needsPermissions!.isNotEmpty)
           PermissionList(
             requirements: _needsPermissions!,
@@ -238,14 +244,19 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
             onPressed: () {
               widget.onComplete();
             },
-            child: Text(AppLocalizations.of(context).noControllerUseCompanionMode),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: "${AppLocalizations.of(context).noControllerUseCompanionMode.split("?").first}?\n"),
+                  TextSpan(
+                    text: AppLocalizations.of(context).noControllerUseCompanionMode.split("? ").last,
+                    style: TextStyle(color: Theme.of(context).colorScheme.muted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
           ),
         ] else ...[
-          SizedBox(),
-          ...core.connection.controllerDevices.map(
-            (device) => device.showInformation(context),
-          ),
-          SizedBox(),
           if (core.connection.controllerDevices.any((d) => d.isConnected))
             RepeatedAnimationBuilder<double>(
               duration: Duration(seconds: 1),
@@ -256,12 +267,17 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
               builder: (context, value, child) {
                 return Opacity(
                   opacity: value,
-                  child: ColoredTitle(
-                    text: 'Great! Your controller is connected. Click a button on your controller to continue.',
-                  ),
+                  child: Text(
+                    'Great! Your controller is connected. Click a button on your controller to continue.',
+                  ).small,
                 );
               },
             ),
+          SizedBox(),
+          ...core.connection.controllerDevices.map(
+            (device) => device.showInformation(context),
+          ),
+          SizedBox(),
         ],
       ],
     );
@@ -283,12 +299,14 @@ class _TrainerOnboardingStepState extends State<_TrainerOnboardingStep> {
       mainAxisSize: MainAxisSize.min,
       spacing: 12,
       children: [
+        SizedBox(),
         ConfigurationPage(
           onboardingMode: true,
           onUpdate: () {
             setState(() {});
           },
         ),
+        if (core.settings.getTrainerApp() != null) SizedBox(height: 20),
         if (core.settings.getTrainerApp() != null)
           PrimaryButton(
             leading: Icon(Icons.check),
