@@ -31,6 +31,7 @@
       }
     }
   },
+  "asAFinalStepYoullChooseHowToConnectTo": "Dernière étape : vous choisirez comment vous connecter à {trainerApp} .",
   "battery": "Batterie",
   "beforeDate": "Avant {date}",
   "bluetoothAdvertiseAccess": "Accès à la publicité Bluetooth",
@@ -77,6 +78,7 @@
       }
     }
   },
+  "controllerConnectedClickButton": "Super ! Votre manette est connectée. Cliquez sur un bouton de votre manette pour continuer.",
   "controllers": "Contrôleurs",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Impossible d'effectuer {button}: Aucun clavier défini",
   "create": "Créer",
@@ -214,6 +216,7 @@
       }
     }
   },
+  "letsGetYouSetUp": "On va vous installer !",
   "license": "Licence",
   "licenseStatus": "Statut de la licence",
   "loadScreenshotForPlacement": "Charger une capture d'écran du jeu pour le placement",
@@ -379,6 +382,7 @@
   "selectTrainerAppAndTarget": "Sélectionnez l'application Trainer et l'appareil cible",
   "selectTrainerAppPlaceholder": "Sélectionner l'application Trainer",
   "setting": "Paramètre",
+  "setupComplete": "Installation terminée !",
   "setupTrainer": "Configurer le Trainer",
   "share": "Partager",
   "showDonation": "Exprimez votre reconnaissance en faisant un don",
@@ -388,6 +392,7 @@
   "simulateKeyboardShortcut": "Simuler un raccourci clavier",
   "simulateMediaKey": "Simuler la touche média",
   "simulateTouch": "Simuler le toucher",
+  "skip": "Sauter",
   "stop": "Arrêt",
   "targetOtherDevice": "Autre appareil",
   "targetThisDevice": "Cet appareil",

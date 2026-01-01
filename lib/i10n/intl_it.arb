@@ -31,6 +31,7 @@
       }
     }
   },
+  "asAFinalStepYoullChooseHowToConnectTo": "Come ultimo passaggio sceglierai come connetterti a {trainerApp} .",
   "battery": "Batteria",
   "beforeDate": "Prima del {date}",
   "bluetoothAdvertiseAccess": "Accesso pubblicitario Bluetooth",
@@ -77,6 +78,7 @@
       }
     }
   },
+  "controllerConnectedClickButton": "Ottimo! Il tuo controller è connesso. Clicca su un pulsante del controller per continuare.",
   "controllers": "Controller",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Non è stato possibile eseguire{button} : Nessuna mappa dei tasti impostata",
   "create": "Crea",
@@ -214,6 +216,7 @@
       }
     }
   },
+  "letsGetYouSetUp": "Ti aiuteremo a prepararti!",
   "license": "Licenza",
   "licenseStatus": "Stato della licenza",
   "loadScreenshotForPlacement": "Carica lo screenshot del gioco per il posizionamento",
@@ -379,6 +382,7 @@
   "selectTrainerAppAndTarget": "Seleziona l'app Trainer e il dispositivo di destinazione",
   "selectTrainerAppPlaceholder": "Seleziona l'app Trainer",
   "setting": "Impostazioni",
+  "setupComplete": "Installazione completata!",
   "setupTrainer": "Impostazioni Trainer",
   "share": "Condividi",
   "showDonation": "Mostra il tuo apprezzamento donando",
@@ -388,6 +392,7 @@
   "simulateKeyboardShortcut": "Simula scorciatoia da tastiera",
   "simulateMediaKey": "Simula il tasto multimediale",
   "simulateTouch": "Simula il tocco",
+  "skip": "Saltare",
   "stop": "Stop",
   "targetOtherDevice": "Altro dispositivo",
   "targetThisDevice": "Questo dispositivo",

@@ -31,6 +31,7 @@
       }
     }
   },
+  "asAFinalStepYoullChooseHowToConnectTo": "As a final step you'll choose how to connect to {trainerApp}.",
   "battery": "Battery",
   "beforeDate": "Before {date}",
   "bluetoothAdvertiseAccess": "Bluetooth Advertise access",
@@ -77,6 +78,7 @@
       }
     }
   },
+  "controllerConnectedClickButton": "Great! Your controller is connected. Click a button on your controller to continue.",
   "controllers": "Controllers",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Could not perform {button}: No keymap set",
   "create": "Create",
@@ -214,6 +216,7 @@
       }
     }
   },
+  "letsGetYouSetUp": "Let's get you set up!",
   "license": "License",
   "licenseStatus": "License Status",
   "loadScreenshotForPlacement": "Load in-game screenshot for placement",
@@ -379,6 +382,7 @@
   "selectTrainerAppAndTarget": "Select Trainer App & Target Device",
   "selectTrainerAppPlaceholder": "Select Trainer app",
   "setting": "Setting",
+  "setupComplete": "Setup Complete!",
   "setupTrainer": "Setup Trainer",
   "share": "Share",
   "showDonation": "Show your appreciation by donating",
@@ -388,6 +392,7 @@
   "simulateKeyboardShortcut": "Simulate Keyboard shortcut",
   "simulateMediaKey": "Simulate Media key",
   "simulateTouch": "Simulate Touch",
+  "skip": "Skip",
   "stop": "Stop",
   "targetOtherDevice": "Other Device",
   "targetThisDevice": "This Device",
@@ -430,10 +435,5 @@
   "whyPermissionNeeded": "Why is this permission needed?",
   "yes": "Yes",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "setupComplete": "Setup Complete!",
-  "asAFinalStepYoullChooseHowToConnectTo": "As a final step you'll choose how to connect to {trainerApp}.",
-  "skip": "Skip",
-  "letsGetYouSetUp": "Let's get you set up!",
-  "controllerConnectedClickButton": "Great! Your controller is connected. Click a button on your controller to continue."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }

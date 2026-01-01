@@ -31,6 +31,7 @@
       }
     }
   },
+  "asAFinalStepYoullChooseHowToConnectTo": "W ostatnim kroku wybierzesz sposób połączenia {trainerApp} .",
   "battery": "Bateria",
   "beforeDate": "Zanim {date}",
   "bluetoothAdvertiseAccess": "Dostęp do reklamy Bluetooth",
@@ -77,6 +78,7 @@
       }
     }
   },
+  "controllerConnectedClickButton": "Świetnie! Twój kontroler jest połączony. Kliknij przycisk na kontrolerze, aby kontynuować.",
   "controllers": "Kontrolery",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Nie można wykonać {button}: Nie zmapowano klawisza",
   "create": "Utwórz",
@@ -214,6 +216,7 @@
       }
     }
   },
+  "letsGetYouSetUp": "Przygotujmy Cię!",
   "license": "Licencja",
   "licenseStatus": "Status licencji",
   "loadScreenshotForPlacement": "Prześlij zrzut ekranu z gry w celu ustalenia miejsca",
@@ -379,6 +382,7 @@
   "selectTrainerAppAndTarget": "Wybierz aplikację treningową i docelowe urządzenie",
   "selectTrainerAppPlaceholder": "Wybierz aplikację treningową",
   "setting": "Ustawienie",
+  "setupComplete": "Konfiguracja ukończona!",
   "setupTrainer": "Konfiguracja trenażera",
   "share": "Udostępnij",
   "showDonation": "Wyraź swoją wdzięczność poprzez darowiznę",
@@ -388,6 +392,7 @@
   "simulateKeyboardShortcut": "Symuluj skrót klawiaturowy",
   "simulateMediaKey": "Symuluj przycisk multimedialny",
   "simulateTouch": "Symuluj dotyk",
+  "skip": "Pominąć",
   "stop": "Stop",
   "targetOtherDevice": "Inne urządzenie",
   "targetThisDevice": "To urządzenie",

@@ -31,6 +31,7 @@
       }
     }
   },
+  "asAFinalStepYoullChooseHowToConnectTo": "Im letzten Schritt wählen Sie die Verbindungsmethode aus für {trainerApp}",
   "battery": "Batterie",
   "beforeDate": "Vor dem {date}",
   "bluetoothAdvertiseAccess": "Bluetooth-Zugriff",
@@ -44,7 +45,7 @@
   "chooseBikeControlInConnectionScreen": "Wähle im Verbindungsbildschirm BikeControl aus.",
   "clickAButtonOnYourController": "Klicke eine Controller-Taste, um deren Aktion zu bearbeiten, oder tippe auf das Bearbeitungssymbol.",
   "clickV2EventInfo": "Dein Click V2 sendet möglicherweise keine Tastenereignisse mehr. Probier mal ein paar Tasten aus und schau, ob sie in BikeControl angezeigt werden.",
-  "clickV2Instructions": "Damit dein Zwift Click V2 optimal funktioniert, solltest du vor jeder Trainings-Session in der Zwift-App verbinden.\nWenn du das nicht machst, funktioniert der Click V2 nach einer Minute nicht mehr.\n\n1. Öffne die Zwift-App.\n2. Melde dich an (kein Abonnement nötig) und öffne den Bildschirm für die Geräteverbindung.\n3. Verbinde deinen Trainer und dann den Zwift Click V2.\n4. Schließe die Zwift-App wieder und verbinde dich erneut in BikeControl.",
+  "clickV2Instructions": "Damit dein Zwift Click V2 optimal funktioniert, solltest du das Gerät vor jeder Trainings-Session in der Zwift-App verbinden.\nAnsonsten funktioniert der Click V2 nach einer Minute nicht mehr.\n\n1. Öffne die Zwift-App.\n2. Melde dich an (kein Abonnement nötig) und öffne den Bildschirm für die Geräteverbindung.\n3. Verbinde deinen Trainer und dann den Zwift Click V2.\n4. Schließe die Zwift-App wieder und verbinde dich erneut in BikeControl.",
   "close": "Schließen",
   "commandsRemainingToday": "{commandsRemainingToday}/{dailyCommandLimit} verbleibende Befehle heute",
   "configuration": "Konfiguration",
@@ -77,6 +78,7 @@
       }
     }
   },
+  "controllerConnectedClickButton": "Super! Dein Controller ist verbunden. Drücke eine Taste auf deinem Controller, um fortzufahren.",
   "controllers": "Controller",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "{button} konnte nicht ausgeführt werden: Keine Konfiguration festgelegt",
   "create": "Erstellen",
@@ -214,6 +216,7 @@
       }
     }
   },
+  "letsGetYouSetUp": "Starten wir die Einrichtung",
   "license": "Lizenz",
   "licenseStatus": "Lizenzstatus",
   "loadScreenshotForPlacement": "Lade einen Screenshot aus dem Spiel zur Platzierung hoch.",
@@ -379,6 +382,7 @@
   "selectTrainerAppAndTarget": "Trainer-App und Zielgerät auswählen",
   "selectTrainerAppPlaceholder": "Trainer-App auswählen",
   "setting": "Einstellung",
+  "setupComplete": "Einrichtung abgeschlossen!",
   "setupTrainer": "Trainer einrichten",
   "share": "Teilen",
   "showDonation": "Zeige Deine Wertschätzung durch eine Spende.",
@@ -388,6 +392,7 @@
   "simulateKeyboardShortcut": "Tastenkombination simulieren",
   "simulateMediaKey": "Medientaste simulieren",
   "simulateTouch": "Berührung simulieren",
+  "skip": "Überspringen",
   "stop": "Stoppen",
   "targetOtherDevice": "Anderes Gerät",
   "targetThisDevice": "Dieses Gerät",
