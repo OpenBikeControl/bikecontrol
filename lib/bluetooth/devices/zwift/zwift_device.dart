@@ -90,7 +90,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
     if (kDebugMode) {
       actionStreamInternal.add(
         LogNotification(
-          "${DateTime.now().toString().split(" ").last} Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
+          "Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
         ),
       );
     }

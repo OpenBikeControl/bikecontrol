@@ -239,7 +239,7 @@
   "myWhooshDirectConnectAction": "MyWhoosh „Link”-Aktion",
   "myWhooshDirectConnection": " z. B. mit MyWhoosh „Link”.",
   "myWhooshLinkConnected": "MyWhoosh „Link“ verbunden",
-  "myWhooshLinkDescriptionLocal": "Verbinde dich direkt mit MyWhoosh über die „Link”-Methode. Unterstützte Aktionen sind unter anderem Schalten, Emotes und Richtungswechsel. Die MyWhoosh Link-Begleit-App darf dabei NICHT gleichzeitig laufen.",
+  "myWhooshLinkDescriptionLocal": "Direkte Verbindung zu MyWhoosh über die „Link“-Methode. Beachte die Anleitung, um sicherzustellen, dass eine Verbindung möglich ist. Die „MyWhoosh Link“-App darf nicht gleichzeitig aktiv sein.",
   "myWhooshLinkInfo": "Schau mal im Abschnitt zur Fehlerbehebung nach, wenn du Probleme hast. Eine deutlich zuverlässigere Verbindungsmethode kommt bald!",
   "needHelpClickHelp": "Hilfe benötigt? Klicke auf",
   "needHelpDontHesitate": "den Button oben und zögere nicht, uns zu kontaktieren.",

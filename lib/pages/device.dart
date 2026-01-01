@@ -47,7 +47,7 @@ class _DevicePageState extends State<DevicePage> {
     return Scrollbar(
       child: SingleChildScrollView(
         primary: true,
-        padding: EdgeInsets.only(top: widget.isMobile ? 166 : 16, left: 16, right: 16, bottom: 16),
+        padding: EdgeInsets.only(bottom: widget.isMobile ? 126 : 16, left: 16, right: 16, top: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -76,36 +77,39 @@ class _LogviewerState extends State<LogViewer> {
               : Expanded(
                   child: Card(
                     child: SelectionArea(
-                      child: ListView(
+                      child: SingleChildScrollView(
                         controller: _scrollController,
-                        reverse: true,
-                        children: core.connection.lastLogEntries
-                            .map(
-                              (action) => Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: action.date.toString().split(" ").last,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontFeatures: [FontFeature.tabularFigures()],
-                                        fontFamily: "monospace",
-                                        fontFamilyFallback: <String>["Courier"],
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Text.rich(
+                            TextSpan(
+                              children: core.connection.lastLogEntries
+                                  .map(
+                                    (action) => [
+                                      TextSpan(
+                                        text: action.date.toString().split(" ").last,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontFeatures: [FontFeature.tabularFigures()],
+                                          fontFamily: "monospace",
+                                          fontFamilyFallback: <String>["Courier"],
+                                        ),
                                       ),
-                                    ),
-                                    TextSpan(
-                                      text: "  ${action.entry}",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontFeatures: [FontFeature.tabularFigures()],
-                                        fontWeight: FontWeight.bold,
+                                      TextSpan(
+                                        text: "  ${action.entry}\n",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontFeatures: [FontFeature.tabularFigures()],
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                            .toList(),
+                                    ],
+                                  )
+                                  .flatten()
+                                  .toList(),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

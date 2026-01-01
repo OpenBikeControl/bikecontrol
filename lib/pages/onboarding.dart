@@ -67,7 +67,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
       ],
       floatingFooter: true,
       footers: [
-        Center(child: HelpButton()),
+        Center(
+          child: HelpButton(
+            isMobile: true,
+          ),
+        ),
       ],
       child: Center(
         child: Container(

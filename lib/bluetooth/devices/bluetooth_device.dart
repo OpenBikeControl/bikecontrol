@@ -14,6 +14,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -21,6 +22,7 @@ import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -120,28 +122,33 @@ abstract class BluetoothDevice extends BaseDevice {
           ?.payload;
 
       if (data == null || data.isEmpty) {
-        return null;
+      } else {
+        final type = ZwiftDeviceType.fromManufacturerData(data.first);
+        device = switch (type) {
+          ZwiftDeviceType.click => ZwiftClick(scanResult),
+          ZwiftDeviceType.playRight => ZwiftPlay(scanResult),
+          ZwiftDeviceType.playLeft => ZwiftPlay(scanResult),
+          ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
+          //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
+          ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
+          //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
+          _ => null,
+        };
       }
-
-      final type = ZwiftDeviceType.fromManufacturerData(data.first);
-      return switch (type) {
-        ZwiftDeviceType.click => ZwiftClick(scanResult),
-        ZwiftDeviceType.playRight => ZwiftPlay(scanResult),
-        ZwiftDeviceType.playLeft => ZwiftPlay(scanResult),
-        ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
-        //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
-        ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
-        //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
-        _
-            when scanResult.name == 'Zwift Ride' &&
-                type != ZwiftDeviceType.rideRight &&
-                type != ZwiftDeviceType.rideLeft =>
-          ZwiftRide(scanResult), // e.g. old firmware
-        _ => null,
-      };
-    } else {
-      return null;
     }
+
+    if (scanResult.name == 'Zwift Ride' && device == null) {
+      // Fallback for Zwift Ride if nothing else matched => old firmware
+      if (navigatorKey.currentContext?.mounted ?? false) {
+        buildToast(
+          navigatorKey.currentContext!,
+          title: 'Please update your Zwift Ride firmware.',
+          duration: Duration(seconds: 6),
+        );
+      }
+      device = ZwiftRide(scanResult);
+    }
+    return device;
   }
 
   @override

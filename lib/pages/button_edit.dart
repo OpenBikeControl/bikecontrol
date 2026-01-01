@@ -524,7 +524,7 @@ class SelectableCard extends StatelessWidget {
                 hoverColor: Theme.of(context).colorScheme.card,
               ),
       onPressed: onPressed,
-      alignment: Alignment.centerLeft,
+      alignment: Alignment.topLeft,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 8.0),

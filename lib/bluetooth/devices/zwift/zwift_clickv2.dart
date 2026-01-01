@@ -80,7 +80,7 @@ class ZwiftClickV2 extends ZwiftRide {
                         Expanded(
                           child: Text(
                             AppLocalizations.of(context).clickV2Instructions,
-                          ).xSmall,
+                          ).small,
                         ),
                         IconButton.link(
                           icon: Icon(Icons.close),
@@ -113,8 +113,8 @@ class ZwiftClickV2 extends ZwiftRide {
                               ),
                             );
                           },
-                          leading: const Icon(Icons.open_in_new),
-                          child: Text(context.i18n.troubleshootingGuide),
+                          leading: const Icon(Icons.help_outline_outlined),
+                          child: Text(context.i18n.instructions),
                         ),
                       ],
                     ),

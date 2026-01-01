@@ -155,10 +155,15 @@ class _NavigationState extends State<Navigation> {
               ),
             ),
             Divider(),
-            if (_isMobile) Center(child: HelpButton()),
           ],
-          floatingHeader: _isMobile,
-          footers: _isMobile ? [Divider(), _buildNavigationBar()] : [],
+          footers: _isMobile
+              ? [
+                  if (_isMobile) Center(child: HelpButton(isMobile: true)),
+                  Divider(),
+                  _buildNavigationBar(),
+                ]
+              : [],
+          floatingFooter: true,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -167,22 +172,25 @@ class _NavigationState extends State<Navigation> {
                 VerticalDivider(),
               ],
               Expanded(
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: AnimatedSwitcher(
-                    duration: Duration(milliseconds: 200),
-                    child: switch (_selectedPage) {
-                      BCPage.devices => DevicePage(
+                child: AnimatedSwitcher(
+                  duration: Duration(milliseconds: 200),
+                  child: switch (_selectedPage) {
+                    BCPage.devices => Align(
+                      alignment: Alignment.topLeft,
+                      key: _pageKeys[BCPage.devices],
+                      child: DevicePage(
                         isMobile: _isMobile,
-                        key: _pageKeys[BCPage.devices],
                         onUpdate: () {
                           setState(() {
                             _selectedPage = BCPage.trainer;
                           });
                         },
                       ),
-                      BCPage.trainer => TrainerPage(
-                        key: _pageKeys[BCPage.trainer],
+                    ),
+                    BCPage.trainer => Align(
+                      alignment: Alignment.topLeft,
+                      key: _pageKeys[BCPage.trainer],
+                      child: TrainerPage(
                         onUpdate: () {
                           setState(() {});
                         },
@@ -193,18 +201,19 @@ class _NavigationState extends State<Navigation> {
                         },
                         isMobile: _isMobile,
                       ),
-                      BCPage.customization => CustomizePage(
-                        isMobile: _isMobile,
-                        key: _pageKeys[BCPage.customization],
+                    ),
+                    BCPage.customization => Align(
+                      alignment: Alignment.topLeft,
+                      key: _pageKeys[BCPage.customization],
+                      child: CustomizePage(isMobile: _isMobile),
+                    ),
+                    BCPage.logs => Padding(
+                      padding: EdgeInsets.only(bottom: _isMobile ? 126 : 16, left: 16, right: 16, top: 16),
+                      child: LogViewer(
+                        key: _pageKeys[BCPage.logs],
                       ),
-                      BCPage.logs => Padding(
-                        padding: EdgeInsets.only(top: _isMobile ? 166 : 16, left: 16, right: 16, bottom: 16),
-                        child: LogViewer(
-                          key: _pageKeys[BCPage.logs],
-                        ),
-                      ),
-                    },
-                  ),
+                    ),
+                  },
                 ),
               ),
             ],
@@ -214,7 +223,7 @@ class _NavigationState extends State<Navigation> {
         if (!_isMobile)
           Container(
             alignment: Alignment.topCenter,
-            child: HelpButton(),
+            child: HelpButton(isMobile: false),
           ),
       ],
     );

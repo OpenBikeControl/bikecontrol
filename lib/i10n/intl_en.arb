@@ -239,7 +239,7 @@
   "myWhooshDirectConnectAction": "MyWhoosh \"Link\" Action",
   "myWhooshDirectConnection": " e.g. by using MyWhoosh \"Link\"",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" connected",
-  "myWhooshLinkDescriptionLocal": "Connect directly to MyWhoosh via the \"Link\" method. Supported actions are shifting, Emotes, turn directions, among others. The MyWhoosh Link companion app must NOT be running at the same time.",
+  "myWhooshLinkDescriptionLocal": "Connect directly to MyWhoosh via the \"Link\" method. Check the instructions to ensure a connection is possible. The \"MyWhoosh Link\" app must not be active at the same time.",
   "myWhooshLinkInfo": "Please check the troubleshooting section if you encounter any issues. A much more reliable connection method is coming soon!",
   "needHelpClickHelp": "Need help? Click on the",
   "needHelpDontHesitate": "button on top and don't hesitate to contact us.",

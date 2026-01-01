@@ -17,6 +17,7 @@ import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/pair_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -96,12 +97,44 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
     final showWhooshLinkAsOther =
         (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
 
-    final isMobile = MediaQuery.sizeOf(context).width < 800;
+    final recommendedTiles = [
+      if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
+      if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
+
+      if (core.logic.showZwiftMsdnEmulator)
+        ZwiftMdnsTile(
+          onUpdate: () {
+            core.connection.signalNotification(
+              LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+            );
+          },
+        ),
+      if (core.logic.showZwiftBleEmulator)
+        ZwiftTile(
+          onUpdate: () {
+            if (mounted) {
+              core.connection.signalNotification(
+                LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+              );
+              setState(() {});
+            }
+          },
+        ),
+      if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
+      if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
+    ];
+
+    final otherTiles = [
+      if (core.logic.showRemote) RemotePairingWidget(),
+      if (showLocalAsOther) LocalTile(),
+      if (showWhooshLinkAsOther) MyWhooshLinkTile(),
+    ];
+
     return Scrollbar(
       controller: _scrollController,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: EdgeInsets.only(top: widget.isMobile ? 166 : 16, left: 16, right: 16, bottom: 16),
+        padding: EdgeInsets.only(bottom: widget.isMobile ? 126 : 16, left: 16, right: 16, top: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,124 +144,105 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               valueListenable: IAPManager.instance.isPurchased,
               builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
             ),
-            Accordion(
-              items: [
-                AccordionItem(
-                  trigger: AccordionTrigger(
-                    child: IgnorePointer(
-                      child: Row(
-                        spacing: 12,
-                        children: [
-                          Select<SupportedApp>(
-                            itemBuilder: (c, app) => Row(
-                              spacing: 4,
-                              children: [
-                                Text(screenshotMode ? 'Trainer app' : app.name),
-                                if (app.supportsOpenBikeProtocol) Icon(Icons.star),
-                              ],
-                            ),
-                            popup: SelectPopup(
-                              items: SelectItemList(
-                                children: SupportedApp.supportedApps.map((app) {
-                                  return SelectItemButton(
-                                    value: app,
-                                    child: Row(
-                                      spacing: 4,
-                                      children: [
-                                        Text(app.name),
-                                        if (app.supportsOpenBikeProtocol) Icon(Icons.star),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
+            SizedBox(
+              width: double.infinity,
+              child: Accordion(
+                items: [
+                  AccordionItem(
+                    trigger: AccordionTrigger(
+                      child: IgnorePointer(
+                        child: Row(
+                          spacing: 12,
+                          children: [
+                            Select<SupportedApp>(
+                              itemBuilder: (c, app) => Row(
+                                spacing: 4,
+                                children: [
+                                  Text(screenshotMode ? 'Trainer app' : app.name),
+                                  if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                                ],
                               ),
-                            ).call,
-                            placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
-                            value: core.settings.getTrainerApp(),
-                            onChanged: (selectedApp) async {},
-                          ),
-                          if (core.settings.getLastTarget() != null) ...[
-                            Icon(core.settings.getLastTarget()!.icon),
-                            Text(core.settings.getLastTarget()!.getTitle(context)),
+                              popup: SelectPopup(
+                                items: SelectItemList(
+                                  children: SupportedApp.supportedApps.map((app) {
+                                    return SelectItemButton(
+                                      value: app,
+                                      child: Row(
+                                        spacing: 4,
+                                        children: [
+                                          Text(app.name),
+                                          if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ).call,
+                              placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
+                              value: core.settings.getTrainerApp(),
+                              onChanged: (selectedApp) async {},
+                            ),
+                            if (core.settings.getLastTarget() != null) ...[
+                              if (!widget.isMobile) Icon(core.settings.getLastTarget()!.icon),
+                              Text(core.settings.getLastTarget()!.getTitle(context)),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
+                    content: ConfigurationPage(
+                      onUpdate: () {
+                        setState(() {});
+                        widget.onUpdate();
+                      },
+                    ),
                   ),
-                  content: ConfigurationPage(
-                    onUpdate: () {
-                      setState(() {});
-                      widget.onUpdate();
-                    },
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
             if (core.settings.getTrainerApp() != null) ...[
               SizedBox(height: 8),
-              if (core.logic.hasRecommendedConnectionMethods)
-                ColoredTitle(text: context.i18n.recommendedConnectionMethods),
+              if (recommendedTiles.isNotEmpty) ColoredTitle(text: context.i18n.recommendedConnectionMethods),
 
-              if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
-              if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
-
-              if (core.logic.showZwiftMsdnEmulator)
-                ZwiftMdnsTile(
-                  onUpdate: () {
-                    core.connection.signalNotification(
-                      LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                    );
-                  },
+              for (final grouped in recommendedTiles.chunked(widget.isMobile ? 1 : 2)) ...[
+                IntrinsicHeight(
+                  child: Row(
+                    spacing: 8,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: grouped.map((tile) => Expanded(child: tile)).toList(),
+                  ),
                 ),
-              if (core.logic.showZwiftBleEmulator)
-                ZwiftTile(
-                  onUpdate: () {
-                    if (mounted) {
-                      core.connection.signalNotification(
-                        LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
-                      );
-                      setState(() {});
-                    }
-                  },
-                ),
-              if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
-              if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
-
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(text: '${context.i18n.needHelpClickHelp} '),
-                    WidgetSpan(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Icon(Icons.help_outline),
+              ],
+              if (otherTiles.isNotEmpty) ...[
+                SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: Accordion(
+                    items: [
+                      AccordionItem(
+                        trigger: AccordionTrigger(child: ColoredTitle(text: context.i18n.otherConnectionMethods)),
+                        content: Column(
+                          children: [
+                            for (final grouped in otherTiles.chunked(widget.isMobile ? 1 : 2)) ...[
+                              IntrinsicHeight(
+                                child: Row(
+                                  spacing: 8,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: grouped.map((tile) => Expanded(child: tile)).toList(),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                    ),
-                    TextSpan(text: ' ${context.i18n.needHelpDontHesitate}'),
-                  ],
-                ),
-              ).small.muted,
-              if (core.logic.showRemote || showLocalAsOther || showWhooshLinkAsOther) ...[
-                SizedBox(height: 16),
-                Accordion(
-                  items: [
-                    AccordionItem(
-                      trigger: AccordionTrigger(child: ColoredTitle(text: context.i18n.otherConnectionMethods)),
-                      content: Column(
-                        children: [
-                          if (core.logic.showRemote) RemotePairingWidget(),
-                          if (showLocalAsOther) LocalTile(),
-                          if (showWhooshLinkAsOther) MyWhooshLinkTile(),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
 
               SizedBox(height: 4),
               Flex(
-                direction: isMobile ? Axis.vertical : Axis.horizontal,
+                direction: widget.isMobile ? Axis.vertical : Axis.horizontal,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,

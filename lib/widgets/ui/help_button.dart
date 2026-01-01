@@ -12,11 +12,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class HelpButton extends StatelessWidget {
-  const HelpButton({super.key});
+  final bool isMobile;
+  const HelpButton({super.key, required this.isMobile});
 
   @override
   Widget build(BuildContext context) {
-    final border = core.settings.getShowOnboarding()
+    final border = isMobile
         ? BorderRadius.only(topRight: Radius.circular(8), topLeft: Radius.circular(8))
         : BorderRadius.only(bottomLeft: Radius.circular(8), bottomRight: Radius.circular(8));
     return Container(
@@ -31,17 +32,6 @@ class HelpButton extends StatelessWidget {
                 context: context,
                 builder: (c) => DropdownMenu(
                   children: [
-                    MenuButton(
-                      leading: Icon(Icons.help_outline),
-                      child: Text(context.i18n.troubleshootingGuide),
-                      onPressed: (c) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
-                        );
-                      },
-                    ),
-                    MenuDivider(),
                     MenuLabel(child: Text(context.i18n.getSupport)),
                     MenuButton(
                       leading: Icon(Icons.reddit_outlined),
@@ -142,6 +132,18 @@ class HelpButton extends StatelessWidget {
                         },
                       ),
                     ],
+                    MenuDivider(),
+                    MenuLabel(child: Text(context.i18n.instructions)),
+                    MenuButton(
+                      leading: Icon(Icons.help_outline),
+                      child: Text(context.i18n.troubleshootingGuide),
+                      onPressed: (c) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                        );
+                      },
+                    ),
                   ],
                 ),
               );
