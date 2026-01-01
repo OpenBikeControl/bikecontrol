@@ -57,7 +57,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ],
           trailing: [
             Button.outline(
-              child: Text('Skip'),
+              child: Text(AppLocalizations.of(context).skip),
               onPressed: () {
                 core.settings.setShowOnboarding(false);
                 widget.onComplete();
@@ -112,9 +112,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   children: [
                     SizedBox(height: 30),
                     Icon(Icons.check_circle, size: 58, color: Colors.green),
-                    ColoredTitle(text: 'Setup Complete!'),
+                    ColoredTitle(text: AppLocalizations.of(context).setupComplete),
                     Text(
-                      "As a final step you'll choose how to connect to ${core.settings.getTrainerApp()?.name}.",
+                      AppLocalizations.of(
+                        context,
+                      ).asAFinalStepYoullChooseHowToConnectTo(core.settings.getTrainerApp()?.name ?? 'your trainer'),
                       textAlign: TextAlign.center,
                     ).small.muted,
 
@@ -125,7 +127,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         core.settings.setShowOnboarding(false);
                         widget.onComplete();
                       },
-                      child: Text('Continue'),
+                      child: Text(context.i18n.continueAction),
                     ),
                   ],
                 ),
@@ -172,7 +174,7 @@ class _PermissionsOnboardingStepState extends State<_PermissionsOnboardingStep> 
     return Column(
       children: [
         SizedBox(height: 8),
-        Text('Let\'s get you set up!').h3,
+        Text(AppLocalizations.of(context).letsGetYouSetUp).h3,
         if (_needsPermissions != null && _needsPermissions!.isNotEmpty)
           PermissionList(
             requirements: _needsPermissions!,
@@ -226,7 +228,7 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 12,
       children: [
-        ColoredTitle(text: 'Controller Setup'),
+        ColoredTitle(text: context.i18n.connectControllers),
         if (core.connection.controllerDevices.isEmpty) ...[
           ScanWidget(),
 
@@ -268,7 +270,7 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
                 return Opacity(
                   opacity: value,
                   child: Text(
-                    'Great! Your controller is connected. Click a button on your controller to continue.',
+                    AppLocalizations.of(context).controllerConnectedClickButton,
                   ).small,
                 );
               },
@@ -313,7 +315,7 @@ class _TrainerOnboardingStepState extends State<_TrainerOnboardingStep> {
             onPressed: () {
               widget.onComplete();
             },
-            child: Text('Continue'),
+            child: Text(context.i18n.continueAction),
           ),
       ],
     );

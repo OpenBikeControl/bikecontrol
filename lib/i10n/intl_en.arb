@@ -430,5 +430,10 @@
   "whyPermissionNeeded": "Why is this permission needed?",
   "yes": "Yes",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
+  "setupComplete": "Setup Complete!",
+  "asAFinalStepYoullChooseHowToConnectTo": "As a final step you'll choose how to connect to {trainerApp}.",
+  "skip": "Skip",
+  "letsGetYouSetUp": "Let's get you set up!",
+  "controllerConnectedClickButton": "Great! Your controller is connected. Click a button on your controller to continue."
 }
