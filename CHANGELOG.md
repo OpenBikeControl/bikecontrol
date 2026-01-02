@@ -1,4 +1,5 @@
 ### 4.3.0 (unreleased)
+
 **Features**:
 - Onboarding for new users
 - media key support for Windows and macOS

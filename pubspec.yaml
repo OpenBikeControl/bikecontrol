@@ -99,6 +99,7 @@ flutter:
     - INSTRUCTIONS_REMOTE_CONTROL.md
     - INSTRUCTIONS_ROUVY.md
     - INSTRUCTIONS_ZWIFT.md
+    - INSTRUCTIONS_LOCAL.md
     - shorebird.yaml
     - icon.png
 
