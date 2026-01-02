@@ -99,11 +99,10 @@ class ZwiftClickV2 extends ZwiftRide {
 
                         Button.secondary(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                              ),
+                            openDrawer(
+                              context: context,
+                              position: OverlayPosition.bottom,
+                              builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
                             );
                           },
                           leading: const Icon(Icons.help_outline_outlined),
@@ -136,11 +135,10 @@ class ZwiftClickV2 extends ZwiftRide {
                     LinkButton(
                       child: Text(context.i18n.troubleshootingGuide),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                          ),
+                        openDrawer(
+                          context: context,
+                          position: OverlayPosition.bottom,
+                          builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
                         );
                       },
                     ),

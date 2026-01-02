@@ -138,9 +138,10 @@ class HelpButton extends StatelessWidget {
                       leading: Icon(Icons.help_outline),
                       child: Text(context.i18n.troubleshootingGuide),
                       onPressed: (c) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md')),
+                        openDrawer(
+                          context: context,
+                          position: OverlayPosition.bottom,
+                          builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
                         );
                       },
                     ),

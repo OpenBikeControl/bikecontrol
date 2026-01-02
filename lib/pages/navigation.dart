@@ -132,10 +132,10 @@ class _NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          headers: [
+    return Scaffold(
+      headers: [
+        Stack(
+          children: [
             AppBar(
               padding:
                   const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
@@ -154,78 +154,77 @@ class _NavigationState extends State<Navigation> {
                     : null,
               ),
             ),
-            Divider(),
-          ],
-          footers: _isMobile
-              ? [
-                  if (_isMobile) Center(child: HelpButton(isMobile: true)),
-                  Divider(),
-                  _buildNavigationBar(),
-                ]
-              : [],
-          floatingFooter: true,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!_isMobile) ...[
-                _buildNavigationMenu(),
-                VerticalDivider(),
-              ],
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: Duration(milliseconds: 200),
-                  child: switch (_selectedPage) {
-                    BCPage.devices => Align(
-                      alignment: Alignment.topLeft,
-                      key: _pageKeys[BCPage.devices],
-                      child: DevicePage(
-                        isMobile: _isMobile,
-                        onUpdate: () {
-                          setState(() {
-                            _selectedPage = BCPage.trainer;
-                          });
-                        },
-                      ),
-                    ),
-                    BCPage.trainer => Align(
-                      alignment: Alignment.topLeft,
-                      key: _pageKeys[BCPage.trainer],
-                      child: TrainerPage(
-                        onUpdate: () {
-                          setState(() {});
-                        },
-                        goToNextPage: () {
-                          setState(() {
-                            _selectedPage = BCPage.customization;
-                          });
-                        },
-                        isMobile: _isMobile,
-                      ),
-                    ),
-                    BCPage.customization => Align(
-                      alignment: Alignment.topLeft,
-                      key: _pageKeys[BCPage.customization],
-                      child: CustomizePage(isMobile: _isMobile),
-                    ),
-                    BCPage.logs => Padding(
-                      padding: EdgeInsets.only(bottom: _isMobile ? 146 : 16, left: 16, right: 16, top: 16),
-                      child: LogViewer(
-                        key: _pageKeys[BCPage.logs],
-                      ),
-                    ),
-                  },
-                ),
+            if (!_isMobile)
+              Container(
+                alignment: Alignment.topCenter,
+                child: HelpButton(isMobile: false),
               ),
-            ],
-          ),
+          ],
         ),
-
-        if (!_isMobile)
-          Container(
-            alignment: Alignment.topCenter,
-            child: HelpButton(isMobile: false),
-          ),
+        Divider(),
       ],
+      footers: _isMobile
+          ? [
+              if (_isMobile) Center(child: HelpButton(isMobile: true)),
+              Divider(),
+              _buildNavigationBar(),
+            ]
+          : [],
+      floatingFooter: true,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_isMobile) ...[
+            _buildNavigationMenu(),
+            VerticalDivider(),
+          ],
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 200),
+              child: switch (_selectedPage) {
+                BCPage.devices => Align(
+                  alignment: Alignment.topLeft,
+                  key: _pageKeys[BCPage.devices],
+                  child: DevicePage(
+                    isMobile: _isMobile,
+                    onUpdate: () {
+                      setState(() {
+                        _selectedPage = BCPage.trainer;
+                      });
+                    },
+                  ),
+                ),
+                BCPage.trainer => Align(
+                  alignment: Alignment.topLeft,
+                  key: _pageKeys[BCPage.trainer],
+                  child: TrainerPage(
+                    onUpdate: () {
+                      setState(() {});
+                    },
+                    goToNextPage: () {
+                      setState(() {
+                        _selectedPage = BCPage.customization;
+                      });
+                    },
+                    isMobile: _isMobile,
+                  ),
+                ),
+                BCPage.customization => Align(
+                  alignment: Alignment.topLeft,
+                  key: _pageKeys[BCPage.customization],
+                  child: CustomizePage(isMobile: _isMobile),
+                ),
+                BCPage.logs => Padding(
+                  padding: EdgeInsets.only(bottom: _isMobile ? 146 : 16, left: 16, right: 16, top: 16),
+                  child: LogViewer(
+                    key: _pageKeys[BCPage.logs],
+                  ),
+                ),
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 

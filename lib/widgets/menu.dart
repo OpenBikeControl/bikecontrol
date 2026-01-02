@@ -20,67 +20,68 @@ import '../utils/iap/iap_manager.dart';
 
 List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCallback? openLogs) {
   return [
-    Builder(
-      builder: (context) {
-        return OutlineButton(
-          density: ButtonDensity.icon,
-          onPressed: () {
-            showDropdown(
-              context: context,
-              builder: (c) => DropdownMenu(
-                children: [
-                  if ((!Platform.isIOS && !Platform.isMacOS)) ...[
-                    MenuLabel(child: Text(context.i18n.showDonation)),
-                    MenuButton(
-                      child: Text(context.i18n.donateViaCreditCard),
-                      onPressed: (c) {
-                        final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
-                        final link = switch (currency.currencyName) {
-                          'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
-                          _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
-                        };
-                        launchUrlString(link);
-                      },
-                    ),
-                    if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
+    if (IAPManager.instance.isPurchased.value)
+      Builder(
+        builder: (context) {
+          return OutlineButton(
+            density: ButtonDensity.icon,
+            onPressed: () {
+              showDropdown(
+                context: context,
+                builder: (c) => DropdownMenu(
+                  children: [
+                    if ((!Platform.isIOS && !Platform.isMacOS)) ...[
+                      MenuLabel(child: Text(context.i18n.showDonation)),
                       MenuButton(
-                        child: Text(context.i18n.donateByBuyingFromPlayStore),
+                        child: Text(context.i18n.donateViaCreditCard),
                         onPressed: (c) {
-                          launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
+                          final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
+                          final link = switch (currency.currencyName) {
+                            'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
+                            _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
+                          };
+                          launchUrlString(link);
                         },
                       ),
+                      if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
+                        MenuButton(
+                          child: Text(context.i18n.donateByBuyingFromPlayStore),
+                          onPressed: (c) {
+                            launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
+                          },
+                        ),
+                      MenuButton(
+                        child: Text(context.i18n.donateViaPaypal),
+                        onPressed: (c) {
+                          launchUrlString('https://paypal.me/boni');
+                        },
+                      ),
+                    ],
                     MenuButton(
-                      child: Text(context.i18n.donateViaPaypal),
-                      onPressed: (c) {
-                        launchUrlString('https://paypal.me/boni');
+                      leading: Icon(Icons.star_rate),
+                      child: Text(context.i18n.leaveAReview),
+                      onPressed: (c) async {
+                        final InAppReview inAppReview = InAppReview.instance;
+
+                        if (await inAppReview.isAvailable()) {
+                          inAppReview.requestReview();
+                        } else {
+                          inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
+                        }
                       },
                     ),
                   ],
-                  MenuButton(
-                    leading: Icon(Icons.star_rate),
-                    child: Text(context.i18n.leaveAReview),
-                    onPressed: (c) async {
-                      final InAppReview inAppReview = InAppReview.instance;
-
-                      if (await inAppReview.isAvailable()) {
-                        inAppReview.requestReview();
-                      } else {
-                        inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
-                      }
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-          child: Icon(
-            Icons.favorite,
-            color: Colors.red,
-            size: 18,
-          ),
-        );
-      },
-    ),
+                ),
+              );
+            },
+            child: Icon(
+              Icons.favorite,
+              color: Colors.red,
+              size: 18,
+            ),
+          );
+        },
+      ),
     Gap(4),
 
     BKMenuButton(openLogs: openLogs, currentPage: currentPage),
@@ -166,7 +167,11 @@ class BKMenuButton extends StatelessWidget {
               leading: Icon(Icons.update_outlined),
               child: Text(context.i18n.changelog),
               onPressed: (c) {
-                Navigator.push(context, MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md')));
+                openDrawer(
+                  context: context,
+                  position: OverlayPosition.bottom,
+                  builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md'),
+                );
               },
             ),
             MenuButton(

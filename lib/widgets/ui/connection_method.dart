@@ -157,9 +157,10 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   : ButtonStyle.outline(),
               leading: Icon(Icons.help_outline),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (c) => MarkdownPage(assetPath: widget.instructionLink!)),
+                openDrawer(
+                  context: context,
+                  position: OverlayPosition.bottom,
+                  builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
                 );
               },
               child: Text(AppLocalizations.of(context).instructions),

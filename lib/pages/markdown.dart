@@ -1,10 +1,8 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart' show BackButton;
+import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
 import 'package:http/http.dart' as http;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class MarkdownPage extends StatefulWidget {
@@ -40,51 +38,36 @@ class _ChangelogPageState extends State<MarkdownPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      headers: [
-        AppBar(
-          leading: [
-            BackButton(),
-          ],
-          title: Text(
-            widget.assetPath
-                .replaceAll('.md', '')
-                .split('_')
-                .joinToString(separator: ' ', transform: (s) => s.toLowerCase().capitalize()),
-          ),
-        ),
-      ],
-      child: _error != null
-          ? Center(child: Text(_error!))
-          : _groups == null
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
-              child: Accordion(
-                items: _groups!
-                    .map(
-                      (group) => AccordionItem(
-                        trigger: AccordionTrigger(child: ColoredTitle(text: group.title)),
-                        content: MarkdownWidget(
-                          markdown: group.markdown,
-                          theme: MarkdownThemeData(
-                            textStyle: TextStyle(
-                              fontSize: 14.0,
-                              color: Theme.of(context).colorScheme.brightness == Brightness.dark
-                                  ? Colors.white.withAlpha(255 * 70)
-                                  : Colors.black.withAlpha(87 * 255),
-                            ),
-                            onLinkTap: (title, url) {
-                              launchUrlString(url);
-                            },
+    return _error != null
+        ? Center(child: Text(_error!))
+        : _groups == null
+        ? Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: EdgeInsets.all(16),
+            child: Accordion(
+              items: _groups!
+                  .map(
+                    (group) => AccordionItem(
+                      trigger: AccordionTrigger(child: GradientText(group.title).bold),
+                      content: MarkdownWidget(
+                        markdown: group.markdown,
+                        theme: MarkdownThemeData(
+                          textStyle: TextStyle(
+                            fontSize: 14.0,
+                            color: Theme.of(context).colorScheme.brightness == Brightness.dark
+                                ? Colors.white.withAlpha(255 * 70)
+                                : Colors.black.withAlpha(87 * 255),
                           ),
+                          onLinkTap: (title, url) {
+                            launchUrlString(url);
+                          },
                         ),
                       ),
-                    )
-                    .toList(),
-              ),
+                    ),
+                  )
+                  .toList(),
             ),
-    );
+          );
   }
 
   void _parseMarkdown(String md) {

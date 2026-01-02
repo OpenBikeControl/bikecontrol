@@ -48,11 +48,10 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                     duration: Duration(seconds: 6),
                     closeTitle: 'Open',
                     onClose: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MarkdownPage(assetPath: 'INSTRUCTIONS_MYWHOOSH_LINK.md'),
-                        ),
+                      openDrawer(
+                        context: context,
+                        position: OverlayPosition.bottom,
+                        builder: (c) => MarkdownPage(assetPath: 'INSTRUCTIONS_MYWHOOSH_LINK.md'),
                       );
                     },
                   );
