@@ -6,6 +6,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:http/http.dart' as http;
@@ -416,6 +417,19 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                         },
                       ),
                     ),
+                    if (Platform.isMacOS)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 42.0, top: 8.0, bottom: 8),
+                        child: LoadingWidget(
+                          futureCallback: () async {
+                            await IAPManager.instance.restorePurchases();
+                          },
+                          renderChild: (isLoading, tap) => LinkButton(
+                            onPressed: tap,
+                            child: isLoading ? SmallProgressIndicator() : const Text('Restore Purchase').small,
+                          ),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.only(left: 42.0, top: 8.0),
                       child: Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
