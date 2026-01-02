@@ -164,7 +164,7 @@ class RevenueCatService {
       } else {
         final purchasedVersion = customerInfo.originalApplicationVersion;
         core.connection.signalNotification(LogNotification('Apple receipt validated for version: $purchasedVersion'));
-        final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 0;
+        final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
         isPurchasedNotifier.value = purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58);
       }
     } else {
