@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -74,6 +77,7 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
                             }
                           });
                     };
+              final optional = e is NotificationRequirement && (Platform.isMacOS || Platform.isIOS);
               return SizedBox(
                 width: double.infinity,
                 child: Button(
@@ -100,7 +104,12 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
                               ? ButtonStyle.secondary(size: ButtonSize.small)
                               : ButtonStyle.primary(size: ButtonSize.small),
                           onPressed: onPressed,
-                          child: e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
+                          child: Column(
+                            children: [
+                              e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
+                              if (optional) Text('Optional', style: TextStyle(fontSize: 10)).muted,
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -389,4 +389,12 @@ class Settings {
   Future<void> setShowOnboarding(bool show) async {
     await prefs.setBool('show_onboarding', show);
   }
+
+  bool hasAskedPermissions() {
+    return prefs.getBool('asked_permissions') ?? false;
+  }
+
+  Future<void> setHasAskedPermissions(bool asked) async {
+    await prefs.setBool('asked_permissions', asked);
+  }
 }

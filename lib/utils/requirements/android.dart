@@ -141,6 +141,7 @@ class NotificationRequirement extends PlatformRequirement {
             badge: false,
             sound: false,
           );
+      core.settings.setHasAskedPermissions(true);
       if (result == false) {
         buildToast(
           navigatorKey.currentContext!,
@@ -156,6 +157,7 @@ class NotificationRequirement extends PlatformRequirement {
             badge: false,
             sound: false,
           );
+      core.settings.setHasAskedPermissions(true);
       if (result == false) {
         buildToast(
           navigatorKey.currentContext!,
@@ -181,12 +183,12 @@ class NotificationRequirement extends PlatformRequirement {
       final permissions = await core.flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.checkPermissions();
-      status = permissions?.isEnabled == true;
+      status = permissions?.isEnabled == true || core.settings.hasAskedPermissions();
     } else if (Platform.isMacOS) {
       final permissions = await core.flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
           ?.checkPermissions();
-      status = permissions?.isEnabled == true;
+      status = permissions?.isEnabled == true || core.settings.hasAskedPermissions();
     } else {
       status = true;
     }
