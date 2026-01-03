@@ -156,7 +156,7 @@ class HelpButton extends StatelessWidget {
             ),
             child: Padding(
               padding: EdgeInsets.only(
-                bottom: core.settings.getShowOnboarding() && (Platform.isAndroid || Platform.isIOS) ? 14 : 0,
+                bottom: core.settings.getShowOnboarding() && (kIsWeb || Platform.isAndroid || Platform.isIOS) ? 14 : 0,
               ),
               child: Text(context.i18n.troubleshootingGuide),
             ),

@@ -157,7 +157,9 @@ class IAPManager {
   /// Get a status message for the user
   String getStatusMessage() {
     /// Get a status message for the user
-    if (IAPManager.instance.isPurchased.value) {
+    if (kIsWeb) {
+      return "Web";
+    } else if (IAPManager.instance.isPurchased.value) {
       return AppLocalizations.current.fullVersion;
     } else if (!hasTrialStarted) {
       return '${_revenueCatService?.trialDaysRemaining ?? _iapService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining} day trial available';

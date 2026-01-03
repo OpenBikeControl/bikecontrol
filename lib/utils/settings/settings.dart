@@ -7,6 +7,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -383,7 +384,7 @@ class Settings {
   }
 
   bool getShowOnboarding() {
-    return prefs.getBool('show_onboarding') ?? true;
+    return !kIsWeb && (prefs.getBool('show_onboarding') ?? true);
   }
 
   Future<void> setShowOnboarding(bool show) async {
