@@ -136,14 +136,18 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
             final messageType = data[0];
             switch (messageType) {
               case OpenBikeProtocolParser.MSG_TYPE_APP_INFO:
-                final appInfo = OpenBikeProtocolParser.parseAppInfo(Uint8List.fromList(data));
-                isConnected.value = true;
-                connectedApp.value = appInfo;
+                try {
+                  final appInfo = OpenBikeProtocolParser.parseAppInfo(Uint8List.fromList(data));
+                  isConnected.value = true;
+                  connectedApp.value = appInfo;
 
-                supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
-                core.connection.signalNotification(
-                  AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
-                );
+                  supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
+                  core.connection.signalNotification(
+                    AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+                  );
+                } catch (e) {
+                  core.connection.signalNotification(LogNotification('Failed to parse app info: $e'));
+                }
                 break;
               default:
                 print('Unknown message type: $messageType');
