@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNotification, LogNotification;
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -12,8 +15,6 @@ import 'package:bike_control/widgets/title.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-
-import '../../messages/notification.dart' show AlertNotification;
 
 class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   late final _peripheralManager = PeripheralManager();
@@ -79,6 +80,12 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
           print('Read request for characteristic: ${eventArgs.characteristic.uuid}');
 
           switch (eventArgs.characteristic.uuid.toString().toUpperCase()) {
+            case BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL:
+              await _peripheralManager.respondReadRequestWithValue(
+                eventArgs.request,
+                value: Uint8List.fromList([100]),
+              );
+              return;
             default:
               print('Unhandled read request for characteristic: ${eventArgs.characteristic.uuid}');
           }
@@ -116,9 +123,9 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
                 core.connection.signalNotification(
                   AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
                 );
-                print('Parsed App Info: $appInfo');
+                core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
               } catch (e) {
-                print('Error parsing App Info: $e');
+                core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
               }
               break;
             default:

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
@@ -234,9 +235,7 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
 
           OutlineButton(
             onPressed: () {
-              launchUrlString(
-                'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
-              );
+              launchUrlString('https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices');
             },
             leading: Icon(Icons.gamepad_outlined),
             child: Text(context.i18n.showSupportedControllers),
@@ -259,7 +258,7 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
             ),
           ),
         ] else ...[
-          if (core.connection.controllerDevices.any((d) => d.isConnected))
+          if (core.connection.controllerDevices.any((d) => d.isConnected && d is ZwiftDevice))
             RepeatedAnimationBuilder<double>(
               duration: Duration(seconds: 1),
               start: 0.5,
@@ -279,6 +278,14 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
           ...core.connection.controllerDevices.map(
             (device) => device.showInformation(context),
           ),
+          if (core.connection.controllerDevices.any((d) => d.isConnected && d is! ZwiftDevice))
+            PrimaryButton(
+              leading: Icon(Icons.check),
+              onPressed: () {
+                widget.onComplete();
+              },
+              child: Text(context.i18n.continueAction),
+            ),
           SizedBox(),
         ],
       ],

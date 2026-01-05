@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
 
@@ -17,7 +18,7 @@ class ProtocolParseException implements Exception {
   ProtocolParseException(this.message, [this.raw]);
 
   @override
-  String toString() => 'ProtocolParseException: $message${raw != null ? ' raw=${raw!.length}' : ''}';
+  String toString() => 'ProtocolParseException: $message${raw != null ? ' raw=${bytesToReadableHex(raw!)}' : ''}';
 }
 
 class OpenBikeProtocolParser {
