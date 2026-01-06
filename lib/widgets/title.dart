@@ -85,7 +85,16 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
     } else if (updater.isAvailable) {
       final updateStatus = await updater.checkForUpdate();
       if (updateStatus == UpdateStatus.outdated) {
-        _updateType = UpdateType.shorebird;
+        updater
+            .update()
+            .then((value) {
+              setState(() {
+                _updateType = UpdateType.shorebird;
+              });
+            })
+            .catchError((e) {
+              buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
+            });
       } else if (updateStatus == UpdateStatus.restartRequired) {
         _updateType = UpdateType.shorebird;
       }
@@ -100,7 +109,6 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
             build: nextPatch?.number.toString() ?? '',
           );
         });
-        return;
       }
     }
 
@@ -190,7 +198,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
             child: LoadingWidget(
               futureCallback: () async {
                 if (_updateType == UpdateType.shorebird) {
-                  await _shorebirdUpdate();
+                  await _shorebirdRestart();
                 } else if (_updateType == UpdateType.playStore) {
                   await launchUrlString(
                     'https://play.google.com/store/apps/details?id=org.jonasbark.swiftcontrol',
@@ -219,23 +227,16 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _shorebirdUpdate() async {
-    return updater
-        .update()
-        .then((value) {
-          setState(() {
-            core.connection.disconnectAll();
-            core.connection.stop();
-            if (Platform.isIOS) {
-              Restart.restartApp(delayBeforeRestart: 1000);
-            } else {
-              exit(0);
-            }
-          });
-        })
-        .catchError((e) {
-          buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
-        });
+  Future<void> _shorebirdRestart() async {
+    setState(() {
+      core.connection.disconnectAll();
+      core.connection.stop();
+      if (Platform.isIOS) {
+        Restart.restartApp(delayBeforeRestart: 1000);
+      } else {
+        exit(0);
+      }
+    });
   }
 
   void _compareVersion(String versionString) {

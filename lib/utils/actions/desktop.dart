@@ -36,7 +36,7 @@ class DesktopActions extends BaseActions {
       if (keyPair.physicalKey != null) {
         // Increment command count after successful execution
         await IAPManager.instance.incrementCommandCount();
-        if (keyPair.logicalKey != null) {
+        if (keyPair.logicalKey != null && navigatorKey.currentContext?.mounted == true) {
           final label = keyPair.logicalKey!.keyLabel;
           final keyName = label.isNotEmpty ? label : keyPair.logicalKey!.debugName ?? 'Key';
           buildToast(
