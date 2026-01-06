@@ -235,29 +235,6 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
     setState(() {});
   }
 
-  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
-    if (!widget.enabled || !widget.showKeyboard || event is KeyUpEvent) return KeyEventResult.ignored;
-
-    final label = event.logicalKey.keyLabel;
-    final keyName = label.isNotEmpty ? label : event.logicalKey.debugName ?? 'Key';
-    final isDown = event is KeyDownEvent;
-    final isUp = event is KeyUpEvent;
-
-    buildToast(
-      context,
-
-      location: ToastLocation.bottomLeft,
-      title:
-          '${isDown
-              ? "↓"
-              : isUp
-              ? "↑"
-              : "•"} $keyName',
-    );
-    // We don't want to prevent normal text input, so we return ignored.
-    return KeyEventResult.ignored;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Listener(
@@ -271,7 +248,6 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
         autofocus: true,
         canRequestFocus: true,
         descendantsAreFocusable: true,
-        onKeyEvent: _onKey,
         child: Stack(
           fit: StackFit.passthrough,
           children: [

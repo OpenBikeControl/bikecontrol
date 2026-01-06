@@ -6,6 +6,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
@@ -29,12 +30,23 @@ class AppTitle extends StatefulWidget {
   State<AppTitle> createState() => _AppTitleState();
 }
 
-class _AppTitleState extends State<AppTitle> {
+enum UpdateType {
+  playStore,
+  shorebird,
+  appStore,
+  windowsStore,
+}
+
+class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
   final updater = ShorebirdUpdater();
+
+  Version? _newVersion;
+  UpdateType? _updateType;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     if (updater.isAvailable) {
       updater.readCurrentPatch().then((patch) {
@@ -54,22 +66,41 @@ class _AppTitleState extends State<AppTitle> {
     }
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkForUpdate();
+    }
+  }
+
+  @override
+  dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   void _checkForUpdate() async {
     if (screenshotMode) {
       return;
     } else if (updater.isAvailable) {
       final updateStatus = await updater.checkForUpdate();
       if (updateStatus == UpdateStatus.outdated) {
-        updater
-            .update()
-            .then((value) {
-              _showShorebirdRestartSnackbar();
-            })
-            .catchError((e) {
-              buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
-            });
+        _updateType = UpdateType.shorebird;
       } else if (updateStatus == UpdateStatus.restartRequired) {
-        _showShorebirdRestartSnackbar();
+        _updateType = UpdateType.shorebird;
+      }
+      if (_updateType == UpdateType.shorebird) {
+        final nextPatch = await updater.readNextPatch();
+        setState(() {
+          final currentVersion = Version.parse(packageInfoValue!.version);
+          _newVersion = Version(
+            currentVersion.major,
+            currentVersion.minor,
+            currentVersion.patch,
+            build: nextPatch?.number.toString() ?? '',
+          );
+        });
+        return;
       }
     }
 
@@ -79,14 +110,9 @@ class _AppTitleState extends State<AppTitle> {
       try {
         final appUpdateInfo = await InAppUpdate.checkForUpdate();
         if (context.mounted && appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-          buildToast(
-            context,
-            title: AppLocalizations.current.newVersionAvailable,
-            closeTitle: AppLocalizations.current.update,
-            onClose: () {
-              InAppUpdate.performImmediateUpdate();
-            },
-          );
+          setState(() {
+            _updateType = UpdateType.playStore;
+          });
         }
         isFromPlayStore = true;
         return null;
@@ -151,25 +177,65 @@ class _AppTitleState extends State<AppTitle> {
           ).mono.muted
         else
           SmallProgressIndicator(),
+
+        if (_newVersion != null && _updateType != null)
+          Container(
+            margin: EdgeInsets.only(top: 8),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.destructive,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: LoadingWidget(
+              futureCallback: () async {
+                if (_updateType == UpdateType.shorebird) {
+                  await _shorebirdUpdate();
+                } else if (_updateType == UpdateType.playStore) {
+                  await launchUrlString(
+                    'https://play.google.com/store/apps/details?id=org.jonasbark.swiftcontrol',
+                    mode: LaunchMode.externalApplication,
+                  );
+                } else if (_updateType == UpdateType.appStore) {
+                  await launchUrlString(
+                    'https://apps.apple.com/app/id6753721284',
+                    mode: LaunchMode.externalApplication,
+                  );
+                } else if (_updateType == UpdateType.windowsStore) {
+                  await launchUrlString(
+                    'ms-windows-store://pdp/?productid=9NP42GS03Z26',
+                    mode: LaunchMode.externalApplication,
+                  );
+                }
+              },
+              renderChild: (isLoading, tap) => GhostButton(
+                onPressed: tap,
+                trailing: isLoading ? SmallProgressIndicator() : Icon(Icons.update),
+                child: Text(AppLocalizations.current.newVersionAvailableWithVersion(_newVersion.toString())),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  void _showShorebirdRestartSnackbar() {
-    buildToast(
-      context,
-      title: AppLocalizations.current.forceCloseToUpdate,
-      closeTitle: AppLocalizations.current.restart,
-      onClose: () {
-        core.connection.disconnectAll();
-        core.connection.stop();
-        if (Platform.isIOS) {
-          Restart.restartApp(delayBeforeRestart: 1000);
-        } else {
-          exit(0);
-        }
-      },
-    );
+  Future<void> _shorebirdUpdate() async {
+    return updater
+        .update()
+        .then((value) {
+          setState(() {
+            core.connection.disconnectAll();
+            core.connection.stop();
+            if (Platform.isIOS) {
+              Restart.restartApp(delayBeforeRestart: 1000);
+            } else {
+              exit(0);
+            }
+          });
+        })
+        .catchError((e) {
+          buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
+        });
   }
 
   void _compareVersion(String versionString) {
@@ -177,23 +243,21 @@ class _AppTitleState extends State<AppTitle> {
     final current = Version.parse(packageInfoValue!.version);
     if (parsed > current && mounted && !kDebugMode) {
       if (Platform.isAndroid) {
-        _showUpdateSnackbar(parsed, 'https://play.google.com/store/apps/details?id=org.jonasbark.swiftcontrol');
+        setState(() {
+          _updateType = UpdateType.playStore;
+          _newVersion = parsed;
+        });
       } else if (Platform.isIOS || Platform.isMacOS) {
-        _showUpdateSnackbar(parsed, 'https://apps.apple.com/app/id6753721284');
+        setState(() {
+          _updateType = UpdateType.appStore;
+          _newVersion = parsed;
+        });
       } else if (Platform.isWindows) {
-        _showUpdateSnackbar(parsed, 'ms-windows-store://pdp/?productid=9NP42GS03Z26');
+        setState(() {
+          _updateType = UpdateType.appStore;
+          _newVersion = parsed;
+        });
       }
     }
-  }
-
-  void _showUpdateSnackbar(Version newVersion, String url) {
-    buildToast(
-      context,
-      title: AppLocalizations.current.newVersionAvailableWithVersion(newVersion.toString()),
-      closeTitle: AppLocalizations.current.download,
-      onClose: () {
-        launchUrlString(url);
-      },
-    );
   }
 }

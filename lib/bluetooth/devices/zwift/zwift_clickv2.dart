@@ -70,7 +70,7 @@ class ZwiftClickV2 extends ZwiftRide {
           children: [
             super.showInformation(context),
 
-            if (isConnected && _noLongerSendsEvents)
+            if (isConnected)
               if (core.settings.getShowZwiftClickV2ReconnectWarning())
                 Stack(
                   children: [

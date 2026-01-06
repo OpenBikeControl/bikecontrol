@@ -1,10 +1,11 @@
-import 'dart:ui';
-
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class DesktopActions extends BaseActions {
   DesktopActions({super.supportedModes = const [SupportedMode.keyboard, SupportedMode.touch, SupportedMode.media]});
@@ -31,13 +32,30 @@ class DesktopActions extends BaseActions {
           return Error('Failed to simulate media key: $e');
         }
       }
-      
+
       if (keyPair.physicalKey != null) {
         // Increment command count after successful execution
         await IAPManager.instance.incrementCommandCount();
+        if (keyPair.logicalKey != null) {
+          final label = keyPair.logicalKey!.keyLabel;
+          final keyName = label.isNotEmpty ? label : keyPair.logicalKey!.debugName ?? 'Key';
+          buildToast(
+            navigatorKey.currentContext!,
+
+            location: ToastLocation.bottomLeft,
+            title:
+                '${isKeyDown
+                    ? "↓"
+                    : isKeyUp
+                    ? "↑"
+                    : "•"} $keyName',
+          );
+        }
+
         if (isKeyDown && isKeyUp) {
           await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
           await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers);
+
           return Success('Key clicked: $keyPair');
         } else if (isKeyDown) {
           await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers);
