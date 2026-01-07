@@ -146,7 +146,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                           context,
                                         ).dailyLimitReached(dailyCommandCount, IAPManager.dailyCommandLimit),
                                 ).small,
-                                if (commandsRemaining >= 0)
+                                if (commandsRemaining >= 0 && dailyCommandCount > 0)
                                   SizedBox(
                                     width: 300,
                                     child: LinearProgressIndicator(

@@ -314,7 +314,7 @@ class Connection {
             !state ? AppLocalizations.current.tryingToConnectAgain : null,
             NotificationDetails(
               android: AndroidNotificationDetails('Connection', 'Connection Status'),
-              iOS: DarwinNotificationDetails(presentAlert: true),
+              iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
             ),
           );
           if (!device.isConnected) {
