@@ -47,10 +47,9 @@ class _DevicePageState extends State<DevicePage> {
     return Scrollbar(
       child: SingleChildScrollView(
         primary: true,
-        padding: EdgeInsets.only(bottom: widget.isMobile ? 146 : 16, left: 16, right: 16, top: 16),
+        padding: EdgeInsets.only(bottom: widget.isMobile ? 166 : 16, left: 16, right: 16, top: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 12,
           children: [
             ValueListenableBuilder(
               valueListenable: IAPManager.instance.isPurchased,
@@ -66,12 +65,14 @@ class _DevicePageState extends State<DevicePage> {
             // leave it in for the extra scanning options
             ScanWidget(),
 
+            Gap(12),
             if (core.connection.controllerDevices.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: ColoredTitle(text: context.i18n.connectedControllers),
               ),
 
+            Gap(12),
             ...core.connection.controllerDevices.map(
               (device) => Card(
                 filled: true,
@@ -82,6 +83,7 @@ class _DevicePageState extends State<DevicePage> {
               ),
             ),
 
+            Gap(12),
             if (core.connection.accessories.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
@@ -98,6 +100,7 @@ class _DevicePageState extends State<DevicePage> {
               ),
             ],
 
+            Gap(12),
             if (!screenshotMode)
               Column(
                 spacing: 8,
@@ -165,6 +168,7 @@ class _DevicePageState extends State<DevicePage> {
                     ),
                 ],
               ),
+            Gap(12),
             SizedBox(),
             if (core.connection.controllerDevices.isNotEmpty)
               Row(

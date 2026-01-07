@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import '../keymap.dart';
 
@@ -19,6 +19,7 @@ class TrainingPeaks extends SupportedApp {
         compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.otherDevice] : Target.values,
         supportsZwiftEmulation: false,
         supportsOpenBikeProtocol: false,
+        star: true,
         keymap: Keymap(
           keyPairs: [
             // Explicit controller-button mappings with updated touch coordinates

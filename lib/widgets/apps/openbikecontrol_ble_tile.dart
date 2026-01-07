@@ -4,6 +4,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OpenBikeControlBluetoothTile extends StatefulWidget {
@@ -27,7 +28,9 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
               type: ConnectionMethodType.openBikeControl,
               title: context.i18n.connectUsingBluetooth,
               description: isConnected != null
-                  ? context.i18n.connectedTo(isConnected.appId)
+                  ? context.i18n.connectedTo(
+                      "${isConnected.appId}:\n${isConnected.supportedActions.joinToString(transform: (s) => s.title)}",
+                    )
                   : isStarted
                   ? context.i18n.chooseBikeControlInConnectionScreen
                   : context.i18n.letsAppConnectOverBluetooth(core.settings.getTrainerApp()?.name ?? ''),

@@ -318,15 +318,22 @@ abstract class BluetoothDevice extends BaseDevice {
               ),
 
             if (rssi != null)
-              DeviceInfo(
-                title: context.i18n.signal,
-                icon: switch (rssi!) {
-                  >= -50 => Icons.signal_cellular_4_bar,
-                  >= -60 => Icons.signal_cellular_alt_2_bar,
-                  >= -70 => Icons.signal_cellular_alt_1_bar,
-                  _ => Icons.signal_cellular_alt,
+              StreamBuilder(
+                stream: core.connection.rssiConnectionStream
+                    .where((device) => device == this)
+                    .map((event) => event.rssi),
+                builder: (context, rssiValue) {
+                  return DeviceInfo(
+                    title: context.i18n.signal,
+                    icon: switch (rssiValue.data ?? rssi!) {
+                      >= -50 => Icons.signal_cellular_4_bar,
+                      >= -60 => Icons.signal_cellular_alt_2_bar,
+                      >= -70 => Icons.signal_cellular_alt_1_bar,
+                      _ => Icons.signal_cellular_alt,
+                    },
+                    value: '$rssi dBm',
+                  );
                 },
-                value: '$rssi dBm',
               ),
           ],
         ),

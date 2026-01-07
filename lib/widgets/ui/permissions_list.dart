@@ -48,79 +48,79 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        spacing: 18,
-        children: [
-          Center(
-            child: Text(
-              context.i18n.theFollowingPermissionsRequired,
-              textAlign: TextAlign.center,
-            ).muted.small,
-          ),
-          ...widget.requirements.map(
-            (e) {
-              final onPressed = e.status
-                  ? null
-                  : () {
-                      e
-                          .call(context, () {
-                            setState(() {});
-                          })
-                          .then((_) {
-                            setState(() {});
-                            if (widget.requirements.all((e) => e.status)) {
-                              widget.onDone();
-                            }
-                          });
-                    };
-              final optional = e is NotificationRequirement && (Platform.isMacOS || Platform.isIOS);
-              return SizedBox(
-                width: double.infinity,
-                child: Button(
-                  onPressed: onPressed,
-                  style: ButtonStyle.card().withBackgroundColor(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Theme.of(context).colorScheme.card
-                        : Theme.of(context).colorScheme.card.withLuminance(0.95),
-                  ),
-                  child: Basic(
-                    leading: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Theme.of(context).colorScheme.primaryForeground,
-                      ),
-                      padding: EdgeInsets.all(8),
-                      child: Icon(e.icon),
-                    ),
-                    title: Row(
-                      children: [
-                        Expanded(child: Text(e.name)),
-                        Button(
-                          style: e.status
-                              ? ButtonStyle.secondary(size: ButtonSize.small)
-                              : ButtonStyle.primary(size: ButtonSize.small),
-                          onPressed: onPressed,
-                          child: Column(
-                            children: [
-                              e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
-                              if (optional) Text('Optional', style: TextStyle(fontSize: 10)).muted,
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: e.description != null ? Text(e.description!) : null,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      spacing: 18,
+      children: [
+        SizedBox(),
+        Center(
+          child: Text(
+            context.i18n.theFollowingPermissionsRequired,
+            textAlign: TextAlign.center,
+          ).muted.small,
+        ),
+        ...widget.requirements.map(
+          (e) {
+            final onPressed = e.status
+                ? null
+                : () {
+                    e
+                        .call(context, () {
+                          setState(() {});
+                        })
+                        .then((_) {
+                          setState(() {});
+                          if (widget.requirements.all((e) => e.status)) {
+                            widget.onDone();
+                          }
+                        });
+                  };
+            final optional = e is NotificationRequirement && (Platform.isMacOS || Platform.isIOS);
+            return SizedBox(
+              width: double.infinity,
+              child: Button(
+                onPressed: onPressed,
+                style: ButtonStyle.card().withBackgroundColor(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.card
+                      : Theme.of(context).colorScheme.card.withLuminance(0.95),
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+                child: Basic(
+                  leading: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Theme.of(context).colorScheme.primaryForeground,
+                    ),
+                    padding: EdgeInsets.all(8),
+                    child: Icon(e.icon),
+                  ),
+                  title: Row(
+                    spacing: 8,
+                    children: [
+                      Expanded(child: Text(e.name)),
+                      Button(
+                        style: e.status
+                            ? ButtonStyle.secondary(size: ButtonSize.small)
+                            : ButtonStyle.primary(size: ButtonSize.small),
+                        onPressed: onPressed,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
+                            if (optional) Text('Optional', style: TextStyle(fontSize: 10)).muted,
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: e.description != null ? Text(e.description!) : null,
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

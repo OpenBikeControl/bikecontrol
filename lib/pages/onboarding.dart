@@ -57,7 +57,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
             AppTitle(),
           ],
           trailing: [
-            Button.outline(
+            Button(
+              style: ButtonStyle.outline(size: ButtonSize.small),
               child: Text(AppLocalizations.of(context).skip),
               onPressed: () {
                 core.settings.setShowOnboarding(false);
@@ -81,7 +82,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           alignment: Alignment.topCenter,
           constraints: !_isMobile ? BoxConstraints(maxWidth: 500) : null,
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(vertical: !_isMobile ? 42 : 22.0, horizontal: 16),
+            padding: EdgeInsets.only(top: !_isMobile ? 42 : 22.0, bottom: !_isMobile ? 42 : 68.0, left: 16, right: 16),
             child: AnimatedSwitcher(
               duration: Duration(milliseconds: 600),
               child: switch (_currentStep) {
@@ -278,7 +279,7 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
           ...core.connection.controllerDevices.map(
             (device) => device.showInformation(context),
           ),
-          if (core.connection.controllerDevices.any((d) => d.isConnected && d is! ZwiftDevice))
+          if (core.connection.controllerDevices.any((d) => d.isConnected))
             PrimaryButton(
               leading: Icon(Icons.check),
               onPressed: () {

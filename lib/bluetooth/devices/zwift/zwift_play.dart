@@ -1,11 +1,8 @@
-import 'package:flutter/foundation.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:flutter/foundation.dart';
 
 class ZwiftPlay extends ZwiftDevice {
   ZwiftPlay(super.scanResult)
@@ -62,23 +59,4 @@ class ZwiftPlay extends ZwiftDevice {
 
   @override
   String get latestFirmwareVersion => '1.3.1';
-
-  @override
-  Widget showInformation(BuildContext context) {
-    return Column(
-      spacing: 16,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        super.showInformation(context),
-
-        Checkbox(
-          trailing: Expanded(child: Text(context.i18n.enableVibrationFeedback)),
-          state: core.settings.getVibrationEnabled() ? CheckboxState.checked : CheckboxState.unchecked,
-          onChanged: (value) async {
-            await core.settings.setVibrationEnabled(value == CheckboxState.checked);
-          },
-        ),
-      ],
-    );
-  }
 }

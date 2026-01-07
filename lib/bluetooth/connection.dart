@@ -50,6 +50,8 @@ class Connection {
   final Map<BaseDevice, StreamSubscription<bool>> _connectionSubscriptions = {};
   final StreamController<BaseDevice> _connectionStreams = StreamController<BaseDevice>.broadcast();
   Stream<BaseDevice> get connectionStream => _connectionStreams.stream;
+  final StreamController<BluetoothDevice> _rssiConnectionStreams = StreamController<BluetoothDevice>.broadcast();
+  Stream<BluetoothDevice> get rssiConnectionStream => _rssiConnectionStreams.stream;
 
   final _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
@@ -83,7 +85,7 @@ class Connection {
       );
       if (existingDevice != null && existingDevice.rssi != result.rssi) {
         existingDevice.rssi = result.rssi;
-        _connectionStreams.add(existingDevice); // Notify UI of update
+        _rssiConnectionStreams.add(existingDevice); // Notify UI of update
       }
 
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId && e.services.contentEquals(result.services))) {

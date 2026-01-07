@@ -138,7 +138,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 12,
           children: [
             ValueListenableBuilder(
               valueListenable: IAPManager.instance.isPurchased,
@@ -201,8 +200,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
             ),
             if (core.settings.getTrainerApp() != null) ...[
-              SizedBox(height: 8),
-              if (recommendedTiles.isNotEmpty) ColoredTitle(text: context.i18n.recommendedConnectionMethods),
+              Gap(22),
+              if (recommendedTiles.isNotEmpty) ...[
+                ColoredTitle(text: context.i18n.recommendedConnectionMethods),
+                Gap(12),
+              ],
 
               for (final grouped in recommendedTiles.chunked(widget.isMobile ? 1 : 2)) ...[
                 IntrinsicHeight(
@@ -213,6 +215,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                   ),
                 ),
               ],
+              Gap(12),
               if (otherTiles.isNotEmpty) ...[
                 SizedBox(height: 8),
                 SizedBox(
