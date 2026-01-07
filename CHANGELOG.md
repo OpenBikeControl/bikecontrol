@@ -1,8 +1,8 @@
-### 4.3.0 (unreleased)
+### 4.3.0 (07-01-2026)
 
 **Features**:
 - Onboarding for new users
-- media key support for Windows and macOS
+- support controlling music & volume for Windows, macOS and Android
 - App is now available in Italian (thanks to Connect_Thanks2613)
 
 **Fixes**:
