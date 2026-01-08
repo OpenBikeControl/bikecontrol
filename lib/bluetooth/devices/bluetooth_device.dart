@@ -137,12 +137,14 @@ abstract class BluetoothDevice extends BaseDevice {
       }
     }
 
-    if (scanResult.name == 'Zwift Ride' && device == null) {
+    if (scanResult.name == 'Zwift Ride' &&
+        device == null &&
+        core.connection.controllerDevices.none((d) => d is ZwiftRide)) {
       // Fallback for Zwift Ride if nothing else matched => old firmware
       if (navigatorKey.currentContext?.mounted ?? false) {
         buildToast(
           navigatorKey.currentContext!,
-          title: 'Please update your Zwift Ride firmware.',
+          title: 'You may need to update your Zwift Ride firmware.',
           duration: Duration(seconds: 6),
         );
       }

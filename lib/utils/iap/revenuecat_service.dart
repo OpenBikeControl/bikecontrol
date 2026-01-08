@@ -23,6 +23,7 @@ class RevenueCatService {
   static const String _purchaseStatusKey = 'iap_purchase_status';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
   static const String _lastCommandDateKey = 'iap_last_command_date';
+  static const String _syncedPurchasesKey = 'iap_synced_purchases';
 
   // RevenueCat entitlement identifier
   static const String fullVersionEntitlement = 'Full Version';
@@ -139,6 +140,11 @@ class RevenueCatService {
   /// Check if the user has an active entitlement
   Future<void> _checkExistingPurchase() async {
     try {
+      final storedStatus = await _prefs.read(key: _syncedPurchasesKey);
+      if (storedStatus != "true") {
+        await _prefs.write(key: _syncedPurchasesKey, value: "true");
+        await Purchases.syncPurchases();
+      }
       // Check current entitlement status from RevenueCat
       final customerInfo = await Purchases.getCustomerInfo();
       await _handleCustomerInfoUpdate(customerInfo);

@@ -74,12 +74,15 @@ class _DevicePageState extends State<DevicePage> {
 
             Gap(12),
             ...core.connection.controllerDevices.map(
-              (device) => Card(
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark
-                    ? Theme.of(context).colorScheme.card
-                    : Theme.of(context).colorScheme.card.withLuminance(0.95),
-                child: device.showInformation(context),
+              (device) => Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Card(
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.card
+                      : Theme.of(context).colorScheme.card.withLuminance(0.95),
+                  child: device.showInformation(context),
+                ),
               ),
             ),
 
@@ -90,12 +93,15 @@ class _DevicePageState extends State<DevicePage> {
                 child: ColoredTitle(text: AppLocalizations.of(context).accessories),
               ),
               ...core.connection.accessories.map(
-                (device) => Card(
-                  filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? Theme.of(context).colorScheme.card
-                      : Theme.of(context).colorScheme.card.withLuminance(0.95),
-                  child: device.showInformation(context),
+                (device) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Card(
+                    filled: true,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.card
+                        : Theme.of(context).colorScheme.card.withLuminance(0.95),
+                    child: device.showInformation(context),
+                  ),
                 ),
               ),
             ],
