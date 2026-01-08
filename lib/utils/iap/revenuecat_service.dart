@@ -14,6 +14,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:version/version.dart';
 
 /// RevenueCat-based IAP service for iOS, macOS, and Android
 class RevenueCatService {
@@ -174,8 +175,13 @@ class RevenueCatService {
       } else {
         final purchasedVersion = customerInfo.originalApplicationVersion;
         core.connection.signalNotification(LogNotification('Apple receipt validated for version: $purchasedVersion'));
-        final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
-        isPurchasedNotifier.value = purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58);
+        if (purchasedVersion != null && purchasedVersion.contains(".")) {
+          final parsedVersion = Version.parse(purchasedVersion);
+          isPurchasedNotifier.value = parsedVersion < Version(4, 2, 0);
+        } else {
+          final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
+          isPurchasedNotifier.value = purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58);
+        }
       }
     } else {
       isPurchasedNotifier.value = hasEntitlement;
