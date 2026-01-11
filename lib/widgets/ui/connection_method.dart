@@ -2,8 +2,10 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/permissions_list.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -29,6 +31,7 @@ class ConnectionMethod extends StatefulWidget {
   final bool isEnabled;
   final bool showTroubleshooting;
   final List<PlatformRequirement> requirements;
+  final List<InGameAction>? supportedActions;
   final Function(bool) onChange;
 
   const ConnectionMethod({
@@ -41,6 +44,7 @@ class ConnectionMethod extends StatefulWidget {
     this.instructionLink,
     this.showTroubleshooting = false,
     required this.onChange,
+    required this.supportedActions,
     required this.requirements,
     this.isConnected,
     this.isStarted,
@@ -151,19 +155,69 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
           if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
           if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(height: 8),
           if (widget.instructionLink != null)
-            Button(
-              style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
-                  ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
-                  : ButtonStyle.outline(),
-              leading: Icon(Icons.help_outline),
-              onPressed: () {
-                openDrawer(
-                  context: context,
-                  position: OverlayPosition.bottom,
-                  builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
-                );
-              },
-              child: Text(AppLocalizations.of(context).instructions),
+            Row(
+              spacing: 8,
+              children: [
+                Button(
+                  style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
+                      ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
+                      : ButtonStyle.outline(),
+                  leading: Icon(Icons.help_outline),
+                  onPressed: () {
+                    openDrawer(
+                      context: context,
+                      position: OverlayPosition.bottom,
+                      builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
+                    );
+                  },
+                  child: Text(AppLocalizations.of(context).instructions),
+                ),
+                if (widget.supportedActions != null)
+                  Button.outline(
+                    leading: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      margin: EdgeInsets.only(right: 4),
+                      child: Text(
+                        widget.supportedActions!.length.toString(),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primaryForeground,
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      openDrawer(
+                        context: context,
+                        position: OverlayPosition.right,
+                        builder: (c) => Container(
+                          padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                          width: 230,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 12,
+                            children: [
+                              ColoredTitle(
+                                text: 'Supported Actions',
+                              ),
+                              Gap(12),
+                              ...widget.supportedActions!.map(
+                                (e) => Basic(
+                                  leading: e.icon != null ? Icon(e.icon) : null,
+                                  title: Text(e.title),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text('Supported Actions'),
+                  ),
+              ],
             ),
         ],
       ),

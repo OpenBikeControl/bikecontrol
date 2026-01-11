@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart' show LogLevel;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/requirements/multi.dart';
 
@@ -26,6 +26,7 @@ class _PairWidgetState extends State<RemotePairingWidget> {
           valueListenable: core.remotePairing.isConnected,
           builder: (context, isConnected, child) {
             return ConnectionMethod(
+              supportedActions: null,
               isEnabled: core.logic.isRemoteControlEnabled,
               isStarted: isStarted,
               showTroubleshooting: true,

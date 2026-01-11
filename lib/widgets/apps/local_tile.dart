@@ -189,6 +189,7 @@ class _LocalTileState extends State<LocalTile> {
         ),
     ];
     return ConnectionMethod(
+      supportedActions: null,
       isEnabled: core.settings.getLocalEnabled(),
       type: ConnectionMethodType.local,
       showTroubleshooting: true,

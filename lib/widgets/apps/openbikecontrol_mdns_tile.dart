@@ -24,6 +24,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
           valueListenable: core.obpMdnsEmulator.connectedApp,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              supportedActions: isConnected?.supportedActions,
               isEnabled: core.settings.getObpMdnsEnabled(),
               type: ConnectionMethodType.openBikeControl,
               title: context.i18n.connectDirectlyOverNetwork,

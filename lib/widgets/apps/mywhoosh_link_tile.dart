@@ -25,6 +25,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              supportedActions: core.whooshLink.supportedActions,
               isEnabled: core.settings.getMyWhooshLinkEnabled(),
               type: ConnectionMethodType.network,
               title: context.i18n.connectUsingMyWhooshLink,
