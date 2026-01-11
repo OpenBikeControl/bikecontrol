@@ -148,7 +148,6 @@ abstract class BluetoothDevice extends BaseDevice {
           duration: Duration(seconds: 6),
         );
       }
-      device = ZwiftRide(scanResult);
     }
     return device;
   }
