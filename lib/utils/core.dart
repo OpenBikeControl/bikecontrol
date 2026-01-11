@@ -67,7 +67,7 @@ class Permissions {
     } else if (Platform.isMacOS) {
       list = [
         BluetoothTurnedOn(),
-        NotificationRequirement(),
+        if (core.settings.getShowOnboarding()) NotificationRequirement(),
       ];
     } else if (Platform.isIOS) {
       list = [
