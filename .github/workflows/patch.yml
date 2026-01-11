@@ -10,6 +10,7 @@ env:
 jobs:
   build:
     name: Patch iOS, Android & macOS
+    if: false
     runs-on: macos-latest
 
     permissions:
