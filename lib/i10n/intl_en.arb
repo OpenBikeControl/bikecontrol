@@ -435,5 +435,6 @@
   "whyPermissionNeeded": "Why is this permission needed?",
   "yes": "Yes",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
+  "supportedActions": "Supported Actions"
 }

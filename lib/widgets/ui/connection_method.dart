@@ -201,7 +201,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                             spacing: 12,
                             children: [
                               ColoredTitle(
-                                text: 'Supported Actions',
+                                text: AppLocalizations.of(context).supportedActions,
                               ),
                               Gap(12),
                               ...widget.supportedActions!.map(
@@ -215,7 +215,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                         ),
                       );
                     },
-                    child: Text('Supported Actions'),
+                    child: Text(AppLocalizations.of(context).supportedActions),
                   ),
               ],
             ),
