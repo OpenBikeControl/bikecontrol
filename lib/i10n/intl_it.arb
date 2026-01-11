@@ -1,7 +1,7 @@
 {
   "accessibilityDescription": "BikeControl necessita dell'autorizzazione di accessibilità per controllare le tue app di allenamento.",
   "accessibilityDisclaimer": "BikeControl accederà al tuo schermo solo per eseguire i gesti da te configurati. Non accederà ad altre funzioni di accessibilità o a informazioni personali.",
-  "accessibilityReasonControl": "• Per consentirti di controllare app come MyWhoosh, IndieVelo e altre utilizzando i tuoi dispositivi Zwift",
+  "accessibilityReasonControl": "• Per consentirti di controllare app come MyWhoosh, TrainingPeaks e altre utilizzando i tuoi dispositivi Zwift",
   "accessibilityReasonTouch": "• Per simulare i gesti touch sullo schermo per controllare le app di allenamento",
   "accessibilityReasonWindow": "• Per rilevare quale finestra dell'app di allenamento è attualmente attiva",
   "accessibilityServiceExplanation": "Per funzionare correttamente, BikeControl deve utilizzare l'API AccessibilityService di Android.",

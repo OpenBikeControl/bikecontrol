@@ -14,7 +14,7 @@ import '../keymap.dart';
 class TrainingPeaks extends SupportedApp {
   TrainingPeaks()
     : super(
-        name: 'TrainingPeaks Virtual / IndieVelo',
+        name: 'TrainingPeaks Virtual',
         packageName: "com.indieVelo.client",
         compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.otherDevice] : Target.values,
         supportsZwiftEmulation: false,
