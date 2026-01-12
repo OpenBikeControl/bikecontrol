@@ -216,6 +216,7 @@ interface Accessibility {
   fun controlMedia(action: MediaAction)
   fun isRunning(): Boolean
   fun ignoreHidDevices()
+  fun setHandledKeys(keys: List<String>)
 
   companion object {
     /** The codec used by Accessibility. */
@@ -317,6 +318,24 @@ interface Accessibility {
           channel.setMessageHandler { _, reply ->
             val wrapped: List<Any?> = try {
               api.ignoreHidDevices()
+              listOf(null)
+            } catch (exception: Throwable) {
+              AccessibilityApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.accessibility.Accessibility.setHandledKeys$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val keysArg = args[0] as List<String>
+            val wrapped: List<Any?> = try {
+              api.setHandledKeys(keysArg)
               listOf(null)
             } catch (exception: Throwable) {
               AccessibilityApiPigeonUtils.wrapError(exception)

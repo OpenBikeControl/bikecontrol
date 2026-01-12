@@ -26,6 +26,14 @@ class AndroidActions extends BaseActions {
       }
     });
 
+    // Update handled keys list when keymap changes
+    updateHandledKeys();
+    
+    // Listen to keymap changes and update handled keys
+    supportedApp?.keymap.updateStream.listen((_) {
+      updateHandledKeys();
+    });
+
     hidKeyPressed().listen((keyPressed) async {
       final hidDevice = HidDevice(keyPressed.source);
       final button = hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey));
@@ -89,5 +97,21 @@ class AndroidActions extends BaseActions {
 
   void ignoreHidDevices() {
     accessibilityHandler.ignoreHidDevices();
+  }
+
+  void updateHandledKeys() {
+    if (supportedApp == null) {
+      accessibilityHandler.setHandledKeys([]);
+      return;
+    }
+    
+    // Get all keys from the keymap that have a mapping defined
+    final handledKeys = supportedApp!.keymap.keyPairs
+        .expand((keyPair) => keyPair.buttons)
+        .map((button) => button.name)
+        .toSet()
+        .toList();
+    
+    accessibilityHandler.setHandledKeys(handledKeys);
   }
 }

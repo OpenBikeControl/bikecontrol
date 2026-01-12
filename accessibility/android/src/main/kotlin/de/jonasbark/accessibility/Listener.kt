@@ -8,6 +8,7 @@ object Observable {
     var fromServiceWindow: Receiver? = null
     var fromServiceKeys: Receiver? = null
     var ignoreHidDevices: Boolean = false
+    var handledKeys: Set<String> = emptySet()
 }
 
 interface Listener {

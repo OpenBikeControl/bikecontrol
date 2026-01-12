@@ -13,6 +13,8 @@ abstract class Accessibility {
   bool isRunning();
 
   void ignoreHidDevices();
+
+  void setHandledKeys(List<String> keys);
 }
 
 enum MediaAction { playPause, next, volumeUp, volumeDown }

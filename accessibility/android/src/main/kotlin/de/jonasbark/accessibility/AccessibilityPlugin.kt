@@ -90,6 +90,10 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
     Observable.ignoreHidDevices = true
   }
 
+  override fun setHandledKeys(keys: List<String>) {
+    Observable.handledKeys = keys.toSet()
+  }
+
 }
 
 class WindowEventListener : StreamEventsStreamHandler(), Receiver {
