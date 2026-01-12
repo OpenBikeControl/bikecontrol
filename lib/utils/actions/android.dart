@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -14,6 +16,7 @@ class AndroidActions extends BaseActions {
   WindowEvent? windowInfo;
 
   final accessibilityHandler = Accessibility();
+  StreamSubscription<void>? _keymapUpdateSubscription;
 
   AndroidActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.media]});
 
@@ -24,6 +27,15 @@ class AndroidActions extends BaseActions {
       if (supportedApp != null) {
         windowInfo = windowEvent;
       }
+    });
+
+    // Update handled keys list when keymap changes
+    updateHandledKeys();
+
+    // Listen to keymap changes and update handled keys
+    _keymapUpdateSubscription?.cancel();
+    _keymapUpdateSubscription = supportedApp?.keymap.updateStream.listen((_) {
+      updateHandledKeys();
     });
 
     hidKeyPressed().listen((keyPressed) async {
@@ -89,5 +101,23 @@ class AndroidActions extends BaseActions {
 
   void ignoreHidDevices() {
     accessibilityHandler.ignoreHidDevices();
+  }
+
+  void updateHandledKeys() {
+    if (supportedApp == null) {
+      accessibilityHandler.setHandledKeys([]);
+      return;
+    }
+
+    // Get all keys from the keymap that have a mapping defined
+    final handledKeys = supportedApp!.keymap.keyPairs
+        .filter((keyPair) => !keyPair.hasNoAction)
+        .expand((keyPair) => keyPair.buttons)
+        .filter((e) => e.action == null && e.icon == null)
+        .map((button) => button.name)
+        .toSet()
+        .toList();
+
+    accessibilityHandler.setHandledKeys(handledKeys);
   }
 }

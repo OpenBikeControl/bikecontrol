@@ -2,12 +2,15 @@ package de.jonasbark.accessibility
 
 import android.graphics.Rect
 import android.view.KeyEvent
+import java.util.concurrent.ConcurrentHashMap
 
 object Observable {
     var toService: Listener? = null
     var fromServiceWindow: Receiver? = null
     var fromServiceKeys: Receiver? = null
     var ignoreHidDevices: Boolean = false
+    // Use concurrent set for thread-safe access from AccessibilityService and plugin
+    var handledKeys: Set<String> = ConcurrentHashMap.newKeySet()
 }
 
 interface Listener {

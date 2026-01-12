@@ -70,8 +70,9 @@ class AccessibilityService : AccessibilityService(), Listener {
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        if (!Observable.ignoreHidDevices && isBleRemote(event)) {
-            // Handle media and volume keys from HID devices here
+        val keyString = KeyEvent.keyCodeToString(event.keyCode)
+        if (!Observable.ignoreHidDevices && isBleRemote(event) && Observable.handledKeys.contains(keyString)) {
+            // Handle keys that have a keymap defined
             Log.d(
                 "AccessibilityService",
                 "onKeyEvent: keyCode=${event.keyCode} action=${event.action} scanCode=${event.scanCode} flags=${event.flags}"

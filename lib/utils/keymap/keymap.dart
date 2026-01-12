@@ -97,6 +97,10 @@ class Keymap {
       );
     }
   }
+
+  void signalUpdate() {
+    _updateStream.add(null);
+  }
 }
 
 class KeyPair {
