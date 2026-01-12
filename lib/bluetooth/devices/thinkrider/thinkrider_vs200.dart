@@ -16,51 +16,34 @@ class ThinkRiderVs200 extends BluetoothDevice {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    // Subscribe to both characteristics
-    final service1 = services.firstWhere(
-      (e) => e.uuid.toLowerCase() == ThinkRiderVs200Constants.SERVICE_UUID_1.toLowerCase(),
-      orElse: () => throw Exception('Service not found: ${ThinkRiderVs200Constants.SERVICE_UUID_1}'),
+    // Only subscribe to service 0xFEA0
+    final service = services.firstWhere(
+      (e) => e.uuid.toLowerCase() == ThinkRiderVs200Constants.SERVICE_UUID.toLowerCase(),
+      orElse: () => throw Exception('Service not found: ${ThinkRiderVs200Constants.SERVICE_UUID}'),
     );
-    final characteristic1 = service1.characteristics.firstWhere(
-      (e) => e.uuid.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1.toLowerCase(),
-      orElse: () => throw Exception('Characteristic not found: ${ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1}'),
-    );
-
-    final service2 = services.firstWhere(
-      (e) => e.uuid.toLowerCase() == ThinkRiderVs200Constants.SERVICE_UUID_2.toLowerCase(),
-      orElse: () => throw Exception('Service not found: ${ThinkRiderVs200Constants.SERVICE_UUID_2}'),
-    );
-    final characteristic2 = service2.characteristics.firstWhere(
-      (e) => e.uuid.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID_2.toLowerCase(),
-      orElse: () => throw Exception('Characteristic not found: ${ThinkRiderVs200Constants.CHARACTERISTIC_UUID_2}'),
+    final characteristic = service.characteristics.firstWhere(
+      (e) => e.uuid.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID.toLowerCase(),
+      orElse: () => throw Exception('Characteristic not found: ${ThinkRiderVs200Constants.CHARACTERISTIC_UUID}'),
     );
 
-    await UniversalBle.subscribeNotifications(device.deviceId, service1.uuid, characteristic1.uuid);
-    await UniversalBle.subscribeNotifications(device.deviceId, service2.uuid, characteristic2.uuid);
+    await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
   }
-
-  // Track last values to detect changes
-  String? _lastValue1;
-  String? _lastValue2;
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
-    final currentValue = _bytesToHex(bytes);
+    if (characteristic.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID.toLowerCase()) {
+      final hexValue = _bytesToHex(bytes);
 
-    if (characteristic.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1.toLowerCase()) {
-      if (_lastValue1 != null && _lastValue1 != currentValue) {
-        // Shift up button was pressed
-        actionStreamInternal.add(LogNotification('Shift Up detected: $_lastValue1 -> $currentValue'));
+      // Check for specific byte patterns
+      if (hexValue == ThinkRiderVs200Constants.SHIFT_UP_PATTERN) {
+        // Plus button pressed
+        actionStreamInternal.add(LogNotification('Shift Up detected: $hexValue'));
         handleButtonsClickedWithoutLongPressSupport([ThinkRiderVs200Buttons.shiftUp]);
-      }
-      _lastValue1 = currentValue;
-    } else if (characteristic.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID_2.toLowerCase()) {
-      if (_lastValue2 != null && _lastValue2 != currentValue) {
-        // Shift down button was pressed
-        actionStreamInternal.add(LogNotification('Shift Down detected: $_lastValue2 -> $currentValue'));
+      } else if (hexValue == ThinkRiderVs200Constants.SHIFT_DOWN_PATTERN) {
+        // Minus button pressed
+        actionStreamInternal.add(LogNotification('Shift Down detected: $hexValue'));
         handleButtonsClickedWithoutLongPressSupport([ThinkRiderVs200Buttons.shiftDown]);
       }
-      _lastValue2 = currentValue;
     }
 
     return Future.value();
@@ -73,11 +56,12 @@ class ThinkRiderVs200 extends BluetoothDevice {
 
 class ThinkRiderVs200Constants {
   // Service and characteristic UUIDs based on the nRF Connect screenshot
-  static const String SERVICE_UUID_1 = "0000fea0-0000-1000-8000-00805f9b34fb";
-  static const String CHARACTERISTIC_UUID_1 = "0000fea1-0000-1000-8000-00805f9b34fb";
+  static const String SERVICE_UUID = "0000fea0-0000-1000-8000-00805f9b34fb";
+  static const String CHARACTERISTIC_UUID = "0000fea1-0000-1000-8000-00805f9b34fb";
 
-  static const String SERVICE_UUID_2 = "0000fd00-0000-1000-8000-00805f9b34fb";
-  static const String CHARACTERISTIC_UUID_2 = "0000fd09-0000-1000-8000-00805f9b34fb";
+  // Byte patterns for button detection
+  static const String SHIFT_UP_PATTERN = "f3050301fc";
+  static const String SHIFT_DOWN_PATTERN = "f3050300fb";
 }
 
 class ThinkRiderVs200Buttons {

@@ -8,95 +8,68 @@ import 'package:universal_ble/universal_ble.dart';
 
 void main() {
   group('ThinkRider VS200 Virtual Shifter Tests', () {
-    test('Test shift up button press', () {
+    test('Test shift up button press with correct pattern', () {
       core.actionHandler = StubActions();
 
       final stubActions = core.actionHandler as StubActions;
 
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
-      // First value to initialize state
+      // Send shift up pattern: F3-05-03-01-FC
       device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1,
-        _hexToUint8List('00'),
-      );
-      expect(stubActions.performedActions.isEmpty, true);
-
-      // Changed value triggers shift up
-      device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1,
-        _hexToUint8List('01'),
+        ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
+        _hexToUint8List('F3050301FC'),
       );
       expect(stubActions.performedActions.length, 1);
       expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftUp);
     });
 
-    test('Test shift down button press', () {
+    test('Test shift down button press with correct pattern', () {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
-      // First value to initialize state
+      // Send shift down pattern: F3-05-03-00-FB
       device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_2,
-        _hexToUint8List('00'),
-      );
-      expect(stubActions.performedActions.isEmpty, true);
-
-      // Changed value triggers shift down
-      device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_2,
-        _hexToUint8List('01'),
+        ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
+        _hexToUint8List('F3050300FB'),
       );
       expect(stubActions.performedActions.length, 1);
       expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftDown);
     });
 
-    test('Test multiple value changes', () {
+    test('Test multiple button presses', () {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
-      // Initialize
+      // Shift up
       device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1,
-        _hexToUint8List('00'),
-      );
-      expect(stubActions.performedActions.isEmpty, true);
-
-      // First change
-      device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1,
-        _hexToUint8List('01'),
-      );
-      expect(stubActions.performedActions.length, 1);
-      stubActions.performedActions.clear();
-
-      // Second change
-      device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1,
-        _hexToUint8List('02'),
+        ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
+        _hexToUint8List('F3050301FC'),
       );
       expect(stubActions.performedActions.length, 1);
       expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftUp);
+      stubActions.performedActions.clear();
+
+      // Shift down
+      device.processCharacteristic(
+        ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
+        _hexToUint8List('F3050300FB'),
+      );
+      expect(stubActions.performedActions.length, 1);
+      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftDown);
     });
 
-    test('Test same value does not trigger action', () {
+    test('Test incorrect pattern does not trigger action', () {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
-      // Initialize
+      // Send random pattern
       device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1,
-        _hexToUint8List('00'),
-      );
-      expect(stubActions.performedActions.isEmpty, true);
-
-      // Same value
-      device.processCharacteristic(
-        ThinkRiderVs200Constants.CHARACTERISTIC_UUID_1,
-        _hexToUint8List('00'),
+        ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
+        _hexToUint8List('0000000000'),
       );
       expect(stubActions.performedActions.isEmpty, true);
     });

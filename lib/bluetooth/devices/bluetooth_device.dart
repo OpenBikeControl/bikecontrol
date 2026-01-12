@@ -56,8 +56,7 @@ abstract class BluetoothDevice extends BaseDevice {
     ShimanoDi2Constants.SERVICE_UUID,
     ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE,
     OpenBikeControlConstants.SERVICE_UUID,
-    ThinkRiderVs200Constants.SERVICE_UUID_1,
-    ThinkRiderVs200Constants.SERVICE_UUID_2,
+    ThinkRiderVs200Constants.SERVICE_UUID,
   ];
 
   static BluetoothDevice? fromScanResult(BleDevice scanResult) {
@@ -109,8 +108,7 @@ abstract class BluetoothDevice extends BaseDevice {
           OpenBikeControlDevice(scanResult),
         _ when scanResult.services.contains(WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase()) =>
           WahooKickrHeadwind(scanResult),
-        _ when scanResult.services.contains(ThinkRiderVs200Constants.SERVICE_UUID_1.toLowerCase()) ||
-            scanResult.services.contains(ThinkRiderVs200Constants.SERVICE_UUID_2.toLowerCase()) =>
+        _ when scanResult.services.contains(ThinkRiderVs200Constants.SERVICE_UUID.toLowerCase()) =>
           ThinkRiderVs200(scanResult),
         // otherwise the service UUIDs will be used
         _ => null,
