@@ -32,7 +32,7 @@ class ThinkRiderVs200 extends BluetoothDevice {
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
     if (characteristic.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID.toLowerCase()) {
-      final hexValue = _bytesToHex(bytes);
+      final hexValue = _bytesToHex(bytes).toLowerCase();
 
       // Check for specific byte patterns
       if (hexValue == ThinkRiderVs200Constants.SHIFT_UP_PATTERN) {
