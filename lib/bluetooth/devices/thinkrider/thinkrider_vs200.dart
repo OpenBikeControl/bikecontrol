@@ -34,6 +34,11 @@ class ThinkRiderVs200 extends BluetoothDevice {
     if (characteristic.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID.toLowerCase()) {
       final hexValue = _bytesToHex(bytes).toLowerCase();
 
+      // Log all received values while in beta
+      if (isBeta) {
+        actionStreamInternal.add(LogNotification('VS200 received: $hexValue'));
+      }
+
       // Check for specific byte patterns
       if (hexValue == ThinkRiderVs200Constants.SHIFT_UP_PATTERN) {
         // Plus button pressed
