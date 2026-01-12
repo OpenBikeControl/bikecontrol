@@ -31,7 +31,7 @@ class AndroidActions extends BaseActions {
 
     // Update handled keys list when keymap changes
     updateHandledKeys();
-    
+
     // Listen to keymap changes and update handled keys
     _keymapUpdateSubscription?.cancel();
     _keymapUpdateSubscription = supportedApp?.keymap.updateStream.listen((_) {
@@ -108,14 +108,16 @@ class AndroidActions extends BaseActions {
       accessibilityHandler.setHandledKeys([]);
       return;
     }
-    
+
     // Get all keys from the keymap that have a mapping defined
     final handledKeys = supportedApp!.keymap.keyPairs
+        .filter((keyPair) => !keyPair.hasNoAction)
         .expand((keyPair) => keyPair.buttons)
+        .filter((e) => e.action == null && e.icon == null)
         .map((button) => button.name)
         .toSet()
         .toList();
-    
+
     accessibilityHandler.setHandledKeys(handledKeys);
   }
 }

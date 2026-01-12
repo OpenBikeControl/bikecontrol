@@ -172,6 +172,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         keyPair: selectedKeyPair,
         keymap: widget.keymap,
         onUpdate: () {
+          widget.keymap.signalUpdate();
           widget.onUpdate();
         },
       ),
