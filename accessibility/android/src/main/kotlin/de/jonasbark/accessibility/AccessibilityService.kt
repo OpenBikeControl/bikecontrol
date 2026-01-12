@@ -70,7 +70,7 @@ class AccessibilityService : AccessibilityService(), Listener {
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        if (!Observable.ignoreHidDevices && isBleRemote(event)) {
+        if (!Observable.ignoreHidDevices && isBleRemote(event) && isMediaOrVolumeKey(event)) {
             // Handle media and volume keys from HID devices here
             Log.d(
                 "AccessibilityService",
@@ -92,6 +92,25 @@ class AccessibilityService : AccessibilityService(), Listener {
             dev.isExternal
         } else {
             true
+        }
+    }
+
+    private fun isMediaOrVolumeKey(event: KeyEvent): Boolean {
+        // Only handle media and volume keys that BikeControl is interested in
+        // Let all other keys (typing keys, navigation keys, etc.) pass through
+        return when (event.keyCode) {
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+            KeyEvent.KEYCODE_MEDIA_PLAY,
+            KeyEvent.KEYCODE_MEDIA_PAUSE,
+            KeyEvent.KEYCODE_MEDIA_NEXT,
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS,
+            KeyEvent.KEYCODE_MEDIA_STOP,
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
+            KeyEvent.KEYCODE_MEDIA_REWIND,
+            KeyEvent.KEYCODE_VOLUME_UP,
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_VOLUME_MUTE -> true
+            else -> false
         }
     }
 
