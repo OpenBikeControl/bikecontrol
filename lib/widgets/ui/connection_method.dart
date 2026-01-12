@@ -155,8 +155,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
           if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
           if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(height: 8),
           if (widget.instructionLink != null)
-            Row(
+            Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
                 Button(
                   style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
