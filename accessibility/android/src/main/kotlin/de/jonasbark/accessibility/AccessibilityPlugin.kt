@@ -91,7 +91,9 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
   }
 
   override fun setHandledKeys(keys: List<String>) {
-    Observable.handledKeys = keys.toSet()
+    // Clear and update the concurrent set
+    Observable.handledKeys.clear()
+    Observable.handledKeys.addAll(keys)
   }
 
 }

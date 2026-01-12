@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -14,6 +16,7 @@ class AndroidActions extends BaseActions {
   WindowEvent? windowInfo;
 
   final accessibilityHandler = Accessibility();
+  StreamSubscription<void>? _keymapUpdateSubscription;
 
   AndroidActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.media]});
 
@@ -30,7 +33,8 @@ class AndroidActions extends BaseActions {
     updateHandledKeys();
     
     // Listen to keymap changes and update handled keys
-    supportedApp?.keymap.updateStream.listen((_) {
+    _keymapUpdateSubscription?.cancel();
+    _keymapUpdateSubscription = supportedApp?.keymap.updateStream.listen((_) {
       updateHandledKeys();
     });
 

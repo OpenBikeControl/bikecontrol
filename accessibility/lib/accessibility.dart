@@ -354,7 +354,7 @@ class Accessibility {
     }
   }
 
-  Future<void> setHandledKeys(List<String?> keys) async {
+  Future<void> setHandledKeys(List<String> keys) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.accessibility.Accessibility.setHandledKeys$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
