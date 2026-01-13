@@ -81,6 +81,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
           'ble-service-uuids': Uint8List.fromList('FC82'.codeUnits),
           'mac-address': Uint8List.fromList('50-50-25-6C-66-9C'.codeUnits),
           'serial-number': Uint8List.fromList('244700181'.codeUnits),
+          'manufacturer-data': Uint8List.fromList('094A0BAAAA'.codeUnits),
         },
       ),
     );
