@@ -394,6 +394,7 @@
   "simulateTouch": "Simulate Touch",
   "skip": "Skip",
   "stop": "Stop",
+  "supportedActions": "Supported Actions",
   "targetOtherDevice": "Other Device",
   "targetThisDevice": "This Device",
   "theFollowingPermissionsRequired": "The following permissions are required:",
@@ -408,7 +409,7 @@
   "tryingToConnectAgain": "Trying to connect again...",
   "unassignAction": "Unassign action",
   "unlockFullVersion": "Unlock Full Version",
-  "unlockingNotPossible": "Due to technical issues unlocking is currently not possible, so enjoy unlimited usage for the time being!",
+  "unlockingNotPossible": "Unlocking is currently not yet possible, so enjoy unlimited usage for the time being!",
   "update": "Update",
   "useCustomKeymapForButton": "Use a custom keymap to support the",
   "version": "Version {version}",
@@ -435,6 +436,5 @@
   "whyPermissionNeeded": "Why is this permission needed?",
   "yes": "Yes",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "supportedActions": "Supported Actions"
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }
