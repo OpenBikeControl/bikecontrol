@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -70,12 +71,13 @@ class WindowsIAPService {
         trialDaysRemaining = 0;
       }
     } else {
-      if (const String.fromEnvironment('store') != "true") {
+      final isStorePackaged = await WindowsStoreEnvironment.isPackaged();
+      if (!isStorePackaged) {
         trial.isActive = false;
-      } 
+      }
       trialDaysRemaining = 0;
     }
-  
+
     if (trial.isActive && !trial.isTrial && trialDaysRemaining <= 0) {
       IAPManager.instance.isPurchased.value = true;
       await _prefs.write(key: _purchaseStatusKey, value: "true");

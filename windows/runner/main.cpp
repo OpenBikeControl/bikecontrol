@@ -5,6 +5,40 @@
 #include "flutter_window.h"
 #include "utils.h"
 
+#include <flutter/method_channel.h>
+#include <flutter/standard_method_codec.h>
+
+namespace {
+
+bool IsPackagedApp() {
+  UINT32 length = 0;
+  // GetCurrentPackageFullName returns APPMODEL_ERROR_NO_PACKAGE when unpackaged.
+  const LONG rc = GetCurrentPackageFullName(&length, nullptr);
+  return rc != APPMODEL_ERROR_NO_PACKAGE;
+}
+
+void RegisterStoreEnvironmentChannel(flutter::FlutterViewController* controller) {
+  auto channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      controller->engine()->messenger(), "bike_control/store_env",
+      &flutter::StandardMethodCodec::GetInstance());
+
+  channel->SetMethodCallHandler(
+      [](const flutter::MethodCall<flutter::EncodableValue>& call,
+         std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+        if (call.method_name() == "isPackaged") {
+          result->Success(flutter::EncodableValue(IsPackagedApp()));
+          return;
+        }
+        result->NotImplemented();
+      });
+
+  // Channel must outlive this function.
+  static std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> s_channel;
+  s_channel = std::move(channel);
+}
+
+}  // namespace
+
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
   // Attach to console when present (e.g., 'flutter run') or create a
@@ -30,6 +64,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"bike_control", origin, size)) {
     return EXIT_FAILURE;
   }
+
+  // Register our small environment channel after engine/window creation.
+  // FlutterWindow exposes the controller via GetController().
+  RegisterStoreEnvironmentChannel(window.GetController());
+
   window.SetQuitOnClose(true);
 
   ::MSG msg;
