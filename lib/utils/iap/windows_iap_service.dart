@@ -72,9 +72,7 @@ class WindowsIAPService {
       }
     } else {
       final isStorePackaged = await WindowsStoreEnvironment.isPackaged();
-      if (!isStorePackaged) {
-        trial.isActive = false;
-      }
+      trial.isActive = isStorePackaged;
       trialDaysRemaining = 0;
     }
 
