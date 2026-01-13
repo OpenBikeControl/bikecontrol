@@ -70,8 +70,12 @@ class WindowsIAPService {
         trialDaysRemaining = 0;
       }
     } else {
+      if (const String.fromEnvironment('store') != "true") {
+        trial.isActive = false;
+      } 
       trialDaysRemaining = 0;
     }
+  
     if (trial.isActive && !trial.isTrial && trialDaysRemaining <= 0) {
       IAPManager.instance.isPurchased.value = true;
       await _prefs.write(key: _purchaseStatusKey, value: "true");
@@ -100,7 +104,7 @@ class WindowsIAPService {
   }
 
   /// Check if the trial period has started
-  bool get hasTrialStarted => trialDaysRemaining > 0;
+  bool get hasTrialStarted => trialDaysRemaining >= 0;
 
   /// Get the number of days remaining in the trial
   int trialDaysRemaining = 0;

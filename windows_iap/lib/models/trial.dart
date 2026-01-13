@@ -1,7 +1,7 @@
 class Trial {
   final bool isTrial;
   final String remainingDays;
-  final bool isActive;
+  bool isActive;
   final bool isTrialOwnedByThisUser;
 
   Trial({
