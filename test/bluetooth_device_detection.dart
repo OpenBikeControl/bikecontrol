@@ -1,20 +1,25 @@
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
+import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {
+  core.actionHandler = StubActions();
+
   group('Detect Zwift devices', () {
     test('Detect Zwift Play', () {
       final device = _createBleDevice(
@@ -106,6 +111,17 @@ void main() {
     test('Shimano Di2', () {
       final device = _createBleDevice(name: 'RDR 1337', services: [ShimanoDi2Constants.SERVICE_UUID.toLowerCase()]);
       expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ShimanoDi2>());
+    });
+  });
+
+  group('Skip powermeters', () {
+    test('Skip Favero Assioma', () {
+      final device = _createBleDevice(name: 'Assioma 133', services: [SramAxsConstants.SERVICE_UUID]);
+      expect(BluetoothDevice.fromScanResult(device), isNull);
+    });
+    test('Skip QUARQ', () {
+      final device = _createBleDevice(name: 'QUARQ 133', services: [SramAxsConstants.SERVICE_UUID]);
+      expect(BluetoothDevice.fromScanResult(device), isNull);
     });
   });
 }

@@ -59,7 +59,15 @@ abstract class BluetoothDevice extends BaseDevice {
     ThinkRiderVs200Constants.SERVICE_UUID,
   ];
 
+  static final List<String> _ignoredNames = ['ASSIOMA', 'QUARQ', 'POWERCRANK'];
+
   static BluetoothDevice? fromScanResult(BleDevice scanResult) {
+    // skip devices with ignored names
+    if (scanResult.name != null &&
+        _ignoredNames.any((ignoredName) => scanResult.name!.toUpperCase().startsWith(ignoredName))) {
+      return null;
+    }
+
     // Use the name first as the "System Devices" and Web (android sometimes Windows) don't have manufacturer data
     BluetoothDevice? device;
     if (kIsWeb) {
@@ -108,8 +116,9 @@ abstract class BluetoothDevice extends BaseDevice {
           OpenBikeControlDevice(scanResult),
         _ when scanResult.services.contains(WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase()) =>
           WahooKickrHeadwind(scanResult),
-        _ when scanResult.services.contains(ThinkRiderVs200Constants.SERVICE_UUID.toLowerCase()) =>
-          ThinkRiderVs200(scanResult),
+        _ when scanResult.services.contains(ThinkRiderVs200Constants.SERVICE_UUID.toLowerCase()) => ThinkRiderVs200(
+          scanResult,
+        ),
         // otherwise the service UUIDs will be used
         _ => null,
       };
