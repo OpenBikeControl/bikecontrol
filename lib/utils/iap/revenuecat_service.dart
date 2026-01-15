@@ -177,10 +177,11 @@ class RevenueCatService {
         core.connection.signalNotification(LogNotification('Apple receipt validated for version: $purchasedVersion'));
         if (purchasedVersion != null && purchasedVersion.contains(".")) {
           final parsedVersion = Version.parse(purchasedVersion);
-          isPurchasedNotifier.value = parsedVersion < Version(4, 2, 0);
+          isPurchasedNotifier.value = parsedVersion < Version(4, 2, 0) || parsedVersion >= Version(4, 4, 0);
         } else {
           final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
-          isPurchasedNotifier.value = purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58);
+          isPurchasedNotifier.value =
+              purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58) || purchasedVersionAsInt >= 77;
         }
       }
     } else {
