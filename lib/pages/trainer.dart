@@ -254,7 +254,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
 
               SizedBox(height: 4),
               Flex(
-                direction: widget.isMobile ? Axis.vertical : Axis.horizontal,
+                direction: widget.isMobile || MediaQuery.sizeOf(context).width < 750 ? Axis.vertical : Axis.horizontal,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,

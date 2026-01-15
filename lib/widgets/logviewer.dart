@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -114,6 +116,17 @@ class _LogviewerState extends State<LogViewer> {
                     ),
                   ),
                 ),
+
+          if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux))
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  Text('Logs file: '),
+                  SelectableText('${Directory.current.path}/app.log').inlineCode,
+                ],
+              ).small,
+            ),
         ],
       ),
     );

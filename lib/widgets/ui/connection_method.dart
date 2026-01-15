@@ -176,6 +176,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                 if (widget.supportedActions != null)
                   Button.outline(
                     leading: Container(
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primary,
                         borderRadius: BorderRadius.circular(12),
