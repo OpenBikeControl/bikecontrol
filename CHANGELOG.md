@@ -5,6 +5,7 @@
 
 **Fixes**:
 - Android: Local connection method allows passing keyboard events to the trainer app
+- macOS: Compatibility with macOS Tahoe
 
 ### 4.3.0 (07-01-2026)
 
