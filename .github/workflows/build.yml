@@ -347,14 +347,4 @@ jobs:
           overwrite: true
           name: Releases
           path: |
-            build/windows/x64/runner/Release/bike_control.windows.zip
             build/windows/x64/runner/Release/bike_control.msix
-
-      - name: Update Release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          artifacts: "build/windows/x64/runner/Release/bike_control.msix"
-          prerelease: true
-          tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
