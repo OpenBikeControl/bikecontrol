@@ -109,7 +109,7 @@ Future<void> _persistCrash({
       ..writeln();
 
     final directory = await _getLogDirectory();
-    final file = File('${directory.path}/app.logs');
+    final file = File('${directory.path}/app.log');
     final fileLength = await file.length();
     if (fileLength > 5 * 1024 * 1024) {
       // If log file exceeds 5MB, truncate it

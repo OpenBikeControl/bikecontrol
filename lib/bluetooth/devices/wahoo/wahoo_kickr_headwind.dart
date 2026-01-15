@@ -80,6 +80,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
         service,
         characteristic,
         manualModeData,
+        withoutResponse: true,
       );
       _currentMode = HeadwindMode.manual;
     }
@@ -93,6 +94,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
       service,
       characteristic,
       data,
+      withoutResponse: true,
     );
     _currentSpeed = speedPercent;
   }
@@ -109,6 +111,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
       service,
       characteristic,
       data,
+      withoutResponse: true,
     );
     _currentMode = HeadwindMode.heartRate;
   }
