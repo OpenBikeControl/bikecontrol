@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -25,6 +26,11 @@ class Settings {
   Future<String?> init({bool retried = false}) async {
     try {
       prefs = await SharedPreferences.getInstance();
+      try {
+        await NotificationRequirement.setup();
+      } catch (error, stack) {
+        recordError(error, stack, context: 'Notification setup');
+      }
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
       if (getShowOnboarding() && getTrainerApp() != null) {

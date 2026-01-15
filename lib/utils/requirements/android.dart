@@ -192,22 +192,19 @@ class NotificationRequirement extends PlatformRequirement {
     } else {
       status = true;
     }
-    if (status) {
-      await setup();
-    }
     return status;
   }
 
   static Future<void> setup() async {
-    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
-
     await core.flutterLocalNotificationsPlugin.initialize(
       InitializationSettings(
-        android: initializationSettingsAndroid,
+        android: AndroidInitializationSettings(
+          '@mipmap/ic_launcher',
+        ),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
         ),
         macOS: DarwinInitializationSettings(
           requestAlertPermission: false,
