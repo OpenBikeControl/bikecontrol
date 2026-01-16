@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -25,7 +26,7 @@ class IAPStatusWidget extends StatefulWidget {
   State<IAPStatusWidget> createState() => _IAPStatusWidgetState();
 }
 
-final _normalDate = DateTime(2026, 1, 15, 0, 0, 0, 0, 0);
+final _normalDate = DateTime(2026, 2, 15, 0, 0, 0, 0, 0);
 final _iapDate = DateTime(2025, 12, 21, 0, 0, 0, 0, 0);
 
 enum AlreadyBoughtOption { fullPurchase, iap, no }
@@ -356,7 +357,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                       ],
                                     ),
                                   ),
-                                ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.no) ...[
+                                ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.no ||
+                                    DateTime.now().isAfter(_normalDate)) ...[
                                   PrimaryButton(
                                     onPressed: _isPurchasing ? null : () => _handlePurchase(context),
                                     leading: Icon(Icons.star),
@@ -467,7 +469,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     } catch (e) {
       if (mounted) {
         buildToast(
-          context,
+          navigatorKey.currentContext!,
           title: 'Error',
           subtitle: 'An error occurred: $e',
         );

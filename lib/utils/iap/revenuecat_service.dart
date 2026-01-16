@@ -242,7 +242,7 @@ class RevenueCatService {
     // Direct the user to the paywall for a better experience
     if (Platform.isAndroid && !_isAndroidWorking) {
       buildToast(
-        context,
+        navigatorKey.currentContext!,
         title: AppLocalizations.of(context).unlockingNotPossible,
         duration: Duration(seconds: 5),
       );
