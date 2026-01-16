@@ -109,7 +109,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 8,
                   children: [
-                    Text('Editing').h3,
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 600),
                       curve: Curves.easeOut,

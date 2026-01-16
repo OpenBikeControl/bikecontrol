@@ -199,7 +199,7 @@ class NotificationRequirement extends PlatformRequirement {
     await core.flutterLocalNotificationsPlugin.initialize(
       InitializationSettings(
         android: AndroidInitializationSettings(
-          '@mipmap/ic_launcher',
+          '@drawable/ic_notification',
         ),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: false,
@@ -273,6 +273,7 @@ class NotificationRequirement extends PlatformRequirement {
     IsolateNameServer.registerPortWithName(receivePort.sendPort, '_backgroundChannelKey');
     final backgroundMessagePort = receivePort.asBroadcastStream();
     backgroundMessagePort.listen((message) {
+      print('Background isolate received message: $message');
       if (message == 'disconnect' || message == 'close') {
         UniversalBle.onAvailabilityChange = null;
         core.connection.disconnectAll();
