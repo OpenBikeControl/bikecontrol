@@ -133,22 +133,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: android
-          args: "--artifact=apk -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}"
-
-      - name: Build Web
-        if: inputs.build_web
-        run: flutter build web --release --base-href "/swiftcontrol/"
-
-      - name: Upload static files as artifact
-        if: inputs.build_web
-        id: deployment
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
-
-      - name: Web Deploy
-        if: inputs.build_web
-        uses: actions/deploy-pages@v4
+          args: "-- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}"
 
       - name: Extract latest changelog
         id: changelog
@@ -207,41 +192,6 @@ jobs:
         run: |
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";
 
-      - name: Handle Android archives
-        if: inputs.build_android && inputs.build_github && false
-        run: |
-          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/BikeControl.android.apk
-
-      - name: Code Signing of macOS app
-        if: inputs.build_mac && inputs.build_github && false
-        run: /usr/bin/codesign --deep --force -s "$DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY" --entitlements ../../../../../macos/Runner/Release.entitlements --options runtime BikeControl.app -v
-        working-directory: build/macos/Build/Products/Release
-        env:
-          DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION_SIGNING_IDENTITY }}
-
-      - name: Handle macOS archives
-        if: inputs.build_mac && inputs.build_github && false
-        run: |
-          cd build/macos/Build/Products/Release/
-          zip -r BikeControl.macos.zip BikeControl.app/
-
-      - name: Upload Android Artifacts
-        if: inputs.build_android && inputs.build_github && false
-        uses: actions/upload-artifact@v4
-        with:
-          overwrite: true
-          name: Releases
-          path: |
-            build/app/outputs/flutter-apk/BikeControl.android.apk
-
-      - name: Upload macOS Artifacts
-        if: inputs.build_mac && inputs.build_github && false
-        uses: actions/upload-artifact@v4
-        with:
-          overwrite: true
-          name: Releases
-          path: |
-            build/macos/Build/Products/Release/BikeControl.macos.zip
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
