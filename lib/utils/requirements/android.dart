@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
@@ -114,6 +115,9 @@ class BluetoothConnectRequirement extends PlatformRequirement {
   }
 }
 
+ReceivePort? _receivePort;
+StreamSubscription? _sub;
+
 class NotificationRequirement extends PlatformRequirement {
   NotificationRequirement()
     : super(
@@ -196,6 +200,7 @@ class NotificationRequirement extends PlatformRequirement {
   }
 
   static Future<void> setup() async {
+    print('NOTIFICATION SETUP');
     await core.flutterLocalNotificationsPlugin.initialize(
       InitializationSettings(
         android: AndroidInitializationSettings(
@@ -269,10 +274,16 @@ class NotificationRequirement extends PlatformRequirement {
       ),
     );
 
-    final receivePort = ReceivePort();
-    IsolateNameServer.registerPortWithName(receivePort.sendPort, '_backgroundChannelKey');
-    final backgroundMessagePort = receivePort.asBroadcastStream();
-    backgroundMessagePort.listen((message) {
+    _receivePort = ReceivePort();
+    // If already registered, remove and re-register
+    IsolateNameServer.removePortNameMapping('_backgroundChannelKey');
+    final ok = IsolateNameServer.registerPortWithName(_receivePort!.sendPort, '_backgroundChannelKey');
+    if (!ok) {
+      // If this happens, something else re-registered immediately or you’re in a weird state.
+      throw StateError('Failed to register port name');
+    }
+    final backgroundMessagePort = _receivePort!.asBroadcastStream();
+    _sub = backgroundMessagePort.listen((message) {
       print('Background isolate received message: $message');
       if (message == 'disconnect' || message == 'close') {
         UniversalBle.onAvailabilityChange = null;
