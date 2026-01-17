@@ -6,6 +6,8 @@
 **Fixes**:
 - Android: Local connection method allows passing keyboard events to the trainer app
 - macOS: Compatibility with macOS Tahoe
+- Windows: send keyboard events to the correct window when using multiple monitors or when another app is focused
+- Windows: fix media key detection
 
 ### 4.3.0 (07-01-2026)
 

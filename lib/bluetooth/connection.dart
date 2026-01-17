@@ -65,6 +65,10 @@ class Connection {
       lastLogEntries = lastLogEntries.takeLast(kIsWeb ? 1000 : 60).toList();
     });
 
+    if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+      core.mediaKeyHandler.initialize();
+    }
+
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb) {
