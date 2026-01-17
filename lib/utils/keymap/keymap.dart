@@ -16,11 +16,11 @@ import 'apps/custom_app.dart';
 
 enum AndroidSystemAction {
   back('Back', Icons.arrow_back, GlobalAction.back),
-  dpadCenter('DPAD Center', Icons.radio_button_checked_outlined, GlobalAction.dpadCenter),
-  down('DPAD Down', Icons.arrow_downward, GlobalAction.down),
-  right('DPAD Right', Icons.arrow_forward, GlobalAction.right),
-  up('DPAD Up', Icons.arrow_upward, GlobalAction.up),
-  left('DPAD Left', Icons.keyboard_arrow_left, GlobalAction.left),
+  dpadCenter('Select', Icons.radio_button_checked_outlined, GlobalAction.dpadCenter),
+  down('Arrow Down', Icons.arrow_downward, GlobalAction.down),
+  right('Arrow Right', Icons.arrow_forward, GlobalAction.right),
+  up('Arrow Up', Icons.arrow_upward, GlobalAction.up),
+  left('Arrow Left', Icons.arrow_back, GlobalAction.left),
   home('Home', Icons.home_outlined, GlobalAction.home),
   recents('Recents', Icons.apps, GlobalAction.recents);
 
@@ -165,12 +165,13 @@ class KeyPair {
         _ => Icons.keyboard,
       },
       //_ when inGameAction != null && core.logic.emulatorEnabled => Icons.link,
-      _ when inGameAction != null && inGameAction!.icon != null => inGameAction!.icon,
+      _ when inGameAction != null && inGameAction!.icon != null && core.logic.emulatorEnabled => inGameAction!.icon,
 
-      _ when androidAction != null &&
-          core.logic.showLocalControl &&
-          core.settings.getLocalEnabled() &&
-          core.actionHandler is AndroidActions =>
+      _
+          when androidAction != null &&
+              core.logic.showLocalControl &&
+              core.settings.getLocalEnabled() &&
+              core.actionHandler is AndroidActions =>
         androidAction!.icon,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         RadixIcons.keyboard,
@@ -197,6 +198,10 @@ class KeyPair {
           core.logic.showLocalControl &&
           core.settings.getLocalEnabled() &&
           core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ||
+      (isSpecialKey &&
+          core.logic.showLocalControl &&
+          core.settings.getLocalEnabled() &&
+          core.actionHandler is AndroidActions) ||
       (androidAction != null &&
           core.logic.showLocalControl &&
           core.settings.getLocalEnabled() &&
@@ -228,7 +233,7 @@ class KeyPair {
             if (inGameActionValue != null) '$inGameActionValue',
           ].joinToString(separator: ': ')
         : (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions)
-            ? androidAction!.title
+        ? androidAction!.title
         : (isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
         ? switch (physicalKey) {
             PhysicalKeyboardKey.mediaPlayPause => AppLocalizations.current.playPause,

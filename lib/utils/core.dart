@@ -209,8 +209,7 @@ class CoreLogic {
       core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true;
 
   bool get showLocalRemoteOptions =>
-      core.actionHandler.supportedModes.isNotEmpty &&
-      ((showLocalControl && core.settings.getLocalEnabled()) || (isRemoteControlEnabled));
+      core.actionHandler.supportedModes.isNotEmpty && ((showLocalControl) || (isRemoteControlEnabled));
 
   bool get hasNoConnectionMethod =>
       !screenshotMode &&

@@ -191,17 +191,17 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
           MediaAction.ofRaw(it.toInt())
         }
       }
-      132.toByte() -> {
+      130.toByte() -> {
         return (readValue(buffer) as Long?)?.let {
           GlobalAction.ofRaw(it.toInt())
         }
       }
-      130.toByte() -> {
+      131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           WindowEvent.fromList(it)
         }
       }
-      131.toByte() -> {
+      132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           AKeyEvent.fromList(it)
         }
@@ -216,15 +216,15 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
         writeValue(stream, value.raw)
       }
       is GlobalAction -> {
-        stream.write(132)
+        stream.write(130)
         writeValue(stream, value.raw)
       }
       is WindowEvent -> {
-        stream.write(130)
+        stream.write(131)
         writeValue(stream, value.toList())
       }
       is AKeyEvent -> {
-        stream.write(131)
+        stream.write(132)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)

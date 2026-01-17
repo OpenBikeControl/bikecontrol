@@ -2,6 +2,7 @@
 
 **Features**:
 - Support for Thinkrider VS200
+- Android: simulate additional actions for local connection method (Left, Down, Right, Up, Down, Select, Back, Home, Recent Apps), allowing you to navigate in the trainer app, if supported
 
 **Fixes**:
 - Android: Local connection method allows passing keyboard events to the trainer app

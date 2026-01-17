@@ -176,13 +176,13 @@ class _PigeonCodec extends StandardMessageCodec {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
     }    else if (value is GlobalAction) {
-      buffer.putUint8(132);
+      buffer.putUint8(130);
       writeValue(buffer, value.index);
     }    else if (value is WindowEvent) {
-      buffer.putUint8(130);
+      buffer.putUint8(131);
       writeValue(buffer, value.encode());
     }    else if (value is AKeyEvent) {
-      buffer.putUint8(131);
+      buffer.putUint8(132);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -195,12 +195,12 @@ class _PigeonCodec extends StandardMessageCodec {
       case 129: 
         final int? value = readValue(buffer) as int?;
         return value == null ? null : MediaAction.values[value];
-      case 132: 
+      case 130: 
         final int? value = readValue(buffer) as int?;
         return value == null ? null : GlobalAction.values[value];
-      case 130: 
-        return WindowEvent.decode(readValue(buffer)!);
       case 131: 
+        return WindowEvent.decode(readValue(buffer)!);
+      case 132: 
         return AKeyEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
