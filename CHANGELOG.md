@@ -1,7 +1,7 @@
 ### 4.5.0 (unreleased)
 
 **Features**:
-- Android: simulate additional actions for local connection method (Left, Down, Right, Up, Down, Select, Back, Home, Recent Apps)
+- Android: simulate additional actions for local connection method (Left, Down, Right, Up, Select, Back, Home, Recent Apps)
   - control your phone 
   - control UI within the trainer app (if supported)
 
