@@ -49,6 +49,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         if (keyPair != null && !_isDrawerOpen) {
           await _openKeyPairEditor(keyPair);
         }
+        setState(() {});
       }
     });
   }
