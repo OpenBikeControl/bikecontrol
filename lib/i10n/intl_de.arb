@@ -23,6 +23,7 @@
   "allowsRunningInBackground": "Ermöglicht es BikeControl, im Hintergrund weiterzulaufen.",
   "alreadyBoughtTheApp": "App bereits gekauft? Dann musst Du BikeControl nicht erneut kaufen. Aus technischen Gründen lässt sich leider nicht feststellen, ob die App früher bereits erworben wurde. \n\nGebe Deine Play Store-Kauf-ID (z.B. GPA.3356-1337-1338-1339) ein, um die Vollversion freizuschalten. Falls Du diese nicht finden kannst, kontaktiere mich bitte direkt.",
   "alreadyBoughtTheAppPreviously": "App zuvor bereits gekauft?",
+  "androidSystemAction": "Android-Systemaktion",
   "appIdActions": "{appId} Aktionen",
   "@appIdActions": {
     "placeholders": {
@@ -139,6 +140,7 @@
   "duplicate": "Duplikat",
   "enableAutoRotation": "Aktiviere die automatische Drehung auf Ihrem Gerät, um sicherzustellen, dass die App ordnungsgemäß funktioniert.",
   "enableBluetooth": "Bluetooth aktivieren",
+  "enableItInTheConnectionSettingsFirst": "Aktiviere es zuerst in den Verbindungseinstellungen.",
   "enableKeyboardAccessMessage": "Aktiviere im folgenden Bildschirm die Tastatursteuerung für BikeControl. Falls BikeControl nicht angezeigt wird, füge es bitte manuell hinzu.",
   "enableKeyboardMouseControl": "BikeControl sendet Maus- oder Tastaturkommandos an {appName}",
   "@enableKeyboardMouseControl": {
@@ -148,7 +150,9 @@
       }
     }
   },
+  "enableLocalConnectionMethodFirst": "Aktivieren Sie zuerst die Methode „Lokale Verbindung“.",
   "enableMediaKeyDetection": "Medientastenerkennung aktivieren",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Aktiviere zuerst MyWhoosh Link in den Verbindungseinstellungen.",
   "enablePairingProcess": "Kopplungsprozess aktivieren",
   "enablePermissions": "Berechtigungen aktivieren",
   "enableSteeringWithPhone": "Sensoren Ihres Telefons aktivieren z.B. zum Lenken",

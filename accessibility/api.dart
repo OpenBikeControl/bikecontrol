@@ -8,6 +8,8 @@ abstract class Accessibility {
 
   void performTouch(double x, double y, {bool isKeyDown = true, bool isKeyUp = false});
 
+  void performGlobalAction(GlobalAction action);
+
   void controlMedia(MediaAction action);
 
   bool isRunning();
@@ -18,6 +20,17 @@ abstract class Accessibility {
 }
 
 enum MediaAction { playPause, next, volumeUp, volumeDown }
+
+enum GlobalAction {
+  back,
+  dpadCenter,
+  down,
+  right,
+  up,
+  left,
+  home,
+  recents,
+}
 
 class WindowEvent {
   final String packageName;

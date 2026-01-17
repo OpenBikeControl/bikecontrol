@@ -79,6 +79,15 @@ class AndroidActions extends BaseActions {
       return Success("Key pressed: ${keyPair.toString()}");
     }
 
+    if (keyPair.androidAction != null) {
+      if (!core.settings.getLocalEnabled() || !core.logic.showLocalControl || !isKeyDown) {
+        return Ignored('Global action ignored');
+      }
+      await accessibilityHandler.performGlobalAction(keyPair.androidAction!.globalAction);
+      await IAPManager.instance.incrementCommandCount();
+      return Success("Global action: ${keyPair.androidAction!.title}");
+    }
+
     final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: windowInfo);
     if (point != Offset.zero) {
       try {

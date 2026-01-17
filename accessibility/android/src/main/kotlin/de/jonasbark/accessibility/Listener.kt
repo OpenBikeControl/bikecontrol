@@ -2,6 +2,7 @@ package de.jonasbark.accessibility
 
 import android.graphics.Rect
 import android.view.KeyEvent
+import GlobalAction
 import java.util.concurrent.ConcurrentHashMap
 
 object Observable {
@@ -15,6 +16,7 @@ object Observable {
 
 interface Listener {
     fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean)
+    fun performGlobalAction(action: GlobalAction)
 }
 
 interface Receiver {
