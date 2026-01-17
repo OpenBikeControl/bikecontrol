@@ -85,13 +85,14 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
 
   // Try to find and focus (or directly target) a compatible app
   std::string foundProcessName;
+  bool supportsBackgroundInput = false;
   HWND targetWindow = NULL;
   for (const std::string& processName : compatibleApps) {
     targetWindow = FindTargetWindow(processName, "");
     if (targetWindow != NULL) {
       foundProcessName = processName;
       // For background-capable apps, prefer sending keys directly to their window to avoid stealing focus
-      const bool supportsBackgroundInput = std::find(backgroundInputApps.begin(), backgroundInputApps.end(), processName) != backgroundInputApps.end();
+      supportsBackgroundInput = std::find(backgroundInputApps.begin(), backgroundInputApps.end(), processName) != backgroundInputApps.end();
       if (!supportsBackgroundInput && GetForegroundWindow() != targetWindow) {
         SetForegroundWindow(targetWindow);
         Sleep(50); // Brief delay to ensure window is focused
@@ -154,7 +155,7 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
 
   if (targetWindow != NULL &&
       !foundProcessName.empty() &&
-      std::find(backgroundInputApps.begin(), backgroundInputApps.end(), foundProcessName) != backgroundInputApps.end() &&
+      supportsBackgroundInput &&
       GetForegroundWindow() != targetWindow) {
     sendKeyToWindow(targetWindow, modifiers, keyCode, keyDown);
     result->Success(flutter::EncodableValue(true));
