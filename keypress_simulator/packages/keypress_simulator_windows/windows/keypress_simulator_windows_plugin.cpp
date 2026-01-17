@@ -10,9 +10,11 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <unordered_map>
+#include <vector>
 
 using flutter::EncodableList;
 using flutter::EncodableMap;
@@ -72,21 +74,91 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
   std::vector<std::string> compatibleApps = {
     "MyWhooshHD.exe",
     "indieVelo.exe",
-    "biketerra.exe"
+    "biketerra.exe",
+    "ROUVY.exe"
   };
 
-  // Try to find and focus a compatible app
+  // Apps that should receive key events directly without taking focus (allows media/apps to stay on top)
+  const std::vector<std::string> backgroundInputApps = {
+    "ROUVY.exe"
+  };
+
+  // Try to find and focus (or directly target) a compatible app
+  std::string foundProcessName;
   HWND targetWindow = NULL;
   for (const std::string& processName : compatibleApps) {
     targetWindow = FindTargetWindow(processName, "");
     if (targetWindow != NULL) {
-      // Only focus the window if it's not already in the foreground
-      if (GetForegroundWindow() != targetWindow) {
+      foundProcessName = processName;
+      // For background-capable apps, prefer sending keys directly to their window to avoid stealing focus
+      const bool supportsBackgroundInput = std::find(backgroundInputApps.begin(), backgroundInputApps.end(), processName) != backgroundInputApps.end();
+      if (!supportsBackgroundInput && GetForegroundWindow() != targetWindow) {
         SetForegroundWindow(targetWindow);
         Sleep(50); // Brief delay to ensure window is focused
       }
       break;
     }
+  }
+
+  // If we found a target window that supports background input and it's not focused, send messages directly
+  auto postKeyMessage = [](HWND hwnd, UINT vkCode, bool down) {
+    const WORD scanCode = static_cast<WORD>(MapVirtualKey(vkCode, MAPVK_VK_TO_VSC));
+    // Build lParam with repeat count 1 and scan code; set transition states for key up
+    LPARAM lParam = 1 | (static_cast<LPARAM>(scanCode) << 16);
+    if (vkCode == VK_LEFT || vkCode == VK_RIGHT || vkCode == VK_UP || vkCode == VK_DOWN ||
+        vkCode == VK_INSERT || vkCode == VK_DELETE || vkCode == VK_HOME || vkCode == VK_END ||
+        vkCode == VK_PRIOR || vkCode == VK_NEXT) {
+      lParam |= (1 << 24); // extended key
+    }
+    if (!down) {
+      lParam |= (1 << 30); // previous key state
+      lParam |= (1 << 31); // transition state
+    }
+    PostMessage(hwnd, down ? WM_KEYDOWN : WM_KEYUP, vkCode, lParam);
+  };
+
+  auto sendKeyToWindow = [&postKeyMessage](HWND hwnd, const std::vector<std::string>& mods, UINT keyCode, bool down) {
+    auto handleModifier = [&postKeyMessage, hwnd](UINT vk, bool press) {
+      postKeyMessage(hwnd, vk, press);
+    };
+
+    if (down) {
+      for (const std::string& modifier : mods) {
+        if (modifier == "shiftModifier") {
+          handleModifier(VK_SHIFT, true);
+        } else if (modifier == "controlModifier") {
+          handleModifier(VK_CONTROL, true);
+        } else if (modifier == "altModifier") {
+          handleModifier(VK_MENU, true);
+        } else if (modifier == "metaModifier") {
+          handleModifier(VK_LWIN, true);
+        }
+      }
+      postKeyMessage(hwnd, keyCode, true);
+    } else {
+      postKeyMessage(hwnd, keyCode, false);
+      // release modifiers
+      for (const std::string& modifier : mods) {
+        if (modifier == "shiftModifier") {
+          handleModifier(VK_SHIFT, false);
+        } else if (modifier == "controlModifier") {
+          handleModifier(VK_CONTROL, false);
+        } else if (modifier == "altModifier") {
+          handleModifier(VK_MENU, false);
+        } else if (modifier == "metaModifier") {
+          handleModifier(VK_LWIN, false);
+        }
+      }
+    }
+  };
+
+  if (targetWindow != NULL &&
+      !foundProcessName.empty() &&
+      std::find(backgroundInputApps.begin(), backgroundInputApps.end(), foundProcessName) != backgroundInputApps.end() &&
+      GetForegroundWindow() != targetWindow) {
+    sendKeyToWindow(targetWindow, modifiers, keyCode, keyDown);
+    result->Success(flutter::EncodableValue(true));
+    return;
   }
 
   // Helper function to send modifier key events
