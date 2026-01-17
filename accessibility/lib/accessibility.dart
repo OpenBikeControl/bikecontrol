@@ -36,6 +36,17 @@ enum MediaAction {
   volumeDown,
 }
 
+enum GlobalAction {
+  back,
+  dpadCenter,
+  down,
+  right,
+  up,
+  left,
+  home,
+  recents,
+}
+
 class WindowEvent {
   WindowEvent({
     required this.packageName,
@@ -164,6 +175,9 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is MediaAction) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
+    }    else if (value is GlobalAction) {
+      buffer.putUint8(132);
+      writeValue(buffer, value.index);
     }    else if (value is WindowEvent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
@@ -181,6 +195,9 @@ class _PigeonCodec extends StandardMessageCodec {
       case 129: 
         final int? value = readValue(buffer) as int?;
         return value == null ? null : MediaAction.values[value];
+      case 132: 
+        final int? value = readValue(buffer) as int?;
+        return value == null ? null : GlobalAction.values[value];
       case 130: 
         return WindowEvent.decode(readValue(buffer)!);
       case 131: 
@@ -265,6 +282,29 @@ class Accessibility {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[x, y, isKeyDown, isKeyUp]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> performGlobalAction(GlobalAction action) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.accessibility.Accessibility.performGlobalAction$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[action]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {

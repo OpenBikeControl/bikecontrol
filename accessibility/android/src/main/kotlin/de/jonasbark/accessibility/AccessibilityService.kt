@@ -15,6 +15,7 @@ import android.view.KeyEvent
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+import GlobalAction
 
 
 class AccessibilityService : AccessibilityService(), Listener {
@@ -95,6 +96,20 @@ class AccessibilityService : AccessibilityService(), Listener {
         } else {
             true
         }
+    }
+
+    override fun performGlobalAction(action: GlobalAction) {
+        val mappedAction = when (action) {
+            GlobalAction.BACK -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK
+            GlobalAction.DPAD_CENTER -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_DPAD_CENTER
+            GlobalAction.DOWN -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_DPAD_DOWN
+            GlobalAction.RIGHT -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_DPAD_RIGHT
+            GlobalAction.UP -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_DPAD_UP
+            GlobalAction.LEFT -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_DPAD_LEFT
+            GlobalAction.HOME -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME
+            GlobalAction.RECENTS -> android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_RECENTS
+        }
+        performGlobalAction(mappedAction)
     }
 
     override fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean) {

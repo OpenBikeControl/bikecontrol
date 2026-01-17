@@ -201,6 +201,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     _keyPair.isLongPress = keyPairAction.isLongPress;
                                     _keyPair.inGameAction = keyPairAction.inGameAction;
                                     _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
+                                    _keyPair.androidAction = null;
                                     setState(() {});
                                   },
                                   child: Text(keyPairAction.toString()),
@@ -227,6 +228,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             keyPair: _keyPair,
                           ),
                         );
+                        _keyPair.androidAction = null;
                         setState(() {});
                         widget.onUpdate();
                       },
@@ -243,6 +245,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         }
                         _keyPair.physicalKey = null;
                         _keyPair.logicalKey = null;
+                        _keyPair.androidAction = null;
                         await Navigator.of(context).push<bool?>(
                           MaterialPageRoute(
                             builder: (c) => TouchAreaSetupPage(
@@ -272,6 +275,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
                                     _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
 
                                     setState(() {});
                                     widget.onUpdate();
@@ -283,6 +287,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
                                     _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
 
                                     setState(() {});
                                     widget.onUpdate();
@@ -294,6 +299,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
                                     _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
 
                                     setState(() {});
                                     widget.onUpdate();
@@ -305,6 +311,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
                                     _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
 
                                     setState(() {});
                                     widget.onUpdate();
@@ -316,6 +323,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
                                     _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
 
                                     setState(() {});
                                     widget.onUpdate();
@@ -328,12 +336,50 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   onPressed: (c) {
                                     _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
                                     _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
 
                                     setState(() {});
                                     widget.onUpdate();
                                   },
                                 ),
                               ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  if (core.logic.showLocalControl &&
+                      core.settings.getLocalEnabled() &&
+                      core.actionHandler is AndroidActions)
+                    Builder(
+                      builder: (context) => SelectableCard(
+                        icon: Icons.settings_remote_outlined,
+                        isActive: _keyPair.androidAction != null,
+                        title: Text('Android System Action'),
+                        value: _keyPair.androidAction?.title,
+                        onPressed: () {
+                          showDropdown(
+                            context: context,
+                            builder: (c) => DropdownMenu(
+                              children: AndroidSystemAction.values
+                                  .map(
+                                    (action) => MenuButton(
+                                      leading: Icon(action.icon),
+                                      onPressed: (_) {
+                                        _keyPair.androidAction = action;
+                                        _keyPair.physicalKey = null;
+                                        _keyPair.logicalKey = null;
+                                        _keyPair.modifiers = [];
+                                        _keyPair.touchPosition = Offset.zero;
+                                        _keyPair.inGameAction = null;
+                                        _keyPair.inGameActionValue = null;
+                                        setState(() {});
+                                        widget.onUpdate();
+                                      },
+                                      child: Text(action.title),
+                                    ),
+                                  )
+                                  .toList(),
                             ),
                           );
                         },
@@ -368,6 +414,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         onPressed: (_) {
                                           _keyPair.inGameAction = InGameAction.headwindSpeed;
                                           _keyPair.inGameActionValue = value;
+                                          _keyPair.androidAction = null;
                                           widget.onUpdate();
                                           setState(() {});
                                         },
@@ -381,6 +428,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindHeartRateMode;
                                   _keyPair.inGameActionValue = null;
+                                  _keyPair.androidAction = null;
                                   widget.onUpdate();
                                   setState(() {});
                                 },
@@ -415,6 +463,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     _keyPair.touchPosition = Offset.zero;
                     _keyPair.inGameAction = null;
                     _keyPair.inGameActionValue = null;
+                    _keyPair.androidAction = null;
                     widget.onUpdate();
                     setState(() {});
                   },
@@ -450,16 +499,17 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     children: action.possibleValues!.map(
                       (ingame) {
                         return MenuButton(
-                          child: Text(ingame.toString()),
-                          onPressed: (_) {
-                            _keyPair.touchPosition = Offset.zero;
-                            _keyPair.physicalKey = null;
-                            _keyPair.logicalKey = null;
-                            _keyPair.inGameAction = action;
-                            _keyPair.inGameActionValue = ingame;
-                            widget.onUpdate();
-                            setState(() {});
-                          },
+                           child: Text(ingame.toString()),
+                           onPressed: (_) {
+                             _keyPair.touchPosition = Offset.zero;
+                             _keyPair.physicalKey = null;
+                             _keyPair.logicalKey = null;
+                             _keyPair.androidAction = null;
+                             _keyPair.inGameAction = action;
+                             _keyPair.inGameActionValue = ingame;
+                             widget.onUpdate();
+                             setState(() {});
+                           },
                         );
                       },
                     ).toList(),
@@ -469,6 +519,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 _keyPair.touchPosition = Offset.zero;
                 _keyPair.physicalKey = null;
                 _keyPair.logicalKey = null;
+                _keyPair.androidAction = null;
                 _keyPair.inGameAction = action;
                 _keyPair.inGameActionValue = null;
                 widget.onUpdate();

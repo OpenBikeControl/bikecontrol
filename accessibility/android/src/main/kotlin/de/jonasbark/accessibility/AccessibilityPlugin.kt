@@ -2,6 +2,7 @@ package de.jonasbark.accessibility
 
 import AKeyEvent
 import Accessibility
+import GlobalAction
 import HidKeyPressedStreamHandler
 import MediaAction
 import PigeonEventSink
@@ -64,6 +65,10 @@ class AccessibilityPlugin: FlutterPlugin, Accessibility {
 
   override fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean) {
     Observable.toService?.performTouch(x = x, y = y, isKeyUp = isKeyUp, isKeyDown = isKeyDown) ?: error("Service not running")
+  }
+
+  override fun performGlobalAction(action: GlobalAction) {
+    Observable.toService?.performGlobalAction(action) ?: error("Service not running")
   }
 
   override fun controlMedia(action: MediaAction) {

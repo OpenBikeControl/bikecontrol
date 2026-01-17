@@ -90,6 +90,23 @@ enum class MediaAction(val raw: Int) {
   }
 }
 
+enum class GlobalAction(val raw: Int) {
+  BACK(0),
+  DPAD_CENTER(1),
+  DOWN(2),
+  RIGHT(3),
+  UP(4),
+  LEFT(5),
+  HOME(6),
+  RECENTS(7);
+
+  companion object {
+    fun ofRaw(raw: Int): GlobalAction? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class WindowEvent (
   val packageName: String,
@@ -174,6 +191,11 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
           MediaAction.ofRaw(it.toInt())
         }
       }
+      132.toByte() -> {
+        return (readValue(buffer) as Long?)?.let {
+          GlobalAction.ofRaw(it.toInt())
+        }
+      }
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           WindowEvent.fromList(it)
@@ -191,6 +213,10 @@ private open class AccessibilityApiPigeonCodec : StandardMessageCodec() {
     when (value) {
       is MediaAction -> {
         stream.write(129)
+        writeValue(stream, value.raw)
+      }
+      is GlobalAction -> {
+        stream.write(132)
         writeValue(stream, value.raw)
       }
       is WindowEvent -> {
@@ -213,6 +239,7 @@ interface Accessibility {
   fun hasPermission(): Boolean
   fun openPermissions()
   fun performTouch(x: Double, y: Double, isKeyDown: Boolean, isKeyUp: Boolean)
+  fun performGlobalAction(action: GlobalAction)
   fun controlMedia(action: MediaAction)
   fun isRunning(): Boolean
   fun ignoreHidDevices()
@@ -269,6 +296,24 @@ interface Accessibility {
             val isKeyUpArg = args[3] as Boolean
             val wrapped: List<Any?> = try {
               api.performTouch(xArg, yArg, isKeyDownArg, isKeyUpArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              AccessibilityApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.accessibility.Accessibility.performGlobalAction$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val actionArg = args[0] as GlobalAction
+            val wrapped: List<Any?> = try {
+              api.performGlobalAction(actionArg)
               listOf(null)
             } catch (exception: Throwable) {
               AccessibilityApiPigeonUtils.wrapError(exception)
