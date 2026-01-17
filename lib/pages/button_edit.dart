@@ -162,7 +162,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     Warning(
                       important: false,
                       children: [
-                        Text('Enable MyWhoosh Link in the connection settings first.'),
+                        Text(AppLocalizations.of(context).enableMywhooshLinkInTheConnectionSettingsFirst),
                       ],
                     )
                   else
@@ -175,7 +175,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     Warning(
                       important: false,
                       children: [
-                        Text('Enable it in the connection settings first.'),
+                        Text(AppLocalizations.of(context).enableItInTheConnectionSettingsFirst),
                       ],
                     )
                   else
@@ -193,7 +193,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: false,
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
-                            buildToast(navigatorKey.currentContext!, title: 'Enable Local Connection method, first.');
+                            buildToast(
+                              navigatorKey.currentContext!,
+                              title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
+                            );
                           } else {
                             showDropdown(
                               context: context,
@@ -244,7 +247,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       value: _keyPair.toString(),
                       onPressed: () async {
                         if (!core.settings.getLocalEnabled()) {
-                          buildToast(navigatorKey.currentContext!, title: 'Enable Local Connection method, first.');
+                          buildToast(
+                            navigatorKey.currentContext!,
+                            title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
+                          );
                         } else {
                           await showDialog<void>(
                             context: context,
@@ -271,7 +277,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       value: _keyPair.toString(),
                       onPressed: () async {
                         if (!core.settings.getLocalEnabled()) {
-                          buildToast(navigatorKey.currentContext!, title: 'Enable Local Connection method, first.');
+                          buildToast(
+                            navigatorKey.currentContext!,
+                            title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
+                          );
                         } else {
                           if (_keyPair.touchPosition == Offset.zero) {
                             _keyPair.touchPosition = Offset(50, 50);
@@ -301,7 +310,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         value: _keyPair.toString(),
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
-                            buildToast(navigatorKey.currentContext!, title: 'Enable Local Connection method, first.');
+                            buildToast(
+                              navigatorKey.currentContext!,
+                              title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
+                            );
                           } else {
                             showDropdown(
                               context: context,
@@ -397,7 +409,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       builder: (context) => SelectableCard(
                         icon: Icons.settings_remote_outlined,
                         isActive: _keyPair.androidAction != null && core.settings.getLocalEnabled(),
-                        title: Text('Android System Action'),
+                        title: Text(AppLocalizations.of(context).androidSystemAction),
                         value: _keyPair.androidAction?.title,
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {

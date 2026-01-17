@@ -23,6 +23,7 @@
   "allowsRunningInBackground": "Allows BikeControl to keep running in background",
   "alreadyBoughtTheApp": "Already bought the app? You don't need to pay for BikeControl, again. Due to technical difficulties, it's not possible to determine if the app was bought already.\n\nEnter your Play Store purchase ID (e.g. GPA.3356-1337-1338-1339) to unlock the full version. If you can't find it, please get in touch with me directly.",
   "alreadyBoughtTheAppPreviously": "Already bought the app previously?",
+  "androidSystemAction": "Android System Action",
   "appIdActions": "{appId} actions",
   "@appIdActions": {
     "placeholders": {
@@ -139,6 +140,7 @@
   "duplicate": "Duplicate",
   "enableAutoRotation": "Enable auto-rotation on your device to make sure the app works correctly.",
   "enableBluetooth": "Enable Bluetooth",
+  "enableItInTheConnectionSettingsFirst": "Enable it in the connection settings first.",
   "enableKeyboardAccessMessage": "Enable keyboard access in the following screen for BikeControl. If you don't see BikeControl, please add it manually.",
   "enableKeyboardMouseControl": "BikeControl will send mouse or keyboard actions to control {appName}.",
   "@enableKeyboardMouseControl": {
@@ -148,7 +150,9 @@
       }
     }
   },
+  "enableLocalConnectionMethodFirst": "Enable Local Connection method, first.",
   "enableMediaKeyDetection": "Enable Media Key Detection",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Enable MyWhoosh Link in the connection settings first.",
   "enablePairingProcess": "Enable Pairing Process",
   "enablePermissions": "Enable Permissions",
   "enableSteeringWithPhone": "Enable Phones' sensors to enable e.g. steering",

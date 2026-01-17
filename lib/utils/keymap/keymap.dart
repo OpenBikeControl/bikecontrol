@@ -15,7 +15,7 @@ import '../actions/base_actions.dart';
 import 'apps/custom_app.dart';
 
 enum AndroidSystemAction {
-  back('Back', Icons.arrow_back, GlobalAction.back),
+  back('Back', Icons.arrow_back_ios, GlobalAction.back),
   dpadCenter('Select', Icons.radio_button_checked_outlined, GlobalAction.dpadCenter),
   down('Arrow Down', Icons.arrow_downward, GlobalAction.down),
   right('Arrow Right', Icons.arrow_forward, GlobalAction.right),
