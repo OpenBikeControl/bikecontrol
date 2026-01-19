@@ -18,6 +18,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
@@ -44,14 +45,12 @@ abstract class BluetoothDevice extends BaseDevice {
   }) : super(
          scanResult.name ?? 'Unknown Device',
          availableButtons: allowMultiple
-             ? availableButtons
-                 .map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId))
-                 .toList()
+             ? availableButtons.map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
              : availableButtons,
          isBeta: isBeta,
        ) {
-       rssi = scanResult.rssi;
-     }
+    rssi = scanResult.rssi;
+  }
 
   int? batteryLevel;
   String? firmwareVersion;

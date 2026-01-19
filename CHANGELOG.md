@@ -4,7 +4,7 @@
 - Android: simulate additional actions for local connection method (Left, Down, Right, Up, Select, Back, Home, Recent Apps)
   - control your phone 
   - control UI within the trainer app (if supported)
-- Device-specific button mappings for Cycplus BC2 and ThinkRider VS200 controllers
+- BikeControl now supports individual mapping when you use more than one Cycplus BC2 and ThinkRider VS200 controller
 
 ### 4.4.0 (16-01-2026)
 
