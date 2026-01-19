@@ -165,13 +165,13 @@ enum Target {
 
     return switch (this) {
       Target.thisDevice => false,
-      _ => supportedApp == null || supportedApp.supportsOpenBikeProtocol == false,
+      _ => supportedApp == null || supportedApp.supportsOpenBikeProtocol.isEmpty,
     };
   }
 
   String getDescription(SupportedApp? app) {
     final appName = app?.name ?? 'the Trainer app';
-    final preferredConnectionMethod = app?.supportsOpenBikeProtocol == true
+    final preferredConnectionMethod = app?.supportsOpenBikeProtocol.isNotEmpty == true
         ? AppLocalizations.current.openBikeControlConnection
         : app is MyWhoosh
         ? AppLocalizations.current.myWhooshDirectConnection

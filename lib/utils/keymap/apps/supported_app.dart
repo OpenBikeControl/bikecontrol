@@ -9,13 +9,18 @@ import '../keymap.dart';
 import 'custom_app.dart';
 import 'my_whoosh.dart';
 
+enum OpenBikeProtocolSupport {
+  ble,
+  network,
+}
+
 abstract class SupportedApp {
   final List<Target> compatibleTargets;
   final String packageName;
   final String name;
   final Keymap keymap;
   final bool supportsZwiftEmulation;
-  final bool supportsOpenBikeProtocol;
+  final List<OpenBikeProtocolSupport> supportsOpenBikeProtocol;
   final bool star;
 
   const SupportedApp({
@@ -24,7 +29,7 @@ abstract class SupportedApp {
     required this.keymap,
     required this.compatibleTargets,
     required this.supportsZwiftEmulation,
-    this.supportsOpenBikeProtocol = false,
+    this.supportsOpenBikeProtocol = const [],
     this.star = false,
   });
 

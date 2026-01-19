@@ -225,7 +225,11 @@ class _BikeControlAppState extends State<BikeControlApp> {
                               ? OnboardingPage(
                                   onComplete: () {
                                     setState(() {
-                                      _showPage = BCPage.trainer;
+                                      if (core.obpMdnsEmulator.connectedApp.value == null) {
+                                        _showPage = BCPage.trainer;
+                                      } else {
+                                        _showPage = BCPage.devices;
+                                      }
                                     });
                                   },
                                 )

@@ -65,7 +65,7 @@ class _CustomizeState extends State<CustomizePage> {
                                   Expanded(child: Text(a.name)),
                                   if (a is CustomApp)
                                     BetaPill(text: 'CUSTOM')
-                                  else if (a.supportsOpenBikeProtocol)
+                                  else if (a.supportsOpenBikeProtocol.isNotEmpty)
                                     Icon(Icons.star, size: 16),
                                 ],
                               ),

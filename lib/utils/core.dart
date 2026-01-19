@@ -14,6 +14,7 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:dartx/dartx.dart';
@@ -167,11 +168,11 @@ class CoreLogic {
   }
 
   bool get showObpMdnsEmulator {
-    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true;
+    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(OpenBikeProtocolSupport.network) == true;
   }
 
   bool get showObpBluetoothEmulator {
-    return (core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true) &&
+    return (core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(OpenBikeProtocolSupport.ble) == true) &&
         core.settings.getLastTarget() != Target.thisDevice;
   }
 
@@ -206,7 +207,7 @@ class CoreLogic {
 
   bool get ignoreWarnings =>
       core.settings.getTrainerApp()?.supportsZwiftEmulation == true ||
-      core.settings.getTrainerApp()?.supportsOpenBikeProtocol == true;
+      core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isNotEmpty == true;
 
   bool get showLocalRemoteOptions =>
       core.actionHandler.supportedModes.isNotEmpty && ((showLocalControl) || (isRemoteControlEnabled));
@@ -259,7 +260,7 @@ class CoreLogic {
       return true;
     } else if (showLocalControl &&
         core.settings.getLocalEnabled() &&
-        core.settings.getTrainerApp()?.supportsOpenBikeProtocol == false) {
+        core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isNotEmpty == true) {
       if (canRunAndroidService) {
         return isAndroidServiceRunning();
       } else {

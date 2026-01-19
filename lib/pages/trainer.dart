@@ -159,7 +159,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                                   spacing: 4,
                                   children: [
                                     Expanded(child: Text(screenshotMode ? 'Trainer app' : app.name)),
-                                    if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                                    if (app.supportsOpenBikeProtocol.isNotEmpty) Icon(Icons.star),
                                   ],
                                 ),
                                 popup: SelectPopup(
@@ -171,7 +171,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                                           spacing: 4,
                                           children: [
                                             Text(app.name),
-                                            if (app.supportsOpenBikeProtocol) Icon(Icons.star),
+                                            if (app.supportsOpenBikeProtocol.isNotEmpty) Icon(Icons.star),
                                           ],
                                         ),
                                       );

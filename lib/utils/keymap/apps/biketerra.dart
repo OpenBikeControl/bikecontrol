@@ -1,7 +1,7 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/services.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/services.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
@@ -13,7 +13,6 @@ class Biketerra extends SupportedApp {
         packageName: "biketerra",
         compatibleTargets: Target.values,
         supportsZwiftEmulation: true,
-        supportsOpenBikeProtocol: false,
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values
