@@ -29,15 +29,12 @@ PODS:
     - FlutterMacOS
   - package_info_plus (0.0.1):
     - FlutterMacOS
-  - path_provider_foundation (0.0.1):
-    - Flutter
+  - purchases_flutter (9.10.6):
     - FlutterMacOS
-  - purchases_flutter (9.10.2):
-    - FlutterMacOS
-    - PurchasesHybridCommon (= 17.25.0)
-  - PurchasesHybridCommon (17.25.0):
-    - RevenueCat (= 5.51.1)
-  - RevenueCat (5.51.1)
+    - PurchasesHybridCommon (= 17.27.1)
+  - PurchasesHybridCommon (17.27.1):
+    - RevenueCat (= 5.54.1)
+  - RevenueCat (5.54.1)
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
@@ -68,7 +65,6 @@ DEPENDENCIES:
   - media_key_detector_macos (from `Flutter/ephemeral/.symlinks/plugins/media_key_detector_macos/macos`)
   - nsd_macos (from `Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
-  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - purchases_flutter (from `Flutter/ephemeral/.symlinks/plugins/purchases_flutter/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -111,8 +107,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos
   package_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
-  path_provider_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   purchases_flutter:
     :path: Flutter/ephemeral/.symlinks/plugins/purchases_flutter/macos
   screen_retriever_macos:
@@ -129,9 +123,9 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  bluetooth_low_energy_darwin: 764d8d1ae5abefbcdb839e812b4b25c0061fcf8b
+  bluetooth_low_energy_darwin: 50bc79258e60586e4c4bed5948bd31d925f37fac
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
+  file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_secure_storage_darwin: 557817588b80e60213cbecb573c45c76b788018d
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
@@ -143,14 +137,13 @@ SPEC CHECKSUMS:
   media_key_detector_macos: a93757a483b4b47283ade432b1af9e427c47329f
   nsd_macos: 1a38a38a33adbb396b4c6f303bc076073514cadc
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
-  path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
-  purchases_flutter: 777401787df16312c7b8b53b2d7144d26b6da0f0
-  PurchasesHybridCommon: 6a79a873ab52f777bfa36e9516f3fcd84d3b3428
-  RevenueCat: eab035bbab271faccfef5c36eaff2a1ffef14dc0
+  purchases_flutter: 55ed35144683d8673f0a4b5077e8f4d8291f291e
+  PurchasesHybridCommon: 027f03312519c51056457eb2e4f7ee1c91b61b8f
+  RevenueCat: ecbba580fa453b0d4a0475449b904196d74ef678
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
-  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
+  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   universal_ble: cf52a7b3fd2e7c14d6d7262e9fdadb72ab6b88a6
-  url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
+  url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
   wakelock_plus: 9d63063ffb7af1c215209769067c57103bde719d
   window_manager: e25faf20d88283a0d46e7b1a759d07261ca27575
 
