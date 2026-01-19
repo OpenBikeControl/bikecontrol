@@ -54,11 +54,14 @@ enum InGameAction {
 }
 
 class ControllerButton {
+  static const int _deviceIdSuffixLength = 4;
+  static const _unset = Object();
   final String name;
   final int? identifier;
   final InGameAction? action;
   final Color? color;
   final IconData? icon;
+  final String? sourceDeviceId;
 
   const ControllerButton(
     this.name, {
@@ -66,7 +69,39 @@ class ControllerButton {
     this.icon,
     this.identifier,
     this.action,
+    this.sourceDeviceId,
   });
+
+  ControllerButton copyWith({
+    String? name,
+    int? identifier,
+    InGameAction? action,
+    Color? color,
+    IconData? icon,
+    Object? sourceDeviceId = _unset,
+  }) {
+    final newSourceDeviceId = sourceDeviceId == _unset ? this.sourceDeviceId : sourceDeviceId as String?;
+
+    return ControllerButton(
+      name ?? this.name,
+      color: color ?? this.color,
+      icon: icon ?? this.icon,
+      identifier: identifier ?? this.identifier,
+      action: action ?? this.action,
+      sourceDeviceId: newSourceDeviceId,
+    );
+  }
+
+  String get displayName {
+    if (sourceDeviceId == null) {
+      return name;
+    }
+
+    final shortenedId = sourceDeviceId!.length <= _deviceIdSuffixLength
+        ? sourceDeviceId!
+        : sourceDeviceId!.substring(sourceDeviceId!.length - _deviceIdSuffixLength);
+    return '$name (${shortenedId.toUpperCase()})';
+  }
 
   @override
   String toString() {
@@ -82,10 +117,11 @@ class ControllerButton {
           identifier == other.identifier &&
           action == other.action &&
           color == other.color &&
-          icon == other.icon;
+          icon == other.icon &&
+          sourceDeviceId == other.sourceDeviceId;
 
   @override
-  int get hashCode => Object.hash(name, action, identifier, color, icon);
+  int get hashCode => Object.hash(name, action, identifier, color, icon, sourceDeviceId);
 
   static List<ControllerButton> get values => [
     ...SterzoButtons.values,

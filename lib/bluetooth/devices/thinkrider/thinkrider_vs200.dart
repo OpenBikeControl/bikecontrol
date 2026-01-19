@@ -12,6 +12,7 @@ class ThinkRiderVs200 extends BluetoothDevice {
     : super(
         availableButtons: ThinkRiderVs200Buttons.values,
         isBeta: true,
+        allowMultiple: true,
       );
 
   @override
@@ -43,11 +44,11 @@ class ThinkRiderVs200 extends BluetoothDevice {
       if (hexValue == ThinkRiderVs200Constants.SHIFT_UP_PATTERN) {
         // Plus button pressed
         actionStreamInternal.add(LogNotification('Shift Up detected: $hexValue'));
-        handleButtonsClickedWithoutLongPressSupport([ThinkRiderVs200Buttons.shiftUp]);
+        handleButtonsClickedWithoutLongPressSupport([availableButtons[0]]);
       } else if (hexValue == ThinkRiderVs200Constants.SHIFT_DOWN_PATTERN) {
         // Minus button pressed
         actionStreamInternal.add(LogNotification('Shift Down detected: $hexValue'));
-        handleButtonsClickedWithoutLongPressSupport([ThinkRiderVs200Buttons.shiftDown]);
+        handleButtonsClickedWithoutLongPressSupport([availableButtons[1]]);
       }
     }
 

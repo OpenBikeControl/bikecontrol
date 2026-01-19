@@ -36,10 +36,22 @@ import 'thinkrider/thinkrider_vs200.dart';
 abstract class BluetoothDevice extends BaseDevice {
   final BleDevice scanResult;
 
-  BluetoothDevice(this.scanResult, {required super.availableButtons, super.isBeta = false})
-    : super(scanResult.name ?? 'Unknown Device') {
-    rssi = scanResult.rssi;
-  }
+  BluetoothDevice(
+    this.scanResult, {
+    required List<ControllerButton> availableButtons,
+    bool allowMultiple = false,
+    bool isBeta = false,
+  }) : super(
+         scanResult.name ?? 'Unknown Device',
+         availableButtons: allowMultiple
+             ? availableButtons
+                 .map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId))
+                 .toList()
+             : availableButtons,
+         isBeta: isBeta,
+       ) {
+       rssi = scanResult.rssi;
+     }
 
   int? batteryLevel;
   String? firmwareVersion;
