@@ -13,7 +13,6 @@ class MyWhoosh extends SupportedApp {
         packageName: "com.mywhoosh.whooshgame",
         compatibleTargets: Target.values,
         supportsZwiftEmulation: false,
-        supportsOpenBikeProtocol: [OpenBikeProtocolSupport.network],
         star: true,
         keymap: Keymap(
           keyPairs: [
