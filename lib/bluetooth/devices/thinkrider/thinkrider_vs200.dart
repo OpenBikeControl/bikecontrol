@@ -9,10 +9,16 @@ import '../bluetooth_device.dart';
 
 class ThinkRiderVs200 extends BluetoothDevice {
   ThinkRiderVs200(super.scanResult)
-    : super(
-        availableButtons: ThinkRiderVs200Buttons.values,
+    : _buttons = ThinkRiderVs200Buttons.forDevice(scanResult.deviceId),
+      super(
+        availableButtons: ThinkRiderVs200Buttons.forDevice(scanResult.deviceId),
         isBeta: true,
       );
+
+  final List<ControllerButton> _buttons;
+
+  ControllerButton get _shiftUpButton => _buttons[0];
+  ControllerButton get _shiftDownButton => _buttons[1];
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -43,11 +49,11 @@ class ThinkRiderVs200 extends BluetoothDevice {
       if (hexValue == ThinkRiderVs200Constants.SHIFT_UP_PATTERN) {
         // Plus button pressed
         actionStreamInternal.add(LogNotification('Shift Up detected: $hexValue'));
-        handleButtonsClickedWithoutLongPressSupport([ThinkRiderVs200Buttons.shiftUp]);
+        handleButtonsClickedWithoutLongPressSupport([_shiftUpButton]);
       } else if (hexValue == ThinkRiderVs200Constants.SHIFT_DOWN_PATTERN) {
         // Minus button pressed
         actionStreamInternal.add(LogNotification('Shift Down detected: $hexValue'));
-        handleButtonsClickedWithoutLongPressSupport([ThinkRiderVs200Buttons.shiftDown]);
+        handleButtonsClickedWithoutLongPressSupport([_shiftDownButton]);
       }
     }
 
@@ -85,5 +91,10 @@ class ThinkRiderVs200Buttons {
   static const List<ControllerButton> values = [
     shiftUp,
     shiftDown,
+  ];
+
+  static List<ControllerButton> forDevice(String deviceId) => [
+    shiftUp.copyWith(sourceDeviceId: deviceId),
+    shiftDown.copyWith(sourceDeviceId: deviceId),
   ];
 }
