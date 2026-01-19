@@ -54,6 +54,7 @@ enum InGameAction {
 }
 
 class ControllerButton {
+  static const int _deviceIdSuffixLength = 4;
   final String name;
   final int? identifier;
   final InGameAction? action;
@@ -93,9 +94,9 @@ class ControllerButton {
       return name;
     }
 
-    final shortenedId = sourceDeviceId!.length <= 4
+    final shortenedId = sourceDeviceId!.length <= _deviceIdSuffixLength
         ? sourceDeviceId!
-        : sourceDeviceId!.substring(sourceDeviceId!.length - 4);
+        : sourceDeviceId!.substring(sourceDeviceId!.length - _deviceIdSuffixLength);
     return '$name (${shortenedId.toUpperCase()})';
   }
 

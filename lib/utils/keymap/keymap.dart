@@ -313,30 +313,32 @@ class KeyPair {
           )
         : Offset.zero;
 
+    ControllerButton? decodeButton(dynamic raw) {
+      String? name;
+      String? deviceId;
+
+      if (raw is String) {
+        name = raw;
+      } else if (raw is Map) {
+        name = raw['name']?.toString();
+        deviceId = raw['deviceId']?.toString();
+      }
+
+      if (name == null) {
+        return null;
+      }
+
+      final baseButton = ControllerButton.values.firstOrNullWhere((element) => element.name == name);
+
+      if (baseButton != null) {
+        return baseButton.copyWith(sourceDeviceId: deviceId);
+      }
+
+      return ControllerButton(name, sourceDeviceId: deviceId);
+    }
+
     final buttons = (decoded['actions'] as List)
-        .map<ControllerButton?>((raw) {
-          String? name;
-          String? deviceId;
-
-          if (raw is String) {
-            name = raw;
-          } else if (raw is Map) {
-            name = raw['name']?.toString();
-            deviceId = raw['deviceId']?.toString();
-          }
-
-          if (name == null) {
-            return null;
-          }
-
-          final baseButton = ControllerButton.values.firstOrNullWhere((element) => element.name == name);
-
-          if (baseButton != null) {
-            return baseButton.copyWith(sourceDeviceId: deviceId);
-          }
-
-          return ControllerButton(name, sourceDeviceId: deviceId);
-        })
+        .map<ControllerButton?>(decodeButton)
         .whereType<ControllerButton>()
         .toList();
     if (buttons.isEmpty) {

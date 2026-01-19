@@ -16,8 +16,8 @@ class CycplusBc2 extends BluetoothDevice {
 
   final List<ControllerButton> _buttons;
 
-  ControllerButton get _shiftUpButton => _buttons.firstWhere((b) => b.name == CycplusBc2Buttons.shiftUp.name);
-  ControllerButton get _shiftDownButton => _buttons.firstWhere((b) => b.name == CycplusBc2Buttons.shiftDown.name);
+  ControllerButton get _shiftUpButton => _buttons[0];
+  ControllerButton get _shiftDownButton => _buttons[1];
 
   @override
   Future<void> handleServices(List<BleService> services) async {
