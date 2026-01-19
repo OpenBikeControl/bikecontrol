@@ -55,6 +55,7 @@ enum InGameAction {
 
 class ControllerButton {
   static const int _deviceIdSuffixLength = 4;
+  static const _unset = Object();
   final String name;
   final int? identifier;
   final InGameAction? action;
@@ -77,15 +78,17 @@ class ControllerButton {
     InGameAction? action,
     Color? color,
     IconData? icon,
-    String? sourceDeviceId,
+    Object? sourceDeviceId = _unset,
   }) {
+    final newSourceDeviceId = sourceDeviceId == _unset ? this.sourceDeviceId : sourceDeviceId as String?;
+
     return ControllerButton(
       name ?? this.name,
       color: color ?? this.color,
       icon: icon ?? this.icon,
       identifier: identifier ?? this.identifier,
       action: action ?? this.action,
-      sourceDeviceId: sourceDeviceId ?? this.sourceDeviceId,
+      sourceDeviceId: newSourceDeviceId,
     );
   }
 

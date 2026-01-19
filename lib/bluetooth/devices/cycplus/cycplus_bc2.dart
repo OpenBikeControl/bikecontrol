@@ -9,15 +9,10 @@ import '../bluetooth_device.dart';
 
 class CycplusBc2 extends BluetoothDevice {
   CycplusBc2(super.scanResult)
-    : _buttons = CycplusBc2Buttons.forDevice(scanResult.deviceId),
-      super(
-        availableButtons: CycplusBc2Buttons.forDevice(scanResult.deviceId),
+    : super(
+        availableButtons: CycplusBc2Buttons.values,
+        allowMultiple: true,
       );
-
-  final List<ControllerButton> _buttons;
-
-  ControllerButton get _shiftUpButton => _buttons[0];
-  ControllerButton get _shiftDownButton => _buttons[1];
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -46,7 +41,7 @@ class CycplusBc2 extends BluetoothDevice {
         // Process index 6 (shift up)
         final currentByte6 = bytes[6];
         if (_shouldTriggerShift(currentByte6, _lastStateIndex6)) {
-          buttonsToPress.add(_shiftUpButton);
+          buttonsToPress.add(availableButtons[0]);
           _lastStateIndex6 = 0x00; // Reset after successful press
         } else {
           _updateState(currentByte6, (val) => _lastStateIndex6 = val);
@@ -55,7 +50,7 @@ class CycplusBc2 extends BluetoothDevice {
         // Process index 7 (shift down)
         final currentByte7 = bytes[7];
         if (_shouldTriggerShift(currentByte7, _lastStateIndex7)) {
-          buttonsToPress.add(_shiftDownButton);
+          buttonsToPress.add(availableButtons[1]);
           _lastStateIndex7 = 0x00; // Reset after successful press
         } else {
           _updateState(currentByte7, (val) => _lastStateIndex7 = val);
@@ -130,10 +125,5 @@ class CycplusBc2Buttons {
   static const List<ControllerButton> values = [
     shiftUp,
     shiftDown,
-  ];
-
-  static List<ControllerButton> forDevice(String deviceId) => [
-    shiftUp.copyWith(sourceDeviceId: deviceId),
-    shiftDown.copyWith(sourceDeviceId: deviceId),
   ];
 }
