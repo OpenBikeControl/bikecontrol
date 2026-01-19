@@ -33,7 +33,7 @@ class ButtonWidget extends StatelessWidget {
                   size: big && button.color != null ? null : 14,
                 )
               : Text(
-                  button.name.splitByUpperCase(),
+                  button.displayName.splitByUpperCase(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: screenshotMode ? null : 'monospace',

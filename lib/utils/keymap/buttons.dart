@@ -59,6 +59,7 @@ class ControllerButton {
   final InGameAction? action;
   final Color? color;
   final IconData? icon;
+  final String? sourceDeviceId;
 
   const ControllerButton(
     this.name, {
@@ -66,7 +67,37 @@ class ControllerButton {
     this.icon,
     this.identifier,
     this.action,
+    this.sourceDeviceId,
   });
+
+  ControllerButton copyWith({
+    String? name,
+    int? identifier,
+    InGameAction? action,
+    Color? color,
+    IconData? icon,
+    String? sourceDeviceId,
+  }) {
+    return ControllerButton(
+      name ?? this.name,
+      color: color ?? this.color,
+      icon: icon ?? this.icon,
+      identifier: identifier ?? this.identifier,
+      action: action ?? this.action,
+      sourceDeviceId: sourceDeviceId ?? this.sourceDeviceId,
+    );
+  }
+
+  String get displayName {
+    if (sourceDeviceId == null) {
+      return name;
+    }
+
+    final shortenedId = sourceDeviceId!.length <= 4
+        ? sourceDeviceId!
+        : sourceDeviceId!.substring(sourceDeviceId!.length - 4);
+    return '$name (${shortenedId.toUpperCase()})';
+  }
 
   @override
   String toString() {
@@ -82,10 +113,11 @@ class ControllerButton {
           identifier == other.identifier &&
           action == other.action &&
           color == other.color &&
-          icon == other.icon;
+          icon == other.icon &&
+          sourceDeviceId == other.sourceDeviceId;
 
   @override
-  int get hashCode => Object.hash(name, action, identifier, color, icon);
+  int get hashCode => Object.hash(name, action, identifier, color, icon, sourceDeviceId);
 
   static List<ControllerButton> get values => [
     ...SterzoButtons.values,

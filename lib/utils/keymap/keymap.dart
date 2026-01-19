@@ -280,7 +280,16 @@ class KeyPair {
     // encode to save in preferences
 
     return jsonEncode({
-      'actions': buttons.map((e) => e.name).toList(),
+      'actions': buttons
+          .map(
+            (e) => e.sourceDeviceId == null
+                ? e.name
+                : {
+                    'name': e.name,
+                    'deviceId': e.sourceDeviceId,
+                  },
+          )
+          .toList(),
       if (logicalKey != null) 'logicalKey': logicalKey?.keyId.toString(),
       if (physicalKey != null) 'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
       if (modifiers.isNotEmpty) 'modifiers': modifiers.map((e) => e.name).toList(),
@@ -304,11 +313,31 @@ class KeyPair {
           )
         : Offset.zero;
 
-    final buttons = decoded['actions']
-        .map<ControllerButton>(
-          (e) => ControllerButton.values.firstOrNullWhere((element) => element.name == e) ?? ControllerButton(e),
-        )
-        .cast<ControllerButton>()
+    final buttons = (decoded['actions'] as List)
+        .map<ControllerButton?>((raw) {
+          String? name;
+          String? deviceId;
+
+          if (raw is String) {
+            name = raw;
+          } else if (raw is Map) {
+            name = raw['name']?.toString();
+            deviceId = raw['deviceId']?.toString();
+          }
+
+          if (name == null) {
+            return null;
+          }
+
+          final baseButton = ControllerButton.values.firstOrNullWhere((element) => element.name == name);
+
+          if (baseButton != null) {
+            return baseButton.copyWith(sourceDeviceId: deviceId);
+          }
+
+          return ControllerButton(name, sourceDeviceId: deviceId);
+        })
+        .whereType<ControllerButton>()
         .toList();
     if (buttons.isEmpty) {
       return null;
