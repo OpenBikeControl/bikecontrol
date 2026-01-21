@@ -43,7 +43,7 @@ abstract class BluetoothDevice extends BaseDevice {
     bool allowMultiple = false,
     bool isBeta = false,
   }) : super(
-         scanResult.name ?? 'Unknown Device',
+         scanResult.name,
          availableButtons: allowMultiple
              ? availableButtons.map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
              : availableButtons,
@@ -84,7 +84,7 @@ abstract class BluetoothDevice extends BaseDevice {
     if (kIsWeb) {
       device = switch (scanResult.name) {
         'Zwift Ride' => ZwiftRide(scanResult),
-        'Zwift Play' => ZwiftPlay(scanResult),
+        'Zwift Play' => ZwiftPlay(scanResult, deviceType: ZwiftDeviceType.playLeft),
         'Zwift Click' => ZwiftClickV2(scanResult),
         'SQUARE' => EliteSquare(scanResult),
         'OpenBike' => OpenBikeControlDevice(scanResult),
@@ -105,7 +105,7 @@ abstract class BluetoothDevice extends BaseDevice {
         null => null,
         //'Zwift Ride' => ZwiftRide(scanResult), special case for Zwift Ride: we must only connect to the left controller
         // https://www.makinolo.com/blog/2024/07/26/zwift-ride-protocol/
-        'Zwift Play' => ZwiftPlay(scanResult),
+        //'Zwift Play' => ZwiftPlay(scanResult),
         //'Zwift Click' => ZwiftClick(scanResult), special case for Zwift Click v2: we must only connect to the left controller
         _ when scanResult.name!.toUpperCase().startsWith('HEADWIND') => WahooKickrHeadwind(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('SQUARE') => EliteSquare(scanResult),
@@ -152,8 +152,8 @@ abstract class BluetoothDevice extends BaseDevice {
         final type = ZwiftDeviceType.fromManufacturerData(data.first);
         device = switch (type) {
           ZwiftDeviceType.click => ZwiftClick(scanResult),
-          ZwiftDeviceType.playRight => ZwiftPlay(scanResult),
-          ZwiftDeviceType.playLeft => ZwiftPlay(scanResult),
+          ZwiftDeviceType.playRight => ZwiftPlay(scanResult, deviceType: type!),
+          ZwiftDeviceType.playLeft => ZwiftPlay(scanResult, deviceType: type!),
           ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
           //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
           ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
