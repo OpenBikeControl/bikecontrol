@@ -35,8 +35,8 @@ class OpenBikeProtocolParser {
     0x13: ControllerButton('Right/Look Right', identifier: 0x13, action: InGameAction.navigateRight),
     0x14: ControllerButton('Select/Confirm', identifier: 0x14, action: InGameAction.select),
     0x15: ControllerButton('Back/Cancel', identifier: 0x15, action: InGameAction.back),
-    0x16: ControllerButton('Menu', identifier: 0x16),
-    0x17: ControllerButton('Home', identifier: 0x17),
+    0x16: ControllerButton('Menu', identifier: 0x16, action: InGameAction.menu),
+    0x17: ControllerButton('Home', identifier: 0x17, action: InGameAction.home),
     0x18: ControllerButton('Steer Left', identifier: 0x18, action: InGameAction.steerLeft),
     0x19: ControllerButton('Steer Right', identifier: 0x19, action: InGameAction.steerRight),
     // Social/Emotes (0x20-0x2F)

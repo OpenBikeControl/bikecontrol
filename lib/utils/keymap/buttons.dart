@@ -37,7 +37,9 @@ enum InGameAction {
 
   // openbikecontrol
   up('Up', icon: RadixIcons.arrowUp),
-  down('Down', icon: RadixIcons.arrowDown);
+  down('Down', icon: RadixIcons.arrowDown),
+  home('Home', icon: RadixIcons.home),
+  menu('Menu', icon: RadixIcons.dropdownMenu);
 
   final String title;
   final bool isLongPress;
