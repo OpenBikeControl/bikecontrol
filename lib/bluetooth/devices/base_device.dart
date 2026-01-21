@@ -17,11 +17,11 @@ import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
 
 abstract class BaseDevice {
-  final String name;
+  final String? _name;
   final bool isBeta;
   final List<ControllerButton> availableButtons;
 
-  BaseDevice(this.name, {required this.availableButtons, this.isBeta = false}) {
+  BaseDevice(this._name, {required this.availableButtons, this.isBeta = false}) {
     if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
       // TODO we should verify where the buttons came from
       final allButtons = core.actionHandler.supportedApp!.keymap.keyPairs.flatMap((e) => e.buttons);
@@ -34,6 +34,8 @@ abstract class BaseDevice {
   Timer? _longPressTimer;
   Set<ControllerButton> _previouslyPressedButtons = <ControllerButton>{};
 
+  String get name => _name ?? runtimeType.toString();
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -43,9 +45,7 @@ abstract class BaseDevice {
   int get hashCode => name.hashCode;
 
   @override
-  String toString() {
-    return name;
-  }
+  String toString() => name;
 
   final StreamController<BaseNotification> actionStreamInternal = StreamController<BaseNotification>.broadcast();
 
