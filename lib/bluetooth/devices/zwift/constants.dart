@@ -59,13 +59,13 @@ class ZwiftButtons {
   // left controller
   static const ControllerButton navigationUp = ControllerButton(
     'navigationUp',
-    action: InGameAction.toggleUi,
+    action: InGameAction.up,
     icon: Icons.keyboard_arrow_up,
     color: Colors.black,
   );
   static const ControllerButton navigationDown = ControllerButton(
     'navigationDown',
-    action: InGameAction.uturn,
+    action: InGameAction.down,
     icon: Icons.keyboard_arrow_down,
     color: Colors.black,
   );
@@ -106,7 +106,7 @@ class ZwiftButtons {
     action: InGameAction.rideOnBomb,
     color: Colors.deepOrangeAccent,
   );
-  static const ControllerButton y = ControllerButton('y', action: null, color: Colors.lightBlue);
+  static const ControllerButton y = ControllerButton('y', action: InGameAction.menu, color: Colors.lightBlue);
   static const ControllerButton onOffRight = ControllerButton('onOffRight', action: InGameAction.toggleUi);
   static const ControllerButton sideButtonRight = ControllerButton('sideButtonRight', action: InGameAction.shiftUp);
   static const ControllerButton paddleRight = ControllerButton('paddleRight', action: InGameAction.shiftUp);

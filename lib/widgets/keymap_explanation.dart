@@ -79,7 +79,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         .whereNot(
           (keyPair) => keyPair.buttons.filter((b) => allAvailableButtons.contains(b)).isEmpty,
         )
-        .sortedBy((k) => k.buttons.first.color != null ? 0 : 1);
+        .sortedBy(
+          (k) => k.buttons.first.color != null
+              ? '0${(k.buttons.first.icon?.codePoint ?? 0 * -1)}'
+              : '1${(k.buttons.first.icon?.codePoint ?? 0 * -1)}',
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
