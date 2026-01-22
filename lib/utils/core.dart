@@ -258,9 +258,7 @@ class CoreLogic {
   Future<bool> isTrainerConnected() async {
     if (screenshotMode) {
       return true;
-    } else if (showLocalControl &&
-        core.settings.getLocalEnabled() &&
-        core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isNotEmpty == true) {
+    } else if (showLocalControl && core.settings.getLocalEnabled()) {
       if (canRunAndroidService) {
         return isAndroidServiceRunning();
       } else {

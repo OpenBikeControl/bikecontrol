@@ -9,6 +9,7 @@
 #include <bluetooth_low_energy_linux/bluetooth_low_energy_linux_plugin.h>
 #include <file_selector_linux/file_selector_plugin.h>
 #include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
+#include <flutter_volume_controller/flutter_volume_controller_plugin.h>
 #include <gamepads_linux/gamepads_linux_plugin.h>
 #include <gtk/gtk_plugin.h>
 #include <media_key_detector_linux/media_key_detector_plugin.h>
@@ -27,6 +28,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) flutter_secure_storage_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterSecureStorageLinuxPlugin");
   flutter_secure_storage_linux_plugin_register_with_registrar(flutter_secure_storage_linux_registrar);
+  g_autoptr(FlPluginRegistrar) flutter_volume_controller_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterVolumeControllerPlugin");
+  flutter_volume_controller_plugin_register_with_registrar(flutter_volume_controller_registrar);
   g_autoptr(FlPluginRegistrar) gamepads_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "GamepadsLinuxPlugin");
   gamepads_linux_plugin_register_with_registrar(gamepads_linux_registrar);

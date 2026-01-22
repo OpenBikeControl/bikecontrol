@@ -5,6 +5,7 @@
   - control your phone with your controller
   - control UI within the trainer app (if supported)
 - BikeControl now supports individual mapping when you use more than one Cycplus BC2 and ThinkRider VS200 controller
+- Windows & macOS: allow configuration of volume keys on Bluetooth HID devices
 
 ### 4.4.0 (16-01-2026)
 

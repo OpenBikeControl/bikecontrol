@@ -21,6 +21,7 @@ dependencies:
 
   path_provider: ^2.1.5
   smtc_windows: ^1.1.0
+  flutter_volume_controller: ^1.3.4
   intl: any
   version: ^3.0.0
   bluetooth_low_energy: ^6.1.0
