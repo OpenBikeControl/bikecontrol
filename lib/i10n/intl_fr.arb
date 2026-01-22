@@ -46,7 +46,7 @@
   "chooseBikeControlInConnectionScreen": "Sélectionnez BikeControl dans l'écran de connexion.",
   "clickAButtonOnYourController": "Cliquez sur un bouton de votre manette pour modifier son action ou appuyez sur l'icône de modification.",
   "clickV2EventInfo": "Votre Click V2 n'envoie peut-être plus les événements liés aux boutons. Vérifiez en appuyant sur quelques boutons et voyez s'ils apparaissent dans BikeControl.",
-  "clickV2Instructions": "Pour que ton Zwift Click V2 marche super bien, tu dois le connecter à l'appli Zwift une fois par jour.\nSi tu ne le fais pas, le Click V2 s'arrêtera de fonctionner au bout d'une minute.\n\n1. Ouvre l'appli Zwift.\n2. Connecte-toi (pas besoin d'abonnement) et ouvre l'écran de connexion des appareils.\n3. Connecte ton home trainer, puis connecte le Zwift Click V2.\n4. Ferme l'appli Zwift et reconnecte-toi dans BikeControl.",
+  "clickV2Instructions": "Pour que ton Zwift Click V2 marche super bien, tu dois le connecter à l'appli Zwift une fois par jour.\nSi tu ne le fais pas, le Click V2 s'arrêtera de fonctionner au bout d'une minute.\n\n1. Ouvre l'appli Zwift (pas Companion!)\n2. Connecte-toi (pas besoin d'abonnement) et ouvre l'écran de connexion des appareils.\n3. Connecte ton home trainer, puis connecte le Zwift Click V2.\n4. Ferme l'appli Zwift et reconnecte-toi dans BikeControl.",
   "close": "Fermer",
   "commandsRemainingToday": "{commandsRemainingToday}/{dailyCommandLimit} commandes restantes aujourd'hui",
   "configuration": "Configuration",

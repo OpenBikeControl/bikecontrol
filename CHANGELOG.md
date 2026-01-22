@@ -1,4 +1,4 @@
-### 4.5.0 (unreleased)
+### 4.5.0 (22-01-2026)
 
 **Features**:
 - Android: simulate additional actions for local connection method (Left, Down, Right, Up, Select, Back, Home, Recent Apps)

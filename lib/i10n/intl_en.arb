@@ -46,7 +46,7 @@
   "chooseBikeControlInConnectionScreen": "Choose BikeControl in the connection screen.",
   "clickAButtonOnYourController": "Click a button on your controller to edit its action or tap the edit icon.",
   "clickV2EventInfo": "Your Click V2 may no longer send button events. Please check by tapping a few buttons and see if they are visible in BikeControl.",
-  "clickV2Instructions": "To make your Zwift Click V2 work best, you should connect it in the Zwift app before each training session.\nIf you don't do that, the Click V2 will stop working after a minute.\n\n1. Open Zwift app\n2. Log in (subscription not required) and open the device connection screen\n3. Connect your Trainer, then connect the Zwift Click V2\n4. Close the Zwift app again and connect again in BikeControl",
+  "clickV2Instructions": "To make your Zwift Click V2 work best, you should connect it in the Zwift app before each training session.\nIf you don't do that, the Click V2 will stop working after a minute.\n\n1. Open Zwift app (not the Companion!)\n2. Log in (subscription not required) and open the device connection screen\n3. Connect your Trainer, then connect the Zwift Click V2\n4. Close the Zwift app again and connect again in BikeControl",
   "close": "Close",
   "commandsRemainingToday": "{commandsRemainingToday}/{dailyCommandLimit} commands remaining today",
   "configuration": "Configuration",

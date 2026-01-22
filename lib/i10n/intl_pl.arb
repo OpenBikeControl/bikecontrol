@@ -46,7 +46,7 @@
   "chooseBikeControlInConnectionScreen": "Wybierz BikeControl na ekranie połączenia.",
   "clickAButtonOnYourController": "Kliknij przycisk na kontrolerze, aby edytować jego akcję lub naciśnij ikonę edycji.",
   "clickV2EventInfo": "Twóje Click V2 może już nie wysyłać zdarzeń przycisków. Sprawdź, naciskając kilka przycisków, czy są one widoczne w BikeControl.",
-  "clickV2Instructions": "Aby Twoje Zwift Click V2 działały optymalnie, należy połączyć je z aplikacją Zwift przed każdym treningiem.\nJeśli tego nie zrobisz, Click V2 przestanie działać po minucie.\n\n1. Otwórz aplikację Zwift\n2. Zaloguj się (nie wymaga subskrypcji) i otwórz ekran połączeń z urządzeniami\n3. Połącz się z trenażerem, a następnie z Zwift Click V2\n4. Zamknij aplikację Zwift i ponownie połącz się z BikeControl",
+  "clickV2Instructions": "Aby Twoje Zwift Click V2 działały optymalnie, należy połączyć je z aplikacją Zwift przed każdym treningiem.\nJeśli tego nie zrobisz, Click V2 przestanie działać po minucie.\n\n1. Otwórz aplikację Zwift (nie Companion!)\n2. Zaloguj się (nie wymaga subskrypcji) i otwórz ekran połączeń z urządzeniami\n3. Połącz się z trenażerem, a następnie z Zwift Click V2\n4. Zamknij aplikację Zwift i ponownie połącz się z BikeControl",
   "close": "Zamknij",
   "commandsRemainingToday": "{commandsRemainingToday}/{dailyCommandLimit} dzisiejsze pozostałe polecenia",
   "configuration": "Konfiguracja",
