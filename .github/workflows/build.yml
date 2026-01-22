@@ -120,7 +120,7 @@ jobs:
       - name: Flutter Release macOS
         if: inputs.build_mac
         run:
-          flutter build macos --release --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
+          flutter build macos --release --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}
 
       - name: Decode Keystore
         if: inputs.build_android
