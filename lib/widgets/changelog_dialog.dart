@@ -22,13 +22,20 @@ class ChangelogDialog extends StatelessWidget {
         children: [
           Text(context.i18n.whatsNew),
           SizedBox(height: 4),
-          Text(context.i18n.version(entry.blocks.first.text)),
+          Text(context.i18n.version(entry.blocks.first.text)).small,
         ],
       ),
       content: Container(
         constraints: BoxConstraints(minWidth: 460, maxHeight: 500),
         child: Scrollbar(
-          child: SingleChildScrollView(child: MarkdownWidget(markdown: latestVersion)),
+          child: SingleChildScrollView(
+            child: MarkdownWidget(
+              markdown: latestVersion,
+              theme: MarkdownThemeData(
+                textStyle: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+          ),
         ),
       ),
       actions: [
