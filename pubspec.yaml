@@ -85,7 +85,6 @@ dev_dependencies:
   msix: ^3.16.12
 
 dependency_overrides:
-  objective_c: 8.0.0
   gamepads_windows:
     git:
       url: https://github.com/lea108/gamepads.git

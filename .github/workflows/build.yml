@@ -41,7 +41,7 @@ env:
 jobs:
   build:
     name: Build & Release
-    runs-on: macos-latest
+    runs-on: macos-26
 
     permissions:
       id-token: write
@@ -52,6 +52,10 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Install certificates
         if: inputs.build_mac || inputs.build_ios
