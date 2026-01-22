@@ -28,11 +28,6 @@ on:
         required: false
         default: true
         type: boolean
-      build_web:
-        description: 'Build for Web'
-        required: false
-        default: false
-        type: boolean
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
@@ -97,7 +92,8 @@ jobs:
           cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: 🐦 Setup Shorebird
-        if: inputs.build_mac || inputs.build_android || inputs.build_ios || inputs.build_web
+        #if: inputs.build_mac || inputs.build_android || inputs.build_ios
+        if: inputs.build_android || inputs.build_ios
         uses: shorebirdtech/setup-shorebird@v1
         with:
           cache: true
@@ -114,12 +110,17 @@ jobs:
           flutter pub global run intl_utils:generate;
 
       - name: 🚀 Shorebird Release macOS
-        if: inputs.build_mac
+        if: inputs.build_mac && false
         uses: shorebirdtech/shorebird-release@v1
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
           args: "-- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
+
+      - name: Flutter Release macOS
+        if: inputs.build_mac
+        run:
+          flutter build macos --release --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
 
       - name: Decode Keystore
         if: inputs.build_android
