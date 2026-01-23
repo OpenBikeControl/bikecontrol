@@ -32,7 +32,7 @@ on:
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
   FLUTTER_VERSION_MAC: 3.41.0-0.0.pre
-  FLUTTER_VERSION: 3.38.5
+  FLUTTER_VERSION: 3.38.7
 
 jobs:
   build:
