@@ -8,7 +8,7 @@ import 'package:flutter/material.dart' show PopupMenuButton, PopupMenuItem;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class HidDevice extends BaseDevice {
-  HidDevice(super.name) : super(availableButtons: []);
+  HidDevice(super.name) : super(availableButtons: [], uniqueId: name!);
 
   @override
   Future<void> connect() {
@@ -21,7 +21,7 @@ class HidDevice extends BaseDevice {
       children: [
         Row(
           children: [
-            Expanded(child: Text(toString())),
+            Expanded(child: Text(toString()).bold),
             PopupMenuButton(
               itemBuilder: (c) => [
                 PopupMenuItem(

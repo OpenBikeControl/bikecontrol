@@ -1,10 +1,10 @@
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:flutter/material.dart';
+import 'package:prop/prop.dart';
 
 class ZwiftTile extends StatefulWidget {
   final VoidCallback onUpdate;

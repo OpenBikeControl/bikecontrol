@@ -1,16 +1,19 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/markdown.dart';
+import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:prop/emulators/ftms_emulator.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 class ZwiftClickV2 extends ZwiftRide {
+  late final FtmsEmulator emulator = FtmsEmulator();
+
   ZwiftClickV2(super.scanResult)
     : super(
         isBeta: true,
@@ -26,7 +29,9 @@ class ZwiftClickV2 extends ZwiftRide {
           ZwiftButtons.shiftUpLeft,
           ZwiftButtons.shiftUpRight,
         ],
-      );
+      ) {
+    emulator.setScanResult(scanResult);
+  }
 
   bool _noLongerSendsEvents = false;
 
@@ -42,6 +47,14 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   String toString() {
     return "$name V2";
+  }
+
+  bool get isUnlocked {
+    final lastUnlock = core.settings.getZwiftClickV2LastUnlock(this);
+    if (lastUnlock == null) {
+      return false;
+    }
+    return lastUnlock > DateTime.now().subtract(const Duration(days: 1));
   }
 
   @override
@@ -60,7 +73,21 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   @override
+  Future<void> handleServices(List<BleService> services) async {
+    emulator.handleServices(services);
+    await super.handleServices(services);
+  }
+
+  @override
+  Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
+    if (!emulator.processCharacteristic(characteristic, bytes)) {
+      await super.processCharacteristic(characteristic, bytes);
+    }
+  }
+
+  @override
   Widget showInformation(BuildContext context) {
+    final lastUnlockDate = core.settings.getZwiftClickV2LastUnlock(this);
     return StatefulBuilder(
       builder: (context, setState) {
         return Column(
@@ -71,57 +98,39 @@ class ZwiftClickV2 extends ZwiftRide {
             super.showInformation(context),
 
             if (isConnected)
-              if (core.settings.getShowZwiftClickV2ReconnectWarning())
-                Stack(
+              if (isUnlocked && lastUnlockDate != null)
+                Warning(
+                  important: false,
                   children: [
-                    Warning(
+                    Row(
+                      spacing: 8,
                       children: [
-                        Text(
-                          'Important Setup Information',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.destructive,
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(24),
                           ),
-                        ).small,
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(Icons.lock_open_rounded, color: Colors.white),
+                        ),
                         Text(
-                          AppLocalizations.of(context).clickV2Instructions,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.destructive,
-                          ),
+                          'Unlocked until around ${DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1)))}',
                         ).xSmall,
-                        if (kDebugMode)
-                          GhostButton(
-                            onPressed: () {
-                              sendCommand(Opcode.RESET, null);
-                            },
-                            child: Text('Reset now'),
-                          ),
+                        Tooltip(
+                          tooltip: (c) => Text('Unlock again'),
+                          child: IconButton.ghost(
+                            icon: Icon(Icons.lock_reset_rounded),
 
-                        Button.secondary(
-                          onPressed: () {
-                            openDrawer(
-                              context: context,
-                              position: OverlayPosition.bottom,
-                              builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                            );
-                          },
-                          leading: const Icon(Icons.help_outline_outlined),
-                          child: Text(context.i18n.instructions),
+                            onPressed: () {
+                              openDrawer(
+                                context: context,
+                                position: OverlayPosition.bottom,
+                                builder: (_) => UnlockPage(device: this),
+                              );
+                            },
+                          ),
                         ),
                       ],
-                    ),
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton.link(
-                        icon: Icon(
-                          Icons.close,
-                          color: Theme.of(context).colorScheme.destructive,
-                        ),
-                        onPressed: () {
-                          core.settings.setShowZwiftClickV2ReconnectWarning(false);
-                          setState(() {});
-                        },
-                      ),
                     ),
                   ],
                 )
@@ -129,21 +138,53 @@ class ZwiftClickV2 extends ZwiftRide {
                 Warning(
                   important: false,
                   children: [
-                    Text(
-                      AppLocalizations.of(context).clickV2EventInfo,
-                    ).xSmall,
-                    LinkButton(
-                      child: Text(context.i18n.troubleshootingGuide),
-                      onPressed: () {
-                        openDrawer(
-                          context: context,
-                          position: OverlayPosition.bottom,
-                          builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                        );
-                      },
+                    Row(
+                      spacing: 8,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(Icons.lock_rounded, color: Colors.white),
+                        ),
+
+                        Text('Device is currently locked').xSmall,
+                        Button.primary(
+                          onPressed: () {
+                            openDrawer(
+                              context: context,
+                              position: OverlayPosition.bottom,
+                              builder: (_) => UnlockPage(device: this),
+                            );
+                          },
+                          leading: const Icon(Icons.lock_open_rounded),
+                          child: Text('Unlock now'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+            /*else
+              Warning(
+                important: false,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).clickV2EventInfo,
+                  ).xSmall,
+                  LinkButton(
+                    child: Text(context.i18n.troubleshootingGuide),
+                    onPressed: () {
+                      openDrawer(
+                        context: context,
+                        position: OverlayPosition.bottom,
+                        builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                      );
+                    },
+                  ),
+                ],
+              ),*/
           ],
         );
       },

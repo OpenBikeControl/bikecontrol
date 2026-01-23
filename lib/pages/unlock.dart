@@ -1,0 +1,168 @@
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/markdown.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:prop/prop.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import '../widgets/ui/small_progress_indicator.dart';
+
+class UnlockPage extends StatefulWidget {
+  final ZwiftClickV2 device;
+  const UnlockPage({super.key, required this.device});
+
+  @override
+  State<UnlockPage> createState() => _UnlockPageState();
+}
+
+class _UnlockPageState extends State<UnlockPage> {
+  late final bool _wasMdnsEmulatorActive;
+  bool _showManualSteps = false;
+
+  void _isConnectedUpdate() {
+    setState(() {});
+    if (widget.device.emulator.isUnlocked.value) {
+      final alreadyUnlocked = widget.device.emulator.alreadyUnlocked.value;
+
+      final title = alreadyUnlocked
+          ? '${widget.device.toString()} is already unlocked'
+          : '${widget.device.toString()} is now unlocked';
+
+      final subtitle = 'You can now close Zwift and return to BikeControl.';
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_INFO, title),
+      );
+
+      core.flutterLocalNotificationsPlugin.show(
+        1339,
+        title,
+        subtitle,
+        NotificationDetails(
+          android: AndroidNotificationDetails('Unlocked', 'Device unlocked notification'),
+          iOS: DarwinNotificationDetails(presentAlert: true),
+        ),
+      );
+      closeDrawer(context);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _wasMdnsEmulatorActive = core.zwiftMdnsEmulator.isStarted.value;
+
+    if (_wasMdnsEmulatorActive) {
+      core.zwiftMdnsEmulator.stop();
+      core.settings.setZwiftMdnsEmulatorEnabled(false);
+    }
+
+    widget.device.emulator.alreadyUnlocked.value = false;
+    widget.device.emulator.isConnected.addListener(_isConnectedUpdate);
+    widget.device.emulator.isUnlocked.addListener(_isConnectedUpdate);
+    widget.device.emulator.startServer().then((_) {}).catchError((e, s) {
+      recordError(e, s, context: 'Emulator');
+      core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.device.emulator.isConnected.removeListener(_isConnectedUpdate);
+    widget.device.emulator.isUnlocked.removeListener(_isConnectedUpdate);
+    widget.device.emulator.stop();
+
+    if (_wasMdnsEmulatorActive) {
+      core.zwiftMdnsEmulator.startServer();
+      core.settings.setZwiftMdnsEmulatorEnabled(true);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(maxWidth: 400),
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_showManualSteps)
+            Warning(
+              children: [
+                Text(
+                  'Important Setup Information',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.destructive,
+                  ),
+                ).small,
+                Text(
+                  AppLocalizations.of(context).clickV2Instructions,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.destructive,
+                  ),
+                ).xSmall,
+                if (kDebugMode)
+                  GhostButton(
+                    onPressed: () {
+                      widget.device.sendCommand(Opcode.RESET, null);
+                    },
+                    child: Text('Reset now'),
+                  ),
+
+                Button.secondary(
+                  onPressed: () {
+                    openDrawer(
+                      context: context,
+                      position: OverlayPosition.bottom,
+                      builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                    );
+                  },
+                  leading: const Icon(Icons.help_outline_outlined),
+                  child: Text(context.i18n.instructions),
+                ),
+              ],
+            )
+          else if (!widget.device.emulator.isConnected.value) ...[
+            Text('Open Zwift (not the Companion) on this or another device').li,
+            Text('Connect to "BikeControl" as Power Source. It may take a few seconds to appear.').li,
+            SizedBox(height: 32),
+            Text('BikeControl and Zwift need to be on the same network.').small,
+          ] else if (!widget.device.emulator.isUnlocked.value)
+            Text('Waiting for Zwift to unlock your device...')
+          else
+            Text('Zwift Click is unlocked! You can now close this page.'),
+          SizedBox(height: 32),
+          if (!_showManualSteps) ...[
+            SmallProgressIndicator(),
+            SizedBox(height: 20),
+          ],
+          if (!widget.device.emulator.isConnected.value && !_showManualSteps) ...[
+            SizedBox(height: 32),
+            Center(child: Text('Not working?').small),
+            SizedBox(height: 6),
+            Center(
+              child: Button.secondary(
+                onPressed: () {
+                  setState(() {
+                    _showManualSteps = !_showManualSteps;
+                  });
+                },
+                child: Text('Unlock manually'),
+              ),
+            ),
+          ],
+          SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}

@@ -42,12 +42,15 @@ abstract class BluetoothDevice extends BaseDevice {
     required List<ControllerButton> availableButtons,
     bool allowMultiple = false,
     bool isBeta = false,
+    String? buttonPrefix,
   }) : super(
          scanResult.name,
+         uniqueId: scanResult.deviceId,
          availableButtons: allowMultiple
              ? availableButtons.map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
              : availableButtons,
          isBeta: isBeta,
+         buttonPrefix: buttonPrefix,
        ) {
     rssi = scanResult.rssi;
   }
