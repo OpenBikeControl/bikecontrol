@@ -31,7 +31,8 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.41.0-0.0.pre
+  FLUTTER_VERSION_MAC: 3.41.0-0.0.pre
+  FLUTTER_VERSION: 3.38.0
 
 jobs:
   build:
@@ -101,11 +102,11 @@ jobs:
         with:
           cache: true
 
-      - name: Set Up Flutter
+      - name: Set Up Flutter maCOS
         uses: subosito/flutter-action@v2
         with:
           channel: 'beta'
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ env.FLUTTER_VERSION_MAC }}
 
       - name: Generate translation files
         run: |
@@ -124,6 +125,12 @@ jobs:
         if: inputs.build_mac
         run:
           flutter build macos --release --obfuscate --split-debug-info=symbols --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}
+
+      - name: Set Up Flutter Rest
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Decode Keystore
         if: inputs.build_android
