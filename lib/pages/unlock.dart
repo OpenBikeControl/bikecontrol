@@ -5,6 +5,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -24,6 +25,8 @@ class UnlockPage extends StatefulWidget {
 class _UnlockPageState extends State<UnlockPage> {
   late final bool _wasMdnsEmulatorActive;
   bool _showManualSteps = false;
+
+  late final bool _isInTrialPhase;
 
   void _isConnectedUpdate() {
     setState(() {});
@@ -55,32 +58,37 @@ class _UnlockPageState extends State<UnlockPage> {
   @override
   void initState() {
     super.initState();
+    _isInTrialPhase = !IAPManager.instance.isPurchased.value && IAPManager.instance.isTrialExpired;
 
     _wasMdnsEmulatorActive = core.zwiftMdnsEmulator.isStarted.value;
 
-    if (_wasMdnsEmulatorActive) {
-      core.zwiftMdnsEmulator.stop();
-      core.settings.setZwiftMdnsEmulatorEnabled(false);
-    }
+    if (!_isInTrialPhase) {
+      if (_wasMdnsEmulatorActive) {
+        core.zwiftMdnsEmulator.stop();
+        core.settings.setZwiftMdnsEmulatorEnabled(false);
+      }
 
-    widget.device.emulator.alreadyUnlocked.value = false;
-    widget.device.emulator.isConnected.addListener(_isConnectedUpdate);
-    widget.device.emulator.isUnlocked.addListener(_isConnectedUpdate);
-    widget.device.emulator.startServer().then((_) {}).catchError((e, s) {
-      recordError(e, s, context: 'Emulator');
-      core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
-    });
+      widget.device.emulator.alreadyUnlocked.value = false;
+      widget.device.emulator.isConnected.addListener(_isConnectedUpdate);
+      widget.device.emulator.isUnlocked.addListener(_isConnectedUpdate);
+      widget.device.emulator.startServer().then((_) {}).catchError((e, s) {
+        recordError(e, s, context: 'Emulator');
+        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+      });
+    }
   }
 
   @override
   void dispose() {
-    widget.device.emulator.isConnected.removeListener(_isConnectedUpdate);
-    widget.device.emulator.isUnlocked.removeListener(_isConnectedUpdate);
-    widget.device.emulator.stop();
+    if (!_isInTrialPhase) {
+      widget.device.emulator.isConnected.removeListener(_isConnectedUpdate);
+      widget.device.emulator.isUnlocked.removeListener(_isConnectedUpdate);
+      widget.device.emulator.stop();
 
-    if (_wasMdnsEmulatorActive) {
-      core.zwiftMdnsEmulator.startServer();
-      core.settings.setZwiftMdnsEmulatorEnabled(true);
+      if (_wasMdnsEmulatorActive) {
+        core.zwiftMdnsEmulator.startServer();
+        core.settings.setZwiftMdnsEmulatorEnabled(true);
+      }
     }
     super.dispose();
   }
@@ -94,7 +102,11 @@ class _UnlockPageState extends State<UnlockPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_showManualSteps)
+          if (_isInTrialPhase && !_showManualSteps)
+            Text(
+              'Your trial phase has expired. Please purchase the full version to unlock the comfortable unlocking feature :)',
+            )
+          else if (_showManualSteps)
             Warning(
               children: [
                 Text(
@@ -133,21 +145,23 @@ class _UnlockPageState extends State<UnlockPage> {
             )
           else if (!widget.device.emulator.isConnected.value) ...[
             Text('Open Zwift (not the Companion) on this or another device').li,
-            Text('Connect to "BikeControl" as Power Source. It may take a few seconds to appear.').li,
+            Text('Connect to "BikeControl" as Power Source.').li,
             SizedBox(height: 32),
-            Text('BikeControl and Zwift need to be on the same network.').small,
+            Text('BikeControl and Zwift need to be on the same network. It may take a few seconds to appear.').small,
           ] else if (!widget.device.emulator.isUnlocked.value)
             Text('Waiting for Zwift to unlock your device...')
           else
             Text('Zwift Click is unlocked! You can now close this page.'),
           SizedBox(height: 32),
-          if (!_showManualSteps) ...[
+          if (!_showManualSteps && !_isInTrialPhase) ...[
             SmallProgressIndicator(),
             SizedBox(height: 20),
           ],
           if (!widget.device.emulator.isUnlocked.value && !_showManualSteps) ...[
-            SizedBox(height: 32),
-            Center(child: Text('Not working?').small),
+            if (!_isInTrialPhase) ...[
+              SizedBox(height: 32),
+              Center(child: Text('Not working?').small),
+            ],
             SizedBox(height: 6),
             Center(
               child: Button.secondary(
