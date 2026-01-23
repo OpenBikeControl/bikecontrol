@@ -145,7 +145,7 @@ class _UnlockPageState extends State<UnlockPage> {
             SmallProgressIndicator(),
             SizedBox(height: 20),
           ],
-          if (!widget.device.emulator.isConnected.value && !_showManualSteps) ...[
+          if (!widget.device.emulator.isUnlocked.value && !_showManualSteps) ...[
             SizedBox(height: 32),
             Center(child: Text('Not working?').small),
             SizedBox(height: 6),
