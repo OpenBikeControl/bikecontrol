@@ -2,220 +2,194 @@
 
 This document contains potential feature ideas and enhancements for BikeControl.
 
+> **Note**: BikeControl is a controller bridge app focused on connecting physical controllers to trainer apps. Ideas should align with this core mission of input mapping and control simulation.
+
 ## 🎮 Controller & Device Support
 
 ### New Device Support
 - **Garmin Edge Integration**: Support for Garmin Edge cycling computers to control trainer apps via ANT+ or Bluetooth
-- **Apple Watch Control**: Add Apple Watch companion app for gesture-based controls and quick actions during rides
-- **Smart Bike Accessory Support**: Integration with smart bike lights (auto-dim during intense intervals) and smart bells
-- **Cadence/Power Meter Integration**: Use cadence or power thresholds to trigger automatic actions (e.g., shift gears at certain cadence ranges)
-- **Heart Rate Based Actions**: Trigger actions based on heart rate zones (e.g., auto-adjust fan speed, workout intensity)
+- **Apple Watch Control**: Add Apple Watch companion app for quick button actions during rides
+- **Additional ANT+ Devices**: Support for ANT+ LEV (e-bike) controllers and other ANT+ button devices
+- **Logitech Gaming Controllers**: Enhanced support for Logitech racing wheels and button boxes
+- **Stream Deck Integration**: Support for Elgato Stream Deck buttons for desktop control
+- **MIDI Controllers**: Use MIDI button pads and controllers as input devices
 
 ### Enhanced Controller Features
-- **Custom Vibration Patterns**: Create custom haptic feedback patterns for different events (new message, segment start, PR alert)
-- **Multi-Controller Profiles**: Support profiles for switching between different controller configurations quickly
 - **Controller Battery Monitoring**: Display battery levels for all connected Bluetooth devices with low battery warnings
-- **Gesture Recognition**: Use accelerometer data from phone/controllers for gesture-based controls (shake to skip, tilt to steer)
+- **Connection Profiles**: Quick-switch between different device configurations (e.g., "Zwift Click only" vs "Di2 + Sterzo")
+- **Button Remapping Templates**: Pre-configured button layouts for different hand positions or use cases
+- **Hold/Long-Press Actions**: Configure different actions for long-press vs short-press on the same button
+- **Multi-Button Combos**: Support simultaneous button presses (e.g., left + right = uturn)
 
-## 🎯 Training & Performance
+## 🎯 Trainer App Integration
 
-### Workout Enhancements
-- **Auto-Lap Trigger**: Automatically trigger lap markers based on distance, time, or heart rate zones
-- **Interval Timer Display**: On-screen overlay showing interval countdown with audio/haptic alerts
-- **ERG Mode Override**: Quick toggle to override ERG mode resistance when needed
-- **Custom Workout Creator**: Build and store custom workout profiles that can be triggered via controller
-- **Rest Period Actions**: Automatically pause music or dim screen during recovery intervals
+### Enhanced Control Actions
+- **Quick Action Sequences**: Record and replay sequences of button presses (e.g., "navigate to workout menu and start")
+- **Conditional Button Mapping**: Change button behavior based on which app is focused
+- **Timed Actions**: Schedule button presses at specific intervals (e.g., auto-steer corrections every 10 seconds)
+- **Rapid Fire Mode**: Repeat a button action multiple times with configurable delay
+- **Mouse Gesture Support**: Record and replay mouse gestures for apps that don't support keyboard shortcuts
 
-### Performance Tracking
-- **Ride Statistics Overlay**: Display real-time stats (power, cadence, HR) as overlay on trainer app
-- **Personal Records Notification**: Alert when approaching or breaking personal records during rides
-- **Comparison Mode**: Compare current performance to previous rides in real-time
-- **Post-Ride Summary**: Automatic generation of ride summaries with key metrics and sharable images
-
-## 🌐 Social & Multiplayer
-
-### Social Features
-- **Quick Chat Shortcuts**: Map controller buttons to predefined chat messages in trainer apps
-- **Ride Together Sync**: Synchronize settings with friends for group rides (e.g., same resistance adjustments)
-- **Voice Commands**: Use voice to trigger actions hands-free during intense efforts
-- **Social Media Integration**: Quick share buttons to post ride achievements to social platforms
-- **Ghost Rider**: Race against your previous ride data as a virtual opponent
-
-### Multiplayer Enhancements
-- **Team Radio**: Built-in voice chat for group rides without leaving the trainer app
-- **Formation Control**: Automated draft control to maintain group riding positions
-- **Challenge Mode**: Issue challenges to other BikeControl users (e.g., sprint challenges)
+### App-Specific Enhancements
+- **TrainerRoad Integration**: Add native support for TrainerRoad controls
+- **Bkool Support**: Add button mappings for Bkool simulator
+- **FulGaz Integration**: Native support for FulGaz controls
+- **IndieVelo Support**: Add mappings for IndieVelo actions
+- **Systm (formerly Sufferfest)**: Add control mappings for Wahoo Systm app
 
 ## 📱 User Experience
 
 ### Interface Improvements
-- **Dark Mode Scheduling**: Auto-switch between light/dark themes based on time of day
-- **Customizable Dashboards**: Drag-and-drop interface to customize control layouts
-- **Widget Support**: Home screen widgets showing connection status and quick controls
+- **Quick Setup Wizard**: Streamlined setup for common device + app combinations
+- **Connection Status Dashboard**: Visual indicators for all connected devices with signal strength
+- **Widget Support**: Home screen widgets showing connection status and quick reconnect buttons
 - **Landscape/Portrait Optimization**: Better layouts for both orientations on tablets
 - **Color-Blind Friendly Mode**: Alternative color schemes for accessibility
+- **Button Test Mode**: Test button presses without connecting to trainer app
 
-### Smart Notifications
-- **Smart Do Not Disturb**: Auto-enable DND during rides but allow important notifications
-- **Ride Reminders**: Scheduled reminders for upcoming group rides or workouts
-- **Maintenance Alerts**: Remind users to update firmware or check device batteries
-- **Weather Integration**: Show weather conditions and suggest indoor/outdoor training
+### Configuration Management
+- **Cloud Backup**: Backup and restore button configurations across devices
+- **QR Code Sharing**: Share configurations via QR codes for quick setup
+- **Configuration Versioning**: Track and revert to previous configuration versions
+- **Search in Settings**: Quick search functionality for finding specific settings
+- **Favorites/Bookmarks**: Mark frequently used settings for quick access
 
 ## 🔧 Advanced Features
 
 ### Automation & Integration
-- **IFTTT/Zapier Integration**: Connect BikeControl events to other services and smart home devices
-- **Smart Home Control**: 
-  - Auto-dim smart lights during rides
-  - Control smart fans based on power output
-  - Lock/unlock smart door locks for home gym access
-- **Calendar Integration**: Sync with training calendars (TrainingPeaks, Today's Plan) for workout reminders
-- **Spotify/Apple Music Integration**: Control playlists and automatically adjust music tempo to cadence
-- **Strava Auto-Sync**: Automatically upload ride data to Strava with custom tags
+- **AutoHotkey Integration** (Windows): Export button mappings as AutoHotkey scripts for advanced customization
+- **Keyboard Maestro Support** (macOS): Create Keyboard Maestro macros triggered by BikeControl buttons
+- **Accessibility Improvements**: Better integration with platform accessibility APIs for more reliable control
+- **Multi-Window Control**: Send inputs to specific windows/apps when multiple are open
+- **Focus Management**: Auto-focus the trainer app window when a button is pressed
 
 ### Customization
-- **Scripting Engine**: Allow advanced users to create custom scripts for complex automation
+- **Scripting Engine**: Simple scripting language for complex button sequences (e.g., "press A, wait 500ms, press B")
 - **Macro Recording**: Record sequences of actions and replay with a single button press
-- **Conditional Actions**: Set up "if-then" rules (e.g., if power > 300W for 30s, then increase fan speed)
-- **Multi-Profile Support**: Different profiles for different apps, bikes, or training types
-- **Export/Import Configurations**: Share custom configurations with the community
+- **Conditional Actions**: Configure actions based on conditions (e.g., "if in Zwift menu, do X, else do Y")
+- **Variable Delays**: Configurable delays between repeated button presses
+- **Export/Import Configurations**: Share custom configurations with the community as JSON files
+- **Regex-based App Matching**: Use window title patterns to auto-switch configurations
 
-## 🎥 Entertainment & Motivation
+## 🎮 Input Simulation Enhancements
 
-### Media Features
-- **Picture-in-Picture Support**: Show video content (YouTube, Netflix) in overlay mode during rides
-- **Podcast/Audiobook Control**: Enhanced controls specifically designed for audio content
-- **Background Noise Generator**: Add ambient sounds (rain, forest, etc.) to enhance indoor riding
-- **Ride-Along Videos**: Play synchronized videos matching your route or workout
+### Keyboard & Mouse Control
+- **Unicode Character Support**: Send special characters and symbols to trainer apps
+- **Mouse Wheel Simulation**: Support mouse wheel actions for apps that use scroll controls
+- **Multi-Key Combinations**: Support complex key combinations (Ctrl+Shift+Alt+Key)
+- **Dead Key Support**: Support for international keyboard layouts with dead keys
+- **Clipboard Integration**: Copy/paste actions triggered by controller buttons
+- **Drag and Drop**: Simulate drag-and-drop actions with button sequences
 
-### Motivation Tools
-- **Achievement System**: Unlock badges and achievements for milestones
-- **Virtual Coach**: AI-powered coaching tips based on performance data
-- **Motivational Quotes**: Display inspirational messages during hard efforts
-- **Progress Visualization**: Animated charts showing long-term progress and trends
-- **Goal Setting**: Set and track specific training goals with progress indicators
+### Touch & Gesture Simulation
+- **Multi-Touch Gestures**: Pinch to zoom, two-finger scroll, etc.
+- **Swipe Actions**: Configure swipe directions and speeds
+- **Touch and Hold**: Long-press touch actions with configurable duration
+- **Touch Coordinate Precision**: Fine-tune touch positions with sub-pixel accuracy
+- **Relative vs Absolute Touch**: Choose between relative (from current position) or absolute touch coordinates
 
-## 📊 Analytics & Insights
+## 🔌 Accessory Control
 
-### Data Analysis
-- **Training Load Tracking**: Monitor cumulative training stress and recovery status
-- **Power Zone Analysis**: Detailed breakdown of time spent in different power zones
-- **Efficiency Metrics**: Track pedaling efficiency, variability index, and other advanced metrics
-- **Equipment Usage Tracking**: Log hours on different bikes/trainers for maintenance scheduling
-- **Export to CSV**: Export all ride data for external analysis
+### Fan Control Enhancements (Beyond KICKR HEADWIND)
+- **Generic Smart Fan Support**: Control any WiFi/Bluetooth smart fan (Lasko, Vornado, etc.)
+- **Fan Curve Customization**: Create custom speed curves based on button presses
+- **Multiple Fan Control**: Independently control multiple fans with different buttons
+- **Fan Oscillation**: Toggle oscillation mode on/off
+- **Fan Timer**: Auto-shut-off after configurable duration
 
-### Machine Learning Features
-- **Predictive Performance**: Predict FTP or race performance based on training data
-- **Optimal Workout Suggestions**: AI recommends workouts based on recent training and goals
-- **Anomaly Detection**: Alert users to unusual patterns that might indicate overtraining or equipment issues
-- **Personalized Pacing**: Learn user's optimal pacing strategies and provide real-time guidance
+### Other Smart Accessories
+- **Smart Trainer Direct Control**: Send direct commands to smart trainers (resistance, simulation mode)
+- **RGB Lighting Control**: Control LED strips or smart bulbs to indicate intensity zones
+- **Power Outlet Control**: Turn equipment on/off via smart plugs
+- **Audio System Control**: Volume and source switching for home audio systems
+- **Camera Control**: Trigger action cameras for recording specific moments
 
-## 🔒 Health & Safety
+## 🛡️ Reliability & Diagnostics
 
-### Safety Features
-- **Emergency Stop**: Quick action to stop all trainer resistance in case of emergency
-- **Fatigue Detection**: Monitor heart rate variability and power decline to suggest rest
-- **Hydration Reminders**: Time-based or effort-based reminders to drink water
-- **Posture Alerts**: Remind users to adjust position or stand up during long rides
-- **Emergency Contact**: Quick access to emergency contact if something goes wrong
+### Connection Reliability
+- **Auto-Reconnect**: Automatically reconnect to devices that disconnect
+- **Connection Quality Monitor**: Show signal strength and connection stability
+- **Fallback Modes**: Automatically switch connection methods if primary fails
+- **Connection Logging**: Detailed logs of connection events for troubleshooting
+- **Bluetooth Range Indicator**: Warn when devices are getting out of range
 
-### Health Monitoring
-- **Recovery Tracking**: Monitor recovery status using HRV and sleep data
-- **Injury Prevention**: Warn about training patterns that might lead to injury
-- **Nutrition Tracking**: Integrate with nutrition apps to track calorie burn and intake
-- **Medical Integration**: Share relevant health data with medical professionals if needed
+### Diagnostics & Testing
+- **Input Latency Meter**: Measure and display button-to-action latency
+- **Button Response Test**: Test individual buttons to verify they're working
+- **Connection Speed Test**: Measure network latency for remote connections
+- **Device Firmware Info**: Display firmware versions of connected devices
+- **Compatibility Checker**: Verify device compatibility before attempting connection
+- **Debug Mode**: Verbose logging for troubleshooting connection issues
 
-## 🌍 Community & Content
+## 🌍 Community Configuration Sharing
 
-### Community Features
-- **User Forums**: Built-in community forum for tips, troubleshooting, and discussions
-- **Configuration Marketplace**: Share and download custom button mappings and profiles
-- **Ride Gallery**: Share screenshots and highlights from rides
-- **Leaderboards**: Global and friend-based leaderboards for various challenges
-- **Live Events**: Support for organized virtual events and races
+### Configuration Marketplace
+- **Community Config Library**: Browse and download button mappings shared by other users
+- **Rating System**: Rate and review configurations
+- **Configuration Comments**: Allow users to comment on shared configs with tips
+- **Version Tracking**: Track updates to shared configurations
+- **Search and Filter**: Find configurations by device, app, or use case
+- **One-Click Install**: Import configurations with a single click
 
-### Content Creation
-- **Ride Recording**: Record screen and controller input for creating tutorials
-- **Highlight Reels**: Automatically create highlight videos of best moments
-- **Telemetry Overlay**: Add data overlays to ride videos for sharing
-- **Tutorial Mode**: Interactive tutorials for new users to learn features
-- **Developer API**: Public API for third-party apps and integrations
+### Collaboration
+- **Configuration Templates**: Official templates for common setups maintained by BikeControl team
+- **Device-Specific Defaults**: Crowd-sourced optimal configurations for each device type
+- **App Update Notifications**: Notify when trainer apps change and configurations need updates
+- **Compatibility Tags**: Tag configurations with compatible devices and app versions
 
-## 🔄 Platform-Specific Ideas
+## 🔄 Platform-Specific Enhancements
 
 ### Android Specific
 - **Tasker Integration**: Deep integration with Tasker for advanced automation
-- **Android Auto Support**: Control BikeControl from car display before/after rides
-- **Wear OS App**: Full-featured Wear OS app for smartwatch control
+- **Intent Broadcasting**: Broadcast button press events that other apps can listen to
+- **Quick Settings Tile**: Toggle BikeControl connection from quick settings
+- **Accessibility Service Enhancements**: More reliable touch simulation using accessibility APIs
+- **Scoped Storage Optimization**: Better file management for configurations
 
-### iOS Specific
+### iOS/iPadOS Specific
 - **Shortcuts Support**: Create custom Siri Shortcuts for common actions
+- **Widget Support**: Interactive widgets for device connection control
 - **Focus Mode Integration**: Auto-enable workout focus mode during rides
-- **HealthKit Deep Integration**: Comprehensive HealthKit data syncing
+- **Split View Optimization**: Better layout when used in split-screen mode
+- **Handoff Support**: Continue configuration on another Apple device
 
 ### Windows/macOS Specific
-- **System Tray Controls**: Quick access to common functions from system tray/menu bar
-- **Desktop Notifications**: Rich notifications showing ride progress
-- **Multi-Monitor Support**: Span controls across multiple displays
-- **Keyboard Maestro/AutoHotkey Templates**: Pre-built macros for power users
+- **System Tray/Menu Bar**: Quick access to common functions from system tray/menu bar
+- **Global Hotkeys**: Configure keyboard shortcuts to control BikeControl from any app
+- **Multi-Monitor Awareness**: Better window positioning on multi-monitor setups
+- **Focus Stealing Prevention**: Prevent trainer apps from stealing focus from BikeControl
+- **Power Management**: Prevent sleep mode during active connections
 
-## 🎓 Educational & Training Science
-
-### Learning Resources
-- **Training Library**: Built-in articles about training principles and best practices
-- **Technique Videos**: Short clips demonstrating proper form and techniques
-- **Workout Plans**: Pre-built training plans for different goals (FTP building, endurance, etc.)
-- **Glossary**: Explain cycling and training terminology for beginners
-
-### Coaching Tools
-- **Coach Dashboard**: Special view for coaches to monitor multiple athletes
-- **Workout Distribution**: Share workouts with athletes directly through the app
-- **Performance Reports**: Automated reports for coaches to review athlete progress
-- **Video Analysis**: Compare form videos side-by-side with ideal technique
-
-## 🔮 Future Tech
-
-### Emerging Technologies
-- **VR Integration**: Support for VR headsets to enhance immersion in virtual worlds
-- **Holographic Display**: Support for AR glasses showing floating data displays
-- **Neural Interface**: Experimental support for brain-computer interfaces (far future)
-- **AI Training Partner**: Virtual training partner that adapts to your fitness level
-- **Blockchain Credentials**: Verify achievements and records using blockchain technology
-
-### Environmental
-- **Carbon Footprint Tracking**: Show environmental impact of indoor vs outdoor rides
-- **Virtual Tree Planting**: Plant real trees based on distance ridden
-- **Energy Generation Tracking**: Track energy generated if using power-generating trainers
-- **Sustainability Metrics**: Compare efficiency of different training methods
-
-## 📝 Documentation & Support
+## 📚 Documentation & Support
 
 ### Help System
-- **Interactive Troubleshooting**: Step-by-step guided troubleshooting wizard
-- **Video Tutorials**: In-app video tutorials for common tasks
+- **Interactive Troubleshooting**: Step-by-step guided troubleshooting wizard for common connection issues
+- **Video Tutorials**: In-app video tutorials for setting up different devices
 - **Contextual Help**: Context-sensitive help tooltips throughout the app
-- **FAQ Search**: Intelligent search through common questions
+- **Device-Specific Guides**: Detailed setup guides for each supported device
 - **Live Chat Support**: In-app chat support for premium users
 
 ### Localization
-- **More Languages**: Add support for Spanish, Portuguese, Chinese, Japanese, Dutch, Swedish
-- **Regional Settings**: Adapt to local units, date formats, and conventions
-- **Cultural Adaptation**: Adjust UI and content for different cultural contexts
+- **More Languages**: Add support for Spanish, Portuguese, Chinese, Japanese, Dutch, Swedish, Danish, Norwegian
 - **Right-to-Left Support**: Full support for RTL languages like Arabic and Hebrew
+- **Regional Settings**: Adapt to local conventions and terminology
+- **Community Translations**: Allow community to contribute translations
 
-## 💡 Innovation Ideas
+## 💡 Developer & Integration Features
 
-### Unique Features
-- **Compete Against Pro Riders**: Race against professional cyclist data from real races
-- **Virtual Bike Shop**: Try different virtual bikes and equipment configurations
-- **Weather Simulation**: Sync trainer resistance with virtual weather conditions (headwinds, rain)
-- **Music-Synced Workouts**: Workouts that automatically sync with music beat and tempo
-- **Sleep Mode Training**: Ultra-low intensity overnight training for recovery rides
-- **Meditation Integration**: Combine easy spinning with guided meditation for recovery
-- **Group Workout Creation**: Collaborative workout planning with training partners
-- **AI Commentary**: Generated real-time commentary on your ride like a race announcer
-- **Time Trial Optimization**: AI analyzes pacing strategy for optimal time trial performance
-- **Virtual Mechanic**: AI diagnostic tool to troubleshoot bike/trainer issues
+### API & Extensions
+- **Public API**: RESTful API for third-party apps to trigger BikeControl actions
+- **Webhook Support**: Send events to external services when buttons are pressed
+- **Plugin System**: Allow developers to create plugins for custom functionality
+- **Command Line Interface**: CLI tool for automation and scripting
+- **Web Interface**: Browser-based configuration and monitoring
+
+### Developer Tools
+- **Button Mapping Validator**: Verify button mappings work correctly before saving
+- **Event Logger**: Real-time log of all button events and actions
+- **Performance Profiler**: Measure latency and performance of button mappings
+- **Mock Device Mode**: Test configurations without physical devices
+- **Configuration Diff Tool**: Compare two configurations to see differences
 
 ---
 
@@ -232,9 +206,21 @@ Have more ideas? Feel free to:
 Features in this document are ideas and not commitments. Prioritization will be based on:
 - User demand and feedback
 - Technical feasibility
+- Alignment with BikeControl's core mission as a controller bridge
 - Platform compatibility
 - Development resources
-- Alignment with BikeControl's core mission
+
+## Out of Scope
+
+The following types of features are **outside BikeControl's scope** as a controller bridge app:
+- Performance tracking and analytics (power zones, FTP, training load)
+- Social features (forums, leaderboards, ride sharing)
+- Health monitoring (HRV, recovery tracking, injury prevention)
+- Training platform features (workout creation, coaching, training plans)
+- Content creation (video recording, highlights, telemetry overlays)
+- Data storage and analysis of ride metrics
+
+BikeControl focuses on **control** - connecting your physical controllers to trainer apps. For analytics and training features, use dedicated platforms like TrainingPeaks, Strava, or your trainer app's built-in features.
 
 ---
 
