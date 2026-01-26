@@ -113,9 +113,11 @@ class ZwiftClickV2 extends ZwiftRide {
                           padding: const EdgeInsets.all(4),
                           child: Icon(Icons.lock_open_rounded, color: Colors.white),
                         ),
-                        Text(
-                          'Unlocked until around ${DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1)))}',
-                        ).xSmall,
+                        Flexible(
+                          child: Text(
+                            'Unlocked until around ${DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1)))}',
+                          ).xSmall,
+                        ),
                         Tooltip(
                           tooltip: (c) => Text('Unlock again'),
                           child: IconButton.ghost(
@@ -149,9 +151,8 @@ class ZwiftClickV2 extends ZwiftRide {
                           padding: const EdgeInsets.all(4),
                           child: Icon(Icons.lock_rounded, color: Colors.white),
                         ),
-
-                        Text('Device is currently locked').xSmall,
-                        Button.primary(
+                        Flexible(child: Text('Device is currently locked').xSmall),
+                        Button(
                           onPressed: () {
                             openDrawer(
                               context: context,
@@ -160,6 +161,7 @@ class ZwiftClickV2 extends ZwiftRide {
                             );
                           },
                           leading: const Icon(Icons.lock_open_rounded),
+                          style: ButtonStyle.primary(size: ButtonSize.small),
                           child: Text('Unlock now'),
                         ),
                       ],
