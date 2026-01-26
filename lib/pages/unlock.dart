@@ -149,9 +149,11 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             Text('Connect to "BikeControl" as Power Source.').li,
             SizedBox(height: 32),
             Text('BikeControl and Zwift need to be on the same network. It may take a few seconds to appear.').small,
-          ] else if (emulator.alreadyUnlocked.value)
-            Text('Your Zwift Click might be unlocked already. Confirm by pressing a button on your device.')
-          else if (!emulator.isUnlocked.value)
+          ] else if (emulator.alreadyUnlocked.value) ...[
+            Text('Your Zwift Click might be unlocked already.'),
+            SizedBox(height: 8),
+            Text('Confirm by pressing a button on your device.').small,
+          ] else if (!emulator.isUnlocked.value)
             Text('Waiting for Zwift to unlock your device...')
           else
             Text('Zwift Click is unlocked! You can now close this page.'),
@@ -159,6 +161,8 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
           if (!_showManualSteps && !_isInTrialPhase) ...[
             if (emulator.waiting.value && _secondsRemaining >= 0)
               Center(child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60), size: 20))
+            else if (emulator.alreadyUnlocked.value)
+              Center(child: Icon(Icons.lock_clock))
             else
               SmallProgressIndicator(),
             SizedBox(height: 20),
