@@ -130,9 +130,6 @@ abstract class BluetoothDevice extends BaseDevice {
           OpenBikeControlDevice(scanResult),
         _ when scanResult.services.contains(WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase()) =>
           WahooKickrHeadwind(scanResult),
-        _ when scanResult.services.contains(ThinkRiderVs200Constants.SERVICE_UUID.toLowerCase()) => ThinkRiderVs200(
-          scanResult,
-        ),
         // otherwise the service UUIDs will be used
         _ => null,
       };

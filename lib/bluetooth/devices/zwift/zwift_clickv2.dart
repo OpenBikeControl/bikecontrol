@@ -11,9 +11,9 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-class ZwiftClickV2 extends ZwiftRide {
-  late final FtmsEmulator emulator = FtmsEmulator();
+final FtmsEmulator emulator = FtmsEmulator();
 
+class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult)
     : super(
         isBeta: true,
@@ -60,7 +60,7 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   Future<void> setupHandshake() async {
     super.setupHandshake();
-    await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
+    //await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
   }
 
   @override

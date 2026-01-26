@@ -35,7 +35,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
 
   void _isConnectedUpdate() {
     setState(() {});
-    if (widget.device.emulator.isUnlocked.value) {
+    if (emulator.isUnlocked.value) {
       _close();
     }
   }
@@ -46,8 +46,8 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     _isInTrialPhase = !IAPManager.instance.isPurchased.value && IAPManager.instance.isTrialExpired;
 
     _ticker = createTicker((_) {
-      if (widget.device.emulator.waiting.value) {
-        final waitUntil = widget.device.emulator.connectionDate!.add(Duration(minutes: 1));
+      if (emulator.waiting.value) {
+        final waitUntil = emulator.connectionDate!.add(Duration(minutes: 1));
         final secondsUntil = waitUntil.difference(DateTime.now()).inSeconds;
 
         if (mounted) {
@@ -64,13 +64,13 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         core.settings.setZwiftMdnsEmulatorEnabled(false);
       }
 
-      widget.device.emulator.isUnlocked.value = false;
-      widget.device.emulator.alreadyUnlocked.value = false;
-      widget.device.emulator.waiting.value = false;
-      widget.device.emulator.isConnected.addListener(_isConnectedUpdate);
-      widget.device.emulator.isUnlocked.addListener(_isConnectedUpdate);
-      widget.device.emulator.alreadyUnlocked.addListener(_isConnectedUpdate);
-      widget.device.emulator.startServer().then((_) {}).catchError((e, s) {
+      emulator.isUnlocked.value = false;
+      emulator.alreadyUnlocked.value = false;
+      emulator.waiting.value = false;
+      emulator.isConnected.addListener(_isConnectedUpdate);
+      emulator.isUnlocked.addListener(_isConnectedUpdate);
+      emulator.alreadyUnlocked.addListener(_isConnectedUpdate);
+      emulator.startServer().then((_) {}).catchError((e, s) {
         recordError(e, s, context: 'Emulator');
         core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
       });
@@ -81,10 +81,10 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
   void dispose() {
     _ticker.dispose();
     if (!_isInTrialPhase) {
-      widget.device.emulator.isConnected.removeListener(_isConnectedUpdate);
-      widget.device.emulator.isUnlocked.removeListener(_isConnectedUpdate);
-      widget.device.emulator.alreadyUnlocked.removeListener(_isConnectedUpdate);
-      widget.device.emulator.stop();
+      emulator.isConnected.removeListener(_isConnectedUpdate);
+      emulator.isUnlocked.removeListener(_isConnectedUpdate);
+      emulator.alreadyUnlocked.removeListener(_isConnectedUpdate);
+      emulator.stop();
 
       if (_wasMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.startServer();
@@ -144,26 +144,26 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
                 ),
               ],
             )
-          else if (!widget.device.emulator.isConnected.value) ...[
+          else if (!emulator.isConnected.value) ...[
             Text('Open Zwift (not the Companion) on this or another device').li,
             Text('Connect to "BikeControl" as Power Source.').li,
             SizedBox(height: 32),
             Text('BikeControl and Zwift need to be on the same network. It may take a few seconds to appear.').small,
-          ] else if (widget.device.emulator.alreadyUnlocked.value)
+          ] else if (emulator.alreadyUnlocked.value)
             Text('Your Zwift Click might be unlocked already. Confirm by pressing a button on your device.')
-          else if (!widget.device.emulator.isUnlocked.value)
+          else if (!emulator.isUnlocked.value)
             Text('Waiting for Zwift to unlock your device...')
           else
             Text('Zwift Click is unlocked! You can now close this page.'),
           SizedBox(height: 32),
           if (!_showManualSteps && !_isInTrialPhase) ...[
-            if (widget.device.emulator.waiting.value && _secondsRemaining >= 0)
+            if (emulator.waiting.value && _secondsRemaining >= 0)
               Center(child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60), size: 20))
             else
               SmallProgressIndicator(),
             SizedBox(height: 20),
           ],
-          if (!widget.device.emulator.isUnlocked.value && !_showManualSteps) ...[
+          if (!emulator.isUnlocked.value && !_showManualSteps) ...[
             if (!_isInTrialPhase) ...[
               SizedBox(height: 32),
               Center(child: Text('Not working?').small),

@@ -54,7 +54,7 @@ class ZwiftRide extends ZwiftDevice {
 
     if (kDebugMode) {
       print(
-        '${DateTime.now().toString().split(" ").last} Received $opcode: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
+        '${DateTime.now().toString().split(" ").last} Received $opcode: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}',
       );
     }
 
