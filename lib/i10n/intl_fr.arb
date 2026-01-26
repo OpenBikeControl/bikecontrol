@@ -155,7 +155,7 @@
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Activez d'abord MyWhoosh Link dans les paramètres de connexion.",
   "enablePairingProcess": "Activer le processus d'appairage",
   "enablePermissions": "Activer les autorisations",
-  "enableSteeringWithPhone": "Activez les capteurs du téléphone pour permettre, par exemple, la direction.",
+  "enableSteeringWithPhone": "Activez la direction avec les capteurs de votre téléphone",
   "enableVibrationFeedback": "Activer le retour haptique par vibration lors du changement de vitesse",
   "enableZwiftControllerBluetooth": "Activer le contrôleur Zwift (Bluetooth)",
   "enableZwiftControllerNetwork": "Activer le contrôleur Zwift (réseau)",
