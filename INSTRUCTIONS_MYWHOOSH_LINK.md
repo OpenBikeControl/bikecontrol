@@ -17,7 +17,7 @@ This is a network/local-discovery problem. BikeControl needs the same kind of lo
 Checklist:
 - Use the MyWhoosh Link app to confirm if "Link" works in general
 - Use MyWhoosh Link app and connect, then close it, then open up BikeControl - this is key for some users
-- Both devices are on the **same Wi‑Fi SSID**
+- Both devices (if you use BikeControl on another device than MyWhoosh) are on the **same Wi‑Fi SSID**
   - Avoid “Guest” networks
   - Avoid “extenders/mesh guest mode” and networks with device isolation
 - If your router has it, disable:
