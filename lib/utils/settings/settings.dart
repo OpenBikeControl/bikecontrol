@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -12,6 +11,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
+import 'package:prop/emulators/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
 import 'package:window_manager/window_manager.dart';
@@ -27,6 +27,7 @@ class Settings {
   Future<String?> init({bool retried = false}) async {
     try {
       prefs = await SharedPreferences.getInstance();
+      propPrefs.initialize(prefs);
       try {
         await NotificationRequirement.setup();
       } catch (error, stack) {
@@ -404,12 +405,5 @@ class Settings {
 
   Future<void> setHasAskedPermissions(bool asked) async {
     await prefs.setBool('asked_permissions', asked);
-  }
-
-  DateTime? getZwiftClickV2LastUnlock(ZwiftClickV2 device) {
-    final key = 'clickV2_${device.scanResult.deviceId}';
-    final timestamp = prefs.getInt('${key}_unlock_date');
-    if (timestamp == null) return null;
-    return DateTime.fromMillisecondsSinceEpoch(timestamp);
   }
 }
