@@ -8,10 +8,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_linux
   flutter_volume_controller
   gamepads_linux
+  gtk
   media_key_detector_linux
   screen_retriever_linux
   url_launcher_linux
   window_manager
+  yaru_window_linux
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

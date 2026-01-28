@@ -1,14 +1,12 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
-import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp_vendor.pb.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
+import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:universal_ble/universal_ble.dart';
 
 class ZwiftRide extends ZwiftDevice {
@@ -56,7 +54,7 @@ class ZwiftRide extends ZwiftDevice {
 
     if (kDebugMode) {
       print(
-        '${DateTime.now().toString().split(" ").last} Received $opcode: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')} => ${String.fromCharCodes(bytes)} ',
+        '${DateTime.now().toString().split(" ").last} Received $opcode: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}',
       );
     }
 

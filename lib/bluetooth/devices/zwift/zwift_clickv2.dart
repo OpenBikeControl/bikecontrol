@@ -1,14 +1,18 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/markdown.dart';
+import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:prop/emulators/ftms_emulator.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
+
+final FtmsEmulator emulator = FtmsEmulator();
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult)
@@ -26,9 +30,9 @@ class ZwiftClickV2 extends ZwiftRide {
           ZwiftButtons.shiftUpLeft,
           ZwiftButtons.shiftUpRight,
         ],
-      );
-
-  bool _noLongerSendsEvents = false;
+      ) {
+    emulator.setScanResult(scanResult);
+  }
 
   @override
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;
@@ -44,23 +48,30 @@ class ZwiftClickV2 extends ZwiftRide {
     return "$name V2";
   }
 
-  @override
-  Future<void> setupHandshake() async {
-    super.setupHandshake();
-    await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
+  bool get isUnlocked {
+    final lastUnlock = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
+    if (lastUnlock == null) {
+      return false;
+    }
+    return lastUnlock > DateTime.now().subtract(const Duration(days: 1));
   }
 
   @override
-  Future<void> processData(Uint8List bytes) {
-    if (bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_1) ||
-        bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_2)) {
-      _noLongerSendsEvents = true;
+  Future<void> handleServices(List<BleService> services) async {
+    emulator.handleServices(services);
+    await super.handleServices(services);
+  }
+
+  @override
+  Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
+    if (!emulator.processCharacteristic(characteristic, bytes)) {
+      await super.processCharacteristic(characteristic, bytes);
     }
-    return super.processData(bytes);
   }
 
   @override
   Widget showInformation(BuildContext context) {
+    final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     return StatefulBuilder(
       builder: (context, setState) {
         return Column(
@@ -70,58 +81,44 @@ class ZwiftClickV2 extends ZwiftRide {
           children: [
             super.showInformation(context),
 
-            if (isConnected)
-              if (core.settings.getShowZwiftClickV2ReconnectWarning())
-                Stack(
+            if (isConnected && !core.settings.getShowOnboarding())
+              if (isUnlocked && lastUnlockDate != null)
+                Warning(
+                  important: false,
                   children: [
-                    Warning(
+                    Row(
+                      spacing: 8,
                       children: [
-                        Text(
-                          'Important Setup Information',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.destructive,
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(24),
                           ),
-                        ).small,
-                        Text(
-                          AppLocalizations.of(context).clickV2Instructions,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.destructive,
-                          ),
-                        ).xSmall,
-                        if (kDebugMode)
-                          GhostButton(
-                            onPressed: () {
-                              sendCommand(Opcode.RESET, null);
-                            },
-                            child: Text('Reset now'),
-                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(Icons.lock_open_rounded, color: Colors.white),
+                        ),
+                        Flexible(
+                          child: Text(
+                            AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
+                              DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1))),
+                            ),
+                          ).xSmall,
+                        ),
+                        Tooltip(
+                          tooltip: (c) => Text('Unlock again'),
+                          child: IconButton.ghost(
+                            icon: Icon(Icons.lock_reset_rounded),
 
-                        Button.secondary(
-                          onPressed: () {
-                            openDrawer(
-                              context: context,
-                              position: OverlayPosition.bottom,
-                              builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                            );
-                          },
-                          leading: const Icon(Icons.help_outline_outlined),
-                          child: Text(context.i18n.instructions),
+                            onPressed: () {
+                              openDrawer(
+                                context: context,
+                                position: OverlayPosition.bottom,
+                                builder: (_) => UnlockPage(device: this),
+                              );
+                            },
+                          ),
                         ),
                       ],
-                    ),
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton.link(
-                        icon: Icon(
-                          Icons.close,
-                          color: Theme.of(context).colorScheme.destructive,
-                        ),
-                        onPressed: () {
-                          core.settings.setShowZwiftClickV2ReconnectWarning(false);
-                          setState(() {});
-                        },
-                      ),
                     ),
                   ],
                 )
@@ -129,21 +126,53 @@ class ZwiftClickV2 extends ZwiftRide {
                 Warning(
                   important: false,
                   children: [
-                    Text(
-                      AppLocalizations.of(context).clickV2EventInfo,
-                    ).xSmall,
-                    LinkButton(
-                      child: Text(context.i18n.troubleshootingGuide),
-                      onPressed: () {
-                        openDrawer(
-                          context: context,
-                          position: OverlayPosition.bottom,
-                          builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                        );
-                      },
+                    Row(
+                      spacing: 8,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(Icons.lock_rounded, color: Colors.white),
+                        ),
+                        Flexible(child: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall),
+                        Button(
+                          onPressed: () {
+                            openDrawer(
+                              context: context,
+                              position: OverlayPosition.bottom,
+                              builder: (_) => UnlockPage(device: this),
+                            );
+                          },
+                          leading: const Icon(Icons.lock_open_rounded),
+                          style: ButtonStyle.primary(size: ButtonSize.small),
+                          child: Text(AppLocalizations.of(context).unlock_unlockNow),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+            /*else
+              Warning(
+                important: false,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).clickV2EventInfo,
+                  ).xSmall,
+                  LinkButton(
+                    child: Text(context.i18n.troubleshootingGuide),
+                    onPressed: () {
+                      openDrawer(
+                        context: context,
+                        position: OverlayPosition.bottom,
+                        builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                      );
+                    },
+                  ),
+                ],
+              ),*/
           ],
         );
       },

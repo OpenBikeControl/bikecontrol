@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:prop/prop.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';

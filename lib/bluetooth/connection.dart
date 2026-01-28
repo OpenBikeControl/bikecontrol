@@ -6,8 +6,6 @@ import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
-import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -17,6 +15,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
+import 'package:prop/prop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'devices/base_device.dart';
@@ -95,7 +94,7 @@ class Connection {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId && e.services.contentEquals(result.services))) {
         _lastScanResult.add(result);
 
-        if (kDebugMode) {
+        if (false) {
           debugPrint('Scan result: ${result.name} - ${result.deviceId}');
         }
 

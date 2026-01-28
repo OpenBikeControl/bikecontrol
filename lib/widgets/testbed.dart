@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:prop/prop.dart';
 import 'package:bike_control/utils/actions/base_actions.dart' as actions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';

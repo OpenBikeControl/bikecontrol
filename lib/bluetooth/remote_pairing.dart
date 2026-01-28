@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -12,6 +11,7 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:prop/prop.dart';
 
 import '../utils/keymap/keymap.dart';
 
@@ -257,7 +257,7 @@ class RemotePairing extends TrainerConnection {
               : ''}',
       serviceUUIDs: [UUID.fromString(Platform.isIOS ? '1812' : '00001812-0000-1000-8000-00805F9B34FB')],
     );
-    print('Starting advertising with Zwift service...');
+    print('Starting advertising with Remote service...');
 
     await _peripheralManager.startAdvertising(advertisement);
     _isLoading = false;

@@ -14,7 +14,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 class GamepadDevice extends BaseDevice {
   final String id;
 
-  GamepadDevice(super.name, {required this.id}) : super(availableButtons: []);
+  GamepadDevice(super.name, {required this.id}) : super(availableButtons: [], uniqueId: id);
 
   List<ControllerButton> _lastButtonsClicked = [];
 
@@ -32,7 +32,7 @@ class GamepadDevice extends BaseDevice {
       final buttonKey = event.type == KeyType.analog ? '${event.key}_$normalizedValue' : event.key;
       ControllerButton button = getOrAddButton(
         buttonKey,
-        () => ControllerButton(buttonKey),
+        () => ControllerButton(buttonKey, sourceDeviceId: id),
       );
 
       switch (event.type) {

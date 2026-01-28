@@ -5,7 +5,7 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:prop/prop.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';

@@ -1,9 +1,9 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zwift.pb.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
 
 class ZwiftPlay extends ZwiftDevice {
   final ZwiftDeviceType deviceType;
@@ -11,20 +11,24 @@ class ZwiftPlay extends ZwiftDevice {
   ZwiftPlay(super.scanResult, {required this.deviceType})
     : super(
         availableButtons: [
-          ZwiftButtons.y,
-          ZwiftButtons.z,
-          ZwiftButtons.a,
-          ZwiftButtons.b,
-          ZwiftButtons.onOffRight,
-          ZwiftButtons.sideButtonRight,
-          ZwiftButtons.paddleRight,
-          ZwiftButtons.navigationUp,
-          ZwiftButtons.navigationLeft,
-          ZwiftButtons.navigationRight,
-          ZwiftButtons.navigationDown,
-          ZwiftButtons.onOffLeft,
-          ZwiftButtons.sideButtonLeft,
-          ZwiftButtons.paddleLeft,
+          if (deviceType == ZwiftDeviceType.playLeft) ...[
+            ZwiftButtons.navigationUp,
+            ZwiftButtons.navigationLeft,
+            ZwiftButtons.navigationRight,
+            ZwiftButtons.navigationDown,
+            ZwiftButtons.onOffLeft,
+            ZwiftButtons.sideButtonLeft,
+            ZwiftButtons.paddleLeft,
+          ],
+          if (deviceType == ZwiftDeviceType.playRight) ...[
+            ZwiftButtons.y,
+            ZwiftButtons.z,
+            ZwiftButtons.a,
+            ZwiftButtons.b,
+            ZwiftButtons.onOffRight,
+            ZwiftButtons.sideButtonRight,
+            ZwiftButtons.paddleRight,
+          ],
         ],
       );
 

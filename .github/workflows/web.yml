@@ -17,6 +17,7 @@ jobs:
   build:
     name: Build Web
     runs-on: macos-latest
+    if: false
 
     permissions:
       id-token: write
@@ -27,6 +28,9 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
         #3 Setup Flutter
       - name: Set Up Flutter

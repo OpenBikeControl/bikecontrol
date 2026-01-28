@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -10,6 +9,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/single_line_exception.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 

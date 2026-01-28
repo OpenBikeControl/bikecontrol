@@ -42,12 +42,15 @@ abstract class BluetoothDevice extends BaseDevice {
     required List<ControllerButton> availableButtons,
     bool allowMultiple = false,
     bool isBeta = false,
+    String? buttonPrefix,
   }) : super(
          scanResult.name,
+         uniqueId: scanResult.deviceId,
          availableButtons: allowMultiple
              ? availableButtons.map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
              : availableButtons,
          isBeta: isBeta,
+         buttonPrefix: buttonPrefix,
        ) {
     rssi = scanResult.rssi;
   }
@@ -127,9 +130,6 @@ abstract class BluetoothDevice extends BaseDevice {
           OpenBikeControlDevice(scanResult),
         _ when scanResult.services.contains(WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase()) =>
           WahooKickrHeadwind(scanResult),
-        _ when scanResult.services.contains(ThinkRiderVs200Constants.SERVICE_UUID.toLowerCase()) => ThinkRiderVs200(
-          scanResult,
-        ),
         // otherwise the service UUIDs will be used
         _ => null,
       };

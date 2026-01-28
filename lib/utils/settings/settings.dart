@@ -11,6 +11,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
+import 'package:prop/emulators/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
 import 'package:window_manager/window_manager.dart';
@@ -26,6 +27,7 @@ class Settings {
   Future<String?> init({bool retried = false}) async {
     try {
       prefs = await SharedPreferences.getInstance();
+      propPrefs.initialize(prefs);
       try {
         await NotificationRequirement.setup();
       } catch (error, stack) {

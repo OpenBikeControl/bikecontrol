@@ -1,4 +1,4 @@
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
+import 'package:prop/prop.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 

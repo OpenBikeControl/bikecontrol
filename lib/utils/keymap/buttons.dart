@@ -95,7 +95,7 @@ class ControllerButton {
   }
 
   String get displayName {
-    if (sourceDeviceId == null) {
+    if (sourceDeviceId == null || true) {
       return name;
     }
 

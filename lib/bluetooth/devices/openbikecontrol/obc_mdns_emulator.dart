@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
-import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -13,6 +11,7 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart';
+import 'package:prop/prop.dart';
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection {
   ServerSocket? _server;

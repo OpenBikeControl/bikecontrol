@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -43,12 +43,12 @@ class SramAxs extends BluetoothDevice {
 
   ControllerButton _singleClickButton() => getOrAddButton(
     'SRAM Tap',
-    () => const ControllerButton('SRAM Tap', action: InGameAction.shiftUp),
+    () => ControllerButton('SRAM Tap', action: InGameAction.shiftUp, sourceDeviceId: device.deviceId),
   );
 
   ControllerButton _doubleClickButton() => getOrAddButton(
     'SRAM Double Tap',
-    () => const ControllerButton('SRAM Double Tap', action: InGameAction.shiftDown),
+    () => ControllerButton('SRAM Double Tap', action: InGameAction.shiftDown, sourceDeviceId: device.deviceId),
   );
 
   void _emitClick(ControllerButton button) {

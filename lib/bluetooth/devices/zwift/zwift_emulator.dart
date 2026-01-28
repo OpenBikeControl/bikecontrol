@@ -3,9 +3,6 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zwift.pbserver.dart' hide RideButtonMask;
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -18,6 +15,7 @@ import 'package:bike_control/widgets/title.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:prop/prop.dart' hide RideButtonMask;
 
 class ZwiftEmulator extends TrainerConnection {
   bool get isLoading => _isLoading;
@@ -163,7 +161,7 @@ class ZwiftEmulator extends TrainerConnection {
           );
 
           final request = eventArgs.request;
-          final response = handleWriteRequest(eventArgs.characteristic.uuid.toString(), request.value);
+          final response = SharedLogic.handleWriteRequest(eventArgs.characteristic.uuid.toString(), request.value);
           if (response != null) {
             await _peripheralManager.notifyCharacteristic(
               _central!,
@@ -360,106 +358,6 @@ class ZwiftEmulator extends TrainerConnection {
     }
 
     return Success('Sent action: ${keyPair.inGameAction!.name}');
-  }
-
-  Uint8List? handleWriteRequest(String characteristic, Uint8List value) {
-    print(
-      'Write request for characteristic: $characteristic',
-    );
-
-    switch (characteristic.toUpperCase()) {
-      case ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID:
-        print(
-          'Handling write request for SYNC RX characteristic, value: ${value.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}\n${String.fromCharCodes(value)}',
-        );
-
-        Opcode? opcode = Opcode.valueOf(value[0]);
-        Uint8List message = value.sublist(1);
-
-        switch (opcode) {
-          case Opcode.RIDE_ON:
-            print('Sending handshake');
-            return ZwiftConstants.RIDE_ON;
-          case Opcode.GET:
-            final response = Get.fromBuffer(message);
-            final dataObjectType = DO.valueOf(response.dataObjectId);
-            print('Received GET for data object: $dataObjectType');
-            switch (dataObjectType) {
-              case DO.PAGE_DEV_INFO:
-                /*final devInfo = DevInfoPage(
-                        deviceName: 'Zwift Click'.codeUnits,
-                        deviceUid: '0B-58D15ABB4363'.codeUnits,
-                        manufacturerId: 0x01,
-                        serialNumber: '58D15ABB4363'.codeUnits,
-                        protocolVersion: 515,
-                        systemFwVersion: [0, 0, 1, 1],
-                        productId: 11,
-                        systemHwRevision: 'B.0'.codeUnits,
-                        deviceCapabilities: [DevInfoPage_DeviceCapabilities(deviceType: 2, capabilities: 1)],
-                      );
-                      final serverInfoResponse = Uint8List.fromList([
-                        Opcode.GET_RESPONSE.value,
-                        ...GetResponse(
-                          dataObjectId: DO.PAGE_DEV_INFO.value,
-                          dataObjectData: devInfo.writeToBuffer(),
-                        ).writeToBuffer(),
-                      ]);*/
-                // 3C080012460A440883041204000001011A0B5A7769667420436C69636B320F30422D3538443135414242343336333A03422E304204080210014801500B5A0C353844313541424234333633
-                final expected = Uint8List.fromList(
-                  hexToBytes(
-                    '3C080012460A440883041204000001011A0B5A7769667420436C69636B320F30422D3538443135414242343336333A03422E304204080210014801500B5A0C353844313541424234333633',
-                  ),
-                );
-                return expected;
-              case DO.PAGE_CLIENT_SERVER_CONFIGURATION:
-                final response = Uint8List.fromList([
-                  Opcode.GET_RESPONSE.value,
-                  ...GetResponse(
-                    dataObjectId: DO.PAGE_CLIENT_SERVER_CONFIGURATION.value,
-                    dataObjectData: ClientServerCfgPage(
-                      notifications: 0,
-                    ).writeToBuffer(),
-                  ).writeToBuffer(),
-                ]);
-                return response;
-              case DO.PAGE_CONTROLLER_INPUT_CONFIG:
-                final response = Uint8List.fromList([
-                  Opcode.GET_RESPONSE.value,
-                  ...GetResponse(
-                    dataObjectId: DO.PAGE_CONTROLLER_INPUT_CONFIG.value,
-                    dataObjectData: ControllerInputConfigPage(
-                      supportedDigitalInputs: 4607,
-                      supportedAnalogInputs: 0,
-                      analogDeadZone: [],
-                      analogInputRange: [],
-                    ).writeToBuffer(),
-                  ).writeToBuffer(),
-                ]);
-                return response;
-              case DO.BATTERY_STATE:
-                final response = Uint8List.fromList([
-                  Opcode.GET_RESPONSE.value,
-                  ...GetResponse(
-                    dataObjectId: DO.BATTERY_STATE.value,
-                    dataObjectData: BatteryStatus(
-                      chgState: ChargingState.CHARGING_IDLE,
-                      percLevel: 100,
-                      timeToEmpty: 0,
-                      timeToFull: 0,
-                    ).writeToBuffer(),
-                  ).writeToBuffer(),
-                ]);
-                return response;
-              default:
-                print('Unhandled data object type for GET: $dataObjectType');
-            }
-            break;
-        }
-        break;
-      default:
-        print('Unhandled write request for characteristic: $characteristic $value');
-    }
-    return null;
   }
 
   void cleanup() {
