@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -50,17 +51,11 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   bool get isUnlocked {
-    final lastUnlock = core.settings.getZwiftClickV2LastUnlock(this);
+    final lastUnlock = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (lastUnlock == null) {
       return false;
     }
     return lastUnlock > DateTime.now().subtract(const Duration(days: 1));
-  }
-
-  @override
-  Future<void> setupHandshake() async {
-    super.setupHandshake();
-    //await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
   }
 
   @override
@@ -87,7 +82,7 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Widget showInformation(BuildContext context) {
-    final lastUnlockDate = core.settings.getZwiftClickV2LastUnlock(this);
+    final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     return StatefulBuilder(
       builder: (context, setState) {
         return Column(
@@ -97,7 +92,7 @@ class ZwiftClickV2 extends ZwiftRide {
           children: [
             super.showInformation(context),
 
-            if (isConnected)
+            if (isConnected && !core.settings.getShowOnboarding())
               if (isUnlocked && lastUnlockDate != null)
                 Warning(
                   important: false,
@@ -115,7 +110,9 @@ class ZwiftClickV2 extends ZwiftRide {
                         ),
                         Flexible(
                           child: Text(
-                            'Unlocked until around ${DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1)))}',
+                            AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
+                              DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1))),
+                            ),
                           ).xSmall,
                         ),
                         Tooltip(
@@ -151,7 +148,7 @@ class ZwiftClickV2 extends ZwiftRide {
                           padding: const EdgeInsets.all(4),
                           child: Icon(Icons.lock_rounded, color: Colors.white),
                         ),
-                        Flexible(child: Text('Device is currently locked').xSmall),
+                        Flexible(child: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall),
                         Button(
                           onPressed: () {
                             openDrawer(
@@ -162,7 +159,7 @@ class ZwiftClickV2 extends ZwiftRide {
                           },
                           leading: const Icon(Icons.lock_open_rounded),
                           style: ButtonStyle.primary(size: ButtonSize.small),
-                          child: Text('Unlock now'),
+                          child: Text(AppLocalizations.of(context).unlock_unlockNow),
                         ),
                       ],
                     ),

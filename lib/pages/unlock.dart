@@ -58,6 +58,15 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
       }
     })..start();
 
+    /*Future.delayed(Duration(seconds: 5), () {
+      emulator.waiting.value = true;
+
+      Future.delayed(Duration(seconds: 3), () {
+        propPrefs.setZwiftClickV2LastUnlock(widget.device.device.deviceId, DateTime.now());
+        emulator.isUnlocked.value = true;
+      });
+    });*/
+
     _wasZwiftMdnsEmulatorActive = core.zwiftMdnsEmulator.isStarted.value;
     _wasObpMdnsEmulatorActive = core.obpMdnsEmulator.isStarted.value;
     if (!_isInTrialPhase) {
@@ -115,9 +124,9 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         children: [
           if (_isInTrialPhase && !_showManualSteps)
             Text(
-              'Your trial phase has expired. Please purchase the full version to unlock the comfortable unlocking feature :)',
+              AppLocalizations.of(context).unlock_yourTrialPhaseHasExpired,
             )
-          else if (_showManualSteps)
+          else if (_showManualSteps) ...[
             Warning(
               children: [
                 Text(
@@ -153,18 +162,26 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
                   child: Text(context.i18n.instructions),
                 ),
               ],
-            )
-          else if (!emulator.isConnected.value) ...[
-            Text('Open Zwift (not the Companion) on this or another device').li,
-            Text('Connect to "BikeControl" as Power Source.').li,
+            ),
             SizedBox(height: 32),
-            Text('BikeControl and Zwift need to be on the same network. It may take a few seconds to appear.').small,
+            Button.primary(
+              child: Text(AppLocalizations.of(context).unlock_markAsUnlocked),
+              onPressed: () {
+                propPrefs.setZwiftClickV2LastUnlock(widget.device.scanResult.deviceId, DateTime.now());
+                closeDrawer(context);
+              },
+            ),
+          ] else if (!emulator.isConnected.value) ...[
+            Text(AppLocalizations.of(context).unlock_openZwift).li,
+            Text(AppLocalizations.of(context).unlock_connectToBikecontrol).li,
+            SizedBox(height: 32),
+            Text(AppLocalizations.of(context).unlock_bikecontrolAndZwiftNetwork).small,
           ] else if (emulator.alreadyUnlocked.value) ...[
-            Text('Your Zwift Click might be unlocked already.'),
+            Text(AppLocalizations.of(context).unlock_yourZwiftClickMightBeUnlockedAlready),
             SizedBox(height: 8),
-            Text('Confirm by pressing a button on your device.').small,
+            Text(AppLocalizations.of(context).unlock_confirmByPressingAButtonOnYourDevice).small,
           ] else if (!emulator.isUnlocked.value)
-            Text('Waiting for Zwift to unlock your device...')
+            Text(AppLocalizations.of(context).unlock_waitingForZwift)
           else
             Text('Zwift Click is unlocked! You can now close this page.'),
           SizedBox(height: 32),
@@ -180,7 +197,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
           if (!emulator.isUnlocked.value && !_showManualSteps) ...[
             if (!_isInTrialPhase) ...[
               SizedBox(height: 32),
-              Center(child: Text('Not working?').small),
+              Center(child: Text(AppLocalizations.of(context).unlock_notWorking).small),
             ],
             SizedBox(height: 6),
             Center(
@@ -190,7 +207,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
                     _showManualSteps = !_showManualSteps;
                   });
                 },
-                child: Text('Unlock manually'),
+                child: Text(AppLocalizations.of(context).unlock_unlockManually),
               ),
             ),
           ],
@@ -201,9 +218,9 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
   }
 
   void _close() {
-    final title = '${widget.device.toString()} is now unlocked';
+    final title = AppLocalizations.of(context).unlock_isnowunlocked(widget.device.toString());
 
-    final subtitle = 'You can now close Zwift and return to BikeControl.';
+    final subtitle = AppLocalizations.of(context).unlock_youCanNowCloseZwift;
     core.connection.signalNotification(
       AlertNotification(LogLevel.LOGLEVEL_INFO, title),
     );
