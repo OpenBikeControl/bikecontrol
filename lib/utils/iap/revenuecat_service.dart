@@ -314,19 +314,27 @@ class RevenueCatService {
 
   /// Increment the daily command count
   Future<void> incrementCommandCount() async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final lastDate = await _prefs.read(key: _lastCommandDateKey);
+    try {
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      final lastDate = await _prefs.read(key: _lastCommandDateKey);
 
-    if (lastDate != today) {
-      // Reset counter for new day
-      _lastCommandDate = today;
-      _dailyCommandCount = 1;
-      await _prefs.write(key: _lastCommandDateKey, value: today);
-      await _prefs.write(key: _dailyCommandCountKey, value: '1');
-    } else {
+      if (lastDate != today) {
+        // Reset counter for new day
+        _lastCommandDate = today;
+        _dailyCommandCount = 1;
+        await _prefs.write(key: _lastCommandDateKey, value: today);
+        await _prefs.write(key: _dailyCommandCountKey, value: '1');
+      } else {
+        final count = _dailyCommandCount ?? 0;
+        _dailyCommandCount = count + 1;
+        await _prefs.write(key: _dailyCommandCountKey, value: _dailyCommandCount.toString());
+      }
+    } catch (e, s) {
       final count = _dailyCommandCount ?? 0;
       _dailyCommandCount = count + 1;
-      await _prefs.write(key: _dailyCommandCountKey, value: _dailyCommandCount.toString());
+      // e.g. https://github.com/jonasbark/swiftcontrol/issues/279
+      debugPrint('Error incrementing command count: $e');
+      recordError(e, s, context: 'Incrementing command count');
     }
   }
 
