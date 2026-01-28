@@ -24,7 +24,8 @@ class UnlockPage extends StatefulWidget {
 }
 
 class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateMixin {
-  late final bool _wasMdnsEmulatorActive;
+  late final bool _wasZwiftMdnsEmulatorActive;
+  late final bool _wasObpMdnsEmulatorActive;
   bool _showManualSteps = false;
 
   late final bool _isInTrialPhase;
@@ -57,11 +58,16 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
       }
     })..start();
 
-    _wasMdnsEmulatorActive = core.zwiftMdnsEmulator.isStarted.value;
+    _wasZwiftMdnsEmulatorActive = core.zwiftMdnsEmulator.isStarted.value;
+    _wasObpMdnsEmulatorActive = core.obpMdnsEmulator.isStarted.value;
     if (!_isInTrialPhase) {
-      if (_wasMdnsEmulatorActive) {
+      if (_wasZwiftMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.stop();
         core.settings.setZwiftMdnsEmulatorEnabled(false);
+      }
+      if (_wasObpMdnsEmulatorActive) {
+        core.obpMdnsEmulator.stopServer();
+        core.settings.setObpMdnsEnabled(false);
       }
 
       emulator.isUnlocked.value = false;
@@ -86,9 +92,13 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
       emulator.alreadyUnlocked.removeListener(_isConnectedUpdate);
       emulator.stop();
 
-      if (_wasMdnsEmulatorActive) {
+      if (_wasZwiftMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.startServer();
         core.settings.setZwiftMdnsEmulatorEnabled(true);
+      }
+      if (_wasObpMdnsEmulatorActive) {
+        core.obpMdnsEmulator.startServer();
+        core.settings.setObpMdnsEnabled(true);
       }
     }
     super.dispose();
