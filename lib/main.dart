@@ -185,8 +185,8 @@ class _BikeControlAppState extends State<BikeControlApp> {
     return ShadcnApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      menuHandler: PopoverOverlayHandler(),
-      popoverHandler: PopoverOverlayHandler(),
+      menuHandler: OverlayHandler.popover,
+      popoverHandler: OverlayHandler.popover,
       localizationsDelegates: [
         ...ShadcnLocalizations.localizationsDelegates,
         OtherLocalizationsDelegate(),

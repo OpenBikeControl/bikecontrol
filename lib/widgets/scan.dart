@@ -1,14 +1,11 @@
-import 'dart:io';
-
-import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/wifi_animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import '../utils/requirements/platform.dart';
 
 class ScanWidget extends StatefulWidget {
   const ScanWidget({super.key});
@@ -78,47 +75,6 @@ class _ScanWidgetState extends State<ScanWidget> {
                             textAlign: TextAlign.center,
                           ).small.muted,
                         ],
-                      ),
-                    SizedBox(),
-                    if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
-                      ValueListenableBuilder(
-                        valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
-                        builder: (context, value, child) {
-                          return Tooltip(
-                            tooltip: (c) => TooltipContainer(
-                              child: Text(context.i18n.mediaKeyDetectionTooltip),
-                            ),
-                            child: Checkbox(
-                              state: value ? CheckboxState.checked : CheckboxState.unchecked,
-                              trailing: Expanded(child: Text(context.i18n.enableMediaKeyDetection)),
-                              onChanged: (change) {
-                                core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = change == CheckboxState.checked;
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS) && !core.settings.getShowOnboarding())
-                      Checkbox(
-                        state: core.settings.getPhoneSteeringEnabled()
-                            ? CheckboxState.checked
-                            : CheckboxState.unchecked,
-                        trailing: Expanded(
-                          child: Row(
-                            spacing: 4,
-                            children: [
-                              Icon(InGameAction.navigateRight.icon!, size: 16),
-                              Icon(InGameAction.navigateLeft.icon!, size: 16),
-                              SizedBox(),
-                              Expanded(child: Text(AppLocalizations.of(context).enableSteeringWithPhone)),
-                            ],
-                          ),
-                        ),
-                        onChanged: (change) {
-                          core.settings.setPhoneSteeringEnabled(change == CheckboxState.checked);
-                          core.connection.toggleGyroscopeSteering(change == CheckboxState.checked);
-                          setState(() {});
-                        },
                       ),
                     SizedBox(),
                   ],
