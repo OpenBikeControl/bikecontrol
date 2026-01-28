@@ -257,8 +257,8 @@ jobs:
       - name: Set Up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'beta'
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION_MAC }}
 
       - name: Generate translation files
         run: |
@@ -268,7 +268,7 @@ jobs:
       - name: 🚀 Shorebird Release Windows
         uses: shorebirdtech/shorebird-release@v1
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ env.FLUTTER_VERSION_MAC }}
           platform: windows
           args: "-- --obfuscate --split-debug-info=symbols-win"
 
