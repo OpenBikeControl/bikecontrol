@@ -103,6 +103,7 @@ jobs:
           cache: true
 
       - name: Set Up Flutter maCOS
+        if: inputs.build_mac
         uses: subosito/flutter-action@v2
         with:
           channel: 'beta'
