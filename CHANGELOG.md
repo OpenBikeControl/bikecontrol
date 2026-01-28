@@ -1,4 +1,4 @@
-### 4.6.0 (26-01-2026)
+### 4.6.0 (28-01-2026)
 
 **Features**:
 - Improve Zwift Click V2 connection and handling
