@@ -162,6 +162,9 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1

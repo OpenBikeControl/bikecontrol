@@ -103,7 +103,6 @@ jobs:
           cache: true
 
       - name: Set Up Flutter maCOS
-        if: inputs.build_mac
         uses: subosito/flutter-action@v2
         with:
           channel: 'beta'
@@ -241,6 +240,9 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Extract version from pubspec.yaml (Windows)
         shell: pwsh
