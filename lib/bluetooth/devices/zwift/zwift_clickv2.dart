@@ -34,8 +34,6 @@ class ZwiftClickV2 extends ZwiftRide {
     emulator.setScanResult(scanResult);
   }
 
-  bool _noLongerSendsEvents = false;
-
   @override
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;
 
@@ -56,15 +54,6 @@ class ZwiftClickV2 extends ZwiftRide {
       return false;
     }
     return lastUnlock > DateTime.now().subtract(const Duration(days: 1));
-  }
-
-  @override
-  Future<void> processData(Uint8List bytes) {
-    if (bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_1) ||
-        bytes.startsWith(ZwiftConstants.RESPONSE_STOPPED_CLICK_V2_VARIANT_2)) {
-      _noLongerSendsEvents = true;
-    }
-    return super.processData(bytes);
   }
 
   @override
