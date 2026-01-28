@@ -11,10 +11,7 @@ With BikeControl you can **control your favorite trainer app** using your Zwift 
 - control music on your device
 - more? If you can do it via keyboard, mouse, or touch, you can do it with BikeControl
 
-
-https://github.com/user-attachments/assets/1f81b674-1628-4763-ad66-5f3ed7a3f159
-
-
+[![Youtube Video](https://github.com/user-attachments/assets/1bd49f4c-e920-4ad1-ba68-99c7bc9bd1ab)](https://www.youtube.com/watch?v=rK6Zthcl2UU)
 
 
 ## Download
