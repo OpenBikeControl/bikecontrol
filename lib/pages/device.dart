@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -10,10 +11,13 @@ import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../utils/keymap/buttons.dart';
+import 'button_edit.dart';
 
 class DevicePage extends StatefulWidget {
   final bool isMobile;
@@ -105,6 +109,56 @@ class _DevicePageState extends State<DevicePage> {
                 ),
               ),
             ],
+
+            if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
+              ValueListenableBuilder(
+                valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
+                builder: (context, value, child) {
+                  return SelectableCard(
+                    isActive: value,
+                    icon: value ? Icons.check_box : Icons.check_box_outline_blank,
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
+                      children: [
+                        Text(context.i18n.enableMediaKeyDetection),
+                        Text(
+                          context.i18n.mediaKeyDetectionTooltip,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                    onPressed: () {
+                      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value =
+                          !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
+                    },
+                  );
+                },
+              ),
+            SizedBox(),
+            if (!kIsWeb && (Platform.isAndroid || Platform.isIOS) && !core.settings.getShowOnboarding())
+              SelectableCard(
+                isActive: core.settings.getPhoneSteeringEnabled(),
+                icon: core.settings.getPhoneSteeringEnabled() ? Icons.check_box : Icons.check_box_outline_blank,
+                title: Row(
+                  spacing: 4,
+                  children: [
+                    Icon(InGameAction.navigateRight.icon!, size: 16),
+                    Icon(InGameAction.navigateLeft.icon!, size: 16),
+                    SizedBox(),
+                    Expanded(child: Text(AppLocalizations.of(context).enableSteeringWithPhone)),
+                  ],
+                ),
+                onPressed: () {
+                  final enable = !core.settings.getPhoneSteeringEnabled();
+                  core.settings.setPhoneSteeringEnabled(enable);
+                  core.connection.toggleGyroscopeSteering(enable);
+                  setState(() {});
+                },
+              ),
 
             Gap(12),
             if (!screenshotMode)

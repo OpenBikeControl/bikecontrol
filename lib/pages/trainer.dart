@@ -19,11 +19,11 @@ import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../bluetooth/devices/zwift/protocol/zp.pbenum.dart';
 import '../utils/keymap/apps/supported_app.dart';
 
 class TrainerPage extends StatefulWidget {

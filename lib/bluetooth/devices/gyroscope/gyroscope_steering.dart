@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
@@ -11,6 +10,7 @@ import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -22,6 +22,8 @@ class GyroscopeSteering extends BaseDevice {
         'Phone Steering',
         availableButtons: GyroscopeSteeringButtons.values,
         isBeta: true,
+        uniqueId: 'gyroscope_steering_device',
+        buttonPrefix: 'gyro',
       );
 
   StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;

@@ -1,9 +1,9 @@
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
 
 class BaseNotification {}
 
@@ -12,7 +12,7 @@ class LogNotification extends BaseNotification {
 
   LogNotification(this.message) {
     if (kDebugMode) {
-      print('LogNotification: $message');
+      //print('LogNotification: $message');
     }
   }
 

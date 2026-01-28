@@ -82,21 +82,20 @@ class Keymap {
     }
   }
 
-  ControllerButton getOrAddButton(String name, ControllerButton Function() button) {
+  ControllerButton getOrAddButton(String name, ControllerButton button) {
     final allButtons = keyPairs.expand((kp) => kp.buttons).toSet().toList();
     if (allButtons.none((b) => b.name == name)) {
-      final newButton = button();
       addKeyPair(
         KeyPair(
           touchPosition: Offset.zero,
-          buttons: [newButton],
+          buttons: [button],
           physicalKey: null,
           logicalKey: null,
-          inGameAction: newButton.action,
-          isLongPress: newButton.action?.isLongPress ?? false,
+          inGameAction: button.action,
+          isLongPress: button.action?.isLongPress ?? false,
         ),
       );
-      return newButton;
+      return button;
     } else {
       return allButtons.firstWhere((b) => b.name == name);
     }

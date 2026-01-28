@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pbenum.dart' show LogLevel;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/requirements/multi.dart';

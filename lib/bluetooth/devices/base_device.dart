@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/protocol/zp.pb.dart' show LogLevel;
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
@@ -12,6 +11,7 @@ import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:prop/prop.dart' show LogLevel;
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -19,12 +19,25 @@ import '../messages/notification.dart';
 abstract class BaseDevice {
   final String? _name;
   final bool isBeta;
+  final String uniqueId;
   final List<ControllerButton> availableButtons;
 
-  BaseDevice(this._name, {required this.availableButtons, this.isBeta = false}) {
+  BaseDevice(
+    this._name, {
+    required this.uniqueId,
+    required this.availableButtons,
+    this.isBeta = false,
+    String? buttonPrefix,
+  }) {
     if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
-      // TODO we should verify where the buttons came from
-      final allButtons = core.actionHandler.supportedApp!.keymap.keyPairs.flatMap((e) => e.buttons);
+      final allButtons = core.actionHandler.supportedApp!.keymap.keyPairs
+          .flatMap((e) => e.buttons)
+          .filter(
+            (e) =>
+                e.sourceDeviceId == uniqueId ||
+                (e.sourceDeviceId == null && buttonPrefix != null && e.name.startsWith(buttonPrefix)),
+          )
+          .toSet();
       availableButtons.addAll(allButtons);
     }
   }
@@ -214,7 +227,11 @@ abstract class BaseDevice {
       // should we display this to the user?
       KeymapManager().duplicateSync(currentProfile, '$currentProfile (Copy)');
     }
-    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(key, creator);
+    var createdButton = creator();
+    if (createdButton.sourceDeviceId == null) {
+      createdButton = createdButton.copyWith(sourceDeviceId: uniqueId);
+    }
+    final button = core.actionHandler.supportedApp!.keymap.getOrAddButton(key, createdButton);
 
     if (availableButtons.none((e) => e.name == button.name)) {
       availableButtons.add(button);

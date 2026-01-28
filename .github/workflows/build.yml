@@ -31,7 +31,8 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.41.0-0.0.pre
+  FLUTTER_VERSION_MAC: 3.41.0-0.0.pre
+  FLUTTER_VERSION: 3.38.7
 
 jobs:
   build:
@@ -47,6 +48,9 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Install certificates
         if: inputs.build_mac || inputs.build_ios
@@ -98,11 +102,11 @@ jobs:
         with:
           cache: true
 
-      - name: Set Up Flutter
+      - name: Set Up Flutter maCOS
         uses: subosito/flutter-action@v2
         with:
           channel: 'beta'
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ env.FLUTTER_VERSION_MAC }}
 
       - name: Generate translation files
         run: |
@@ -115,12 +119,18 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
-          args: "-- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
+          args: "-- --obfuscate --split-debug-info=symbols --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
 
       - name: Flutter Release macOS
         if: inputs.build_mac
         run:
-          flutter build macos --release --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}
+          flutter build macos --release --obfuscate --split-debug-info=symbols --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}
+
+      - name: Set Up Flutter Rest
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Decode Keystore
         if: inputs.build_android
@@ -134,7 +144,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: android
-          args: "-- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}"
+          args: "-- --obfuscate --split-debug-info=symbols --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}"
 
       - name: Extract latest changelog
         id: changelog
@@ -202,6 +212,13 @@ jobs:
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
           echo "VERSION=$version" >> $GITHUB_ENV
 
+      - name: Upload Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Symbols
+          path: symbols/
+
         #13 Create Release
       - name: Create Release
         if: inputs.build_github
@@ -253,6 +270,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: windows
+          args: "-- --obfuscate --split-debug-info=symbols-win"
 
       - name: Zip directory (Windows)
         shell: pwsh
@@ -299,3 +317,4 @@ jobs:
           name: Releases
           path: |
             build/windows/x64/runner/Release/bike_control.msix
+            symbols-win/
