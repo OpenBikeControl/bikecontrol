@@ -83,18 +83,18 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
       final bytes = status.writeToBuffer();
 
-      clickEmulator.write(bytes);
+      clickEmulator.writeNotification(bytes);
     }
 
     if (isKeyUp) {
-      clickEmulator.write(
-        Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]),
+      clickEmulator.writeNotification(
+        Uint8List.fromList([0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]),
       );
     }
     if (kDebugMode) {
-      print('Sent action $isKeyUp vs $isKeyDown ${keyPair.inGameAction!.title} to Zwift Emulator');
+      print('Sent action up $isKeyUp vs down $isKeyDown ${keyPair.inGameAction!.title} to Zwift Emulator');
     }
-    return Success('Sent action: ${keyPair.inGameAction!.title}');
+    return Success('Sent action ${isKeyDown ? 'down' : ''} ${isKeyUp ? 'up' : ''}: ${keyPair.inGameAction!.title}');
   }
 }
 
