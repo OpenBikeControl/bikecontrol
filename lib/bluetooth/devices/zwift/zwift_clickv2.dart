@@ -57,6 +57,13 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   @override
+  Future<void> setupHandshake() async {
+    if (isUnlocked) {
+      super.setupHandshake();
+    }
+  }
+
+  @override
   Future<void> handleServices(List<BleService> services) async {
     emulator.handleServices(services);
     await super.handleServices(services);
