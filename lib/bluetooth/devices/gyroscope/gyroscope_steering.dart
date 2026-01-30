@@ -10,7 +10,6 @@ import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
-import 'package:prop/prop.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -120,9 +119,9 @@ class GyroscopeSteering extends BaseDevice {
       if (_estimator.stillTimeSec >= 0.6) {
         _estimator.calibrate(seedBiasZRadPerSec: _estimator.biasZRadPerSec);
         _isCalibrated = true;
-        actionStreamInternal.add(
+        /*actionStreamInternal.add(
           AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibration complete.'),
-        );
+        );*/
       }
       return;
     }
@@ -246,9 +245,6 @@ class GyroscopeSteering extends BaseDevice {
                         _lastGyroUpdate = null;
                         _lastRoundedAngle = null;
                         _lastSteeringButton = null;
-                        actionStreamInternal.add(
-                          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibrating the sensors now.'),
-                        );
                         setState(() {});
                       },
                 child: Text(_isCalibrated ? 'Calibrate' : 'Calibrating...'),
