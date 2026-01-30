@@ -108,6 +108,7 @@ class Keymap {
         KeyPair(
           touchPosition: Offset.zero,
           buttons: [button],
+          inGameAction: button.action,
           physicalKey: null,
           logicalKey: null,
           isLongPress: false,
