@@ -256,7 +256,7 @@ class _ConnectOnboardingStepState extends State<_ConnectOnboardingStep> {
 
           OutlineButton(
             onPressed: () {
-              launchUrlString('https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices');
+              launchUrlString('https://github.com/OpenBikeControl/bikecontrol/?tab=readme-ov-file#supported-devices');
             },
             leading: Icon(Icons.gamepad_outlined),
             child: Text(context.i18n.showSupportedControllers),

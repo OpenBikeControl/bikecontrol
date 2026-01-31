@@ -169,7 +169,7 @@ class _DevicePageState extends State<DevicePage> {
                   OutlineButton(
                     onPressed: () {
                       launchUrlString(
-                        'https://github.com/jonasbark/swiftcontrol/?tab=readme-ov-file#supported-devices',
+                        'https://github.com/OpenBikeControl/bikecontrol/?tab=readme-ov-file#supported-devices',
                       );
                     },
                     leading: Icon(Icons.gamepad_outlined),

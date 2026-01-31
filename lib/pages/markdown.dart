@@ -92,7 +92,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
   Future<void> _loadOnlineVersion() async {
     // load latest version
     final response = await http.get(
-      Uri.parse('https://raw.githubusercontent.com/jonasbark/swiftcontrol/refs/heads/main/${widget.assetPath}'),
+      Uri.parse('https://raw.githubusercontent.com/OpenBikeControl/bikecontrol/refs/heads/main/${widget.assetPath}'),
     );
     if (response.statusCode == 200) {
       final latestMd = response.body;

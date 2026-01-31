@@ -50,7 +50,7 @@ class HelpButton extends StatelessWidget {
                     MenuButton(
                       leading: Icon(RadixIcons.githubLogo),
                       onPressed: (c) {
-                        launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
+                        launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
                       },
                       child: Text('GitHub'),
                     ),
@@ -94,7 +94,7 @@ class HelpButton extends StatelessWidget {
                                           leading: Icon(RadixIcons.githubLogo),
                                           onPressed: () {
                                             Navigator.pop(context);
-                                            launchUrlString('https://github.com/jonasbark/swiftcontrol/issues');
+                                            launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
                                           },
                                           child: const Text('GitHub'),
                                         ),

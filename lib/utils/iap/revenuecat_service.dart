@@ -332,7 +332,7 @@ class RevenueCatService {
     } catch (e, s) {
       final count = _dailyCommandCount ?? 0;
       _dailyCommandCount = count + 1;
-      // e.g. https://github.com/jonasbark/swiftcontrol/issues/279
+      // e.g. https://github.com/OpenBikeControl/bikecontrol/issues/279
       debugPrint('Error incrementing command count: $e');
       recordError(e, s, context: 'Incrementing command count');
     }
