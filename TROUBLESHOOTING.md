@@ -22,7 +22,7 @@ If you don't do that BikeControl will need to reconnect every minute.
 4. Keep it connected for ~10–30 seconds
 5. Close Zwift completely, then connect in BikeControl
 
-Details/updates: https://github.com/jonasbark/swiftcontrol/issues/68
+Details/updates: https://github.com/OpenBikeControl/bikecontrol/issues/68
 
 ## Android: Connection works, buttons work but nothing happens in MyWhoosh and similar
 *
@@ -30,7 +30,7 @@ Details/updates: https://github.com/jonasbark/swiftcontrol/issues/68
   - disable battery optimization for BikeControl
   - enable auto start of BikeControl
   - grant accessibility permission for BikeControl
-- see [https://github.com/jonasbark/swiftcontrol/issues/38](https://github.com/OpenBikeControl/bikecontrol/issues/38) for more details
+- see [https://github.com/OpenBikeControl/bikecontrol/issues/38](https://github.com/OpenBikeControl/bikecontrol/issues/38) for more details
 
 
 ## My Clicks do not get recognized in MyWhoosh, but I am connected / use local control

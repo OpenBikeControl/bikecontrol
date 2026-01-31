@@ -89,7 +89,7 @@ jobs:
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
 
       - name: 🚀 Shorebird Patch macOS
-        if: false # patch doesn't work: https://github.com/jonasbark/swiftcontrol/issues/143
+        if: false # patch doesn't work: https://github.com/OpenBikeControl/bikecontrol/issues/143
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: macos
