@@ -11,7 +11,6 @@ jobs:
   build:
     name: Patch iOS, Android & macOS
     runs-on: macos-latest
-    if: false
 
     permissions:
       id-token: write
