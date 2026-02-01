@@ -143,6 +143,12 @@ class BKMenuButton extends StatelessWidget {
                   await core.settings.reset();
                 },
               ),
+              MenuButton(
+                child: Text('Disconnect'),
+                onPressed: (c) async {
+                  core.connection.disconnectAll();
+                },
+              ),
               MenuDivider(),
             ],
             if (currentPage == BCPage.logs) ...[

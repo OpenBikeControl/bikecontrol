@@ -101,7 +101,7 @@ jobs:
         with:
           platform: android
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}'
+          args: '--allow-asset-diffs --allow-native-diffs -- --obfuscate --split-debug-info=symbols --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}'
 
       - name: 🚀 Shorebird Patch iOS
         uses: shorebirdtech/shorebird-patch@v1
@@ -187,4 +187,4 @@ jobs:
         with:
           platform: windows
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs'
+          args: '--allow-asset-diffs --allow-native-diffs -- --obfuscate --split-debug-info=symbols'

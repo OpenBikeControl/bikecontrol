@@ -94,26 +94,36 @@ class Connection {
       if (_lastScanResult.none((e) => e.deviceId == result.deviceId && e.services.contentEquals(result.services))) {
         _lastScanResult.add(result);
 
-        if (false) {
-          debugPrint('Scan result: ${result.name} - ${result.deviceId}');
+        if (kDebugMode) {
+          debugPrint('Scan result: ${result.name} - ${result.deviceId} - Services: ${result.services}');
         }
 
-        final scanResult = BluetoothDevice.fromScanResult(result);
+        try {
+          final scanResult = BluetoothDevice.fromScanResult(result);
 
-        if (scanResult != null) {
-          _actionStreams.add(
-            LogNotification('Found new device: ${kIsWeb ? scanResult.toString() : scanResult.runtimeType}'),
-          );
-          addDevices([scanResult]);
-        } else {
-          final manufacturerData = result.manufacturerDataList;
-          final data = manufacturerData
-              .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
-              ?.payload;
-          if (data != null && kDebugMode) {
+          if (scanResult != null) {
             _actionStreams.add(
-              LogNotification('Found unknown device ${result.name} with identifier: ${data.firstOrNull}'),
+              LogNotification('Found new device: ${kIsWeb ? scanResult.toString() : scanResult.runtimeType}'),
             );
+            addDevices([scanResult]);
+          } else {
+            final manufacturerData = result.manufacturerDataList;
+            final data = manufacturerData
+                .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
+                ?.payload;
+            if (data != null && kDebugMode) {
+              _actionStreams.add(
+                LogNotification('Found unknown device ${result.name} with identifier: ${data.firstOrNull}'),
+              );
+            }
+          }
+        } catch (e, backtrace) {
+          _actionStreams.add(
+            LogNotification("Error processing scan result for device ${result.deviceId}: $e\n$backtrace"),
+          );
+          if (kDebugMode) {
+            print(e);
+            print("backtrace: $backtrace");
           }
         }
       }

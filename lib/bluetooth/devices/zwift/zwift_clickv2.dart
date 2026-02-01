@@ -12,7 +12,7 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-final FtmsEmulator emulator = FtmsEmulator();
+final FtmsEmulator ftmsEmulator = FtmsEmulator();
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult)
@@ -31,7 +31,7 @@ class ZwiftClickV2 extends ZwiftRide {
           ZwiftButtons.shiftUpRight,
         ],
       ) {
-    emulator.setScanResult(scanResult);
+    ftmsEmulator.setScanResult(scanResult);
   }
 
   @override
@@ -65,13 +65,13 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    emulator.handleServices(services);
+    ftmsEmulator.handleServices(services);
     await super.handleServices(services);
   }
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    if (!emulator.processCharacteristic(characteristic, bytes)) {
+    if (!ftmsEmulator.processCharacteristic(characteristic, bytes)) {
       await super.processCharacteristic(characteristic, bytes);
     }
   }

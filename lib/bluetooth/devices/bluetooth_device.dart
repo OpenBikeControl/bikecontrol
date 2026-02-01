@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_pro.dart';
@@ -47,8 +48,8 @@ abstract class BluetoothDevice extends BaseDevice {
          scanResult.name,
          uniqueId: scanResult.deviceId,
          availableButtons: allowMultiple
-             ? availableButtons.map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
-             : availableButtons,
+             ? availableButtons.toList().map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
+             : availableButtons.toList(),
          isBeta: isBeta,
          buttonPrefix: buttonPrefix,
        ) {
@@ -123,6 +124,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase()) => ShimanoDi2(
           scanResult,
         ),
+        _ when scanResult.services.containsAny(ProxyDevice.proxyServiceUUIDs) && kDebugMode => ProxyDevice(scanResult),
         _ when scanResult.services.contains(SramAxsConstants.SERVICE_UUID.toLowerCase()) => SramAxs(
           scanResult,
         ),

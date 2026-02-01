@@ -36,7 +36,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
 
   void _isConnectedUpdate() {
     setState(() {});
-    if (emulator.isUnlocked.value) {
+    if (ftmsEmulator.isUnlocked.value) {
       _close();
     }
   }
@@ -47,8 +47,8 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     _isInTrialPhase = !IAPManager.instance.isPurchased.value && IAPManager.instance.isTrialExpired;
 
     _ticker = createTicker((_) {
-      if (emulator.waiting.value) {
-        final waitUntil = emulator.connectionDate!.add(Duration(minutes: 1));
+      if (ftmsEmulator.waiting.value) {
+        final waitUntil = ftmsEmulator.connectionDate!.add(Duration(minutes: 1));
         final secondsUntil = waitUntil.difference(DateTime.now()).inSeconds;
 
         if (mounted) {
@@ -79,13 +79,13 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         core.settings.setObpMdnsEnabled(false);
       }
 
-      emulator.isUnlocked.value = false;
-      emulator.alreadyUnlocked.value = false;
-      emulator.waiting.value = false;
-      emulator.isConnected.addListener(_isConnectedUpdate);
-      emulator.isUnlocked.addListener(_isConnectedUpdate);
-      emulator.alreadyUnlocked.addListener(_isConnectedUpdate);
-      emulator.startServer().then((_) {}).catchError((e, s) {
+      ftmsEmulator.isUnlocked.value = false;
+      ftmsEmulator.alreadyUnlocked.value = false;
+      ftmsEmulator.waiting.value = false;
+      ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
+      ftmsEmulator.isUnlocked.addListener(_isConnectedUpdate);
+      ftmsEmulator.alreadyUnlocked.addListener(_isConnectedUpdate);
+      ftmsEmulator.startServer().then((_) {}).catchError((e, s) {
         recordError(e, s, context: 'Emulator');
         core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
       });
@@ -96,10 +96,10 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
   void dispose() {
     _ticker.dispose();
     if (!_isInTrialPhase) {
-      emulator.isConnected.removeListener(_isConnectedUpdate);
-      emulator.isUnlocked.removeListener(_isConnectedUpdate);
-      emulator.alreadyUnlocked.removeListener(_isConnectedUpdate);
-      emulator.stop();
+      ftmsEmulator.isConnected.removeListener(_isConnectedUpdate);
+      ftmsEmulator.isUnlocked.removeListener(_isConnectedUpdate);
+      ftmsEmulator.alreadyUnlocked.removeListener(_isConnectedUpdate);
+      ftmsEmulator.stop();
 
       if (_wasZwiftMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.startServer();
@@ -171,30 +171,30 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
                 closeDrawer(context);
               },
             ),
-          ] else if (!emulator.isConnected.value) ...[
+          ] else if (!ftmsEmulator.isConnected.value) ...[
             Text(AppLocalizations.of(context).unlock_openZwift).li,
             Text(AppLocalizations.of(context).unlock_connectToBikecontrol).li,
             SizedBox(height: 32),
             Text(AppLocalizations.of(context).unlock_bikecontrolAndZwiftNetwork).small,
-          ] else if (emulator.alreadyUnlocked.value) ...[
+          ] else if (ftmsEmulator.alreadyUnlocked.value) ...[
             Text(AppLocalizations.of(context).unlock_yourZwiftClickMightBeUnlockedAlready),
             SizedBox(height: 8),
             Text(AppLocalizations.of(context).unlock_confirmByPressingAButtonOnYourDevice).small,
-          ] else if (!emulator.isUnlocked.value)
+          ] else if (!ftmsEmulator.isUnlocked.value)
             Text(AppLocalizations.of(context).unlock_waitingForZwift)
           else
             Text('Zwift Click is unlocked! You can now close this page.'),
           SizedBox(height: 32),
           if (!_showManualSteps && !_isInTrialPhase) ...[
-            if (emulator.waiting.value && _secondsRemaining >= 0)
+            if (ftmsEmulator.waiting.value && _secondsRemaining >= 0)
               Center(child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60), size: 20))
-            else if (emulator.alreadyUnlocked.value)
+            else if (ftmsEmulator.alreadyUnlocked.value)
               Center(child: Icon(Icons.lock_clock))
             else
               SmallProgressIndicator(),
             SizedBox(height: 20),
           ],
-          if (!emulator.isUnlocked.value && !_showManualSteps) ...[
+          if (!ftmsEmulator.isUnlocked.value && !_showManualSteps) ...[
             if (!_isInTrialPhase) ...[
               SizedBox(height: 32),
               Center(child: Text(AppLocalizations.of(context).unlock_notWorking).small),
