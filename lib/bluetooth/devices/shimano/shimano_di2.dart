@@ -30,6 +30,9 @@ class ShimanoDi2 extends BluetoothDevice {
   bool _isInitialized = false;
 
   @override
+  String get buttonExplanation => 'Click a D-Fly button to configure them.';
+
+  @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     if (characteristic.toLowerCase() == ShimanoDi2Constants.D_FLY_CHANNEL_UUID) {
       final channels = bytes.sublist(1);

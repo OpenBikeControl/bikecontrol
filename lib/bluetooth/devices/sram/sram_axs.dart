@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -25,10 +27,15 @@ class SramAxs extends BluetoothDevice {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    final service = services.firstWhere(
+    final service = services.firstOrNullWhere(
       (e) => e.uuid.toLowerCase() == SramAxsConstants.SERVICE_UUID_RELEVANT.toLowerCase(),
-      orElse: () => throw Exception('Service not found: ${SramAxsConstants.SERVICE_UUID_RELEVANT}'),
     );
+
+    if (service == null) {
+      actionStreamInternal.add(LogNotification('SramAxs: Relevant service not found: ${SramAxsConstants.SERVICE_UUID_RELEVANT}'));
+      return;
+    }
+
     final characteristic = service.characteristics.firstWhere(
       (e) => e.uuid.toLowerCase() == SramAxsConstants.TRIGGER_UUID.toLowerCase(),
       orElse: () => throw Exception('Characteristic not found: ${SramAxsConstants.TRIGGER_UUID}'),
