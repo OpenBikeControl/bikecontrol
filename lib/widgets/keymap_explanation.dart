@@ -101,6 +101,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         for (final devicePair in keyButtonMap.entries) ...[
           SizedBox(height: 12),
           ColoredTitle(text: devicePair.key.toString()),
+          if (devicePair.value.isEmpty && devicePair.key.buttonExplanation != null)
+            Text(
+              devicePair.key.buttonExplanation!,
+              style: TextStyle(height: 1),
+            ).muted,
           for (final keyPair in devicePair.value) ...[
             Button.card(
               style: ButtonStyle.card().withBackgroundColor(color: Theme.of(context).colorScheme.background),

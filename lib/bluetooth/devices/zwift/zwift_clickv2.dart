@@ -157,6 +157,15 @@ class ZwiftClickV2 extends ZwiftRide {
                           style: ButtonStyle.primary(size: ButtonSize.small),
                           child: Text(AppLocalizations.of(context).unlock_unlockNow),
                         ),
+                        if (kDebugMode && !isUnlocked)
+                          Button(
+                            onPressed: () {
+                              super.setupHandshake();
+                            },
+                            leading: const Icon(Icons.handshake),
+                            style: ButtonStyle.primary(size: ButtonSize.small),
+                            child: Text('Handshake'),
+                          ),
                       ],
                     ),
                   ],
