@@ -32,4 +32,7 @@ class RemoteActions extends BaseActions {
     // for remote actions we use the relative position only
     return keyPair.touchPosition;
   }
+
+  @override
+  void cleanup() {}
 }

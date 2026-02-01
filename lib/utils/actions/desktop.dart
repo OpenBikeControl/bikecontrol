@@ -96,4 +96,7 @@ class DesktopActions extends BaseActions {
       }
     }
   }
+
+  @override
+  void cleanup() {}
 }
