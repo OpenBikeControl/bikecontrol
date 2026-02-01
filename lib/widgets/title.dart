@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -49,11 +50,17 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     if (updater.isAvailable) {
-      updater.readCurrentPatch().then((patch) {
-        setState(() {
-          shorebirdPatch = patch;
-        });
-      });
+      updater
+          .readCurrentPatch()
+          .then((patch) {
+            core.connection.signalNotification(LogNotification('Current Shorebird patch: $patch'));
+            setState(() {
+              shorebirdPatch = patch;
+            });
+          })
+          .catchError((e, s) {
+            recordError(e, s, context: 'Shorebird');
+          });
     }
 
     if (packageInfoValue == null) {
@@ -84,6 +91,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
       return;
     } else if (updater.isAvailable) {
       final updateStatus = await updater.checkForUpdate();
+      core.connection.signalNotification(LogNotification('Shorebird update status: $updateStatus'));
       if (updateStatus == UpdateStatus.outdated) {
         updater
             .update()
@@ -100,8 +108,8 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
       }
       if (_updateType == UpdateType.shorebird) {
         final nextPatch = await updater.readNextPatch();
+        final currentVersion = Version.parse(packageInfoValue!.version);
         setState(() {
-          final currentVersion = Version.parse(packageInfoValue!.version);
           _newVersion = Version(
             currentVersion.major,
             currentVersion.minor,
