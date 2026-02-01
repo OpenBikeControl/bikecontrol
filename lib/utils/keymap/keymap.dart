@@ -254,6 +254,9 @@ class KeyPair {
     }
     final baseKey = logicalKey?.keyLabel ?? text ?? 'Not assigned';
 
+    if (physicalKey == null || !core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
+      return 'Not assigned';
+    }
     if (modifiers.isEmpty || baseKey == 'Not assigned') {
       if (baseKey.trim().isEmpty) {
         return 'Space';
