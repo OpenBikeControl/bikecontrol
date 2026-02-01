@@ -290,6 +290,7 @@ class NotificationRequirement extends PlatformRequirement {
         core.connection.disconnectAll();
       }
       if (message == 'close') {
+        core.actionHandler.cleanup();
         core.connection.stop();
         SystemNavigator.pop();
         AndroidFlutterLocalNotificationsPlugin().stopForegroundService();

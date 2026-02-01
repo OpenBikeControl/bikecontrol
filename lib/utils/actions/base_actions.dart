@@ -49,6 +49,8 @@ abstract class BaseActions {
 
   BaseActions({required this.supportedModes});
 
+  void cleanup();
+
   void init(SupportedApp? supportedApp) {
     this.supportedApp = supportedApp;
     debugPrint('Supported app: ${supportedApp?.name ?? "None"}');
@@ -183,4 +185,7 @@ class StubActions extends BaseActions {
     performedActions.add((button, isKeyDown, isKeyUp));
     return Future.value(Ignored('${button.name.splitByUpperCase()} clicked'));
   }
+
+  @override
+  void cleanup() {}
 }

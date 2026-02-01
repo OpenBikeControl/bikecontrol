@@ -17,13 +17,15 @@ class AndroidActions extends BaseActions {
 
   final accessibilityHandler = Accessibility();
   StreamSubscription<void>? _keymapUpdateSubscription;
+  StreamSubscription<WindowEvent>? _accessibilitySubscription;
+  StreamSubscription<AKeyEvent>? _hidKeyPressedSubscription;
 
   AndroidActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.media]});
 
   @override
   void init(SupportedApp? supportedApp) {
     super.init(supportedApp);
-    streamEvents().listen((windowEvent) {
+    _accessibilitySubscription = streamEvents().listen((windowEvent) {
       if (supportedApp != null) {
         windowInfo = windowEvent;
       }
@@ -38,7 +40,7 @@ class AndroidActions extends BaseActions {
       updateHandledKeys();
     });
 
-    hidKeyPressed().listen((keyPressed) async {
+    _hidKeyPressedSubscription = hidKeyPressed().listen((keyPressed) async {
       final hidDevice = HidDevice(keyPressed.source);
       final button = hidDevice.getOrAddButton(keyPressed.hidKey, () => ControllerButton(keyPressed.hidKey));
 
@@ -128,5 +130,12 @@ class AndroidActions extends BaseActions {
         .toList();
 
     accessibilityHandler.setHandledKeys(handledKeys);
+  }
+
+  @override
+  void cleanup() {
+    _accessibilitySubscription?.cancel();
+    _keymapUpdateSubscription?.cancel();
+    _hidKeyPressedSubscription?.cancel();
   }
 }
