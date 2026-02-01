@@ -150,6 +150,12 @@ class _DevicePageState extends State<DevicePage> {
                     Icon(InGameAction.navigateLeft.icon!, size: 16),
                     SizedBox(),
                     Expanded(child: Text(AppLocalizations.of(context).enableSteeringWithPhone)),
+                    IconButton.secondary(
+                      icon: Icon(Icons.ondemand_video),
+                      onPressed: () {
+                        launchUrlString('https://youtube.com/shorts/zqD5ARGIVmE?feature=share');
+                      },
+                    ),
                   ],
                 ),
                 onPressed: () {

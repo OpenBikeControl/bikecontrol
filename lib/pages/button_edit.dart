@@ -20,6 +20,7 @@ import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ButtonEditPage extends StatefulWidget {
   final Keymap keymap;
@@ -85,13 +86,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final trainerApp = core.settings.getTrainerApp();
-
-    final actionsWithInGameAction = trainerApp?.keymap.keyPairs
-        .where((kp) => kp.inGameAction != null)
-        .distinctBy((kp) => kp.inGameAction)
-        .toList();
-
     return IntrinsicWidth(
       child: Scrollbar(
         controller: _scrollController,
@@ -185,119 +179,43 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 if (core.logic.showLocalRemoteOptions) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: 'Local / Remote Setting'),
-                  if (trainerApp != null && trainerApp is! CustomApp && actionsWithInGameAction?.isEmpty != true) ...[
-                    Builder(
-                      builder: (context) => SelectableCard(
-                        icon: null,
-                        title: Text(context.i18n.predefinedAction(trainerApp.name)),
-                        isActive: false,
-                        onPressed: () {
-                          if (!core.settings.getLocalEnabled()) {
-                            buildToast(
-                              navigatorKey.currentContext!,
-                              title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
-                            );
-                          } else {
-                            showDropdown(
-                              context: context,
-                              builder: (c) => DropdownMenu(
-                                children: actionsWithInGameAction!.map((keyPairAction) {
-                                  return MenuButton(
-                                    leading: keyPairAction.inGameAction?.icon != null
-                                        ? Icon(keyPairAction.inGameAction!.icon)
-                                        : null,
-                                    onPressed: (_) {
-                                      // Copy all properties from the selected predefined action
-                                      if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
-                                        _keyPair.physicalKey = keyPairAction.physicalKey;
-                                        _keyPair.logicalKey = keyPairAction.logicalKey;
-                                        _keyPair.modifiers = List.of(keyPairAction.modifiers);
-                                      } else {
-                                        _keyPair.physicalKey = null;
-                                        _keyPair.logicalKey = null;
-                                        _keyPair.modifiers = [];
-                                      }
-                                      if (core.actionHandler.supportedModes.contains(SupportedMode.touch)) {
-                                        _keyPair.touchPosition = keyPairAction.touchPosition;
-                                      } else {
-                                        _keyPair.touchPosition = Offset.zero;
-                                      }
-                                      _keyPair.isLongPress = keyPairAction.isLongPress;
-                                      _keyPair.inGameAction = keyPairAction.inGameAction;
-                                      _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
-                                      _keyPair.androidAction = null;
-                                      setState(() {});
-                                    },
-                                    child: Text(keyPairAction.toString()),
-                                  );
-                                }).toList(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+
                   if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
-                    SelectableCard(
-                      icon: RadixIcons.keyboard,
-                      title: Text(context.i18n.simulateKeyboardShortcut),
-                      isActive:
-                          _keyPair.physicalKey != null && !_keyPair.isSpecialKey && core.settings.getLocalEnabled(),
-                      value: _keyPair.toString(),
-                      onPressed: () async {
-                        if (!core.settings.getLocalEnabled()) {
-                          buildToast(
-                            navigatorKey.currentContext!,
-                            title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
-                          );
-                        } else {
-                          await showDialog<void>(
-                            context: context,
-                            barrierDismissible: false, // enable Escape key
-                            builder: (c) => HotKeyListenerDialog(
-                              customApp: core.actionHandler.supportedApp! as CustomApp,
-                              keyPair: _keyPair,
-                            ),
-                          );
-                          _keyPair.androidAction = null;
-                          setState(() {});
-                          widget.onUpdate();
-                        }
+                    Builder(
+                      builder: (context) {
+                        return SelectableCard(
+                          icon: RadixIcons.keyboard,
+                          title: Text(context.i18n.simulateKeyboardShortcut),
+                          isActive:
+                              _keyPair.physicalKey != null && !_keyPair.isSpecialKey && core.settings.getLocalEnabled(),
+                          value: _keyPair.toString(),
+                          onPressed: () async {
+                            await _showModeDropdown(context, SupportedMode.keyboard);
+                          },
+                        );
                       },
                     ),
                   if (core.actionHandler.supportedModes.contains(SupportedMode.touch))
-                    SelectableCard(
-                      title: Text(context.i18n.simulateTouch),
-                      icon: core.actionHandler is AndroidActions ? Icons.touch_app_outlined : BootstrapIcons.mouse,
-                      isActive:
-                          ((core.actionHandler is AndroidActions || _keyPair.physicalKey == null) &&
-                              _keyPair.touchPosition != Offset.zero) &&
-                          core.settings.getLocalEnabled(),
-                      value: _keyPair.toString(),
-                      onPressed: () async {
-                        if (!core.settings.getLocalEnabled()) {
-                          buildToast(
-                            navigatorKey.currentContext!,
-                            title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
-                          );
-                        } else {
-                          if (_keyPair.touchPosition == Offset.zero) {
-                            _keyPair.touchPosition = Offset(50, 50);
-                          }
-                          _keyPair.physicalKey = null;
-                          _keyPair.logicalKey = null;
-                          _keyPair.androidAction = null;
-                          await Navigator.of(context).push<bool?>(
-                            MaterialPageRoute(
-                              builder: (c) => TouchAreaSetupPage(
-                                keyPair: _keyPair,
-                              ),
-                            ),
-                          );
-                          setState(() {});
-                          widget.onUpdate();
-                        }
+                    Builder(
+                      builder: (context) {
+                        return SelectableCard(
+                          title: Text(context.i18n.simulateTouch),
+                          icon: core.actionHandler is AndroidActions ? Icons.touch_app_outlined : BootstrapIcons.mouse,
+                          isActive:
+                              ((core.actionHandler is AndroidActions || _keyPair.physicalKey == null) &&
+                                  _keyPair.touchPosition != Offset.zero) &&
+                              core.settings.getLocalEnabled(),
+                          value: _keyPair.toString(),
+                          trailing: IconButton.secondary(
+                            icon: Icon(Icons.ondemand_video),
+                            onPressed: () {
+                              launchUrlString('https://youtube.com/shorts/SvLOQqu2Dqg?feature=share');
+                            },
+                          ),
+                          onPressed: () async {
+                            await _showModeDropdown(context, SupportedMode.touch);
+                          },
+                        );
                       },
                     ),
 
@@ -308,6 +226,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: _keyPair.isSpecialKey && core.settings.getLocalEnabled(),
                         title: Text(context.i18n.simulateMediaKey),
                         value: _keyPair.toString(),
+                        trailing: IconButton.secondary(
+                          icon: Icon(Icons.ondemand_video),
+                          onPressed: () {
+                            launchUrlString('https://youtube.com/shorts/ClY1eTnmAv0?feature=share');
+                          },
+                        ),
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
                             buildToast(
@@ -411,6 +335,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: _keyPair.androidAction != null && core.settings.getLocalEnabled(),
                         title: Text(AppLocalizations.of(context).androidSystemAction),
                         value: _keyPair.androidAction?.title,
+                        trailing: IconButton.secondary(
+                          icon: Icon(Icons.ondemand_video),
+                          onPressed: () {
+                            launchUrlString('https://youtube.com/shorts/zqD5ARGIVmE?feature=share');
+                          },
+                        ),
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
                             buildToast(navigatorKey.currentContext!, title: 'Enable Local Connection method, first.');
@@ -589,11 +519,127 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       );
     }).toList();
   }
+
+  Future<void> _showModeDropdown(BuildContext context, SupportedMode supportedMode) async {
+    final trainerApp = core.settings.getTrainerApp();
+
+    final actionsWithInGameAction = trainerApp?.keymap.keyPairs
+        .where(
+          (kp) =>
+              kp.inGameAction != null &&
+              switch (supportedMode) {
+                SupportedMode.keyboard => kp.physicalKey != null,
+                SupportedMode.touch => kp.touchPosition != Offset.zero,
+                SupportedMode.media => kp.isSpecialKey,
+              },
+        )
+        .distinctBy((kp) => kp.inGameAction)
+        .toList();
+
+    if (!core.settings.getLocalEnabled()) {
+      return buildToast(
+        navigatorKey.currentContext!,
+        title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
+      );
+    } else if (actionsWithInGameAction != null && actionsWithInGameAction.isNotEmpty) {
+      showDropdown(
+        context: context,
+        builder: (c) => DropdownMenu(
+          children: [
+            MenuLabel(child: Text(context.i18n.predefinedAction(trainerApp?.name ?? 'App'))),
+            ...actionsWithInGameAction.map((keyPairAction) {
+              return MenuButton(
+                leading: keyPairAction.inGameAction?.icon != null ? Icon(keyPairAction.inGameAction!.icon) : null,
+                onPressed: (_) {
+                  // Copy all properties from the selected predefined action
+                  if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
+                    _keyPair.physicalKey = keyPairAction.physicalKey;
+                    _keyPair.logicalKey = keyPairAction.logicalKey;
+                    _keyPair.modifiers = List.of(keyPairAction.modifiers);
+                  } else {
+                    _keyPair.physicalKey = null;
+                    _keyPair.logicalKey = null;
+                    _keyPair.modifiers = [];
+                  }
+                  if (core.actionHandler.supportedModes.contains(SupportedMode.touch)) {
+                    _keyPair.touchPosition = keyPairAction.touchPosition;
+                  } else {
+                    _keyPair.touchPosition = Offset.zero;
+                  }
+                  _keyPair.isLongPress = keyPairAction.isLongPress;
+                  _keyPair.inGameAction = keyPairAction.inGameAction;
+                  _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
+                  _keyPair.androidAction = null;
+                  setState(() {});
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(keyPairAction.inGameAction?.title ?? ''),
+                    Text(switch (supportedMode) {
+                      SupportedMode.keyboard => keyPairAction.logicalKey?.keyLabel ?? 'Not assigned',
+                      SupportedMode.touch =>
+                        'X:${keyPairAction.touchPosition.dx.toInt()}, Y:${keyPairAction.touchPosition.dy.toInt()}',
+                      SupportedMode.media => throw UnimplementedError(),
+                    }).muted.small,
+                  ],
+                ),
+              );
+            }),
+            MenuDivider(),
+            MenuLabel(child: Text('Custom ${supportedMode.name.capitalize()} action')),
+            MenuButton(
+              leading: Icon(Icons.edit_outlined),
+              onPressed: (_) {
+                _editAction(supportedMode);
+              },
+              child: Text('Custom'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      _editAction(supportedMode);
+    }
+  }
+
+  Future<void> _editAction(SupportedMode supportedMode) async {
+    if (supportedMode == SupportedMode.keyboard) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false, // enable Escape key
+        builder: (c) => HotKeyListenerDialog(
+          customApp: core.actionHandler.supportedApp! as CustomApp,
+          keyPair: _keyPair,
+        ),
+      );
+      _keyPair.androidAction = null;
+      setState(() {});
+      widget.onUpdate();
+    } else if (supportedMode == SupportedMode.touch) {
+      if (_keyPair.touchPosition == Offset.zero) {
+        _keyPair.touchPosition = Offset(50, 50);
+      }
+      _keyPair.physicalKey = null;
+      _keyPair.logicalKey = null;
+      _keyPair.androidAction = null;
+      await Navigator.of(context).push<bool?>(
+        MaterialPageRoute(
+          builder: (c) => TouchAreaSetupPage(
+            keyPair: _keyPair,
+          ),
+        ),
+      );
+      setState(() {});
+      widget.onUpdate();
+    }
+  }
 }
 
 class SelectableCard extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
+  final Widget? trailing;
   final IconData? icon;
   final bool isActive;
   final String? value;
@@ -604,6 +650,7 @@ class SelectableCard extends StatelessWidget {
     required this.title,
     this.icon,
     this.subtitle,
+    this.trailing,
     required this.isActive,
     this.value,
     required this.onPressed,
@@ -648,6 +695,7 @@ class SelectableCard extends StatelessWidget {
               : null,
           title: title,
           subtitle: value != null && isActive ? Text(value!) : subtitle,
+          trailing: trailing,
         ),
       ),
     );
