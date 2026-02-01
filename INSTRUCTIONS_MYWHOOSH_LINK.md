@@ -1,11 +1,12 @@
 ## Instructions for using the MyWhoosh "Link" connection method
 *
-1) launch MyWhoosh on the device of your choice
-2) make sure the "MyWhoosh Link" app is not active at the same time as BikeControl
-3) open BikeControl, follow the on-screen instructions
+1) Launch MyWhoosh on the device of your choice
+2) Only needed once: open the "MyWhoosh Link" app on the same device where you want to use BikeControl. Make sure the Link app is able to connect to MyWhoosh. If it does, close MyWhoosh Link.
+3) Make sure the "MyWhoosh Link" app is not active at the same time as BikeControl
+4) Open BikeControl, enable the Link connection method, and follow the on-screen instructions
 
 
-Here's a video with a few explanations. Note it uses an older version, but the idea is the same.
+Here's a video with a few explanations. Note that it uses an older version, but the idea is the same.
 
 [![BikeControl Instruction for iOS](https://img.youtube.com/vi/p8sgQhuufeI/0.jpg)](https://www.youtube.com/watch?v=p8sgQhuufeI)
 [https://www.youtube.com/watch?v=p8sgQhuufeI](https://www.youtube.com/watch?v=p8sgQhuufeI)
