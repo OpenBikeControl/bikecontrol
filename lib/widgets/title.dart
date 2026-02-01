@@ -255,7 +255,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
         });
       } else if (Platform.isWindows) {
         setState(() {
-          _updateType = UpdateType.appStore;
+          _updateType = UpdateType.windowsStore;
           _newVersion = parsed;
         });
       }
