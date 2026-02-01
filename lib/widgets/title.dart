@@ -104,7 +104,10 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
               buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
             });
       } else if (updateStatus == UpdateStatus.restartRequired) {
-        _updateType = UpdateType.shorebird;
+        if (Platform.isIOS) {
+          // TODO other platforms can't be trusted https://github.com/shorebirdtech/shorebird/issues/3498
+          _updateType = UpdateType.shorebird;
+        }
       }
       if (_updateType == UpdateType.shorebird) {
         final nextPatch = await updater.readNextPatch();

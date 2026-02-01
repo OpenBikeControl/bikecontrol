@@ -110,23 +110,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
             Button.card(
               style: ButtonStyle.card().withBackgroundColor(color: Theme.of(context).colorScheme.background),
               onPressed: () async {
-                if (core.actionHandler.supportedApp is! CustomApp) {
-                  final currentProfile = core.actionHandler.supportedApp!.name;
-                  final newName = await KeymapManager().duplicate(
-                    context,
-                    currentProfile,
-                    skipName: '$currentProfile (Copy)',
-                  );
-                  if (newName != null && context.mounted) {
-                    buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
-                    final selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
-                      (e) => e == keyPair,
-                    );
-                    _openKeyPairEditor(selectedKeyPair);
-                  }
-                } else {
-                  _openKeyPairEditor(keyPair);
-                }
+                _openKeyPairEditor(keyPair);
               },
               child: Row(
                 children: [
@@ -181,7 +165,22 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     );
   }
 
-  Future<void> _openKeyPairEditor(KeyPair selectedKeyPair) async {
+  Future<void> _openKeyPairEditor(KeyPair keyPair) async {
+    KeyPair selectedKeyPair = keyPair;
+    if (core.actionHandler.supportedApp is! CustomApp) {
+      final currentProfile = core.actionHandler.supportedApp!.name;
+      final newName = await KeymapManager().duplicate(
+        context,
+        currentProfile,
+        skipName: '$currentProfile (Copy)',
+      );
+      if (newName != null && context.mounted) {
+        buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
+        selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
+          (e) => e == keyPair,
+        );
+      }
+    }
     _isDrawerOpen = true;
     await openDrawer(
       context: context,
