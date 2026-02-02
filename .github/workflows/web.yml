@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - web
-      - wahoo_kickr_bike_shift
       - main
     paths:
       - '.github/workflows/web.yml'
@@ -17,7 +16,6 @@ jobs:
   build:
     name: Build Web
     runs-on: macos-latest
-    if: false
 
     permissions:
       id-token: write
@@ -28,9 +26,6 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          token: ${{ secrets.PAT_TOKEN }}
 
         #3 Setup Flutter
       - name: Set Up Flutter
@@ -49,7 +44,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release --base-href "/swiftcontrol/"
+        run: flutter build web --release --base-href "/bikecontrol/"
 
       - name: Upload static files as artifact
         id: deployment
