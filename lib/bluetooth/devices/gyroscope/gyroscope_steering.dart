@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
@@ -27,6 +28,7 @@ class GyroscopeSteering extends BaseDevice {
 
   StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
+  StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
 
   // Calibration state
   final SteeringEstimator _estimator = SteeringEstimator();
@@ -44,7 +46,17 @@ class GyroscopeSteering extends BaseDevice {
 
   // Debounce timer for PWM-like keypress behavior
   Timer? _keypressTimer;
-  bool _isProcessingKeypresses = false;
+
+  // Magnetometer mode
+  bool _useMagnetometer = false;
+  double? _magnetometerCalibrationHeading;
+  double _currentMagnetometerAngle = 0.0;
+  final List<double> _magnetometerCalibrationSamples = [];
+
+  // Magnetometer filtering state
+  double? _filteredMagX;
+  double? _filteredMagY;
+  static const double _magnetometerFilterAlpha = 0.15; // Lower = more smoothing
 
   // Configuration (can be made customizable later)
   static const double STEERING_THRESHOLD = 5.0; // degrees
@@ -54,14 +66,27 @@ class GyroscopeSteering extends BaseDevice {
   static const double COMPLEMENTARY_FILTER_ALPHA = 0.98; // Weight for gyroscope
   static const double LOW_PASS_FILTER_ALPHA = 0.9; // Smoothing factor
 
-  @override
-  Future<void> connect() async {
-    if (isConnected) {
-      return;
-    }
+  /// Start listening to the appropriate sensors based on the current mode
+  Future<void> _startSensorStreams() async {
+    // Cancel all existing subscriptions first
+    await _gyroscopeSubscription?.cancel();
+    await _accelerometerSubscription?.cancel();
+    await _magnetometerSubscription?.cancel();
+    _gyroscopeSubscription = null;
+    _accelerometerSubscription = null;
+    _magnetometerSubscription = null;
 
-    try {
-      // Start listening to sensors
+    if (_useMagnetometer) {
+      // Magnetometer mode: only listen to magnetometer
+      _magnetometerSubscription = magnetometerEventStream().listen(
+        _handleMagnetometerEvent,
+        onError: (error) {
+          actionStreamInternal.add(LogNotification('Magnetometer error: $error'));
+        },
+      );
+      actionStreamInternal.add(LogNotification('Started magnetometer stream'));
+    } else {
+      // Gyroscope mode: listen to gyroscope and accelerometer
       _gyroscopeSubscription = gyroscopeEventStream().listen(
         _handleGyroscopeEvent,
         onError: (error) {
@@ -75,6 +100,19 @@ class GyroscopeSteering extends BaseDevice {
           actionStreamInternal.add(LogNotification('Accelerometer error: $error'));
         },
       );
+      actionStreamInternal.add(LogNotification('Started gyroscope and accelerometer streams'));
+    }
+  }
+
+  @override
+  Future<void> connect() async {
+    if (isConnected) {
+      return;
+    }
+
+    try {
+      // Start listening to sensors based on current mode
+      await _startSensorStreams();
 
       isConnected = true;
       actionStreamInternal.add(LogNotification('Gyroscope Steering: Connected - Calibrating...'));
@@ -134,6 +172,83 @@ class GyroscopeSteering extends BaseDevice {
     _estimator.updateAccel(x: event.x, y: event.y, z: event.z);
   }
 
+  void _handleMagnetometerEvent(MagnetometerEvent event) {
+    // Magnetometer mode: calculate heading from X and Y components
+    // This is more stable than using a single axis
+
+    // Apply low-pass filter to reduce noise
+    if (_filteredMagX == null || _filteredMagY == null) {
+      // Initialize on first reading
+      _filteredMagX = event.x;
+      _filteredMagY = event.y;
+    } else {
+      // Exponential moving average (low-pass filter)
+      _filteredMagX = _magnetometerFilterAlpha * event.x + (1 - _magnetometerFilterAlpha) * _filteredMagX!;
+      _filteredMagY = _magnetometerFilterAlpha * event.y + (1 - _magnetometerFilterAlpha) * _filteredMagY!;
+    }
+
+    // Calculate heading from filtered X and Y components
+    // atan2(y, x) gives the angle in radians, convert to degrees
+    double heading = atan2(_filteredMagY!, _filteredMagX!) * (180 / pi);
+
+    // Normalize heading to 0-360 range
+    if (heading < 0) heading += 360;
+
+    if (kDebugMode) {
+      print(
+        'Magnetometer - X: ${event.x.toStringAsFixed(2)}, Y: ${event.y.toStringAsFixed(2)}, '
+        'Filtered X: ${_filteredMagX!.toStringAsFixed(2)}, Filtered Y: ${_filteredMagY!.toStringAsFixed(2)}, '
+        'Heading: ${heading.toStringAsFixed(2)}°',
+      );
+    }
+
+    // During calibration, collect heading samples
+    if (!_isCalibrated) {
+      _magnetometerCalibrationSamples.add(heading);
+
+      // After 30 samples (~1 second at typical rates), calculate calibration heading
+      if (_magnetometerCalibrationSamples.length >= 30) {
+        // For heading, we need to handle the circular nature (0° and 360° are the same)
+        // Use circular mean calculation
+        double sumSin = 0, sumCos = 0;
+        for (var h in _magnetometerCalibrationSamples) {
+          final radians = h * (pi / 180);
+          sumSin += sin(radians);
+          sumCos += cos(radians);
+        }
+        final avgSin = sumSin / _magnetometerCalibrationSamples.length;
+        final avgCos = sumCos / _magnetometerCalibrationSamples.length;
+        _magnetometerCalibrationHeading = atan2(avgSin, avgCos) * (180 / pi);
+        if (_magnetometerCalibrationHeading! < 0)
+          _magnetometerCalibrationHeading = _magnetometerCalibrationHeading! + 360;
+
+        _magnetometerCalibrationSamples.clear();
+        _isCalibrated = true;
+        actionStreamInternal.add(
+          LogNotification(
+            'Magnetometer calibration complete. Reference heading: ${_magnetometerCalibrationHeading!.toStringAsFixed(2)}°',
+          ),
+        );
+      }
+      return;
+    }
+
+    // Calculate steering angle relative to calibrated heading
+    // This is the angular difference, accounting for wrap-around
+    double angleDeg = heading - _magnetometerCalibrationHeading!;
+
+    // Normalize to -180 to +180 range
+    if (angleDeg > 180) {
+      angleDeg -= 360;
+    } else if (angleDeg < -180) {
+      angleDeg += 360;
+    }
+
+    _currentMagnetometerAngle = angleDeg;
+
+    _processSteeringAngle(angleDeg);
+  }
+
   void _processSteeringAngle(double steeringAngleDeg) {
     final roundedAngle = steeringAngleDeg.round();
 
@@ -179,13 +294,20 @@ class GyroscopeSteering extends BaseDevice {
   Future<void> disconnect() async {
     await _gyroscopeSubscription?.cancel();
     await _accelerometerSubscription?.cancel();
+    await _magnetometerSubscription?.cancel();
     _gyroscopeSubscription = null;
     _accelerometerSubscription = null;
+    _magnetometerSubscription = null;
     _keypressTimer?.cancel();
     isConnected = false;
     _isCalibrated = false;
     _hasAccelData = false;
     _estimator.reset();
+    _magnetometerCalibrationHeading = null;
+    _magnetometerCalibrationSamples.clear();
+    _currentMagnetometerAngle = 0.0;
+    _filteredMagX = null;
+    _filteredMagY = null;
     actionStreamInternal.add(LogNotification('Gyroscope Steering: Disconnected'));
   }
 
@@ -207,6 +329,38 @@ class GyroscopeSteering extends BaseDevice {
               if (isBeta) BetaPill(),
             ],
           ),
+          // Magnetometer mode toggle
+          Checkbox(
+            trailing: Expanded(child: Text('Use Magnetometer Mode')),
+            state: _useMagnetometer ? CheckboxState.checked : CheckboxState.unchecked,
+            onChanged: (value) async {
+              setState(() {
+                _useMagnetometer = value == CheckboxState.checked;
+                // Reset calibration when switching modes
+                _isCalibrated = false;
+                _hasAccelData = false;
+                _estimator.reset();
+                _lastGyroUpdate = null;
+                _lastRoundedAngle = null;
+                _lastSteeringButton = null;
+                _magnetometerCalibrationHeading = null;
+                _magnetometerCalibrationSamples.clear();
+                _currentMagnetometerAngle = 0.0;
+                _filteredMagX = null;
+                _filteredMagY = null;
+              });
+
+              // Restart sensor streams if device is connected
+              if (isConnected) {
+                await _startSensorStreams();
+                actionStreamInternal.add(
+                  LogNotification(
+                    'Switched to ${_useMagnetometer ? "magnetometer" : "gyroscope + accelerometer"} mode',
+                  ),
+                );
+              }
+            },
+          ),
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -219,13 +373,21 @@ class GyroscopeSteering extends BaseDevice {
               DeviceInfo(
                 title: 'Steering Angle',
                 icon: RadixIcons.angle,
-                value: _isCalibrated ? '${_estimator.angleDeg.toStringAsFixed(2)}°' : 'Calibrating...',
+                value: _isCalibrated
+                    ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°'
+                    : 'Calibrating...',
               ),
-              if (kDebugMode)
+              if (kDebugMode && !_useMagnetometer)
                 DeviceInfo(
                   title: 'Gyro Bias',
                   icon: BootstrapIcons.speedometer,
                   value: '${_estimator.biasZRadPerSec.toStringAsFixed(4)} rad/s',
+                ),
+              if (kDebugMode && _useMagnetometer && _magnetometerCalibrationHeading != null)
+                DeviceInfo(
+                  title: 'Mag Heading',
+                  icon: BootstrapIcons.compass,
+                  value: '${_magnetometerCalibrationHeading!.toStringAsFixed(2)}°',
                 ),
             ],
           ),
@@ -240,9 +402,17 @@ class GyroscopeSteering extends BaseDevice {
                     : () {
                         // Reset calibration
                         _isCalibrated = false;
-                        _hasAccelData = false;
-                        _estimator.reset();
-                        _lastGyroUpdate = null;
+                        if (_useMagnetometer) {
+                          _magnetometerCalibrationHeading = null;
+                          _magnetometerCalibrationSamples.clear();
+                          _currentMagnetometerAngle = 0.0;
+                          _filteredMagX = null;
+                          _filteredMagY = null;
+                        } else {
+                          _hasAccelData = false;
+                          _estimator.reset();
+                          _lastGyroUpdate = null;
+                        }
                         _lastRoundedAngle = null;
                         _lastSteeringButton = null;
                         setState(() {});
@@ -288,7 +458,9 @@ class GyroscopeSteering extends BaseDevice {
           ),
           if (!_isCalibrated)
             Text(
-              'Calibrating the sensors now. Attach your phone/tablet on your handlebar and keep it still for a second.',
+              _useMagnetometer
+                  ? 'Calibrating the magnetometer now. Attach your phone/tablet on your handlebar and keep it still for a second.'
+                  : 'Calibrating the sensors now. Attach your phone/tablet on your handlebar and keep it still for a second.',
             ).xSmall,
         ],
       ),
