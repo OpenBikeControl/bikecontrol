@@ -3,7 +3,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
@@ -98,41 +97,12 @@ class ZwiftRide extends ZwiftDevice {
             }
             break;
           case null:
-            final vendorDO = VendorDO.valueOf(response.dataObjectId);
-            if (kDebugMode) {
-              print('VendorDO: $vendorDO');
-            }
-            switch (vendorDO) {
-              case VendorDO.DEVICE_COUNT:
-                // TODO: Handle this case.
-                break;
-              case VendorDO.NO_CLUE:
-                // TODO: Handle this case.
-                break;
-              case VendorDO.PAGE_DEVICE_PAIRING:
-                final page = DevicePairingDataPage.fromBuffer(response.dataObjectData);
-                if (kDebugMode) {
-                  // this should show the right click device
-                  // pairingStatus = 1 => connected and paired, otherwise it can be paired but not connected
-                  print(
-                    'PageDevicePairing: $page => ${page.pairingDevList.map((e) => e.device.reversed.map((d) => d.toRadixString(16).padLeft(2, '0'))).join(', ')}',
-                  );
-                }
-                break;
-              case VendorDO.PAIRED_DEVICE:
-                // TODO: Handle this case.
-                break;
-              case VendorDO.PAIRING_STATUS:
-                break;
-            }
             break;
           default:
             break;
         }
         break;
       case Opcode.VENDOR_MESSAGE:
-        final vendorOpCode = VendorOpcode.valueOf(message.second);
-        print('VendorOpcode: $vendorOpCode');
         break;
       case Opcode.LOG_DATA:
         final logMessage = LogDataNotification.fromBuffer(message);

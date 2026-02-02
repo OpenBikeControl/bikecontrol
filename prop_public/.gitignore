@@ -5,15 +5,10 @@
 *.swp
 .DS_Store
 .atom/
-.build/
 .buildlog/
 .history
 .svn/
-.swiftpm/
-debug/
 migrate_working_dir/
-
-android/keystore.properties
 
 # IntelliJ related
 *.iml
@@ -27,30 +22,10 @@ android/keystore.properties
 #.vscode/
 
 # Flutter/Dart/Pub related
+# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
+/pubspec.lock
 **/doc/api/
-**/ios/Flutter/.last_build_id
 .dart_tool/
-.flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
-.pub/
 /build/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-localazy.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-lib/gen/
-
-service-account.json
-.env
-lib/generated
-pubspec_overrides.yaml
+/coverage/

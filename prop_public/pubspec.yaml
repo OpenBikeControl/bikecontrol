@@ -1,0 +1,26 @@
+name: prop
+description: "Prop"
+version: 0.0.1
+publish_to: none
+homepage: https://bikecontrol.app
+
+environment:
+  sdk: ^3.10.7
+  flutter: ">=1.17.0"
+
+dependencies:
+
+  protobuf: ^4.2.0
+  dartx: any
+  shared_preferences: ^2.5.3
+  universal_ble:
+    git:
+      url: https://github.com/jonasbark/universal_ble.git
+
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
