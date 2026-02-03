@@ -104,14 +104,17 @@ class Keymap {
   void addNewButtons(List<ControllerButton> availableButtons) {
     final newButtons = availableButtons.filter((button) => getKeyPair(button) == null);
     for (final button in newButtons) {
+      final buttonFromBase = core.settings.getTrainerApp()?.keymap.getKeyPair(button);
       addKeyPair(
         KeyPair(
-          touchPosition: Offset.zero,
+          touchPosition: buttonFromBase?.touchPosition ?? Offset.zero,
           buttons: [button],
           inGameAction: button.action,
-          physicalKey: null,
-          logicalKey: null,
-          isLongPress: false,
+          physicalKey: buttonFromBase?.physicalKey,
+          logicalKey: buttonFromBase?.logicalKey,
+          isLongPress: buttonFromBase?.isLongPress ?? false,
+          inGameActionValue: buttonFromBase?.inGameActionValue,
+          androidAction: buttonFromBase?.androidAction,
         ),
       );
     }
@@ -247,7 +250,7 @@ class KeyPair {
         : (physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
         ? null
         : (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
-        ? 'X:${touchPosition.dx.toInt()}, Y:${touchPosition.dy.toInt()}'
+        ? 'X:${touchPosition.dx.toInt()}, Y:${touchPosition.dy.toInt()}${inGameAction != null ? ' (${inGameAction!.title})' : ''}'
         : '';
     if (text != null && text.isNotEmpty) {
       return text;

@@ -296,6 +296,8 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                       final relativeX = ((newPos.dx - _imageRect.left) / _imageRect.width).clamp(0.0, 1.0);
                       final relativeY = ((newPos.dy - _imageRect.top) / _imageRect.height).clamp(0.0, 1.0);
                       keyPair.touchPosition = Offset(relativeX * 100.0, relativeY * 100.0);
+                      keyPair.inGameAction = null;
+                      keyPair.inGameActionValue = null;
                       setState(() {});
                     },
                     color: Colors.red,

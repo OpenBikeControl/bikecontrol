@@ -49,7 +49,7 @@ abstract class BaseDevice {
 
   String get name => _name ?? runtimeType.toString();
 
-  String get buttonExplanation => 'Click a button on this device to configure them.';
+  String get buttonExplanation => isConnected ? 'Connecting...' : 'Click a button on this device to configure them.';
 
   @override
   bool operator ==(Object other) =>
