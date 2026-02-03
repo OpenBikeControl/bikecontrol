@@ -241,6 +241,8 @@ class RevenueCatService {
   Future<void> purchaseFullVersion(BuildContext context) async {
     // Direct the user to the paywall for a better experience
     if (Platform.isAndroid && !_isAndroidWorking) {
+      _trialStartDate = null;
+      await startTrial();
       buildToast(
         navigatorKey.currentContext!,
         title: AppLocalizations.of(context).unlockingNotPossible,
