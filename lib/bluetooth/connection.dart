@@ -67,8 +67,7 @@ class Connection {
     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
       core.mediaKeyHandler.initialize();
       // Load saved media key detection state
-      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = 
-          core.settings.getMediaKeyDetectionEnabled();
+      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings.getMediaKeyDetectionEnabled();
     }
 
     UniversalBle.onAvailabilityChange = (available) {
