@@ -90,9 +90,9 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "de.jonasbark" "\0"
-            VALUE "FileDescription", "bike_control" "\0"
+            VALUE "FileDescription", "BikeControl" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "bike_control" "\0"
+            VALUE "InternalName", "BikeControl" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 de.jonasbark. All rights reserved." "\0"
             VALUE "OriginalFilename", "bike_control.exe" "\0"
             VALUE "ProductName", "BikeControl" "\0"

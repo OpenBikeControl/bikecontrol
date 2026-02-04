@@ -32,6 +32,7 @@ class HidDevice extends BaseDevice {
                       (core.actionHandler as AndroidActions).ignoreHidDevices();
                     } else if (core.mediaKeyHandler.isMediaKeyDetectionEnabled.value) {
                       core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = false;
+                      core.settings.setMediaKeyDetectionEnabled(false);
                     }
                   },
                 ),

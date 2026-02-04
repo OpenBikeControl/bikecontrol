@@ -406,4 +406,12 @@ class Settings {
   Future<void> setHasAskedPermissions(bool asked) async {
     await prefs.setBool('asked_permissions', asked);
   }
+
+  bool getMediaKeyDetectionEnabled() {
+    return prefs.getBool('media_key_detection_enabled') ?? false;
+  }
+
+  Future<void> setMediaKeyDetectionEnabled(bool enabled) async {
+    await prefs.setBool('media_key_detection_enabled', enabled);
+  }
 }

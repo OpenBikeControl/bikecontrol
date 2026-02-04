@@ -132,8 +132,9 @@ class _DevicePageState extends State<DevicePage> {
                       ],
                     ),
                     onPressed: () {
-                      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value =
-                          !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
+                      final newValue = !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
+                      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = newValue;
+                      core.settings.setMediaKeyDetectionEnabled(newValue);
                     },
                   );
                 },
