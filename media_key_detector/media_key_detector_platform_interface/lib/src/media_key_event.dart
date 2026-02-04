@@ -20,8 +20,8 @@ class MediaKeyEvent {
       identical(this, other) ||
       other is MediaKeyEvent &&
           runtimeType == other.runtimeType &&
-          key == key &&
-          deviceId == deviceId;
+          key == other.key &&
+          deviceId == other.deviceId;
 
   @override
   int get hashCode => key.hashCode ^ deviceId.hashCode;

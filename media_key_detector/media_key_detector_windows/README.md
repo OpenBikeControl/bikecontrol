@@ -6,7 +6,7 @@ The windows implementation of `media_key_detector`.
 
 ## Features
 
-This plugin provides global media key detection on Windows with device source identification. This allows your application to respond to media keys (play/pause, next track, previous track, volume up, volume down) from multiple devices and distinguish which device sent the event.
+This plugin provides global media key detection on Windows with device source identification. This allows your application to respond to media keys (play/pause, next track, previous track, volume up, volume down) from multiple devices and distinguish which device sent each event.
 
 ### Supported Media Keys
 

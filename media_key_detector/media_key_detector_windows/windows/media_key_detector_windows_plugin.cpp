@@ -294,7 +294,8 @@ std::optional<LRESULT> MediaKeyDetectorWindows::HandleWindowProc(
       int key_index = -1;
       
       // Media keys have VKey codes
-      if (keyboard.Flags == RI_KEY_MAKE || keyboard.Flags == 0) {  // Key down event
+      // Check for key down event (RI_KEY_MAKE is defined as 0, so we check both explicitly)
+      if (keyboard.Flags == RI_KEY_MAKE) {  // Key down event
         switch (keyboard.VKey) {
           case VK_MEDIA_PLAY_PAUSE:
             key_index = 0;  // MediaKey.playPause
