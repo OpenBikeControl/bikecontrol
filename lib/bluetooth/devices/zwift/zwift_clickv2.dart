@@ -64,8 +64,12 @@ class ZwiftClickV2 extends ZwiftRide {
   Future<void> setupHandshake() async {
     if (isUnlocked) {
       super.setupHandshake();
-    } else {
+    } else if (ZWIFT_PASS != '' && ZWIFT_USER != '') {
+      //zwift user info available, try auto unlock
       zwiftToken = await getZwiftToken();
+      if (zwiftToken != '') {
+        super.setupHandshake();
+      }
     }
   }
 
@@ -80,30 +84,34 @@ class ZwiftClickV2 extends ZwiftRide {
     if (!ftmsEmulator.processCharacteristic(characteristic, bytes)) {
       await super.processCharacteristic(characteristic, bytes);
 
-      if (characteristic.contains("02-19ca-4651-86e5-fa29dcdd09d1")) {
-        String val = bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join("");
-        if (val.startsWith("ff03000a21"))
-        {
-          if (bytes.length == 85)
+      // auto unlock flow
+      if (zwiftToken != '') {
+        if (characteristic.contains("02-19ca-4651-86e5-fa29dcdd09d1")) {
+          String val = bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join("");
+          if (val.startsWith("ff03000a21"))
           {
-            await UniversalBle.write(
-              device.deviceId,
-              customService!.uuid,
-              syncRxCharacteristic!.uuid,
-              Uint8List.fromList([0xFF, 0x04, 0x00]),
-              withoutResponse: true,
-            );
-          }
-          else
-          {
-            final payload = await proxyAuthToZwift(bytes, zwiftToken);
-            await UniversalBle.write(
-              device.deviceId,
-              customService!.uuid,
-              syncRxCharacteristic!.uuid,
-              payload,
-              withoutResponse: true,
-            );
+            if (bytes.length == 85)
+            {
+              //this might be unnessary, but 85 byte length challenge is always responded with empty key
+              await UniversalBle.write(
+                device.deviceId,
+                customService!.uuid,
+                syncRxCharacteristic!.uuid,
+                Uint8List.fromList([0xFF, 0x04, 0x00]),
+                withoutResponse: true,
+              );
+            }
+            else
+            {
+              final payload = await proxyAuthToZwift(bytes, zwiftToken);
+              await UniversalBle.write(
+                device.deviceId,
+                customService!.uuid,
+                syncRxCharacteristic!.uuid,
+                payload,
+                withoutResponse: true,
+              );
+            }
           }
         }
       }
