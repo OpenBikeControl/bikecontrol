@@ -495,6 +495,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             _keyPair.androidAction = null;
                             _keyPair.inGameAction = action;
                             _keyPair.inGameActionValue = ingame;
+                            _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
                             widget.onUpdate();
                             setState(() {});
                           },
@@ -510,6 +511,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 _keyPair.androidAction = null;
                 _keyPair.inGameAction = action;
                 _keyPair.inGameActionValue = null;
+                _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
                 widget.onUpdate();
                 setState(() {});
               }

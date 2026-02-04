@@ -12,8 +12,8 @@ enum InGameAction {
   shiftUp('Shift Up', icon: BootstrapIcons.patchPlus),
   shiftDown('Shift Down', icon: BootstrapIcons.patchMinus),
   uturn('U-Turn', alternativeTitle: 'Down', icon: BootstrapIcons.arrowDownUp),
-  steerLeft('Steer Left', alternativeTitle: 'Left', icon: RadixIcons.doubleArrowLeft),
-  steerRight('Steer Right', alternativeTitle: 'Right', icon: RadixIcons.doubleArrowRight),
+  steerLeft('Steer Left', alternativeTitle: 'Left', icon: RadixIcons.doubleArrowLeft, isLongPress: true),
+  steerRight('Steer Right', alternativeTitle: 'Right', icon: RadixIcons.doubleArrowRight, isLongPress: true),
 
   // mywhoosh
   cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], icon: BootstrapIcons.cameraReels),
