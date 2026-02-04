@@ -148,34 +148,20 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   Future<Uint8List> proxyAuthToZwift(Uint8List payload, String token) async {
-      final pLen = payload.length;
-      var offsetsToTry = [];
-      final offsetMemory = {};
-      
-      if (offsetMemory.containsKey(pLen)) offsetsToTry.add(offsetMemory[pLen]);
-      for (var i = 0; i < 15; i++) { if (payload[i] == 0x0a) offsetsToTry.add(i); }
-      for (var o in [3, 4, 2, 5]) { if (!offsetsToTry.contains(o)) { offsetsToTry.add(o); } };
-
-      for (final offset in offsetsToTry) {
-        final cleanPayload = payload.slice(offset);
-        final res = await http.post(
-          Uri.parse('https://us-or-rly101.zwift.com/api/d-lock-service/device/authenticate'),
-          headers: <String, String>{ 
-            "Content-Type": "application/x-protobuf-lite",
-            "Authorization": 'Bearer $token', 
-            "X-Machine-Id": GLOBAL_MACHINE_ID
-          },
-          body: cleanPayload
-        );
-        if (res.statusCode == 200) {
-          if (!offsetMemory.containsKey(pLen)) offsetMemory[pLen] = offset;
-          return Uint8List.fromList([0xff, 04, 0x00, ...res.bodyBytes]);
-        } else {
-          continue; 
-        }
-      }
-
-      throw Exception('Unable to authenticate with zwift servers');
+    final cleanPayload = payload.slice(3); // remove the message type prefex (ff0300)
+    final res = await http.post(
+      Uri.parse('https://us-or-rly101.zwift.com/api/d-lock-service/device/authenticate'),
+      headers: <String, String>{ 
+        "Content-Type": "application/x-protobuf-lite",
+        "Authorization": 'Bearer $token', 
+        "X-Machine-Id": GLOBAL_MACHINE_ID
+      },
+      body: cleanPayload
+    );
+    if (res.statusCode == 200) {
+      return Uint8List.fromList([0xff, 04, 0x00, ...res.bodyBytes]);
+    }
+    throw Exception('Unable to authenticate with zwift servers');
   }
 
   @override
