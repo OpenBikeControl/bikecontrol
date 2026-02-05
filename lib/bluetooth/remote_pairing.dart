@@ -214,18 +214,21 @@ class RemotePairing extends TrainerConnection {
         });
 
         _peripheralManager.characteristicNotifyStateChanged.forEach((char) {
+          // Check if this is the input report characteristic (2A4D)
           if (char.characteristic.uuid == inputReport.uuid) {
             if (char.state) {
-              _inputReport = char.characteristic;
               _central = char.central;
+              _inputReport = char.characteristic;
+              isConnected.value = true;
+              print('Input report subscribed');
             } else {
               _inputReport = null;
               _central = null;
+              isConnected.value = false;
+              print('Input report unsubscribed');
             }
           }
-          print(
-            'Notify state changed for characteristic: ${char.characteristic.uuid} vs ${char.characteristic.uuid == inputReport.uuid}: ${char.state}',
-          );
+          print('Notify state changed for characteristic: ${char.characteristic.uuid}: ${char.state}');
         });
       }
       await _peripheralManager.addService(hidService);
@@ -259,11 +262,22 @@ class RemotePairing extends TrainerConnection {
     );
     print('Starting advertising with Remote service...');
 
-    await _peripheralManager.startAdvertising(advertisement);
+    try {
+      await _peripheralManager.startAdvertising(advertisement);
+    } catch (e) {
+      if (e.toString().contains("Advertising has already started")) {
+        print('Advertising already started, ignoring error');
+        return;
+      } else {
+        rethrow;
+      }
+    }
     _isLoading = false;
   }
 
   Future<void> stopAdvertising() async {
+    await _peripheralManager.removeAllServices();
+    _isServiceAdded = false;
     await _peripheralManager.stopAdvertising();
     isStarted.value = false;
     isConnected.value = false;
