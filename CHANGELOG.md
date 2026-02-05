@@ -1,3 +1,11 @@
+### Unreleased
+
+**Features**:
+- Windows: Add device source detection for media hotkeys
+  - Distinguish between multiple bluetooth media controllers
+  - Configure different actions for each controller even when they have the same buttons
+  - Uses Windows Raw Input API to identify device sources
+
 ### 4.6.0 (28-01-2026)
 
 **Features**:

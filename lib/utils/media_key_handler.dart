@@ -25,7 +25,7 @@ class MediaKeyHandler {
           _smtc?.disableSmtc();
         } else {
           mediaKeyDetector.setIsPlaying(isPlaying: false);
-          mediaKeyDetector.removeListener(_onMediaKeyDetectedListener);
+          mediaKeyDetector.removeListenerWithDevice(_onMediaKeyDetectedListenerWithDevice);
         }
       } else {
         FlutterVolumeController.addListener(
@@ -80,7 +80,7 @@ class MediaKeyHandler {
           );
           _smtc!.buttonPressStream.listen(_onMediaKeyPressedListener);
         } else {
-          mediaKeyDetector.addListener(_onMediaKeyDetectedListener);
+          mediaKeyDetector.addListenerWithDevice(_onMediaKeyDetectedListenerWithDevice);
           mediaKeyDetector.setIsPlaying(isPlaying: true);
         }
       }
@@ -88,7 +88,11 @@ class MediaKeyHandler {
   }
 
   bool _onMediaKeyDetectedListener(MediaKey mediaKey) {
-    final hidDevice = HidDevice('HID Device');
+    return _onMediaKeyDetectedListenerWithDevice(mediaKey, 'HID Device');
+  }
+
+  bool _onMediaKeyDetectedListenerWithDevice(MediaKey mediaKey, String deviceId) {
+    final hidDevice = HidDevice(deviceId);
 
     var availableDevice = core.connection.controllerDevices.firstOrNullWhere(
       (e) => e.toString() == hidDevice.toString(),

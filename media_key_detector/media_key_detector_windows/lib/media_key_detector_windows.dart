@@ -19,13 +19,26 @@ class MediaKeyDetectorWindows extends MediaKeyDetectorPlatform {
   @override
   void initialize() {
     _eventChannel.receiveBroadcastStream().listen((event) {
-      final keyIdx = event as int;
       MediaKey? key;
-      if (keyIdx > -1 && keyIdx < MediaKey.values.length) {
-        key = MediaKey.values[keyIdx];
+      String? deviceId;
+      
+      // Check if event is a map (new format with device info)
+      if (event is Map) {
+        final keyIdx = event['key'] as int?;
+        deviceId = event['device'] as String?;
+        
+        if (keyIdx != null && keyIdx > -1 && keyIdx < MediaKey.values.length) {
+          key = MediaKey.values[keyIdx];
+        }
+      } else if (event is int) {
+        // Backward compatibility: old format with just key index
+        if (event > -1 && event < MediaKey.values.length) {
+          key = MediaKey.values[event];
+        }
       }
+      
       if (key != null) {
-        triggerListeners(key);
+        triggerListeners(key, deviceId);
       }
     });
   }

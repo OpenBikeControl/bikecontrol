@@ -50,6 +50,7 @@ abstract class MediaKeyDetectorPlatform extends PlatformInterface {
   void initialize();
 
   final List<void Function(MediaKey mediaKey)> _listeners = [];
+  final List<void Function(MediaKey mediaKey, String deviceId)> _listenersWithDevice = [];
 
   /// Listen for the media key event
   void addListener(void Function(MediaKey mediaKey) listener) {
@@ -58,15 +59,32 @@ abstract class MediaKeyDetectorPlatform extends PlatformInterface {
     }
   }
 
+  /// Listen for the media key event with device information
+  void addListenerWithDevice(void Function(MediaKey mediaKey, String deviceId) listener) {
+    if (!_listenersWithDevice.contains(listener)) {
+      _listenersWithDevice.add(listener);
+    }
+  }
+
   /// Remove the previously registered listener
   void removeListener(void Function(MediaKey mediaKey) listener) {
     _listeners.remove(listener);
   }
 
+  /// Remove the previously registered listener with device information
+  void removeListenerWithDevice(void Function(MediaKey mediaKey, String deviceId) listener) {
+    _listenersWithDevice.remove(listener);
+  }
+
   /// Trigger all listeners to indicate that the specified media key was pressed
-  void triggerListeners(MediaKey mediaKey) {
+  void triggerListeners(MediaKey mediaKey, [String? deviceId]) {
     for (final l in _listeners) {
       l(mediaKey);
+    }
+    if (deviceId != null) {
+      for (final l in _listenersWithDevice) {
+        l(mediaKey, deviceId);
+      }
     }
   }
 

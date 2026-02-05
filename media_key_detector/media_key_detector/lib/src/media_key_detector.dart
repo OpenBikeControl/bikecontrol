@@ -21,10 +21,22 @@ class MediaKeyDetector {
     _platform.addListener(listener);
   }
 
+  /// Listen for the media key event with device information
+  void addListenerWithDevice(void Function(MediaKey mediaKey, String deviceId) listener) {
+    _lazilyInitialize();
+    _platform.addListenerWithDevice(listener);
+  }
+
   /// Remove the previously registered listener
   void removeListener(void Function(MediaKey mediaKey) listener) {
     _lazilyInitialize();
     _platform.removeListener(listener);
+  }
+
+  /// Remove the previously registered listener with device information
+  void removeListenerWithDevice(void Function(MediaKey mediaKey, String deviceId) listener) {
+    _lazilyInitialize();
+    _platform.removeListenerWithDevice(listener);
   }
 
   void _lazilyInitialize() {

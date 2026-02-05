@@ -12,6 +12,10 @@
 #include <map>
 #include <memory>
 #include <atomic>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <iomanip>
 
 namespace {
 
@@ -44,6 +48,15 @@ class MediaKeyDetectorWindows : public flutter::Plugin {
   // Unregister global hotkeys
   void UnregisterHotkeys();
   
+  // Register for raw input from keyboard devices
+  void RegisterRawInput(HWND hwnd);
+  
+  // Unregister raw input
+  void UnregisterRawInput(HWND hwnd);
+  
+  // Get device identifier from device handle
+  std::string GetDeviceIdentifier(HANDLE hDevice);
+  
   // Handle Windows messages
   std::optional<LRESULT> HandleWindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
   
@@ -52,6 +65,10 @@ class MediaKeyDetectorWindows : public flutter::Plugin {
   std::atomic<bool> is_playing_{false};
   int window_proc_id_ = -1;
   bool hotkeys_registered_ = false;
+  bool raw_input_registered_ = false;
+  
+  // Cache for device identifiers
+  std::map<HANDLE, std::string> device_cache_;
 };
 
 // static
@@ -104,6 +121,8 @@ MediaKeyDetectorWindows::MediaKeyDetectorWindows(flutter::PluginRegistrarWindows
 }
 
 MediaKeyDetectorWindows::~MediaKeyDetectorWindows() {
+  HWND hwnd = registrar_->GetView()->GetNativeWindow();
+  UnregisterRawInput(hwnd);
   UnregisterHotkeys();
   if (window_proc_id_ != -1) {
     registrar_->UnregisterTopLevelWindowProcDelegate(window_proc_id_);
@@ -124,10 +143,13 @@ void MediaKeyDetectorWindows::HandleMethodCall(
       if (is_playing_it != arguments->end()) {
         if (auto* is_playing = std::get_if<bool>(&is_playing_it->second)) {
           is_playing_.store(*is_playing);
+          HWND hwnd = registrar_->GetView()->GetNativeWindow();
           if (*is_playing) {
             RegisterHotkeys();
+            RegisterRawInput(hwnd);
           } else {
             UnregisterHotkeys();
+            UnregisterRawInput(hwnd);
           }
           result->Success();
           return;
@@ -185,8 +207,131 @@ void MediaKeyDetectorWindows::UnregisterHotkeys() {
   hotkeys_registered_ = false;
 }
 
+void MediaKeyDetectorWindows::RegisterRawInput(HWND hwnd) {
+  if (raw_input_registered_) {
+    return;
+  }
+
+  // Register for raw input from keyboard devices
+  RAWINPUTDEVICE rid[1];
+  
+  // Keyboard devices
+  rid[0].usUsagePage = 0x01;  // Generic Desktop Controls
+  rid[0].usUsage = 0x06;      // Keyboard
+  rid[0].dwFlags = RIDEV_INPUTSINK;  // Receive input even when not in foreground
+  rid[0].hwndTarget = hwnd;
+  
+  if (RegisterRawInputDevices(rid, 1, sizeof(rid[0]))) {
+    raw_input_registered_ = true;
+  }
+}
+
+void MediaKeyDetectorWindows::UnregisterRawInput(HWND hwnd) {
+  if (!raw_input_registered_) {
+    return;
+  }
+
+  // Unregister raw input
+  RAWINPUTDEVICE rid[1];
+  
+  rid[0].usUsagePage = 0x01;
+  rid[0].usUsage = 0x06;
+  rid[0].dwFlags = RIDEV_REMOVE;
+  rid[0].hwndTarget = nullptr;
+  
+  RegisterRawInputDevices(rid, 1, sizeof(rid[0]));
+  raw_input_registered_ = false;
+  device_cache_.clear();
+}
+
+std::string MediaKeyDetectorWindows::GetDeviceIdentifier(HANDLE hDevice) {
+  // Check cache first
+  auto it = device_cache_.find(hDevice);
+  if (it != device_cache_.end()) {
+    return it->second;
+  }
+
+  // Get device name
+  UINT size = 0;
+  GetRawInputDeviceInfoA(hDevice, RIDI_DEVICENAME, nullptr, &size);
+  
+  if (size == 0) {
+    return "Unknown Device";
+  }
+
+  std::vector<char> name(size);
+  if (GetRawInputDeviceInfoA(hDevice, RIDI_DEVICENAME, name.data(), &size) == static_cast<UINT>(-1)) {
+    return "Unknown Device";
+  }
+
+  std::string deviceName(name.data());
+  
+  // Cache the result
+  device_cache_[hDevice] = deviceName;
+  
+  return deviceName;
+}
+
 std::optional<LRESULT> MediaKeyDetectorWindows::HandleWindowProc(
     HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
+  
+  // Handle raw input messages for device-specific detection
+  if (message == WM_INPUT && event_sink_) {
+    UINT dwSize;
+    GetRawInputData((HRAWINPUT)lparam, RID_INPUT, nullptr, &dwSize, sizeof(RAWINPUTHEADER));
+    
+    std::vector<BYTE> buffer(dwSize);
+    if (GetRawInputData((HRAWINPUT)lparam, RID_INPUT, buffer.data(), &dwSize, sizeof(RAWINPUTHEADER)) != dwSize) {
+      return std::nullopt;
+    }
+    
+    RAWINPUT* raw = (RAWINPUT*)buffer.data();
+    
+    if (raw->header.dwType == RIM_TYPEKEYBOARD) {
+      RAWKEYBOARD& keyboard = raw->data.keyboard;
+      
+      // Check for media keys
+      int key_index = -1;
+      
+      // Media keys have VKey codes
+      // Check for key down event (RI_KEY_MAKE is defined as 0, so we check both explicitly)
+      if (keyboard.Flags == RI_KEY_MAKE) {  // Key down event
+        switch (keyboard.VKey) {
+          case VK_MEDIA_PLAY_PAUSE:
+            key_index = 0;  // MediaKey.playPause
+            break;
+          case VK_MEDIA_PREV_TRACK:
+            key_index = 1;  // MediaKey.rewind
+            break;
+          case VK_MEDIA_NEXT_TRACK:
+            key_index = 2;  // MediaKey.fastForward
+            break;
+          case VK_VOLUME_UP:
+            key_index = 3;  // MediaKey.volumeUp
+            break;
+          case VK_VOLUME_DOWN:
+            key_index = 4;  // MediaKey.volumeDown
+            break;
+        }
+        
+        if (key_index >= 0) {
+          // Get device identifier
+          std::string deviceId = GetDeviceIdentifier(raw->header.hDevice);
+          
+          // Send event with both key index and device identifier
+          flutter::EncodableMap event_data;
+          event_data[EncodableValue("key")] = EncodableValue(key_index);
+          event_data[EncodableValue("device")] = EncodableValue(deviceId);
+          
+          event_sink_->Success(EncodableValue(event_data));
+          
+          return 0;
+        }
+      }
+    }
+  }
+  
+  // Fallback to hotkey messages (for compatibility)
   if (message == WM_HOTKEY && event_sink_) {
     int key_index = -1;
     
@@ -210,7 +355,12 @@ std::optional<LRESULT> MediaKeyDetectorWindows::HandleWindowProc(
     }
     
     if (key_index >= 0) {
-      event_sink_->Success(EncodableValue(key_index));
+      // Send event with key index only (no device info for hotkey)
+      flutter::EncodableMap event_data;
+      event_data[EncodableValue("key")] = EncodableValue(key_index);
+      event_data[EncodableValue("device")] = EncodableValue("HID Device");
+      
+      event_sink_->Success(EncodableValue(event_data));
     }
     
     return 0;
