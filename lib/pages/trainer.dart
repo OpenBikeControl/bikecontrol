@@ -53,7 +53,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       if (core.logic.showForegroundMessage) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // show snackbar to inform user that the app needs to stay in foreground
-          buildToast(context, title: AppLocalizations.current.touchSimulationForegroundMessage);
+          buildToast(navigatorKey.currentContext!, title: AppLocalizations.current.touchSimulationForegroundMessage);
         });
       }
 
@@ -81,7 +81,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         UniversalBle.getBluetoothAvailabilityState().then((state) {
           if (state == AvailabilityState.poweredOn && mounted) {
             core.remotePairing.reconnect();
-            buildToast(context, title: AppLocalizations.current.touchSimulationForegroundMessage);
+            buildToast(navigatorKey.currentContext!, title: AppLocalizations.current.touchSimulationForegroundMessage);
           }
         });
       }
@@ -202,8 +202,8 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               ),
             ),
             if (core.settings.getTrainerApp() != null) ...[
-              Gap(22),
               if (recommendedTiles.isNotEmpty) ...[
+                Gap(22),
                 ColoredTitle(text: context.i18n.recommendedConnectionMethods),
                 Gap(12),
               ],
@@ -228,6 +228,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                   child: Accordion(
                     items: [
                       AccordionItem(
+                        expanded: recommendedTiles.isEmpty,
                         trigger: AccordionTrigger(child: ColoredTitle(text: context.i18n.otherConnectionMethods)),
                         content: Column(
                           children: [

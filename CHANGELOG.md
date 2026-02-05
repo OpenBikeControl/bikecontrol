@@ -1,3 +1,10 @@
+### 4.7.0 (04-02-2026)
+
+**Fixes**:
+- save "Enable Media Key detection" setting across app restarts
+- UI adjustments and fixes in the controller configuration screen
+- iOS: Remote pairing now works again
+
 ### 4.6.0 (28-01-2026)
 
 **Features**:
