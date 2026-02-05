@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
+import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/touch_area.dart';
@@ -22,7 +23,8 @@ import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
-import 'package:bike_control/widgets/pair_widget.dart';
+import 'package:bike_control/widgets/keyboard_pair_widget.dart';
+import 'package:bike_control/widgets/mouse_pair_widget.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -232,12 +234,21 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                       ),
                       OpenBikeControlMdnsEmulator.connectionTitle => OpenBikeControlMdnsTile(),
                       OpenBikeControlBluetoothEmulator.connectionTitle => OpenBikeControlBluetoothTile(),
-                      RemotePairing.connectionTitle => RemotePairingWidget(),
+                      RemotePairing.connectionTitle => RemoteMousePairingWidget(),
+                      RemoteKeyboardPairing.connectionTitle => RemoteKeyboardPairingWidget(),
                       _ => SizedBox.shrink(),
                     },
                 ...connectedTrainers.map(
                   (connection) {
-                    final supportedActions = connection.supportedActions;
+                    final supportedActions = connection.supportedActions == InGameAction.values
+                        ? core.settings
+                              .getTrainerApp()!
+                              .keymap
+                              .keyPairs
+                              .mapNotNull((k) => k.inGameAction)
+                              .distinct()
+                              .toList()
+                        : connection.supportedActions;
 
                     final actionGroups = {
                       if (supportedActions.contains(InGameAction.shiftUp) &&

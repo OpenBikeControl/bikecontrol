@@ -1,13 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../utils/keymap/apps/custom_app.dart';
 
@@ -152,8 +154,48 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 20,
                 children: [
-                  Text(AppLocalizations.current.pressKeyToAssign(_pressedButton.toString())),
+                  Text(
+                    AppLocalizations.current.pressKeyToAssign(_pressedButton?.displayName ?? _pressedButton.toString()),
+                  ),
                   Text(_formatKey(_pressedKey)),
+                  if (kDebugMode && (Platform.isAndroid || Platform.isIOS))
+                    SizedBox(
+                      height: 300,
+                      width: 300,
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: LogicalKeyboardKey.knownLogicalKeys
+                            .map(
+                              (key) => ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                minVerticalPadding: 0,
+                                title: Row(
+                                  children: [
+                                    Chip(label: Text(key.keyLabel)),
+                                  ],
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    _pressedKey = KeyDownEvent(
+                                      physicalKey: PhysicalKeyboardKey(0x80),
+                                      logicalKey: key,
+                                      character: null,
+                                      timeStamp: Duration.zero,
+                                    );
+                                    widget.customApp.setKey(
+                                      _pressedButton!,
+                                      physicalKey: _pressedKey!.physicalKey,
+                                      logicalKey: key,
+                                      modifiers: _activeModifiers.toList(),
+                                      touchPosition: widget.keyPair?.touchPosition,
+                                    );
+                                  });
+                                },
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
                 ],
               ),
             ),

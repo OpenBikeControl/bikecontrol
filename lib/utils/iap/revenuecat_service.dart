@@ -316,6 +316,9 @@ class RevenueCatService {
 
   /// Increment the daily command count
   Future<void> incrementCommandCount() async {
+    if (isPurchasedNotifier.value) {
+      return; // No need to track for purchased users
+    }
     try {
       final today = DateTime.now().toIso8601String().split('T')[0];
       final lastDate = await _prefs.read(key: _lastCommandDateKey);

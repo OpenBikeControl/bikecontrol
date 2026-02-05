@@ -197,10 +197,9 @@ class KeyPair {
 
   bool get hasActiveAction =>
       screenshotMode ||
-      (physicalKey != null &&
-          core.logic.showLocalControl &&
-          core.settings.getLocalEnabled() &&
-          core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ||
+      (physicalKey != null && (core.logic.showLocalControl && core.settings.getLocalEnabled()) ||
+          (core.logic.showRemote && core.settings.getRemoteKeyboardControlEnabled()) &&
+              core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) ||
       (isSpecialKey &&
           core.logic.showLocalControl &&
           core.settings.getLocalEnabled() &&

@@ -50,6 +50,18 @@ class Rouvy extends SupportedApp {
               logicalKey: LogicalKeyboardKey.keyB,
               inGameAction: InGameAction.back,
             ),
+            KeyPair(
+              buttons: [ZwiftButtons.a],
+              physicalKey: PhysicalKeyboardKey.keyY,
+              logicalKey: LogicalKeyboardKey.keyY,
+              inGameAction: InGameAction.kudos,
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.y],
+              physicalKey: PhysicalKeyboardKey.keyZ,
+              logicalKey: LogicalKeyboardKey.keyZ,
+              inGameAction: InGameAction.pause,
+            ),
           ],
         ),
       );

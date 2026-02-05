@@ -14,7 +14,8 @@ import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
-import 'package:bike_control/widgets/pair_widget.dart';
+import 'package:bike_control/widgets/keyboard_pair_widget.dart';
+import 'package:bike_control/widgets/mouse_pair_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -122,10 +123,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         ),
       if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
       if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
+      if (core.logic.showRemote) RemoteKeyboardPairingWidget(),
     ];
 
     final otherTiles = [
-      if (core.logic.showRemote) RemotePairingWidget(),
+      if (core.logic.showRemote) RemoteMousePairingWidget(),
       if (showLocalAsOther) LocalTile(),
       if (showWhooshLinkAsOther) MyWhooshLinkTile(),
     ];

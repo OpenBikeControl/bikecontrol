@@ -11,6 +11,7 @@
   "accessibilityUsageMonitor": "• Aplikacja monitoruje, które okno aplikacji treningowej jest aktywne, aby zapewnić, że gesty są wysyłane do właściwej aplikacji",
   "accessibilityUsageNoData": "• Ta usługa nie uzyskuje dostępu do danych osobowych, ani ich nie gromadzi",
   "accessories": "Akcesoria",
+  "actAsBluetoothKeyboard": "Działa jako klawiatura Bluetooth",
   "action": "Działanie",
   "adjustControllerButtons": "Dostosuj przyciski kontrolera",
   "afterDate": "Po {date}",
@@ -36,6 +37,7 @@
   "battery": "Bateria",
   "beforeDate": "Zanim {date}",
   "bluetoothAdvertiseAccess": "Dostęp do reklamy Bluetooth",
+  "bluetoothKeyboardExplanation": "Umożliwi to używanie telefonu jako klawiatury Bluetooth do sterowania kompatybilnymi aplikacjami. Po sparowaniu możesz używać przycisków na kontrolerze rowerowym do wysyłania poleceń z klawiatury do aplikacji.",
   "bluetoothTurnedOn": "Włączono Bluetooth",
   "browserNotSupported": "Ta przeglądarka nie obsługuje technologii Web Bluetooth i platforma nie jest obsługiwana :(",
   "button": "przycisk.",
@@ -153,7 +155,7 @@
   "enableLocalConnectionMethodFirst": "Najpierw włącz metodę połączenia lokalnego.",
   "enableMediaKeyDetection": "Włącz rozpoznawanie klawiszy multimedialnych",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Najpierw włącz MyWhoosh Link w ustawieniach połączenia.",
-  "enablePairingProcess": "Włącz proces parowania",
+  "enablePairingProcess": "Działa jako mysz Bluetooth",
   "enablePermissions": "Nadaj uprawnienia",
   "enableSteeringWithPhone": "Włącz sterowanie za pomocą czujników telefonu",
   "enableVibrationFeedback": "Włącz wibracje podczas zmiany biegów",
@@ -279,7 +281,7 @@
   "openBikeControlAnnouncement": "Świetna wiadomość - {trainerApp} obsługuje protokół OpenBikeControl, dzięki czemu uzyskasz najlepsze doświadczenia!",
   "openBikeControlConnection": " np. za pomocą połączenia OpenBikeControl",
   "otherConnectionMethods": "Inne metody połączenia",
-  "pairingDescription": "Parowanie umożliwia pełną personalizację, jednak może nie działać na wszystkich urządzeniach.",
+  "pairingDescription": "Umożliwi to używanie telefonu jako myszy Bluetooth do sterowania aplikacjami. Po sparowaniu możesz używać przycisków na kontrolerze rowerowym do wysyłania poleceń myszy do aplikacji.",
   "pairingInstructions": "Przejdź do ustawień Bluetooth na twoim {targetName} i wyszukaj BikeControl lub nazwę swojego urządzenia. Parowanie jest wymagane, jeśli chcesz korzystać z funkcji zdalnego sterowania.",
   "@pairingInstructions": {
     "placeholders": {

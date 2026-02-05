@@ -319,6 +319,14 @@ class Settings {
     return prefs.getBool('remote_control_enabled') ?? false;
   }
 
+  void setRemoteKeyboardControlEnabled(bool value) {
+    prefs.setBool('remote_keyboard_control_enabled', value);
+  }
+
+  bool getRemoteKeyboardControlEnabled() {
+    return prefs.getBool('remote_keyboard_control_enabled') ?? false;
+  }
+
   bool getLocalEnabled() {
     return prefs.getBool('local_control_enabled') ?? false;
   }

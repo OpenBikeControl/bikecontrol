@@ -1,5 +1,10 @@
 ### 4.7.0 (04-02-2026)
 
+**Features**:
+- new connection method: act as Bluetooth Keyboard:
+Your device can now act as Bluetooth keyboard, allowing you to send keyboard shortcuts (e.g. for virtual shifting) directly to your connected device. Especially useful for tablets / iPads.
+- added new keyboard shortcuts for Rouvy (Kudos, Pause workout)
+
 **Fixes**:
 - save "Enable Media Key detection" setting across app restarts
 - UI adjustments and fixes in the controller configuration screen

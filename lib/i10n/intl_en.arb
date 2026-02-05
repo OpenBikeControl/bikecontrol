@@ -11,6 +11,7 @@
   "accessibilityUsageMonitor": "• The app monitors which training app window is active to ensure gestures are sent to the correct app",
   "accessibilityUsageNoData": "• No personal data is accessed or collected through this service",
   "accessories": "Accessories",
+  "actAsBluetoothKeyboard": "Act as Bluetooth Keyboard",
   "action": "Action",
   "adjustControllerButtons": "Adjust Controller Buttons",
   "afterDate": "After {date}",
@@ -36,6 +37,7 @@
   "battery": "Battery",
   "beforeDate": "Before {date}",
   "bluetoothAdvertiseAccess": "Bluetooth Advertise access",
+  "bluetoothKeyboardExplanation": "This will allow you to use your phone as a Bluetooth keyboard to control compatible apps. Once paired, you can use the buttons on your bike controller to send keyboard inputs to the app.",
   "bluetoothTurnedOn": "Bluetooth turned on",
   "browserNotSupported": "This Browser does not support Web Bluetooth and platform is not supported :(",
   "button": "button.",
@@ -153,7 +155,7 @@
   "enableLocalConnectionMethodFirst": "Enable Local Connection method, first.",
   "enableMediaKeyDetection": "Enable Media Key Detection",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Enable MyWhoosh Link in the connection settings first.",
-  "enablePairingProcess": "Enable Pairing Process",
+  "enablePairingProcess": "Act as Bluetooth Mouse",
   "enablePermissions": "Enable Permissions",
   "enableSteeringWithPhone": "Enable Steering with your phone's sensors",
   "enableVibrationFeedback": "Enable vibration feedback when shifting gears",
@@ -279,7 +281,7 @@
   "openBikeControlAnnouncement": "Great news - {trainerApp} supports the OpenBikeControl Protocol, so you'll have the best possible experience!",
   "openBikeControlConnection": " e.g. by using OpenBikeControl connection",
   "otherConnectionMethods": "Other Connection Methods",
-  "pairingDescription": "Pairing allows full customizability, but may not work on all devices.",
+  "pairingDescription": "This will allow you to use your phone as a Bluetooth mouse to control apps. Once paired, you can use the buttons on your bike controller to send mouse inputs to the app.",
   "pairingInstructions": "On your {targetName} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.",
   "@pairingInstructions": {
     "placeholders": {
