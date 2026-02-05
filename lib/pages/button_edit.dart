@@ -204,7 +204,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           isActive:
                               ((core.actionHandler is AndroidActions || _keyPair.physicalKey == null) &&
                                   _keyPair.touchPosition != Offset.zero) &&
-                              core.settings.getLocalEnabled(),
+                              (core.settings.getLocalEnabled() || core.settings.getRemoteControlEnabled()),
                           value: _keyPair.toString(),
                           trailing: IconButton.secondary(
                             icon: Icon(Icons.ondemand_video),
@@ -538,7 +538,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         .distinctBy((kp) => kp.inGameAction)
         .toList();
 
-    if (!core.settings.getLocalEnabled()) {
+    if (!core.settings.getLocalEnabled() && !core.settings.getRemoteControlEnabled()) {
       return buildToast(
         navigatorKey.currentContext!,
         title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,

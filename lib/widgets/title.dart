@@ -91,7 +91,6 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
       return;
     } else if (updater.isAvailable) {
       final updateStatus = await updater.checkForUpdate();
-      core.connection.signalNotification(LogNotification('Shorebird update status: $updateStatus'));
       if (updateStatus == UpdateStatus.outdated) {
         updater
             .update()
@@ -104,10 +103,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
               buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
             });
       } else if (updateStatus == UpdateStatus.restartRequired) {
-        if (Platform.isIOS) {
-          // TODO other platforms can't be trusted https://github.com/shorebirdtech/shorebird/issues/3498
-          _updateType = UpdateType.shorebird;
-        }
+        _updateType = UpdateType.shorebird;
       }
       if (_updateType == UpdateType.shorebird) {
         final nextPatch = await updater.readNextPatch();
