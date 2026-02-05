@@ -11,6 +11,7 @@
   "accessibilityUsageMonitor": "• L'applicazione monitora quale finestra dell'app di allenamento è attiva per garantire che i gesti vengano inviati all'app corretta",
   "accessibilityUsageNoData": "• Nessun dato personale viene raccolto o consultato tramite questo servizio",
   "accessories": "Accessori",
+  "actAsBluetoothKeyboard": "Funziona come tastiera Bluetooth",
   "action": "Azione",
   "adjustControllerButtons": "Regola i pulsanti del controller",
   "afterDate": "Dopo il {date}",
@@ -36,6 +37,7 @@
   "battery": "Batteria",
   "beforeDate": "Prima del {date}",
   "bluetoothAdvertiseAccess": "Accesso pubblicitario Bluetooth",
+  "bluetoothKeyboardExplanation": "Questo ti permetterà di usare il tuo telefono come tastiera Bluetooth per controllare le app compatibili. Una volta associato, potrai usare i pulsanti del controller della tua bici per inviare input dalla tastiera all'app.",
   "bluetoothTurnedOn": "Bluetooth attivato",
   "browserNotSupported": "Questo browser non supporta il Web Bluetooth e la piattaforma non è supportata :(",
   "button": "pulsante.",
@@ -153,7 +155,7 @@
   "enableLocalConnectionMethodFirst": "Abilitare prima il metodo di connessione locale.",
   "enableMediaKeyDetection": "Abilita rilevamento tasti multimediali",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Per prima cosa, abilita MyWhoosh Link nelle impostazioni di connessione.",
-  "enablePairingProcess": "Abilita processo di associazione",
+  "enablePairingProcess": "Funziona come un mouse Bluetooth",
   "enablePermissions": "Abilita autorizzazioni",
   "enableSteeringWithPhone": "Abilita lo sterzo con i sensori del tuo telefono",
   "enableVibrationFeedback": "Abilita il feedback delle vibrazioni durante il cambio marcia",
@@ -279,7 +281,7 @@
   "openBikeControlAnnouncement": "Ottime notizie -{trainerApp} supporta il protocollo OpenBikeControl, così avrai la migliore esperienza possibile!",
   "openBikeControlConnection": " ad esempio utilizzando la connessione OpenBikeControl",
   "otherConnectionMethods": "Altri metodi di connessione",
-  "pairingDescription": "L'associazione consente la personalizzazione completa, ma potrebbe non funzionare su tutti i dispositivi.",
+  "pairingDescription": "Questo ti permetterà di usare il tuo telefono come mouse Bluetooth per controllare le app. Una volta associato, potrai usare i pulsanti del controller della tua bici per inviare input del mouse all'app.",
   "pairingInstructions": "Sul tuo{targetName} Accedi alle impostazioni Bluetooth e cerca BikeControl o il nome del tuo dispositivo. L'associazione è necessaria se vuoi utilizzare la funzione di controllo remoto.",
   "@pairingInstructions": {
     "placeholders": {

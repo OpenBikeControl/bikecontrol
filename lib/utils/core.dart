@@ -5,9 +5,9 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:prop/prop.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
@@ -21,6 +21,7 @@ import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:prop/prop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
@@ -44,6 +45,7 @@ class Core {
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
   late final remotePairing = RemotePairing();
+  late final remoteKeyboardPairing = RemoteKeyboardPairing();
 
   late final mediaKeyHandler = MediaKeyHandler();
   late final logic = CoreLogic();
@@ -180,6 +182,10 @@ class CoreLogic {
     return core.settings.getRemoteControlEnabled() && showRemote;
   }
 
+  bool get isRemoteKeyboardControlEnabled {
+    return core.settings.getRemoteKeyboardControlEnabled() && showRemote;
+  }
+
   bool get showMyWhooshLink =>
       core.settings.getTrainerApp() is MyWhoosh &&
       core.settings.getLastTarget() != null &&
@@ -210,7 +216,7 @@ class CoreLogic {
       core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isNotEmpty == true;
 
   bool get showLocalRemoteOptions =>
-      core.actionHandler.supportedModes.isNotEmpty && ((showLocalControl) || (isRemoteControlEnabled));
+      core.actionHandler.supportedModes.isNotEmpty && (showLocalControl || isRemoteControlEnabled || isRemoteKeyboardControlEnabled);
 
   bool get hasNoConnectionMethod =>
       !screenshotMode &&
@@ -235,6 +241,7 @@ class CoreLogic {
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
     if (isRemoteControlEnabled) core.remotePairing,
+    if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
 
   List<TrainerConnection> get enabledTrainerConnections => [
@@ -244,6 +251,7 @@ class CoreLogic {
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
     if (isRemoteControlEnabled) core.remotePairing,
+    if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ];
 
   List<TrainerConnection> get trainerConnections => [
@@ -253,6 +261,7 @@ class CoreLogic {
     if (showZwiftBleEmulator) core.zwiftEmulator,
     if (showZwiftMsdnEmulator) core.zwiftMdnsEmulator,
     if (showRemote) core.remotePairing,
+    if (showRemote) core.remoteKeyboardPairing,
   ];
 
   Future<bool> isTrainerConnected() async {
@@ -326,6 +335,16 @@ class CoreLogic {
         core.settings.setRemoteControlEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Remote Control pairing: $e'),
+        );
+      });
+    }
+
+    if (isRemoteKeyboardControlEnabled && !core.remoteKeyboardPairing.isStarted.value) {
+      core.remoteKeyboardPairing.startAdvertising().catchError((e, s) {
+        recordError(e, s, context: 'Remote Keyboard Pairing');
+        core.settings.setRemoteKeyboardControlEnabled(false);
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Remote Keyboard Control pairing: $e'),
         );
       });
     }

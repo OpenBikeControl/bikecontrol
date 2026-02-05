@@ -11,6 +11,7 @@
   "accessibilityUsageMonitor": "• L'application surveille quelle fenêtre de l'application d'entraînement est active afin de s'assurer que les gestes sont envoyés à la bonne application.",
   "accessibilityUsageNoData": "• Aucune donnée personnelle n'est consultée ou collectée par le biais de ce service.",
   "accessories": "Accessoires",
+  "actAsBluetoothKeyboard": "Fonctionne comme un clavier Bluetooth",
   "action": "Action",
   "adjustControllerButtons": "Ajuster les boutons de la manette",
   "afterDate": "Après {date}",
@@ -36,6 +37,7 @@
   "battery": "Batterie",
   "beforeDate": "Avant {date}",
   "bluetoothAdvertiseAccess": "Accès à la publicité Bluetooth",
+  "bluetoothKeyboardExplanation": "Vous pourrez ainsi utiliser votre téléphone comme clavier Bluetooth pour contrôler les applications compatibles. Une fois l'appairage effectué, vous pourrez utiliser les boutons de votre contrôleur de vélo pour envoyer des commandes à l'application.",
   "bluetoothTurnedOn": "Bluetooth activé",
   "browserNotSupported": "Ce navigateur ne prend pas en charge Web Bluetooth et la plateforme n'est pas prise en charge :(",
   "button": "bouton.",
@@ -153,7 +155,7 @@
   "enableLocalConnectionMethodFirst": "Activez d'abord le mode de connexion locale.",
   "enableMediaKeyDetection": "Activer la détection des touches multimédias",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Activez d'abord MyWhoosh Link dans les paramètres de connexion.",
-  "enablePairingProcess": "Activer le processus d'appairage",
+  "enablePairingProcess": "Fonctionne comme une souris Bluetooth",
   "enablePermissions": "Activer les autorisations",
   "enableSteeringWithPhone": "Activez la direction avec les capteurs de votre téléphone",
   "enableVibrationFeedback": "Activer le retour haptique par vibration lors du changement de vitesse",
@@ -279,7 +281,7 @@
   "openBikeControlAnnouncement": "Excellente nouvelle! {trainerApp} Il prend en charge le protocole OpenBikeControl, vous bénéficierez donc de la meilleure expérience possible !",
   "openBikeControlConnection": " par exemple en utilisant la connexion OpenBikeControl",
   "otherConnectionMethods": "Autres méthodes de connexion",
-  "pairingDescription": "Le jumelage permet une personnalisation complète, mais peut ne pas fonctionner sur tous les appareils.",
+  "pairingDescription": "Cela vous permettra d'utiliser votre téléphone comme une souris Bluetooth pour contrôler des applications. Une fois l'appairage effectué, vous pourrez utiliser les boutons de votre contrôleur de vélo pour envoyer des commandes de souris à l'application.",
   "pairingInstructions": "Sur votre {targetName}, accédez aux paramètres Bluetooth et recherchez BikeControl ou le nom de votre appareil. L'appairage est nécessaire si vous souhaitez utiliser la fonction de commande à distance.",
   "@pairingInstructions": {
     "placeholders": {

@@ -31,6 +31,10 @@ enum InGameAction {
   back('Back', icon: BootstrapIcons.arrowLeft),
   rideOnBomb('Ride On Bomb', icon: LucideIcons.bomb, isLongPress: true),
 
+  // rouvy
+  kudos('Kudos', icon: BootstrapIcons.handThumbsUp),
+  pause('Pause/Resume', icon: BootstrapIcons.pause, isLongPress: true),
+
   // headwind
   headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100]),
   headwindHeartRateMode('Headwind HR Mode'),
@@ -95,7 +99,7 @@ class ControllerButton {
   }
 
   String get displayName {
-    if (sourceDeviceId == null || true) {
+    if (sourceDeviceId == null) {
       return name;
     }
 

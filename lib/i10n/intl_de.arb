@@ -11,6 +11,7 @@
   "accessibilityUsageMonitor": "• Die App überwacht, welches Trainings-App-Fenster aktiv ist, um sicherzustellen, dass Gesten an die richtige App gesendet werden.",
   "accessibilityUsageNoData": "• Über diesen Dienst werden keine personenbezogenen Daten abgerufen oder erfasst.",
   "accessories": "Zubehör",
+  "actAsBluetoothKeyboard": "Als Bluetooth-Tastatur fungieren",
   "action": "Aktion",
   "adjustControllerButtons": "Controller-Tasten anpassen",
   "afterDate": "Nach dem {date}",
@@ -36,6 +37,7 @@
   "battery": "Batterie",
   "beforeDate": "Vor dem {date}",
   "bluetoothAdvertiseAccess": "Bluetooth-Zugriff",
+  "bluetoothKeyboardExplanation": "So können Sie Ihr Smartphone als Bluetooth-Tastatur zur Steuerung kompatibler Apps verwenden. Nach der Kopplung können Sie die Tasten Ihres Fahrradcontrollers nutzen, um Tastatureingaben an die App zu senden.",
   "bluetoothTurnedOn": "Bluetooth ist eingeschaltet",
   "browserNotSupported": "Dieser Browser unterstützt kein Web-Bluetooth und die Plattform wird nicht unterstützt :(",
   "button": "Taste.",
@@ -153,7 +155,7 @@
   "enableLocalConnectionMethodFirst": "Aktivieren Sie zuerst die Methode „Lokale Verbindung“.",
   "enableMediaKeyDetection": "Medientastenerkennung aktivieren",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Aktiviere zuerst MyWhoosh Link in den Verbindungseinstellungen.",
-  "enablePairingProcess": "Kopplungsprozess aktivieren",
+  "enablePairingProcess": "Als Bluetooth-Maus fungieren",
   "enablePermissions": "Berechtigungen aktivieren",
   "enableSteeringWithPhone": "Lenkung über Handy-Sensoren aktivieren",
   "enableVibrationFeedback": "Vibrationsfeedback beim Gangwechsel aktivieren",
@@ -279,7 +281,7 @@
   "openBikeControlAnnouncement": "Tolle Neuigkeiten! {trainerApp} unterstützt das OpenBikeControl-Protokoll für eine bestmögliche Benutzererfahrung.",
   "openBikeControlConnection": " z. B. durch Verwendung einer OpenBikeControl-Verbindung",
   "otherConnectionMethods": "Andere Verbindungsmethoden",
-  "pairingDescription": "Die Kopplung ermöglicht volle Anpassungsmöglichkeiten, funktioniert aber möglicherweise nicht auf allen Geräten.",
+  "pairingDescription": "So können Sie Ihr Smartphone als Bluetooth-Maus zur Steuerung von Apps verwenden. Nach der Kopplung können Sie die Tasten Ihres Fahrradcontrollers nutzen, um Mausbewegungen an die App zu senden.",
   "pairingInstructions": "Gehe auf Deinem {targetName} in die Bluetooth-Einstellungen und suche nach BikeControl oder dem Namen Ihres Geräts. Wenn Du die Fernbedienungsfunktion nutzen möchtest, ist eine Kopplung erforderlich.",
   "@pairingInstructions": {
     "placeholders": {

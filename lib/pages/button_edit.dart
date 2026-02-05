@@ -180,14 +180,17 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   SizedBox(height: 8),
                   ColoredTitle(text: 'Local / Remote Setting'),
 
-                  if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
+                  if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard) &&
+                      (core.settings.getLocalEnabled() || core.settings.getRemoteKeyboardControlEnabled()))
                     Builder(
                       builder: (context) {
                         return SelectableCard(
                           icon: RadixIcons.keyboard,
                           title: Text(context.i18n.simulateKeyboardShortcut),
                           isActive:
-                              _keyPair.physicalKey != null && !_keyPair.isSpecialKey && core.settings.getLocalEnabled(),
+                              _keyPair.physicalKey != null &&
+                              !_keyPair.isSpecialKey &&
+                              (core.settings.getLocalEnabled() || core.settings.getRemoteKeyboardControlEnabled()),
                           value: _keyPair.toString(),
                           onPressed: () async {
                             await _showModeDropdown(context, SupportedMode.keyboard);
@@ -195,7 +198,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         );
                       },
                     ),
-                  if (core.actionHandler.supportedModes.contains(SupportedMode.touch))
+                  if (core.actionHandler.supportedModes.contains(SupportedMode.touch) &&
+                      (core.settings.getLocalEnabled() || core.settings.getRemoteControlEnabled()))
                     Builder(
                       builder: (context) {
                         return SelectableCard(
@@ -538,7 +542,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         .distinctBy((kp) => kp.inGameAction)
         .toList();
 
-    if (!core.settings.getLocalEnabled() && !core.settings.getRemoteControlEnabled()) {
+    if (!core.settings.getLocalEnabled() && !core.settings.getRemoteKeyboardControlEnabled()) {
       return buildToast(
         navigatorKey.currentContext!,
         title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,

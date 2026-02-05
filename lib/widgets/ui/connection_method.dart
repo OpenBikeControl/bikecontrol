@@ -12,6 +12,7 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 enum ConnectionMethodType {
   bluetooth,
@@ -163,13 +164,19 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
                       ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
                       : ButtonStyle.outline(),
-                  leading: Icon(Icons.help_outline),
+                  leading: Icon(
+                    widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
+                  ),
                   onPressed: () {
-                    openDrawer(
-                      context: context,
-                      position: OverlayPosition.bottom,
-                      builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
-                    );
+                    if (widget.instructionLink!.contains("youtube")) {
+                      launchUrlString(widget.instructionLink!);
+                    } else {
+                      openDrawer(
+                        context: context,
+                        position: OverlayPosition.bottom,
+                        builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
+                      );
+                    }
                   },
                   child: Text(AppLocalizations.of(context).instructions),
                 ),

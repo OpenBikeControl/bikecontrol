@@ -9,14 +9,14 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/requirements/multi.dart';
 
-class RemotePairingWidget extends StatefulWidget {
-  const RemotePairingWidget({super.key});
+class RemoteMousePairingWidget extends StatefulWidget {
+  const RemoteMousePairingWidget({super.key});
 
   @override
-  State<RemotePairingWidget> createState() => _PairWidgetState();
+  State<RemoteMousePairingWidget> createState() => _PairWidgetState();
 }
 
-class _PairWidgetState extends State<RemotePairingWidget> {
+class _PairWidgetState extends State<RemoteMousePairingWidget> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
