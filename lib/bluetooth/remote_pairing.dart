@@ -159,37 +159,6 @@ class RemotePairing extends TrainerConnection {
         descriptors: [],
       );
 
-      // Input report characteristic (notify)
-      final keyboardInputReport = GATTCharacteristic.mutable(
-        uuid: UUID.fromString('2A4D'),
-        permissions: [GATTCharacteristicPermission.read],
-        properties: [GATTCharacteristicProperty.notify, GATTCharacteristicProperty.read],
-        descriptors: [
-          GATTDescriptor.immutable(
-            // Report Reference: ID=1, Type=Input(1)
-            uuid: UUID.fromString('2908'),
-            value: Uint8List.fromList([0x02, 0x01]),
-          ),
-        ],
-      );
-
-      final outputReport = GATTCharacteristic.mutable(
-        uuid: UUID.fromString('2A4D'),
-        permissions: [GATTCharacteristicPermission.read, GATTCharacteristicPermission.write],
-        properties: [
-          GATTCharacteristicProperty.read,
-          GATTCharacteristicProperty.write,
-          GATTCharacteristicProperty.writeWithoutResponse,
-        ],
-        descriptors: [
-          GATTDescriptor.immutable(
-            // Report Reference: ID=1, Type=Input(1)
-            uuid: UUID.fromString('2908'),
-            value: Uint8List.fromList([0x02, 0x02]),
-          ),
-        ],
-      );
-
       // 2) HID service
       final hidService = GATTService(
         uuid: UUID.fromString(Platform.isIOS ? '1812' : '00001812-0000-1000-8000-00805F9B34FB'),
@@ -198,9 +167,7 @@ class RemotePairing extends TrainerConnection {
           hidInfo,
           reportMap,
           protocolMode,
-          outputReport,
           hidControlPoint,
-          keyboardInputReport,
           inputReport,
         ],
         includedServices: [],
