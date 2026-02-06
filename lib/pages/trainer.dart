@@ -26,6 +26,7 @@ import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../utils/keymap/apps/supported_app.dart';
+import '../utils/keymap/apps/zwift.dart';
 
 class TrainerPage extends StatefulWidget {
   final bool isMobile;
@@ -123,7 +124,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         ),
       if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
       if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
-      if (core.logic.showRemote) RemoteKeyboardPairingWidget(),
+      if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(),
     ];
 
     final otherTiles = [
@@ -230,7 +231,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                   child: Accordion(
                     items: [
                       AccordionItem(
-                        expanded: recommendedTiles.isEmpty,
+                        expanded: recommendedTiles.isEmpty || (core.logic.showRemote && core.remotePairing.isStarted.value),
                         trigger: AccordionTrigger(child: ColoredTitle(text: context.i18n.otherConnectionMethods)),
                         content: Column(
                           children: [
