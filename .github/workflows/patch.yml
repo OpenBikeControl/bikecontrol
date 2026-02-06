@@ -25,6 +25,14 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
+      - name: rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
+        run: |
+          if [ -f pubspec_overrides_ci.yaml ]; then
+              mv pubspec_overrides_ci.yaml pubspec_overrides.yaml
+          else 
+              echo "No pubspec_overrides_ci.yaml found, skipping rename."
+          fi
+
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
         with:
