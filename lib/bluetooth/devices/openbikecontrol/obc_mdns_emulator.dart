@@ -119,7 +119,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
 
     // Accept connection
     _server!.listen(
-      (Socket socket) {
+      (Socket socket) async {
+        await SharedLogic.keepAlive();
         _socket = socket;
 
         if (kDebugMode) {
@@ -153,6 +154,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
             }
           },
           onDone: () {
+            SharedLogic.stopKeepAlive();
             core.connection.signalNotification(
               AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
             );

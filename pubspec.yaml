@@ -104,6 +104,7 @@ flutter:
     - INSTRUCTIONS_ZWIFT.md
     - INSTRUCTIONS_LOCAL.md
     - shorebird.yaml
+    - assets/silence.mp3
     - icon.png
 
 flutter_intl:
