@@ -1,0 +1,9 @@
+dependency_overrides:
+  prop:
+    path: prop
+
+  gamepads_windows:
+    git:
+      url: https://github.com/lea108/gamepads.git
+      ref: windows-api-rework
+      path: packages/gamepads_windows
