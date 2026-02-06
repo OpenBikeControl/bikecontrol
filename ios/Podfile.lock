@@ -1,4 +1,6 @@
 PODS:
+  - audio_session (0.0.1):
+    - Flutter
   - bluetooth_low_energy_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -25,6 +27,9 @@ PODS:
     - Flutter
   - ios_receipt (0.0.1):
     - Flutter
+  - just_audio (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - media_key_detector_ios (0.0.1):
     - Flutter
   - nsd_ios (0.0.1):
@@ -63,6 +68,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - bluetooth_low_energy_darwin (from `.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
@@ -75,6 +81,7 @@ DEPENDENCIES:
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - ios_receipt (from `.symlinks/plugins/ios_receipt/ios`)
+  - just_audio (from `.symlinks/plugins/just_audio/darwin`)
   - media_key_detector_ios (from `.symlinks/plugins/media_key_detector_ios/ios`)
   - nsd_ios (from `.symlinks/plugins/nsd_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -96,6 +103,8 @@ SPEC REPOS:
     - RevenueCatUI
 
 EXTERNAL SOURCES:
+  audio_session:
+    :path: ".symlinks/plugins/audio_session/ios"
   bluetooth_low_energy_darwin:
     :path: ".symlinks/plugins/bluetooth_low_energy_darwin/darwin"
   device_info_plus:
@@ -120,6 +129,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
   ios_receipt:
     :path: ".symlinks/plugins/ios_receipt/ios"
+  just_audio:
+    :path: ".symlinks/plugins/just_audio/darwin"
   media_key_detector_ios:
     :path: ".symlinks/plugins/media_key_detector_ios/ios"
   nsd_ios:
@@ -146,6 +157,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
+  audio_session: 19e9480dbdd4e5f6c4543826b2e8b0e4ab6145fe
   bluetooth_low_energy_darwin: 50bc79258e60586e4c4bed5948bd31d925f37fac
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
@@ -158,6 +170,7 @@ SPEC CHECKSUMS:
   in_app_review: 436034b18594851a7328d7f1c2ed5ec235b79cfc
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   ios_receipt: c2d5b4c36953c377a024992393976214ce6951e6
+  just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
   media_key_detector_ios: 7ff9aefdfea00bb7b71e184132381b7d0e7e1269
   nsd_ios: 8c37babdc6538e3350dbed3a52674d2edde98173
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
