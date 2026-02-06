@@ -542,7 +542,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         .distinctBy((kp) => kp.inGameAction)
         .toList();
 
-    if (!core.settings.getLocalEnabled() && !core.settings.getRemoteKeyboardControlEnabled()) {
+    final isEnabled =
+        supportedMode == SupportedMode.keyboard &&
+            (core.settings.getLocalEnabled() || core.settings.getRemoteKeyboardControlEnabled()) ||
+        supportedMode == SupportedMode.touch &&
+            (core.settings.getLocalEnabled() || core.settings.getRemoteControlEnabled()) ||
+        supportedMode == SupportedMode.media && core.settings.getLocalEnabled();
+
+    if (!isEnabled) {
       return buildToast(
         navigatorKey.currentContext!,
         title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
