@@ -6,6 +6,7 @@ Your device can now act as Bluetooth keyboard, allowing you to send keyboard sho
 - added new keyboard shortcuts for Rouvy (Kudos, Pause workout)
 
 **Fixes**:
+- you can now finally buy the full version on Android :)
 - save "Enable Media Key detection" setting across app restarts
 - UI adjustments and fixes in the controller configuration screen
 - iOS: Remote pairing now works again
