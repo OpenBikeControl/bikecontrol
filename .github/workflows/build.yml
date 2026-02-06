@@ -252,6 +252,15 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
+      - name: rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
+        shell: pwsh
+        run: |
+            if (Test-Path pubspec_overrides_ci.yaml) {
+                Rename-Item -Path pubspec_overrides_ci.yaml -NewName pubspec_overrides.yaml
+            } else {
+                Write-Output "No pubspec_overrides_ci.yaml found, skipping rename."
+            }
+
       - name: Extract version from pubspec.yaml (Windows)
         shell: pwsh
         run: |
