@@ -73,7 +73,7 @@ class AccessibilityService : AccessibilityService(), Listener {
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val keyString = KeyEvent.keyCodeToString(event.keyCode)
         // if currently active app is BikeControl => handle it, so keymap can be created
-        if (!Observable.ignoreHidDevices && isBleRemote(event) && (rootInActiveWindow.packageName == "de.jonasbark.swiftcontrol" || Observable.handledKeys.contains(keyString))) {
+        if (!Observable.ignoreHidDevices && isBleRemote(event) && (rootInActiveWindow?.packageName == "de.jonasbark.swiftcontrol" || Observable.handledKeys.contains(keyString))) {
             // Handle keys that have a keymap defined
             Log.d(
                 "AccessibilityService",
