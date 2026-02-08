@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -239,7 +238,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
                             buildToast(
-                              navigatorKey.currentContext!,
                               title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
                             );
                           } else {
@@ -347,7 +345,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         ),
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
-                            buildToast(navigatorKey.currentContext!, title: 'Enable Local Connection method, first.');
+                            buildToast(title: 'Enable Local Connection method, first.');
                           } else {
                             showDropdown(
                               context: context,
@@ -551,7 +549,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
     if (!isEnabled) {
       return buildToast(
-        navigatorKey.currentContext!,
         title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
       );
     } else if (actionsWithInGameAction != null && actionsWithInGameAction.isNotEmpty) {

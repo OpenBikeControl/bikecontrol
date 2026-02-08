@@ -174,7 +174,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     } else {
       _pressedAction = null;
       setState(() {});
-      buildToast(context, title: 'No connected trainer.');
+      buildToast(title: 'No connected trainer.');
     }
 
     return KeyEventResult.ignored;
@@ -454,7 +454,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   }) async {
     if (!connection.isConnected.value) {
       if (down) {
-        buildToast(context, title: 'No connected trainer.');
+        buildToast(title: 'No connected trainer.');
       }
 
       return;
@@ -510,7 +510,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       );
       await IAPManager.instance.incrementCommandCount();
       if (result is! Success) {
-        buildToast(context, title: result.message);
+        buildToast(title: result.message);
       }
     }
   }

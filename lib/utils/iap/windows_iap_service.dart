@@ -92,7 +92,6 @@ class WindowsIAPService {
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
         IAPManager.instance.isPurchased.value = true;
         buildToast(
-          navigatorKey.currentContext!,
           title: 'Purchase Successful',
           subtitle: 'Thank you for your purchase! You now have unlimited access.',
         );

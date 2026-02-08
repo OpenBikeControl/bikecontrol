@@ -91,9 +91,9 @@ class KeymapManager {
                     if (jsonData != null && jsonData.isNotEmpty) {
                       final success = await core.settings.importCustomAppProfile(jsonData);
                       if (success) {
-                        buildToast(context, title: context.i18n.profileImportedSuccessfully);
+                        buildToast(title: context.i18n.profileImportedSuccessfully);
                       } else {
-                        buildToast(context, title: context.i18n.failedToImportProfile);
+                        buildToast(title: context.i18n.failedToImportProfile);
                       }
                     }
                   },
@@ -107,7 +107,7 @@ class KeymapManager {
                       if (jsonData != null) {
                         Clipboard.setData(ClipboardData(text: jsonData));
 
-                        buildToast(context, title: context.i18n.profileExportedToClipboard(currentProfile));
+                        buildToast(title: context.i18n.profileExportedToClipboard(currentProfile));
                       }
                     },
                   ),

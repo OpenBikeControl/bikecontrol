@@ -247,7 +247,7 @@ class RevenueCatService {
       } on PlatformException catch (e) {
         var errorCode = PurchasesErrorHelper.getErrorCode(e);
         if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
-          buildToast(context, title: e.message);
+          buildToast(title: e.message);
         }
       }
     } else {

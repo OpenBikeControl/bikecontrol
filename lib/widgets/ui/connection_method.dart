@@ -92,7 +92,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     return SelectableCard(
       onPressed: () {
         if (kIsWeb) {
-          buildToast(context, title: 'Not Supported on Web :)');
+          buildToast(title: 'Not Supported on Web :)');
         } else if (widget.requirements.isEmpty) {
           widget.onChange(!widget.isEnabled);
         } else {

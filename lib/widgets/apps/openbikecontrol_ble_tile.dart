@@ -1,10 +1,10 @@
-import 'package:prop/prop.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OpenBikeControlBluetoothTile extends StatefulWidget {
@@ -45,7 +45,6 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
                     recordError(e, s, context: 'OBP BLE Emulator');
                     core.settings.setObpBleEnabled(false);
                     buildToast(
-                      context,
                       level: LogLevel.LOGLEVEL_WARNING,
                       title: context.i18n.errorStartingOpenBikeControlBluetoothServer,
                     );

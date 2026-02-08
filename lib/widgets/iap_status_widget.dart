@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -280,7 +279,6 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                       if (redeemed) {
                                         await IAPManager.instance.redeem(purchaseId);
                                         buildToast(
-                                          context,
                                           title: 'Success',
                                           subtitle: 'Purchase redeemed successfully!',
                                         );
@@ -469,7 +467,6 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     } catch (e) {
       if (mounted) {
         buildToast(
-          navigatorKey.currentContext!,
           title: 'Error',
           subtitle: 'An error occurred: $e',
         );

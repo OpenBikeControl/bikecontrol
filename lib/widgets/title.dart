@@ -100,7 +100,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
               });
             })
             .catchError((e) {
-              buildToast(context, title: AppLocalizations.current.failedToUpdate(e.toString()));
+              buildToast(title: AppLocalizations.current.failedToUpdate(e.toString()));
             });
       } else if (updateStatus == UpdateStatus.restartRequired) {
         _updateType = UpdateType.shorebird;
