@@ -14,6 +14,7 @@ import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/permissions_list.dart';
+import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -108,9 +109,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 _OnboardingStep.trainer => _TrainerOnboardingStep(
                   onComplete: () {
                     setState(() {
-                      if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(
+                      if (core.settings.getTrainerApp()?.supportsOpenBikeProtocol.containsAny([
                             OpenBikeProtocolSupport.network,
-                          ) ??
+                            OpenBikeProtocolSupport.dircon,
+                          ]) ??
                           false) {
                         _currentStep = _OnboardingStep.openbikecontrol;
                       } else {

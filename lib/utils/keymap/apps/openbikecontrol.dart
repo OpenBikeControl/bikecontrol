@@ -10,7 +10,7 @@ class OpenBikeControl extends SupportedApp {
         packageName: "org.openbikecontrol",
         compatibleTargets: Target.values,
         supportsZwiftEmulation: false,
-        supportsOpenBikeProtocol: OpenBikeProtocolSupport.values,
+        supportsOpenBikeProtocol: [OpenBikeProtocolSupport.network, OpenBikeProtocolSupport.ble],
         keymap: Keymap(
           keyPairs: [],
         ),

@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_dircon.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:dartx/dartx.dart';
@@ -13,7 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart';
 import 'package:prop/prop.dart';
 
-class OpenBikeControlMdnsEmulator extends TrainerConnection {
+class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
   ServerSocket? _server;
   Registration? _mdnsRegistration;
 
@@ -22,12 +24,16 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(null);
 
   Socket? _socket;
+  ObcDircon? _dirCon;
 
   OpenBikeControlMdnsEmulator()
     : super(
         title: connectionTitle,
         supportedActions: InGameAction.values,
       );
+
+  bool get _useDirCon =>
+      core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(OpenBikeProtocolSupport.dircon) ?? false;
 
   Future<void> startServer() async {
     print('Starting mDNS server...');
@@ -64,18 +70,23 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
       _mdnsRegistration = await register(
         Service(
           name: 'BikeControl',
-          type: '_openbikecontrol._tcp',
+          type: _useDirCon ? '_wahoo-fitness-tnp._tcp' : '_openbikecontrol._tcp',
           port: 36867,
-          //hostName: 'KICKR BIKE SHIFT B84D.local',
           addresses: [localIP],
-          txt: {
-            'version': Uint8List.fromList([0x01]),
-            'id': Uint8List.fromList('1337'.codeUnits),
-            'name': Uint8List.fromList('BikeControl'.codeUnits),
-            'service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
-            'manufacturer': Uint8List.fromList('OpenBikeControl'.codeUnits),
-            'model': Uint8List.fromList('BikeControl app'.codeUnits),
-          },
+          txt: _useDirCon
+              ? {
+                  'ble-service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
+                  'mac-address': Uint8List.fromList('00:11:22:33:44:55'.codeUnits),
+                  'serial-number': Uint8List.fromList('1234567890'.codeUnits),
+                }
+              : {
+                  'version': Uint8List.fromList([0x01]),
+                  'id': Uint8List.fromList('1337'.codeUnits),
+                  'name': Uint8List.fromList('BikeControl'.codeUnits),
+                  'service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
+                  'manufacturer': Uint8List.fromList('OpenBikeControl'.codeUnits),
+                  'model': Uint8List.fromList('BikeControl app'.codeUnits),
+                },
         ),
       );
       print('Service: ${_mdnsRegistration!.id} at ${localIP.address}:$_mdnsRegistration');
@@ -104,7 +115,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
   Future<void> _createTcpServer() async {
     try {
       _server = await ServerSocket.bind(
-        InternetAddress.anyIPv6,
+        InternetAddress.anyIPv4,
         36867,
         shared: true,
         v6Only: false,
@@ -127,33 +138,24 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
         }
 
+        if (_useDirCon) {
+          _dirCon = ObcDircon(socket: socket, onMessageCallback: this);
+        }
+
         // Listen for data from the client
         socket.listen(
           (List<int> data) {
             if (kDebugMode) {
               print('Received message: ${bytesToHex(data)}');
             }
-            final messageType = data[0];
-            switch (messageType) {
-              case OpenBikeProtocolParser.MSG_TYPE_APP_INFO:
-                try {
-                  final appInfo = OpenBikeProtocolParser.parseAppInfo(Uint8List.fromList(data));
-                  isConnected.value = true;
-                  connectedApp.value = appInfo;
-
-                  supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
-                  core.connection.signalNotification(
-                    AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
-                  );
-                } catch (e) {
-                  core.connection.signalNotification(LogNotification('Failed to parse app info: $e'));
-                }
-                break;
-              default:
-                print('Unknown message type: $messageType');
+            if (_dirCon != null) {
+              _dirCon!.handleIncomingData(data);
+              return;
             }
+            onMessage(data);
           },
           onDone: () {
+            _dirCon = null;
             SharedLogic.stopKeepAlive();
             core.connection.signalNotification(
               AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
@@ -207,6 +209,37 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection {
 
   void _write(Socket socket, List<int> responseData) {
     debugPrint('Sending response: ${bytesToHex(responseData)}');
-    socket.add(responseData);
+    if (_dirCon != null) {
+      _dirCon!.sendCharacteristicNotification(OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID, responseData);
+      return;
+    } else {
+      socket.add(responseData);
+    }
+  }
+
+  @override
+  void onMessage(List<int> message) {
+    if (kDebugMode) {
+      print('Received message from DirCon: ${bytesToHex(message)}');
+    }
+    final messageType = message[0];
+    switch (messageType) {
+      case OpenBikeProtocolParser.MSG_TYPE_APP_INFO:
+        try {
+          final appInfo = OpenBikeProtocolParser.parseAppInfo(Uint8List.fromList(message));
+          isConnected.value = true;
+          connectedApp.value = appInfo;
+
+          supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+          );
+        } catch (e) {
+          core.connection.signalNotification(LogNotification('Failed to parse app info: $e'));
+        }
+        break;
+      default:
+        print('Unknown message type: $messageType');
+    }
   }
 }
