@@ -298,6 +298,8 @@ class ZwiftEmulator extends TrainerConnection {
   }
 
   Future<void> stopAdvertising() async {
+    await _peripheralManager.removeAllServices();
+    _isServiceAdded = false;
     await _peripheralManager.stopAdvertising();
     isStarted.value = false;
     isConnected.value = false;
