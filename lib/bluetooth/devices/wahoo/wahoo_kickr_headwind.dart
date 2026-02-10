@@ -83,6 +83,9 @@ class WahooKickrHeadwind extends BluetoothDevice {
         withoutResponse: true,
       );
       _currentMode = HeadwindMode.manual;
+      
+      // Small delay to ensure mode change is processed before speed command
+      await Future.delayed(const Duration(milliseconds: 100));
     }
 
     // Command format: [0x02, speed_value]
