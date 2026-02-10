@@ -40,8 +40,6 @@ class DesktopActions extends BaseActions {
           final label = keyPair.logicalKey!.keyLabel;
           final keyName = label.isNotEmpty ? label : keyPair.logicalKey!.debugName ?? 'Key';
           buildToast(
-            navigatorKey.currentContext!,
-
             location: ToastLocation.bottomLeft,
             title:
                 '${isKeyDown

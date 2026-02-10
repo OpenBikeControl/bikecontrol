@@ -55,7 +55,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
       if (core.logic.showForegroundMessage) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // show snackbar to inform user that the app needs to stay in foreground
-          buildToast(navigatorKey.currentContext!, title: AppLocalizations.current.touchSimulationForegroundMessage);
+          buildToast(title: AppLocalizations.current.touchSimulationForegroundMessage);
         });
       }
 
@@ -83,7 +83,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
         UniversalBle.getBluetoothAvailabilityState().then((state) {
           if (state == AvailabilityState.poweredOn && mounted) {
             core.remotePairing.reconnect();
-            buildToast(navigatorKey.currentContext!, title: AppLocalizations.current.touchSimulationForegroundMessage);
+            buildToast(title: AppLocalizations.current.touchSimulationForegroundMessage);
           }
         });
       }
@@ -231,7 +231,8 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                   child: Accordion(
                     items: [
                       AccordionItem(
-                        expanded: recommendedTiles.isEmpty || (core.logic.showRemote && core.remotePairing.isStarted.value),
+                        expanded:
+                            recommendedTiles.isEmpty || (core.logic.showRemote && core.remotePairing.isStarted.value),
                         trigger: AccordionTrigger(child: ColoredTitle(text: context.i18n.otherConnectionMethods)),
                         content: Column(
                           children: [
@@ -273,7 +274,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                     onPressed: () {
                       if (core.settings.getTrainerApp() == null) {
                         buildToast(
-                          context,
                           level: LogLevel.LOGLEVEL_WARNING,
                           title: context.i18n.selectTrainerApp,
                         );

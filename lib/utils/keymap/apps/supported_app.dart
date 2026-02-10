@@ -12,6 +12,7 @@ import 'my_whoosh.dart';
 enum OpenBikeProtocolSupport {
   ble,
   network,
+  dircon,
 }
 
 abstract class SupportedApp {

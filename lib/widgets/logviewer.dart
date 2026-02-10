@@ -69,7 +69,7 @@ class _LogviewerState extends State<LogViewer> {
                       .join('\n');
                   Clipboard.setData(ClipboardData(text: logText));
 
-                  buildToast(context, title: context.i18n.logsHaveBeenCopiedToClipboard);
+                  buildToast(title: context.i18n.logsHaveBeenCopiedToClipboard);
                 },
               ),
             ],

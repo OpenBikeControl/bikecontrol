@@ -175,7 +175,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         skipName: '$currentProfile (Copy)',
       );
       if (newName != null && context.mounted) {
-        buildToast(context, title: context.i18n.createdNewCustomProfile(newName));
+        buildToast(title: context.i18n.createdNewCustomProfile(newName));
         selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
           (e) => e == keyPair,
         );

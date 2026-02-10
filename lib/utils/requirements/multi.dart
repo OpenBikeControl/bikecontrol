@@ -22,7 +22,6 @@ class KeyboardRequirement extends PlatformRequirement {
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     buildToast(
-      context,
       title: AppLocalizations.current.enableKeyboardAccessMessage,
     );
     await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
@@ -62,7 +61,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
       await PeripheralManager().showAppSettings();
     } else if (currentState == AvailabilityState.poweredOff) {
       if (Platform.isMacOS) {
-        buildToast(context, title: name);
+        buildToast(title: name);
       } else {
         await UniversalBle.enableBluetooth();
       }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:prop/prop.dart';
 import 'package:bike_control/utils/actions/base_actions.dart' as actions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -12,6 +11,7 @@ import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/messages/notification.dart';
@@ -104,13 +104,12 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
             _keys.removeLast();
           }
         } else if (core.actionHandler.supportedApp == null) {
-          buildToast(context, level: LogLevel.LOGLEVEL_WARNING, title: context.i18n.selectTrainerAppAndTarget);
+          buildToast(level: LogLevel.LOGLEVEL_WARNING, title: context.i18n.selectTrainerAppAndTarget);
         } else {
           final button = data.buttonsClicked.first;
           if (core.actionHandler.supportedApp is! CustomApp &&
               core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
             buildToast(
-              context,
               level: LogLevel.LOGLEVEL_WARNING,
               titleWidget: Text.rich(
                 TextSpan(
@@ -146,7 +145,6 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
         }
       } else if (data is ActionNotification && data.result is! actions.Ignored) {
         buildToast(
-          context,
           location: ToastLocation.bottomLeft,
           level: data.result is actions.Error ? LogLevel.LOGLEVEL_WARNING : LogLevel.LOGLEVEL_INFO,
           title: data.result.message,
@@ -154,7 +152,6 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
         );
       } else if (data is AlertNotification) {
         buildToast(
-          context,
           location: ToastLocation.bottomRight,
           level: data.level,
           title: data.alertMessage,

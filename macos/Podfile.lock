@@ -1,4 +1,6 @@
 PODS:
+  - audio_session (0.0.1):
+    - FlutterMacOS
   - bluetooth_low_energy_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -22,6 +24,9 @@ PODS:
   - in_app_review (2.0.0):
     - FlutterMacOS
   - ios_receipt (0.0.1):
+    - FlutterMacOS
+  - just_audio (0.0.1):
+    - Flutter
     - FlutterMacOS
   - keypress_simulator_macos (0.0.1):
     - FlutterMacOS
@@ -53,6 +58,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
   - bluetooth_low_energy_darwin (from `Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
@@ -64,6 +70,7 @@ DEPENDENCIES:
   - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - ios_receipt (from `Flutter/ephemeral/.symlinks/plugins/ios_receipt/macos`)
+  - just_audio (from `Flutter/ephemeral/.symlinks/plugins/just_audio/darwin`)
   - keypress_simulator_macos (from `Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos`)
   - media_key_detector_macos (from `Flutter/ephemeral/.symlinks/plugins/media_key_detector_macos/macos`)
   - nsd_macos (from `Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos`)
@@ -82,6 +89,8 @@ SPEC REPOS:
     - RevenueCat
 
 EXTERNAL SOURCES:
+  audio_session:
+    :path: Flutter/ephemeral/.symlinks/plugins/audio_session/macos
   bluetooth_low_energy_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin
   device_info_plus:
@@ -104,6 +113,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/in_app_review/macos
   ios_receipt:
     :path: Flutter/ephemeral/.symlinks/plugins/ios_receipt/macos
+  just_audio:
+    :path: Flutter/ephemeral/.symlinks/plugins/just_audio/darwin
   keypress_simulator_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos
   media_key_detector_macos:
@@ -128,6 +139,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
+  audio_session: 728ae3823d914f809c485d390274861a24b0904e
   bluetooth_low_energy_darwin: 50bc79258e60586e4c4bed5948bd31d925f37fac
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
@@ -139,6 +151,7 @@ SPEC CHECKSUMS:
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
   in_app_review: 866c9b17c87a7b46a395bda43f5d3ca02deb585a
   ios_receipt: 8741a75f39e6ca0866313b73c69a5b674cf5c98c
+  just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
   keypress_simulator_macos: f8556f9101f9f2f175652e0bceddf0fe82a4c6b2
   media_key_detector_macos: a93757a483b4b47283ade432b1af9e427c47329f
   nsd_macos: 1a38a38a33adbb396b4c6f303bc076073514cadc

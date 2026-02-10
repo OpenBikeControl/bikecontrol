@@ -4,7 +4,6 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
@@ -133,7 +132,6 @@ class NotificationRequirement extends PlatformRequirement {
           ?.requestNotificationsPermission();
       if (result == false) {
         buildToast(
-          navigatorKey.currentContext!,
           title: 'Enable notifications for BikeControl in Android Settings',
         );
       }
@@ -148,7 +146,6 @@ class NotificationRequirement extends PlatformRequirement {
       core.settings.setHasAskedPermissions(true);
       if (result == false) {
         buildToast(
-          navigatorKey.currentContext!,
           title: 'Enable notifications for BikeControl in System Preferences → Notifications → Bike Control',
         );
         launchUrlString('x-apple.systempreferences:com.apple.preference.notifications');
@@ -164,7 +161,6 @@ class NotificationRequirement extends PlatformRequirement {
       core.settings.setHasAskedPermissions(true);
       if (result == false) {
         buildToast(
-          navigatorKey.currentContext!,
           title: 'Enable notifications for BikeControl in System Preferences → Notifications → Bike Control',
         );
         launchUrlString('x-apple.systempreferences:com.apple.preference.notifications');

@@ -15,7 +15,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -169,13 +168,10 @@ abstract class BluetoothDevice extends BaseDevice {
         device == null &&
         core.connection.controllerDevices.none((d) => d is ZwiftRide)) {
       // Fallback for Zwift Ride if nothing else matched => old firmware
-      if (navigatorKey.currentContext?.mounted ?? false) {
-        buildToast(
-          navigatorKey.currentContext!,
-          title: 'You may need to update your Zwift Ride firmware.',
-          duration: Duration(seconds: 6),
-        );
-      }
+      buildToast(
+        title: 'You may need to update your Zwift Ride firmware.',
+        duration: Duration(seconds: 6),
+      );
     }
     return device;
   }

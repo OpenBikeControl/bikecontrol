@@ -170,7 +170,11 @@ class CoreLogic {
   }
 
   bool get showObpMdnsEmulator {
-    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(OpenBikeProtocolSupport.network) == true;
+    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.containsAny([
+          OpenBikeProtocolSupport.network,
+          OpenBikeProtocolSupport.dircon,
+        ]) ==
+        true;
   }
 
   bool get showObpBluetoothEmulator {
@@ -216,7 +220,8 @@ class CoreLogic {
       core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isNotEmpty == true;
 
   bool get showLocalRemoteOptions =>
-      core.actionHandler.supportedModes.isNotEmpty && (showLocalControl || isRemoteControlEnabled || isRemoteKeyboardControlEnabled);
+      core.actionHandler.supportedModes.isNotEmpty &&
+      (showLocalControl || isRemoteControlEnabled || isRemoteKeyboardControlEnabled);
 
   bool get hasNoConnectionMethod =>
       !screenshotMode &&

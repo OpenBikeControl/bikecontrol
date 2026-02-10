@@ -228,6 +228,8 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
     if (kDebugMode) {
       print('Stopping OpenBikeControl BLE server...');
     }
+    await _peripheralManager.removeAllServices();
+    _isServiceAdded = false;
     await _peripheralManager.stopAdvertising();
     isStarted.value = false;
     isConnected.value = false;
