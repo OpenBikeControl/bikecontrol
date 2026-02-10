@@ -105,6 +105,7 @@ jobs:
           args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}'
 
       - name: 🚀 Shorebird Patch Android
+        if: false
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: android
@@ -112,7 +113,6 @@ jobs:
           args: '--allow-asset-diffs --allow-native-diffs -- --obfuscate --split-debug-info=symbols --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}'
 
       - name: 🚀 Shorebird Patch iOS
-        if: false
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: ios
@@ -121,7 +121,6 @@ jobs:
 
   windows:
     name: Patch Windows
-    if: false
     runs-on: windows-latest
 
     steps:
