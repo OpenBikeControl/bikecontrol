@@ -75,7 +75,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   @override
   Widget build(BuildContext context) {
-    final keyButtonMap = core.connection.devices.associateWith((d) {
+    final keyButtonMap = core.connection.controllerDevices.associateWith((d) {
       final allButtons = d.availableButtons;
       return widget.keymap.keyPairs
           .whereNot(
