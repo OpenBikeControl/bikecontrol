@@ -17,6 +17,7 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -377,7 +378,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                 ],
 
-                if (core.connection.accessories.isNotEmpty) ...[
+                if (core.connection.accessories.isNotEmpty || kDebugMode) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: 'Accessory Actions'),
                   Builder(

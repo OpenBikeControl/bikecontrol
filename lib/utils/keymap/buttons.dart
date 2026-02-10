@@ -36,8 +36,8 @@ enum InGameAction {
   pause('Pause/Resume', icon: BootstrapIcons.pause, isLongPress: true),
 
   // headwind
-  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100]),
-  headwindHeartRateMode('Headwind HR Mode'),
+  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100], icon: Icons.air),
+  headwindHeartRateMode('Headwind HR Mode', icon: Icons.favorite),
 
   // openbikecontrol
   up('Up', icon: RadixIcons.arrowUp),

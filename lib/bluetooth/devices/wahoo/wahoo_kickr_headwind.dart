@@ -1,10 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
-import 'package:prop/prop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
@@ -38,7 +36,6 @@ class WahooKickrHeadwind extends BluetoothDevice {
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
     // Analyze the received bytes to determine current state
-    actionStreamInternal.add(LogNotification('Received ${bytesToHex(bytes)} from Headwind $characteristic'));
     if (bytes.length >= 4 && bytes[0] == 0xFD && bytes[1] == 0x01) {
       final mode = bytes[3];
       final speed = bytes[2];
@@ -83,7 +80,7 @@ class WahooKickrHeadwind extends BluetoothDevice {
         withoutResponse: true,
       );
       _currentMode = HeadwindMode.manual;
-      
+
       // Small delay to ensure mode change is processed before speed command
       await Future.delayed(const Duration(milliseconds: 100));
     }

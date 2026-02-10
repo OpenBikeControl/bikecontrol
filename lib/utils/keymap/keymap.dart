@@ -8,6 +8,7 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -168,7 +169,12 @@ class KeyPair {
         _ => Icons.keyboard,
       },
       //_ when inGameAction != null && core.logic.emulatorEnabled => Icons.link,
-      _ when inGameAction != null && inGameAction!.icon != null && core.logic.emulatorEnabled => inGameAction!.icon,
+      _
+          when inGameAction != null &&
+              inGameAction!.icon != null &&
+              (core.logic.emulatorEnabled ||
+                  [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)) =>
+        inGameAction!.icon,
 
       _
           when androidAction != null &&
@@ -225,11 +231,17 @@ class KeyPair {
       (inGameAction != null &&
           core.logic.showZwiftMsdnEmulator &&
           core.settings.getZwiftMdnsEmulatorEnabled() &&
-          core.zwiftMdnsEmulator.supportedActions.contains(inGameAction));
+          core.zwiftMdnsEmulator.supportedActions.contains(inGameAction)) ||
+      (inGameAction != null &&
+          [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction) &&
+          (core.connection.accessories.isNotEmpty || kDebugMode));
 
   @override
   String toString() {
-    final text = (inGameAction != null && core.logic.emulatorEnabled)
+    final text =
+        (inGameAction != null &&
+            (core.logic.emulatorEnabled ||
+                [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)))
         ? [
             inGameAction!.title,
             if (inGameActionValue != null) '$inGameActionValue',
