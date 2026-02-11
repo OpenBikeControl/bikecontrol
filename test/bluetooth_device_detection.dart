@@ -27,6 +27,7 @@ void main() {
         manufacturerData: [
           ManufacturerData(ZwiftConstants.ZWIFT_MANUFACTURER_ID, Uint8List.fromList([ZwiftConstants.RC1_RIGHT_SIDE])),
         ],
+        services: [ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID.toLowerCase()],
       );
       expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ZwiftPlay>());
     });
@@ -48,6 +49,17 @@ void main() {
           ManufacturerData(ZwiftConstants.ZWIFT_MANUFACTURER_ID, Uint8List.fromList([ZwiftConstants.RIDE_LEFT_SIDE])),
         ],
         services: [ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID.toLowerCase()],
+      );
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ZwiftRide>());
+    });
+
+    test('Detect Zwift Ride oldest firmware', () {
+      final device = _createBleDevice(
+        name: 'Zwift Ride',
+        manufacturerData: [
+          ManufacturerData(ZwiftConstants.ZWIFT_MANUFACTURER_ID, Uint8List.fromList([ZwiftConstants.RIDE_LEFT_SIDE])),
+        ],
+        services: [ZwiftConstants.ZWIFT_CUSTOM_SERVICE_SHORT_UUID.toLowerCase()],
       );
       expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ZwiftRide>());
     });
