@@ -208,7 +208,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
                   await _shorebirdRestart();
                 } else if (_updateType == UpdateType.playStore) {
                   await launchUrlString(
-                    'https://play.google.com/store/apps/details?id=org.jonasbark.swiftcontrol',
+                    'https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol',
                     mode: LaunchMode.externalApplication,
                   );
                 } else if (_updateType == UpdateType.appStore) {

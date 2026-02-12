@@ -131,7 +131,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     // Accept connection
     _server!.listen(
       (Socket socket) async {
-        await SharedLogic.keepAlive();
+        SharedLogic.keepAlive();
         _socket = socket;
 
         if (kDebugMode) {

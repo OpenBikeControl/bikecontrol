@@ -67,16 +67,16 @@ class WhooshLink extends TrainerConnection {
     // Accept connection
     _server!.listen(
       (Socket socket) async {
-        await SharedLogic.keepAlive();
+        if (kDebugMode) {
+          print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
+        }
+
+        SharedLogic.keepAlive();
         _socket = socket;
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.myWhooshLinkConnected),
         );
         isConnected.value = true;
-        if (kDebugMode) {
-          print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
-        }
-
         // Listen for data from the client
         socket.listen(
           (List<int> data) {
