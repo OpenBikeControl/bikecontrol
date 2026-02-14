@@ -109,6 +109,12 @@ jobs:
         with:
           cache: true
 
+      - name: Set Up Flutter maCOS
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
       - name: Generate translation files
         run: |
           flutter pub global activate intl_utils;
