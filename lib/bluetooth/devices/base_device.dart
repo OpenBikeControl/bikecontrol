@@ -69,18 +69,24 @@ abstract class BaseDevice {
   Future<void> connect();
 
   Future<void> handleButtonsClickedWithoutLongPressSupport(List<ControllerButton> clickedButtons) async {
-    await handleButtonsClicked(clickedButtons, longPress: true);
     if (clickedButtons.length == 1) {
       final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(clickedButtons.single);
       if (keyPair != null && (keyPair.isLongPress || keyPair.inGameAction?.isLongPress == true)) {
-        // simulate release after click
+        // For long press actions: perform down, wait, then release
+        await handleButtonsClicked(clickedButtons, longPress: true);
         _longPressTimer?.cancel();
         await Future.delayed(const Duration(milliseconds: 800));
         await handleButtonsClicked([], longPress: true);
       } else {
-        await handleButtonsClicked([], longPress: true);
+        // For non-long-press actions: perform a single click
+        // First call performs the click action (isKeyDown: true, isKeyUp: true)
+        await handleButtonsClicked(clickedButtons, longPress: false);
+        // Second call cleans up state (clears timer, logs release, clears _previouslyPressedButtons)
+        // but doesn't perform a release action since longPress: false
+        await handleButtonsClicked([], longPress: false);
       }
     } else {
+      await handleButtonsClicked(clickedButtons);
       await handleButtonsClicked([]);
     }
   }
