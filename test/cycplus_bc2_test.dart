@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {
@@ -28,7 +28,7 @@ void main() {
         _hexToUint8List('FEEFFFEE0206030398565E000158'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftUp);
+      expect(stubActions.performedActions.first, PerformedAction(CycplusBc2Buttons.shiftUp, isDown: true, isUp: true));
       stubActions.performedActions.clear();
 
       // Packet 2: [6]=03 [7]=01 -> Trigger: shiftDown
@@ -37,7 +37,10 @@ void main() {
         _hexToUint8List('FEEFFFEE0206030198575E000157'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftDown);
+      expect(
+        stubActions.performedActions.first,
+        PerformedAction(CycplusBc2Buttons.shiftDown, isDown: true, isUp: true),
+      );
       stubActions.performedActions.clear();
 
       // Packet 3: [6]=03 [7]=03 -> No trigger (lock state)
@@ -53,7 +56,7 @@ void main() {
         _hexToUint8List('FEEFFFEE0206010399585E000159'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftUp);
+      expect(stubActions.performedActions.first, PerformedAction(CycplusBc2Buttons.shiftUp, isDown: true, isUp: true));
       stubActions.performedActions.clear();
     });
 
@@ -89,7 +92,7 @@ void main() {
         _hexToUint8List('FEEFFFEE0206010300005E000100'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, CycplusBc2Buttons.shiftUp);
+      expect(stubActions.performedActions.first, PerformedAction(CycplusBc2Buttons.shiftUp, isDown: true, isUp: true));
     });
 
     test('Test both buttons can trigger simultaneously', () {
@@ -110,7 +113,10 @@ void main() {
         _hexToUint8List('FEEFFFEE0206020200005E000100'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.contains(CycplusBc2Buttons.shiftUp), true);
+      expect(
+        stubActions.performedActions.contains(PerformedAction(CycplusBc2Buttons.shiftUp, isDown: true, isUp: true)),
+        true,
+      );
     });
   });
 }

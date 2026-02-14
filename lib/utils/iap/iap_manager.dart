@@ -217,6 +217,8 @@ class IAPManager {
   }
 
   void setAttributes() {
-    _revenueCatService?.setAttributes();
+    if (!screenshotMode) {
+      _revenueCatService?.setAttributes();
+    }
   }
 }
