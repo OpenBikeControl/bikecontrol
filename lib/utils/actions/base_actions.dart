@@ -178,14 +178,41 @@ abstract class BaseActions {
 class StubActions extends BaseActions {
   StubActions({super.supportedModes = const []});
 
-  final List<(ControllerButton button, bool isDown, bool isUp)> performedActions = [];
+  final List<PerformedAction> performedActions = [];
 
   @override
   Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
-    performedActions.add((button, isKeyDown, isKeyUp));
+    performedActions.add(PerformedAction(button, isDown: isKeyDown, isUp: isKeyUp));
     return Future.value(Ignored('${button.name.splitByUpperCase()} clicked'));
   }
 
   @override
-  void cleanup() {}
+  void cleanup() {
+    performedActions.clear();
+  }
+}
+
+class PerformedAction {
+  final ControllerButton button;
+  final bool isDown;
+  final bool isUp;
+
+  PerformedAction(this.button, {required this.isDown, required this.isUp});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PerformedAction &&
+          runtimeType == other.runtimeType &&
+          button.copyWith(sourceDeviceId: null) == other.button.copyWith(sourceDeviceId: null) &&
+          isDown == other.isDown &&
+          isUp == other.isUp;
+
+  @override
+  int get hashCode => Object.hash(button, isDown, isUp);
+
+  @override
+  String toString() {
+    return '{button: $button, isDown: $isDown, isUp: $isUp}';
+  }
 }

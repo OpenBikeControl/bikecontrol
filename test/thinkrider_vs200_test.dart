@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bike_control/bluetooth/devices/thinkrider/thinkrider_vs200.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {
@@ -21,7 +21,10 @@ void main() {
         _hexToUint8List('F3050301FC'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftUp);
+      expect(
+        stubActions.performedActions.first,
+        PerformedAction(ThinkRiderVs200Buttons.shiftUp, isDown: true, isUp: true),
+      );
     });
 
     test('Test shift down button press with correct pattern', () {
@@ -35,7 +38,10 @@ void main() {
         _hexToUint8List('F3050300FB'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftDown);
+      expect(
+        stubActions.performedActions.first,
+        PerformedAction(ThinkRiderVs200Buttons.shiftDown, isDown: true, isUp: true),
+      );
     });
 
     test('Test multiple button presses', () {
@@ -49,7 +55,10 @@ void main() {
         _hexToUint8List('F3050301FC'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftUp);
+      expect(
+        stubActions.performedActions.first,
+        PerformedAction(ThinkRiderVs200Buttons.shiftUp, isDown: true, isUp: true),
+      );
       stubActions.performedActions.clear();
 
       // Shift down
@@ -58,7 +67,10 @@ void main() {
         _hexToUint8List('F3050300FB'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftDown);
+      expect(
+        stubActions.performedActions.first,
+        PerformedAction(ThinkRiderVs200Buttons.shiftDown, isDown: true, isUp: true),
+      );
     });
 
     test('Test incorrect pattern does not trigger action', () {
