@@ -79,7 +79,10 @@ abstract class BaseDevice {
         await handleButtonsClicked([], longPress: true);
       } else {
         // For non-long-press actions: perform a single click
+        // First call performs the click action (isKeyDown: true, isKeyUp: true)
         await handleButtonsClicked(clickedButtons, longPress: false);
+        // Second call cleans up state (clears timer, logs release, clears _previouslyPressedButtons)
+        // but doesn't perform a release action since longPress: false
         await handleButtonsClicked([], longPress: false);
       }
     } else {
