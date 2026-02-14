@@ -21,7 +21,7 @@ void main() {
         _hexToUint8List('F3050301FC'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftUp);
+      expect(stubActions.performedActions.first.$1, ThinkRiderVs200Buttons.shiftUp);
     });
 
     test('Test shift down button press with correct pattern', () {
@@ -35,7 +35,7 @@ void main() {
         _hexToUint8List('F3050300FB'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftDown);
+      expect(stubActions.performedActions.first.$1, ThinkRiderVs200Buttons.shiftDown);
     });
 
     test('Test multiple button presses', () {
@@ -49,7 +49,7 @@ void main() {
         _hexToUint8List('F3050301FC'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftUp);
+      expect(stubActions.performedActions.first.$1, ThinkRiderVs200Buttons.shiftUp);
       stubActions.performedActions.clear();
 
       // Shift down
@@ -58,7 +58,7 @@ void main() {
         _hexToUint8List('F3050300FB'),
       );
       expect(stubActions.performedActions.length, 1);
-      expect(stubActions.performedActions.first, ThinkRiderVs200Buttons.shiftDown);
+      expect(stubActions.performedActions.first.$1, ThinkRiderVs200Buttons.shiftDown);
     });
 
     test('Test incorrect pattern does not trigger action', () {
@@ -72,6 +72,46 @@ void main() {
         _hexToUint8List('0000000000'),
       );
       expect(stubActions.performedActions.isEmpty, true);
+    });
+
+    test('Test shift up performs single click action (not double)', () {
+      core.actionHandler = StubActions();
+      final stubActions = core.actionHandler as StubActions;
+      final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
+
+      // Send shift up pattern: F3-05-03-01-FC
+      device.processCharacteristic(
+        ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
+        _hexToUint8List('F3050301FC'),
+      );
+      
+      // Should have exactly 1 action (single click with isKeyDown: true, isKeyUp: true)
+      // NOT 2 actions (down then up)
+      expect(stubActions.performedActions.length, 1);
+      final action = stubActions.performedActions.first;
+      expect(action.$1, ThinkRiderVs200Buttons.shiftUp);
+      expect(action.$2, true); // isKeyDown
+      expect(action.$3, true); // isKeyUp
+    });
+
+    test('Test shift down performs single click action (not double)', () {
+      core.actionHandler = StubActions();
+      final stubActions = core.actionHandler as StubActions;
+      final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
+
+      // Send shift down pattern: F3-05-03-00-FB
+      device.processCharacteristic(
+        ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
+        _hexToUint8List('F3050300FB'),
+      );
+      
+      // Should have exactly 1 action (single click with isKeyDown: true, isKeyUp: true)
+      // NOT 2 actions (down then up)
+      expect(stubActions.performedActions.length, 1);
+      final action = stubActions.performedActions.first;
+      expect(action.$1, ThinkRiderVs200Buttons.shiftDown);
+      expect(action.$2, true); // isKeyDown
+      expect(action.$3, true); // isKeyUp
     });
   });
 }
