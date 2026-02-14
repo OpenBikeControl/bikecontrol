@@ -105,7 +105,6 @@ jobs:
           args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}'
 
       - name: 🚀 Shorebird Patch Android
-        if: false
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: android
