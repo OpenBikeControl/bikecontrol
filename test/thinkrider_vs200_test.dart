@@ -100,10 +100,10 @@ void main() {
       // Should have exactly 1 action (single click with isKeyDown: true, isKeyUp: true)
       // NOT 2 actions (down then up)
       expect(stubActions.performedActions.length, 1);
-      final action = stubActions.performedActions.first;
-      expect(action.$1, ThinkRiderVs200Buttons.shiftUp);
-      expect(action.$2, true); // isKeyDown
-      expect(action.$3, true); // isKeyUp
+      expect(
+        stubActions.performedActions.first,
+        equals(PerformedAction(ThinkRiderVs200Buttons.shiftUp, isDown: true, isUp: true)),
+      );
     });
 
     test('Test shift down performs single click action (not double)', () {
@@ -120,10 +120,10 @@ void main() {
       // Should have exactly 1 action (single click with isKeyDown: true, isKeyUp: true)
       // NOT 2 actions (down then up)
       expect(stubActions.performedActions.length, 1);
-      final action = stubActions.performedActions.first;
-      expect(action.$1, ThinkRiderVs200Buttons.shiftDown);
-      expect(action.$2, true); // isKeyDown
-      expect(action.$3, true); // isKeyUp
+      expect(
+        stubActions.performedActions.first,
+        equals(PerformedAction(ThinkRiderVs200Buttons.shiftDown, isDown: true, isUp: true)),
+      );
     });
   });
 }
