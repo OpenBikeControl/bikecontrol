@@ -110,7 +110,7 @@ class _DevicePageState extends State<DevicePage> {
               ),
             ],
 
-            if (!kIsWeb && (Platform.isMacOS || Platform.isWindows))
+            if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS))
               ValueListenableBuilder(
                 valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
                 builder: (context, value, child) {
