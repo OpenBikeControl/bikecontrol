@@ -64,7 +64,7 @@ class Connection {
       lastLogEntries = lastLogEntries.takeLast(kIsWeb ? 1000 : 60).toList();
     });
 
-    if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+    if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) {
       core.mediaKeyHandler.initialize();
       // Load saved media key detection state
       core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings.getMediaKeyDetectionEnabled();

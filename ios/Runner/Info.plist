@@ -30,21 +30,22 @@
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>BikeControl uses Bluetooth to connect to accessories.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_wahoo-fitness-tnp._tcp</string>
+		<string>_openbikecontrol._tcp</string>
+	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>This app connects to your trainer app on your local network.</string>
 	<key>NSMotionUsageDescription</key>
-    <string>Access your accelerometer and gyroscope for steering support via your phone.</string>
-    <key>NSBonjourServices</key>
-    <array>
-      <string>_wahoo-fitness-tnp._tcp</string>
-      <string>_openbikecontrol._tcp</string>
-    </array>
+	<string>Access your accelerometer and gyroscope for steering support via your phone.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-peripheral</string>
 		<string>bluetooth-central</string>
+		<string>audio</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
