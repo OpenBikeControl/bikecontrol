@@ -4,8 +4,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:prop/emulators/constants.dart';
-import 'package:prop/emulators/shared.dart';
+import 'package:prop/prop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
