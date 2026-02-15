@@ -1,3 +1,11 @@
+### 4.8.0 (15-02-2026)
+
+**Features**:
+- Bluetooth media buttons are now supported on iOS
+- Shimano Di2: long press and double clicks are now supported:
+  - perform steering using long presses
+  - gear changes are now reflected properly without losing any button presses
+
 ### 4.7.0 (04-02-2026)
 
 **Features**:

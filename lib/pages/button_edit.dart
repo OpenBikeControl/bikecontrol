@@ -378,7 +378,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                 ],
 
-                if (core.connection.accessories.isNotEmpty || kDebugMode) ...[
+                if (core.connection.accessories.isNotEmpty) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: 'Accessory Actions'),
                   Builder(
