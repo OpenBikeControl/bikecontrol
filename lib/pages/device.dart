@@ -110,63 +110,6 @@ class _DevicePageState extends State<DevicePage> {
               ),
             ],
 
-            if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS))
-              ValueListenableBuilder(
-                valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
-                builder: (context, value, child) {
-                  return SelectableCard(
-                    isActive: value,
-                    icon: value ? Icons.check_box : Icons.check_box_outline_blank,
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        Text(context.i18n.enableMediaKeyDetection),
-                        Text(
-                          context.i18n.mediaKeyDetectionTooltip,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                    onPressed: () {
-                      final newValue = !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
-                      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = newValue;
-                      core.settings.setMediaKeyDetectionEnabled(newValue);
-                    },
-                  );
-                },
-              ),
-            SizedBox(),
-            if (!kIsWeb && (Platform.isAndroid || Platform.isIOS) && !core.settings.getShowOnboarding())
-              SelectableCard(
-                isActive: core.settings.getPhoneSteeringEnabled(),
-                icon: core.settings.getPhoneSteeringEnabled() ? Icons.check_box : Icons.check_box_outline_blank,
-                title: Row(
-                  spacing: 4,
-                  children: [
-                    Icon(InGameAction.navigateRight.icon!, size: 16),
-                    Icon(InGameAction.navigateLeft.icon!, size: 16),
-                    SizedBox(),
-                    Expanded(child: Text(AppLocalizations.of(context).enableSteeringWithPhone)),
-                    IconButton.secondary(
-                      icon: Icon(Icons.ondemand_video),
-                      onPressed: () {
-                        launchUrlString('https://youtube.com/shorts/zqD5ARGIVmE?feature=share');
-                      },
-                    ),
-                  ],
-                ),
-                onPressed: () {
-                  final enable = !core.settings.getPhoneSteeringEnabled();
-                  core.settings.setPhoneSteeringEnabled(enable);
-                  core.connection.toggleGyroscopeSteering(enable);
-                  setState(() {});
-                },
-              ),
-
             Gap(12),
             if (!screenshotMode)
               Column(
@@ -235,8 +178,66 @@ class _DevicePageState extends State<DevicePage> {
                     ),
                 ],
               ),
-            Gap(12),
-            SizedBox(),
+            Gap(24),
+
+            if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS))
+              ValueListenableBuilder(
+                valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
+                builder: (context, value, child) {
+                  return SelectableCard(
+                    isActive: value,
+                    icon: value ? Icons.check_box : Icons.check_box_outline_blank,
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
+                      children: [
+                        Text(context.i18n.enableMediaKeyDetection),
+                        Text(
+                          context.i18n.mediaKeyDetectionTooltip,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                    onPressed: () {
+                      final newValue = !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
+                      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = newValue;
+                      core.settings.setMediaKeyDetectionEnabled(newValue);
+                    },
+                  );
+                },
+              ),
+            Gap(8),
+            if (!kIsWeb && (Platform.isAndroid || Platform.isIOS) && !core.settings.getShowOnboarding())
+              SelectableCard(
+                isActive: core.settings.getPhoneSteeringEnabled(),
+                icon: core.settings.getPhoneSteeringEnabled() ? Icons.check_box : Icons.check_box_outline_blank,
+                title: Row(
+                  spacing: 4,
+                  children: [
+                    Icon(InGameAction.navigateRight.icon!, size: 16),
+                    Icon(InGameAction.navigateLeft.icon!, size: 16),
+                    SizedBox(),
+                    Expanded(child: Text(AppLocalizations.of(context).enableSteeringWithPhone)),
+                    IconButton.secondary(
+                      icon: Icon(Icons.ondemand_video),
+                      onPressed: () {
+                        launchUrlString('https://youtube.com/shorts/zqD5ARGIVmE?feature=share');
+                      },
+                    ),
+                  ],
+                ),
+                onPressed: () {
+                  final enable = !core.settings.getPhoneSteeringEnabled();
+                  core.settings.setPhoneSteeringEnabled(enable);
+                  core.connection.toggleGyroscopeSteering(enable);
+                  setState(() {});
+                },
+              ),
+
+            SizedBox(height: 16),
             if (core.connection.controllerDevices.isNotEmpty)
               Row(
                 spacing: 8,
