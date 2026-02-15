@@ -60,6 +60,7 @@ class ZwiftClickV2 extends ZwiftRide {
   Future<void> setupHandshake() async {
     if (isUnlocked) {
       super.setupHandshake();
+      await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
     }
   }
 
@@ -127,6 +128,15 @@ class ZwiftClickV2 extends ZwiftRide {
                         ),
                       ],
                     ),
+                    if (kDebugMode)
+                      Button(
+                        onPressed: () {
+                          test();
+                        },
+                        leading: const Icon(Icons.translate_sharp),
+                        style: ButtonStyle.primary(size: ButtonSize.small),
+                        child: Text('Reset'),
+                      ),
                   ],
                 )
               else
@@ -167,6 +177,15 @@ class ZwiftClickV2 extends ZwiftRide {
                         leading: const Icon(Icons.handshake),
                         style: ButtonStyle.primary(size: ButtonSize.small),
                         child: Text('Handshake'),
+                      ),
+                    if (kDebugMode)
+                      Button(
+                        onPressed: () {
+                          test();
+                        },
+                        leading: const Icon(Icons.translate_sharp),
+                        style: ButtonStyle.primary(size: ButtonSize.small),
+                        child: Text('Reset'),
                       ),
                   ],
                 ),
