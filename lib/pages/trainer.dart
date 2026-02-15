@@ -93,9 +93,8 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final showLocalAsOther =
-        (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) &&
-        core.logic.showLocalControl &&
-        !core.settings.getLocalEnabled();
+        //(core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) &&
+        false && core.logic.showLocalControl && !core.settings.getLocalEnabled();
     final showWhooshLinkAsOther =
         (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
 
@@ -129,7 +128,7 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
 
     final otherTiles = [
       if (core.logic.showRemote) RemoteMousePairingWidget(),
-      if (showLocalAsOther) LocalTile(),
+      if (core.logic.showLocalControl && showLocalAsOther) LocalTile(),
       if (showWhooshLinkAsOther) MyWhooshLinkTile(),
     ];
 
