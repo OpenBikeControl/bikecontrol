@@ -94,6 +94,10 @@ The app connects to your Controller devices (such as Zwift ones) automatically. 
 - Connect to the supported trainer app using the [OpenBikeControl](https://openbikecontrol.org) protocol
   - available on Android, iOS, iPadOS, macOS, Windows
 
+## Accessories
+
+- 3D printable models from Zwift [Zwift 3D-printable mounts for Click](https://www.zwift.com/uk/news/33400-zwift-3d-printable-mounts-for-click).
+
 ## Donate
 Please consider donating to support the development of this app :)
 
