@@ -6,6 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <app_links/app_links_plugin_c_api.h>
 #include <bluetooth_low_energy_windows/bluetooth_low_energy_windows_plugin_c_api.h>
 #include <file_selector_windows/file_selector_windows.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
@@ -22,6 +23,8 @@
 #include <windows_iap/windows_iap_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  AppLinksPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("AppLinksPluginCApi"));
   BluetoothLowEnergyWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("BluetoothLowEnergyWindowsPluginCApi"));
   FileSelectorWindowsRegisterWithRegistrar(
