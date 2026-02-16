@@ -220,7 +220,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   @override
   void onMessage(List<int> message) {
     if (kDebugMode) {
-      print('Received message from DirCon: ${bytesToHex(message)}');
+      print('Received message from OBC: ${bytesToHex(message)}');
     }
     final messageType = message[0];
     switch (messageType) {
@@ -237,6 +237,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         } catch (e) {
           core.connection.signalNotification(LogNotification('Failed to parse app info: $e'));
         }
+        break;
+      case OpenBikeProtocolParser.MSG_TYPE_HAPTIC_FEEDBACK:
+        // noop
         break;
       default:
         print('Unknown message type: $messageType');

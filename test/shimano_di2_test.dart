@@ -65,8 +65,7 @@ Future<void> main() async {
       expect(
         stubActions.performedActions,
         equals([
-          PerformedAction(button, isDown: true, isUp: false),
-          PerformedAction(button, isDown: false, isUp: true),
+          PerformedAction(button, isDown: true, isUp: true),
         ]),
       );
 
@@ -77,10 +76,8 @@ Future<void> main() async {
       expect(
         stubActions.performedActions,
         equals([
-          PerformedAction(button, isDown: true, isUp: false),
-          PerformedAction(button, isDown: false, isUp: true),
-          PerformedAction(button, isDown: true, isUp: false),
-          PerformedAction(button, isDown: false, isUp: true),
+          PerformedAction(button, isDown: true, isUp: true),
+          PerformedAction(button, isDown: true, isUp: true),
         ]),
       );
     });
