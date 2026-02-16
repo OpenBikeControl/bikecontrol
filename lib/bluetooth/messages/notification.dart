@@ -11,9 +11,7 @@ class LogNotification extends BaseNotification {
   final String message;
 
   LogNotification(this.message) {
-    if (kDebugMode) {
-      //print('LogNotification: $message');
-    }
+    Logger.debug('LogNotification: $message');
   }
 
   @override
