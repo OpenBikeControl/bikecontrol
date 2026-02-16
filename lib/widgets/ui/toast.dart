@@ -14,6 +14,7 @@ void buildToast({
   Duration? duration,
 }) {
   if (navigatorKey.currentContext?.mounted ?? false) {
+    final isMobile = MediaQuery.sizeOf(navigatorKey.currentContext!).width < 600;
     showToast(
       context: navigatorKey.currentContext!,
       location: location,
@@ -24,34 +25,37 @@ void buildToast({
         LogLevel.LOGLEVEL_ERROR => duration ?? const Duration(seconds: 7),
         _ => duration ?? const Duration(seconds: 3),
       },
-      builder: (context, overlay) => SurfaceCard(
-        filled: switch (level) {
-          LogLevel.LOGLEVEL_WARNING => true,
-          LogLevel.LOGLEVEL_ERROR => true,
-          _ => false,
-        },
-        fillColor: switch (level) {
-          LogLevel.LOGLEVEL_DEBUG => null,
-          LogLevel.LOGLEVEL_INFO => null,
-          LogLevel.LOGLEVEL_WARNING => Theme.of(context).colorScheme.chart1,
-          LogLevel.LOGLEVEL_ERROR => Theme.of(context).colorScheme.destructive,
-          _ => null,
-        },
-        child: Basic(
-          title: titleWidget ?? Text(title ?? ''),
-          subtitle: subtitle != null ? Text(subtitle) : null,
-          trailing: titleWidget is ButtonWidget
-              ? null
-              : PrimaryButton(
-                  size: ButtonSize.small,
-                  onPressed: () {
-                    // Close the toast programmatically when clicking Undo.
-                    overlay.close();
-                    onClose?.call();
-                  },
-                  child: Text(closeTitle),
-                ),
-          trailingAlignment: Alignment.center,
+      builder: (context, overlay) => Container(
+        margin: EdgeInsets.only(bottom: isMobile ? 50 : 0),
+        child: SurfaceCard(
+          filled: switch (level) {
+            LogLevel.LOGLEVEL_WARNING => true,
+            LogLevel.LOGLEVEL_ERROR => true,
+            _ => false,
+          },
+          fillColor: switch (level) {
+            LogLevel.LOGLEVEL_DEBUG => null,
+            LogLevel.LOGLEVEL_INFO => null,
+            LogLevel.LOGLEVEL_WARNING => Theme.of(context).colorScheme.chart1,
+            LogLevel.LOGLEVEL_ERROR => Theme.of(context).colorScheme.destructive,
+            _ => null,
+          },
+          child: Basic(
+            title: titleWidget ?? Text(title ?? ''),
+            subtitle: subtitle != null ? Text(subtitle) : null,
+            trailing: titleWidget is ButtonWidget
+                ? null
+                : PrimaryButton(
+                    size: ButtonSize.small,
+                    onPressed: () {
+                      // Close the toast programmatically when clicking Undo.
+                      overlay.close();
+                      onClose?.call();
+                    },
+                    child: Text(closeTitle),
+                  ),
+            trailingAlignment: Alignment.center,
+          ),
         ),
       ),
     );
