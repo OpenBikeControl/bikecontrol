@@ -8,6 +8,9 @@ import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:gotrue/src/types/auth_state.dart';
+import 'package:prop/prop.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:windows_iap/windows_iap.dart';
 
 /// Windows-specific IAP service
@@ -44,6 +47,32 @@ class WindowsIAPService {
       _lastCommandDate = await _prefs.read(key: _lastCommandDateKey);
       _dailyCommandCount = int.tryParse(await _prefs.read(key: _dailyCommandCountKey) ?? '0');
       _isInitialized = true;
+
+      
+      _authSubscription = core.supabase.auth.onAuthStateChange.listen((data) {
+        final AuthChangeEvent event = data.event;
+        final Session? session = data.session;
+
+        Logger.info('event: $event, session: ${session?.user.id} via ${session?.user.email}');
+
+        switch (event) {
+          case AuthChangeEvent.initialSession:
+          case AuthChangeEvent.signedIn:
+          // handle signed in
+          case AuthChangeEvent.signedOut:
+          // handle signed out
+          case AuthChangeEvent.passwordRecovery:
+          // handle password recovery
+          case AuthChangeEvent.tokenRefreshed:
+          // handle token refreshed
+          case AuthChangeEvent.userUpdated:
+          // handle user updated
+          case AuthChangeEvent.userDeleted:
+          // handle user deleted
+          case AuthChangeEvent.mfaChallengeVerified:
+          // handle mfa challenge verified
+        }
+      });
     } catch (e, s) {
       recordError(e, s, context: 'Initializing');
       debugPrint('Failed to initialize Windows IAP: $e');
@@ -107,6 +136,8 @@ class WindowsIAPService {
 
   /// Get the number of days remaining in the trial
   int trialDaysRemaining = 0;
+
+  late final StreamSubscription<AuthState> _authSubscription;
 
   /// Check if the trial has expired
   bool get isTrialExpired {
