@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -43,6 +44,13 @@ class _LoginPageState extends State<LoginPage> {
               core.supabase.auth.signOut();
             },
           ),
+          if (kDebugMode && Platform.isWindows)
+            Button.secondary(
+              child: Text("Register"),
+              onPressed: () {
+                WindowsProtocolHandler().register("bikecontrol");
+              },
+            ),
         ],
       ),
     );
