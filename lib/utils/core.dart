@@ -22,6 +22,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
@@ -39,6 +40,7 @@ class Core {
   final settings = Settings();
   final connection = Connection();
 
+  late final supabase = Supabase.instance.client;
   late final whooshLink = WhooshLink();
   late final zwiftEmulator = ZwiftEmulator();
   late final zwiftMdnsEmulator = FtmsMdnsEmulator();

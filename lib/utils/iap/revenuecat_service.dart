@@ -10,9 +10,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:prop/prop.dart' as zp;
+import 'package:prop/prop.dart' hide LogLevel;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:version/version.dart';
 
 /// RevenueCat-based IAP service for iOS, macOS, and Android
@@ -38,6 +40,8 @@ class RevenueCatService {
   String? _lastCommandDate;
   int? _dailyCommandCount;
   StreamSubscription<CustomerInfo>? _customerInfoSubscription;
+
+  late final StreamSubscription<AuthState> _authSubscription;
 
   RevenueCatService(
     this._prefs, {
@@ -120,6 +124,34 @@ class RevenueCatService {
       if (!isTrialExpired && Platform.isAndroid) {
         setDailyCommandLimit(80);
       }
+
+      _authSubscription = core.supabase.auth.onAuthStateChange.listen((data) {
+        final AuthChangeEvent event = data.event;
+        final Session? session = data.session;
+
+        Logger.info('event: $event, session: ${session?.user.id} via ${session?.user.email}');
+
+        switch (event) {
+          case AuthChangeEvent.initialSession:
+            setAttributes();
+          case AuthChangeEvent.signedIn:
+            setAttributes();
+          // handle signed in
+          case AuthChangeEvent.signedOut:
+            setAttributes();
+          // handle signed out
+          case AuthChangeEvent.passwordRecovery:
+          // handle password recovery
+          case AuthChangeEvent.tokenRefreshed:
+          // handle token refreshed
+          case AuthChangeEvent.userUpdated:
+          // handle user updated
+          case AuthChangeEvent.userDeleted:
+          // handle user deleted
+          case AuthChangeEvent.mfaChallengeVerified:
+          // handle mfa challenge verified
+        }
+      });
     } catch (e, s) {
       recordError(e, s, context: 'Initializing RevenueCat Service');
       core.connection.signalNotification(
@@ -370,8 +402,11 @@ class RevenueCatService {
   }
 
   Future<void> setAttributes() async {
+    final Session? session = core.supabase.auth.currentSession;
+
     // attributes are fully anonymous
     await Purchases.setAttributes({
+      if (session?.user.id != null) "bikecontrol_user": session!.user.id,
       "bikecontrol_trainer": core.settings.getTrainerApp()?.name ?? '-',
       "bikecontrol_target": core.settings.getLastTarget()?.name ?? '-',
       if (core.connection.controllerDevices.isNotEmpty)

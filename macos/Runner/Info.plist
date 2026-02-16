@@ -48,5 +48,18 @@
 	<string>NSApplication</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>BikeControl needs to send keys to your trainer app.</string>
+	<key>CFBundleURLTypes</key>
+    <array>
+    	<dict>
+    		<key>CFBundleTypeRole</key>
+    		<string>Editor</string>
+    		<key>CFBundleURLSchemes</key>
+    		<array>
+    			<string>com.googleusercontent.apps.709945926587-0iierajthibf4vhqf85fc7bbpgbdgua2</string>
+    		</array>
+    	</dict>
+    </array>
+	<key>GIDClientID</key>
+    <string>709945926587-0iierajthibf4vhqf85fc7bbpgbdgua2.apps.googleusercontent.com</string>
 </dict>
 </plist>
