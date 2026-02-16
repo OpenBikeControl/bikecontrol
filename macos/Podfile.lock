@@ -1,4 +1,16 @@
 PODS:
+  - app_links (6.4.1):
+    - FlutterMacOS
+  - AppAuth (2.0.0):
+    - AppAuth/Core (= 2.0.0)
+    - AppAuth/ExternalUserAgent (= 2.0.0)
+  - AppAuth/Core (2.0.0)
+  - AppAuth/ExternalUserAgent (2.0.0):
+    - AppAuth/Core
+  - AppCheckCore (11.2.0):
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
   - audio_session (0.0.1):
     - FlutterMacOS
   - bluetooth_low_energy_darwin (0.0.1):
@@ -18,6 +30,33 @@ PODS:
   - FlutterMacOS (1.0.0)
   - gamepads_darwin (0.1.1):
     - FlutterMacOS
+  - google_sign_in_ios (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - GoogleSignIn (~> 9.0)
+    - GTMSessionFetcher (>= 3.4.0)
+  - GoogleSignIn (9.1.0):
+    - AppAuth (~> 2.0)
+    - AppCheckCore (~> 11.0)
+    - GTMAppAuth (~> 5.0)
+    - GTMSessionFetcher/Core (~> 3.3)
+  - GoogleUtilities/Environment (8.1.0):
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Logger (8.1.0):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Privacy (8.1.0)
+  - GoogleUtilities/UserDefaults (8.1.0):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GTMAppAuth (5.0.0):
+    - AppAuth/Core (~> 2.0)
+    - GTMSessionFetcher/Core (< 4.0, >= 3.3)
+  - GTMSessionFetcher (3.5.0):
+    - GTMSessionFetcher/Full (= 3.5.0)
+  - GTMSessionFetcher/Core (3.5.0)
+  - GTMSessionFetcher/Full (3.5.0):
+    - GTMSessionFetcher/Core
   - in_app_purchase_storekit (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -36,6 +75,7 @@ PODS:
     - FlutterMacOS
   - package_info_plus (0.0.1):
     - FlutterMacOS
+  - PromisesObjC (2.4.0)
   - purchases_flutter (9.10.6):
     - FlutterMacOS
     - PurchasesHybridCommon (= 17.27.1)
@@ -46,6 +86,8 @@ PODS:
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
     - Flutter
+    - FlutterMacOS
+  - sign_in_with_apple (0.0.1):
     - FlutterMacOS
   - universal_ble (0.0.1):
     - Flutter
@@ -58,6 +100,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
   - bluetooth_low_energy_darwin (from `Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
@@ -67,6 +110,7 @@ DEPENDENCIES:
   - flutter_volume_controller (from `Flutter/ephemeral/.symlinks/plugins/flutter_volume_controller/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gamepads_darwin (from `Flutter/ephemeral/.symlinks/plugins/gamepads_darwin/macos`)
+  - google_sign_in_ios (from `Flutter/ephemeral/.symlinks/plugins/google_sign_in_ios/darwin`)
   - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - ios_receipt (from `Flutter/ephemeral/.symlinks/plugins/ios_receipt/macos`)
@@ -78,6 +122,7 @@ DEPENDENCIES:
   - purchases_flutter (from `Flutter/ephemeral/.symlinks/plugins/purchases_flutter/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
   - universal_ble (from `Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
@@ -85,10 +130,19 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AppAuth
+    - AppCheckCore
+    - GoogleSignIn
+    - GoogleUtilities
+    - GTMAppAuth
+    - GTMSessionFetcher
+    - PromisesObjC
     - PurchasesHybridCommon
     - RevenueCat
 
 EXTERNAL SOURCES:
+  app_links:
+    :path: Flutter/ephemeral/.symlinks/plugins/app_links/macos
   audio_session:
     :path: Flutter/ephemeral/.symlinks/plugins/audio_session/macos
   bluetooth_low_energy_darwin:
@@ -107,6 +161,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gamepads_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/gamepads_darwin/macos
+  google_sign_in_ios:
+    :path: Flutter/ephemeral/.symlinks/plugins/google_sign_in_ios/darwin
   in_app_purchase_storekit:
     :path: Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin
   in_app_review:
@@ -129,6 +185,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   shared_preferences_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
+  sign_in_with_apple:
+    :path: Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos
   universal_ble:
     :path: Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin
   url_launcher_macos:
@@ -139,6 +197,9 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
+  app_links: c3185399a5cabc2e610ee5ad52fb7269b84ff869
+  AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
+  AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   audio_session: 728ae3823d914f809c485d390274861a24b0904e
   bluetooth_low_energy_darwin: 50bc79258e60586e4c4bed5948bd31d925f37fac
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
@@ -148,6 +209,11 @@ SPEC CHECKSUMS:
   flutter_volume_controller: 25d09126b0d695560f11c80b1311d5063fed882f
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gamepads_darwin: 07af6c60c282902b66574c800e20b2b26e68fda8
+  google_sign_in_ios: 7336a3372ea93ea56a21e126a0055ffca3723601
+  GoogleSignIn: fcee2257188d5eda57a5e2b6a715550ffff9206d
+  GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
+  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
   in_app_review: 866c9b17c87a7b46a395bda43f5d3ca02deb585a
   ios_receipt: 8741a75f39e6ca0866313b73c69a5b674cf5c98c
@@ -156,11 +222,13 @@ SPEC CHECKSUMS:
   media_key_detector_macos: a93757a483b4b47283ade432b1af9e427c47329f
   nsd_macos: 1a38a38a33adbb396b4c6f303bc076073514cadc
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
+  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   purchases_flutter: 55ed35144683d8673f0a4b5077e8f4d8291f291e
   PurchasesHybridCommon: 027f03312519c51056457eb2e4f7ee1c91b61b8f
   RevenueCat: ecbba580fa453b0d4a0475449b904196d74ef678
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
+  sign_in_with_apple: a9e97e744e8edc36aefc2723111f652102a7a727
   universal_ble: cf52a7b3fd2e7c14d6d7262e9fdadb72ab6b88a6
   url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
   wakelock_plus: 9d63063ffb7af1c215209769067c57103bde719d
