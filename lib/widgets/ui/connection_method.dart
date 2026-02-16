@@ -237,7 +237,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     Future.wait(widget.requirements.map((e) => e.getStatus())).then((result) {
       final allDone = result.every((e) => e);
 
-      if (context.mounted) {
+      if (context.mounted && widget.isEnabled != allDone) {
         widget.onChange(allDone);
       }
     });
