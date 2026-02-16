@@ -127,4 +127,5 @@ msix_config:
   store: true
   logo_path: web/icons/Icon-512.png
   build_windows: false
+  protocol_activation: https, bikecontrol
   capabilities: internetClient,bluetooth,inputInjectionBrokered

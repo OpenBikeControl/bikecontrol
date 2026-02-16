@@ -56,6 +56,7 @@
     		<key>CFBundleURLSchemes</key>
     		<array>
     			<string>com.googleusercontent.apps.709945926587-0iierajthibf4vhqf85fc7bbpgbdgua2</string>
+    			<string>bikecontrol</string>
     		</array>
     	</dict>
     </array>
