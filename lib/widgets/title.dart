@@ -94,9 +94,19 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
       if (updateStatus == UpdateStatus.outdated) {
         updater
             .update()
-            .then((value) {
+            .then((value) async {
               setState(() {
                 _updateType = UpdateType.shorebird;
+              });
+              final nextPatch = await updater.readNextPatch();
+              final currentVersion = Version.parse(packageInfoValue!.version);
+              setState(() {
+                _newVersion = Version(
+                  currentVersion.major,
+                  currentVersion.minor,
+                  currentVersion.patch,
+                  build: nextPatch?.number.toString() ?? '',
+                );
               });
             })
             .catchError((e) {
