@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class EntitlementsService extends ChangeNotifier {
   static const Duration refreshTtl = Duration(minutes: 10);
 
-  static const String _entitlementsFunction = 'me/entitlements';
+  static const String _entitlementsFunction = 'get-entitlements';
   static const String _cacheEntitlementsKey = 'entitlements_cache_items';
   static const String _cacheLastFetchedAtKey = 'entitlements_cache_last_fetched_at';
 
