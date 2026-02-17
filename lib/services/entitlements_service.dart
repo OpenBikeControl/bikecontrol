@@ -1,0 +1,180 @@
+import 'dart:convert';
+
+import 'package:bike_control/models/entitlement.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class EntitlementsService extends ChangeNotifier {
+  static const Duration refreshTtl = Duration(minutes: 10);
+
+  static const String _entitlementsFunction = 'me/entitlements';
+  static const String _cacheEntitlementsKey = 'entitlements_cache_items';
+  static const String _cacheLastFetchedAtKey = 'entitlements_cache_last_fetched_at';
+
+  final SupabaseClient _supabase;
+
+  SharedPreferences? _prefs;
+  bool _isInitialized = false;
+  Future<void>? _inFlightRefresh;
+
+  DateTime? _lastFetchedAt;
+  List<Entitlement> _entitlements = const [];
+
+  EntitlementsService(this._supabase);
+
+  List<Entitlement> get current => List.unmodifiable(_entitlements);
+
+  DateTime? get lastFetchedAt => _lastFetchedAt;
+
+  bool get isCacheStale {
+    final fetchedAt = _lastFetchedAt;
+    if (fetchedAt == null) {
+      return true;
+    }
+    return DateTime.now().difference(fetchedAt) >= refreshTtl;
+  }
+
+  Future<void> initialize() async {
+    if (_isInitialized) {
+      return;
+    }
+
+    _prefs = await SharedPreferences.getInstance();
+    _restoreCacheFromPrefs();
+    _isInitialized = true;
+  }
+
+  Future<void> refresh({bool force = false}) async {
+    await initialize();
+
+    if (!force && !isCacheStale) {
+      return;
+    }
+
+    final existing = _inFlightRefresh;
+    if (existing != null) {
+      return existing;
+    }
+
+    final task = _refreshInternal();
+    _inFlightRefresh = task;
+    try {
+      await task;
+    } finally {
+      _inFlightRefresh = null;
+    }
+  }
+
+  bool hasActive(String productKey) {
+    return _entitlements.any((entitlement) {
+      return entitlement.productKey == productKey && entitlement.isActive;
+    });
+  }
+
+  DateTime? activeUntil(String productKey) {
+    DateTime? latest;
+    for (final entitlement in _entitlements) {
+      if (entitlement.productKey != productKey) {
+        continue;
+      }
+      final value = entitlement.activeUntil;
+      if (value == null) {
+        continue;
+      }
+      if (latest == null || value.isAfter(latest)) {
+        latest = value;
+      }
+    }
+    return latest;
+  }
+
+  Future<void> clearCache() async {
+    await initialize();
+    _entitlements = const [];
+    _lastFetchedAt = null;
+    await _prefs?.remove(_cacheEntitlementsKey);
+    await _prefs?.remove(_cacheLastFetchedAtKey);
+    notifyListeners();
+  }
+
+  Future<void> _refreshInternal() async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        return;
+      }
+
+      final response = await _supabase.functions.invoke(
+        _entitlementsFunction,
+        method: HttpMethod.get,
+        headers: {'Authorization': 'Bearer ${session.accessToken}'},
+      );
+
+      final payload = response.data;
+      final list = _extractEntitlementsList(payload);
+      final entitlements = list
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .map(Entitlement.fromJson)
+          .toList(growable: false);
+
+      _entitlements = entitlements;
+      _lastFetchedAt = DateTime.now();
+      await _persistCache();
+      notifyListeners();
+    } catch (error, stackTrace) {
+      debugPrint('Failed to refresh entitlements: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+  List<dynamic> _extractEntitlementsList(dynamic payload) {
+    if (payload is List) {
+      return payload;
+    }
+    if (payload is Map && payload['data'] is List) {
+      return payload['data'] as List<dynamic>;
+    }
+    throw StateError('Unexpected entitlements response: $payload');
+  }
+
+  Future<void> _persistCache() async {
+    await _prefs?.setString(
+      _cacheEntitlementsKey,
+      jsonEncode(_entitlements.map((e) => e.toJson()).toList(growable: false)),
+    );
+    await _prefs?.setString(
+      _cacheLastFetchedAtKey,
+      _lastFetchedAt?.toIso8601String() ?? '',
+    );
+  }
+
+  void _restoreCacheFromPrefs() {
+    final rawLastFetchedAt = _prefs?.getString(_cacheLastFetchedAtKey);
+    _lastFetchedAt = DateTime.tryParse(rawLastFetchedAt ?? '');
+
+    final rawEntitlements = _prefs?.getString(_cacheEntitlementsKey);
+    if (rawEntitlements == null || rawEntitlements.isEmpty) {
+      _entitlements = const [];
+      return;
+    }
+
+    try {
+      final decoded = jsonDecode(rawEntitlements);
+      if (decoded is! List) {
+        _entitlements = const [];
+        return;
+      }
+      _entitlements = decoded
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .map(Entitlement.fromJson)
+          .toList(growable: false);
+    } catch (error, stackTrace) {
+      debugPrint('Failed to restore entitlement cache: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      _entitlements = const [];
+    }
+  }
+}

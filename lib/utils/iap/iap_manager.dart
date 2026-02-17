@@ -1,15 +1,20 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
+import 'package:bike_control/services/entitlements_service.dart';
+import 'package:bike_control/services/windows_subscription_service.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_service.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:windows_iap/windows_iap.dart';
 
-/// Unified IAP manager that handles platform-specific IAP services
+/// Unified IAP manager that handles platform-specific IAP services.
 class IAPManager {
   static IAPManager? _instance;
   static IAPManager get instance {
@@ -17,49 +22,92 @@ class IAPManager {
     return _instance!;
   }
 
+  static const String premiumMonthlyProductKey = 'premium_monthly';
   static int dailyCommandLimit = 15;
+
   IAPService? _iapService;
   RevenueCatService? _revenueCatService;
   WindowsIAPService? _windowsIapService;
+  StreamSubscription<AuthState>? _authSubscription;
+  bool _isInitialized = false;
+
+  final EntitlementsService entitlements = EntitlementsService(core.supabase);
+
   ValueNotifier<bool> isPurchased = ValueNotifier<bool>(false);
 
   IAPManager._();
 
-  /// Initialize the IAP manager
-  Future<void> initialize() async {
-    final prefs = FlutterSecureStorage(aOptions: AndroidOptions());
+  bool get isPremiumEnabled => entitlements.hasActive(premiumMonthlyProductKey);
 
-    if (kIsWeb || screenshotMode) {
-      // Web doesn't support IAP
+  DateTime? get premiumActiveUntil => entitlements.activeUntil(premiumMonthlyProductKey);
+
+  /// Initialize the IAP manager.
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    final prefs = FlutterSecureStorage(aOptions: AndroidOptions());
+    await entitlements.initialize();
+    entitlements.addListener(_onEntitlementsChanged);
+    _bindAuthLifecycle();
+
+    if (kIsWeb) {
+      _isInitialized = true;
       return;
     }
 
     try {
       if (Platform.isWindows) {
-        // Keep Windows using the existing windows_iap implementation
-        _windowsIapService = WindowsIAPService(prefs);
+        final windowsIap = WindowsIap();
+        final windowsSubscriptionService = WindowsSubscriptionService(
+          supabase: core.supabase,
+          windowsIap: windowsIap,
+          entitlements: entitlements,
+        );
+
+        _windowsIapService = WindowsIAPService(
+          prefs,
+          entitlementsService: entitlements,
+          subscriptionService: windowsSubscriptionService,
+        );
         await _windowsIapService!.initialize();
       } else if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
-        // Use RevenueCat for supported platforms when API key is available
         _revenueCatService = RevenueCatService(
           prefs,
           isPurchasedNotifier: isPurchased,
           getDailyCommandLimit: () => dailyCommandLimit,
           setDailyCommandLimit: (limit) => dailyCommandLimit = limit,
+          entitlementsService: entitlements,
+          premiumProductKey: premiumMonthlyProductKey,
         );
         await _revenueCatService!.initialize();
       } else {
-        // Fall back to legacy IAP service
         debugPrint('Using legacy IAP service (no RevenueCat key)');
         _iapService = IAPService(prefs);
         await _iapService!.initialize();
       }
+
+      await entitlements.refresh();
+      _syncPurchaseFlagFromEntitlements();
+      _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing IAP manager: $e');
+      _isInitialized = true;
     }
   }
 
-  /// Check if the trial period has started
+  /// Called on app start when a session may already exist.
+  Future<void> refreshEntitlementsOnAppStart() async {
+    await entitlements.refresh();
+    _syncPurchaseFlagFromEntitlements();
+  }
+
+  /// Called on app resume to refresh stale entitlement cache.
+  Future<void> refreshEntitlementsOnResume() async {
+    await entitlements.refresh();
+    _syncPurchaseFlagFromEntitlements();
+  }
+
+  /// Check if the trial period has started.
   bool get hasTrialStarted {
     if (_revenueCatService != null) {
       return _revenueCatService!.hasTrialStarted;
@@ -71,7 +119,7 @@ class IAPManager {
     return false;
   }
 
-  /// Start the trial period
+  /// Start the trial period.
   Future<void> startTrial() async {
     if (_revenueCatService != null) {
       await _revenueCatService!.startTrial();
@@ -80,7 +128,7 @@ class IAPManager {
     }
   }
 
-  /// Get the number of days remaining in the trial
+  /// Get the number of days remaining in the trial.
   int get trialDaysRemaining {
     if (_revenueCatService != null) {
       return _revenueCatService!.trialDaysRemaining;
@@ -92,8 +140,11 @@ class IAPManager {
     return 0;
   }
 
-  /// Check if the trial has expired
+  /// Check if the trial has expired.
   bool get isTrialExpired {
+    if (isPremiumEnabled) {
+      return false;
+    }
     if (_revenueCatService != null) {
       return _revenueCatService!.isTrialExpired;
     } else if (_iapService != null) {
@@ -104,9 +155,9 @@ class IAPManager {
     return false;
   }
 
-  /// Check if the user can execute a command
+  /// Check if the user can execute a command.
   bool get canExecuteCommand {
-    // If IAP is not initialized or not available, allow commands
+    if (isPremiumEnabled) return true;
     if (_revenueCatService == null && _iapService == null && _windowsIapService == null) return true;
 
     if (_revenueCatService != null) {
@@ -116,11 +167,14 @@ class IAPManager {
     } else if (_windowsIapService != null) {
       return _windowsIapService!.canExecuteCommand;
     }
-    return true; // Default to true for platforms without IAP
+    return true;
   }
 
-  /// Get the number of commands remaining today (for free tier after trial)
+  /// Get the number of commands remaining today (for free tier after trial).
   int get commandsRemainingToday {
+    if (isPremiumEnabled) {
+      return -1;
+    }
     if (_revenueCatService != null) {
       return _revenueCatService!.commandsRemainingToday;
     } else if (_iapService != null) {
@@ -128,10 +182,10 @@ class IAPManager {
     } else if (_windowsIapService != null) {
       return _windowsIapService!.commandsRemainingToday;
     }
-    return -1; // Unlimited
+    return -1;
   }
 
-  /// Get the daily command count
+  /// Get the daily command count.
   int get dailyCommandCount {
     if (_revenueCatService != null) {
       return _revenueCatService!.dailyCommandCount;
@@ -143,8 +197,11 @@ class IAPManager {
     return 0;
   }
 
-  /// Increment the daily command count
+  /// Increment the daily command count.
   Future<void> incrementCommandCount() async {
+    if (isPremiumEnabled) {
+      return;
+    }
     if (_revenueCatService != null) {
       await _revenueCatService!.incrementCommandCount();
     } else if (_iapService != null) {
@@ -154,12 +211,11 @@ class IAPManager {
     }
   }
 
-  /// Get a status message for the user
+  /// Get a status message for the user.
   String getStatusMessage() {
-    /// Get a status message for the user
     if (kIsWeb) {
       return "Web";
-    } else if (IAPManager.instance.isPurchased.value) {
+    } else if (isPremiumEnabled || IAPManager.instance.isPurchased.value) {
       return AppLocalizations.current.fullVersion;
     } else if (!hasTrialStarted) {
       return '${_revenueCatService?.trialDaysRemaining ?? _iapService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining} day trial available';
@@ -170,32 +226,36 @@ class IAPManager {
     }
   }
 
-  /// Purchase the full version
+  /// Purchase the full version.
   Future<void> purchaseFullVersion(BuildContext context) async {
     if (_revenueCatService != null) {
-      return await _revenueCatService!.purchaseFullVersion(context);
+      return _revenueCatService!.purchaseFullVersion(context);
     } else if (_iapService != null) {
-      return await _iapService!.purchaseFullVersion();
+      return _iapService!.purchaseFullVersion();
     } else if (_windowsIapService != null) {
-      return await _windowsIapService!.purchaseFullVersion();
+      return _windowsIapService!.purchaseFullVersion();
     }
   }
 
-  /// Restore previous purchases
+  /// Restore previous purchases.
   Future<void> restorePurchases() async {
     if (_revenueCatService != null) {
       await _revenueCatService!.restorePurchases();
     } else if (_iapService != null) {
       await _iapService!.restorePurchases();
+    } else if (_windowsIapService != null) {
+      await _windowsIapService!.restoreOrSyncSubscription();
     }
-    // Windows doesn't have a separate restore mechanism in the stub
+    _syncPurchaseFlagFromEntitlements();
   }
 
-  /// Check if RevenueCat is being used
+  /// Check if RevenueCat is being used.
   bool get isUsingRevenueCat => _revenueCatService != null;
 
-  /// Dispose the manager
+  /// Dispose the manager.
   void dispose() {
+    _authSubscription?.cancel();
+    entitlements.removeListener(_onEntitlementsChanged);
     _revenueCatService?.dispose();
     _iapService?.dispose();
     _windowsIapService?.dispose();
@@ -203,6 +263,7 @@ class IAPManager {
 
   Future<void> reset(bool fullReset) async {
     isPurchased.value = false;
+    await entitlements.clearCache();
     _windowsIapService?.reset();
     await _revenueCatService?.reset(fullReset);
     await _iapService?.reset(fullReset);
@@ -211,14 +272,56 @@ class IAPManager {
   Future<void> redeem(String purchaseId) async {
     if (_revenueCatService != null) {
       await _revenueCatService!.redeem(purchaseId);
+      await entitlements.refresh(force: true);
+      _syncPurchaseFlagFromEntitlements();
     } else if (_iapService != null) {
       await _iapService!.redeem();
     }
   }
 
   void setAttributes() {
-    if (!screenshotMode) {
-      _revenueCatService?.setAttributes();
+    _revenueCatService?.setAttributes();
+  }
+
+  void _bindAuthLifecycle() {
+    _authSubscription ??= core.supabase.auth.onAuthStateChange.listen((data) {
+      unawaited(_handleAuthStateChange(data.event, data.session));
+    });
+  }
+
+  Future<void> _handleAuthStateChange(AuthChangeEvent event, Session? session) async {
+    switch (event) {
+      case AuthChangeEvent.initialSession:
+      case AuthChangeEvent.signedIn:
+      case AuthChangeEvent.tokenRefreshed:
+      case AuthChangeEvent.userUpdated:
+      case AuthChangeEvent.mfaChallengeVerified:
+        final userId = session?.user.id;
+        if (userId != null) {
+          await _revenueCatService?.logInWithSupabaseUserId(userId);
+        }
+        await _revenueCatService?.setAttributes();
+        await entitlements.refresh(force: true);
+        _syncPurchaseFlagFromEntitlements();
+        return;
+      case AuthChangeEvent.signedOut:
+      case AuthChangeEvent.userDeleted:
+        await _revenueCatService?.logOut();
+        await entitlements.clearCache();
+        isPurchased.value = false;
+        return;
+      case AuthChangeEvent.passwordRecovery:
+        return;
+    }
+  }
+
+  void _onEntitlementsChanged() {
+    _syncPurchaseFlagFromEntitlements();
+  }
+
+  void _syncPurchaseFlagFromEntitlements() {
+    if (isPremiumEnabled) {
+      isPurchased.value = true;
     }
   }
 }

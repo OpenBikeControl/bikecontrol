@@ -21,7 +21,7 @@ import '../utils/iap/iap_manager.dart';
 
 List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCallback? openLogs) {
   return [
-    if (IAPManager.instance.isPurchased.value)
+    if (IAPManager.instance.isPurchased.value || IAPManager.instance.isPremiumEnabled)
       Builder(
         builder: (context) {
           return OutlineButton(
@@ -100,7 +100,7 @@ Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title).join(', ')}
-Status: ${IAPManager.instance.isPurchased.value ? 'Full Version' : 'Test Version'}${userId != null ? ' (User ID: $userId)' : ''}
+Status: ${(IAPManager.instance.isPremiumEnabled || IAPManager.instance.isPurchased.value) ? 'Full Version' : 'Test Version'}${userId != null ? ' (User ID: $userId)' : ''}
 Logs: 
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
