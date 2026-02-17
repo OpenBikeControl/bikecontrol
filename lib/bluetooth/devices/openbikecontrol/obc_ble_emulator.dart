@@ -7,7 +7,6 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNotification, LogNotification;
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/title.dart';
@@ -111,7 +110,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
         _peripheralManager.characteristicWriteRequested.forEach((eventArgs) async {
           final characteristic = eventArgs.characteristic;
           final request = eventArgs.request;
-          var value = request.value;
+          final value = request.value;
           if (kDebugMode) {
             print('Write request for characteristic: ${characteristic.uuid}: ${bytesToReadableHex(value)}');
           }
@@ -119,15 +118,12 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
           switch (eventArgs.characteristic.uuid.toString().toLowerCase()) {
             case OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID:
               try {
-                if (core.settings.getTrainerApp() is TrainingPeaks) {
-                  if (firstAppInfoMessage == null) {
-                    firstAppInfoMessage = value;
-                    return;
-                  } else {
-                    value = Uint8List.fromList([...firstAppInfoMessage!, ...value]);
-                  }
-                }
-                final appInfo = OpenBikeProtocolParser.parseAppInfo(value);
+                // use this fallback if first message is incomplete (e.g. TrainingPeaks on macOS)
+
+                AppInfo appInfo = OpenBikeProtocolParser.parseAppInfo(
+                  Uint8List.fromList([...?firstAppInfoMessage, ...value]),
+                );
+                firstAppInfoMessage = null;
                 isConnected.value = true;
                 connectedApp.value = appInfo;
                 supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
@@ -137,6 +133,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
                 core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
               } catch (e) {
                 core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
+                if (firstAppInfoMessage == null) {
+                  firstAppInfoMessage = value;
+                  return;
+                }
               }
               break;
             default:

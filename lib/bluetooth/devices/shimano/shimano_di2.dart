@@ -87,27 +87,55 @@ class ShimanoDi2 extends BluetoothDevice {
       });
 
       if (actualChange) {
-        final buttonsToTrigger = _lastButtons.entries
-            .where((entry) {
-              final type = entry.value.type;
-              return type != _Di2State.released;
-            })
-            .map((entry) => availableButtons.firstWhere((button) => button.name == 'D-Fly Channel ${entry.key + 1}'))
-            .toList();
+        final Map<_Di2State, List<ControllerButton>> mapped = _lastButtons.entries.groupBy((e) => e.value.type).map((
+          key,
+          value,
+        ) {
+          final buttons = value
+              .map((entry) => availableButtons.firstWhere((button) => button.name == 'D-Fly Channel ${entry.key + 1}'))
+              .toList();
+          return MapEntry(key, buttons);
+        });
 
-        Logger.debug('Buttons to trigger: ${buttonsToTrigger.map((b) => b.name).join(', ')}');
-        handleButtonsClicked(buttonsToTrigger);
+        final shortPress = [...?mapped[_Di2State.shortPress], ...?mapped[_Di2State.doublePress]];
+        if (shortPress.isNotEmpty) {
+          Logger.debug('Short Press Buttons to trigger: ${shortPress.map((b) => b.name).join(', ')}');
+          handleButtonsClicked(shortPress);
+          handleButtonsClicked([]);
+          _resetButtonsForState([_Di2State.shortPress]);
+        }
 
-        final doublePress = _lastButtons.entries
-            .filter((entry) => entry.value.type == _Di2State.doublePress)
-            .map((entry) => availableButtons.firstWhere((button) => button.name == 'D-Fly Channel ${entry.key + 1}'))
-            .toList();
+        final longPress = mapped[_Di2State.longPress] ?? [];
+        if (longPress.isNotEmpty) {
+          Logger.debug('Long Press Buttons to trigger: ${longPress.map((b) => b.name).join(', ')}');
+          handleButtonsClicked(longPress);
+        }
+
+        final released = mapped[_Di2State.released] ?? [];
+        final keepPress = mapped[_Di2State.longPress] ?? [];
+
+        if (released.isNotEmpty && keepPress.isEmpty) {
+          Logger.debug('Releasing all Buttons');
+          handleButtonsClicked([]);
+        }
+
+        final doublePress = mapped[_Di2State.doublePress] ?? [];
         if (doublePress.isNotEmpty) {
           Logger.debug('Buttons to still trigger: ${doublePress.map((b) => b.name).join(', ')}');
           handleButtonsClicked(doublePress);
+          handleButtonsClicked([]);
+          _resetButtonsForState([_Di2State.doublePress]);
         }
       }
     }
+  }
+
+  void _resetButtonsForState(List<_Di2State> list) {
+    _lastButtons.forEach((key, value) {
+      if (list.contains(value.type)) {
+        _lastButtons[key] = (value: value.value, type: _Di2State.released);
+      }
+    });
   }
 
   @override
