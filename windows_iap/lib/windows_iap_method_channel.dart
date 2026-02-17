@@ -72,7 +72,6 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
     return null;
   }
 
-  @override
   Stream<List<Product>> productsStream() {
     return const EventChannel('windows_iap_event_products')
         .receiveBroadcastStream()
@@ -125,5 +124,12 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
     }
     return result.map((key, value) =>
         MapEntry(key.toString(), StoreLicense.fromJson(jsonDecode(value))));
+  }
+
+  @override
+  Future<String> getCustomerPurchaseIdKey() async {
+    final result =
+        await methodChannel.invokeMethod<String>('getCustomerPurchaseIdKey');
+    return result ?? '';
   }
 }

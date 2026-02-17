@@ -1,23 +1,19 @@
-import 'dart:async';
-
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/entitlements_service.dart';
+import 'package:bike_control/services/windows_subscription_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:gotrue/src/types/auth_state.dart';
-import 'package:prop/prop.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:windows_iap/windows_iap.dart';
 
-/// Windows-specific IAP service
-/// Note: This is a stub implementation. For actual Windows Store integration,
-/// you would need to use the Windows Store APIs through platform channels.
+/// Windows-specific IAP service for Microsoft Store purchases and server-side sync.
 class WindowsIAPService {
   static const String productId = '9NP42GS03Z26';
+  static const String subscriptionStoreProductId = 'TODO_WINDOWS_SUBSCRIPTION_PRODUCT_STORE_ID';
   static const int trialDays = 7;
   static const int dailyCommandLimit = 15;
 
@@ -26,6 +22,8 @@ class WindowsIAPService {
   static const String _lastCommandDateKey = 'iap_last_command_date';
 
   final FlutterSecureStorage _prefs;
+  final EntitlementsService _entitlementsService;
+  final WindowsSubscriptionService _subscriptionService;
 
   bool _isInitialized = false;
 
@@ -34,45 +32,23 @@ class WindowsIAPService {
 
   final _windowsIapPlugin = WindowsIap();
 
-  WindowsIAPService(this._prefs);
+  WindowsIAPService(
+    this._prefs, {
+    required EntitlementsService entitlementsService,
+    required WindowsSubscriptionService subscriptionService,
+  }) : _entitlementsService = entitlementsService,
+       _subscriptionService = subscriptionService;
 
   /// Initialize the Windows IAP service
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      // Check if already purchased
       await _checkExistingPurchase();
 
       _lastCommandDate = await _prefs.read(key: _lastCommandDateKey);
       _dailyCommandCount = int.tryParse(await _prefs.read(key: _dailyCommandCountKey) ?? '0');
       _isInitialized = true;
-
-      
-      _authSubscription = core.supabase.auth.onAuthStateChange.listen((data) {
-        final AuthChangeEvent event = data.event;
-        final Session? session = data.session;
-
-        Logger.info('event: $event, session: ${session?.user.id} via ${session?.user.email}');
-
-        switch (event) {
-          case AuthChangeEvent.initialSession:
-          case AuthChangeEvent.signedIn:
-          // handle signed in
-          case AuthChangeEvent.signedOut:
-          // handle signed out
-          case AuthChangeEvent.passwordRecovery:
-          // handle password recovery
-          case AuthChangeEvent.tokenRefreshed:
-          // handle token refreshed
-          case AuthChangeEvent.userUpdated:
-          // handle user updated
-          case AuthChangeEvent.userDeleted:
-          // handle user deleted
-          case AuthChangeEvent.mfaChallengeVerified:
-          // handle mfa challenge verified
-        }
-      });
     } catch (e, s) {
       recordError(e, s, context: 'Initializing');
       debugPrint('Failed to initialize Windows IAP: $e');
@@ -82,13 +58,18 @@ class WindowsIAPService {
 
   /// Check if the user has already purchased the app
   Future<void> _checkExistingPurchase() async {
-    // First check if we have a stored purchase status
+    if (_entitlementsService.hasActive(IAPManager.premiumMonthlyProductKey)) {
+      IAPManager.instance.isPurchased.value = true;
+      return;
+    }
+
     final storedStatus = await _prefs.read(key: _purchaseStatusKey);
     core.connection.signalNotification(LogNotification('Is purchased status: $storedStatus'));
     if (storedStatus == "true") {
       IAPManager.instance.isPurchased.value = true;
       return;
     }
+
     final trial = await _windowsIapPlugin.getTrialStatusAndRemainingDays();
     core.connection.signalNotification(LogNotification('Trial status: $trial'));
     final trialEndDate = trial.remainingDays;
@@ -113,21 +94,35 @@ class WindowsIAPService {
     }
   }
 
-  /// Purchase the full version
-  /// TODO: Implement actual Windows Store purchase flow
+  /// Purchase and then sync subscription state to Supabase.
   Future<void> purchaseFullVersion() async {
     try {
       final status = await _windowsIapPlugin.makePurchase(productId);
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
-        IAPManager.instance.isPurchased.value = true;
+        await restoreOrSyncSubscription();
+        IAPManager.instance.isPurchased.value = IAPManager.instance.isPremiumEnabled;
         buildToast(
           title: 'Purchase Successful',
-          subtitle: 'Thank you for your purchase! You now have unlimited access.',
+          subtitle: IAPManager.instance.isPremiumEnabled
+              ? 'Subscription activated successfully.'
+              : 'Purchase complete. Sync may take a moment.',
         );
       }
     } catch (e, s) {
       recordError(e, s, context: 'Purchasing on Windows');
       debugPrint('Error purchasing on Windows: $e');
+    }
+  }
+
+  Future<void> restoreOrSyncSubscription() async {
+    try {
+      await _subscriptionService.restoreOrSyncSubscription(
+        productStoreId: subscriptionStoreProductId,
+      );
+      IAPManager.instance.isPurchased.value = IAPManager.instance.isPremiumEnabled;
+    } catch (e, s) {
+      recordError(e, s, context: 'Syncing Windows subscription');
+      rethrow;
     }
   }
 
@@ -137,10 +132,11 @@ class WindowsIAPService {
   /// Get the number of days remaining in the trial
   int trialDaysRemaining = 0;
 
-  late final StreamSubscription<AuthState> _authSubscription;
-
   /// Check if the trial has expired
   bool get isTrialExpired {
+    if (IAPManager.instance.isPremiumEnabled) {
+      return false;
+    }
     return !IAPManager.instance.isPurchased.value && hasTrialStarted && trialDaysRemaining <= 0;
   }
 
@@ -150,7 +146,6 @@ class WindowsIAPService {
     final today = DateTime.now().toIso8601String().split('T')[0];
 
     if (lastDate != today) {
-      // Reset counter for new day
       return 0;
     }
 
@@ -163,7 +158,6 @@ class WindowsIAPService {
     final lastDate = _lastCommandDate;
 
     if (lastDate != today) {
-      // Reset counter for new day
       _lastCommandDate = today;
       _dailyCommandCount = 1;
       await _prefs.write(key: _lastCommandDateKey, value: today);
@@ -177,22 +171,22 @@ class WindowsIAPService {
 
   /// Check if the user can execute a command
   bool get canExecuteCommand {
-    if (IAPManager.instance.isPurchased.value) return true;
+    if (IAPManager.instance.isPremiumEnabled || IAPManager.instance.isPurchased.value) return true;
     if (!isTrialExpired) return true;
     return dailyCommandCount < dailyCommandLimit;
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (IAPManager.instance.isPurchased.value || !isTrialExpired) return -1; // Unlimited
+    if (IAPManager.instance.isPremiumEnabled || IAPManager.instance.isPurchased.value || !isTrialExpired) {
+      return -1;
+    }
     final remaining = dailyCommandLimit - dailyCommandCount;
-    return remaining > 0 ? remaining : 0; // Never return negative
+    return remaining > 0 ? remaining : 0;
   }
 
   /// Dispose the service
-  void dispose() {
-    // Nothing to dispose for Windows
-  }
+  void dispose() {}
 
   void reset() {
     _prefs.deleteAll();

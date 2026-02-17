@@ -60,8 +60,8 @@ class Permissions {
     if (screenshotMode) {
       list = [];
     } else if (kIsWeb) {
-      final availablity = await UniversalBle.getBluetoothAvailabilityState();
-      if (availablity == AvailabilityState.unsupported) {
+      final availability = await UniversalBle.getBluetoothAvailabilityState();
+      if (availability == AvailabilityState.unsupported) {
         list = [UnsupportedPlatform()];
       } else {
         list = [BluetoothTurnedOn()];

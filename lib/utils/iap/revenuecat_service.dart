@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -10,7 +11,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:prop/prop.dart' as zp;
-import 'package:prop/prop.dart' hide LogLevel;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -34,20 +34,22 @@ class RevenueCatService {
   final ValueNotifier<bool> isPurchasedNotifier;
   final int Function() getDailyCommandLimit;
   final void Function(int limit) setDailyCommandLimit;
+  final EntitlementsService entitlementsService;
+  final String premiumProductKey;
 
   bool _isInitialized = false;
+  bool _isConfigured = false;
   String? _trialStartDate;
   String? _lastCommandDate;
   int? _dailyCommandCount;
-  StreamSubscription<CustomerInfo>? _customerInfoSubscription;
-
-  late final StreamSubscription<AuthState> _authSubscription;
 
   RevenueCatService(
     this._prefs, {
     required this.isPurchasedNotifier,
     required this.getDailyCommandLimit,
     required this.setDailyCommandLimit,
+    required this.entitlementsService,
+    required this.premiumProductKey,
   });
 
   /// Initialize the RevenueCat service
@@ -89,6 +91,10 @@ class RevenueCatService {
 
       // Configure RevenueCat
       final configuration = PurchasesConfiguration(apiKey);
+      final session = core.supabase.auth.currentSession;
+      if (session != null) {
+        configuration.appUserID = session.user.id;
+      }
 
       // Enable debug logs in debug mode
       if (kDebugMode) {
@@ -96,6 +102,7 @@ class RevenueCatService {
       }
 
       await Purchases.configure(configuration);
+      _isConfigured = true;
 
       debugPrint('RevenueCat initialized successfully');
       core.connection.signalNotification(
@@ -124,34 +131,8 @@ class RevenueCatService {
       if (!isTrialExpired && Platform.isAndroid) {
         setDailyCommandLimit(80);
       }
-
-      _authSubscription = core.supabase.auth.onAuthStateChange.listen((data) {
-        final AuthChangeEvent event = data.event;
-        final Session? session = data.session;
-
-        Logger.info('event: $event, session: ${session?.user.id} via ${session?.user.email}');
-
-        switch (event) {
-          case AuthChangeEvent.initialSession:
-            setAttributes();
-          case AuthChangeEvent.signedIn:
-            setAttributes();
-          // handle signed in
-          case AuthChangeEvent.signedOut:
-            setAttributes();
-          // handle signed out
-          case AuthChangeEvent.passwordRecovery:
-          // handle password recovery
-          case AuthChangeEvent.tokenRefreshed:
-          // handle token refreshed
-          case AuthChangeEvent.userUpdated:
-          // handle user updated
-          case AuthChangeEvent.userDeleted:
-          // handle user deleted
-          case AuthChangeEvent.mfaChallengeVerified:
-          // handle mfa challenge verified
-        }
-      });
+      await _syncRevenueCatUser(session);
+      await setAttributes();
     } catch (e, s) {
       recordError(e, s, context: 'Initializing RevenueCat Service');
       core.connection.signalNotification(
@@ -228,8 +209,9 @@ class RevenueCatService {
       final paywallResult = await RevenueCatUI.presentPaywall(displayCloseButton: true);
 
       debugPrint('Paywall result: $paywallResult');
-
-      // The customer info listener will handle the purchase update
+      if (paywallResult == PaywallResult.purchased || paywallResult == PaywallResult.restored) {
+        await refreshEntitlementsWithRetry();
+      }
     } catch (e, s) {
       debugPrint('Error presenting paywall: $e');
       recordError(e, s, context: 'Presenting paywall');
@@ -247,6 +229,7 @@ class RevenueCatService {
     try {
       final customerInfo = await Purchases.restorePurchases();
       final result = await _handleCustomerInfoUpdate(customerInfo);
+      await refreshEntitlementsWithRetry();
 
       if (result) {
         core.connection.signalNotification(
@@ -276,6 +259,7 @@ class RevenueCatService {
         core.connection.signalNotification(
           LogNotification('Purchase result: $result'),
         );
+        await refreshEntitlementsWithRetry();
       } on PlatformException catch (e) {
         var errorCode = PurchasesErrorHelper.getErrorCode(e);
         if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
@@ -284,6 +268,50 @@ class RevenueCatService {
       }
     } else {
       await presentPaywall();
+    }
+  }
+
+  Future<void> logInWithSupabaseUserId(String supabaseUserId) async {
+    if (!_isConfigured) {
+      return;
+    }
+    await Purchases.logIn(supabaseUserId);
+  }
+
+  Future<void> logOut() async {
+    if (!_isConfigured) {
+      return;
+    }
+    try {
+      await Purchases.logOut();
+    } on PlatformException catch (error) {
+      // RevenueCat throws when logging out anonymous users.
+      if (error.code != 'log_out_called_on_anonymous_user') {
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> refreshEntitlementsWithRetry() async {
+    const retryDelays = [
+      Duration(seconds: 1),
+      Duration(seconds: 2),
+      Duration(seconds: 4),
+    ];
+
+    await entitlementsService.refresh(force: true);
+    if (entitlementsService.hasActive(premiumProductKey)) {
+      isPurchasedNotifier.value = true;
+      return;
+    }
+
+    for (final delay in retryDelays) {
+      await Future.delayed(delay);
+      await entitlementsService.refresh(force: true);
+      if (entitlementsService.hasActive(premiumProductKey)) {
+        isPurchasedNotifier.value = true;
+        return;
+      }
     }
   }
 
@@ -377,9 +405,7 @@ class RevenueCatService {
   }
 
   /// Dispose the service
-  void dispose() {
-    _customerInfoSubscription?.cancel();
-  }
+  void dispose() {}
 
   Future<void> reset(bool fullReset) async {
     if (fullReset) {
@@ -402,6 +428,9 @@ class RevenueCatService {
   }
 
   Future<void> setAttributes() async {
+    if (!_isConfigured) {
+      return;
+    }
     final Session? session = core.supabase.auth.currentSession;
 
     // attributes are fully anonymous
@@ -416,5 +445,16 @@ class RevenueCatService {
         ),
       'bikecontrol_keymap': core.settings.getKeyMap()?.name ?? '-',
     });
+  }
+
+  Future<void> _syncRevenueCatUser(Session? session) async {
+    if (!_isConfigured) {
+      return;
+    }
+    if (session == null) {
+      await logOut();
+      return;
+    }
+    await logInWithSupabaseUserId(session.user.id);
   }
 }

@@ -8,6 +8,7 @@ import 'package:bike_control/pages/onboarding.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -254,12 +255,27 @@ class _Starter extends StatefulWidget {
   State<_Starter> createState() => _StarterState();
 }
 
-class _StarterState extends State<_Starter> {
+class _StarterState extends State<_Starter> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
 
     core.connection.initialize();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(IAPManager.instance.refreshEntitlementsOnAppStart());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(IAPManager.instance.refreshEntitlementsOnResume());
+    }
   }
 
   @override
