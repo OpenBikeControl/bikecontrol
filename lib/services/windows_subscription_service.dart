@@ -3,8 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:windows_iap/windows_iap.dart';
 
 class WindowsSubscriptionService {
-  static const String createSyncTokenFunction = 'windows/create-sync-token';
-  static const String syncLicenseFunction = 'windows/sync-license';
+  static const String createSyncTokenFunction = 'windows-create-sync-token';
+  static const String syncLicenseFunction = 'windows-sync-license';
 
   final SupabaseClient _supabase;
   final WindowsIap _windowsIap;
