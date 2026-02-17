@@ -27,7 +27,10 @@ class WindowsSubscriptionService {
     }
 
     final token = await _createSyncToken(session);
-    final b2bKey = await getB2BKey();
+    final b2bKey = await getB2BKey(
+      serviceTicket: token,
+      publisherUserId: session.user.id,
+    );
 
     await _supabase.functions.invoke(
       syncLicenseFunction,
@@ -43,8 +46,14 @@ class WindowsSubscriptionService {
     await _entitlements.refresh(force: true);
   }
 
-  Future<String> getB2BKey() async {
-    final value = await _windowsIap.getCustomerPurchaseIdKey();
+  Future<String> getB2BKey({
+    required String serviceTicket,
+    required String publisherUserId,
+  }) async {
+    final value = await _windowsIap.getCustomerPurchaseIdKey(
+      serviceTicket: serviceTicket,
+      publisherUserId: publisherUserId,
+    );
     if (value.isEmpty) {
       throw StateError('Empty B2B key from Microsoft Store bridge');
     }
