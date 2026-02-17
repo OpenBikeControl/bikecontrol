@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <sstream>
+#include <variant>
 
 #pragma once
 #include <winrt/Windows.Services.Store.h>
@@ -307,6 +308,38 @@ namespace windows_iap
 		resultCallback->Success(flutter::EncodableValue(result));
 	}
 
+	foundation::IAsyncAction getCustomerPurchaseIdKey(
+		std::string serviceTicket,
+		std::string publisherUserId,
+		std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> resultCallback)
+	{
+		if (serviceTicket.empty())
+		{
+			resultCallback->Error("invalid-args", "serviceTicket is required.");
+			co_return;
+		}
+		if (publisherUserId.empty())
+		{
+			resultCallback->Error("invalid-args", "publisherUserId is required.");
+			co_return;
+		}
+
+		try
+		{
+			auto purchaseId = co_await getStore().GetCustomerPurchaseIdAsync(
+				to_hstring(serviceTicket),
+				to_hstring(publisherUserId));
+
+			resultCallback->Success(flutter::EncodableValue(to_string(purchaseId)));
+		}
+		catch (const winrt::hresult_error &error)
+		{
+			resultCallback->Error(
+				std::to_string(error.code().value),
+				to_string(error.message()));
+		}
+	}
+
 	//////////////////////////////////////////////////////////////////////// END OF MY CODE //////////////////////////////////////////////////////////////
 
 	// static
@@ -362,6 +395,30 @@ namespace windows_iap
 		else if (method_call.method_name().compare("getTrialStatusAndRemainingDays") == 0)
 		{
 			getTrialStatusAndRemainingDays(std::move(result));
+		}
+		else if (method_call.method_name().compare("getCustomerPurchaseIdKey") == 0)
+		{
+			if (method_call.arguments() == nullptr)
+			{
+				result->Error("invalid-args", "Arguments are required.");
+				return;
+			}
+			auto args = std::get<flutter::EncodableMap>(*method_call.arguments());
+			auto serviceTicketIt = args.find(flutter::EncodableValue("serviceTicket"));
+			auto publisherUserIdIt = args.find(flutter::EncodableValue("publisherUserId"));
+			if (serviceTicketIt == args.end() || !std::holds_alternative<std::string>(serviceTicketIt->second))
+			{
+				result->Error("invalid-args", "serviceTicket must be a string.");
+				return;
+			}
+			if (publisherUserIdIt == args.end() || !std::holds_alternative<std::string>(publisherUserIdIt->second))
+			{
+				result->Error("invalid-args", "publisherUserId must be a string.");
+				return;
+			}
+			auto serviceTicket = std::get<std::string>(serviceTicketIt->second);
+			auto publisherUserId = std::get<std::string>(publisherUserIdIt->second);
+			getCustomerPurchaseIdKey(serviceTicket, publisherUserId, std::move(result));
 		}
 		else
 		{

@@ -47,7 +47,10 @@ abstract class WindowsIapPlatform extends PlatformInterface {
     throw UnimplementedError('getAddonLicenses() has not been implemented.');
   }
 
-  Future<String> getCustomerPurchaseIdKey() {
+  Future<String> getCustomerPurchaseIdKey({
+    required String serviceTicket,
+    required String publisherUserId,
+  }) {
     throw UnimplementedError(
         'getCustomerPurchaseIdKey() has not been implemented.');
   }
