@@ -43,7 +43,7 @@ class DeviceIdentityService {
     }
 
     final fingerprintSource = await _buildFingerprintSource(platform);
-    final generated = 'devinfo_${platform}_$fingerprintSource';
+    final generated = '${platform}_$fingerprintSource';
 
     final trimmedTo255Characters = generated.length > 255 ? generated.substring(0, 255) : generated;
 
