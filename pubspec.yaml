@@ -32,6 +32,7 @@ dependencies:
   dartx: any
 
   supabase_flutter: ^2.12.0
+  crypto: ^3.0.6
   sign_in_button: ^4.0.1
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^7.0.1

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/services/device_identity_service.dart';
+import 'package:bike_control/services/device_management_service.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/services/windows_subscription_service.dart';
 import 'package:bike_control/utils/core.dart';
@@ -31,7 +33,15 @@ class IAPManager {
   StreamSubscription<AuthState>? _authSubscription;
   bool _isInitialized = false;
 
-  final EntitlementsService entitlements = EntitlementsService(core.supabase);
+  final DeviceIdentityService deviceIdentity = DeviceIdentityService();
+  late final DeviceManagementService deviceManagement = DeviceManagementService(
+    supabase: core.supabase,
+    deviceIdentityService: deviceIdentity,
+  );
+  late final EntitlementsService entitlements = EntitlementsService(
+    core.supabase,
+    deviceIdentityService: deviceIdentity,
+  );
 
   ValueNotifier<bool> isPurchased = ValueNotifier<bool>(false);
 
@@ -62,6 +72,7 @@ class IAPManager {
           supabase: core.supabase,
           windowsIap: windowsIap,
           entitlements: entitlements,
+          deviceIdentityService: deviceIdentity,
         );
 
         _windowsIapService = WindowsIAPService(
@@ -97,7 +108,7 @@ class IAPManager {
 
   /// Called on app start when a session may already exist.
   Future<void> refreshEntitlementsOnAppStart() async {
-    await entitlements.refresh();
+    await entitlements.refresh(force: true);
     _syncPurchaseFlagFromEntitlements();
   }
 
@@ -305,6 +316,7 @@ class IAPManager {
         _syncPurchaseFlagFromEntitlements();
         return;
       case AuthChangeEvent.signedOut:
+      // ignore: deprecated_member_use
       case AuthChangeEvent.userDeleted:
         await _revenueCatService?.logOut();
         await entitlements.clearCache();
