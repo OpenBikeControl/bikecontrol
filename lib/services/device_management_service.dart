@@ -2,11 +2,12 @@ import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/register_device_result.dart';
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/services/device_identity_service.dart';
+import 'package:prop/prop.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DeviceManagementService {
   static const String registerDeviceFunction = 'devices/register';
-  static const String meDevicesFunction = 'me/devices';
+  static const String meDevicesFunction = 'devices/me';
   static const String revokeDeviceFunction = 'devices/revoke';
 
   final SupabaseClient _supabase;
@@ -38,6 +39,7 @@ class DeviceManagementService {
           if (appVersion != null && appVersion.isNotEmpty) 'app_version': appVersion,
         },
       );
+      Logger.debug('Device registration response: ${response.data}');
       final payload = Map<String, dynamic>.from(response.data as Map);
       return RegisterDeviceResult.fromJson(payload);
     } on FunctionException catch (error) {
@@ -106,6 +108,7 @@ class DeviceManagementService {
   }
 
   List<UserDevice> _parseDevicesPayload(dynamic payload) {
+    Logger.debug('Devices response: $payload');
     if (payload is List) {
       return payload
           .whereType<Map>()

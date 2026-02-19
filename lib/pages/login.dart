@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/main.dart';
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/utils/core.dart';
@@ -310,6 +311,7 @@ class _LoginPageState extends State<LoginPage> {
         _statusMessage = error.toString();
       });
     } catch (error) {
+      recordError(error, null, context: 'reloadDevicesAndEntitlements');
       if (!mounted) return;
       setState(() {
         _statusMessage = 'Failed to load devices: $error';
