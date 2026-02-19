@@ -229,7 +229,7 @@ class _LoginPageState extends State<LoginPage> {
       borderColor: Theme.of(context).colorScheme.destructive,
       borderWidth: 1,
       child: Column(
-        spacing: 8,
+        spacing: 12,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Basic(
@@ -266,19 +266,24 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildDeviceRow(UserDevice device) {
-    return Basic(
-      title: Text(device.deviceName?.trim().isNotEmpty == true ? device.deviceName! : device.deviceId),
-      subtitle: Text(
-        'ID: ${device.deviceId}\n'
-        'Last seen: ${_formatDate(device.lastSeenAt)}'
-        '${device.isRevoked ? '\nRevoked: ${_formatDate(device.revokedAt)}' : ''}',
-      ).small,
-      trailing: device.isRevoked
-          ? const Text('Revoked').small
-          : Button.secondary(
-              onPressed: () => _revokeDevice(device),
-              child: const Text('Revoke'),
-            ),
+    return Card(
+      child: Basic(
+        title: Text(
+          device.deviceName?.trim().isNotEmpty == true ? device.deviceName! : device.deviceId.split("|").first,
+        ),
+        subtitle: Text(
+          [
+            if (device.deviceName?.trim().isEmpty == false) 'ID: ${device.deviceId.split("|").first}',
+            'Last seen: ${_formatDate(device.lastSeenAt)}',
+          ].join('\n'),
+        ).small,
+        trailing: device.isRevoked
+            ? Text('Revoked at\n${_formatDate(device.revokedAt)}').small
+            : Button.secondary(
+                onPressed: () => _revokeDevice(device),
+                child: const Text('Revoke'),
+              ),
+      ),
     );
   }
 

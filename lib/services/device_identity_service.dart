@@ -57,7 +57,7 @@ class DeviceIdentityService {
         final info = await _deviceInfo.androidInfo;
         return _buildFromMap(
           info.data,
-          const ['androidId', 'id', 'fingerprint', 'hardware', 'board', 'device', 'model', 'brand', 'manufacturer'],
+          const ['device', 'model', 'hardware', 'board', 'brand', 'androidId', 'id', 'fingerprint', 'manufacturer'],
         );
       case 'ios':
         final info = await _deviceInfo.iosInfo;
@@ -69,13 +69,13 @@ class DeviceIdentityService {
         final info = await _deviceInfo.macOsInfo;
         return _buildFromMap(
           info.data,
-          const ['systemGUID', 'computerName', 'model', 'arch'],
+          const ['computerName', 'systemGUID', 'model', 'arch'],
         );
       case 'windows':
         final info = await _deviceInfo.windowsInfo;
         return _buildFromMap(
           info.data,
-          const ['deviceId', 'computerName', 'productName', 'buildLabEx', 'registeredOwner'],
+          const ['computerName', 'deviceId', 'productName', 'buildLabEx', 'registeredOwner'],
         );
       default:
         throw StateError('Unsupported platform for device identity: $platform');
@@ -87,7 +87,7 @@ class DeviceIdentityService {
     for (final key in prioritizedKeys) {
       final value = _normalizeValue(data[key]);
       if (value == null) continue;
-      parts.add('$key=$value');
+      parts.add(value);
     }
 
     if (parts.isEmpty) {
@@ -95,7 +95,7 @@ class DeviceIdentityService {
       for (final key in keys) {
         final value = _normalizeValue(data[key]);
         if (value == null) continue;
-        parts.add('$key=$value');
+        parts.add(value);
       }
     }
 
