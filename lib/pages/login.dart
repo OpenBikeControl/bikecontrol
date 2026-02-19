@@ -99,8 +99,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildSignedIn(BuildContext context, Session session) {
-    final isSubscriptionActive = _iapManager.isPremiumEnabled;
-    final isCurrentDeviceRegistered = _isCurrentDeviceRegistered();
+    final hasActiveSubscription = _iapManager.hasActiveSubscription;
+    final isPremiumEnabled = _iapManager.isPremiumEnabled;
+    final isRegisteredDevice = _iapManager.entitlements.isRegisteredDevice;
     return Column(
       spacing: 14,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,25 +115,29 @@ class _LoginPageState extends State<LoginPage> {
               Basic(
                 title: const Text('Account'),
                 subtitle: Text(session.user.email ?? session.user.id),
-                trailing: isSubscriptionActive
+                trailing: isPremiumEnabled
                     ? const PrimaryBadge(child: Text('Subscription active'))
+                    : hasActiveSubscription
+                    ? const DestructiveBadge(child: Text('Device not registered'))
                     : const DestructiveBadge(child: Text('Subscription inactive')),
               ),
               const Text(
                 'Login-related premium features are enabled only when this account has an active subscription entitlement.',
               ).small,
+              if (hasActiveSubscription && !isRegisteredDevice)
+                const Text('This device is not registered yet. Register it below to enable premium features.').small,
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if (!isSubscriptionActive)
+                  if (!hasActiveSubscription)
                     Button.primary(
                       onPressed: _isPurchasingSubscription ? null : _buySubscription,
                       child: _isPurchasingSubscription
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
                           : const Text('Buy subscription'),
                     ),
-                  if (!isSubscriptionActive)
+                  if (!hasActiveSubscription)
                     Button.secondary(
                       onPressed: _isRefreshingEntitlements ? null : _refreshEntitlements,
                       child: _isRefreshingEntitlements
@@ -150,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
             ],
           ),
         ),
-        if (isSubscriptionActive)
+        if (hasActiveSubscription)
           Card(
             filled: true,
             child: Column(
@@ -169,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    if (!isCurrentDeviceRegistered)
+                    if (!isRegisteredDevice)
                       Button.primary(
                         onPressed: _isRegisteringDevice ? null : _registerCurrentDevice,
                         child: _isRegisteringDevice
@@ -195,8 +200,8 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
           ),
-        if (isSubscriptionActive && _deviceLimitError != null) _buildDeviceLimitCard(_deviceLimitError!),
-        if (isSubscriptionActive)
+        if (hasActiveSubscription && _deviceLimitError != null) _buildDeviceLimitCard(_deviceLimitError!),
+        if (hasActiveSubscription)
           Card(
             filled: true,
             child: Column(
@@ -216,19 +221,6 @@ class _LoginPageState extends State<LoginPage> {
           ),
       ],
     );
-  }
-
-  bool _isCurrentDeviceRegistered() {
-    final platform = _devicePlatform;
-    final deviceId = _deviceId;
-    if (platform == null || platform.isEmpty || deviceId == null || deviceId.isEmpty) {
-      return false;
-    }
-    final devices = _devicesByPlatform[platform];
-    if (devices == null || devices.isEmpty) {
-      return false;
-    }
-    return devices.any((device) => device.deviceId == deviceId && device.isActive);
   }
 
   Widget _buildDeviceLimitCard(DeviceLimitReachedError error) {

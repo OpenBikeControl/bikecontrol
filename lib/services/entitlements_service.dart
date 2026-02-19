@@ -4,6 +4,7 @@ import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/entitlement.dart';
 import 'package:bike_control/services/device_identity_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/prop.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,6 +14,7 @@ class EntitlementsService extends ChangeNotifier {
   static const String _entitlementsFunction = 'get-entitlements';
   static const String _cacheEntitlementsKey = 'entitlements_cache_items';
   static const String _cacheLastFetchedAtKey = 'entitlements_cache_last_fetched_at';
+  static const String _cacheRegisteredDeviceKey = 'entitlements_cache_registered_device';
 
   final SupabaseClient _supabase;
   final DeviceIdentityService _deviceIdentityService;
@@ -23,6 +25,7 @@ class EntitlementsService extends ChangeNotifier {
 
   DateTime? _lastFetchedAt;
   List<Entitlement> _entitlements = const [];
+  bool _isRegisteredDevice = false;
   DeviceLimitReachedError? _lastDeviceLimitError;
 
   EntitlementsService(
@@ -33,6 +36,7 @@ class EntitlementsService extends ChangeNotifier {
   List<Entitlement> get current => List.unmodifiable(_entitlements);
 
   DateTime? get lastFetchedAt => _lastFetchedAt;
+  bool get isRegisteredDevice => _isRegisteredDevice;
   DeviceLimitReachedError? get lastDeviceLimitError => _lastDeviceLimitError;
 
   bool get isCacheStale {
@@ -101,8 +105,10 @@ class EntitlementsService extends ChangeNotifier {
     await initialize();
     _entitlements = const [];
     _lastFetchedAt = null;
+    _isRegisteredDevice = false;
     await _prefs?.remove(_cacheEntitlementsKey);
     await _prefs?.remove(_cacheLastFetchedAtKey);
+    await _prefs?.remove(_cacheRegisteredDeviceKey);
     notifyListeners();
   }
 
@@ -129,7 +135,9 @@ class EntitlementsService extends ChangeNotifier {
       );
 
       final payload = response.data;
-      final list = _extractEntitlementsList(payload);
+      Logger.debug('Entitlements response: $payload');
+      final parsed = _extractPayload(payload);
+      final list = parsed.entitlements;
       final entitlements = list
           .whereType<Map>()
           .map((item) => Map<String, dynamic>.from(item))
@@ -137,6 +145,7 @@ class EntitlementsService extends ChangeNotifier {
           .toList(growable: false);
 
       _entitlements = entitlements;
+      _isRegisteredDevice = parsed.isRegisteredDevice;
       _lastFetchedAt = DateTime.now();
       _lastDeviceLimitError = null;
       await _persistCache();
@@ -159,12 +168,18 @@ class EntitlementsService extends ChangeNotifier {
     }
   }
 
-  List<dynamic> _extractEntitlementsList(dynamic payload) {
+  _EntitlementsPayload _extractPayload(dynamic payload) {
     if (payload is List) {
-      return payload;
+      return _EntitlementsPayload(
+        entitlements: payload,
+        isRegisteredDevice: false,
+      );
     }
     if (payload is Map && payload['entitlements'] is List) {
-      return payload['entitlements'] as List<dynamic>;
+      return _EntitlementsPayload(
+        entitlements: payload['entitlements'] as List<dynamic>,
+        isRegisteredDevice: payload['is_registered_device'] == true,
+      );
     }
     throw StateError('Unexpected entitlements response: $payload');
   }
@@ -178,11 +193,16 @@ class EntitlementsService extends ChangeNotifier {
       _cacheLastFetchedAtKey,
       _lastFetchedAt?.toIso8601String() ?? '',
     );
+    await _prefs?.setBool(
+      _cacheRegisteredDeviceKey,
+      _isRegisteredDevice,
+    );
   }
 
   void _restoreCacheFromPrefs() {
     final rawLastFetchedAt = _prefs?.getString(_cacheLastFetchedAtKey);
     _lastFetchedAt = DateTime.tryParse(rawLastFetchedAt ?? '');
+    _isRegisteredDevice = _prefs?.getBool(_cacheRegisteredDeviceKey) ?? false;
 
     final rawEntitlements = _prefs?.getString(_cacheEntitlementsKey);
     if (rawEntitlements == null || rawEntitlements.isEmpty) {
@@ -207,4 +227,14 @@ class EntitlementsService extends ChangeNotifier {
       _entitlements = const [];
     }
   }
+}
+
+class _EntitlementsPayload {
+  final List<dynamic> entitlements;
+  final bool isRegisteredDevice;
+
+  const _EntitlementsPayload({
+    required this.entitlements,
+    required this.isRegisteredDevice,
+  });
 }
