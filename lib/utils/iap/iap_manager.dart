@@ -47,8 +47,9 @@ class IAPManager {
 
   IAPManager._();
 
-  bool get isPremiumEnabled => entitlements.hasActive(premiumMonthlyProductKey);
-  bool get isSubscribed => entitlements.hasActive(premiumMonthlyProductKey);
+  bool get hasActiveSubscription => entitlements.hasActive(premiumMonthlyProductKey);
+
+  bool get isPremiumEnabled => hasActiveSubscription && entitlements.isRegisteredDevice;
 
   DateTime? get premiumActiveUntil => entitlements.activeUntil(premiumMonthlyProductKey);
 
