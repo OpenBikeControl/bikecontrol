@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/entitlement.dart';
+import 'package:bike_control/services/device_identity_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,6 +15,7 @@ class EntitlementsService extends ChangeNotifier {
   static const String _cacheLastFetchedAtKey = 'entitlements_cache_last_fetched_at';
 
   final SupabaseClient _supabase;
+  final DeviceIdentityService _deviceIdentityService;
 
   SharedPreferences? _prefs;
   bool _isInitialized = false;
@@ -20,12 +23,17 @@ class EntitlementsService extends ChangeNotifier {
 
   DateTime? _lastFetchedAt;
   List<Entitlement> _entitlements = const [];
+  DeviceLimitReachedError? _lastDeviceLimitError;
 
-  EntitlementsService(this._supabase);
+  EntitlementsService(
+    this._supabase, {
+    required DeviceIdentityService deviceIdentityService,
+  }) : _deviceIdentityService = deviceIdentityService;
 
   List<Entitlement> get current => List.unmodifiable(_entitlements);
 
   DateTime? get lastFetchedAt => _lastFetchedAt;
+  DeviceLimitReachedError? get lastDeviceLimitError => _lastDeviceLimitError;
 
   bool get isCacheStale {
     final fetchedAt = _lastFetchedAt;
@@ -104,11 +112,20 @@ class EntitlementsService extends ChangeNotifier {
       if (session == null) {
         return;
       }
+      final platform = await _deviceIdentityService.currentPlatform();
+      if (platform == null || platform.isEmpty) {
+        return;
+      }
+      final deviceId = await _deviceIdentityService.getOrCreateDeviceId();
 
       final response = await _supabase.functions.invoke(
         _entitlementsFunction,
         method: HttpMethod.get,
-        headers: {'Authorization': 'Bearer ${session.accessToken}'},
+        headers: {
+          'Authorization': 'Bearer ${session.accessToken}',
+          'X-Device-Platform': platform,
+          'X-Device-Id': deviceId,
+        },
       );
 
       final payload = response.data;
@@ -121,8 +138,21 @@ class EntitlementsService extends ChangeNotifier {
 
       _entitlements = entitlements;
       _lastFetchedAt = DateTime.now();
+      _lastDeviceLimitError = null;
       await _persistCache();
       notifyListeners();
+    } on FunctionException catch (error, stackTrace) {
+      final details = error.details;
+      if (error.status == 409 && details is Map) {
+        final json = Map<String, dynamic>.from(details);
+        if (json['error'] == 'device_limit_reached') {
+          _lastDeviceLimitError = DeviceLimitReachedError.fromJson(json);
+          notifyListeners();
+          return;
+        }
+      }
+      debugPrint('Failed to refresh entitlements: $error');
+      debugPrintStack(stackTrace: stackTrace);
     } catch (error, stackTrace) {
       debugPrint('Failed to refresh entitlements: $error');
       debugPrintStack(stackTrace: stackTrace);

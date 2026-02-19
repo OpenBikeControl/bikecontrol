@@ -1,22 +1,26 @@
 import 'package:bike_control/services/entitlements_service.dart';
+import 'package:bike_control/services/device_identity_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:windows_iap/windows_iap.dart';
 
 class WindowsSubscriptionService {
-  static const String createSyncTokenFunction = 'windows-create-sync-token';
-  static const String syncLicenseFunction = 'windows-sync-license';
+  static const String createSyncTokenFunction = 'windows/create-sync-token';
+  static const String syncLicenseFunction = 'windows/sync-license';
 
   final SupabaseClient _supabase;
   final WindowsIap _windowsIap;
   final EntitlementsService _entitlements;
+  final DeviceIdentityService _deviceIdentityService;
 
   WindowsSubscriptionService({
     required SupabaseClient supabase,
     required WindowsIap windowsIap,
     required EntitlementsService entitlements,
+    required DeviceIdentityService deviceIdentityService,
   }) : _supabase = supabase,
        _windowsIap = windowsIap,
-       _entitlements = entitlements;
+       _entitlements = entitlements,
+       _deviceIdentityService = deviceIdentityService;
 
   Future<void> restoreOrSyncSubscription({
     required String productStoreId,
@@ -25,6 +29,11 @@ class WindowsSubscriptionService {
     if (session == null) {
       throw StateError('No active Supabase session');
     }
+    final platform = await _deviceIdentityService.currentPlatform();
+    if (platform == null || platform.isEmpty) {
+      throw StateError('Unsupported platform for Windows subscription sync');
+    }
+    final deviceId = await _deviceIdentityService.getOrCreateDeviceId();
 
     final token = await _createSyncToken(session);
     final b2bKey = await getB2BKey(
@@ -35,7 +44,11 @@ class WindowsSubscriptionService {
     await _supabase.functions.invoke(
       syncLicenseFunction,
       method: HttpMethod.post,
-      headers: {'Authorization': 'Bearer ${session.accessToken}'},
+      headers: {
+        'Authorization': 'Bearer ${session.accessToken}',
+        'X-Device-Platform': platform,
+        'X-Device-Id': deviceId,
+      },
       body: {
         'token': token,
         'b2bKey': b2bKey,
