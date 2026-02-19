@@ -48,6 +48,7 @@ class IAPManager {
   IAPManager._();
 
   bool get isPremiumEnabled => entitlements.hasActive(premiumMonthlyProductKey);
+  bool get isSubscribed => entitlements.hasActive(premiumMonthlyProductKey);
 
   DateTime? get premiumActiveUntil => entitlements.activeUntil(premiumMonthlyProductKey);
 
@@ -242,7 +243,18 @@ class IAPManager {
     if (_revenueCatService != null) {
       return _revenueCatService!.purchaseFullVersion(context);
     } else if (_iapService != null) {
-      return _iapService!.purchaseFullVersion();
+      return _iapService!.purchase(productId: IAPService.fullVersionId);
+    } else if (_windowsIapService != null) {
+      return _windowsIapService!.purchaseFullVersion();
+    }
+  }
+
+  /// Purchase the full version.
+  Future<void> purchaseSubscription(BuildContext context) async {
+    if (_revenueCatService != null) {
+      return _revenueCatService!.purchaseSubscription(context);
+    } else if (_iapService != null) {
+      return _iapService!.purchase(productId: IAPService.subscriptionId);
     } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseFullVersion();
     }

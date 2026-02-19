@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:prop/prop.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -13,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl/intl.dart';
 import 'package:ios_receipt/ios_receipt.dart';
+import 'package:prop/prop.dart';
 import 'package:version/version.dart';
 
 /// Service to handle in-app purchase functionality and trial period management
@@ -25,6 +25,9 @@ class IAPService {
   static const String _lastCommandDateKey = 'iap_last_command_date';
   static const String _lastPurchaseCheckKey = 'iap_last_purchase_check';
   static const String _hasPurchasedKey = 'iap_has_purchased';
+
+  static const String fullVersionId = 'full_access_unlock';
+  static const String subscriptionId = 'pro';
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   final FlutterSecureStorage _prefs;
@@ -292,7 +295,7 @@ class IAPService {
   }
 
   /// Purchase the full version
-  Future<void> purchaseFullVersion() async {
+  Future<void> purchase({required String productId}) async {
     try {
       if (!_isInitialized) {
         await initialize();
@@ -306,8 +309,6 @@ class IAPService {
         );
         return;
       }
-
-      final productId = 'full_access_unlock';
 
       // Query product details
       final response = await _inAppPurchase.queryProductDetails({productId});
