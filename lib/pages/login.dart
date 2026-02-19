@@ -34,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isRegisteringDevice = false;
   bool _isRefreshingEntitlements = false;
   bool _isSyncingWindowsSubscription = false;
+  bool _isPurchasingSubscription = false;
 
   String? _deviceId;
   String? _devicePlatform;
@@ -99,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildSignedIn(BuildContext context, Session session) {
     final isSubscriptionActive = _iapManager.isPremiumEnabled;
+    final isCurrentDeviceRegistered = _isCurrentDeviceRegistered();
     return Column(
       spacing: 14,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,45 +121,23 @@ class _LoginPageState extends State<LoginPage> {
               const Text(
                 'Login-related premium features are enabled only when this account has an active subscription entitlement.',
               ).small,
-            ],
-          ),
-        ),
-        Card(
-          filled: true,
-          child: Column(
-            spacing: 10,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Basic(
-                title: const Text('Current device'),
-                subtitle: Text(
-                  'Platform: ${_devicePlatform ?? '-'}\n'
-                  'Device ID: ${_deviceId ?? '-'}\n'
-                  'App version: ${_appVersion ?? '-'}',
-                ).small,
-              ),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  Button.primary(
-                    onPressed: _isRegisteringDevice ? null : _registerCurrentDevice,
-                    child: _isRegisteringDevice
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
-                        : const Text('Register this device'),
-                  ),
-                  Button.secondary(
-                    onPressed: _isRefreshingEntitlements ? null : _refreshEntitlements,
-                    child: _isRefreshingEntitlements
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
-                        : const Text('Refresh entitlements'),
-                  ),
-                  if (Platform.isWindows)
-                    Button.secondary(
-                      onPressed: _isSyncingWindowsSubscription ? null : _restoreOrSyncWindowsSubscription,
-                      child: _isSyncingWindowsSubscription
+                  if (!isSubscriptionActive)
+                    Button.primary(
+                      onPressed: _isPurchasingSubscription ? null : _buySubscription,
+                      child: _isPurchasingSubscription
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
-                          : const Text('Restore / Sync subscription'),
+                          : const Text('Buy subscription'),
+                    ),
+                  if (!isSubscriptionActive)
+                    Button.secondary(
+                      onPressed: _isRefreshingEntitlements ? null : _refreshEntitlements,
+                      child: _isRefreshingEntitlements
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
+                          : const Text('Refresh entitlements'),
                     ),
                   Button.secondary(
                     child: const Text('Logout'),
@@ -167,30 +147,88 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-              if (_statusMessage != null) Text(_statusMessage!).small,
             ],
           ),
         ),
-        if (_deviceLimitError != null) _buildDeviceLimitCard(_deviceLimitError!),
-        Card(
-          filled: true,
-          child: Column(
-            spacing: 10,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Basic(
-                title: const Text('Registered devices'),
-                subtitle: _isLoadingDevices ? const Text('Loading devices...') : null,
-              ),
-              if (!_isLoadingDevices && _devicesByPlatform.isEmpty)
-                const Text('No devices found for this account.').small
-              else if (!_isLoadingDevices)
-                ..._devicesByPlatform.entries.map((entry) => _buildPlatformDevices(entry.key, entry.value)),
-            ],
+        if (isSubscriptionActive)
+          Card(
+            filled: true,
+            child: Column(
+              spacing: 10,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Basic(
+                  title: const Text('Current device'),
+                  subtitle: Text(
+                    'Platform: ${_devicePlatform ?? '-'}\n'
+                    'Device ID: ${_deviceId ?? '-'}\n'
+                    'App version: ${_appVersion ?? '-'}',
+                  ).small,
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (!isCurrentDeviceRegistered)
+                      Button.primary(
+                        onPressed: _isRegisteringDevice ? null : _registerCurrentDevice,
+                        child: _isRegisteringDevice
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
+                            : const Text('Register this device'),
+                      ),
+                    Button.secondary(
+                      onPressed: _isRefreshingEntitlements ? null : _refreshEntitlements,
+                      child: _isRefreshingEntitlements
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
+                          : const Text('Refresh entitlements'),
+                    ),
+                    if (Platform.isWindows)
+                      Button.secondary(
+                        onPressed: _isSyncingWindowsSubscription ? null : _restoreOrSyncWindowsSubscription,
+                        child: _isSyncingWindowsSubscription
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
+                            : const Text('Restore / Sync subscription'),
+                      ),
+                  ],
+                ),
+                if (_statusMessage != null) Text(_statusMessage!).small,
+              ],
+            ),
           ),
-        ),
+        if (isSubscriptionActive && _deviceLimitError != null) _buildDeviceLimitCard(_deviceLimitError!),
+        if (isSubscriptionActive)
+          Card(
+            filled: true,
+            child: Column(
+              spacing: 10,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Basic(
+                  title: const Text('Registered devices'),
+                  subtitle: _isLoadingDevices ? const Text('Loading devices...') : null,
+                ),
+                if (!_isLoadingDevices && _devicesByPlatform.isEmpty)
+                  const Text('No devices found for this account.').small
+                else if (!_isLoadingDevices)
+                  ..._devicesByPlatform.entries.map((entry) => _buildPlatformDevices(entry.key, entry.value)),
+              ],
+            ),
+          ),
       ],
     );
+  }
+
+  bool _isCurrentDeviceRegistered() {
+    final platform = _devicePlatform;
+    final deviceId = _deviceId;
+    if (platform == null || platform.isEmpty || deviceId == null || deviceId.isEmpty) {
+      return false;
+    }
+    final devices = _devicesByPlatform[platform];
+    if (devices == null || devices.isEmpty) {
+      return false;
+    }
+    return devices.any((device) => device.deviceId == deviceId && device.isActive);
   }
 
   Widget _buildDeviceLimitCard(DeviceLimitReachedError error) {
@@ -381,6 +419,35 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         setState(() {
           _isRefreshingEntitlements = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _buySubscription() async {
+    setState(() {
+      _isPurchasingSubscription = true;
+      _statusMessage = null;
+    });
+    try {
+      await _iapManager.purchaseSubscription(context);
+      await _iapManager.entitlements.refresh(force: true);
+      await _reloadDevicesAndEntitlements();
+      if (!mounted) return;
+      setState(() {
+        _statusMessage = _iapManager.isPremiumEnabled
+            ? 'Subscription activated.'
+            : 'Purchase completed. Entitlement sync may take a moment.';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _statusMessage = 'Failed to start subscription purchase: $error';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPurchasingSubscription = false;
         });
       }
     }

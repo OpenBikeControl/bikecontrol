@@ -271,6 +271,29 @@ class RevenueCatService {
     }
   }
 
+  /// Purchase the subscription (use paywall instead)
+  Future<void> purchaseSubscription(BuildContext context) async {
+    // Direct the user to the paywall for a better experience
+    if (Platform.isMacOS) {
+      try {
+        final offerings = await Purchases.getOfferings();
+        final purchaseParams = PurchaseParams.package(offerings.current!.monthly!);
+        PurchaseResult result = await Purchases.purchase(purchaseParams);
+        core.connection.signalNotification(
+          LogNotification('Purchase result: $result'),
+        );
+        await refreshEntitlementsWithRetry();
+      } on PlatformException catch (e) {
+        var errorCode = PurchasesErrorHelper.getErrorCode(e);
+        if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
+          buildToast(title: e.message);
+        }
+      }
+    } else {
+      await presentPaywall();
+    }
+  }
+
   Future<void> logInWithSupabaseUserId(String supabaseUserId) async {
     if (!_isConfigured) {
       return;
