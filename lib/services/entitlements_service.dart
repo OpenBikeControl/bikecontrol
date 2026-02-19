@@ -133,8 +133,8 @@ class EntitlementsService extends ChangeNotifier {
     if (payload is List) {
       return payload;
     }
-    if (payload is Map && payload['data'] is List) {
-      return payload['data'] as List<dynamic>;
+    if (payload is Map && payload['entitlements'] is List) {
+      return payload['entitlements'] as List<dynamic>;
     }
     throw StateError('Unexpected entitlements response: $payload');
   }
