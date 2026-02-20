@@ -75,17 +75,51 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildSignedOut(BuildContext context) {
     return Column(
-      spacing: 16,
+      spacing: 32,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Sign in to sync subscription entitlements and manage devices'),
-        SignInButton(
-          Buttons.google,
-          onPressed: _nativeGoogleSignIn,
+        Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withAlpha(20),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.account_circle,
+            size: 64,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
-        SignInButton(
-          Buttons.apple,
-          onPressed: _signInWithApple,
+        Column(
+          spacing: 8,
+          children: [
+            Text(
+              'Welcome',
+            ).large,
+            Text(
+              'Sign in to sync your subscription and manage devices',
+            ).small.muted,
+          ],
+        ),
+        Card(
+          filled: true,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              spacing: 16,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SignInButton(
+                  Buttons.google,
+                  onPressed: _nativeGoogleSignIn,
+                ),
+                SignInButton(
+                  Buttons.apple,
+                  onPressed: _signInWithApple,
+                ),
+              ],
+            ),
+          ),
         ),
         if (kDebugMode && Platform.isWindows)
           Button.secondary(
@@ -103,29 +137,100 @@ class _LoginPageState extends State<LoginPage> {
     final isPremiumEnabled = _iapManager.isPremiumEnabled;
     final isRegisteredDevice = _iapManager.entitlements.isRegisteredDevice;
     return Column(
-      spacing: 14,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 16,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Card(
-          filled: true,
           child: Column(
-            spacing: 12,
+            spacing: 16,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Basic(
-                title: const Text('Account'),
-                subtitle: Text(session.user.email ?? session.user.id),
-                trailing: isPremiumEnabled
-                    ? const PrimaryBadge(child: Text('Subscription active'))
-                    : hasActiveSubscription
-                    ? const DestructiveBadge(child: Text('Device not registered'))
-                    : const DestructiveBadge(child: Text('Subscription inactive')),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isPremiumEnabled
+                          ? Colors.green.withAlpha(30)
+                          : hasActiveSubscription
+                          ? Colors.orange.withAlpha(30)
+                          : Colors.red.withAlpha(30),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isPremiumEnabled
+                          ? Icons.check_circle
+                          : hasActiveSubscription
+                          ? Icons.warning
+                          : Icons.cancel,
+                      size: 28,
+                      color: isPremiumEnabled
+                          ? Colors.green
+                          : hasActiveSubscription
+                          ? Colors.orange
+                          : Colors.red,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          session.user.email ?? session.user.id,
+                        ).small.bold,
+                        const SizedBox(height: 4),
+                        if (isPremiumEnabled)
+                          PrimaryBadge(
+                            child: Text('Subscription active'),
+                          )
+                        else if (hasActiveSubscription)
+                          DestructiveBadge(
+                            child: Text('Device not registered'),
+                          )
+                        else
+                          DestructiveBadge(
+                            child: Text('Subscription inactive'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Button.secondary(
+                    child: const Text('Logout'),
+                    onPressed: () async {
+                      await core.supabase.auth.signOut();
+                    },
+                  ),
+                ],
               ),
-              const Text(
-                'Login-related premium features are enabled only when this account has an active subscription entitlement.',
-              ).small,
+              Divider(),
+              Text(
+                'Premium features are enabled when this account has an active subscription.',
+              ).small.muted,
               if (hasActiveSubscription && !isRegisteredDevice)
-                const Text('This device is not registered yet. Register it below to enable premium features.').small,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withAlpha(20),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      Icon(
+                        Icons.info,
+                        size: 16,
+                        color: Colors.orange,
+                      ),
+                      Expanded(
+                        child: Text(
+                          'This device is not registered. Register it to enable premium features.',
+                          style: TextStyle(color: Colors.orange),
+                        ).small,
+                      ),
+                    ],
+                  ),
+                ),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -144,12 +249,6 @@ class _LoginPageState extends State<LoginPage> {
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
                           : const Text('Refresh entitlements'),
                     ),
-                  Button.secondary(
-                    child: const Text('Logout'),
-                    onPressed: () async {
-                      await core.supabase.auth.signOut();
-                    },
-                  ),
                 ],
               ),
             ],
@@ -157,18 +256,38 @@ class _LoginPageState extends State<LoginPage> {
         ),
         if (hasActiveSubscription)
           Card(
-            filled: true,
             child: Column(
-              spacing: 10,
+              spacing: 16,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Basic(
-                  title: const Text('Current device'),
-                  subtitle: Text(
-                    'Platform: ${_devicePlatform ?? '-'}\n'
-                    'Device ID: ${_deviceId ?? '-'}\n'
-                    'App version: ${_appVersion ?? '-'}',
-                  ).small,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.devices,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Current Device',
+                    ).small.bold,
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.muted.withAlpha(20),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    spacing: 8,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow('Platform', _devicePlatform ?? '-'),
+                      _buildInfoRow('Device ID', _deviceId ?? '-'),
+                      _buildInfoRow('App Version', _appVersion ?? '-'),
+                    ],
+                  ),
                 ),
                 Wrap(
                   spacing: 8,
@@ -179,46 +298,150 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: _isRegisteringDevice ? null : _registerCurrentDevice,
                         child: _isRegisteringDevice
                             ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
-                            : const Text('Register this device'),
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.add,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Register device'),
+                                ],
+                              ),
                       ),
                     Button.secondary(
                       onPressed: _isRefreshingEntitlements ? null : _refreshEntitlements,
                       child: _isRefreshingEntitlements
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
-                          : const Text('Refresh entitlements'),
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.refresh,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('Refresh'),
+                              ],
+                            ),
                     ),
                     if (Platform.isWindows)
                       Button.secondary(
                         onPressed: _isSyncingWindowsSubscription ? null : _restoreOrSyncWindowsSubscription,
                         child: _isSyncingWindowsSubscription
                             ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator())
-                            : const Text('Restore / Sync subscription'),
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.computer,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Sync Windows'),
+                                ],
+                              ),
                       ),
                   ],
                 ),
-                if (_statusMessage != null) Text(_statusMessage!).small,
+                if (_statusMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        Icon(
+                          Icons.info,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        Expanded(
+                          child: Text(
+                            _statusMessage!,
+                          ).small,
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
         if (hasActiveSubscription && _deviceLimitError != null) _buildDeviceLimitCard(_deviceLimitError!),
         if (hasActiveSubscription)
           Card(
-            filled: true,
             child: Column(
-              spacing: 10,
+              spacing: 16,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Basic(
-                  title: const Text('Registered devices'),
-                  subtitle: _isLoadingDevices ? const Text('Loading devices...') : null,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.devices,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Registered Devices',
+                    ).small.bold,
+                    const Spacer(),
+                    if (_isLoadingDevices)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(),
+                      ),
+                  ],
                 ),
                 if (!_isLoadingDevices && _devicesByPlatform.isEmpty)
-                  const Text('No devices found for this account.').small
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.muted.withAlpha(20),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Column(
+                        spacing: 8,
+                        children: [
+                          Icon(
+                            Icons.devices,
+                            size: 32,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          ),
+                          Text(
+                            'No devices registered',
+                          ).small.muted,
+                        ],
+                      ),
+                    ),
+                  )
                 else if (!_isLoadingDevices)
                   ..._devicesByPlatform.entries.map((entry) => _buildPlatformDevices(entry.key, entry.value)),
               ],
             ),
           ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      spacing: 8,
+      children: [
+        Text(
+          '$label: ',
+        ).small.muted,
+        Expanded(
+          child: Text(
+            value,
+          ).small,
+        ),
       ],
     );
   }
