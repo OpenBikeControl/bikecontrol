@@ -70,6 +70,13 @@ class WindowsIAPService {
       return;
     }
 
+    final boughtProducts = await _windowsIapPlugin.getAddonLicenses();
+    if (boughtProducts.containsKey(IAPManager.premiumMonthlyProductKey) &&
+        boughtProducts[IAPManager.premiumMonthlyProductKey]!.isActive == true) {
+      IAPManager.instance.isLocalPro.value = true;
+      return;
+    }
+
     final trial = await _windowsIapPlugin.getTrialStatusAndRemainingDays();
     core.connection.signalNotification(LogNotification('Trial status: $trial'));
     final trialEndDate = trial.remainingDays;
@@ -100,10 +107,10 @@ class WindowsIAPService {
       final status = await _windowsIapPlugin.makePurchase(productId);
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
         await restoreOrSyncSubscription();
-        IAPManager.instance.isPurchased.value = IAPManager.instance.isPremiumEnabled;
+        IAPManager.instance.isPurchased.value = IAPManager.instance.isProEnabled;
         buildToast(
           title: 'Purchase Successful',
-          subtitle: IAPManager.instance.isPremiumEnabled
+          subtitle: IAPManager.instance.isProEnabled
               ? 'Subscription activated successfully.'
               : 'Purchase complete. Sync may take a moment.',
         );
@@ -119,7 +126,7 @@ class WindowsIAPService {
       await _subscriptionService.restoreOrSyncSubscription(
         productStoreId: subscriptionStoreProductId,
       );
-      IAPManager.instance.isPurchased.value = IAPManager.instance.isPremiumEnabled;
+      IAPManager.instance.isPurchased.value = IAPManager.instance.isProEnabled;
     } catch (e, s) {
       recordError(e, s, context: 'Syncing Windows subscription');
       rethrow;
@@ -134,7 +141,7 @@ class WindowsIAPService {
 
   /// Check if the trial has expired
   bool get isTrialExpired {
-    if (IAPManager.instance.isPremiumEnabled) {
+    if (IAPManager.instance.isProEnabled) {
       return false;
     }
     return !IAPManager.instance.isPurchased.value && hasTrialStarted && trialDaysRemaining <= 0;
@@ -171,14 +178,14 @@ class WindowsIAPService {
 
   /// Check if the user can execute a command
   bool get canExecuteCommand {
-    if (IAPManager.instance.isPremiumEnabled || IAPManager.instance.isPurchased.value) return true;
+    if (IAPManager.instance.isProEnabled || IAPManager.instance.isPurchased.value) return true;
     if (!isTrialExpired) return true;
     return dailyCommandCount < dailyCommandLimit;
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (IAPManager.instance.isPremiumEnabled || IAPManager.instance.isPurchased.value || !isTrialExpired) {
+    if (IAPManager.instance.isProEnabled || IAPManager.instance.isPurchased.value || !isTrialExpired) {
       return -1;
     }
     final remaining = dailyCommandLimit - dailyCommandCount;

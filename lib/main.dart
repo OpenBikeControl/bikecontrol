@@ -83,6 +83,12 @@ Future<void> recordError(
   StackTrace? stack, {
   required String context,
 }) async {
+  if (kDebugMode) {
+    print('Error in $context: $error');
+    if (stack != null) {
+      debugPrintStack(stackTrace: stack);
+    }
+  }
   await _persistCrash(
     type: 'dart',
     error: error.toString(),
@@ -115,16 +121,26 @@ Future<void> _persistCrash({
       final fileLength = await file.length();
       if (fileLength > 5 * 1024 * 1024) {
         // If log file exceeds 5MB, truncate it
-        final lines = await file.readAsLines();
-        final half = lines.length ~/ 2;
-        final truncatedLines = lines.sublist(half);
-        await file.writeAsString(truncatedLines.join('\n'));
+        try {
+          final lines = file.readAsLinesSync();
+          final half = lines.length ~/ 2;
+          final truncatedLines = lines.sublist(half);
+          await file.writeAsString(truncatedLines.join('\n'));
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to truncate log file: $e');
+          }
+          file.deleteSync();
+        }
       }
     }
 
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
     core.connection.signalNotification(LogNotification('App crashed: $error'));
-  } catch (_) {
+  } catch (error) {
+    if (kDebugMode) {
+      print('Failed to write crash log: $error');
+    }
     // Avoid throwing from the crash logger
   }
 }

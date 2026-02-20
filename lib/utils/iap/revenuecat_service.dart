@@ -29,9 +29,11 @@ class RevenueCatService {
 
   // RevenueCat entitlement identifier
   static const String fullVersionEntitlement = 'Full Version';
+  static const String proVersionEntitlement = 'pro';
 
   final FlutterSecureStorage _prefs;
   final ValueNotifier<bool> isPurchasedNotifier;
+  final ValueNotifier<bool> isProNotifier;
   final int Function() getDailyCommandLimit;
   final void Function(int limit) setDailyCommandLimit;
   final EntitlementsService entitlementsService;
@@ -46,6 +48,7 @@ class RevenueCatService {
   RevenueCatService(
     this._prefs, {
     required this.isPurchasedNotifier,
+    required this.isProNotifier,
     required this.getDailyCommandLimit,
     required this.setDailyCommandLimit,
     required this.entitlementsService,
@@ -166,13 +169,15 @@ class RevenueCatService {
 
   /// Handle customer info updates from RevenueCat
   Future<bool> _handleCustomerInfoUpdate(CustomerInfo customerInfo) async {
-    final hasEntitlement = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
+    final hasFullVersionEntitlements = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
 
     final userId = await Purchases.appUserID;
     core.connection.signalNotification(LogNotification('User ID: $userId at ${customerInfo.requestDate}'));
-    core.connection.signalNotification(LogNotification('Full Version entitlement: $hasEntitlement'));
+    core.connection.signalNotification(LogNotification('Full Version entitlement: $hasFullVersionEntitlements'));
 
-    if (!hasEntitlement) {
+    isProNotifier.value = customerInfo.entitlements.active.containsKey(proVersionEntitlement);
+
+    if (!hasFullVersionEntitlements) {
       // purchased before IAP migration
       if (Platform.isAndroid) {
         final storedStatus = await _prefs.read(key: _purchaseStatusKey);
@@ -194,7 +199,7 @@ class RevenueCatService {
         }
       }
     } else {
-      isPurchasedNotifier.value = hasEntitlement;
+      isPurchasedNotifier.value = hasFullVersionEntitlements;
     }
     return isPurchasedNotifier.value;
   }
@@ -309,7 +314,8 @@ class RevenueCatService {
       await Purchases.logOut();
     } on PlatformException catch (error) {
       // RevenueCat throws when logging out anonymous users.
-      if (error.code != 'log_out_called_on_anonymous_user') {
+      if (error.code != '22') {
+        // LogOut was called but the current user is anonymous.
         rethrow;
       }
     }

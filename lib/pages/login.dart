@@ -134,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildSignedIn(BuildContext context, Session session) {
     final hasActiveSubscription = _iapManager.hasActiveSubscription;
-    final isPremiumEnabled = _iapManager.isPremiumEnabled;
+    final isPremiumEnabled = _iapManager.isProEnabled;
     final isRegisteredDevice = _iapManager.entitlements.isRegisteredDevice;
     return Column(
       spacing: 16,
@@ -655,7 +655,7 @@ class _LoginPageState extends State<LoginPage> {
       await _reloadDevicesAndEntitlements();
       if (!mounted) return;
       setState(() {
-        _statusMessage = _iapManager.isPremiumEnabled
+        _statusMessage = _iapManager.isProEnabled
             ? 'Subscription activated.'
             : 'Purchase completed. Entitlement sync may take a moment.';
       });

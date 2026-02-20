@@ -94,7 +94,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
               child: ValueListenableBuilder(
                 valueListenable: IAPManager.instance.isPurchased,
                 builder: (context, isPurchased, child) {
-                  final hasPremiumAccess = iapManager.isPremiumEnabled || isPurchased;
+                  final hasPremiumAccess = iapManager.isProEnabled || isPurchased;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,

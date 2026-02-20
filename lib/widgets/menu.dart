@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/pages/login.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/title.dart';
@@ -20,8 +20,34 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../utils/iap/iap_manager.dart';
 
 List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCallback? openLogs) {
+  final iap = IAPManager.instance;
   return [
-    if (IAPManager.instance.isPurchased.value || IAPManager.instance.isPremiumEnabled)
+    // Pro/Subscription Button
+    Builder(
+      builder: (context) {
+        return Button(
+          style: ButtonStyle.primary().withBackgroundColor(color: iap.isProEnabled ? Colors.green : null),
+          onPressed: () {
+            openDrawer(
+              context: context,
+              builder: (c) => SubscriptionPage(),
+              position: OverlayPosition.end,
+            );
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.workspace_premium, size: 14),
+              const SizedBox(width: 4),
+              Text('Pro'),
+            ],
+          ),
+        );
+      },
+    ),
+
+    Gap(8),
+    if (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled)
       Builder(
         builder: (context) {
           return OutlineButton(
@@ -100,7 +126,7 @@ Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title).join(', ')}
-Status: ${(IAPManager.instance.isPremiumEnabled || IAPManager.instance.isPurchased.value) ? 'Full Version' : 'Test Version'}${userId != null ? ' (User ID: $userId)' : ''}
+Status: ${(IAPManager.instance.isProEnabled || IAPManager.instance.isPurchased.value) ? 'Full Version' : 'Test Version'}${userId != null ? ' (User ID: $userId)' : ''}
 Logs: 
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
@@ -148,16 +174,6 @@ class BKMenuButton extends StatelessWidget {
                 child: Text('Disconnect'),
                 onPressed: (c) async {
                   core.connection.disconnectAll();
-                },
-              ),
-              MenuButton(
-                child: Text('Login'),
-                onPressed: (c) async {
-                  openDrawer(
-                    context: context,
-                    builder: (c) => LoginPage(),
-                    position: OverlayPosition.bottom,
-                  );
                 },
               ),
               MenuDivider(),
