@@ -25,7 +25,7 @@ class IAPStatusWidget extends StatefulWidget {
   State<IAPStatusWidget> createState() => _IAPStatusWidgetState();
 }
 
-final _normalDate = DateTime(2026, 2, 15, 0, 0, 0, 0, 0);
+final _normalDate = DateTime(2026, 3, 15, 0, 0, 0, 0, 0);
 final _iapDate = DateTime(2025, 12, 21, 0, 0, 0, 0, 0);
 
 enum AlreadyBoughtOption { fullPurchase, iap, no }
