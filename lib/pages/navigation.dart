@@ -184,7 +184,6 @@ class _NavigationState extends State<Navigation> {
               child: switch (_selectedPage) {
                 BCPage.devices => Align(
                   alignment: Alignment.topLeft,
-                  key: _pageKeys[BCPage.devices],
                   child: DevicePage(
                     isMobile: _isMobile,
                     onUpdate: () {
@@ -196,7 +195,6 @@ class _NavigationState extends State<Navigation> {
                 ),
                 BCPage.trainer => Align(
                   alignment: Alignment.topLeft,
-                  key: _pageKeys[BCPage.trainer],
                   child: TrainerPage(
                     onUpdate: () {
                       setState(() {});
@@ -211,7 +209,6 @@ class _NavigationState extends State<Navigation> {
                 ),
                 BCPage.customization => Align(
                   alignment: Alignment.topLeft,
-                  key: _pageKeys[BCPage.customization],
                   child: CustomizePage(isMobile: _isMobile),
                 ),
                 BCPage.logs => Padding(
@@ -229,42 +226,24 @@ class _NavigationState extends State<Navigation> {
   }
 
   Widget _buildNavigationMenu() {
-    return Column(
-      children: [
-        Expanded(
-          child: NavigationSidebar(
-            backgroundColor: Theme.of(context).brightness == Brightness.light
-                ? BKColor.backgroundLight
-                : Theme.of(context).colorScheme.card,
-            onSelected: (int index) {
-              setState(() {
-                _selectedPage = BCPage.values[index];
-              });
-            },
-            spacing: 4,
-            children: _tabs.map((page) => _buildNavigationItemDesktop(page)).toList(),
-          ),
-        ),
-
-        NavigationSidebar(
-          backgroundColor: Theme.of(context).brightness == Brightness.light
-              ? BKColor.backgroundLight
-              : Theme.of(context).colorScheme.card,
-          onSelected: (int index) {
-            setState(() {
-              _selectedPage = BCPage.logs;
-            });
-          },
-          children: [
-            NavigationDivider(),
-            NavigationItem(
-              label: Text(BCPage.logs.getTitle(context)),
-              selected: _selectedPage == BCPage.logs,
-              child: _buildIcon(BCPage.logs),
-            ),
-          ],
+    return NavigationSidebar(
+      backgroundColor: Theme.of(context).brightness == Brightness.light
+          ? BKColor.backgroundLight
+          : Theme.of(context).colorScheme.card,
+      onSelected: (Key? key) {
+        setState(() {
+          _selectedPage = _pageKeys.entries.firstWhere((entry) => entry.value == key).key;
+        });
+      },
+      spacing: 4,
+      selectedKey: _pageKeys[_selectedPage],
+      footer: [
+        SliverPadding(
+          padding: const EdgeInsets.all(8.0),
+          sliver: _buildNavigationItemDesktop(BCPage.logs),
         ),
       ],
+      children: _tabs.map((page) => _buildNavigationItemDesktop(page)).toList(),
     );
   }
 
@@ -315,13 +294,16 @@ class _NavigationState extends State<Navigation> {
           EdgeInsets.only(top: 6, left: 12, right: 12, bottom: !kIsWeb && Platform.isMacOS ? 8 : 0) *
           Theme.of(context).scaling,
       labelType: NavigationLabelType.all,
-      onSelected: (int index) {
+      alignment: NavigationBarAlignment.spaceEvenly,
+      selectedKey: _pageKeys[_selectedPage],
+      onSelected: (Key? key) {
         setState(() {
-          _selectedPage = _tabs[index];
+          _selectedPage = _pageKeys.entries.firstWhere((entry) => entry.value == key).key;
         });
       },
       children: _tabs.map((page) {
         return NavigationItem(
+          key: _pageKeys[page],
           selected: _selectedPage == page,
           selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
             decoration: (context, states, value) {
@@ -380,8 +362,9 @@ class _NavigationState extends State<Navigation> {
     };
   }
 
-  NavigationBarItem _buildNavigationItemDesktop(BCPage page) {
+  NavigationItem _buildNavigationItemDesktop(BCPage page) {
     return NavigationItem(
+      key: _pageKeys[page],
       selected: _selectedPage == page,
       selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
         decoration: (context, states, value) {
