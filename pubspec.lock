@@ -1629,12 +1629,11 @@ packages:
   shadcn_flutter:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "12e747e43b31b828c182a6d25acd1d599a10aca9"
-      url: "https://github.com/sunarya-thito/shadcn_flutter.git"
-    source: git
-    version: "0.0.48"
+      name: shadcn_flutter
+      sha256: e677bf66246fa97df82f32eb80c5b683af14a5b1799fd313016b26ed823a1d9e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.51"
   shared_preferences:
     dependency: "direct main"
     description:

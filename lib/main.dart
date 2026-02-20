@@ -196,14 +196,14 @@ class _BikeControlAppState extends State<BikeControlApp> {
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       title: 'BikeControl',
       darkTheme: ThemeData(
-        colorScheme: ColorSchemes.darkDefaultColor.copyWith(
+        colorScheme: ColorSchemes.darkNeutral.copyWith(
           card: () => Color(0xFF001A29),
           background: () => Color(0xFF232323),
           muted: () => Color(0xFF3A3A3A),
         ),
       ),
       theme: ThemeData(
-        colorScheme: ColorSchemes.lightDefaultColor.copyWith(
+        colorScheme: ColorSchemes.lightNeutral.copyWith(
           card: () => BKColor.background,
         ),
       ),
