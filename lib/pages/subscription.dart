@@ -1,13 +1,19 @@
+import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/login.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 enum SubscriptionPageView {
   main,
   login,
+  syncSettings,
   devices,
 }
 
@@ -24,36 +30,36 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   bool _isSyncingSettings = false;
 
   String _getVersionStatus() {
-    if (_iapManager.isProEnabled) {
+    if (_iapManager.isProEnabledForCurrentDevice) {
       return 'Pro Version';
+    } else if (_iapManager.isProEnabled) {
+      return 'Subscription Active (Device Not Registered)';
     } else if (_iapManager.isPurchased.value) {
       return 'Full Version';
-    } else if (_iapManager.hasActiveSubscription) {
-      return 'Subscription Active (Device Not Registered)';
     } else {
       return 'Trial Version';
     }
   }
 
   Color _getStatusColor() {
-    if (_iapManager.isProEnabled) {
+    if (_iapManager.isProEnabledForCurrentDevice) {
       return Colors.green;
+    } else if (_iapManager.isProEnabled) {
+      return Colors.orange;
     } else if (_iapManager.isPurchased.value) {
       return Colors.blue;
-    } else if (_iapManager.hasActiveSubscription) {
-      return Colors.orange;
     } else {
       return Colors.red;
     }
   }
 
   IconData _getStatusIcon() {
-    if (_iapManager.isProEnabled) {
+    if (_iapManager.isProEnabledForCurrentDevice) {
       return Icons.workspace_premium;
+    } else if (_iapManager.isProEnabled) {
+      return Icons.pending;
     } else if (_iapManager.isPurchased.value) {
       return Icons.verified;
-    } else if (_iapManager.hasActiveSubscription) {
-      return Icons.pending;
     } else {
       return Icons.hourglass_empty;
     }
@@ -167,6 +173,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   Text(
                     switch (_currentView) {
                       SubscriptionPageView.login => 'Account',
+                      SubscriptionPageView.syncSettings => 'Sync Settings',
                       SubscriptionPageView.devices => 'Registered Devices',
                       _ => '',
                     },
@@ -179,6 +186,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: switch (_currentView) {
               SubscriptionPageView.main => _buildMainView(),
               SubscriptionPageView.login => _buildLoginView(),
+              SubscriptionPageView.syncSettings => _buildSyncSettingsView(),
               SubscriptionPageView.devices => _buildDevicesView(),
             },
           ),
@@ -275,7 +283,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           _buildProCard(
             icon: Icons.account_circle,
             title: 'Account',
-            subtitle: session != null ? 'Logged in' : 'Not logged in',
+            subtitle: session != null ? 'Logged in as ${session.user.email}' : 'Not logged in',
             onTap: () => _handleProFeature(() => _navigateTo(SubscriptionPageView.login)),
           ),
 
@@ -284,7 +292,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             icon: Icons.sync,
             title: 'Sync Settings',
             subtitle: 'Synchronize across devices',
-            onTap: () => _handleLoggedInFeature(() => _showSyncSettings()),
+            onTap: () => _handleLoggedInFeature(() => _navigateTo(SubscriptionPageView.syncSettings)),
           ),
 
           // Registered Devices Section
@@ -365,6 +373,132 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   Widget _buildDevicesView() {
     return _RegisteredDevicesView(
       onBack: _goBack,
+    );
+  }
+
+  Widget _buildSyncSettingsView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 24,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Sync Status Card
+          Card(
+            child: Column(
+              spacing: 16,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.cloud_sync,
+                        size: 28,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Sync Status').small.muted,
+                          Text('Settings Synchronization').large.bold,
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Divider(),
+                Text(
+                  'Synchronize your app settings across all your devices. This includes your keymaps, button configurations, and preferences.',
+                ).small.muted,
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.muted.withAlpha(20),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    spacing: 8,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                          const SizedBox(width: 8),
+                          Text('Last synced: Never').small,
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.devices, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                          const SizedBox(width: 8),
+                          Text('Synced devices: 0').small,
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Sync Now Button
+          if (_isSyncingSettings)
+            Card(
+              filled: true,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  spacing: 16,
+                  children: [
+                    CircularProgressIndicator(),
+                    Text('Syncing your settings...').small.muted,
+                  ],
+                ),
+              ),
+            )
+          else
+            Button.primary(
+              onPressed: _syncSettings,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.cloud_sync, size: 20),
+                  const SizedBox(width: 12),
+                  Text('Sync Now'),
+                ],
+              ),
+            ),
+
+          // Info Card
+          Card(
+            filled: true,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                spacing: 12,
+                children: [
+                  Icon(Icons.info, size: 20, color: Theme.of(context).colorScheme.primary),
+                  Expanded(
+                    child: Text(
+                      'Your settings will be securely stored and synchronized across all devices logged into your account.',
+                    ).small.muted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -512,8 +646,29 @@ class _RegisteredDevicesViewState extends State<_RegisteredDevicesView> {
                   Text('Loading devices...').small.muted,
                 ],
               ),
-            )
-          else if (_devicesByPlatform.isEmpty)
+            ),
+          if (!IAPManager.instance.isProEnabledForCurrentDevice)
+            LoadingWidget(
+              futureCallback: _registerCurrentDevice,
+              renderChild: (isLoading, tap) => Button.primary(
+                onPressed: tap,
+                child: isLoading
+                    ? SmallProgressIndicator()
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.add,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('Register current device'),
+                        ],
+                      ),
+              ),
+            ),
+
+          if (_devicesByPlatform.isEmpty)
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
@@ -614,9 +769,35 @@ class _RegisteredDevicesViewState extends State<_RegisteredDevicesView> {
         platform: device.platform,
         deviceId: device.deviceId,
       );
+      await _iapManager.entitlements.refresh(force: true);
       await _loadDevices();
     } catch (e) {
-      // Handle error
+      buildToast(title: 'Could not revoke device: $e');
+    }
+  }
+
+  Future<void> _registerCurrentDevice() async {
+    try {
+      final platform = await _iapManager.deviceManagement.currentPlatform();
+      final deviceName = 'BikeControl ${platform?.toUpperCase() ?? ''}';
+
+      final package = await PackageInfo.fromPlatform();
+      final version = package.version;
+
+      final result = await _iapManager.deviceManagement.registerCurrentDevice(
+        deviceName: deviceName,
+        appVersion: version,
+      );
+      await _iapManager.entitlements.refresh(force: true);
+      await _loadDevices();
+      if (!mounted) return;
+      setState(() {});
+    } on DeviceLimitReachedError catch (error) {
+      if (!mounted) return;
+      buildToast(title: 'Device limit reached for ${error.platform}');
+    } catch (error) {
+      if (!mounted) return;
+      buildToast(title: 'Could not register device: $error');
     }
   }
 }
