@@ -46,9 +46,15 @@ class IAPManager {
 
   IAPManager._();
 
-  bool get hasActiveSubscription => entitlements.hasActive(premiumMonthlyProductKey) || isLocalPro.value;
+  bool get isLoggedIn => core.supabase.auth.currentSession != null;
 
-  bool get isProEnabled => hasActiveSubscription && (entitlements.isRegisteredDevice || isLocalPro.value);
+  bool get hasActiveSubscription =>
+      (isLoggedIn && entitlements.hasActive(premiumMonthlyProductKey)) || (!isLoggedIn && isLocalPro.value);
+
+  bool get isProEnabled => hasActiveSubscription && (isLoggedIn || (!isLoggedIn && isLocalPro.value));
+
+  bool get isProEnabledForCurrentDevice =>
+      hasActiveSubscription && ((isLoggedIn && entitlements.isRegisteredDevice) || (!isLoggedIn && isLocalPro.value));
 
   DateTime? get premiumActiveUntil => entitlements.activeUntil(premiumMonthlyProductKey);
 
@@ -210,7 +216,11 @@ class IAPManager {
   String getStatusMessage() {
     if (kIsWeb) {
       return "Web";
-    } else if (isProEnabled || IAPManager.instance.isPurchased.value) {
+    } else if (isProEnabledForCurrentDevice) {
+      return 'Pro version';
+    } else if (isProEnabled) {
+      return 'Pro version (unregistered device)';
+    } else if (isPurchased.value) {
       return AppLocalizations.current.fullVersion;
     } else if (!hasTrialStarted) {
       return '${_revenueCatService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining} day trial available';
