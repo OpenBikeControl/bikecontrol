@@ -5,7 +5,6 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/device_identity_service.dart';
 import 'package:bike_control/services/device_management_service.dart';
 import 'package:bike_control/services/entitlements_service.dart';
-import 'package:bike_control/services/windows_subscription_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
@@ -13,7 +12,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:windows_iap/windows_iap.dart';
 
 /// Unified IAP manager that handles platform-specific IAP services.
 class IAPManager {
@@ -74,18 +72,9 @@ class IAPManager {
 
     try {
       if (Platform.isWindows) {
-        final windowsIap = WindowsIap();
-        final windowsSubscriptionService = WindowsSubscriptionService(
-          supabase: core.supabase,
-          windowsIap: windowsIap,
-          entitlements: entitlements,
-          deviceIdentityService: deviceIdentity,
-        );
-
         _windowsIapService = WindowsIAPService(
           prefs,
           entitlementsService: entitlements,
-          subscriptionService: windowsSubscriptionService,
         );
         await _windowsIapService!.initialize();
       } else if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
@@ -245,7 +234,7 @@ class IAPManager {
     if (_revenueCatService != null) {
       return _revenueCatService!.purchaseSubscription(context);
     } else if (_windowsIapService != null) {
-      return _windowsIapService!.purchaseFullVersion();
+      return _windowsIapService!.purchaseSubscription(context);
     }
   }
 
@@ -253,9 +242,7 @@ class IAPManager {
   Future<void> restorePurchases() async {
     if (_revenueCatService != null) {
       await _revenueCatService!.restorePurchases();
-    } else if (_windowsIapService != null) {
-      await _windowsIapService!.restoreOrSyncSubscription();
-    }
+    } else if (_windowsIapService != null) {}
     _syncPurchaseFlagFromEntitlements();
   }
 
