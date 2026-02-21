@@ -35,6 +35,13 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   void initState() {
     super.initState();
     _checkStripeCustomer();
+    _iapManager.entitlements.addListener(_onEntitlementsChanged);
+  }
+
+  @override
+  dispose() {
+    _iapManager.entitlements.removeListener(_onEntitlementsChanged);
+    super.dispose();
   }
 
   Future<void> _checkStripeCustomer() async {
@@ -45,18 +52,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           _hasStripeCustomer = hasCustomer;
         });
       }
-    }
-  }
-
-  String _getVersionStatus() {
-    if (_iapManager.isProEnabledForCurrentDevice) {
-      return 'Pro Version';
-    } else if (_iapManager.isProEnabled) {
-      return 'Subscription Active (Device Not Registered)';
-    } else if (_iapManager.isPurchased.value) {
-      return 'Full Version';
-    } else {
-      return 'Trial Version';
     }
   }
 
@@ -219,10 +214,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Widget _buildMainView() {
     final session = core.supabase.auth.currentSession;
-    print(
-      "Is Pro: ${_isPro}, Purchased: ${_iapManager.isPurchased.value}, Subscription Active: ${_iapManager.hasActiveSubscription}",
-    );
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -259,7 +250,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                             'Current Plan',
                           ).small.muted,
                           Text(
-                            _getVersionStatus(),
+                            IAPManager.instance.getStatusMessage(),
                           ).large.bold,
                         ],
                       ),
@@ -683,6 +674,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         _isSyncingSettings = false;
       });
     }
+  }
+
+  void _onEntitlementsChanged() {
+    setState(() {});
   }
 }
 

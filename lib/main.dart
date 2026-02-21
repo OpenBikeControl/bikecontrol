@@ -290,7 +290,7 @@ class _StarterState extends State<_Starter> with WidgetsBindingObserver {
         (Uri? uri) {
           if (uri != null) {
             if (uri.scheme == "bikecontrol") {
-              IAPManager.instance.refreshEntitlementsOnResume();
+              IAPManager.instance.refreshEntitlementsOnAppStart();
             }
           }
         },

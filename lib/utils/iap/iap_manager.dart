@@ -71,7 +71,7 @@ class IAPManager {
     }
 
     try {
-      if (Platform.isWindows || kDebugMode) {
+      if (Platform.isWindows) {
         _windowsIapService = WindowsIAPService(
           prefs,
           entitlementsService: entitlements,
@@ -203,12 +203,15 @@ class IAPManager {
 
   /// Get a status message for the user.
   String getStatusMessage() {
+    final activeUntil = premiumActiveUntil;
+    final expiryInfo = activeUntil != null ? '\nexpires at ${_formatDate(activeUntil)}' : '';
+
     if (kIsWeb) {
       return "Web";
     } else if (isProEnabledForCurrentDevice) {
-      return 'Pro version';
+      return 'Pro version$expiryInfo';
     } else if (isProEnabled) {
-      return 'Pro version (unregistered device)';
+      return 'Pro version (unregistered device)$expiryInfo';
     } else if (isPurchased.value) {
       return AppLocalizations.current.fullVersion;
     } else if (!hasTrialStarted) {
@@ -218,6 +221,11 @@ class IAPManager {
     } else {
       return AppLocalizations.current.commandsRemainingToday(commandsRemainingToday, dailyCommandLimit);
     }
+  }
+
+  String _formatDate(DateTime date) {
+    final local = date.toLocal();
+    return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year}';
   }
 
   /// Purchase the full version.
@@ -231,7 +239,7 @@ class IAPManager {
 
   /// Purchase the full version.
   Future<void> purchaseSubscription(BuildContext context) async {
-    if (_revenueCatService != null && !kDebugMode) {
+    if (_revenueCatService != null) {
       return _revenueCatService!.purchaseSubscription(context);
     } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseSubscription(context);
