@@ -71,7 +71,7 @@ class IAPManager {
     }
 
     try {
-      if (Platform.isWindows) {
+      if (Platform.isWindows || kDebugMode) {
         _windowsIapService = WindowsIAPService(
           prefs,
           entitlementsService: entitlements,
@@ -231,7 +231,7 @@ class IAPManager {
 
   /// Purchase the full version.
   Future<void> purchaseSubscription(BuildContext context) async {
-    if (_revenueCatService != null) {
+    if (_revenueCatService != null && !kDebugMode) {
       return _revenueCatService!.purchaseSubscription(context);
     } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseSubscription(context);
@@ -248,6 +248,25 @@ class IAPManager {
 
   /// Check if RevenueCat is being used.
   bool get isUsingRevenueCat => _revenueCatService != null;
+
+  /// Check if running on Windows
+  bool get isWindows => _windowsIapService != null;
+
+  /// Check if user is logged in (Windows Stripe requires this)
+  bool get isWindowsLoggedIn => _windowsIapService?.isLoggedIn ?? false;
+
+  /// Open Stripe Billing Portal (Windows only)
+  /// Returns false if user has no Stripe customer (should hide button)
+  Future<bool> openBillingPortal(BuildContext context) async {
+    if (_windowsIapService == null) return false;
+    return _windowsIapService!.openBillingPortal(context);
+  }
+
+  /// Check if user has a Stripe customer record (Windows only)
+  Future<bool> hasStripeCustomer() async {
+    if (_windowsIapService == null) return false;
+    return _windowsIapService!.hasStripeCustomer();
+  }
 
   /// Dispose the manager.
   void dispose() {
