@@ -1,12 +1,11 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/entitlements_service.dart';
-import 'package:bike_control/services/windows_subscription_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:windows_iap/windows_iap.dart';
 
@@ -23,7 +22,6 @@ class WindowsIAPService {
 
   final FlutterSecureStorage _prefs;
   final EntitlementsService _entitlementsService;
-  final WindowsSubscriptionService _subscriptionService;
 
   bool _isInitialized = false;
 
@@ -35,9 +33,7 @@ class WindowsIAPService {
   WindowsIAPService(
     this._prefs, {
     required EntitlementsService entitlementsService,
-    required WindowsSubscriptionService subscriptionService,
-  }) : _entitlementsService = entitlementsService,
-       _subscriptionService = subscriptionService;
+  }) : _entitlementsService = entitlementsService;
 
   /// Initialize the Windows IAP service
   Future<void> initialize() async {
@@ -106,30 +102,15 @@ class WindowsIAPService {
     try {
       final status = await _windowsIapPlugin.makePurchase(productId);
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
-        await restoreOrSyncSubscription();
-        IAPManager.instance.isPurchased.value = IAPManager.instance.isProEnabled;
+        IAPManager.instance.isPurchased.value = true;
         buildToast(
           title: 'Purchase Successful',
-          subtitle: IAPManager.instance.isProEnabled
-              ? 'Subscription activated successfully.'
-              : 'Purchase complete. Sync may take a moment.',
+          subtitle: 'Purchase complete. Sync may take a moment.',
         );
       }
     } catch (e, s) {
       recordError(e, s, context: 'Purchasing on Windows');
       debugPrint('Error purchasing on Windows: $e');
-    }
-  }
-
-  Future<void> restoreOrSyncSubscription() async {
-    try {
-      await _subscriptionService.restoreOrSyncSubscription(
-        productStoreId: subscriptionStoreProductId,
-      );
-      IAPManager.instance.isPurchased.value = IAPManager.instance.isProEnabled;
-    } catch (e, s) {
-      recordError(e, s, context: 'Syncing Windows subscription');
-      rethrow;
     }
   }
 
@@ -198,4 +179,6 @@ class WindowsIAPService {
   void reset() {
     _prefs.deleteAll();
   }
+
+  Future<void> purchaseSubscription(BuildContext context) async {}
 }
