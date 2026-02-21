@@ -3,10 +3,11 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/iap/windows_stripe_service.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:windows_iap/windows_iap.dart';
 
 /// Windows-specific IAP service for Microsoft Store purchases and server-side sync.
@@ -22,6 +23,7 @@ class WindowsIAPService {
 
   final FlutterSecureStorage _prefs;
   final EntitlementsService _entitlementsService;
+  final WindowsStripeService _stripeService;
 
   bool _isInitialized = false;
 
@@ -33,7 +35,8 @@ class WindowsIAPService {
   WindowsIAPService(
     this._prefs, {
     required EntitlementsService entitlementsService,
-  }) : _entitlementsService = entitlementsService;
+  }) : _entitlementsService = entitlementsService,
+       _stripeService = WindowsStripeService(core.supabase);
 
   /// Initialize the Windows IAP service
   Future<void> initialize() async {
@@ -180,5 +183,121 @@ class WindowsIAPService {
     _prefs.deleteAll();
   }
 
-  Future<void> purchaseSubscription(BuildContext context) async {}
+  /// Check if user is logged in (required for Stripe on Windows)
+  bool get isLoggedIn => _stripeService.isLoggedIn;
+
+  /// Start Stripe Checkout to purchase a subscription
+  /// Shows a dialog if user is not logged in
+  Future<void> purchaseSubscription(BuildContext context) async {
+    if (!isLoggedIn) {
+      await _showLoginRequiredDialog(context);
+      return;
+    }
+
+    try {
+      await _stripeService.startCheckout(
+        priceId: 'monthly',
+        successUrl: 'bikecontrol://stripe-success',
+        cancelUrl: 'bikecontrol://stripe-cancel',
+      );
+    } on StripeException catch (e) {
+      if (context.mounted) {
+        buildToast(
+          title: 'Checkout Error',
+          subtitle: e.message,
+        );
+      }
+    } catch (e, s) {
+      recordError(e, s, context: 'Starting Stripe checkout');
+      if (context.mounted) {
+        buildToast(
+          title: 'Checkout Error',
+          subtitle: 'Failed to start checkout. Please try again.',
+        );
+      }
+    }
+  }
+
+  /// Open Stripe Billing Portal to manage subscription
+  /// Returns false if user has no Stripe customer (should hide button in this case)
+  Future<bool> openBillingPortal(BuildContext context) async {
+    if (!isLoggedIn) {
+      await _showLoginRequiredDialog(context);
+      return true; // Return true to keep the button visible (user might log in)
+    }
+
+    try {
+      await _stripeService.openPortal(returnUrl: 'bikecontrol://stripe-portal-return');
+      return true;
+    } on StripeException catch (e) {
+      if (e.statusCode == 404) {
+        // No Stripe customer found - should hide the portal button
+        return false;
+      }
+      if (context.mounted) {
+        buildToast(
+          title: 'Portal Error',
+          subtitle: e.message,
+        );
+      }
+      return true;
+    } catch (e, s) {
+      recordError(e, s, context: 'Opening Stripe portal');
+      if (context.mounted) {
+        buildToast(
+          title: 'Portal Error',
+          subtitle: 'Failed to open billing portal. Please try again.',
+        );
+      }
+      return true;
+    }
+  }
+
+  /// Check if user has a Stripe customer record
+  Future<bool> hasStripeCustomer() async {
+    return _stripeService.hasStripeCustomer();
+  }
+
+  /// Show dialog informing user that login is required for Windows subscriptions
+  Future<void> _showLoginRequiredDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.lock, color: Colors.orange),
+            const SizedBox(width: 8),
+            Text('Login Required'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'A subscription on Windows requires you to be logged in. This allows us to manage your subscription across devices and provide you with secure payment processing through Stripe.',
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Please log in or create an account to continue.',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        actions: [
+          SecondaryButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          PrimaryButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Navigate to login page - this would need to be handled by the caller
+            },
+            child: Text('Go to Login'),
+          ),
+        ],
+      ),
+    );
+  }
 }

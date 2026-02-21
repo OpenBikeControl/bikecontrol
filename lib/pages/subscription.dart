@@ -9,6 +9,7 @@ import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 enum SubscriptionPageView {
   main,
@@ -28,6 +29,24 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   final IAPManager _iapManager = IAPManager.instance;
   SubscriptionPageView _currentView = SubscriptionPageView.main;
   bool _isSyncingSettings = false;
+  bool? _hasStripeCustomer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkStripeCustomer();
+  }
+
+  Future<void> _checkStripeCustomer() async {
+    if (_iapManager.isWindows && _iapManager.isLoggedIn) {
+      final hasCustomer = await _iapManager.hasStripeCustomer();
+      if (mounted) {
+        setState(() {
+          _hasStripeCustomer = hasCustomer;
+        });
+      }
+    }
+  }
 
   String _getVersionStatus() {
     if (_iapManager.isProEnabledForCurrentDevice) {
@@ -98,18 +117,21 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               onPressed: () => Navigator.of(c).pop(),
               child: Text('Cancel'),
             ),
-            Button.primary(
-              onPressed: () {
+            LoadingWidget(
+              futureCallback: () async {
+                await _buyProVersion();
                 Navigator.of(c).pop();
-                _buyProVersion();
               },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.workspace_premium, size: 16),
-                  const SizedBox(width: 8),
-                  Text('Go Pro'),
-                ],
+              renderChild: (isLoading, tap) => PrimaryButton(
+                onPressed: tap,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    isLoading ? SmallProgressIndicator() : Icon(Icons.workspace_premium, size: 16),
+                    const SizedBox(width: 8),
+                    Text('Go Pro'),
+                  ],
+                ),
               ),
             ),
           ],
@@ -249,6 +271,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   Text(
                     'Unlock all features with Pro',
                   ).small.muted,
+                  _buildWindowsAuthWarning(),
                   Row(
                     spacing: 8,
                     children: [
@@ -260,20 +283,48 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                           ),
                         ),
                       Expanded(
-                        child: Button.primary(
-                          onPressed: _buyProVersion,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.workspace_premium, size: 16),
-                              const SizedBox(width: 8),
-                              Text('Go Pro'),
-                            ],
+                        child: LoadingWidget(
+                          futureCallback: () => _buyProVersion(),
+                          renderChild: (isLoading, tap) => Button.primary(
+                            onPressed: tap,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                isLoading ? SmallProgressIndicator() : Icon(Icons.workspace_premium, size: 16),
+                                const SizedBox(width: 8),
+                                Text('Go Pro'),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
+                ] else if (_isPro && _iapManager.isWindows) ...[
+                  // Show manage subscription button for Windows Pro users
+                  if (_hasStripeCustomer == true)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Divider(),
+                        LoadingWidget(
+                          futureCallback: () async {
+                            await _openBillingPortal();
+                          },
+                          renderChild: (isLoading, tap) => Button.secondary(
+                            onPressed: tap,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                isLoading ? SmallProgressIndicator() : Icon(Icons.manage_accounts, size: 16),
+                                const SizedBox(width: 8),
+                                Text('Manage Subscription'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ],
             ),
@@ -283,7 +334,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           _buildProCard(
             icon: Icons.account_circle,
             title: 'Account',
-            subtitle: session != null ? 'Logged in as ${session.user.email}' : 'Not logged in',
+            subtitle: _getAccountSubtitle(session),
             onTap: () => _handleProFeature(() => _navigateTo(SubscriptionPageView.login)),
           ),
 
@@ -562,8 +613,62 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     _iapManager.purchaseFullVersion(context);
   }
 
-  void _buyProVersion() {
-    _iapManager.purchaseSubscription(context);
+  Future<void> _buyProVersion() {
+    return _iapManager.purchaseSubscription(context);
+  }
+
+  Future<void> _openBillingPortal() async {
+    final shouldShowButton = await _iapManager.openBillingPortal(context);
+    if (!shouldShowButton && mounted) {
+      setState(() {
+        _hasStripeCustomer = false;
+      });
+    }
+  }
+
+  /// Get the account subtitle with Windows-specific messaging
+  String _getAccountSubtitle(Session? session) {
+    if (session != null) {
+      return 'Logged in as ${session.user.email}';
+    }
+
+    if (_iapManager.isWindows) {
+      return 'Not logged in - Required for subscription';
+    }
+
+    return 'Not logged in';
+  }
+
+  /// Shows a warning on Windows that authentication is required for subscriptions
+  Widget _buildWindowsAuthWarning() {
+    if (!_iapManager.isWindows) return const SizedBox.shrink();
+
+    if (_iapManager.isWindowsLoggedIn) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withAlpha(20),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.withAlpha(100)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.orange, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Windows subscriptions require you to be logged in',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.orange.shade700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _syncSettings() async {

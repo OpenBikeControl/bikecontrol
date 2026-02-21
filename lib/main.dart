@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:app_links/app_links.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/onboarding.dart';
@@ -272,18 +273,43 @@ class _Starter extends StatefulWidget {
 }
 
 class _StarterState extends State<_Starter> with WidgetsBindingObserver {
+  final _appLinks = AppLinks();
+
+  StreamSubscription<Uri>? _deeplinkSubscription;
+
   @override
   void initState() {
     super.initState();
 
     core.connection.initialize();
     WidgetsBinding.instance.addObserver(this);
+    if (!kIsWeb) {
+      // It will handle app links while the app is already started - be it in
+      // the foreground or in the background.
+      _deeplinkSubscription = _appLinks.uriLinkStream.listen(
+        (Uri? uri) {
+          if (uri != null) {
+            if (uri.scheme == "bikecontrol") {
+              IAPManager.instance.refreshEntitlementsOnResume();
+            }
+          }
+        },
+        onError: (Object err, StackTrace stackTrace) {
+          if (kDebugMode) {
+            print('Error handling deep link: $err');
+            debugPrintStack(stackTrace: stackTrace);
+          }
+          recordError(err, stackTrace, context: 'DeepLink');
+        },
+      );
+    }
     unawaited(IAPManager.instance.refreshEntitlementsOnAppStart());
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _deeplinkSubscription?.cancel();
     super.dispose();
   }
 
