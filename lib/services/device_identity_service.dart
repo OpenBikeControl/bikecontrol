@@ -52,65 +52,6 @@ class DeviceIdentityService {
   }
 
   Future<String> _buildFingerprintSource(String platform) async {
-    switch (platform) {
-      case 'android':
-        final info = await _deviceInfo.androidInfo;
-        return _buildFromMap(
-          info.data,
-          const ['device', 'model', 'hardware', 'board', 'brand', 'androidId', 'id', 'fingerprint', 'manufacturer'],
-        );
-      case 'ios':
-        final info = await _deviceInfo.iosInfo;
-        return _buildFromMap(
-          info.data,
-          const ['identifierForVendor', 'utsname.machine', 'model', 'name', 'systemName'],
-        );
-      case 'macos':
-        final info = await _deviceInfo.macOsInfo;
-        return _buildFromMap(
-          info.data,
-          const ['computerName', 'systemGUID', 'model', 'arch'],
-        );
-      case 'windows':
-        final info = await _deviceInfo.windowsInfo;
-        return _buildFromMap(
-          info.data,
-          const ['computerName', 'deviceId', 'productName', 'buildLabEx', 'registeredOwner'],
-        );
-      default:
-        throw StateError('Unsupported platform for device identity: $platform');
-    }
-  }
-
-  String _buildFromMap(Map<String, dynamic> data, List<String> prioritizedKeys) {
-    final parts = <String>[];
-    for (final key in prioritizedKeys) {
-      final value = _normalizeValue(data[key]);
-      if (value == null) continue;
-      parts.add(value);
-    }
-
-    if (parts.isEmpty) {
-      final keys = data.keys.toList()..sort();
-      for (final key in keys) {
-        final value = _normalizeValue(data[key]);
-        if (value == null) continue;
-        parts.add(value);
-      }
-    }
-
-    if (parts.isEmpty) {
-      throw StateError('Unable to derive device identity from platform information');
-    }
-
-    return parts.join('|');
-  }
-
-  String? _normalizeValue(dynamic value) {
-    if (value == null) return null;
-    final text = value.toString().trim();
-    if (text.isEmpty) return null;
-    if (text.toLowerCase() == 'unknown') return null;
-    return text;
+    return '${DateTime.now().millisecondsSinceEpoch}_${_deviceInfo.hashCode}';
   }
 }

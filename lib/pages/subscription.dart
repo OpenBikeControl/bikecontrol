@@ -326,7 +326,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             icon: Icons.account_circle,
             title: 'Account',
             subtitle: _getAccountSubtitle(session),
-            onTap: () => _handleProFeature(() => _navigateTo(SubscriptionPageView.login)),
+            onTap: () => _navigateTo(SubscriptionPageView.login),
           ),
 
           // Sync Settings Section
@@ -380,7 +380,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               ],
             ),
           ),
-          if (!_isPro)
+          if (!_isPro && icon != Icons.account_circle)
             Positioned(
               top: 0,
               right: 0,

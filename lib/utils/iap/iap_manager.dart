@@ -225,7 +225,13 @@ class IAPManager {
 
   String _formatDate(DateTime date) {
     final local = date.toLocal();
-    return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year}';
+    // when today return full time, otherwise just date
+    final now = DateTime.now();
+    if (local.year == now.year && local.month == now.month && local.day == now.day) {
+      return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    } else {
+      return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year}';
+    }
   }
 
   /// Purchase the full version.
