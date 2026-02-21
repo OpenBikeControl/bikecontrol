@@ -205,13 +205,13 @@ class RevenueCatService {
   }
 
   /// Present the RevenueCat paywall
-  Future<void> presentPaywall() async {
+  Future<void> presentPaywall(Offering offering) async {
     try {
       if (!_isInitialized) {
         await initialize();
       }
 
-      final paywallResult = await RevenueCatUI.presentPaywall(displayCloseButton: true);
+      final paywallResult = await RevenueCatUI.presentPaywall(displayCloseButton: true, offering: offering);
 
       debugPrint('Paywall result: $paywallResult');
       if (paywallResult == PaywallResult.purchased || paywallResult == PaywallResult.restored) {
@@ -256,10 +256,10 @@ class RevenueCatService {
   /// Purchase the full version (use paywall instead)
   Future<void> purchaseFullVersion(BuildContext context) async {
     // Direct the user to the paywall for a better experience
+    final offerings = await Purchases.getOfferings();
     if (Platform.isMacOS) {
       try {
-        final offerings = await Purchases.getOfferings();
-        final purchaseParams = PurchaseParams.package(offerings.current!.availablePackages.first);
+        final purchaseParams = PurchaseParams.package(offerings.all["default"]!.lifetime!);
         PurchaseResult result = await Purchases.purchase(purchaseParams);
         core.connection.signalNotification(
           LogNotification('Purchase result: $result'),
@@ -272,17 +272,17 @@ class RevenueCatService {
         }
       }
     } else {
-      await presentPaywall();
+      await presentPaywall(offerings.all["default"]!);
     }
   }
 
   /// Purchase the subscription (use paywall instead)
   Future<void> purchaseSubscription(BuildContext context) async {
     // Direct the user to the paywall for a better experience
+    final offerings = await Purchases.getOfferings();
     if (Platform.isMacOS) {
       try {
-        final offerings = await Purchases.getOfferings();
-        final purchaseParams = PurchaseParams.package(offerings.current!.monthly!);
+        final purchaseParams = PurchaseParams.package(offerings.all["pro"]!.monthly!);
         PurchaseResult result = await Purchases.purchase(purchaseParams);
         core.connection.signalNotification(
           LogNotification('Purchase result: $result'),
@@ -295,7 +295,7 @@ class RevenueCatService {
         }
       }
     } else {
-      await presentPaywall();
+      await presentPaywall(offerings.all["pro"]!);
     }
   }
 
