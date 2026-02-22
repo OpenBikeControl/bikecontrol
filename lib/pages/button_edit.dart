@@ -441,7 +441,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                 ],
 
-                if (!kIsWeb && (Platform.isMacOS || Platform.isIOS)) ...[
+                if (!kIsWeb && Platform.isMacOS) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: 'Other Actions'),
                   SelectableCard(
@@ -614,10 +614,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Launch Shortcut'),
-        content: TextField(
-          controller: controller,
-          hintText: 'Shortcut name',
-          autofocus: true,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 10,
+          children: [
+            Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small,
+            TextField(
+              controller: controller,
+              hintText: 'Shortcut name',
+              autofocus: true,
+            ),
+          ],
         ),
         actions: [
           TextButton(
