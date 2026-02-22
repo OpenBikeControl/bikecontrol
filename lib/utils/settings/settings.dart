@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -24,6 +26,8 @@ import '../keymap/buttons.dart';
 
 class Settings {
   late final SharedPreferences prefs;
+  SettingsSyncService? _syncService;
+  Timer? _syncDebounceTimer;
 
   Future<String?> init({bool retried = false}) async {
     try {
@@ -65,6 +69,15 @@ class Settings {
       // Start trial if this is the first launch
       if (!IAPManager.instance.hasTrialStarted && !IAPManager.instance.isPurchased.value) {
         await IAPManager.instance.startTrial();
+      }
+
+      // Initialize settings sync service for Pro users
+      try {
+        _syncService = SettingsSyncService();
+        await _syncService!.initialize();
+      } catch (e) {
+        // Sync service is not critical, continue without it
+        print('Failed to initialize settings sync: $e');
       }
 
       return null;
@@ -115,6 +128,7 @@ class Settings {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
     }
     await prefs.setString('app', app.name);
+    _triggerAutoSync();
   }
 
   SupportedApp? getKeyMap() {
@@ -153,6 +167,7 @@ class Settings {
       core.actionHandler.init(null);
       await prefs.remove('app');
     }
+    _triggerAutoSync();
   }
 
   Future<void> duplicateCustomAppProfile(String sourceProfileName, String newProfileName) async {
@@ -160,6 +175,7 @@ class Settings {
     if (sourceData != null) {
       await prefs.setStringList('customapp_$newProfileName', sourceData);
     }
+    _triggerAutoSync();
   }
 
   String? exportCustomAppProfile(String profileName) {
@@ -186,6 +202,7 @@ class Settings {
       final keymap = (decoded['keymap'] as List).map((e) => jsonEncode(e)).toList().cast<String>();
 
       await prefs.setStringList('customapp_$profileName', keymap);
+      _triggerAutoSync();
       return true;
     } catch (e) {
       print(e);
@@ -286,6 +303,7 @@ class Settings {
       names.add(deviceName);
       await prefs.setStringList('ignored_device_ids', ids);
       await prefs.setStringList('ignored_device_names', names);
+      _triggerAutoSync();
     }
   }
 
@@ -299,6 +317,7 @@ class Settings {
       names.removeAt(index);
       await prefs.setStringList('ignored_device_ids', ids);
       await prefs.setStringList('ignored_device_names', names);
+      _triggerAutoSync();
     }
   }
 
@@ -431,5 +450,29 @@ class Settings {
 
   Future<void> setMediaKeyDetectionEnabled(bool enabled) async {
     await prefs.setBool('media_key_detection_enabled', enabled);
+    _triggerAutoSync();
+  }
+
+  /// Triggers automatic sync to server for Pro users.
+  /// Uses debouncing to avoid excessive sync calls.
+  void _triggerAutoSync() {
+    if (_syncService == null) return;
+    if (!IAPManager.instance.hasActiveSubscription) return;
+    if (!IAPManager.instance.isLoggedIn) return;
+
+    // Cancel existing timer
+    _syncDebounceTimer?.cancel();
+
+    // Set new timer to sync after 2 seconds of inactivity
+    _syncDebounceTimer = Timer(const Duration(seconds: 30), () {
+      _syncService?.syncToServer();
+    });
+  }
+
+  /// Disposes the sync service and cleans up resources.
+  void dispose() {
+    _syncDebounceTimer?.cancel();
+    _syncService?.dispose();
+    _syncService = null;
   }
 }
