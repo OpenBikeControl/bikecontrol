@@ -254,9 +254,6 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           // Device Selection Card
           if (_getDevicesWithSettings().isNotEmpty) _buildDeviceSelectionCard(),
 
-          // Server Settings Card (if available)
-          if (_serverSettings != null && _serverSettings!.updatedAt != null) _buildServerSettingsCard(),
-
           // Sync Actions
           if (_isLoading)
             Card(
@@ -551,81 +548,5 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
         setState(() => _isLoading = false);
       }
     }
-  }
-
-  Widget _buildServerSettingsCard() {
-    final keymapCount = _serverSettings?.keymaps?.length ?? 0;
-    final ignoredDeviceCount = _serverSettings?.ignoredDeviceIds?.length ?? 0;
-
-    return Card(
-      child: Column(
-        spacing: 16,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withAlpha(30),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.storage,
-                  size: 28,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Server Settings').small.muted,
-                    Text('Cloud Backup').large.bold,
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Divider(),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.muted.withAlpha(20),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              spacing: 8,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-                    const SizedBox(width: 8),
-                    Text('Last updated: ${_formatDateTime(_serverSettings?.updatedAt)}').small,
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(Icons.keyboard, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-                    const SizedBox(width: 8),
-                    Text('Keymaps: $keymapCount profiles').small,
-                  ],
-                ),
-                if (ignoredDeviceCount > 0)
-                  Row(
-                    children: [
-                      Icon(Icons.devices, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-                      const SizedBox(width: 8),
-                      Text('Ignored devices: $ignoredDeviceCount').small,
-                    ],
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

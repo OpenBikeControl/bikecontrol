@@ -10,9 +10,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class UserSettingsRepository {
   final SupabaseClient _supabase;
   final DeviceIdentityService _deviceIdentity;
-  
+
   UserSettingsRepository(this._supabase, {DeviceIdentityService? deviceIdentity})
-      : _deviceIdentity = deviceIdentity ?? DeviceIdentityService();
+    : _deviceIdentity = deviceIdentity ?? DeviceIdentityService();
 
   /// Gets the current user's settings from Supabase.
   /// Returns null if no settings exist or user is not logged in.
@@ -20,15 +20,19 @@ class UserSettingsRepository {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
 
+    final remoteId = await _deviceIdentity.getRemoteId(_supabase);
+    if (remoteId == null) return null;
+
     try {
       final response = await _supabase
           .from('user_settings')
           .select()
           .eq('user_id', userId)
+          .eq('device_id', remoteId)
           .maybeSingle();
-      
+
       if (response == null) return null;
-      
+
       return UserSettings.fromJson(response);
     } catch (e) {
       print('Error fetching user settings: $e');
@@ -49,9 +53,9 @@ class UserSettingsRepository {
           .eq('user_id', userId)
           .eq('device_id', deviceId)
           .maybeSingle();
-      
+
       if (response == null) return null;
-      
+
       return UserSettings.fromJson(response);
     } catch (e) {
       print('Error fetching device settings: $e');
@@ -70,10 +74,8 @@ class UserSettingsRepository {
           .select()
           .eq('user_id', userId)
           .order('updated_at', ascending: false);
-      
-      return (response as List)
-          .map((json) => UserSettings.fromJson(json))
-          .toList();
+
+      return (response as List).map((json) => UserSettings.fromJson(json)).toList();
     } catch (e) {
       print('Error fetching all device settings: $e');
       return [];
@@ -92,10 +94,8 @@ class UserSettingsRepository {
           .eq('user_id', userId)
           .eq('revoked_at', 'null')
           .order('last_seen_at', ascending: false);
-      
-      return (response as List)
-          .map((json) => UserDevice.fromJson(json))
-          .toList();
+
+      return (response as List).map((json) => UserDevice.fromJson(json)).toList();
     } catch (e) {
       print('Error fetching registered devices: $e');
       return [];
@@ -122,7 +122,7 @@ class UserSettingsRepository {
 
       // Build keymaps JSON from current settings
       final keymapsData = await _buildKeymapsData();
-      
+
       // Get ignored devices
       final ignoredDevices = core.settings.getIgnoredDevices();
       final ignoredIds = ignoredDevices.map((d) => d.id).toList();
@@ -158,13 +158,13 @@ class UserSettingsRepository {
   /// If [deviceId] is provided, loads settings from that specific device.
   Future<bool> loadAndApplySettings({String? deviceId}) async {
     UserSettings? settings;
-    
+
     if (deviceId != null) {
       settings = await getSettingsFromDevice(deviceId);
     } else {
       settings = await getSettings();
     }
-    
+
     if (settings == null) return false;
 
     try {
@@ -190,13 +190,13 @@ class UserSettingsRepository {
   /// If [deviceId] is provided, checks settings from that specific device.
   Future<bool> hasNewerSettingsOnServer({String? deviceId}) async {
     UserSettings? serverSettings;
-    
+
     if (deviceId != null) {
       serverSettings = await getSettingsFromDevice(deviceId);
     } else {
       serverSettings = await getSettings();
     }
-    
+
     if (serverSettings == null) return false;
 
     // Get local version from settings
@@ -224,10 +224,10 @@ class UserSettingsRepository {
   /// Builds keymaps data from current settings.
   Future<Map<String, dynamic>> _buildKeymapsData() async {
     final data = <String, dynamic>{};
-    
+
     // Get all custom app profiles
     final profiles = core.settings.getCustomAppProfiles();
-    
+
     for (final profileName in profiles) {
       final keymap = core.settings.getCustomAppKeymap(profileName);
       if (keymap != null) {
@@ -235,11 +235,11 @@ class UserSettingsRepository {
       }
     }
 
-    // Include current app
+    /*    // Include current app
     final currentApp = core.settings.getKeyMap();
     if (currentApp != null) {
       data['_current_app'] = currentApp.name;
-    }
+    }*/
 
     return data;
   }

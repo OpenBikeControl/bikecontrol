@@ -464,7 +464,7 @@ class Settings {
     _syncDebounceTimer?.cancel();
 
     // Set new timer to sync after 2 seconds of inactivity
-    _syncDebounceTimer = Timer(const Duration(seconds: 30), () {
+    _syncDebounceTimer = Timer(const Duration(seconds: 10), () {
       _syncService?.syncToServer();
     });
   }
