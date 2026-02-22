@@ -16,6 +16,7 @@ import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
@@ -231,7 +232,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: _keyPair.isSpecialKey && core.settings.getLocalEnabled(),
                         title: Text(context.i18n.simulateMediaKey),
                         value: _keyPair.toString(),
-                        isProOnly: true,
                         trailing: IconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
                           onPressed: () {
@@ -250,7 +250,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 children: [
                                   MenuButton(
                                     leading: Icon(Icons.play_arrow_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
@@ -259,11 +262,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.playPause),
+                                    child: _buildProMenuItemLabel(context.i18n.playPause),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.stop_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
@@ -272,11 +278,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.stop),
+                                    child: _buildProMenuItemLabel(context.i18n.stop),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.skip_previous_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
@@ -285,11 +294,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.previous),
+                                    child: _buildProMenuItemLabel(context.i18n.previous),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.skip_next_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
@@ -298,11 +310,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.next),
+                                    child: _buildProMenuItemLabel(context.i18n.next),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.volume_up_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
@@ -311,12 +326,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.volumeUp),
+                                    child: _buildProMenuItemLabel(context.i18n.volumeUp),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.volume_down_outlined),
-                                    child: Text(context.i18n.volumeDown),
-                                    onPressed: (c) {
+                                    child: _buildProMenuItemLabel(context.i18n.volumeDown),
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
@@ -340,7 +358,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: _keyPair.androidAction != null && core.settings.getLocalEnabled(),
                         title: Text(AppLocalizations.of(context).androidSystemAction),
                         value: _keyPair.androidAction?.title,
-                        isProOnly: true,
                         trailing: IconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
                           onPressed: () {
@@ -358,7 +375,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     .map(
                                       (action) => MenuButton(
                                         leading: Icon(action.icon),
-                                        onPressed: (_) {
+                                        onPressed: (_) async {
+                                          if (!await _ensureProForFeature(context)) {
+                                            return;
+                                          }
                                           _keyPair.androidAction = action;
                                           _keyPair.physicalKey = null;
                                           _keyPair.logicalKey = null;
@@ -369,7 +389,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                           setState(() {});
                                           widget.onUpdate();
                                         },
-                                        child: Text(action.title),
+                                        child: _buildProMenuItemLabel(action.title),
                                       ),
                                     )
                                     .toList(),
@@ -526,6 +546,31 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         },
       );
     }).toList();
+  }
+
+  Future<bool> _ensureProForFeature(BuildContext context) async {
+    if (IAPManager.instance.hasActiveSubscription) {
+      return true;
+    }
+    await showGoProDialog(context);
+    return IAPManager.instance.hasActiveSubscription;
+  }
+
+  Widget _buildProMenuItemLabel(String text) {
+    final isPro = IAPManager.instance.hasActiveSubscription;
+    if (isPro) {
+      return Text(text);
+    }
+
+    return Row(
+      children: [
+        Expanded(child: Text(text)),
+        const ProBadge(
+          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          fontSize: 9,
+        ),
+      ],
+    );
   }
 
   Future<void> _showModeDropdown(BuildContext context, SupportedMode supportedMode) async {
@@ -729,22 +774,10 @@ class SelectableCard extends StatelessWidget {
           Positioned(
             top: 0,
             right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
-                ),
-              ),
-              child: Text(
-                'PRO',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+            child: const ProBadge(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
               ),
             ),
           ),
