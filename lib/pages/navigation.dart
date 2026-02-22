@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/customize.dart';
@@ -13,7 +11,6 @@ import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -290,9 +287,7 @@ class _NavigationState extends State<Navigation> {
 
   Widget _buildNavigationBar() {
     return NavigationBar(
-      padding:
-          EdgeInsets.only(top: 6, left: 12, right: 12, bottom: !kIsWeb && Platform.isMacOS ? 8 : 0) *
-          Theme.of(context).scaling,
+      padding: EdgeInsets.only(top: 6, left: 12, right: 12, bottom: 12) * Theme.of(context).scaling,
       labelType: NavigationLabelType.all,
       alignment: NavigationBarAlignment.spaceEvenly,
       selectedKey: _pageKeys[_selectedPage],
