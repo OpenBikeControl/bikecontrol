@@ -4,6 +4,7 @@ import 'package:bike_control/pages/subscriptions/registered_devices_view.dart';
 import 'package:bike_control/pages/subscriptions/sync_settings_view.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -91,45 +92,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   void _showGoProDialog() {
-    showDialog(
-      context: context,
-      builder: (c) => Container(
-        constraints: BoxConstraints(maxWidth: 400),
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.workspace_premium, color: Colors.orange),
-              const SizedBox(width: 8),
-              Text('Pro Feature'),
-            ],
-          ),
-          content: Text('This feature is only available with Pro. Upgrade to Pro to unlock all features.'),
-          actions: [
-            Button.secondary(
-              onPressed: () => Navigator.of(c).pop(),
-              child: Text('Cancel'),
-            ),
-            LoadingWidget(
-              futureCallback: () async {
-                await _buyProVersion();
-                Navigator.of(c).pop();
-              },
-              renderChild: (isLoading, tap) => PrimaryButton(
-                onPressed: tap,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    isLoading ? SmallProgressIndicator() : Icon(Icons.workspace_premium, size: 16),
-                    const SizedBox(width: 8),
-                    Text('Go Pro'),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    showGoProDialog(context);
   }
 
   void _handleProFeature(VoidCallback action) {
@@ -355,52 +318,26 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return SelectableCard(
       onPressed: onTap,
       isActive: false,
-      title: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title).small.bold,
-                      const SizedBox(height: 4),
-                      Text(subtitle).small.muted,
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right, size: 20, color: Theme.of(context).colorScheme.mutedForeground),
-              ],
-            ),
-          ),
-          if (!_isPro && icon != Icons.account_circle)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.orange,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(8),
-                    topRight: Radius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'PRO',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+      isProOnly: icon != Icons.account_circle,
+      title: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title).small.bold,
+                  const SizedBox(height: 4),
+                  Text(subtitle).small.muted,
+                ],
               ),
             ),
-        ],
+            Icon(Icons.chevron_right, size: 20, color: Theme.of(context).colorScheme.mutedForeground),
+          ],
+        ),
       ),
     );
   }

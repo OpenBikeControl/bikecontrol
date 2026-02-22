@@ -7,17 +7,18 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
+import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -230,6 +231,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: _keyPair.isSpecialKey && core.settings.getLocalEnabled(),
                         title: Text(context.i18n.simulateMediaKey),
                         value: _keyPair.toString(),
+                        isProOnly: true,
                         trailing: IconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
                           onPressed: () {
@@ -338,6 +340,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: _keyPair.androidAction != null && core.settings.getLocalEnabled(),
                         title: Text(AppLocalizations.of(context).androidSystemAction),
                         value: _keyPair.androidAction?.title,
+                        isProOnly: true,
                         trailing: IconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
                           onPressed: () {
@@ -655,6 +658,7 @@ class SelectableCard extends StatelessWidget {
   final bool isActive;
   final String? value;
   final VoidCallback? onPressed;
+  final bool isProOnly;
 
   const SelectableCard({
     super.key,
@@ -665,50 +669,86 @@ class SelectableCard extends StatelessWidget {
     required this.isActive,
     this.value,
     required this.onPressed,
+    this.isProOnly = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Button.outline(
-      style:
-          ButtonStyle(
-                variance: ButtonVariance.outline,
-              )
-              .withBorder(
-                border: isActive
-                    ? Border.all(color: BKColor.main, width: 2)
-                    : Border.all(color: Theme.of(context).colorScheme.border, width: 2),
-                hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
-                focusBorder: Border.all(color: BKColor.main, width: 2),
-              )
-              .withBackgroundColor(
-                color: isActive
-                    ? Theme.of(context).brightness == Brightness.dark
-                          ? Theme.of(context).colorScheme.card
-                          : Theme.of(context).colorScheme.card.withLuminance(0.9)
-                    : Theme.of(context).colorScheme.background,
-                hoverColor: Theme.of(context).colorScheme.card,
-              ),
-      onPressed: onPressed,
-      alignment: Alignment.topLeft,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Basic(
-          leading: icon != null
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 3.0),
-                  child: Icon(
-                    icon,
-                    color: icon == Icons.delete_outline ? Theme.of(context).colorScheme.destructive : null,
+    final isPro = IAPManager.instance.hasActiveSubscription;
+
+    return Stack(
+      children: [
+        Button.outline(
+          style:
+              ButtonStyle(
+                    variance: ButtonVariance.outline,
+                  )
+                  .withBorder(
+                    border: isActive
+                        ? Border.all(color: BKColor.main, width: 2)
+                        : Border.all(color: Theme.of(context).colorScheme.border, width: 2),
+                    hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
+                    focusBorder: Border.all(color: BKColor.main, width: 2),
+                  )
+                  .withBackgroundColor(
+                    color: isActive
+                        ? Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context).colorScheme.card
+                              : Theme.of(context).colorScheme.card.withLuminance(0.9)
+                        : Theme.of(context).colorScheme.background,
+                    hoverColor: Theme.of(context).colorScheme.card,
                   ),
-                )
-              : null,
-          title: title,
-          subtitle: value != null && isActive ? Text(value!) : subtitle,
-          trailing: trailing,
+          onPressed: () async {
+            if (isProOnly && !isPro) {
+              await showGoProDialog(context);
+            } else {
+              onPressed?.call();
+            }
+          },
+          alignment: Alignment.topLeft,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Basic(
+              leading: icon != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 3.0),
+                      child: Icon(
+                        icon,
+                        color: icon == Icons.delete_outline ? Theme.of(context).colorScheme.destructive : null,
+                      ),
+                    )
+                  : null,
+              title: title,
+              subtitle: value != null && isActive ? Text(value!) : subtitle,
+              trailing: trailing,
+            ),
+          ),
         ),
-      ),
+        if (isProOnly && !isPro)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(8),
+                  topRight: Radius.circular(8),
+                ),
+              ),
+              child: Text(
+                'PRO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

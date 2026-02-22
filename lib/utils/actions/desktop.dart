@@ -23,6 +23,9 @@ class DesktopActions extends BaseActions {
     if (core.settings.getLocalEnabled()) {
       // Handle media keys
       if (keyPair.isSpecialKey) {
+        if (!IAPManager.instance.hasActiveSubscription) {
+          return Error('Pro subscription required for media control');
+        }
         try {
           await keyPressSimulator.simulateMediaKey(keyPair.physicalKey!);
           // Increment command count after successful execution
