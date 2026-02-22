@@ -71,6 +71,7 @@ class Keymap {
       keyPair.inGameAction = null;
       keyPair.inGameActionValue = null;
       keyPair.androidAction = null;
+      keyPair.shortcutName = null;
     }
     _updateStream.add(null);
   }
@@ -117,6 +118,7 @@ class Keymap {
           isLongPress: buttonFromBase?.isLongPress ?? false,
           inGameActionValue: buttonFromBase?.inGameActionValue,
           androidAction: buttonFromBase?.androidAction,
+          shortcutName: buttonFromBase?.shortcutName,
         ),
       );
     }
@@ -137,6 +139,7 @@ class KeyPair {
   InGameAction? inGameAction;
   int? inGameActionValue;
   AndroidSystemAction? androidAction;
+  String? shortcutName;
 
   KeyPair({
     required this.buttons,
@@ -148,6 +151,7 @@ class KeyPair {
     this.inGameAction,
     this.inGameActionValue,
     this.androidAction,
+    this.shortcutName,
   });
 
   bool get isSpecialKey =>
@@ -200,7 +204,8 @@ class KeyPair {
       physicalKey == null &&
       touchPosition == Offset.zero &&
       inGameAction == null &&
-      androidAction == null;
+      androidAction == null &&
+      (shortcutName == null || shortcutName!.trim().isEmpty);
 
   bool get hasActiveAction =>
       screenshotMode ||
@@ -235,7 +240,8 @@ class KeyPair {
           core.zwiftMdnsEmulator.supportedActions.contains(inGameAction)) ||
       (inGameAction != null &&
           [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction) &&
-          (core.connection.accessories.isNotEmpty || kDebugMode));
+          (core.connection.accessories.isNotEmpty || kDebugMode)) ||
+      (shortcutName != null && shortcutName!.trim().isNotEmpty);
 
   @override
   String toString() {
@@ -249,6 +255,8 @@ class KeyPair {
           ].joinToString(separator: ': ')
         : (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions)
         ? androidAction!.title
+        : (shortcutName != null && shortcutName!.trim().isNotEmpty)
+        ? shortcutName!
         : (isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
         ? switch (physicalKey) {
             PhysicalKeyboardKey.mediaPlayPause => AppLocalizations.current.playPause,
@@ -316,6 +324,7 @@ class KeyPair {
       'inGameAction': inGameAction?.name,
       'inGameActionValue': inGameActionValue,
       'androidAction': androidAction?.name,
+      'shortcutName': shortcutName,
     });
   }
 
@@ -371,6 +380,8 @@ class KeyPair {
               .toList()
         : [];
 
+    final rawShortcutName = decoded['shortcutName']?.toString().trim();
+
     return KeyPair(
       buttons: buttons,
       logicalKey: decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
@@ -389,6 +400,7 @@ class KeyPair {
       androidAction: decoded.containsKey('androidAction')
           ? AndroidSystemAction.values.firstOrNullWhere((element) => element.name == decoded['androidAction'])
           : null,
+      shortcutName: rawShortcutName != null && rawShortcutName.isNotEmpty ? rawShortcutName : null,
     );
   }
 
@@ -404,7 +416,8 @@ class KeyPair {
           isLongPress == other.isLongPress &&
           inGameAction == other.inGameAction &&
           inGameActionValue == other.inGameActionValue &&
-          androidAction == other.androidAction;
+          androidAction == other.androidAction &&
+          shortcutName == other.shortcutName;
 
   @override
   int get hashCode => Object.hash(
@@ -416,5 +429,6 @@ class KeyPair {
     inGameAction,
     inGameActionValue,
     androidAction,
+    shortcutName,
   );
 }

@@ -4,8 +4,10 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class DesktopActions extends BaseActions {
   DesktopActions({super.supportedModes = const [SupportedMode.keyboard, SupportedMode.touch, SupportedMode.media]});
@@ -19,6 +21,22 @@ class DesktopActions extends BaseActions {
       return superResult;
     }
     final keyPair = supportedApp!.keymap.getKeyPair(button)!;
+
+    if (defaultTargetPlatform == TargetPlatform.macOS && keyPair.shortcutName?.trim().isNotEmpty == true) {
+      if (!core.settings.getLocalEnabled()) {
+        return Error('Enable local connection method first');
+      }
+      if (!isKeyDown) {
+        return Ignored('Shortcut launch only runs on key down');
+      }
+      final shortcutName = Uri.encodeQueryComponent(keyPair.shortcutName!.trim());
+      final launched = await launchUrlString('shortcuts://run-shortcut?name=$shortcutName');
+      if (!launched) {
+        return Error('Failed to launch shortcut: ${keyPair.shortcutName}');
+      }
+      await IAPManager.instance.incrementCommandCount();
+      return Success('Shortcut launched: ${keyPair.shortcutName}');
+    }
 
     if (core.settings.getLocalEnabled()) {
       // Handle media keys
