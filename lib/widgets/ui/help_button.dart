@@ -7,6 +7,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' as m;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -135,6 +136,17 @@ class HelpButton extends StatelessWidget {
                     MenuDivider(),
                     MenuLabel(child: Text(context.i18n.instructions)),
                     MenuButton(
+                      leading: Icon(Icons.ondemand_video),
+                      child: const Text('Instruction Videos'),
+                      onPressed: (c) {
+                        openDrawer(
+                          context: context,
+                          position: OverlayPosition.bottom,
+                          builder: (c) => _InstructionVideosDrawer(videos: _instructionVideos(context)),
+                        );
+                      },
+                    ),
+                    MenuButton(
                       leading: Icon(Icons.help_outline),
                       child: Text(context.i18n.troubleshootingGuide),
                       onPressed: (c) {
@@ -164,5 +176,135 @@ class HelpButton extends StatelessWidget {
         },
       ),
     );
+  }
+
+  List<_InstructionVideo> _instructionVideos(BuildContext context) {
+    return [
+      _InstructionVideo(
+        url: 'https://youtube.com/shorts/qalBSiAz7wg',
+        title: AppLocalizations.of(context).bluetoothKeyboardExplanation,
+      ),
+      _InstructionVideo(
+        url: 'https://youtube.com/shorts/SvLOQqu2Dqg?feature=share',
+        title: context.i18n.simulateTouch,
+      ),
+      _InstructionVideo(
+        url: 'https://youtube.com/shorts/ClY1eTnmAv0?feature=share',
+        title: context.i18n.simulateMediaKey,
+      ),
+      _InstructionVideo(
+        url: 'https://youtube.com/shorts/zqD5ARGIVmE?feature=share',
+        title: context.i18n.enableSteeringWithPhone,
+      ),
+    ];
+  }
+}
+
+class _InstructionVideosDrawer extends StatelessWidget {
+  final List<_InstructionVideo> videos;
+  const _InstructionVideosDrawer({required this.videos});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: m.LayoutBuilder(
+        builder: (context, constraints) {
+          final crossAxisCount = (constraints.maxWidth / 280).floor().clamp(1, 4);
+          return m.GridView.builder(
+            gridDelegate: m.SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 16 / 12,
+            ),
+            itemCount: videos.length,
+            itemBuilder: (context, index) {
+              final video = videos[index];
+              return m.Material(
+                color: m.Colors.transparent,
+                child: m.InkWell(
+                  borderRadius: m.BorderRadius.circular(12),
+                  onTap: () => launchUrlString(video.url),
+                  child: m.Ink(
+                    decoration: m.BoxDecoration(
+                      borderRadius: m.BorderRadius.circular(12),
+                      border: m.Border.all(color: m.Theme.of(context).dividerColor.withAlpha(51)),
+                    ),
+                    child: m.Column(
+                      crossAxisAlignment: m.CrossAxisAlignment.stretch,
+                      children: [
+                        m.Expanded(
+                          child: m.ClipRRect(
+                            borderRadius: const m.BorderRadius.vertical(top: m.Radius.circular(12)),
+                            child: m.Stack(
+                              fit: m.StackFit.expand,
+                              children: [
+                                m.Image.network(video.thumbnailUrl, fit: m.BoxFit.cover),
+                                m.Center(
+                                  child: m.Container(
+                                    padding: const m.EdgeInsets.all(10),
+                                    decoration: m.BoxDecoration(
+                                      color: m.Colors.black.withAlpha(166),
+                                      shape: m.BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.play_arrow, color: m.Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        m.Padding(
+                          padding: const m.EdgeInsets.all(10),
+                          child: m.Text(
+                            video.title,
+                            maxLines: 2,
+                            overflow: m.TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _InstructionVideo {
+  final String url;
+  final String title;
+
+  const _InstructionVideo({required this.url, required this.title});
+
+  String get _videoId {
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      return '';
+    }
+    if (uri.pathSegments.contains('shorts')) {
+      final shortsIndex = uri.pathSegments.indexOf('shorts');
+      if (shortsIndex >= 0 && uri.pathSegments.length > shortsIndex + 1) {
+        return uri.pathSegments[shortsIndex + 1];
+      }
+    }
+    final queryVideoId = uri.queryParameters['v'];
+    if (queryVideoId != null && queryVideoId.isNotEmpty) {
+      return queryVideoId;
+    }
+    return '';
+  }
+
+  String get thumbnailUrl {
+    final id = _videoId;
+    if (id.isEmpty) {
+      return 'https://img.youtube.com/vi/default/hqdefault.jpg';
+    }
+    return 'https://img.youtube.com/vi/$id/hqdefault.jpg';
   }
 }
