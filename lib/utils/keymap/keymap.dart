@@ -23,11 +23,12 @@ enum AndroidSystemAction {
   up('Arrow Up', Icons.arrow_upward, GlobalAction.up),
   left('Arrow Left', Icons.arrow_back, GlobalAction.left),
   home('Home', Icons.home_outlined, GlobalAction.home),
-  recents('Recents', Icons.apps, GlobalAction.recents);
+  recents('Recents', Icons.apps, GlobalAction.recents),
+  assistant('Open Assistant', Icons.assistant_outlined, null);
 
   final String title;
   final IconData icon;
-  final GlobalAction globalAction;
+  final GlobalAction? globalAction;
 
   const AndroidSystemAction(this.title, this.icon, this.globalAction);
 }

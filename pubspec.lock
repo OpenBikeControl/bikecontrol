@@ -32,6 +32,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.0.0"
+  android_intent_plus:
+    dependency: "direct main"
+    description:
+      name: android_intent_plus
+      sha256: "14a9f94c5825a528e8c38ee89a33dbeba947efbbf76f066c174f4f3ae4f48feb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   animated_vector:
     dependency: transitive
     description:

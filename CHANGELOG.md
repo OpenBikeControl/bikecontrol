@@ -1,4 +1,10 @@
-### 4.8.0 (15-02-2026)
+### 5.0.0 (Unreleased)
+
+BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
+- Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android and iOS) without additional charge
+- Open Assistant on Android
+- Synchronize and backup your keymap settings across devices
+- and much more to come in the future!
 
 **Features**:
 - Bluetooth media buttons are now supported on iOS

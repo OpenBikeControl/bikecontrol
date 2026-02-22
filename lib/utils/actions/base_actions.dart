@@ -115,19 +115,9 @@ abstract class BaseActions {
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(button);
-
-    if (core.logic.hasNoConnectionMethod) {
-      if (GyroscopeSteeringButtons.values.contains(button)) {
-        return Ignored('Too many messages from gyroscope steering');
-      } else {
-        return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
-      }
-    } else if (!(await core.logic.isTrainerConnected())) {
-      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive);
-    } else if (keyPair == null || keyPair.hasNoAction) {
+    if (keyPair == null || keyPair.hasNoAction) {
       return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
     }
-
     // Handle Headwind actions
     if (keyPair.inGameAction == InGameAction.headwindSpeed ||
         keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
@@ -139,6 +129,16 @@ abstract class BaseActions {
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
       return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
+    }
+
+    if (core.logic.hasNoConnectionMethod) {
+      if (GyroscopeSteeringButtons.values.contains(button)) {
+        return Ignored('Too many messages from gyroscope steering');
+      } else {
+        return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+      }
+    } else if (!(await core.logic.isTrainerConnected())) {
+      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive);
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);

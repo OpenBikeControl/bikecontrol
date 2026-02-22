@@ -355,9 +355,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     Builder(
                       builder: (context) => SelectableCard(
                         icon: Icons.settings_remote_outlined,
-                        isActive: _keyPair.androidAction != null && core.settings.getLocalEnabled(),
+                        isActive:
+                            _keyPair.androidAction != null &&
+                            _keyPair.androidAction != AndroidSystemAction.assistant &&
+                            core.settings.getLocalEnabled(),
                         title: Text(AppLocalizations.of(context).androidSystemAction),
-                        value: _keyPair.androidAction?.title,
+                        value: _keyPair.androidAction != AndroidSystemAction.assistant
+                            ? _keyPair.androidAction?.title
+                            : null,
                         trailing: IconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
                           onPressed: () {
@@ -372,6 +377,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                               context: context,
                               builder: (c) => DropdownMenu(
                                 children: AndroidSystemAction.values
+                                    .where((action) => action != AndroidSystemAction.assistant)
                                     .map(
                                       (action) => MenuButton(
                                         leading: Icon(action.icon),
@@ -396,6 +402,30 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                               ),
                             );
                           }
+                        },
+                      ),
+                    ),
+                  if (core.logic.showLocalControl && core.actionHandler is AndroidActions)
+                    Builder(
+                      builder: (context) => SelectableCard(
+                        icon: Icons.assistant_outlined,
+                        isActive:
+                            _keyPair.androidAction == AndroidSystemAction.assistant && core.settings.getLocalEnabled(),
+                        title: Text(AndroidSystemAction.assistant.title),
+                        value: _keyPair.androidAction == AndroidSystemAction.assistant
+                            ? _keyPair.androidAction?.title
+                            : null,
+                        isProOnly: true,
+                        onPressed: () {
+                          _keyPair.androidAction = AndroidSystemAction.assistant;
+                          _keyPair.physicalKey = null;
+                          _keyPair.logicalKey = null;
+                          _keyPair.modifiers = [];
+                          _keyPair.touchPosition = Offset.zero;
+                          _keyPair.inGameAction = null;
+                          _keyPair.inGameActionValue = null;
+                          setState(() {});
+                          widget.onUpdate();
                         },
                       ),
                     ),
