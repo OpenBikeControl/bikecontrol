@@ -6,8 +6,8 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' as m;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -208,69 +208,72 @@ class _InstructionVideosDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: m.LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisCount = (constraints.maxWidth / 280).floor().clamp(1, 4);
-          return m.GridView.builder(
-            gridDelegate: m.SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 16 / 12,
-            ),
-            itemCount: videos.length,
-            itemBuilder: (context, index) {
-              final video = videos[index];
-              return m.Material(
-                color: m.Colors.transparent,
-                child: m.InkWell(
-                  borderRadius: m.BorderRadius.circular(12),
-                  onTap: () => launchUrlString(video.url),
-                  child: m.Ink(
-                    decoration: m.BoxDecoration(
-                      borderRadius: m.BorderRadius.circular(12),
-                      border: m.Border.all(color: m.Theme.of(context).dividerColor.withAlpha(51)),
-                    ),
-                    child: m.Column(
-                      crossAxisAlignment: m.CrossAxisAlignment.stretch,
-                      children: [
-                        m.Expanded(
-                          child: m.ClipRRect(
-                            borderRadius: const m.BorderRadius.vertical(top: m.Radius.circular(12)),
-                            child: m.Stack(
-                              fit: m.StackFit.expand,
-                              children: [
-                                m.Image.network(video.thumbnailUrl, fit: m.BoxFit.cover),
-                                m.Center(
-                                  child: m.Container(
-                                    padding: const m.EdgeInsets.all(10),
-                                    decoration: m.BoxDecoration(
-                                      color: m.Colors.black.withAlpha(166),
-                                      shape: m.BoxShape.circle,
+      child: Column(
+        spacing: 8,
+        children: [
+          ColoredTitle(text: 'Instruction Videos'),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = (constraints.maxWidth / 280).floor().clamp(1, 4);
+              return GridView.builder(
+                shrinkWrap: true,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 16 / 12,
+                ),
+                itemCount: videos.length,
+                itemBuilder: (context, index) {
+                  final video = videos[index];
+                  return GestureDetector(
+                    onTap: () => launchUrlString(video.url),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.gray.withAlpha(100)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Image.network(video.thumbnailUrl, fit: BoxFit.cover),
+                                  Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withAlpha(166),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.play_arrow, color: Colors.white),
                                     ),
-                                    child: const Icon(Icons.play_arrow, color: m.Colors.white),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        m.Padding(
-                          padding: const m.EdgeInsets.all(10),
-                          child: m.Text(
-                            video.title,
-                            maxLines: 2,
-                            overflow: m.TextOverflow.ellipsis,
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              video.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+        ],
       ),
     );
   }
