@@ -1,6 +1,7 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DeviceIdentityService {
   static const String _deviceIdStorageKey = 'bikecontrol_device_id_v1';
@@ -13,6 +14,30 @@ class DeviceIdentityService {
     DeviceInfoPlugin? deviceInfo,
   }) : _storage = storage,
        _deviceInfo = deviceInfo ?? DeviceInfoPlugin();
+
+  /// Gets the remote device ID (UUID from user_devices table) for the current device.
+  /// Returns null if the device is not registered or user is not logged in.
+  Future<String?> getRemoteId(SupabaseClient supabase) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    final localDeviceId = await getOrCreateDeviceId();
+    
+    try {
+      final response = await supabase
+          .from('user_devices')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('device_id', localDeviceId)
+          .maybeSingle();
+      
+      if (response == null) return null;
+      
+      return response['id'] as String?;
+    } catch (e) {
+      return null;
+    }
+  }
 
   Future<String?> currentPlatform() async {
     if (kIsWeb) return null;

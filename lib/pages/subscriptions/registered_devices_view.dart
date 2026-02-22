@@ -210,7 +210,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       final package = await PackageInfo.fromPlatform();
       final version = package.version;
 
-      final result = await _iapManager.deviceManagement.registerCurrentDevice(
+      await _iapManager.deviceManagement.registerCurrentDevice(
         deviceName: deviceName,
         appVersion: version,
       );
