@@ -217,6 +217,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
           card: () => Color(0xFF001A29),
           background: () => Color(0xFF232323),
           muted: () => Color(0xFF3A3A3A),
+          border: () => Color(0xFF3A3A3A),
         ),
       ),
       theme: ThemeData(

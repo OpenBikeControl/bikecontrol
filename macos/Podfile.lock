@@ -18,6 +18,8 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
+  - file_picker (0.0.1):
+    - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
   - flutter_local_notifications (0.0.1):
@@ -104,6 +106,7 @@ DEPENDENCIES:
   - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
   - bluetooth_low_energy_darwin (from `Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
+  - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_secure_storage_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
@@ -149,6 +152,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
+  file_picker:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   file_selector_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   flutter_local_notifications:
@@ -203,6 +208,7 @@ SPEC CHECKSUMS:
   audio_session: 728ae3823d914f809c485d390274861a24b0904e
   bluetooth_low_energy_darwin: 50bc79258e60586e4c4bed5948bd31d925f37fac
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
+  file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_secure_storage_darwin: 557817588b80e60213cbecb573c45c76b788018d

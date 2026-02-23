@@ -2,8 +2,9 @@
 
 BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
 - Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android and iOS) without additional charge
-- Open Assistant on Android
 - Synchronize and backup your keymap settings across devices
+- Android: Open Assistant
+- Windows & macOS: start any command/Shortcut, e.g. capture a screenshot, screen video, open a specific app, ... the possibilities are endless!
 - and much more to come in the future!
 
 **Features**:
