@@ -29,13 +29,13 @@ class KeyPressSimulator {
   }
 
   /// Simulate key down.
-  Future<void> simulateKeyDown(PhysicalKeyboardKey? key, [List<ModifierKey> modifiers = const []]) {
-    return _platform.simulateKeyPress(key: key, modifiers: modifiers, keyDown: true);
+  Future<void> simulateKeyDown(PhysicalKeyboardKey? key, [List<ModifierKey> modifiers = const [], String? targetApp]) {
+    return _platform.simulateKeyPress(key: key, modifiers: modifiers, keyDown: true, targetApp: targetApp);
   }
 
   /// Simulate key up.
-  Future<void> simulateKeyUp(PhysicalKeyboardKey? key, [List<ModifierKey> modifiers = const []]) {
-    return _platform.simulateKeyPress(key: key, modifiers: modifiers, keyDown: false);
+  Future<void> simulateKeyUp(PhysicalKeyboardKey? key, [List<ModifierKey> modifiers = const [], String? targetApp]) {
+    return _platform.simulateKeyPress(key: key, modifiers: modifiers, keyDown: false, targetApp: targetApp);
   }
 
   /// Simulate media key press.

@@ -152,7 +152,10 @@
       }
     }
   },
-  "enableLocalConnectionMethodFirst": "Activez d'abord le mode de connexion locale.",
+    "targetAppNameLabel": "Nom de l'application cible (optionnel)",
+  "targetAppNameHint": "ex. ROUVY",
+  "targetAppNameDescription": "Envoyer les touches directement à cette application, même quand elle n'est pas au premier plan.",
+"enableLocalConnectionMethodFirst": "Activez d'abord le mode de connexion locale.",
   "enableMediaKeyDetection": "Activer la détection des touches multimédias",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Activez d'abord MyWhoosh Link dans les paramètres de connexion.",
   "enablePairingProcess": "Fonctionne comme une souris Bluetooth",

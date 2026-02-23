@@ -152,7 +152,10 @@
       }
     }
   },
-  "enableLocalConnectionMethodFirst": "Najpierw włącz metodę połączenia lokalnego.",
+    "targetAppNameLabel": "Nazwa docelowej aplikacji (opcjonalnie)",
+  "targetAppNameHint": "np. ROUVY",
+  "targetAppNameDescription": "Wysyłaj naciśnięcia klawiszy bezpośrednio do tej aplikacji, nawet gdy nie jest na pierwszym planie.",
+"enableLocalConnectionMethodFirst": "Najpierw włącz metodę połączenia lokalnego.",
   "enableMediaKeyDetection": "Włącz rozpoznawanie klawiszy multimedialnych",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Najpierw włącz MyWhoosh Link w ustawieniach połączenia.",
   "enablePairingProcess": "Działa jako mysz Bluetooth",
