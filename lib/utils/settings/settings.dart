@@ -82,6 +82,7 @@ class Settings {
 
       return null;
     } catch (e, s) {
+      recordError(e, s, context: 'Init');
       if (!retried) {
         if (Platform.isWindows) {
           // delete settings file
@@ -142,7 +143,13 @@ class Settings {
       final customApp = CustomApp(profileName: appName);
       final appSetting = prefs.getStringList('customapp_$appName');
       if (appSetting != null) {
-        customApp.decodeKeymap(appSetting);
+        try {
+          customApp.decodeKeymap(appSetting);
+        } catch (e, s) {
+          recordError(e, s, context: 'Decoding custom app keymap for $appName');
+          // reset it
+          prefs.remove('customapp_$appName');
+        }
       }
       return customApp;
     } else {

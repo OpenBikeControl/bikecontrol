@@ -58,6 +58,10 @@ void main() async {
 
       final error = await core.settings.init();
 
+      if (error != null) {
+        recordError(error, null, context: 'SettingsInit');
+      }
+
       runApp(BikeControlApp(error: error));
     },
     (Object error, StackTrace stack) {

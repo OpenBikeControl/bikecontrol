@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/models/user_settings.dart';
@@ -231,7 +232,7 @@ class UserSettingsRepository {
     for (final profileName in profiles) {
       final keymap = core.settings.getCustomAppKeymap(profileName);
       if (keymap != null) {
-        data[profileName] = keymap;
+        data[profileName] = keymap.map(jsonDecode).toList();
       }
     }
 
@@ -260,7 +261,7 @@ class UserSettingsRepository {
 
       // Save keymap data for custom app
       if (entry.value is List) {
-        final keymapList = (entry.value as List).map((e) => e.toString()).toList();
+        final keymapList = (entry.value as List).map(jsonEncode).toList();
         await core.settings.prefs.setStringList('customapp_${entry.key}', keymapList);
       }
     }

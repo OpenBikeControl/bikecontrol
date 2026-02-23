@@ -160,7 +160,11 @@ class _CustomizeState extends State<CustomizePage> {
       final customApp = CustomApp(profileName: profile);
       final savedKeymap = core.settings.getCustomAppKeymap(profile);
       if (savedKeymap != null) {
-        customApp.decodeKeymap(savedKeymap);
+        try {
+          customApp.decodeKeymap(savedKeymap);
+        } catch (e, s) {
+          recordError(e, s, context: 'getAllApps');
+        }
       }
       return customApp;
     }).toList();

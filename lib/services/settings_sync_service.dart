@@ -104,7 +104,7 @@ class SettingsSyncService {
     try {
       final hasNewer = await _repository.hasNewerSettingsOnServer(deviceId: deviceId);
 
-      if (!hasNewer) {
+      if (!hasNewer && !kDebugMode) {
         // No newer settings on server
         return true;
       }
@@ -119,7 +119,7 @@ class SettingsSyncService {
         } else {
           settings = await _repository.getSettings();
         }
-        
+
         if (settings != null) {
           lastSyncedAt.value = settings.updatedAt;
           await _repository.saveLocalVersionInfo(settings.version, settings.updatedAt ?? DateTime.now());

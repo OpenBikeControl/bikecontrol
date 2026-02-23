@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/models/user_settings.dart';
+import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/repositories/user_settings_repository.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -216,7 +218,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
 
       // Skip the current device
       final isCurrentDevice = _isCurrentDevice(device);
-      if (isCurrentDevice) return false;
+      if (isCurrentDevice) return kDebugMode;
 
       return true;
     }).toList();
@@ -436,62 +438,60 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
     final hasSettings = deviceSettings != null;
     final isNewer = hasSettings && deviceSettings.isNewerThan(_serverSettings);
 
-    return Card(
-      filled: true,
-      child: Builder(
-        builder: (context) {
-          return GestureDetector(
-            onTap: () => _showDeviceOptions(context, device, remoteDeviceId),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.device_unknown,
-                    size: 24,
-                    color: Theme.of(context).colorScheme.mutedForeground,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          device.deviceName ?? 'Unknown Device',
-                        ).small.bold,
+    return Builder(
+      builder: (context) {
+        return SelectableCard(
+          onPressed: () => _showDeviceOptions(context, device, remoteDeviceId),
+          isActive: false,
+          title: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.device_unknown,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.mutedForeground,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        device.deviceName ?? 'Unknown Device',
+                      ).small.bold,
+                      const SizedBox(height: 4),
+                      Text('${device.platform.toUpperCase()} • ${_formatDateTime(device.lastSeenAt)}').small.muted,
+                      if (hasSettings) ...[
                         const SizedBox(height: 4),
-                        Text('${device.platform.toUpperCase()} • ${_formatDateTime(device.lastSeenAt)}').small.muted,
-                        if (hasSettings) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Version: ${deviceSettings.version} • Keymaps: ${deviceSettings.keymaps?.length ?? 0}',
-                          ).small.muted,
-                        ],
+                        Text(
+                          'Version: ${deviceSettings.version} • Keymaps: ${deviceSettings.keymaps?.length ?? 0}',
+                        ).small.muted,
                       ],
+                    ],
+                  ),
+                ),
+                if (isNewer)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'NEWER',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  if (isNewer)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'NEWER',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -511,7 +511,6 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               ],
             ),
             onPressed: (context) async {
-              Navigator.of(context).pop();
               await _syncFromDevice(remoteDeviceId);
             },
           ),
