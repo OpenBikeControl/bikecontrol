@@ -176,8 +176,16 @@ class BKMenuButton extends StatelessWidget {
                 child: Text('Send Key'),
                 onPressed: (c) async {
                   await Future.delayed(Duration(seconds: 2));
-                  await keyPressSimulator.simulateKeyDown(PhysicalKeyboardKey.keyK, [], 'Rouvy');
-                  await keyPressSimulator.simulateKeyUp(PhysicalKeyboardKey.keyK, [], 'Rouvy');
+                  await keyPressSimulator.simulateKeyDown(
+                    PhysicalKeyboardKey.keyK,
+                    [],
+                    core.settings.getTrainerApp()?.packageName,
+                  );
+                  await keyPressSimulator.simulateKeyUp(
+                    PhysicalKeyboardKey.keyK,
+                    [],
+                    core.settings.getTrainerApp()?.packageName,
+                  );
                 },
               ),
               MenuButton(

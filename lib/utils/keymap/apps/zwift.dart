@@ -10,7 +10,7 @@ class Zwift extends SupportedApp {
   Zwift()
     : super(
         name: 'Zwift',
-        packageName: "com.zwift.zwiftgame",
+        packageName: "Zwift",
         supportsZwiftEmulation: true,
         compatibleTargets: [
           Target.thisDevice,

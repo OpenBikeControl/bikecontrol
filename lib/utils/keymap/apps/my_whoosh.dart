@@ -10,7 +10,7 @@ class MyWhoosh extends SupportedApp {
   MyWhoosh()
     : super(
         name: 'MyWhoosh',
-        packageName: "com.mywhoosh.whooshgame",
+        packageName: "MyWhoosh",
         compatibleTargets: Target.values,
         supportsZwiftEmulation: false,
         star: true,
