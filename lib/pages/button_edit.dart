@@ -21,6 +21,7 @@ import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -260,7 +261,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
-                                      _keyPair.shortcutName = null;
+                                      _keyPair.command = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -277,7 +278,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
-                                      _keyPair.shortcutName = null;
+                                      _keyPair.command = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -294,7 +295,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
-                                      _keyPair.shortcutName = null;
+                                      _keyPair.command = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -311,7 +312,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
-                                      _keyPair.shortcutName = null;
+                                      _keyPair.command = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -328,7 +329,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
-                                      _keyPair.shortcutName = null;
+                                      _keyPair.command = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -346,7 +347,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
-                                      _keyPair.shortcutName = null;
+                                      _keyPair.command = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -400,7 +401,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                           _keyPair.touchPosition = Offset.zero;
                                           _keyPair.inGameAction = null;
                                           _keyPair.inGameActionValue = null;
-                                          _keyPair.shortcutName = null;
+                                          _keyPair.command = null;
                                           setState(() {});
                                           widget.onUpdate();
                                         },
@@ -433,7 +434,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           _keyPair.touchPosition = Offset.zero;
                           _keyPair.inGameAction = null;
                           _keyPair.inGameActionValue = null;
-                          _keyPair.shortcutName = null;
+                          _keyPair.command = null;
                           setState(() {});
                           widget.onUpdate();
                         },
@@ -441,17 +442,17 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                 ],
 
-                if (!kIsWeb && Platform.isMacOS) ...[
+                if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: 'Other Actions'),
                   SelectableCard(
                     isProOnly: true,
-                    title: Text('Launch Shortcut'),
-                    icon: Icons.rocket_launch_outlined,
-                    isActive: _keyPair.shortcutName?.trim().isNotEmpty == true,
-                    value: _keyPair.shortcutName,
+                    title: Text(Platform.isMacOS ? 'Launch Shortcut' : 'Run Command'),
+                    icon: Platform.isMacOS ? Icons.rocket_launch_outlined : Icons.terminal,
+                    isActive: _keyPair.command?.trim().isNotEmpty == true,
+                    value: _keyPair.command,
                     onPressed: () async {
-                      await _showShortcutNameDialog(context);
+                      await _showCommandDialog(context);
                     },
                   ),
                 ],
@@ -484,7 +485,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                           _keyPair.inGameAction = InGameAction.headwindSpeed;
                                           _keyPair.inGameActionValue = value;
                                           _keyPair.androidAction = null;
-                                          _keyPair.shortcutName = null;
+                                          _keyPair.command = null;
                                           widget.onUpdate();
                                           setState(() {});
                                         },
@@ -499,7 +500,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   _keyPair.inGameAction = InGameAction.headwindHeartRateMode;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
-                                  _keyPair.shortcutName = null;
+                                  _keyPair.command = null;
                                   widget.onUpdate();
                                   setState(() {});
                                 },
@@ -535,7 +536,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     _keyPair.inGameAction = null;
                     _keyPair.inGameActionValue = null;
                     _keyPair.androidAction = null;
-                    _keyPair.shortcutName = null;
+                    _keyPair.command = null;
                     widget.onUpdate();
                     setState(() {});
                   },
@@ -577,7 +578,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             _keyPair.physicalKey = null;
                             _keyPair.logicalKey = null;
                             _keyPair.androidAction = null;
-                            _keyPair.shortcutName = null;
+                            _keyPair.command = null;
                             _keyPair.inGameAction = action;
                             _keyPair.inGameActionValue = ingame;
                             _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
@@ -594,7 +595,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 _keyPair.physicalKey = null;
                 _keyPair.logicalKey = null;
                 _keyPair.androidAction = null;
-                _keyPair.shortcutName = null;
+                _keyPair.command = null;
                 _keyPair.inGameAction = action;
                 _keyPair.inGameActionValue = null;
                 _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
@@ -608,8 +609,26 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     }).toList();
   }
 
-  Future<void> _showShortcutNameDialog(BuildContext context) async {
-    final controller = TextEditingController(text: _keyPair.shortcutName ?? '');
+  Future<void> _showCommandDialog(BuildContext context) async {
+    if (Platform.isWindows) {
+      final result = await FilePicker.platform.pickFiles(
+        dialogTitle: 'Select command to run',
+        type: FileType.any,
+        allowMultiple: false,
+      );
+      if (result == null) {
+        return;
+      }
+      final selectedPath = result.files.single.path?.trim();
+      if (selectedPath == null || selectedPath.isEmpty) {
+        buildToast(title: 'No executable file selected');
+        return;
+      }
+      _setCommand(selectedPath);
+      return;
+    }
+
+    final controller = TextEditingController(text: _keyPair.command ?? '');
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -632,7 +651,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             onPressed: () => Navigator.pop(context),
             child: Text(context.i18n.cancel),
           ),
-          if (_keyPair.shortcutName?.trim().isNotEmpty == true)
+          if (_keyPair.command?.trim().isNotEmpty == true)
             TextButton(
               onPressed: () => Navigator.pop(context, ''),
               child: Text('Clear'),
@@ -650,9 +669,13 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     }
 
     final shortcutName = result.trim();
-    _keyPair.shortcutName = shortcutName.isEmpty ? null : shortcutName;
+    _setCommand(shortcutName.isEmpty ? null : shortcutName);
+  }
 
-    if (_keyPair.shortcutName != null) {
+  void _setCommand(String? value) {
+    _keyPair.command = value;
+
+    if (_keyPair.command != null) {
       _keyPair.physicalKey = null;
       _keyPair.logicalKey = null;
       _keyPair.modifiers = [];
@@ -747,7 +770,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   _keyPair.inGameAction = keyPairAction.inGameAction;
                   _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
                   _keyPair.androidAction = null;
-                  _keyPair.shortcutName = keyPairAction.shortcutName;
+                  _keyPair.command = keyPairAction.command;
                   setState(() {});
                 },
                 child: Column(
@@ -792,7 +815,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ),
       );
       _keyPair.androidAction = null;
-      _keyPair.shortcutName = null;
+      _keyPair.command = null;
       setState(() {});
       widget.onUpdate();
     } else if (supportedMode == SupportedMode.touch) {
@@ -802,7 +825,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       _keyPair.physicalKey = null;
       _keyPair.logicalKey = null;
       _keyPair.androidAction = null;
-      _keyPair.shortcutName = null;
+      _keyPair.command = null;
       await Navigator.of(context).push<bool?>(
         MaterialPageRoute(
           builder: (c) => TouchAreaSetupPage(

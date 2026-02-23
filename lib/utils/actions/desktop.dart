@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -22,20 +26,35 @@ class DesktopActions extends BaseActions {
     }
     final keyPair = supportedApp!.keymap.getKeyPair(button)!;
 
-    if (defaultTargetPlatform == TargetPlatform.macOS && keyPair.shortcutName?.trim().isNotEmpty == true) {
-      if (!core.settings.getLocalEnabled()) {
-        return Error('Enable local connection method first');
-      }
+    if (false) {
+      //defaultTargetPlatform == TargetPlatform.macOS && keyPair.command?.trim().isNotEmpty == true) {
       if (!isKeyDown) {
         return Ignored('Shortcut launch only runs on key down');
       }
-      final shortcutName = Uri.encodeQueryComponent(keyPair.shortcutName!.trim());
+      final shortcutName = Uri.encodeQueryComponent(keyPair.command!.trim());
       final launched = await launchUrlString('shortcuts://run-shortcut?name=$shortcutName');
       if (!launched) {
-        return Error('Failed to launch shortcut: ${keyPair.shortcutName}');
+        return Error('Failed to launch shortcut: ${keyPair.command}');
       }
       await IAPManager.instance.incrementCommandCount();
-      return Success('Shortcut launched: ${keyPair.shortcutName}');
+      return Success('Shortcut launched: ${keyPair.command}');
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.windows && keyPair.command?.trim().isNotEmpty == true) {
+      if (!isKeyDown) {
+        return Ignored('Command launch only runs on key down');
+      }
+      final commandPath = keyPair.command!.trim();
+      try {
+        final process = await Process.start(commandPath, const [], runInShell: true);
+        process.stderr.transform(const Utf8Decoder()).transform(const LineSplitter()).listen((line) {
+          core.connection.signalNotification(LogNotification('Command error: $line'));
+        });
+      } catch (e) {
+        return Error('Failed to run command: $e');
+      }
+      await IAPManager.instance.incrementCommandCount();
+      return Success('Command launched: $commandPath');
     }
 
     if (core.settings.getLocalEnabled()) {
