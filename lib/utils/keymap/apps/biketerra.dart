@@ -10,7 +10,7 @@ class Biketerra extends SupportedApp {
   Biketerra()
     : super(
         name: 'Biketerra',
-        packageName: "biketerra",
+        packageName: "Biketerra",
         compatibleTargets: Target.values,
         supportsZwiftEmulation: true,
         keymap: Keymap(

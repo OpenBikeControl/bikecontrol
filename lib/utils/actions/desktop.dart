@@ -6,6 +6,8 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
@@ -90,16 +92,20 @@ class DesktopActions extends BaseActions {
           );
         }
 
+        final trainerApp = core.settings.getTrainerApp();
+        // only those two seem to support targeting specific PIDs, for the rest we just send the key events globally
+        final packageName = (trainerApp is Rouvy || trainerApp is MyWhoosh) ? trainerApp!.packageName : null;
+
         if (isKeyDown && isKeyUp) {
           await keyPressSimulator.simulateKeyDown(
             keyPair.physicalKey,
             keyPair.modifiers,
-            core.settings.getTrainerApp()?.name,
+            packageName,
           );
           await keyPressSimulator.simulateKeyUp(
             keyPair.physicalKey,
             keyPair.modifiers,
-            core.settings.getTrainerApp()?.name,
+            packageName,
           );
 
           return Success('Key clicked: $keyPair');
