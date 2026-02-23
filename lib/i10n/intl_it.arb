@@ -152,10 +152,7 @@
       }
     }
   },
-    "targetAppNameLabel": "Nome app target (opzionale)",
-  "targetAppNameHint": "es. ROUVY",
-  "targetAppNameDescription": "Invia le pressioni dei tasti direttamente a questa app, anche quando non è in primo piano.",
-"enableLocalConnectionMethodFirst": "Abilitare prima il metodo di connessione locale.",
+  "enableLocalConnectionMethodFirst": "Abilitare prima il metodo di connessione locale.",
   "enableMediaKeyDetection": "Abilita rilevamento tasti multimediali",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Per prima cosa, abilita MyWhoosh Link nelle impostazioni di connessione.",
   "enablePairingProcess": "Funziona come un mouse Bluetooth",

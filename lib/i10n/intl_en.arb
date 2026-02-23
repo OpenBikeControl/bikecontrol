@@ -152,9 +152,6 @@
       }
     }
   },
-  "targetAppNameLabel": "Target App Name (optional)",
-  "targetAppNameHint": "e.g. ROUVY",
-  "targetAppNameDescription": "Send key presses directly to this app, even when it is not in focus.",
   "enableLocalConnectionMethodFirst": "Enable Local Connection method, first.",
   "enableMediaKeyDetection": "Enable Media Key Detection",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Enable MyWhoosh Link in the connection settings first.",

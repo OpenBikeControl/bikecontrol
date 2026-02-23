@@ -26,12 +26,10 @@ class _LocalTileState extends State<LocalTile> {
   bool _showAutoRotationWarning = false;
   bool _showMiuiWarning = false;
   StreamSubscription<bool>? _autoRotateStream;
-  late final TextEditingController _targetAppController;
 
   @override
   void initState() {
     super.initState();
-    _targetAppController = TextEditingController(text: core.settings.getTargetAppName() ?? '');
     if (core.logic.canRunAndroidService) {
       core.logic.isAndroidServiceRunning().then((isRunning) {
         core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
@@ -64,7 +62,6 @@ class _LocalTileState extends State<LocalTile> {
 
   @override
   void dispose() {
-    _targetAppController.dispose();
     _autoRotateStream?.cancel();
     super.dispose();
   }
@@ -191,24 +188,6 @@ class _LocalTileState extends State<LocalTile> {
           ],
         ),
     ];
-    final macosTargetAppField =
-        !Platform.isAndroid && !Platform.isIOS && core.settings.getLocalEnabled()
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 4,
-                children: [
-                  Text(context.i18n.targetAppNameLabel).small.bold,
-                  Text(context.i18n.targetAppNameDescription).xSmall.muted,
-                  TextField(
-                    controller: _targetAppController,
-                    placeholder: Text(context.i18n.targetAppNameHint),
-                    onChanged: (value) {
-                      core.settings.setTargetAppName(value.trim());
-                    },
-                  ),
-                ],
-              )
-            : null;
     return ConnectionMethod(
       supportedActions: null,
       isEnabled: core.settings.getLocalEnabled(),
@@ -236,12 +215,9 @@ class _LocalTileState extends State<LocalTile> {
           core.connection.signalNotification(LogNotification('Local Control: $value'));
         }
       },
-      additionalChild: (children.isNotEmpty || macosTargetAppField != null)
+      additionalChild: children.isNotEmpty
           ? Column(
-              children: [
-                ...children,
-                if (macosTargetAppField != null) macosTargetAppField,
-              ],
+              children: children,
             )
           : null,
     );

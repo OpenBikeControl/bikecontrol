@@ -48,7 +48,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           (kp) => kp.buttons.contains(clickedButton),
         );
         if (keyPair != null && !_isDrawerOpen) {
-          await _openKeyPairEditor(keyPair);
+          _openKeyPairEditor(keyPair);
         }
         setState(() {});
       }

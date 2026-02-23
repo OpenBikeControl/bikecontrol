@@ -10,8 +10,10 @@ import 'package:bike_control/widgets/title.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
+import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:intl/intl.dart';
+import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -168,6 +170,14 @@ class BKMenuButton extends StatelessWidget {
                 child: Text(context.i18n.reset),
                 onPressed: (c) async {
                   await core.settings.reset();
+                },
+              ),
+              MenuButton(
+                child: Text('Send Key'),
+                onPressed: (c) async {
+                  await Future.delayed(Duration(seconds: 2));
+                  await keyPressSimulator.simulateKeyDown(PhysicalKeyboardKey.keyK, [], 'Rouvy');
+                  await keyPressSimulator.simulateKeyUp(PhysicalKeyboardKey.keyK, [], 'Rouvy');
                 },
               ),
               MenuButton(

@@ -55,15 +55,16 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
         let keyDown: Bool = args["keyDown"] as! Bool
         let targetAppName: String? = args["targetAppName"] as? String
 
-        let event = _createKeyPressEvent(keyCode, modifiers, keyDown);
+        let event: CGEvent = _createKeyPressEvent(keyCode, modifiers, keyDown);
 
         if let appName = targetAppName, !appName.isEmpty {
             let runningApps = NSWorkspace.shared.runningApplications
             if let targetApp = runningApps.first(where: {
-                $0.localizedName?.lowercased() == appName.lowercased() ||
-                $0.executableURL?.deletingPathExtension().lastPathComponent.lowercased() == appName.lowercased()
+                $0.localizedName?.lowercased().contains(appName.lowercased()) == true ||
+                $0.executableURL?.deletingPathExtension().lastPathComponent.lowercased().contains(appName.lowercased()) == true
             }) {
-                CGEventPostToPid(targetApp.processIdentifier, event)
+                
+                event.postToPid(targetApp.processIdentifier)
                 result(true)
                 return
             }
@@ -127,7 +128,9 @@ public class KeypressSimulatorMacosPlugin: NSObject, FlutterPlugin {
         if (modifiers.contains("functionModifier")) {
             flags.insert(CGEventFlags.maskSecondaryFn)
         }
-        let eventKeyPress = CGEvent(keyboardEventSource: nil, virtualKey: virtualKey, keyDown: keyDown);
+        let src = CGEventSource(stateID: .hidSystemState)
+
+        let eventKeyPress = CGEvent(keyboardEventSource: src, virtualKey: virtualKey, keyDown: keyDown);
         eventKeyPress!.flags = flags
         return eventKeyPress!
     }

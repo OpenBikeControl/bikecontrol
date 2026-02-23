@@ -58,8 +58,6 @@ class DesktopActions extends BaseActions {
     }
 
     if (core.settings.getLocalEnabled()) {
-      final targetApp = core.settings.getTargetAppName();
-
       // Handle media keys
       if (keyPair.isSpecialKey) {
         if (!IAPManager.instance.hasActiveSubscription) {
@@ -93,15 +91,31 @@ class DesktopActions extends BaseActions {
         }
 
         if (isKeyDown && isKeyUp) {
-          await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers, targetApp);
-          await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers, targetApp);
+          await keyPressSimulator.simulateKeyDown(
+            keyPair.physicalKey,
+            keyPair.modifiers,
+            core.settings.getTrainerApp()?.name,
+          );
+          await keyPressSimulator.simulateKeyUp(
+            keyPair.physicalKey,
+            keyPair.modifiers,
+            core.settings.getTrainerApp()?.name,
+          );
 
           return Success('Key clicked: $keyPair');
         } else if (isKeyDown) {
-          await keyPressSimulator.simulateKeyDown(keyPair.physicalKey, keyPair.modifiers, targetApp);
+          await keyPressSimulator.simulateKeyDown(
+            keyPair.physicalKey,
+            keyPair.modifiers,
+            core.settings.getTrainerApp()?.name,
+          );
           return Success('Key pressed: $keyPair');
         } else {
-          await keyPressSimulator.simulateKeyUp(keyPair.physicalKey, keyPair.modifiers, targetApp);
+          await keyPressSimulator.simulateKeyUp(
+            keyPair.physicalKey,
+            keyPair.modifiers,
+            core.settings.getTrainerApp()?.name,
+          );
           return Success('Key released: $keyPair');
         }
       } else {
