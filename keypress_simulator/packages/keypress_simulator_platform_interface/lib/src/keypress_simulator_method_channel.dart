@@ -36,6 +36,7 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
     KeyboardKey? key,
     List<ModifierKey> modifiers = const [],
     bool keyDown = true,
+    String? targetApp,
   }) async {
     PhysicalKeyboardKey? physicalKey = key is PhysicalKeyboardKey ? key : null;
     if (key is LogicalKeyboardKey) {
@@ -48,6 +49,7 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
       'keyCode': physicalKey?.keyCode,
       'modifiers': modifiers.map((e) => e.name).toList(),
       'keyDown': keyDown,
+      'targetAppName': targetApp,
     }..removeWhere((key, value) => value == null);
     await methodChannel.invokeMethod('simulateKeyPress', arguments);
   }

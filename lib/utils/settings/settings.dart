@@ -428,6 +428,18 @@ class Settings {
     await prefs.setInt('sram_axs_double_click_window_ms', v);
   }
 
+  String? getTargetAppName() {
+    return prefs.getString('target_app_name');
+  }
+
+  Future<void> setTargetAppName(String? name) async {
+    if (name == null || name.isEmpty) {
+      await prefs.remove('target_app_name');
+    } else {
+      await prefs.setString('target_app_name', name);
+    }
+  }
+
   bool getShowOnboarding() {
     return !kIsWeb && (prefs.getBool('show_onboarding') ?? true);
   }
