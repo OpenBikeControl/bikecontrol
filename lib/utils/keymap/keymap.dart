@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -181,6 +182,8 @@ class KeyPair {
                   [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)) =>
         inGameAction!.icon,
 
+      _ when command != null && command!.trim().isNotEmpty =>
+        Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
       _
           when androidAction != null &&
               core.logic.showLocalControl &&
@@ -434,4 +437,9 @@ class KeyPair {
     androidAction,
     command,
   );
+
+  bool get isProAction =>
+      command != null && command!.trim().isNotEmpty ||
+      isSpecialKey ||
+      (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions);
 }

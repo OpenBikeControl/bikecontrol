@@ -442,13 +442,13 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                 ],
 
-                if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) ...[
+                if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: 'Other Actions'),
                   SelectableCard(
                     isProOnly: true,
-                    title: Text(Platform.isMacOS ? 'Launch Shortcut' : 'Run Command'),
-                    icon: Platform.isMacOS ? Icons.rocket_launch_outlined : Icons.terminal,
+                    title: Text(Platform.isMacOS || Platform.isIOS ? 'Launch Shortcut' : 'Run Command'),
+                    icon: Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
                     isActive: _keyPair.command?.trim().isNotEmpty == true,
                     value: _keyPair.command,
                     onPressed: () async {
@@ -638,7 +638,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 10,
           children: [
-            Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small,
+            if (Platform.isMacOS)
+              Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small
+            else
+              Text(
+                'Note that Shortcuts on iOS are very limited: BikeControl needs to be in the foreground when you want to run the command, and your shortcut should have "Open BikeControl" as its first action so BikeControl can continue to trigger shortcuts.',
+              ).small,
             TextField(
               controller: controller,
               hintText: 'Shortcut name',
