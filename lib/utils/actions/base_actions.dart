@@ -118,6 +118,12 @@ abstract class BaseActions {
     if (keyPair == null || keyPair.hasNoAction) {
       return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
     }
+
+    final guard = proGuard(keyPair);
+    if (guard is! NotHandled) {
+      return guard;
+    }
+
     // Handle Headwind actions
     if (keyPair.inGameAction == InGameAction.headwindSpeed ||
         keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
@@ -172,6 +178,14 @@ abstract class BaseActions {
       }
     }
     return NotHandled('');
+  }
+
+  ActionResult proGuard(KeyPair keyPair) {
+    if (keyPair.isProAction && !IAPManager.instance.hasActiveSubscription) {
+      return Error('Pro subscription required for action: $keyPair');
+    } else {
+      return NotHandled('');
+    }
   }
 }
 

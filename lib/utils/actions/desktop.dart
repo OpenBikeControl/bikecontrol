@@ -28,35 +28,30 @@ class DesktopActions extends BaseActions {
     }
     final keyPair = supportedApp!.keymap.getKeyPair(button)!;
 
-    if (false) {
-      //defaultTargetPlatform == TargetPlatform.macOS && keyPair.command?.trim().isNotEmpty == true) {
+    if (keyPair.command?.trim().isNotEmpty == true) {
       if (!isKeyDown) {
         return Ignored('Shortcut launch only runs on key down');
       }
-      final shortcutName = Uri.encodeQueryComponent(keyPair.command!.trim());
-      final launched = await launchUrlString('shortcuts://run-shortcut?name=$shortcutName');
-      if (!launched) {
-        return Error('Failed to launch shortcut: ${keyPair.command}');
-      }
-      await IAPManager.instance.incrementCommandCount();
-      return Success('Shortcut launched: ${keyPair.command}');
-    }
-
-    if (defaultTargetPlatform == TargetPlatform.windows && keyPair.command?.trim().isNotEmpty == true) {
-      if (!isKeyDown) {
-        return Ignored('Command launch only runs on key down');
-      }
       final commandPath = keyPair.command!.trim();
-      try {
-        final process = await Process.start(commandPath, const [], runInShell: true);
-        process.stderr.transform(const Utf8Decoder()).transform(const LineSplitter()).listen((line) {
-          core.connection.signalNotification(LogNotification('Command error: $line'));
-        });
-      } catch (e) {
-        return Error('Failed to run command: $e');
+      if (defaultTargetPlatform == TargetPlatform.macOS) {
+        final launched = await launchUrlString('shortcuts://run-shortcut?name=$commandPath');
+        if (!launched) {
+          return Error('Failed to launch shortcut: ${keyPair.command}');
+        }
+        await IAPManager.instance.incrementCommandCount();
+        return Success('Shortcut launched: ${keyPair.command}');
+      } else if (defaultTargetPlatform == TargetPlatform.windows) {
+        try {
+          final process = await Process.start(commandPath, const [], runInShell: true);
+          process.stderr.transform(const Utf8Decoder()).transform(const LineSplitter()).listen((line) {
+            core.connection.signalNotification(LogNotification('Command error: $line'));
+          });
+        } catch (e) {
+          return Error('Failed to run command: $e');
+        }
+        await IAPManager.instance.incrementCommandCount();
+        return Success('Command launched: $commandPath');
       }
-      await IAPManager.instance.incrementCommandCount();
-      return Success('Command launched: $commandPath');
     }
 
     if (core.settings.getLocalEnabled()) {

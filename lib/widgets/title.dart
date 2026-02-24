@@ -48,6 +48,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    IAPManager.instance.entitlements.addListener(_onEntitlementsUpdate);
 
     if (updater.isAvailable) {
       updater
@@ -83,6 +84,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
   @override
   dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    IAPManager.instance.entitlements.removeListener(_onEntitlementsUpdate);
     super.dispose();
   }
 
@@ -277,5 +279,9 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
         });
       }
     }
+  }
+
+  void _onEntitlementsUpdate() {
+    setState(() {});
   }
 }
