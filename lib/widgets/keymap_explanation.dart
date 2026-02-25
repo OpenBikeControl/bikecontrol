@@ -13,6 +13,7 @@ import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -179,6 +180,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   }) {
     final keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
     final longPressKeyPair = widget.keymap.getKeyPair(deviceButton, trigger: ButtonTrigger.longPress);
+    final showProBanner = _shouldShowProBanner(button: deviceButton, trigger: trigger);
     final hasAction = keyPair != null && !keyPair.hasNoAction;
     final hasLongPressAction = longPressKeyPair != null && !longPressKeyPair.hasNoAction;
     final usesLongPressToggleMode = !supportsLongPress && hasLongPressAction;
@@ -192,47 +194,71 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
     return LoadingWidget(
       futureCallback: () async {
-        await _onTriggerPressed(device: device, button: deviceButton, trigger: trigger, hasAction: hasAction);
+        await _onTriggerPressed(
+          device: device,
+          button: deviceButton,
+          trigger: trigger,
+          hasAction: hasAction,
+          forceConflictDialog: showProBanner,
+        );
       },
-      renderChild: (isLoading, tap) => Button.outline(
-        style: ButtonStyle.outline().withBorder(
-          border: hasAction
-              ? Border.all(color: BKColor.main, width: 2)
-              : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
-        ),
-        onPressed: isDisabled ? null : tap,
-        child: Container(
-          width: 120,
-          constraints: BoxConstraints(minHeight: 52),
-          child: isLoading
-              ? SmallProgressIndicator()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Align(alignment: Alignment.centerRight, child: Text(trigger.title).xSmall.muted),
-                    if (!isDisabled)
-                      Row(
-                        spacing: 6,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
-                          if (hasAction)
-                            Flexible(
-                              child: Text(actionText).small,
-                            ),
-                        ],
-                      ),
-                    if (hintText != null)
-                      Text(
-                        hintText,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ).xSmall.muted,
-                  ],
-                ),
-        ),
+      renderChild: (isLoading, tap) => Stack(
+        children: [
+          Button.outline(
+            style: ButtonStyle.outline().withBorder(
+              border: hasAction
+                  ? Border.all(color: BKColor.main, width: 2)
+                  : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
+            ),
+            onPressed: isDisabled ? null : tap,
+            child: Container(
+              width: 120,
+              constraints: BoxConstraints(minHeight: 52),
+              child: isLoading
+                  ? SmallProgressIndicator()
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: EdgeInsets.only(right: showProBanner ? 26 : 0),
+                            child: Text(trigger.title).xSmall.muted,
+                          ),
+                        ),
+                        if (!isDisabled)
+                          Row(
+                            spacing: 6,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
+                              if (hasAction)
+                                Flexible(
+                                  child: Text(actionText).small,
+                                ),
+                            ],
+                          ),
+                        if (hintText != null)
+                          Text(
+                            hintText,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ).xSmall.muted,
+                      ],
+                    ),
+            ),
+          ),
+          if (showProBanner)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: ProBadge(
+                borderRadius: BorderRadius.only(topRight: Radius.circular(6), bottomLeft: Radius.circular(6)),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -242,11 +268,14 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     required ControllerButton button,
     required ButtonTrigger trigger,
     required bool hasAction,
+    bool forceConflictDialog = false,
   }) async {
     final isPro = IAPManager.instance.hasActiveSubscription;
     final hasOtherAssignedTrigger = _hasActiveTriggerOtherThan(button, trigger);
 
-    if (!isPro && !hasAction && hasOtherAssignedTrigger) {
+    final shouldShowConflictDialog = forceConflictDialog || (!hasAction && hasOtherAssignedTrigger);
+
+    if (!isPro && shouldShowConflictDialog) {
       final resolution = await _showTriggerConflictDialog(trigger);
       if (!mounted || resolution == null) {
         return;
@@ -268,14 +297,23 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     await _openButtonEditor(device, button, trigger);
   }
 
-  bool _hasActiveTriggerOtherThan(ControllerButton button, ButtonTrigger trigger) {
-    return ButtonTrigger.values.any((candidate) {
-      if (candidate == trigger) {
-        return false;
-      }
-      final keyPair = widget.keymap.getKeyPair(button, trigger: candidate);
+  bool _shouldShowProBanner({required ControllerButton button, required ButtonTrigger trigger}) {
+    if (IAPManager.instance.hasActiveSubscription) {
+      return false;
+    }
+    final activeTriggers = _activeTriggers(button);
+    return activeTriggers.length > 1 && activeTriggers.skip(1).contains(trigger);
+  }
+
+  List<ButtonTrigger> _activeTriggers(ControllerButton button) {
+    return ButtonTrigger.values.where((trigger) {
+      final keyPair = widget.keymap.getKeyPair(button, trigger: trigger);
       return keyPair != null && !keyPair.hasNoAction;
-    });
+    }).toList();
+  }
+
+  bool _hasActiveTriggerOtherThan(ControllerButton button, ButtonTrigger trigger) {
+    return _activeTriggers(button).any((candidate) => candidate != trigger);
   }
 
   Future<_TriggerConflictResolution?> _showTriggerConflictDialog(ButtonTrigger trigger) {

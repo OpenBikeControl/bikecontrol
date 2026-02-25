@@ -124,7 +124,7 @@ abstract class BaseActions {
       return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
     }
 
-    final guard = proGuard(keyPair);
+    final guard = proGuard(button: button, trigger: trigger, keyPair: keyPair);
     if (guard is! NotHandled) {
       return guard;
     }
@@ -185,12 +185,27 @@ abstract class BaseActions {
     return NotHandled('');
   }
 
-  ActionResult proGuard(KeyPair keyPair) {
+  ActionResult proGuard({
+    required ControllerButton button,
+    required ButtonTrigger trigger,
+    required KeyPair keyPair,
+  }) {
     if (keyPair.isProAction && !IAPManager.instance.hasActiveSubscription) {
       return Error('Pro subscription required for action: $keyPair');
-    } else {
-      return NotHandled('');
     }
+
+    if (!IAPManager.instance.hasActiveSubscription && supportedApp != null) {
+      final activeTriggers = ButtonTrigger.values.where((candidate) {
+        final candidatePair = supportedApp!.keymap.getKeyPair(button, trigger: candidate);
+        return candidatePair != null && !candidatePair.hasNoAction;
+      }).toList();
+
+      if (activeTriggers.length > 1 && trigger != activeTriggers.first) {
+        return Error('Pro subscription required for additional trigger types');
+      }
+    }
+
+    return NotHandled('');
   }
 }
 

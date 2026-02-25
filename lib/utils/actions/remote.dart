@@ -28,7 +28,7 @@ class RemoteActions extends BaseActions {
       return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
     }
 
-    final guard = proGuard(keyPair);
+    final guard = proGuard(button: button, trigger: trigger, keyPair: keyPair);
     if (guard is! NotHandled) {
       return guard;
     }
