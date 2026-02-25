@@ -289,7 +289,8 @@ class _NavigationState extends State<Navigation> {
     return NavigationBar(
       padding: EdgeInsets.only(top: 6, left: 12, right: 12, bottom: 12) * Theme.of(context).scaling,
       labelType: NavigationLabelType.all,
-      alignment: NavigationBarAlignment.spaceEvenly,
+      alignment: NavigationBarAlignment.spaceAround,
+      spacing: 8,
       selectedKey: _pageKeys[_selectedPage],
       onSelected: (Key? key) {
         setState(() {
@@ -323,16 +324,19 @@ class _NavigationState extends State<Navigation> {
             },
           ),
           enabled: _isPageEnabled(page),
-          label: Text(
-            page == BCPage.trainer && !screenshotMode
-                ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
-                : page.getTitle(context),
-            style: TextStyle(
-              color: !_isPageEnabled(page)
-                  ? null
-                  : Theme.of(context).colorScheme.brightness == Brightness.dark
-                  ? Colors.white
-                  : null,
+          label: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              page == BCPage.trainer && !screenshotMode
+                  ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
+                  : page.getTitle(context),
+              style: TextStyle(
+                color: !_isPageEnabled(page)
+                    ? null
+                    : Theme.of(context).colorScheme.brightness == Brightness.dark
+                    ? Colors.white
+                    : null,
+              ),
             ),
           ),
           child: _buildIcon(page),
