@@ -12,6 +12,7 @@ import 'package:flutter/src/scheduler/ticker.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../widgets/ui/small_progress_indicator.dart';
 
@@ -174,6 +175,15 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
           ] else if (!ftmsEmulator.isConnected.value) ...[
             Text(AppLocalizations.of(context).unlock_openZwift).li,
             Text(AppLocalizations.of(context).unlock_connectToBikecontrol).li,
+            GhostButton(
+              leading: Icon(Icons.play_circle_outline),
+              onPressed: () {
+                launchUrlString(
+                  'https://www.reddit.com/r/BikeControl/comments/1qt9cg5/great_news_for_zwift_click_v2_owners_introducing/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button',
+                );
+              },
+              child: Text('Example Video'),
+            ),
             SizedBox(height: 32),
             Text(AppLocalizations.of(context).unlock_bikecontrolAndZwiftNetwork).small,
           ] else if (ftmsEmulator.alreadyUnlocked.value) ...[
