@@ -42,6 +42,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   late StreamSubscription<BaseNotification> _actionSubscription;
 
   bool _isDrawerOpen = false;
+  bool _isMobile = false;
 
   @override
   void initState() {
@@ -68,6 +69,13 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         setState(() {});
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    _isMobile = MediaQuery.sizeOf(context).width < 860;
   }
 
   @override
@@ -118,52 +126,102 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
             Card(
               fillColor: Theme.of(context).colorScheme.background,
               filled: true,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Basic(
-                      leading: SizedBox(
-                        width: 58,
-                        child: Center(
-                          child: IntrinsicHeight(
-                            child: ButtonWidget(
-                              button: button,
-                              big: true,
+              borderColor: ComponentTheme.maybeOf<DividerTheme>(context)?.color ?? Theme.of(context).colorScheme.border,
+              padding: _isMobile ? EdgeInsets.zero : null,
+              clipBehavior: Clip.antiAlias,
+              child: _isMobile
+                  ? Column(
+                      children: [
+                        Container(
+                          color: Theme.of(context).colorScheme.card.withAlpha(70),
+                          height: 52,
+                          child: Row(
+                            children: [
+                              Transform.scale(
+                                scale: 0.7,
+                                child: SizedBox(
+                                  width: 80,
+                                  child: ButtonWidget(
+                                    button: button,
+                                    big: true,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(button.name.splitByUpperCase()).medium.small,
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildTriggerButton(
+                          context,
+                          device: devicePair.key,
+                          deviceButton: button,
+                          trigger: ButtonTrigger.singleClick,
+                          supportsLongPress: devicePair.key.supportsLongPress,
+                        ),
+                        _buildTriggerButton(
+                          context,
+                          device: devicePair.key,
+                          deviceButton: button,
+                          trigger: ButtonTrigger.doubleClick,
+                          supportsLongPress: devicePair.key.supportsLongPress,
+                        ),
+                        _buildTriggerButton(
+                          context,
+                          device: devicePair.key,
+                          deviceButton: button,
+                          trigger: ButtonTrigger.longPress,
+                          supportsLongPress: devicePair.key.supportsLongPress,
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Basic(
+                            leading: SizedBox(
+                              width: 58,
+                              child: Center(
+                                child: IntrinsicHeight(
+                                  child: ButtonWidget(
+                                    button: button,
+                                    big: true,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            content: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _buildTriggerButton(
+                                  context,
+                                  device: devicePair.key,
+                                  deviceButton: button,
+                                  trigger: ButtonTrigger.singleClick,
+                                  supportsLongPress: devicePair.key.supportsLongPress,
+                                ),
+                                _buildTriggerButton(
+                                  context,
+                                  device: devicePair.key,
+                                  deviceButton: button,
+                                  trigger: ButtonTrigger.doubleClick,
+                                  supportsLongPress: devicePair.key.supportsLongPress,
+                                ),
+                                _buildTriggerButton(
+                                  context,
+                                  device: devicePair.key,
+                                  deviceButton: button,
+                                  trigger: ButtonTrigger.longPress,
+                                  supportsLongPress: devicePair.key.supportsLongPress,
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                      content: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _buildTriggerButton(
-                            context,
-                            device: devicePair.key,
-                            deviceButton: button,
-                            trigger: ButtonTrigger.singleClick,
-                            supportsLongPress: devicePair.key.supportsLongPress,
-                          ),
-                          _buildTriggerButton(
-                            context,
-                            device: devicePair.key,
-                            deviceButton: button,
-                            trigger: ButtonTrigger.doubleClick,
-                            supportsLongPress: devicePair.key.supportsLongPress,
-                          ),
-                          _buildTriggerButton(
-                            context,
-                            device: devicePair.key,
-                            deviceButton: button,
-                            trigger: ButtonTrigger.longPress,
-                            supportsLongPress: devicePair.key.supportsLongPress,
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ],
         ],
@@ -192,6 +250,51 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       _ => null,
     };
 
+    final column = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
+      spacing: _isMobile ? 4 : 0,
+      children: [
+        Align(
+          alignment: _isMobile ? Alignment.centerLeft : Alignment.centerRight,
+          child: Padding(
+            padding: EdgeInsets.only(right: showProBanner ? 26 : 0),
+            child: Text(trigger.title).xSmall.muted,
+          ),
+        ),
+        if (!isDisabled)
+          Row(
+            spacing: 6,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
+              if (hasAction || _isMobile)
+                Flexible(
+                  child: Text(
+                    actionText,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: _isMobile && !hasAction
+                        ? TextStyle(
+                            color: Colors.black.withAlpha(60),
+                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.normal,
+                          )
+                        : null,
+                  ).small,
+                ),
+            ],
+          ),
+        if (hintText != null)
+          Text(
+            hintText,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ).xSmall.muted,
+      ],
+    );
+
     return LoadingWidget(
       futureCallback: () async {
         await _onTriggerPressed(
@@ -204,52 +307,35 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       },
       renderChild: (isLoading, tap) => Stack(
         children: [
-          Button.outline(
-            style: ButtonStyle.outline().withBorder(
-              border: hasAction
-                  ? Border.all(color: BKColor.main, width: 2)
-                  : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
+          if (_isMobile) ...[
+            Divider(),
+            Button.ghost(
+              onPressed: isDisabled ? null : tap,
+              child: Container(
+                width: _isMobile ? null : 120,
+                constraints: BoxConstraints(minHeight: 52),
+                child: Row(
+                  children: [
+                    Expanded(child: column),
+                    if (isLoading) SmallProgressIndicator() else if (hasAction) Icon(Icons.chevron_right),
+                  ],
+                ),
+              ),
             ),
-            onPressed: isDisabled ? null : tap,
-            child: Container(
-              width: 120,
-              constraints: BoxConstraints(minHeight: 52),
-              child: isLoading
-                  ? SmallProgressIndicator()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.only(right: showProBanner ? 26 : 0),
-                            child: Text(trigger.title).xSmall.muted,
-                          ),
-                        ),
-                        if (!isDisabled)
-                          Row(
-                            spacing: 6,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
-                              if (hasAction)
-                                Flexible(
-                                  child: Text(actionText).small,
-                                ),
-                            ],
-                          ),
-                        if (hintText != null)
-                          Text(
-                            hintText,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ).xSmall.muted,
-                      ],
-                    ),
+          ] else
+            Button.outline(
+              style: ButtonStyle.outline().withBorder(
+                border: hasAction
+                    ? Border.all(color: BKColor.main, width: 2)
+                    : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
+              ),
+              onPressed: isDisabled ? null : tap,
+              child: Container(
+                width: _isMobile ? null : 140,
+                constraints: BoxConstraints(minHeight: 52),
+                child: isLoading ? SmallProgressIndicator() : column,
+              ),
             ),
-          ),
           if (showProBanner)
             Positioned(
               top: 0,
