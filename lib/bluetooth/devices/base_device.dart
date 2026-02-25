@@ -19,6 +19,7 @@ import '../messages/notification.dart';
 abstract class BaseDevice {
   final String? _name;
   final bool isBeta;
+  final bool supportsLongPress;
   final String uniqueId;
   final List<ControllerButton> availableButtons;
 
@@ -27,6 +28,7 @@ abstract class BaseDevice {
     required this.uniqueId,
     required this.availableButtons,
     this.isBeta = false,
+    this.supportsLongPress = true,
     String? buttonPrefix,
   }) {
     if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
@@ -68,32 +70,36 @@ abstract class BaseDevice {
 
   Future<void> connect();
 
-  Future<void> handleButtonsClickedWithoutLongPressSupport(List<ControllerButton> clickedButtons) async {
+  Future<void> _handleButtonsClickedWithoutLongPressSupport(List<ControllerButton> clickedButtons) async {
     if (clickedButtons.length == 1) {
       final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(clickedButtons.single);
       if (keyPair != null && (keyPair.isLongPress || keyPair.inGameAction?.isLongPress == true)) {
         // For long press actions: perform down, wait, then release
-        await handleButtonsClicked(clickedButtons, longPress: true);
+        await _handleButtonsClickedInternal(clickedButtons, longPress: true);
         _longPressTimer?.cancel();
         await Future.delayed(const Duration(milliseconds: 800));
-        await handleButtonsClicked([], longPress: true);
+        await _handleButtonsClickedInternal([], longPress: true);
       } else {
         // For non-long-press actions: perform a single click
         // First call performs the click action (isKeyDown: true, isKeyUp: true)
-        await handleButtonsClicked(clickedButtons);
+        await _handleButtonsClickedInternal(clickedButtons, longPress: false);
         // Second call cleans up state (clears timer, logs release, clears _previouslyPressedButtons)
         // but doesn't perform a release action since longPress: false
-        await handleButtonsClicked([]);
+        await _handleButtonsClickedInternal([], longPress: false);
       }
     } else {
-      await handleButtonsClicked(clickedButtons);
-      await handleButtonsClicked([]);
+      await _handleButtonsClickedInternal(clickedButtons, longPress: false);
+      await _handleButtonsClickedInternal([], longPress: false);
     }
   }
 
   Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked, {bool longPress = false}) async {
     try {
-      await _handleButtonsClickedInternal(buttonsClicked, longPress: longPress);
+      if (!supportsLongPress) {
+        await _handleButtonsClickedWithoutLongPressSupport(buttonsClicked ?? []);
+      } else {
+        await _handleButtonsClickedInternal(buttonsClicked, longPress: longPress);
+      }
     } catch (e, st) {
       actionStreamInternal.add(
         LogNotification('Error handling button clicks: $e\n$st'),

@@ -42,6 +42,7 @@ abstract class BluetoothDevice extends BaseDevice {
     required List<ControllerButton> availableButtons,
     bool allowMultiple = false,
     bool isBeta = false,
+    bool supportsLongPress = true,
     String? buttonPrefix,
   }) : super(
          scanResult.name,
@@ -50,6 +51,7 @@ abstract class BluetoothDevice extends BaseDevice {
              ? availableButtons.toList().map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
              : availableButtons.toList(),
          isBeta: isBeta,
+         supportsLongPress: supportsLongPress,
          buttonPrefix: buttonPrefix,
        ) {
     rssi = scanResult.rssi;
