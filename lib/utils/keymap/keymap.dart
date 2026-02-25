@@ -49,18 +49,63 @@ class Keymap {
     return keyPairs.joinToString(
       separator: ('\n---------\n'),
       transform: (k) =>
-          '''Button: ${k.buttons.joinToString(transform: (e) => e.name)}\nKeyboard key: ${k.logicalKey?.keyLabel ?? 'Not assigned'}\nAction: ${k.buttons.firstOrNull?.action}${k.touchPosition != Offset.zero ? '\nTouch Position: ${k.touchPosition.toString()}' : ''}${k.isLongPress ? '\nLong Press: Enabled' : ''}''',
+          '''Button: ${k.buttons.joinToString(transform: (e) => e.name)}\nTrigger: ${k.trigger.title}\nKeyboard key: ${k.logicalKey?.keyLabel ?? 'Not assigned'}\nAction: ${k.buttons.firstOrNull?.action}${k.touchPosition != Offset.zero ? '\nTouch Position: ${k.touchPosition.toString()}' : ''}''',
     );
   }
 
   PhysicalKeyboardKey? getPhysicalKey(ControllerButton action) {
     // get the key pair by in game action
-    return keyPairs.firstOrNullWhere((element) => element.buttons.contains(action))?.physicalKey;
+    return getKeyPair(action, trigger: ButtonTrigger.singleClick)?.physicalKey;
   }
 
-  KeyPair? getKeyPair(ControllerButton action) {
-    // get the key pair by in game action
-    return keyPairs.firstOrNullWhere((element) => element.buttons.contains(action));
+  List<KeyPair> getKeyPairs(ControllerButton action) {
+    return keyPairs.where((element) => element.buttons.contains(action)).toList();
+  }
+
+  KeyPair? getKeyPair(ControllerButton action, {ButtonTrigger? trigger}) {
+    final pairs = getKeyPairs(action);
+    if (trigger != null) {
+      return pairs.firstOrNullWhere((element) => element.trigger == trigger);
+    }
+    return pairs.firstOrNullWhere((element) => element.trigger == ButtonTrigger.singleClick) ?? pairs.firstOrNull;
+  }
+
+  KeyPair getOrCreateKeyPair(ControllerButton button, {required ButtonTrigger trigger}) {
+    final existing = getKeyPair(button, trigger: trigger);
+    if (existing != null) {
+      if (existing.buttons.length > 1) {
+        existing.buttons.remove(button);
+        final keyPair = KeyPair(
+          touchPosition: existing.touchPosition,
+          buttons: [button],
+          physicalKey: existing.physicalKey,
+          logicalKey: existing.logicalKey,
+          modifiers: List.of(existing.modifiers),
+          trigger: existing.trigger,
+          inGameAction: existing.inGameAction,
+          inGameActionValue: existing.inGameActionValue,
+          androidAction: existing.androidAction,
+          command: existing.command,
+        );
+        addKeyPair(keyPair);
+        return keyPair;
+      }
+      return existing;
+    }
+
+    final keyPair = KeyPair(
+      touchPosition: Offset.zero,
+      buttons: [button],
+      physicalKey: null,
+      logicalKey: null,
+      trigger: trigger,
+    );
+    addKeyPair(keyPair);
+    return keyPair;
+  }
+
+  bool hasAnyMappedAction(ControllerButton button) {
+    return getKeyPairs(button).any((keyPair) => !keyPair.hasNoAction);
   }
 
   void reset() {
@@ -68,7 +113,7 @@ class Keymap {
       keyPair.physicalKey = null;
       keyPair.logicalKey = null;
       keyPair.touchPosition = Offset.zero;
-      keyPair.isLongPress = false;
+      keyPair.trigger = ButtonTrigger.singleClick;
       keyPair.inGameAction = null;
       keyPair.inGameActionValue = null;
       keyPair.androidAction = null;
@@ -96,7 +141,7 @@ class Keymap {
           physicalKey: null,
           logicalKey: null,
           inGameAction: button.action,
-          isLongPress: button.action?.isLongPress ?? false,
+          trigger: button.action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick,
         ),
       );
       return button;
@@ -106,9 +151,14 @@ class Keymap {
   }
 
   void addNewButtons(List<ControllerButton> availableButtons) {
-    final newButtons = availableButtons.filter((button) => getKeyPair(button) == null);
+    final newButtons = availableButtons.filter(
+      (button) => getKeyPair(button, trigger: ButtonTrigger.singleClick) == null,
+    );
     for (final button in newButtons) {
-      final buttonFromBase = core.settings.getTrainerApp()?.keymap.getKeyPair(button);
+      final buttonFromBase = core.settings.getTrainerApp()?.keymap.getKeyPair(
+        button,
+        trigger: ButtonTrigger.singleClick,
+      );
       addKeyPair(
         KeyPair(
           touchPosition: buttonFromBase?.touchPosition ?? Offset.zero,
@@ -116,7 +166,9 @@ class Keymap {
           inGameAction: button.action,
           physicalKey: buttonFromBase?.physicalKey,
           logicalKey: buttonFromBase?.logicalKey,
-          isLongPress: buttonFromBase?.isLongPress ?? false,
+          trigger:
+              buttonFromBase?.trigger ??
+              (button.action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
           inGameActionValue: buttonFromBase?.inGameActionValue,
           androidAction: buttonFromBase?.androidAction,
           command: buttonFromBase?.command,
@@ -136,7 +188,7 @@ class KeyPair {
   LogicalKeyboardKey? logicalKey;
   List<ModifierKey> modifiers;
   Offset touchPosition;
-  bool isLongPress;
+  ButtonTrigger trigger;
   InGameAction? inGameAction;
   int? inGameActionValue;
   AndroidSystemAction? androidAction;
@@ -148,12 +200,27 @@ class KeyPair {
     required this.logicalKey,
     this.modifiers = const [],
     this.touchPosition = Offset.zero,
-    this.isLongPress = false,
+    this.trigger = ButtonTrigger.singleClick,
+    bool isLongPress = false,
     this.inGameAction,
     this.inGameActionValue,
     this.androidAction,
     this.command,
-  });
+  }) {
+    if (isLongPress) {
+      this.trigger = ButtonTrigger.longPress;
+    }
+  }
+
+  bool get isLongPress => trigger == ButtonTrigger.longPress;
+
+  set isLongPress(bool value) {
+    if (value) {
+      trigger = ButtonTrigger.longPress;
+    } else if (trigger == ButtonTrigger.longPress) {
+      trigger = ButtonTrigger.singleClick;
+    }
+  }
 
   bool get isSpecialKey =>
       physicalKey == PhysicalKeyboardKey.mediaPlayPause ||
@@ -323,6 +390,8 @@ class KeyPair {
       if (physicalKey != null) 'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
       if (modifiers.isNotEmpty) 'modifiers': modifiers.map((e) => e.name).toList(),
       if (touchPosition != Offset.zero) 'touchPosition': {'x': touchPosition.dx, 'y': touchPosition.dy},
+      'trigger': trigger.name,
+      // Keep for backward compatibility with older app versions.
       'isLongPress': isLongPress,
       'inGameAction': inGameAction?.name,
       'inGameActionValue': inGameActionValue,
@@ -386,6 +455,10 @@ class KeyPair {
     final rawCommand = decoded['command']?.toString().trim();
     final rawLegacyShortcutName = decoded['shortcutName']?.toString().trim();
 
+    final decodedTrigger = decoded.containsKey('trigger')
+        ? ButtonTrigger.values.firstOrNullWhere((element) => element.name == decoded['trigger'])
+        : null;
+
     return KeyPair(
       buttons: buttons,
       logicalKey: decoded.containsKey('logicalKey') && int.parse(decoded['logicalKey']) != 0
@@ -396,7 +469,8 @@ class KeyPair {
           : null,
       modifiers: modifiers,
       touchPosition: touchPosition,
-      isLongPress: decoded['isLongPress'] ?? false,
+      trigger:
+          decodedTrigger ?? ((decoded['isLongPress'] ?? false) ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
       inGameAction: decoded.containsKey('inGameAction')
           ? InGameAction.values.firstOrNullWhere((element) => element.name == decoded['inGameAction'])
           : null,
@@ -419,7 +493,7 @@ class KeyPair {
           logicalKey == other.logicalKey &&
           modifiers == other.modifiers &&
           touchPosition == other.touchPosition &&
-          isLongPress == other.isLongPress &&
+          trigger == other.trigger &&
           inGameAction == other.inGameAction &&
           inGameActionValue == other.inGameActionValue &&
           androidAction == other.androidAction &&
@@ -431,7 +505,7 @@ class KeyPair {
     logicalKey,
     modifiers,
     touchPosition,
-    isLongPress,
+    trigger,
     inGameAction,
     inGameActionValue,
     androidAction,
@@ -442,4 +516,18 @@ class KeyPair {
       command != null && command!.trim().isNotEmpty ||
       isSpecialKey ||
       (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions);
+}
+
+enum ButtonTrigger {
+  singleClick,
+  doubleClick,
+  longPress;
+
+  String get title {
+    return switch (this) {
+      ButtonTrigger.singleClick => 'Single Click',
+      ButtonTrigger.doubleClick => 'Double Click',
+      ButtonTrigger.longPress => 'Long Press',
+    };
+  }
 }

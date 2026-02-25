@@ -63,13 +63,18 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
-    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+  Future<ActionResult> performAction(
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp, trigger: trigger);
     if (superResult is! NotHandled) {
       // Increment command count after successful execution
       return superResult;
     }
-    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
+    final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger)!;
 
     if (keyPair.isSpecialKey) {
       if (!IAPManager.instance.hasActiveSubscription) {

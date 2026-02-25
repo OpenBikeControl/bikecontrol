@@ -5,16 +5,21 @@ import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/messages/notification.dart';
-import '../pages/touch_area.dart';
+import '../utils/iap/iap_manager.dart';
 
 class KeymapExplanation extends StatefulWidget {
   final Keymap keymap;
@@ -44,11 +49,8 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       }
       if (data is ButtonNotification && data.buttonsClicked.length == 1) {
         final clickedButton = data.buttonsClicked.first;
-        final keyPair = widget.keymap.keyPairs.firstOrNullWhere(
-          (kp) => kp.buttons.contains(clickedButton),
-        );
-        if (keyPair != null && !_isDrawerOpen) {
-          _openKeyPairEditor(keyPair);
+        if (!_isDrawerOpen) {
+          _openButtonEditor(clickedButton, ButtonTrigger.singleClick);
         }
         setState(() {});
       }
@@ -75,17 +77,10 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   @override
   Widget build(BuildContext context) {
-    final keyButtonMap = core.connection.controllerDevices.associateWith((d) {
-      final allButtons = d.availableButtons;
-      return widget.keymap.keyPairs
-          .whereNot(
-            (keyPair) => keyPair.buttons.filter((b) => allButtons.contains(b)).isEmpty,
-          )
-          .sortedBy(
-            (k) => k.buttons.first.color != null
-                ? '0${(k.buttons.first.icon?.codePoint ?? 0 * -1)}'
-                : '1${(k.buttons.first.icon?.codePoint ?? 0 * -1)}',
-          );
+    final keyButtonMap = core.connection.controllerDevices.associateWith((device) {
+      return device.availableButtons.distinct().sortedBy(
+        (button) => button.color != null ? '0${(button.icon?.codePoint ?? 0)}' : '1${(button.icon?.codePoint ?? 0)}',
+      );
     });
 
     return Column(
@@ -106,56 +101,54 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
               devicePair.key.buttonExplanation,
               style: TextStyle(height: 1),
             ).muted,
-          for (final keyPair in devicePair.value) ...[
-            Button.card(
-              style: ButtonStyle.card().withBackgroundColor(color: Theme.of(context).colorScheme.background),
-              onPressed: () async {
-                _openKeyPairEditor(keyPair);
-              },
+          for (final button in devicePair.value) ...[
+            Card(
+              fillColor: Theme.of(context).colorScheme.background,
+              filled: true,
               child: Row(
                 children: [
                   Expanded(
                     child: Basic(
                       leading: SizedBox(
-                        width: 68,
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          runAlignment: WrapAlignment.center,
-                          children: [
-                            if (core.actionHandler.supportedApp is! CustomApp)
-                              for (final button in keyPair.buttons)
-                                IntrinsicWidth(
-                                  child: ButtonWidget(
-                                    button: button,
-                                    big: true,
-                                  ),
-                                )
-                            else
-                              for (final button in keyPair.buttons)
-                                IntrinsicWidth(
-                                  child: ButtonWidget(
-                                    button: button,
-                                    big: true,
-                                  ),
-                                ),
-                          ],
+                        width: 58,
+                        child: Center(
+                          child: IntrinsicWidth(
+                            child: ButtonWidget(
+                              button: button,
+                              big: true,
+                            ),
+                          ),
                         ),
                       ),
-                      content: (keyPair.buttons.isNotEmpty && keyPair.hasActiveAction)
-                          ? KeypairExplanation(
-                              keyPair: keyPair,
-                            )
-                          : Text(
-                              core.logic.hasNoConnectionMethod
-                                  ? AppLocalizations.of(context).noConnectionMethodSelected
-                                  : context.i18n.noActionAssigned,
-                              style: TextStyle(height: 1),
-                            ).muted,
+                      content: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildTriggerButton(
+                            context,
+                            isPro: false,
+                            deviceButton: button,
+                            trigger: ButtonTrigger.singleClick,
+                            supportsLongPress: devicePair.key.supportsLongPress,
+                          ),
+                          _buildTriggerButton(
+                            context,
+                            isPro: true,
+                            deviceButton: button,
+                            trigger: ButtonTrigger.doubleClick,
+                            supportsLongPress: devicePair.key.supportsLongPress,
+                          ),
+                          _buildTriggerButton(
+                            context,
+                            isPro: true,
+                            deviceButton: button,
+                            trigger: ButtonTrigger.longPress,
+                            supportsLongPress: devicePair.key.supportsLongPress,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  Icon(Icons.edit_outlined, size: 26),
                 ],
               ),
             ),
@@ -165,8 +158,91 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     );
   }
 
-  Future<void> _openKeyPairEditor(KeyPair keyPair) async {
-    KeyPair selectedKeyPair = keyPair;
+  Widget _buildTriggerButton(
+    BuildContext context, {
+    required bool isPro,
+    required ControllerButton deviceButton,
+    required ButtonTrigger trigger,
+    required bool supportsLongPress,
+  }) {
+    final keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
+    final needsPro = isPro && !IAPManager.instance.hasActiveSubscription;
+    final hasAction = keyPair != null && !keyPair.hasNoAction;
+    final isDisabled = trigger == ButtonTrigger.longPress && !supportsLongPress;
+    final actionText = isDisabled
+        ? 'Long press is not supported by this device.'
+        : hasAction
+        ? keyPair.toString()
+        : context.i18n.noActionAssigned;
+
+    return Stack(
+      children: [
+        LoadingWidget(
+          futureCallback: () async {
+            if (needsPro) {
+              await IAPManager.instance.purchaseSubscription(context);
+            } else {
+              await _openButtonEditor(deviceButton, trigger);
+            }
+          },
+          renderChild: (isLoading, tap) => Button.outline(
+            style: ButtonStyle.outline().withBorder(
+              border: hasAction
+                  ? Border.all(color: BKColor.main, width: 2)
+                  : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
+            ),
+            onPressed: isDisabled ? null : tap,
+            child: Container(
+              width: 120,
+              constraints: BoxConstraints(minHeight: 52),
+              child: isLoading
+                  ? SmallProgressIndicator()
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: EdgeInsets.only(right: needsPro ? 26 : 0),
+                            child: Text(trigger.title).xSmall.muted,
+                          ),
+                        ),
+                        Row(
+                          spacing: 6,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isDisabled)
+                              Icon(Icons.info_outline, size: 14)
+                            else if (hasAction)
+                              Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
+                            if (hasAction)
+                              Flexible(
+                                child: Text(actionText).small,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+
+        if (needsPro)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: ProBadge(
+              borderRadius: BorderRadius.only(topRight: Radius.circular(6), bottomLeft: Radius.circular(6)),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _openButtonEditor(ControllerButton button, ButtonTrigger trigger) async {
+    Keymap selectedKeymap = widget.keymap;
     if (core.actionHandler.supportedApp is! CustomApp) {
       final currentProfile = core.actionHandler.supportedApp!.name;
       final newName = await KeymapManager().duplicate(
@@ -176,19 +252,21 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       );
       if (newName != null && context.mounted) {
         buildToast(title: context.i18n.createdNewCustomProfile(newName));
-        selectedKeyPair = core.actionHandler.supportedApp!.keymap.keyPairs.firstWhere(
-          (e) => e == keyPair,
-        );
+        selectedKeymap = core.actionHandler.supportedApp!.keymap;
       }
     }
+
+    final selectedKeyPair = selectedKeymap.getOrCreateKeyPair(button, trigger: trigger);
+
     _isDrawerOpen = true;
     await openDrawer(
       context: context,
       builder: (c) => ButtonEditPage(
         keyPair: selectedKeyPair,
-        keymap: widget.keymap,
+        keymap: selectedKeymap,
+        trigger: trigger,
         onUpdate: () {
-          widget.keymap.signalUpdate();
+          selectedKeymap.signalUpdate();
           widget.onUpdate();
         },
       ),

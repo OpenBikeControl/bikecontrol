@@ -16,8 +16,13 @@ class RemoteActions extends BaseActions {
   RemoteActions({super.supportedModes = const [SupportedMode.touch, SupportedMode.keyboard]});
 
   @override
-  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
-    final keyPair = supportedApp!.keymap.getKeyPair(button);
+  Future<ActionResult> performAction(
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
+    final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger);
 
     if (keyPair == null || keyPair.hasNoAction) {
       return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
@@ -41,7 +46,7 @@ class RemoteActions extends BaseActions {
       return Success('Shortcut launched: ${keyPair.command}');
     }
 
-    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp, trigger: trigger);
     if (superResult is! NotHandled) {
       return superResult;
     }

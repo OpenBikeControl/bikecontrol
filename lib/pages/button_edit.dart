@@ -30,8 +30,15 @@ import 'package:url_launcher/url_launcher_string.dart';
 class ButtonEditPage extends StatefulWidget {
   final Keymap keymap;
   final KeyPair keyPair;
+  final ButtonTrigger trigger;
   final VoidCallback onUpdate;
-  const ButtonEditPage({super.key, required this.keyPair, required this.onUpdate, required this.keymap});
+  const ButtonEditPage({
+    super.key,
+    required this.keyPair,
+    required this.onUpdate,
+    required this.keymap,
+    required this.trigger,
+  });
 
   @override
   State<ButtonEditPage> createState() => _ButtonEditPageState();
@@ -63,21 +70,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   void initState() {
     super.initState();
     _keyPair = widget.keyPair;
+    _keyPair.trigger = widget.trigger;
     _actionSubscription = core.connection.actionStream.listen((data) async {
       if (!mounted) {
         return;
       }
       if (data is ButtonNotification && data.buttonsClicked.length == 1) {
         final clickedButton = data.buttonsClicked.first;
-        final keyPair = widget.keymap.keyPairs.firstOrNullWhere(
-          (kp) => kp.buttons.contains(clickedButton),
-        );
-        if (keyPair != null) {
-          setState(() {
-            _keyPair = keyPair;
-          });
-          _triggerBump();
-        }
+        final keyPair = widget.keymap.getOrCreateKeyPair(clickedButton, trigger: widget.trigger);
+        setState(() {
+          _keyPair = keyPair;
+        });
+        _triggerBump();
       }
     });
   }
@@ -129,6 +133,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                   ],
                 ),
+                Text('Editing ${widget.trigger.title}').xSmall.muted,
                 if (core.logic.hasNoConnectionMethod)
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 300),
@@ -515,20 +520,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 SizedBox(height: 8),
                 ColoredTitle(text: context.i18n.setting),
-                SelectableCard(
-                  icon: _keyPair.isLongPress ? Icons.check_box : Icons.check_box_outline_blank,
-                  title: Text(context.i18n.longPressMode),
-                  isActive: _keyPair.isLongPress,
-                  onPressed: () {
-                    _keyPair.isLongPress = !_keyPair.isLongPress;
-                    widget.onUpdate();
-                    setState(() {});
-                  },
-                ),
                 SizedBox(height: 8),
                 DestructiveButton(
                   onPressed: () {
-                    _keyPair.isLongPress = false;
                     _keyPair.physicalKey = null;
                     _keyPair.logicalKey = null;
                     _keyPair.modifiers = [];
@@ -581,7 +575,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             _keyPair.command = null;
                             _keyPair.inGameAction = action;
                             _keyPair.inGameActionValue = ingame;
-                            _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
                             widget.onUpdate();
                             setState(() {});
                           },
@@ -598,7 +591,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 _keyPair.command = null;
                 _keyPair.inGameAction = action;
                 _keyPair.inGameActionValue = null;
-                _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
                 widget.onUpdate();
                 setState(() {});
               }
@@ -730,6 +722,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final actionsWithInGameAction = trainerApp?.keymap.keyPairs
         .where(
           (kp) =>
+              kp.trigger == widget.trigger &&
               kp.inGameAction != null &&
               switch (supportedMode) {
                 SupportedMode.keyboard => kp.physicalKey != null,
@@ -776,7 +769,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   } else {
                     _keyPair.touchPosition = Offset.zero;
                   }
-                  _keyPair.isLongPress = keyPairAction.isLongPress;
                   _keyPair.inGameAction = keyPairAction.inGameAction;
                   _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
                   _keyPair.androidAction = null;
@@ -822,6 +814,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         builder: (c) => HotKeyListenerDialog(
           customApp: core.actionHandler.supportedApp! as CustomApp,
           keyPair: _keyPair,
+          trigger: widget.trigger,
         ),
       );
       _keyPair.androidAction = null;

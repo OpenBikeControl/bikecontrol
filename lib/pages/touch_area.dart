@@ -400,7 +400,7 @@ class KeypairExplanation extends StatelessWidget {
           : Icon(keyPair.icon),
       leadingAlignment: Alignment.centerLeft,
       contentSpacing: 10,
-      subtitle: keyPair.isLongPress ? Text(context.i18n.longPress.replaceAll('\n', ' ')).muted.xSmall : null,
+      subtitle: Text(keyPair.trigger.title).muted.xSmall,
       title: Text(keyPair.toString()),
     );
   }

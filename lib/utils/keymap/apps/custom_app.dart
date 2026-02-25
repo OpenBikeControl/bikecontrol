@@ -50,18 +50,20 @@ class CustomApp extends SupportedApp {
     required PhysicalKeyboardKey? physicalKey,
     required LogicalKeyboardKey? logicalKey,
     List<ModifierKey> modifiers = const [],
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
     bool isLongPress = false,
     Offset? touchPosition,
     InGameAction? inGameAction,
     int? inGameActionValue,
   }) {
     // set the key for the zwift button
-    final keyPair = keymap.getKeyPair(zwiftButton);
+    final resolvedTrigger = isLongPress ? ButtonTrigger.longPress : trigger;
+    final keyPair = keymap.getKeyPair(zwiftButton, trigger: resolvedTrigger);
     if (keyPair != null) {
       keyPair.physicalKey = physicalKey;
       keyPair.logicalKey = logicalKey;
       keyPair.modifiers = modifiers;
-      keyPair.isLongPress = isLongPress;
+      keyPair.trigger = resolvedTrigger;
       keyPair.touchPosition = touchPosition ?? Offset.zero;
       keyPair.inGameAction = inGameAction;
       keyPair.inGameActionValue = inGameActionValue;
@@ -72,7 +74,7 @@ class CustomApp extends SupportedApp {
           physicalKey: physicalKey,
           logicalKey: logicalKey,
           modifiers: modifiers,
-          isLongPress: isLongPress,
+          trigger: resolvedTrigger,
           touchPosition: touchPosition ?? Offset.zero,
           inGameAction: inGameAction,
           inGameActionValue: inGameActionValue,

@@ -22,6 +22,18 @@ class CustomizePage extends StatefulWidget {
 
 class _CustomizeState extends State<CustomizePage> {
   @override
+  void initState() {
+    IAPManager.instance.entitlements.addListener(_onIAPChange);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    IAPManager.instance.entitlements.removeListener(_onIAPChange);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.only(bottom: widget.isMobile ? 146 : 16, left: 16, right: 16, top: 16),
@@ -175,5 +187,9 @@ class _CustomizeState extends State<CustomizePage> {
     }
 
     return [if (baseApp != null) baseApp, ...customApps];
+  }
+
+  void _onIAPChange() {
+    setState(() {});
   }
 }

@@ -8,7 +8,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 void main() {
   group('ThinkRider VS200 Virtual Shifter Tests', () {
-    test('Test shift up button press with correct pattern', () {
+    test('Test shift up button press with correct pattern', () async {
       core.actionHandler = StubActions();
 
       final stubActions = core.actionHandler as StubActions;
@@ -16,7 +16,7 @@ void main() {
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
       // Send shift up pattern: F3-05-03-01-FC
-      device.processCharacteristic(
+      await device.processCharacteristic(
         ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
         _hexToUint8List('F3050301FC'),
       );
@@ -27,13 +27,13 @@ void main() {
       );
     });
 
-    test('Test shift down button press with correct pattern', () {
+    test('Test shift down button press with correct pattern', () async {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
       // Send shift down pattern: F3-05-03-00-FB
-      device.processCharacteristic(
+      await device.processCharacteristic(
         ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
         _hexToUint8List('F3050300FB'),
       );
@@ -44,13 +44,13 @@ void main() {
       );
     });
 
-    test('Test multiple button presses', () {
+    test('Test multiple button presses', () async {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
       // Shift up
-      device.processCharacteristic(
+      await device.processCharacteristic(
         ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
         _hexToUint8List('F3050301FC'),
       );
@@ -62,7 +62,7 @@ void main() {
       stubActions.performedActions.clear();
 
       // Shift down
-      device.processCharacteristic(
+      await device.processCharacteristic(
         ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
         _hexToUint8List('F3050300FB'),
       );
@@ -73,26 +73,26 @@ void main() {
       );
     });
 
-    test('Test incorrect pattern does not trigger action', () {
+    test('Test incorrect pattern does not trigger action', () async {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
       // Send random pattern
-      device.processCharacteristic(
+      await device.processCharacteristic(
         ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
         _hexToUint8List('0000000000'),
       );
       expect(stubActions.performedActions.isEmpty, true);
     });
 
-    test('Test shift up performs single click action (not double)', () {
+    test('Test shift up performs single click action (not double)', () async {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
       // Send shift up pattern: F3-05-03-01-FC
-      device.processCharacteristic(
+      await device.processCharacteristic(
         ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
         _hexToUint8List('F3050301FC'),
       );
@@ -106,13 +106,13 @@ void main() {
       );
     });
 
-    test('Test shift down performs single click action (not double)', () {
+    test('Test shift down performs single click action (not double)', () async {
       core.actionHandler = StubActions();
       final stubActions = core.actionHandler as StubActions;
       final device = ThinkRiderVs200(BleDevice(deviceId: 'deviceId', name: 'THINK VS01-0000285'));
 
       // Send shift down pattern: F3-05-03-00-FB
-      device.processCharacteristic(
+      await device.processCharacteristic(
         ThinkRiderVs200Constants.CHARACTERISTIC_UUID,
         _hexToUint8List('F3050300FB'),
       );

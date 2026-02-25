@@ -107,14 +107,19 @@ abstract class BaseActions {
     return Offset.zero;
   }
 
-  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
+  Future<ActionResult> performAction(
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
     if (supportedApp == null) {
       return Error(
         AppLocalizations.current.couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet(button.name.splitByUpperCase()),
       );
     }
 
-    final keyPair = supportedApp!.keymap.getKeyPair(button);
+    final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger);
     if (keyPair == null || keyPair.hasNoAction) {
       return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
     }
@@ -195,8 +200,13 @@ class StubActions extends BaseActions {
   final List<PerformedAction> performedActions = [];
 
   @override
-  Future<ActionResult> performAction(ControllerButton button, {bool isKeyDown = true, bool isKeyUp = false}) async {
-    performedActions.add(PerformedAction(button, isDown: isKeyDown, isUp: isKeyUp));
+  Future<ActionResult> performAction(
+    ControllerButton button, {
+    bool isKeyDown = true,
+    bool isKeyUp = false,
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
+    performedActions.add(PerformedAction(button, isDown: isKeyDown, isUp: isKeyUp, trigger: trigger));
     return Future.value(Ignored('${button.name.splitByUpperCase()} clicked'));
   }
 
@@ -210,8 +220,14 @@ class PerformedAction {
   final ControllerButton button;
   final bool isDown;
   final bool isUp;
+  final ButtonTrigger trigger;
 
-  PerformedAction(this.button, {required this.isDown, required this.isUp});
+  PerformedAction(
+    this.button, {
+    required this.isDown,
+    required this.isUp,
+    this.trigger = ButtonTrigger.singleClick,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -220,13 +236,14 @@ class PerformedAction {
           runtimeType == other.runtimeType &&
           button.copyWith(sourceDeviceId: null) == other.button.copyWith(sourceDeviceId: null) &&
           isDown == other.isDown &&
-          isUp == other.isUp;
+          isUp == other.isUp &&
+          trigger == other.trigger;
 
   @override
-  int get hashCode => Object.hash(button, isDown, isUp);
+  int get hashCode => Object.hash(button, isDown, isUp, trigger);
 
   @override
   String toString() {
-    return '{button: $button, isDown: $isDown, isUp: $isUp}';
+    return '{button: $button, isDown: $isDown, isUp: $isUp, trigger: $trigger}';
   }
 }

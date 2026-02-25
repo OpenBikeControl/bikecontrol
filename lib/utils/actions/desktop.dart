@@ -9,6 +9,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
@@ -21,12 +22,17 @@ class DesktopActions extends BaseActions {
   // Track keys that are currently held down in long press mode
 
   @override
-  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
-    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+  Future<ActionResult> performAction(
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp, trigger: trigger);
     if (superResult is! NotHandled) {
       return superResult;
     }
-    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
+    final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger)!;
 
     if (keyPair.command?.trim().isNotEmpty == true) {
       if (!isKeyDown) {
@@ -146,7 +152,10 @@ class DesktopActions extends BaseActions {
   Future<void> releaseAllHeldKeys(List<ControllerButton> list) async {
     for (final action in list) {
       final keyPair = supportedApp?.keymap.getKeyPair(action);
-      if (keyPair?.physicalKey != null) {
+      final longPressKeyPair = supportedApp?.keymap.getKeyPair(action, trigger: ButtonTrigger.longPress);
+      if (longPressKeyPair?.physicalKey != null) {
+        await keyPressSimulator.simulateKeyUp(longPressKeyPair!.physicalKey);
+      } else if (keyPair?.physicalKey != null) {
         await keyPressSimulator.simulateKeyUp(keyPair!.physicalKey);
       }
     }

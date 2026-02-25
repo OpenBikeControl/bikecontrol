@@ -16,7 +16,13 @@ import '../utils/keymap/apps/custom_app.dart';
 class HotKeyListenerDialog extends StatefulWidget {
   final CustomApp customApp;
   final KeyPair? keyPair;
-  const HotKeyListenerDialog({super.key, required this.customApp, required this.keyPair});
+  final ButtonTrigger trigger;
+  const HotKeyListenerDialog({
+    super.key,
+    required this.customApp,
+    required this.keyPair,
+    this.trigger = ButtonTrigger.singleClick,
+  });
 
   @override
   State<HotKeyListenerDialog> createState() => _HotKeyListenerState();
@@ -69,6 +75,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
             logicalKey: _pressedKey!.logicalKey,
             modifiers: _activeModifiers.toList(),
             touchPosition: widget.keyPair?.touchPosition,
+            trigger: widget.trigger,
           );
         }
       } else if (event is KeyUpEvent) {
@@ -188,6 +195,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
                                       logicalKey: key,
                                       modifiers: _activeModifiers.toList(),
                                       touchPosition: widget.keyPair?.touchPosition,
+                                      trigger: widget.trigger,
                                     );
                                   });
                                 },
