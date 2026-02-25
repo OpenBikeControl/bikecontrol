@@ -229,7 +229,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
           card: () => BKColor.background,
         ),
       ),
-      //themeMode: ThemeMode.dark,
+      //themeMode: ThemeMode.light,
       home: widget.error != null
           ? Center(
               child: Text(
