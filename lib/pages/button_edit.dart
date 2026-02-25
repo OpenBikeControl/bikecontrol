@@ -27,14 +27,18 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../bluetooth/devices/base_device.dart';
+
 class ButtonEditPage extends StatefulWidget {
   final Keymap keymap;
+  final BaseDevice device;
   final KeyPair keyPair;
   final ButtonTrigger trigger;
   final VoidCallback onUpdate;
   const ButtonEditPage({
     super.key,
     required this.keyPair,
+    required this.device,
     required this.onUpdate,
     required this.keymap,
     required this.trigger,
@@ -65,6 +69,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   late StreamSubscription<BaseNotification> _actionSubscription;
+
+  bool get _usesFallbackLongPressMode {
+    final button = _keyPair.buttons.firstOrNull;
+    if (button == null || widget.trigger != ButtonTrigger.longPress) {
+      return false;
+    }
+    return widget.device.supportsLongPress == false;
+  }
 
   @override
   void initState() {
@@ -134,6 +146,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ],
                 ),
                 Text('Editing ${widget.trigger.title}').xSmall.muted,
+                if (_usesFallbackLongPressMode)
+                  Warning(
+                    important: false,
+                    children: [
+                      Text(
+                        'This device uses long press toggle mode: first click sends key down, second click sends key up.',
+                      ).small,
+                    ],
+                  ),
                 if (core.logic.hasNoConnectionMethod)
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 300),

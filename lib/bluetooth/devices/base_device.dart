@@ -20,7 +20,7 @@ import '../messages/notification.dart';
 abstract class BaseDevice {
   final String? _name;
   final bool isBeta;
-  final bool supportsLongPress;
+  bool supportsLongPress;
   final String uniqueId;
   final List<ControllerButton> availableButtons;
 
@@ -93,7 +93,7 @@ abstract class BaseDevice {
         return;
       }
 
-      actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked));
+      actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked, device: this));
 
       if (buttonsClicked.length != 1) {
         _cancelPendingClickTimers();
@@ -133,7 +133,7 @@ abstract class BaseDevice {
       return;
     }
 
-    if (_activeLongPressButtons.isNotEmpty) {
+    if (_activeLongPressButtons.isNotEmpty && supportsLongPress) {
       await performRelease(_activeLongPressButtons.toList(), trigger: ButtonTrigger.longPress);
       _activeLongPressButtons.clear();
       return;
@@ -156,7 +156,7 @@ abstract class BaseDevice {
       return;
     }
 
-    actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked));
+    actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked, device: this));
     _cancelPendingClickTimers();
     _activeLongPressButtons = buttonsClicked.toSet();
     _previouslyPressedButtons = buttonsClicked.toSet();
@@ -165,7 +165,7 @@ abstract class BaseDevice {
 
   void _scheduleLongPress(ControllerButton button) {
     _longPressTimer?.cancel();
-    if (!supportsLongPress || !_hasTriggerMapping(button, ButtonTrigger.longPress)) {
+    if (!supportsLongPress || !_hasTriggerAction(button, ButtonTrigger.longPress)) {
       return;
     }
     if (button == ZwiftButtons.onOffLeft || button == ZwiftButtons.onOffRight) {
@@ -183,10 +183,24 @@ abstract class BaseDevice {
   }
 
   Future<void> _handleSingleButtonTap(ControllerButton button) async {
-    final hasSingleMapping = _hasTriggerMapping(button, ButtonTrigger.singleClick);
-    final hasDoubleMapping = _hasTriggerMapping(button, ButtonTrigger.doubleClick);
+    final hasSingleAction = _hasTriggerAction(button, ButtonTrigger.singleClick);
+    final hasDoubleAction = _hasTriggerAction(button, ButtonTrigger.doubleClick);
+    final hasLongPressAction = _hasTriggerAction(button, ButtonTrigger.longPress);
 
-    if (hasDoubleMapping) {
+    if (!supportsLongPress && hasLongPressAction) {
+      _cancelPendingClickTimers();
+      final isLongPressAlreadyHeld = _activeLongPressButtons.contains(button);
+      if (isLongPressAlreadyHeld) {
+        await performRelease([button], trigger: ButtonTrigger.longPress);
+        _activeLongPressButtons.remove(button);
+      } else {
+        await performDown([button], trigger: ButtonTrigger.longPress);
+        _activeLongPressButtons.add(button);
+      }
+      return;
+    }
+
+    if (hasDoubleAction) {
       final isSecondTap =
           _pendingSingleClickButton == button &&
           (_singleClickTimer?.isActive ?? false) &&
@@ -205,7 +219,7 @@ abstract class BaseDevice {
         final pendingButton = _pendingSingleClickButton;
         _pendingSingleClickButton = null;
         _singleClickTimer = null;
-        if (pendingButton != null && hasSingleMapping) {
+        if (pendingButton != null && hasSingleAction) {
           unawaited(performClick([pendingButton], trigger: ButtonTrigger.singleClick));
         }
       });
@@ -213,11 +227,17 @@ abstract class BaseDevice {
       return;
     }
 
-    await performClick([button], trigger: ButtonTrigger.singleClick);
+    if (hasSingleAction) {
+      await performClick([button], trigger: ButtonTrigger.singleClick);
+    }
   }
 
-  bool _hasTriggerMapping(ControllerButton button, ButtonTrigger trigger) {
-    return core.actionHandler.supportedApp?.keymap.getKeyPair(button, trigger: trigger) != null;
+  bool _hasTriggerAction(ControllerButton button, ButtonTrigger trigger) {
+    final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(button, trigger: trigger);
+    if (keyPair == null && core.actionHandler.supportedApp == null) {
+      return trigger == ButtonTrigger.singleClick;
+    }
+    return keyPair != null && !keyPair.hasNoAction;
   }
 
   void _cancelPendingClickTimers() {

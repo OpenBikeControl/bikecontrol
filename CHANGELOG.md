@@ -5,6 +5,7 @@ BikeControl Pro is now available - subscribe to the Pro version to support the p
 - Synchronize and backup your keymap settings across devices
 - Android: Open Assistant
 - Windows, iOS, macOS: start any command/Shortcut, e.g. capture a screenshot, screen video, open a specific app, ... the possibilities are endless!
+- Individual actions for single, long and double clicks, e.g. hold a button to steer, double click to perform a specific action. This means your two button devices can now have up to 6 different actions!
 - and much more to come in the future!
 
 **Features**:

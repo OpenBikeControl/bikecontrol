@@ -37,7 +37,8 @@ class RevenueCatService {
   final int Function() getDailyCommandLimit;
   final void Function(int limit) setDailyCommandLimit;
   final EntitlementsService entitlementsService;
-  final String premiumProductKey;
+  final String premiumProductKeyMonthly;
+  final String premiumProductKeyYearly;
 
   bool _isInitialized = false;
   bool _isConfigured = false;
@@ -52,7 +53,8 @@ class RevenueCatService {
     required this.getDailyCommandLimit,
     required this.setDailyCommandLimit,
     required this.entitlementsService,
-    required this.premiumProductKey,
+    required this.premiumProductKeyMonthly,
+    required this.premiumProductKeyYearly,
   });
 
   /// Initialize the RevenueCat service
@@ -329,7 +331,8 @@ class RevenueCatService {
     ];
 
     await entitlementsService.refresh(force: true);
-    if (entitlementsService.hasActive(premiumProductKey)) {
+    if (entitlementsService.hasActive(premiumProductKeyMonthly) ||
+        entitlementsService.hasActive(premiumProductKeyYearly)) {
       isPurchasedNotifier.value = true;
       return;
     }
@@ -337,7 +340,8 @@ class RevenueCatService {
     for (final delay in retryDelays) {
       await Future.delayed(delay);
       await entitlementsService.refresh(force: true);
-      if (entitlementsService.hasActive(premiumProductKey)) {
+      if (entitlementsService.hasActive(premiumProductKeyMonthly) ||
+          entitlementsService.hasActive(premiumProductKeyYearly)) {
         isPurchasedNotifier.value = true;
         return;
       }

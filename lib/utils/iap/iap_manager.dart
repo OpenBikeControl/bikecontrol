@@ -22,6 +22,7 @@ class IAPManager {
   }
 
   static const String premiumMonthlyProductKey = 'premium_monthly';
+  static const String premiumYearlyProductKey = 'premium_yearly';
   static int dailyCommandLimit = 15;
 
   RevenueCatService? _revenueCatService;
@@ -47,14 +48,17 @@ class IAPManager {
   bool get isLoggedIn => core.supabase.auth.currentSession != null;
 
   bool get hasActiveSubscription =>
-      (isLoggedIn && entitlements.hasActive(premiumMonthlyProductKey)) || (!isLoggedIn && isLocalPro.value);
+      (isLoggedIn && (entitlements.hasActive(premiumMonthlyProductKey)) ||
+          entitlements.hasActive(premiumYearlyProductKey)) ||
+      (!isLoggedIn && isLocalPro.value);
 
   bool get isProEnabled => hasActiveSubscription && (isLoggedIn || (!isLoggedIn && isLocalPro.value));
 
   bool get isProEnabledForCurrentDevice =>
       hasActiveSubscription && ((isLoggedIn && entitlements.isRegisteredDevice) || (!isLoggedIn && isLocalPro.value));
 
-  DateTime? get premiumActiveUntil => entitlements.activeUntil(premiumMonthlyProductKey);
+  DateTime? get premiumActiveUntil =>
+      entitlements.activeUntil(premiumMonthlyProductKey) ?? entitlements.activeUntil(premiumYearlyProductKey);
 
   /// Initialize the IAP manager.
   Future<void> initialize() async {
@@ -85,7 +89,8 @@ class IAPManager {
           getDailyCommandLimit: () => dailyCommandLimit,
           setDailyCommandLimit: (limit) => dailyCommandLimit = limit,
           entitlementsService: entitlements,
-          premiumProductKey: premiumMonthlyProductKey,
+          premiumProductKeyMonthly: premiumMonthlyProductKey,
+          premiumProductKeyYearly: premiumYearlyProductKey,
         );
         await _revenueCatService!.initialize();
       } else {

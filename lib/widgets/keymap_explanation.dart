@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
@@ -50,7 +51,14 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       if (data is ButtonNotification && data.buttonsClicked.length == 1) {
         final clickedButton = data.buttonsClicked.first;
         if (!_isDrawerOpen) {
-          _openButtonEditor(clickedButton, ButtonTrigger.singleClick);
+          final hasFallbackLongPress =
+              data.device.supportsLongPress == false &&
+              widget.keymap.getKeyPair(clickedButton, trigger: ButtonTrigger.longPress)?.hasNoAction == false;
+          _openButtonEditor(
+            data.device,
+            clickedButton,
+            hasFallbackLongPress ? ButtonTrigger.longPress : ButtonTrigger.singleClick,
+          );
         }
         setState(() {});
       }
@@ -127,6 +135,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                           _buildTriggerButton(
                             context,
                             isPro: false,
+                            device: devicePair.key,
                             deviceButton: button,
                             trigger: ButtonTrigger.singleClick,
                             supportsLongPress: devicePair.key.supportsLongPress,
@@ -134,6 +143,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                           _buildTriggerButton(
                             context,
                             isPro: true,
+                            device: devicePair.key,
                             deviceButton: button,
                             trigger: ButtonTrigger.doubleClick,
                             supportsLongPress: devicePair.key.supportsLongPress,
@@ -141,6 +151,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                           _buildTriggerButton(
                             context,
                             isPro: true,
+                            device: devicePair.key,
                             deviceButton: button,
                             trigger: ButtonTrigger.longPress,
                             supportsLongPress: devicePair.key.supportsLongPress,
@@ -162,18 +173,23 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     BuildContext context, {
     required bool isPro,
     required ControllerButton deviceButton,
+    required BaseDevice device,
     required ButtonTrigger trigger,
     required bool supportsLongPress,
   }) {
     final keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
+    final longPressKeyPair = widget.keymap.getKeyPair(deviceButton, trigger: ButtonTrigger.longPress);
     final needsPro = isPro && !IAPManager.instance.hasActiveSubscription;
     final hasAction = keyPair != null && !keyPair.hasNoAction;
-    final isDisabled = trigger == ButtonTrigger.longPress && !supportsLongPress;
-    final actionText = isDisabled
-        ? 'Long press is not supported by this device.'
-        : hasAction
-        ? keyPair.toString()
-        : context.i18n.noActionAssigned;
+    final hasLongPressAction = longPressKeyPair != null && !longPressKeyPair.hasNoAction;
+    final usesLongPressToggleMode = !supportsLongPress && hasLongPressAction;
+    final isDisabled = usesLongPressToggleMode && trigger != ButtonTrigger.longPress;
+    final actionText = hasAction ? keyPair.toString() : context.i18n.noActionAssigned;
+    final hintText = switch (trigger) {
+      ButtonTrigger.longPress when !supportsLongPress => 'tap 1: key down\ntap 2: key up',
+      ButtonTrigger.singleClick || ButtonTrigger.doubleClick when isDisabled => 'Remove long press action to re-enable',
+      _ => null,
+    };
 
     return Stack(
       children: [
@@ -182,7 +198,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
             if (needsPro) {
               await IAPManager.instance.purchaseSubscription(context);
             } else {
-              await _openButtonEditor(deviceButton, trigger);
+              await _openButtonEditor(device, deviceButton, trigger);
             }
           },
           renderChild: (isLoading, tap) => Button.outline(
@@ -209,20 +225,24 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                             child: Text(trigger.title).xSmall.muted,
                           ),
                         ),
-                        Row(
-                          spacing: 6,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (isDisabled)
-                              Icon(Icons.info_outline, size: 14)
-                            else if (hasAction)
-                              Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
-                            if (hasAction)
-                              Flexible(
-                                child: Text(actionText).small,
-                              ),
-                          ],
-                        ),
+                        if (!isDisabled)
+                          Row(
+                            spacing: 6,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
+                              if (hasAction)
+                                Flexible(
+                                  child: Text(actionText).small,
+                                ),
+                            ],
+                          ),
+                        if (hintText != null)
+                          Text(
+                            hintText,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ).xSmall.muted,
                       ],
                     ),
             ),
@@ -241,7 +261,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     );
   }
 
-  Future<void> _openButtonEditor(ControllerButton button, ButtonTrigger trigger) async {
+  Future<void> _openButtonEditor(BaseDevice device, ControllerButton button, ButtonTrigger trigger) async {
     Keymap selectedKeymap = widget.keymap;
     if (core.actionHandler.supportedApp is! CustomApp) {
       final currentProfile = core.actionHandler.supportedApp!.name;
@@ -262,6 +282,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     await openDrawer(
       context: context,
       builder: (c) => ButtonEditPage(
+        device: device,
         keyPair: selectedKeyPair,
         keymap: selectedKeymap,
         trigger: trigger,

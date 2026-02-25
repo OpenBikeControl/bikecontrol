@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
@@ -32,9 +33,10 @@ class BluetoothAvailabilityNotification extends BaseNotification {
 }
 
 class ButtonNotification extends BaseNotification {
-  List<ControllerButton> buttonsClicked;
+  final BaseDevice device;
+  final List<ControllerButton> buttonsClicked;
 
-  ButtonNotification({this.buttonsClicked = const []});
+  ButtonNotification({this.buttonsClicked = const [], required this.device});
 
   @override
   String toString() {
