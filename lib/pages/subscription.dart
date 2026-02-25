@@ -220,17 +220,22 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 if (!_isPro) ...[
                   Divider(),
                   Text(
-                    'Unlock all features with Pro',
+                    !_iapManager.isPurchased.value
+                        ? 'Unlock the full version - or Go Pro'
+                        : 'Unlock all features with Pro',
                   ).small.muted,
-                  _buildWindowsAuthWarning(),
+                  if (_iapManager.isWindows && !_iapManager.isWindowsLoggedIn) _buildWindowsAuthWarning(),
                   Row(
                     spacing: 8,
                     children: [
                       if (!_iapManager.isPurchased.value)
                         Expanded(
-                          child: Button.secondary(
-                            onPressed: _buyFullVersion,
-                            child: Text('Buy Full Version'),
+                          child: LoadingWidget(
+                            futureCallback: () => _buyFullVersion(),
+                            renderChild: (isLoading, tap) => Button.secondary(
+                              onPressed: tap,
+                              child: isLoading ? SmallProgressIndicator() : Text('Buy Full Version'),
+                            ),
                           ),
                         ),
                       Expanded(
@@ -356,8 +361,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return SyncSettingsView();
   }
 
-  void _buyFullVersion() {
-    _iapManager.purchaseFullVersion(context);
+  Future<void> _buyFullVersion() {
+    return _iapManager.purchaseFullVersion(context);
   }
 
   Future<void> _buyProVersion() {
@@ -388,10 +393,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   /// Shows a warning on Windows that authentication is required for subscriptions
   Widget _buildWindowsAuthWarning() {
-    if (!_iapManager.isWindows) return const SizedBox.shrink();
-
-    if (_iapManager.isWindowsLoggedIn) return const SizedBox.shrink();
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),

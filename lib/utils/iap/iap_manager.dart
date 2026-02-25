@@ -2,15 +2,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/services/device_identity_service.dart';
 import 'package:bike_control/services/device_management_service.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Unified IAP manager that handles platform-specific IAP services.
@@ -241,7 +242,9 @@ class IAPManager {
 
   /// Purchase the full version.
   Future<void> purchaseFullVersion(BuildContext context) async {
-    if (_revenueCatService != null) {
+    if (Platform.isMacOS || Platform.isMacOS) {
+      return _showPaywall(context, true);
+    } else if (_revenueCatService != null) {
       return _revenueCatService!.purchaseFullVersion(context);
     } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseFullVersion();
@@ -250,11 +253,21 @@ class IAPManager {
 
   /// Purchase the full version.
   Future<void> purchaseSubscription(BuildContext context) async {
-    if (_revenueCatService != null) {
+    if (Platform.isMacOS || Platform.isMacOS) {
+      return _showPaywall(context, true);
+    } else if (_revenueCatService != null) {
       return _revenueCatService!.purchaseSubscription(context);
     } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseSubscription(context);
     }
+  }
+
+  Future<void> _showPaywall(BuildContext context, bool subscription) async {
+    openDrawer(
+      context: context,
+      builder: (c) => Paywall(),
+      position: OverlayPosition.bottom,
+    );
   }
 
   /// Restore previous purchases.
