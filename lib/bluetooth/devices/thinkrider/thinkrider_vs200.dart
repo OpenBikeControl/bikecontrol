@@ -32,7 +32,7 @@ class ThinkRiderVs200 extends BluetoothDevice {
   }
 
   @override
-  Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
+  Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     if (characteristic.toLowerCase() == ThinkRiderVs200Constants.CHARACTERISTIC_UUID.toLowerCase()) {
       final hexValue = _bytesToHex(bytes).toLowerCase();
 
@@ -45,11 +45,13 @@ class ThinkRiderVs200 extends BluetoothDevice {
       if (hexValue == ThinkRiderVs200Constants.SHIFT_UP_PATTERN) {
         // Plus button pressed
         actionStreamInternal.add(LogNotification('Shift Up detected: $hexValue'));
-        handleButtonsClicked([availableButtons[0]]);
+        await handleButtonsClicked([availableButtons[0]]);
+        await handleButtonsClicked([]);
       } else if (hexValue == ThinkRiderVs200Constants.SHIFT_DOWN_PATTERN) {
         // Minus button pressed
         actionStreamInternal.add(LogNotification('Shift Down detected: $hexValue'));
-        handleButtonsClicked([availableButtons[1]]);
+        await handleButtonsClicked([availableButtons[1]]);
+        await handleButtonsClicked([]);
       }
     }
 
