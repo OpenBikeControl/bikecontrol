@@ -740,10 +740,13 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   Future<void> _showModeDropdown(BuildContext context, SupportedMode supportedMode) async {
     final trainerApp = core.settings.getTrainerApp();
 
+    final triggerForPredefined = widget.trigger == ButtonTrigger.doubleClick
+        ? ButtonTrigger.singleClick
+        : widget.trigger;
     final actionsWithInGameAction = trainerApp?.keymap.keyPairs
         .where(
           (kp) =>
-              kp.trigger == widget.trigger &&
+              kp.trigger == triggerForPredefined &&
               kp.inGameAction != null &&
               switch (supportedMode) {
                 SupportedMode.keyboard => kp.physicalKey != null,

@@ -125,7 +125,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                       leading: SizedBox(
                         width: 58,
                         child: Center(
-                          child: IntrinsicWidth(
+                          child: IntrinsicHeight(
                             child: ButtonWidget(
                               button: button,
                               big: true,
