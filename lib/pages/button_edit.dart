@@ -631,41 +631,46 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final controller = TextEditingController(text: _keyPair.command ?? '');
     final result = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Launch Shortcut'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 10,
-          children: [
-            if (Platform.isMacOS)
-              Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small
-            else
-              Text(
-                'Note that Shortcuts on iOS are very limited: BikeControl needs to be in the foreground when you want to run the command, and your shortcut should have "Open BikeControl" as its first action so BikeControl can continue to trigger shortcuts.',
-              ).small,
-            TextField(
-              controller: controller,
-              hintText: 'Shortcut name',
-              autofocus: true,
+      builder: (context) => SafeArea(
+        child: AlertDialog(
+          title: Text('Launch Shortcut'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 10,
+            children: [
+              TextField(
+                controller: controller,
+                hintText: 'Shortcut name',
+                autofocus: true,
+                onTapOutside: (_) {
+                  FocusScope.of(context).unfocus();
+                },
+              ),
+              if (Platform.isMacOS)
+                Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small
+              else
+                Text(
+                  'Note that Shortcuts on iOS are very limited: BikeControl needs to be in the foreground when you want to run the command, and your shortcut should have "Open BikeControl" as its first action so BikeControl can continue to trigger shortcuts.',
+                ).xSmall,
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.i18n.cancel),
+            ),
+            if (_keyPair.command?.trim().isNotEmpty == true)
+              TextButton(
+                onPressed: () => Navigator.pop(context, ''),
+                child: Text('Clear'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text('Save'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.i18n.cancel),
-          ),
-          if (_keyPair.command?.trim().isNotEmpty == true)
-            TextButton(
-              onPressed: () => Navigator.pop(context, ''),
-              child: Text('Clear'),
-            ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: Text('Save'),
-          ),
-        ],
       ),
     );
 
