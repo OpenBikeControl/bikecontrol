@@ -1,11 +1,13 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/iap/windows_stripe_service.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/material.dart' show BackButton;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:windows_iap/windows_iap.dart';
@@ -188,7 +190,7 @@ class WindowsIAPService {
 
   /// Start Stripe Checkout to purchase a subscription
   /// Shows a dialog if user is not logged in
-  Future<void> purchaseSubscription(BuildContext context) async {
+  Future<void> purchaseSubscription(BuildContext context, {bool yearly = false}) async {
     if (!isLoggedIn) {
       await _showLoginRequiredDialog(context);
       return;
@@ -196,7 +198,7 @@ class WindowsIAPService {
 
     try {
       await _stripeService.startCheckout(
-        priceId: 'monthly',
+        priceId: yearly ? 'yearly' : 'monthly',
         successUrl: 'bikecontrol://stripe-success',
         cancelUrl: 'bikecontrol://stripe-cancel',
       );
@@ -290,8 +292,21 @@ class WindowsIAPService {
             child: Text('Cancel'),
           ),
           PrimaryButton(
-            onPressed: () {
-              Navigator.of(context).pop();
+            onPressed: () async {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (c) => Scaffold(
+                    headers: [
+                      AppBar(
+                        leading: [BackButton()],
+                      ),
+                    ],
+                    child: LoginPage(pushed: true),
+                  ),
+                ),
+              );
               // Navigate to login page - this would need to be handled by the caller
             },
             child: Text('Go to Login'),

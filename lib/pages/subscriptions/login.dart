@@ -14,7 +14,8 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool pushed;
+  const LoginPage({super.key, required this.pushed});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -58,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
           spacing: 8,
           children: [
             Text(
-              'Welcome',
+              'BikeControl',
             ).large,
             Text(
               'Sign in to sync your subscription and manage devices',
@@ -227,6 +228,10 @@ class _LoginPageState extends State<LoginPage> {
         idToken: idToken,
         accessToken: authorization.accessToken,
       );
+
+      if (widget.pushed) {
+        Navigator.pop(context);
+      }
       return response;
     } else {
       await core.supabase.auth.signInWithOAuth(
@@ -234,6 +239,9 @@ class _LoginPageState extends State<LoginPage> {
         redirectTo: kIsWeb ? null : 'bikecontrol://login/',
         authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
       );
+      if (widget.pushed) {
+        Navigator.pop(context);
+      }
       return null;
     }
   }
@@ -256,6 +264,10 @@ class _LoginPageState extends State<LoginPage> {
         idToken: idToken,
         nonce: rawNonce,
       );
+
+      if (widget.pushed) {
+        Navigator.pop(context);
+      }
       return authResponse;
     } else {
       await core.supabase.auth.signInWithOAuth(
@@ -263,6 +275,9 @@ class _LoginPageState extends State<LoginPage> {
         redirectTo: kIsWeb ? null : 'bikecontrol://login/',
         authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
       );
+      if (widget.pushed) {
+        Navigator.pop(context);
+      }
       return null;
     }
   }

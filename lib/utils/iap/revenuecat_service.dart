@@ -256,12 +256,24 @@ class RevenueCatService {
   }
 
   /// Purchase the full version (use paywall instead)
-  Future<void> purchaseFullVersion(BuildContext context) async {
+  Future<void> purchaseFullVersion(BuildContext context, {bool directPurchase = false}) async {
     // Direct the user to the paywall for a better experience
     final offerings = await Purchases.getOfferings();
-    if (Platform.isMacOS) {
+    final defaultOffering = offerings.all['default'];
+    if (defaultOffering == null) {
+      buildToast(title: 'Full version offering not available right now.');
+      return;
+    }
+
+    if (Platform.isMacOS || directPurchase) {
       try {
-        final purchaseParams = PurchaseParams.package(offerings.all["default"]!.lifetime!);
+        final lifetimePackage = defaultOffering.lifetime;
+        if (lifetimePackage == null) {
+          await presentPaywall(defaultOffering);
+          return;
+        }
+
+        final purchaseParams = PurchaseParams.package(lifetimePackage);
         PurchaseResult result = await Purchases.purchase(purchaseParams);
         core.connection.signalNotification(
           LogNotification('Purchase result: $result'),
@@ -274,17 +286,35 @@ class RevenueCatService {
         }
       }
     } else {
-      await presentPaywall(offerings.all["default"]!);
+      await presentPaywall(defaultOffering);
     }
   }
 
   /// Purchase the subscription (use paywall instead)
-  Future<void> purchaseSubscription(BuildContext context) async {
+  Future<void> purchaseSubscription(
+    BuildContext context, {
+    bool yearly = false,
+    bool directPurchase = false,
+  }) async {
     // Direct the user to the paywall for a better experience
     final offerings = await Purchases.getOfferings();
-    if (Platform.isMacOS) {
+    final proOffering = offerings.all['pro'];
+    if (proOffering == null) {
+      buildToast(title: 'Subscription offering not available right now.');
+      return;
+    }
+
+    if (Platform.isMacOS || directPurchase) {
       try {
-        final purchaseParams = PurchaseParams.package(offerings.all["pro"]!.monthly!);
+        final packageToPurchase = yearly
+            ? (proOffering.annual ?? proOffering.monthly)
+            : (proOffering.monthly ?? proOffering.annual);
+        if (packageToPurchase == null) {
+          await presentPaywall(proOffering);
+          return;
+        }
+
+        final purchaseParams = PurchaseParams.package(packageToPurchase);
         PurchaseResult result = await Purchases.purchase(purchaseParams);
         core.connection.signalNotification(
           LogNotification('Purchase result: $result'),
@@ -297,7 +327,7 @@ class RevenueCatService {
         }
       }
     } else {
-      await presentPaywall(offerings.all["pro"]!);
+      await presentPaywall(proOffering);
     }
   }
 
