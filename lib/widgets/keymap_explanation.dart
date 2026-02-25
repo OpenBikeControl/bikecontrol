@@ -13,7 +13,6 @@ import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
-import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -21,6 +20,11 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/messages/notification.dart';
 import '../utils/iap/iap_manager.dart';
+
+enum _TriggerConflictResolution {
+  goPro,
+  replaceOtherTriggers,
+}
 
 class KeymapExplanation extends StatefulWidget {
   final Keymap keymap;
@@ -134,7 +138,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                         children: [
                           _buildTriggerButton(
                             context,
-                            isPro: false,
                             device: devicePair.key,
                             deviceButton: button,
                             trigger: ButtonTrigger.singleClick,
@@ -142,7 +145,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                           ),
                           _buildTriggerButton(
                             context,
-                            isPro: true,
                             device: devicePair.key,
                             deviceButton: button,
                             trigger: ButtonTrigger.doubleClick,
@@ -150,7 +152,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                           ),
                           _buildTriggerButton(
                             context,
-                            isPro: true,
                             device: devicePair.key,
                             deviceButton: button,
                             trigger: ButtonTrigger.longPress,
@@ -171,7 +172,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   Widget _buildTriggerButton(
     BuildContext context, {
-    required bool isPro,
     required ControllerButton deviceButton,
     required BaseDevice device,
     required ButtonTrigger trigger,
@@ -179,7 +179,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   }) {
     final keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
     final longPressKeyPair = widget.keymap.getKeyPair(deviceButton, trigger: ButtonTrigger.longPress);
-    final needsPro = isPro && !IAPManager.instance.hasActiveSubscription;
     final hasAction = keyPair != null && !keyPair.hasNoAction;
     final hasLongPressAction = longPressKeyPair != null && !longPressKeyPair.hasNoAction;
     final usesLongPressToggleMode = !supportsLongPress && hasLongPressAction;
@@ -191,77 +190,154 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       _ => null,
     };
 
-    return Stack(
-      children: [
-        LoadingWidget(
-          futureCallback: () async {
-            if (needsPro) {
-              await IAPManager.instance.purchaseSubscription(context);
-            } else {
-              await _openButtonEditor(device, deviceButton, trigger);
-            }
-          },
-          renderChild: (isLoading, tap) => Button.outline(
-            style: ButtonStyle.outline().withBorder(
-              border: hasAction
-                  ? Border.all(color: BKColor.main, width: 2)
-                  : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
-            ),
-            onPressed: isDisabled ? null : tap,
-            child: Container(
-              width: 120,
-              constraints: BoxConstraints(minHeight: 52),
-              child: isLoading
-                  ? SmallProgressIndicator()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.only(right: needsPro ? 26 : 0),
-                            child: Text(trigger.title).xSmall.muted,
-                          ),
-                        ),
-                        if (!isDisabled)
-                          Row(
-                            spacing: 6,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
-                              if (hasAction)
-                                Flexible(
-                                  child: Text(actionText).small,
-                                ),
-                            ],
-                          ),
-                        if (hintText != null)
-                          Text(
-                            hintText,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ).xSmall.muted,
-                      ],
-                    ),
-            ),
-          ),
+    return LoadingWidget(
+      futureCallback: () async {
+        await _onTriggerPressed(device: device, button: deviceButton, trigger: trigger, hasAction: hasAction);
+      },
+      renderChild: (isLoading, tap) => Button.outline(
+        style: ButtonStyle.outline().withBorder(
+          border: hasAction
+              ? Border.all(color: BKColor.main, width: 2)
+              : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
         ),
-
-        if (needsPro)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: ProBadge(
-              borderRadius: BorderRadius.only(topRight: Radius.circular(6), bottomLeft: Radius.circular(6)),
-            ),
-          ),
-      ],
+        onPressed: isDisabled ? null : tap,
+        child: Container(
+          width: 120,
+          constraints: BoxConstraints(minHeight: 52),
+          child: isLoading
+              ? SmallProgressIndicator()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(alignment: Alignment.centerRight, child: Text(trigger.title).xSmall.muted),
+                    if (!isDisabled)
+                      Row(
+                        spacing: 6,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
+                          if (hasAction)
+                            Flexible(
+                              child: Text(actionText).small,
+                            ),
+                        ],
+                      ),
+                    if (hintText != null)
+                      Text(
+                        hintText,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ).xSmall.muted,
+                  ],
+                ),
+        ),
+      ),
     );
   }
 
-  Future<void> _openButtonEditor(BaseDevice device, ControllerButton button, ButtonTrigger trigger) async {
+  Future<void> _onTriggerPressed({
+    required BaseDevice device,
+    required ControllerButton button,
+    required ButtonTrigger trigger,
+    required bool hasAction,
+  }) async {
+    final isPro = IAPManager.instance.hasActiveSubscription;
+    final hasOtherAssignedTrigger = _hasActiveTriggerOtherThan(button, trigger);
+
+    if (!isPro && !hasAction && hasOtherAssignedTrigger) {
+      final resolution = await _showTriggerConflictDialog(trigger);
+      if (!mounted || resolution == null) {
+        return;
+      }
+
+      if (resolution == _TriggerConflictResolution.goPro) {
+        await IAPManager.instance.purchaseSubscription(context);
+        if (!mounted || !IAPManager.instance.hasActiveSubscription) {
+          return;
+        }
+        await _openButtonEditor(device, button, trigger);
+        return;
+      }
+
+      await _openButtonEditor(device, button, trigger, clearOtherTriggers: true);
+      return;
+    }
+
+    await _openButtonEditor(device, button, trigger);
+  }
+
+  bool _hasActiveTriggerOtherThan(ControllerButton button, ButtonTrigger trigger) {
+    return ButtonTrigger.values.any((candidate) {
+      if (candidate == trigger) {
+        return false;
+      }
+      final keyPair = widget.keymap.getKeyPair(button, trigger: candidate);
+      return keyPair != null && !keyPair.hasNoAction;
+    });
+  }
+
+  Future<_TriggerConflictResolution?> _showTriggerConflictDialog(ButtonTrigger trigger) {
+    return showDialog<_TriggerConflictResolution>(
+      context: context,
+      builder: (c) => Container(
+        constraints: BoxConstraints(maxWidth: 420),
+        child: AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.workspace_premium, color: Colors.orange),
+              const SizedBox(width: 8),
+              Text('Additional trigger assignment'),
+            ],
+          ),
+          content: Text(
+            'Another trigger is already assigned for this button. Go Pro to keep multiple trigger types, or replace the existing trigger assignment and continue with ${trigger.title}.',
+          ),
+          actions: [
+            Button.secondary(onPressed: () => Navigator.of(c).pop(), child: Text('Cancel')),
+            Button.secondary(
+              onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.replaceOtherTriggers),
+              child: Text('Replace Existing'),
+            ),
+            PrimaryButton(
+              onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
+              child: Text('Go Pro'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _clearOtherTriggerAssignments(Keymap keymap, ControllerButton button, ButtonTrigger keepTrigger) {
+    for (final trigger in ButtonTrigger.values) {
+      if (trigger == keepTrigger) {
+        continue;
+      }
+      final existing = keymap.getKeyPair(button, trigger: trigger);
+      if (existing == null || existing.hasNoAction) {
+        continue;
+      }
+
+      final keyPair = keymap.getOrCreateKeyPair(button, trigger: trigger);
+      keyPair.physicalKey = null;
+      keyPair.logicalKey = null;
+      keyPair.modifiers = [];
+      keyPair.touchPosition = Offset.zero;
+      keyPair.inGameAction = null;
+      keyPair.inGameActionValue = null;
+      keyPair.androidAction = null;
+      keyPair.command = null;
+    }
+  }
+
+  Future<void> _openButtonEditor(
+    BaseDevice device,
+    ControllerButton button,
+    ButtonTrigger trigger, {
+    bool clearOtherTriggers = false,
+  }) async {
     Keymap selectedKeymap = widget.keymap;
     if (core.actionHandler.supportedApp is! CustomApp) {
       final currentProfile = core.actionHandler.supportedApp!.name;
@@ -270,10 +346,18 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         currentProfile,
         skipName: '$currentProfile (Copy)',
       );
-      if (newName != null && context.mounted) {
+      if (!mounted) {
+        return;
+      }
+      if (newName != null) {
         buildToast(title: context.i18n.createdNewCustomProfile(newName));
         selectedKeymap = core.actionHandler.supportedApp!.keymap;
       }
+    }
+
+    if (clearOtherTriggers) {
+      _clearOtherTriggerAssignments(selectedKeymap, button, trigger);
+      selectedKeymap.signalUpdate();
     }
 
     final selectedKeyPair = selectedKeymap.getOrCreateKeyPair(button, trigger: trigger);
