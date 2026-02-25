@@ -637,7 +637,7 @@ class _PaywallState extends State<Paywall> {
         duration: const Duration(milliseconds: 120),
         opacity: _isPurchasing ? 0.85 : 1,
         child: Container(
-          height: 76,
+          height: 66,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.centerLeft,

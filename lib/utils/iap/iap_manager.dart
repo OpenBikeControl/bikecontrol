@@ -81,7 +81,7 @@ class IAPManager {
     }
 
     try {
-      if (Platform.isWindows || kDebugMode) {
+      if (Platform.isWindows) {
         _windowsIapService = WindowsIAPService(
           prefs,
           entitlementsService: entitlements,
@@ -249,12 +249,12 @@ class IAPManager {
   Future<void> purchaseFullVersion(BuildContext context, {bool fromPaywall = false}) async {
     if ((Platform.isIOS || Platform.isMacOS) && !fromPaywall) {
       return _showPaywall(context, false);
-    } else if (_revenueCatService != null && false) {
+    } else if (_revenueCatService != null) {
       return _revenueCatService!.purchaseFullVersion(
         context,
         directPurchase: fromPaywall,
       );
-    } else if (_windowsIapService != null || kDebugMode) {
+    } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseFullVersion();
     }
   }
@@ -267,13 +267,13 @@ class IAPManager {
   }) async {
     if ((Platform.isIOS || Platform.isMacOS) && !fromPaywall) {
       return _showPaywall(context, true);
-    } else if (_revenueCatService != null && false) {
+    } else if (_revenueCatService != null) {
       return _revenueCatService!.purchaseSubscription(
         context,
         directPurchase: fromPaywall,
         yearly: plan == SubscriptionPlan.yearly,
       );
-    } else if (_windowsIapService != null || kDebugMode) {
+    } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseSubscription(
         context,
         yearly: plan == SubscriptionPlan.yearly,
