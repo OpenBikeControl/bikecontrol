@@ -277,7 +277,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                     overflow: TextOverflow.ellipsis,
                     style: _isMobile && !hasAction
                         ? TextStyle(
-                            color: Colors.black.withAlpha(60),
+                            color: Theme.of(context).colorScheme.secondaryForeground.withAlpha(60),
                             fontStyle: FontStyle.italic,
                             fontWeight: FontWeight.normal,
                           )
