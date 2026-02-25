@@ -348,7 +348,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   Widget _buildLoginView() {
-    return LoginPage();
+    return LoginPage(pushed: false);
   }
 
   Widget _buildDevicesView() {

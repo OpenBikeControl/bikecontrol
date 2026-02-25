@@ -14,6 +14,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+enum SubscriptionPlan {
+  monthly,
+  yearly,
+}
+
 /// Unified IAP manager that handles platform-specific IAP services.
 class IAPManager {
   static IAPManager? _instance;
@@ -76,7 +81,7 @@ class IAPManager {
     }
 
     try {
-      if (Platform.isWindows) {
+      if (Platform.isWindows || kDebugMode) {
         _windowsIapService = WindowsIAPService(
           prefs,
           entitlementsService: entitlements,
@@ -241,31 +246,45 @@ class IAPManager {
   }
 
   /// Purchase the full version.
-  Future<void> purchaseFullVersion(BuildContext context) async {
-    if (Platform.isMacOS || Platform.isMacOS) {
-      return _showPaywall(context, true);
-    } else if (_revenueCatService != null) {
-      return _revenueCatService!.purchaseFullVersion(context);
-    } else if (_windowsIapService != null) {
+  Future<void> purchaseFullVersion(BuildContext context, {bool fromPaywall = false}) async {
+    if ((Platform.isIOS || Platform.isMacOS) && !fromPaywall) {
+      return _showPaywall(context, false);
+    } else if (_revenueCatService != null && false) {
+      return _revenueCatService!.purchaseFullVersion(
+        context,
+        directPurchase: fromPaywall,
+      );
+    } else if (_windowsIapService != null || kDebugMode) {
       return _windowsIapService!.purchaseFullVersion();
     }
   }
 
-  /// Purchase the full version.
-  Future<void> purchaseSubscription(BuildContext context) async {
-    if (Platform.isMacOS || Platform.isMacOS) {
+  /// Purchase a subscription.
+  Future<void> purchaseSubscription(
+    BuildContext context, {
+    SubscriptionPlan plan = SubscriptionPlan.monthly,
+    bool fromPaywall = false,
+  }) async {
+    if ((Platform.isIOS || Platform.isMacOS) && !fromPaywall) {
       return _showPaywall(context, true);
-    } else if (_revenueCatService != null) {
-      return _revenueCatService!.purchaseSubscription(context);
-    } else if (_windowsIapService != null) {
-      return _windowsIapService!.purchaseSubscription(context);
+    } else if (_revenueCatService != null && false) {
+      return _revenueCatService!.purchaseSubscription(
+        context,
+        directPurchase: fromPaywall,
+        yearly: plan == SubscriptionPlan.yearly,
+      );
+    } else if (_windowsIapService != null || kDebugMode) {
+      return _windowsIapService!.purchaseSubscription(
+        context,
+        yearly: plan == SubscriptionPlan.yearly,
+      );
     }
   }
 
   Future<void> _showPaywall(BuildContext context, bool subscription) async {
     openDrawer(
       context: context,
-      builder: (c) => Paywall(),
+      builder: (c) => Paywall(defaultToFullVersion: !subscription),
       position: OverlayPosition.bottom,
     );
   }
