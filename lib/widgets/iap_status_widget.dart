@@ -373,7 +373,6 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                           )
                                         : Text(AppLocalizations.of(context).unlockFullVersion),
                                   ),
-                                  Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
                                 ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
                                   PrimaryButton(
                                     onPressed: _isPurchasing ? null : () => _handlePurchase(context),
@@ -445,10 +444,6 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                               label: 'Restore / Sync subscription',
                               leftPadding: 42.0,
                             ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 42.0, top: 8.0),
-                            child: Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
-                          ),
                         ],
                       ],
                     ],
