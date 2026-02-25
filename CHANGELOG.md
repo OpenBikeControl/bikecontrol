@@ -3,10 +3,10 @@
 BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
 - Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android and iOS) without additional charge
 - Synchronize and backup your keymap settings across devices
-- Android: Open Assistant
+- Individual actions for single, long and double clicks, e.g. hold a button to steer, double click to perform a specific action. This means your two button devices can now have up to 6 different actions!
 - Windows, iOS, macOS: start any command/Shortcut, e.g. capture a screenshot, screen video, open a specific app, ... the possibilities are endless!
 - Windows, macOS: new screenshot action to capture a screenshot of the current screen and save it to your specified folder
-- Individual actions for single, long and double clicks, e.g. hold a button to steer, double click to perform a specific action. This means your two button devices can now have up to 6 different actions!
+- Android: Open Assistant
 - and much more to come in the future!
 
 **Features**:
