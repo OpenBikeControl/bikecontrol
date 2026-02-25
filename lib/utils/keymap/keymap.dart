@@ -86,6 +86,7 @@ class Keymap {
           inGameActionValue: existing.inGameActionValue,
           androidAction: existing.androidAction,
           command: existing.command,
+          screenshotPath: existing.screenshotPath,
         );
         addKeyPair(keyPair);
         return keyPair;
@@ -118,6 +119,7 @@ class Keymap {
       keyPair.inGameActionValue = null;
       keyPair.androidAction = null;
       keyPair.command = null;
+      keyPair.screenshotPath = null;
     }
     _updateStream.add(null);
   }
@@ -172,6 +174,7 @@ class Keymap {
           inGameActionValue: buttonFromBase?.inGameActionValue,
           androidAction: buttonFromBase?.androidAction,
           command: buttonFromBase?.command,
+          screenshotPath: buttonFromBase?.screenshotPath,
         ),
       );
     }
@@ -193,6 +196,7 @@ class KeyPair {
   int? inGameActionValue;
   AndroidSystemAction? androidAction;
   String? command;
+  String? screenshotPath;
 
   KeyPair({
     required this.buttons,
@@ -206,6 +210,7 @@ class KeyPair {
     this.inGameActionValue,
     this.androidAction,
     this.command,
+    this.screenshotPath,
   }) {
     if (isLongPress) {
       this.trigger = ButtonTrigger.longPress;
@@ -249,6 +254,7 @@ class KeyPair {
                   [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)) =>
         inGameAction!.icon,
 
+      _ when screenshotPath != null && screenshotPath!.trim().isNotEmpty => Icons.image_outlined,
       _ when command != null && command!.trim().isNotEmpty =>
         Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
       _
@@ -275,6 +281,7 @@ class KeyPair {
       touchPosition == Offset.zero &&
       inGameAction == null &&
       androidAction == null &&
+      (screenshotPath == null || screenshotPath!.trim().isEmpty) &&
       (command == null || command!.trim().isEmpty);
 
   bool get hasActiveAction =>
@@ -311,6 +318,7 @@ class KeyPair {
       (inGameAction != null &&
           [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction) &&
           (core.connection.accessories.isNotEmpty || kDebugMode)) ||
+      (screenshotPath != null && screenshotPath!.trim().isNotEmpty) ||
       (command != null && command!.trim().isNotEmpty);
 
   @override
@@ -325,6 +333,8 @@ class KeyPair {
           ].joinToString(separator: ': ')
         : (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions)
         ? androidAction!.title
+        : (screenshotPath != null && screenshotPath!.trim().isNotEmpty)
+        ? screenshotPath!
         : (command != null && command!.trim().isNotEmpty)
         ? command!
         : (isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
@@ -397,6 +407,7 @@ class KeyPair {
       'inGameActionValue': inGameActionValue,
       'androidAction': androidAction?.name,
       'command': command,
+      'screenshotPath': screenshotPath,
     });
   }
 
@@ -453,6 +464,7 @@ class KeyPair {
         : [];
 
     final rawCommand = decoded['command']?.toString().trim();
+    final rawScreenshotPath = decoded['screenshotPath']?.toString().trim();
     final rawLegacyShortcutName = decoded['shortcutName']?.toString().trim();
 
     final decodedTrigger = decoded.containsKey('trigger')
@@ -481,6 +493,7 @@ class KeyPair {
       command: rawCommand != null && rawCommand.isNotEmpty
           ? rawCommand
           : (rawLegacyShortcutName != null && rawLegacyShortcutName.isNotEmpty ? rawLegacyShortcutName : null),
+      screenshotPath: rawScreenshotPath != null && rawScreenshotPath.isNotEmpty ? rawScreenshotPath : null,
     );
   }
 
@@ -497,7 +510,8 @@ class KeyPair {
           inGameAction == other.inGameAction &&
           inGameActionValue == other.inGameActionValue &&
           androidAction == other.androidAction &&
-          command == other.command;
+          command == other.command &&
+          screenshotPath == other.screenshotPath;
 
   @override
   int get hashCode => Object.hash(
@@ -510,10 +524,12 @@ class KeyPair {
     inGameActionValue,
     androidAction,
     command,
+    screenshotPath,
   );
 
   bool get isProAction =>
       command != null && command!.trim().isNotEmpty ||
+      screenshotPath != null && screenshotPath!.trim().isNotEmpty ||
       isSpecialKey ||
       (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions);
 }

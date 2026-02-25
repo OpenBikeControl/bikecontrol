@@ -75,5 +75,22 @@ void main() {
       expect(decoded!.isLongPress, false);
       expect(decoded.trigger, ButtonTrigger.singleClick);
     });
+
+    test('KeyPair should encode and decode screenshotPath', () {
+      const screenshotPath = '/Users/test/Desktop/bikecontrol-screenshot.png';
+      final keyPair = KeyPair(
+        buttons: [ZwiftButtons.a],
+        physicalKey: null,
+        logicalKey: null,
+        screenshotPath: screenshotPath,
+      );
+
+      final encoded = keyPair.encode();
+      final decoded = KeyPair.decode(encoded);
+
+      expect(decoded, isNotNull);
+      expect(decoded!.screenshotPath, screenshotPath);
+      expect(decoded.command, isNull);
+    });
   });
 }

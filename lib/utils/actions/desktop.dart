@@ -12,6 +12,8 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_screen_capture/flutter_screen_capture.dart';
+import 'package:image/image.dart' as image_lib;
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -33,6 +35,31 @@ class DesktopActions extends BaseActions {
       return superResult;
     }
     final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger)!;
+
+    if (keyPair.screenshotPath?.trim().isNotEmpty == true) {
+      if (!isKeyDown) {
+        return Ignored('Screenshot capture only runs on key down');
+      }
+      final screenshotDirectory = keyPair.screenshotPath!.trim();
+      try {
+        final capturedArea = await ScreenCapture().captureEntireScreen();
+        if (capturedArea == null) {
+          return Error('Failed to capture screenshot');
+        }
+
+        final directory = Directory(screenshotDirectory);
+
+        final timestamp = DateTime.now().toIso8601String().split('.').first.replaceAll(':', '-');
+        final fileName = 'BikeControl $timestamp.jpg';
+        final separator = directory.path.endsWith(Platform.pathSeparator) ? '' : Platform.pathSeparator;
+        final screenshotFile = File('${directory.path}$separator$fileName');
+        screenshotFile.writeAsBytes(image_lib.encodeJpg(capturedArea.toImage()), flush: true);
+        await IAPManager.instance.incrementCommandCount();
+        return Success('Screenshot saved: ${screenshotFile.path}');
+      } catch (e) {
+        return Error('Failed to save screenshot: $e');
+      }
+    }
 
     if (keyPair.command?.trim().isNotEmpty == true) {
       if (!isKeyDown) {

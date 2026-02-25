@@ -288,6 +288,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
                                       _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -305,6 +306,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
                                       _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -322,6 +324,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
                                       _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -339,6 +342,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
                                       _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -356,6 +360,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
                                       _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -374,6 +379,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
                                       _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -428,6 +434,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                           _keyPair.inGameAction = null;
                                           _keyPair.inGameActionValue = null;
                                           _keyPair.command = null;
+                                          _keyPair.screenshotPath = null;
                                           setState(() {});
                                           widget.onUpdate();
                                         },
@@ -461,6 +468,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           _keyPair.inGameAction = null;
                           _keyPair.inGameActionValue = null;
                           _keyPair.command = null;
+                          _keyPair.screenshotPath = null;
                           setState(() {});
                           widget.onUpdate();
                         },
@@ -481,6 +489,17 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       await _showCommandDialog(context);
                     },
                   ),
+                  if (Platform.isMacOS || Platform.isWindows)
+                    SelectableCard(
+                      isProOnly: true,
+                      title: Text('Take Screenshot'),
+                      icon: Icons.image_outlined,
+                      isActive: _keyPair.screenshotPath?.trim().isNotEmpty == true,
+                      value: _keyPair.screenshotPath,
+                      onPressed: () async {
+                        await _showScreenshotDialog();
+                      },
+                    ),
                 ],
 
                 if (core.connection.accessories.isNotEmpty) ...[
@@ -512,6 +531,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                           _keyPair.inGameActionValue = value;
                                           _keyPair.androidAction = null;
                                           _keyPair.command = null;
+                                          _keyPair.screenshotPath = null;
                                           widget.onUpdate();
                                           setState(() {});
                                         },
@@ -527,6 +547,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
                                   _keyPair.command = null;
+                                  _keyPair.screenshotPath = null;
                                   widget.onUpdate();
                                   setState(() {});
                                 },
@@ -552,6 +573,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     _keyPair.inGameActionValue = null;
                     _keyPair.androidAction = null;
                     _keyPair.command = null;
+                    _keyPair.screenshotPath = null;
                     widget.onUpdate();
                     setState(() {});
                   },
@@ -594,6 +616,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             _keyPair.logicalKey = null;
                             _keyPair.androidAction = null;
                             _keyPair.command = null;
+                            _keyPair.screenshotPath = null;
                             _keyPair.inGameAction = action;
                             _keyPair.inGameActionValue = ingame;
                             widget.onUpdate();
@@ -610,6 +633,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 _keyPair.logicalKey = null;
                 _keyPair.androidAction = null;
                 _keyPair.command = null;
+                _keyPair.screenshotPath = null;
                 _keyPair.inGameAction = action;
                 _keyPair.inGameActionValue = null;
                 widget.onUpdate();
@@ -699,6 +723,63 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     _keyPair.command = value;
 
     if (_keyPair.command != null) {
+      _keyPair.screenshotPath = null;
+      _keyPair.physicalKey = null;
+      _keyPair.logicalKey = null;
+      _keyPair.modifiers = [];
+      _keyPair.touchPosition = Offset.zero;
+      _keyPair.inGameAction = null;
+      _keyPair.inGameActionValue = null;
+      _keyPair.androidAction = null;
+    }
+
+    widget.onUpdate();
+    setState(() {});
+  }
+
+  Future<void> _showScreenshotDialog() async {
+    final selectedPath = Directory.current.path;
+
+    final path = selectedPath.trim();
+    if (path.isEmpty) {
+      buildToast(title: 'No path selected');
+      return;
+    }
+
+    final hasWriteAccess = await _ensureScreenshotDirectoryWritable(path);
+    if (!hasWriteAccess) {
+      buildToast(title: 'Cannot write to this folder. Please grant write permission and try again.');
+      return;
+    }
+
+    _setScreenshotPath(path);
+  }
+
+  Future<bool> _ensureScreenshotDirectoryWritable(String directoryPath) async {
+    try {
+      final directory = Directory(directoryPath);
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+
+      final testFile = File(
+        '${directory.path}${Platform.pathSeparator}.bikecontrol-write-test-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      await testFile.writeAsString('ok', flush: true);
+      if (await testFile.exists()) {
+        await testFile.delete();
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  void _setScreenshotPath(String? value) {
+    _keyPair.screenshotPath = value;
+
+    if (_keyPair.screenshotPath != null) {
+      _keyPair.command = null;
       _keyPair.physicalKey = null;
       _keyPair.logicalKey = null;
       _keyPair.modifiers = [];
@@ -797,6 +878,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
                   _keyPair.androidAction = null;
                   _keyPair.command = keyPairAction.command;
+                  _keyPair.screenshotPath = keyPairAction.screenshotPath;
                   setState(() {});
                 },
                 child: Column(
@@ -843,6 +925,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       );
       _keyPair.androidAction = null;
       _keyPair.command = null;
+      _keyPair.screenshotPath = null;
       setState(() {});
       widget.onUpdate();
     } else if (supportedMode == SupportedMode.touch) {
@@ -853,6 +936,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       _keyPair.logicalKey = null;
       _keyPair.androidAction = null;
       _keyPair.command = null;
+      _keyPair.screenshotPath = null;
       await Navigator.of(context).push<bool?>(
         MaterialPageRoute(
           builder: (c) => TouchAreaSetupPage(

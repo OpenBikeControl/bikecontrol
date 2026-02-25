@@ -24,6 +24,8 @@ PODS:
     - FlutterMacOS
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
+  - flutter_screen_capture (2.0.1):
+    - FlutterMacOS
   - flutter_secure_storage_darwin (10.0.0):
     - Flutter
     - FlutterMacOS
@@ -109,6 +111,7 @@ DEPENDENCIES:
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
+  - flutter_screen_capture (from `Flutter/ephemeral/.symlinks/plugins/flutter_screen_capture/macos`)
   - flutter_secure_storage_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - flutter_volume_controller (from `Flutter/ephemeral/.symlinks/plugins/flutter_volume_controller/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
@@ -158,6 +161,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
+  flutter_screen_capture:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_screen_capture/macos
   flutter_secure_storage_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin
   flutter_volume_controller:
@@ -211,6 +216,7 @@ SPEC CHECKSUMS:
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
+  flutter_screen_capture: 5db68ea1972d12dfb1b46b5659dad6bc50ea60ef
   flutter_secure_storage_darwin: 557817588b80e60213cbecb573c45c76b788018d
   flutter_volume_controller: 25d09126b0d695560f11c80b1311d5063fed882f
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1

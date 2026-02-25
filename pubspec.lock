@@ -536,6 +536,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.1"
+  flutter_screen_capture:
+    dependency: "direct main"
+    description:
+      name: flutter_screen_capture
+      sha256: cfa9133ef61bc6f2f6af62eeb6916d208277e851dbb38d7f7bb9587ad2921882
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   flutter_secure_storage:
     dependency: "direct main"
     description:

@@ -367,6 +367,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       keyPair.inGameActionValue = null;
       keyPair.androidAction = null;
       keyPair.command = null;
+      keyPair.screenshotPath = null;
     }
   }
 

@@ -9,6 +9,7 @@
 #include <app_links/app_links_plugin_c_api.h>
 #include <bluetooth_low_energy_windows/bluetooth_low_energy_windows_plugin_c_api.h>
 #include <file_selector_windows/file_selector_windows.h>
+#include <flutter_screen_capture/flutter_screen_capture_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <flutter_volume_controller/flutter_volume_controller_plugin_c_api.h>
 #include <gamepads_windows/gamepads_windows_plugin_c_api.h>
@@ -29,6 +30,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("BluetoothLowEnergyWindowsPluginCApi"));
   FileSelectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FileSelectorWindows"));
+  FlutterScreenCapturePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterScreenCapturePluginCApi"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
   FlutterVolumeControllerPluginCApiRegisterWithRegistrar(

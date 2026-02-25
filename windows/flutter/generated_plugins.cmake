@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   bluetooth_low_energy_windows
   file_selector_windows
+  flutter_screen_capture
   flutter_secure_storage_windows
   flutter_volume_controller
   gamepads_windows
