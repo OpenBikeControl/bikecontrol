@@ -53,6 +53,8 @@ class AndroidActions extends BaseActions {
       if (availableDevice == null) {
         core.connection.addDevices([hidDevice]);
         availableDevice = hidDevice;
+      } else {
+        availableDevice.supportsLongPress = false;
       }
       if (keyPressed.keyDown) {
         availableDevice.handleButtonsClicked([button]);
