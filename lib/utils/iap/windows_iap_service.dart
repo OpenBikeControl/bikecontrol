@@ -15,7 +15,6 @@ import 'package:windows_iap/windows_iap.dart';
 /// Windows-specific IAP service for Microsoft Store purchases and server-side sync.
 class WindowsIAPService {
   static const String productId = '9NP42GS03Z26';
-  static const String subscriptionStoreProductId = 'TODO_WINDOWS_SUBSCRIPTION_PRODUCT_STORE_ID';
   static const int trialDays = 7;
   static const int dailyCommandLimit = 15;
 
