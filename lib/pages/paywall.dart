@@ -2,6 +2,9 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
+import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 enum _PaywallPlan {
@@ -28,6 +31,33 @@ class _FeatureLine {
     required this.full,
     required this.pro,
   });
+}
+
+class _PaywallPricing {
+  final String yearlyPrice;
+  final String yearlyBilled;
+  final String monthlyPrice;
+  final String monthlyBilled;
+  final String fullVersionSubtitle;
+  final String? discountBadge;
+
+  const _PaywallPricing({
+    required this.yearlyPrice,
+    required this.yearlyBilled,
+    required this.monthlyPrice,
+    required this.monthlyBilled,
+    required this.fullVersionSubtitle,
+    required this.discountBadge,
+  });
+
+  static const fallback = _PaywallPricing(
+    yearlyPrice: 'About 2.25 \$/mo',
+    yearlyBilled: 'Price calculated at checkout',
+    monthlyPrice: 'About 2.50 \$/mo',
+    monthlyBilled: 'Price calculated at checkout',
+    fullVersionSubtitle: 'About 4.99 \$ - price calculated at checkout',
+    discountBadge: '10% OFF',
+  );
 }
 
 class Paywall extends StatefulWidget {
@@ -103,6 +133,7 @@ class _PaywallState extends State<Paywall> {
   final IAPManager _iapManager = IAPManager.instance;
 
   late _PaywallPlan _selectedPlan;
+  _PaywallPricing _pricing = _PaywallPricing.fallback;
 
   bool _isPurchasing = false;
   bool _isRestoring = false;
@@ -113,6 +144,7 @@ class _PaywallState extends State<Paywall> {
     _selectedPlan = widget.defaultToFullVersion ? _PaywallPlan.fullVersion : _PaywallPlan.yearly;
     _iapManager.entitlements.addListener(_onEntitlementsChanged);
     _iapManager.isPurchased.addListener(_onEntitlementsChanged);
+    _loadRevenueCatPricing();
   }
 
   @override
@@ -197,11 +229,116 @@ class _PaywallState extends State<Paywall> {
     });
   }
 
+  Future<void> _loadRevenueCatPricing() async {
+    if (defaultTargetPlatform != TargetPlatform.macOS) {
+      return;
+    }
+
+    try {
+      final offerings = await Purchases.getOfferings();
+      final pricing = _buildPricingFromOfferings(offerings);
+      if (pricing != null && mounted) {
+        setState(() {
+          _pricing = pricing;
+        });
+      }
+    } catch (e) {
+      debugPrint('Could not load RevenueCat offerings for paywall: $e');
+    }
+  }
+
+  _PaywallPricing? _buildPricingFromOfferings(Offerings offerings) {
+    final allOfferings = offerings.all.values.toList();
+    final proOffering = offerings.all['pro'];
+    final defaultOffering = offerings.all['default'];
+
+    final monthlyPackage =
+        proOffering?.monthly ??
+        offerings.current?.monthly ??
+        _firstPackageFromOfferings(allOfferings, (offering) => offering.monthly);
+
+    final yearlyPackage =
+        proOffering?.annual ??
+        offerings.current?.annual ??
+        _firstPackageFromOfferings(allOfferings, (offering) => offering.annual);
+
+    final lifetimePackage =
+        defaultOffering?.lifetime ??
+        offerings.current?.lifetime ??
+        _firstPackageFromOfferings(allOfferings, (offering) => offering.lifetime);
+
+    if (monthlyPackage == null && yearlyPackage == null && lifetimePackage == null) {
+      return null;
+    }
+
+    final monthlyStoreProduct = monthlyPackage?.storeProduct;
+    final yearlyStoreProduct = yearlyPackage?.storeProduct;
+    final lifetimeStoreProduct = lifetimePackage?.storeProduct;
+
+    final yearlyPrice = yearlyStoreProduct != null
+        ? '${_formatCurrency(yearlyStoreProduct.price / 12, yearlyStoreProduct.currencyCode)}/mo'
+        : _pricing.yearlyPrice;
+
+    final yearlyBilled = yearlyStoreProduct != null
+        ? 'Billed at ${yearlyStoreProduct.priceString}/yr.'
+        : _pricing.yearlyBilled;
+
+    final monthlyPrice = monthlyStoreProduct != null ? '${monthlyStoreProduct.priceString}/mo' : _pricing.monthlyPrice;
+
+    final monthlyBilled = monthlyStoreProduct != null
+        ? 'Billed at ${monthlyStoreProduct.priceString}/mo.'
+        : _pricing.monthlyBilled;
+
+    final fullVersionSubtitle = lifetimeStoreProduct != null
+        ? 'Only ${lifetimeStoreProduct.priceString}'
+        : _pricing.fullVersionSubtitle;
+
+    String? discountBadge;
+    if (monthlyStoreProduct != null && yearlyStoreProduct != null && monthlyStoreProduct.price > 0) {
+      final yearlyEquivalent = yearlyStoreProduct.price / 12;
+      final savingsFraction = (monthlyStoreProduct.price - yearlyEquivalent) / monthlyStoreProduct.price;
+      final savingsPercent = (savingsFraction * 100).round();
+      if (savingsPercent > 0) {
+        discountBadge = '$savingsPercent% OFF';
+      }
+    }
+
+    return _PaywallPricing(
+      yearlyPrice: yearlyPrice,
+      yearlyBilled: yearlyBilled,
+      monthlyPrice: monthlyPrice,
+      monthlyBilled: monthlyBilled,
+      fullVersionSubtitle: fullVersionSubtitle,
+      discountBadge: discountBadge,
+    );
+  }
+
+  Package? _firstPackageFromOfferings(
+    Iterable<Offering> offerings,
+    Package? Function(Offering offering) selector,
+  ) {
+    for (final offering in offerings) {
+      final package = selector(offering);
+      if (package != null) {
+        return package;
+      }
+    }
+    return null;
+  }
+
+  String _formatCurrency(double value, String currencyCode) {
+    final formatter = NumberFormat.currency(
+      name: currencyCode,
+      decimalDigits: 2,
+    );
+    return formatter.format(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFF0F1F5),
-      constraints: const BoxConstraints(maxHeight: 920),
+      constraints: const BoxConstraints(maxWidth: 500),
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -246,7 +383,7 @@ class _PaywallState extends State<Paywall> {
   Widget _buildComparisonTable(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = true;
+        final isCompact = constraints.maxWidth < 560;
         final fullColumnWidth = isCompact ? 90.0 : 120.0;
         final proColumnWidth = isCompact ? 108.0 : 150.0;
 
@@ -418,17 +555,17 @@ class _PaywallState extends State<Paywall> {
                     child: _buildPlanCard(
                       plan: _PaywallPlan.yearly,
                       title: 'Yearly',
-                      price: 'About 2.25 \$/mo',
-                      billed: 'Price calculated at checkout',
-                      badge: '10% OFF',
+                      price: _pricing.yearlyPrice,
+                      billed: _pricing.yearlyBilled,
+                      badge: _pricing.discountBadge,
                     ),
                   ),
                   Expanded(
                     child: _buildPlanCard(
                       plan: _PaywallPlan.monthly,
                       title: 'Monthly',
-                      price: 'About 2.50 \$/mo',
-                      billed: 'Price calculated at checkout',
+                      price: _pricing.monthlyPrice,
+                      billed: _pricing.monthlyBilled,
                     ),
                   ),
                 ],
@@ -437,15 +574,15 @@ class _PaywallState extends State<Paywall> {
               _buildPlanCard(
                 plan: _PaywallPlan.yearly,
                 title: 'Yearly',
-                price: 'About 2.25 \$/mo',
-                billed: 'Price calculated at checkout',
-                badge: '10% OFF',
+                price: _pricing.yearlyPrice,
+                billed: _pricing.yearlyBilled,
+                badge: _pricing.discountBadge,
               ),
               _buildPlanCard(
                 plan: _PaywallPlan.monthly,
                 title: 'Monthly',
-                price: 'About 2.50 \$/mo',
-                billed: 'Price calculated at checkout',
+                price: _pricing.monthlyPrice,
+                billed: _pricing.monthlyBilled,
               ),
             ],
             if (!_iapManager.isPurchased.value) _buildFullVersionCard(context),
@@ -487,7 +624,6 @@ class _PaywallState extends State<Paywall> {
                 Row(
                   spacing: 8,
                   children: [
-                    if (plan == _PaywallPlan.monthly || plan == _PaywallPlan.yearly) ProBadge(fontSize: 14),
                     Expanded(
                       child: Text(
                         title,
@@ -546,6 +682,16 @@ class _PaywallState extends State<Paywall> {
               ),
             ),
           ),
+
+        if (plan == _PaywallPlan.monthly || plan == _PaywallPlan.yearly)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: ProBadge(
+              fontSize: 14,
+              borderRadius: BorderRadius.only(topRight: Radius.circular(16), bottomLeft: Radius.circular(8)),
+            ),
+          ),
       ],
     );
   }
@@ -582,9 +728,9 @@ class _PaywallState extends State<Paywall> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'About 4.99 \$ - price calculated at checkout',
-                    style: TextStyle(
+                  Text(
+                    _pricing.fullVersionSubtitle,
+                    style: const TextStyle(
                       fontSize: 16,
                       color: Color(0xFF4E4E53),
                     ),

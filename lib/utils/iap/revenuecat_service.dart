@@ -259,7 +259,7 @@ class RevenueCatService {
   Future<void> purchaseFullVersion(BuildContext context, {bool directPurchase = false}) async {
     // Direct the user to the paywall for a better experience
     final offerings = await Purchases.getOfferings();
-    final defaultOffering = offerings.all['default'];
+    final defaultOffering = offerings.all['pro'];
     if (defaultOffering == null) {
       buildToast(title: 'Full version offering not available right now.');
       return;
@@ -298,7 +298,7 @@ class RevenueCatService {
   }) async {
     // Direct the user to the paywall for a better experience
     final offerings = await Purchases.getOfferings();
-    final proOffering = offerings.all['pro'];
+    final proOffering = offerings.all['proonly'];
     if (proOffering == null) {
       buildToast(title: 'Subscription offering not available right now.');
       return;
