@@ -354,3 +354,14 @@ jobs:
             build/windows/x64/runner/Release/bike_control.store.msix
             build/windows/x64/runner/Release/bike_control.signed.msix
             symbols-win/
+
+      - name: Create Release (Windows signed MSIX)
+        if: inputs.build_github
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/windows/x64/runner/Release/bike_control.signed.msix"
+          allowUpdates: true
+          prerelease: true
+          replacesArtifacts: false
+          tag: v${{ env.VERSION }}
+          token: ${{ secrets.TOKEN }}
