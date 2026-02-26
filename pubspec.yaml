@@ -126,7 +126,7 @@ msix_config:
   publisher_display_name: Jonas Bark
   identity_name: JonasBark.SwiftControl
   publisher: CN=EDA6D86E-3E52-4054-9F3A-4277AFCCB2C4
-  store: true
+  store: false
   logo_path: web/icons/Icon-512.png
   build_windows: false
   protocol_activation: https, bikecontrol
