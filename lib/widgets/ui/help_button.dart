@@ -320,7 +320,11 @@ class _InstructionVideosDrawerState extends State<_InstructionVideosDrawer> {
                     spacing: 12,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (final video in regularVideos) _buildVideoCard(video, fullWidth: true),
+                      for (final video in regularVideos)
+                        SizedBox(
+                          height: 280,
+                          child: _buildVideoCard(video, fullWidth: true),
+                        ),
                       if (shortVideos.isNotEmpty)
                         LayoutBuilder(
                           builder: (context, constraints) {
@@ -332,7 +336,7 @@ class _InstructionVideosDrawerState extends State<_InstructionVideosDrawer> {
                                 crossAxisCount: crossAxisCount,
                                 mainAxisSpacing: 12,
                                 crossAxisSpacing: 12,
-                                childAspectRatio: 16 / 12,
+                                childAspectRatio: 0.9,
                               ),
                               itemCount: shortVideos.length,
                               itemBuilder: (context, index) {
@@ -384,8 +388,7 @@ class _InstructionVideosDrawerState extends State<_InstructionVideosDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              height: fullWidth ? 220 : 190,
+            Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 child: Stack(
