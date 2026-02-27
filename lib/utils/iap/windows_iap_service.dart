@@ -198,6 +198,7 @@ class WindowsIAPService {
     try {
       await _stripeService.startCheckout(
         priceId: yearly ? 'yearly' : 'monthly',
+        userHasFullVersion: IAPManager.instance.isPurchased.value,
         successUrl: 'bikecontrol://stripe-success',
         cancelUrl: 'bikecontrol://stripe-cancel',
       );

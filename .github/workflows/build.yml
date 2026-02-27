@@ -166,7 +166,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: ios
-          args: "--export-options-plist ios/ExportOptions.plist -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
+          args: "--export-options-plist ios/ExportOptions.plist -- --obfuscate --split-debug-info=symbols --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
 
       - name: Prepare App Store authentication key
         if: inputs.build_ios || inputs.build_mac

@@ -1,8 +1,3 @@
-import 'dart:io';
-
-import 'package:bike_control/utils/core.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -34,14 +29,15 @@ class WindowsStripeService {
   Session? get _session => _supabase.auth.currentSession;
 
   /// Start a Stripe Checkout session for subscription purchase
-  /// 
+  ///
   /// [priceId] must be either 'monthly' or 'yearly'
   /// [successUrl] optional, defaults to app origin + '/success'
   /// [cancelUrl] optional, defaults to app origin + '/cancel'
-  /// 
+  ///
   /// Throws [StripeException] if the user is not logged in or the request fails
   Future<void> startCheckout({
     required String priceId,
+    required bool userHasFullVersion,
     String? successUrl,
     String? cancelUrl,
   }) async {
@@ -58,6 +54,7 @@ class WindowsStripeService {
         'price_id': priceId,
       };
 
+      body['has_full_version'] = userHasFullVersion;
       if (successUrl != null) {
         body['success_url'] = successUrl;
       }
@@ -92,9 +89,9 @@ class WindowsStripeService {
     } on FunctionException catch (e) {
       final status = e.status;
       final details = e.details;
-      
+
       String errorMessage = 'Failed to start checkout';
-      
+
       if (details is Map<String, dynamic>) {
         errorMessage = details['error'] as String? ?? errorMessage;
       }
@@ -106,7 +103,7 @@ class WindowsStripeService {
       } else if (status == 500) {
         throw StripeException('Server error: $errorMessage', statusCode: status);
       }
-      
+
       throw StripeException(errorMessage, statusCode: status);
     } catch (e) {
       if (e is StripeException) rethrow;
@@ -115,9 +112,9 @@ class WindowsStripeService {
   }
 
   /// Open the Stripe Billing Portal for managing subscriptions
-  /// 
+  ///
   /// [returnUrl] optional, URL to return to after leaving the portal
-  /// 
+  ///
   /// Throws [StripeException] if the user is not logged in, has no Stripe customer,
   /// or the request fails
   Future<void> openPortal({String? returnUrl}) async {
@@ -158,9 +155,9 @@ class WindowsStripeService {
     } on FunctionException catch (e) {
       final status = e.status;
       final details = e.details;
-      
+
       String errorMessage = 'Failed to open billing portal';
-      
+
       if (details is Map<String, dynamic>) {
         errorMessage = details['error'] as String? ?? errorMessage;
       }
@@ -176,7 +173,7 @@ class WindowsStripeService {
       } else if (status == 500) {
         throw StripeException('Server error: $errorMessage', statusCode: status);
       }
-      
+
       throw StripeException(errorMessage, statusCode: status);
     } catch (e) {
       if (e is StripeException) rethrow;
