@@ -337,7 +337,6 @@ class _PaywallState extends State<Paywall> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF0F1F5),
       constraints: const BoxConstraints(maxWidth: 500),
       child: SafeArea(
         top: false,
@@ -402,7 +401,7 @@ class _PaywallState extends State<Paywall> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 14, 10, 12),
+                  padding: const EdgeInsets.fromLTRB(14, 14, 0, 12),
                   child: Column(
                     children: [
                       _buildHeaderRow(
@@ -442,8 +441,8 @@ class _PaywallState extends State<Paywall> {
             child: Text(
               'FULL',
               style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
                 letterSpacing: 0.8,
                 color: Color(0xFF55565C),
               ),
@@ -480,7 +479,7 @@ class _PaywallState extends State<Paywall> {
                   color: const Color(0xFF94959A),
                   size: compact ? 18 : 22,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     feature.label,
@@ -529,7 +528,7 @@ class _PaywallState extends State<Paywall> {
       ),
       _PaywallCell.dash => Container(
         width: compact ? 20 : 40,
-        height: 4,
+        height: 3,
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(3),

@@ -67,9 +67,8 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
         Card(
-          filled: true,
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(18),
             child: Column(
               spacing: 16,
               mainAxisSize: MainAxisSize.min,

@@ -226,7 +226,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
       ),
       theme: ThemeData(
         colorScheme: ColorSchemes.lightNeutral.copyWith(
-          card: () => BKColor.background,
+          card: () => BKColor.backgroundLight,
         ),
       ),
       //themeMode: ThemeMode.light,
