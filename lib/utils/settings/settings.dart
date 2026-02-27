@@ -25,7 +25,7 @@ import '../keymap/apps/custom_app.dart';
 import '../keymap/buttons.dart';
 
 class Settings {
-  late final SharedPreferences prefs;
+  late SharedPreferences prefs;
   SettingsSyncService? _syncService;
   Timer? _syncDebounceTimer;
 

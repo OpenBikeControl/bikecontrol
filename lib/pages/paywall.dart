@@ -383,9 +383,8 @@ class _PaywallState extends State<Paywall> {
   Widget _buildComparisonTable(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 560;
-        final fullColumnWidth = isCompact ? 90.0 : 120.0;
-        final proColumnWidth = isCompact ? 108.0 : 150.0;
+        final fullColumnWidth = 80.0;
+        final proColumnWidth = 102.0;
 
         return ClipRRect(
           borderRadius: BorderRadius.circular(24),
@@ -416,7 +415,7 @@ class _PaywallState extends State<Paywall> {
                           feature: feature,
                           fullColumnWidth: fullColumnWidth,
                           proColumnWidth: proColumnWidth,
-                          compact: isCompact,
+                          compact: true,
                         ),
                       ),
                     ],
@@ -468,7 +467,7 @@ class _PaywallState extends State<Paywall> {
     required bool compact,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 11),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -479,7 +478,7 @@ class _PaywallState extends State<Paywall> {
                 Icon(
                   feature.icon,
                   color: const Color(0xFF94959A),
-                  size: compact ? 20 : 22,
+                  size: compact ? 18 : 22,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -488,7 +487,7 @@ class _PaywallState extends State<Paywall> {
                     style: TextStyle(
                       color: const Color(0xFF4D4E54),
                       fontWeight: FontWeight.normal,
-                      fontSize: compact ? 18 : 19,
+                      fontSize: compact ? 16 : 19,
                       height: 1.2,
                     ),
                   ),
@@ -518,18 +517,18 @@ class _PaywallState extends State<Paywall> {
       _PaywallCell.unlimited => Text(
         'Unlimited',
         style: TextStyle(
-          fontSize: compact ? 16 : 24,
+          fontSize: compact ? 14 : 24,
           fontWeight: FontWeight.w500,
           color: Colors.black,
         ),
       ),
       _PaywallCell.check => Icon(
         Icons.check_rounded,
-        size: compact ? 36 : 48,
+        size: compact ? 28 : 48,
         color: Colors.black,
       ),
       _PaywallCell.dash => Container(
-        width: compact ? 28 : 40,
+        width: compact ? 20 : 40,
         height: 4,
         decoration: BoxDecoration(
           color: Colors.black,
@@ -628,13 +627,13 @@ class _PaywallState extends State<Paywall> {
                       child: Text(
                         title,
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 22,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF07070A),
                         ),
                       ),
                     ),
-                    _buildRadioIndicator(selected),
+                    _buildRadioIndicator(selected, compact: true),
                   ],
                 ),
                 Text(
@@ -747,8 +746,9 @@ class _PaywallState extends State<Paywall> {
   Widget _buildRadioIndicator(bool selected, {bool compact = false}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
-      width: compact ? 32 : 38,
-      height: compact ? 32 : 38,
+      width: compact ? 28 : 38,
+      height: compact ? 28 : 38,
+      margin: EdgeInsets.only(top: 8),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: selected ? const Color(0xFF5A6ED6) : Colors.transparent,
@@ -783,7 +783,7 @@ class _PaywallState extends State<Paywall> {
         duration: const Duration(milliseconds: 120),
         opacity: _isPurchasing ? 0.85 : 1,
         child: Container(
-          height: 66,
+          height: 52,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.centerLeft,
@@ -805,13 +805,13 @@ class _PaywallState extends State<Paywall> {
           alignment: Alignment.center,
           child: _isPurchasing
               ? CircularProgressIndicator(
-                  size: 24,
+                  size: 20,
                   color: Colors.white,
                 )
               : Text(
                   AppLocalizations.of(context).purchase,
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
                     height: 1,

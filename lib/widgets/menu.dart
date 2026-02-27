@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -192,6 +193,16 @@ class BKMenuButton extends StatelessWidget {
                 child: Text('Disconnect'),
                 onPressed: (c) async {
                   core.connection.disconnectAll();
+                },
+              ),
+              MenuButton(
+                child: Text('Show Paywall'),
+                onPressed: (c) async {
+                  openDrawer(
+                    context: context,
+                    builder: (c) => Paywall(),
+                    position: OverlayPosition.bottom,
+                  );
                 },
               ),
               MenuDivider(),

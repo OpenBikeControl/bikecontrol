@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/customize.dart';
@@ -64,9 +67,11 @@ class _NavigationState extends State<Navigation> {
 
     core.logic.startEnabledConnectionMethod();
 
-    core.connection.actionStream.listen((_) {
+    _actionListener = core.connection.actionStream.listen((_) {
       _updateTrainerConnectionStatus();
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     _updateTrainerConnectionStatus();
 
@@ -78,6 +83,12 @@ class _NavigationState extends State<Navigation> {
       );
       _checkAndShowChangelog();
     });
+  }
+
+  @override
+  void dispose() {
+    _actionListener.cancel();
+    super.dispose();
   }
 
   @override
@@ -126,6 +137,8 @@ class _NavigationState extends State<Navigation> {
   final List<BCPage> _tabs = BCPage.values.whereNot((e) => e == BCPage.logs).toList();
 
   bool _isTrainerConnected = false;
+
+  late StreamSubscription<BaseNotification> _actionListener;
 
   @override
   Widget build(BuildContext context) {
