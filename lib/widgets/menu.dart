@@ -13,12 +13,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:intl/intl.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import '../utils/iap/iap_manager.dart';
 
@@ -60,33 +58,6 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
                 context: context,
                 builder: (c) => DropdownMenu(
                   children: [
-                    if ((!Platform.isIOS && !Platform.isMacOS)) ...[
-                      MenuLabel(child: Text(context.i18n.showDonation)),
-                      MenuButton(
-                        child: Text(context.i18n.donateViaCreditCard),
-                        onPressed: (c) {
-                          final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
-                          final link = switch (currency.currencyName) {
-                            'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
-                            _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
-                          };
-                          launchUrlString(link);
-                        },
-                      ),
-                      if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
-                        MenuButton(
-                          child: Text(context.i18n.donateByBuyingFromPlayStore),
-                          onPressed: (c) {
-                            launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
-                          },
-                        ),
-                      MenuButton(
-                        child: Text(context.i18n.donateViaPaypal),
-                        onPressed: (c) {
-                          launchUrlString('https://paypal.me/boni');
-                        },
-                      ),
-                    ],
                     MenuButton(
                       leading: Icon(Icons.star_rate),
                       child: Text(context.i18n.leaveAReview),

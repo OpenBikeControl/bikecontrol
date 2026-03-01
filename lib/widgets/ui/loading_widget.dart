@@ -1,4 +1,7 @@
+import 'package:bike_control/main.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/material.dart';
+import 'package:prop/prop.dart';
 
 typedef RenderLoadCallback = Widget Function();
 typedef OnErrorCallback = void Function(BuildContext context, dynamic error);
@@ -62,11 +65,11 @@ class LoadingWidgetState extends State<LoadingWidget> {
       setState(() {
         _loadingState = LoadingState.Success;
       });
-    } catch (e) {
+    } catch (e, s) {
       if (widget.onLoadCallback != null) {
         widget.onLoadCallback!(false);
       }
-      debugPrint(e.toString());
+      recordError(e, s, context: 'Loading');
       if (mounted) {
         setState(() {
           _error = e;
@@ -74,7 +77,7 @@ class LoadingWidgetState extends State<LoadingWidget> {
           if (widget.onErrorCallback != null) {
             widget.onErrorCallback!(context, _error);
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_error.toString())));
+            buildToast(level: LogLevel.LOGLEVEL_WARNING, title: _error.toString());
           }
         });
       }

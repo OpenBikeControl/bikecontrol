@@ -35,6 +35,30 @@ class HelpButton extends StatelessWidget {
                 context: context,
                 builder: (c) => DropdownMenu(
                   children: [
+                    MenuLabel(child: Text(context.i18n.instructions)),
+                    MenuButton(
+                      leading: Icon(Icons.ondemand_video),
+                      child: const Text('Instruction Videos'),
+                      onPressed: (c) {
+                        openDrawer(
+                          context: context,
+                          position: OverlayPosition.bottom,
+                          builder: (c) => const _InstructionVideosDrawer(),
+                        );
+                      },
+                    ),
+                    MenuButton(
+                      leading: Icon(Icons.help_outline),
+                      child: Text(context.i18n.troubleshootingGuide),
+                      onPressed: (c) {
+                        openDrawer(
+                          context: context,
+                          position: OverlayPosition.bottom,
+                          builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                        );
+                      },
+                    ),
+                    MenuDivider(),
                     MenuLabel(child: Text(context.i18n.getSupport)),
                     MenuButton(
                       leading: Icon(Icons.reddit_outlined),
@@ -135,30 +159,6 @@ class HelpButton extends StatelessWidget {
                         },
                       ),
                     ],
-                    MenuDivider(),
-                    MenuLabel(child: Text(context.i18n.instructions)),
-                    MenuButton(
-                      leading: Icon(Icons.ondemand_video),
-                      child: const Text('Instruction Videos'),
-                      onPressed: (c) {
-                        openDrawer(
-                          context: context,
-                          position: OverlayPosition.bottom,
-                          builder: (c) => const _InstructionVideosDrawer(),
-                        );
-                      },
-                    ),
-                    MenuButton(
-                      leading: Icon(Icons.help_outline),
-                      child: Text(context.i18n.troubleshootingGuide),
-                      onPressed: (c) {
-                        openDrawer(
-                          context: context,
-                          position: OverlayPosition.bottom,
-                          builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                        );
-                      },
-                    ),
                   ],
                 ),
               );

@@ -28,7 +28,7 @@ Future<bool> showGoProDialog(BuildContext context) async {
           ),
           LoadingWidget(
             futureCallback: () async {
-              await iapManager.purchaseSubscription(c);
+              await iapManager.purchaseSubscription(context);
               Navigator.of(c).pop(true);
             },
             renderChild: (isLoading, tap) => PrimaryButton(

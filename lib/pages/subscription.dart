@@ -7,6 +7,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -299,7 +300,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             icon: Icons.sync,
             title: 'Sync Settings',
             subtitle: 'Synchronize across devices',
-            onTap: () => _handleLoggedInFeature(() => _navigateTo(SubscriptionPageView.syncSettings)),
+            onTap: () {
+              _handleLoggedInFeature(() {
+                if (IAPManager.instance.isProEnabledForCurrentDevice) {
+                  _navigateTo(SubscriptionPageView.syncSettings);
+                } else {
+                  buildToast(title: 'Current Device is not registered');
+                }
+              });
+            },
           ),
 
           // Registered Devices Section
@@ -348,7 +357,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   Widget _buildLoginView() {
-    return LoginPage(pushed: false);
+    return LoginPage(
+      pushed: false,
+      onBack: _goBack,
+    );
   }
 
   Widget _buildDevicesView() {

@@ -8,6 +8,7 @@ import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -457,16 +458,18 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        device.deviceName ?? 'Unknown Device',
-                      ).small.bold,
+                      if (device.deviceName != null)
+                        Text(
+                          device.deviceName!,
+                        ).small.bold,
                       const SizedBox(height: 4),
-                      Text('${device.platform.toUpperCase()} • ${_formatDateTime(device.lastSeenAt)}').small.muted,
+                      Text(device.platform.capitalize().replaceAll('os', 'OS')).small.muted,
                       if (hasSettings) ...[
                         const SizedBox(height: 4),
+                        Text(_formatDateTime(device.lastSeenAt)).xSmall.muted,
                         Text(
                           'Version: ${deviceSettings.version} • Keymaps: ${deviceSettings.keymaps?.length ?? 0}',
-                        ).small.muted,
+                        ).xSmall.muted,
                       ],
                     ],
                   ),

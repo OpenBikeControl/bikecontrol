@@ -4,6 +4,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -170,9 +171,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
           ),
           if (isRevoked)
             Text(
-              'Revoked',
-              style: TextStyle(color: Colors.red, fontSize: 12),
-            )
+              'Revoked').small
           else
             Button.secondary(
               onPressed: () => _revokeDevice(device),
@@ -220,7 +219,10 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       setState(() {});
     } on DeviceLimitReachedError catch (error) {
       if (!mounted) return;
-      buildToast(title: 'Device limit reached for ${error.platform}');
+      buildToast(
+        title:
+            'Device limit reached for ${error.platform.capitalize().replaceAll('os', 'OS')}. Revoke other devices to register a new one.',
+      );
     } catch (error) {
       if (!mounted) return;
       buildToast(title: 'Could not register device: $error');

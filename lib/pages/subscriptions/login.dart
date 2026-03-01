@@ -15,7 +15,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   final bool pushed;
-  const LoginPage({super.key, required this.pushed});
+  final VoidCallback? onBack;
+  const LoginPage({super.key, required this.pushed, this.onBack});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -136,65 +137,17 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          session.user.email ?? session.user.id,
-                        ).small.bold,
-                        const SizedBox(height: 4),
-                        if (isPremiumEnabled)
-                          PrimaryBadge(
-                            child: Text('Subscription active'),
-                          )
-                        else if (hasActiveSubscription)
-                          DestructiveBadge(
-                            child: Text('Device not registered'),
-                          )
-                        else
-                          DestructiveBadge(
-                            child: Text('Subscription inactive'),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Button.secondary(
-                    child: const Text('Logout'),
-                    onPressed: () async {
-                      await core.supabase.auth.signOut();
-                    },
-                  ),
+                  Text(
+                    session.user.email ?? session.user.id,
+                  ).small.bold,
                 ],
               ),
-              Divider(),
-              Text(
-                'Premium features are enabled when this account has an active subscription.',
-              ).small.muted,
-              if (hasActiveSubscription && !isRegisteredDevice)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withAlpha(20),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      Icon(
-                        Icons.info,
-                        size: 16,
-                        color: Colors.orange,
-                      ),
-                      Expanded(
-                        child: Text(
-                          'This device is not registered. Register it to enable premium features.',
-                          style: TextStyle(color: Colors.orange),
-                        ).small,
-                      ),
-                    ],
-                  ),
-                ),
+              Button.secondary(
+                child: const Text('Logout'),
+                onPressed: () async {
+                  await core.supabase.auth.signOut();
+                },
+              ),
             ],
           ),
         ),
@@ -230,6 +183,8 @@ class _LoginPageState extends State<LoginPage> {
 
       if (widget.pushed) {
         Navigator.pop(context);
+      } else {
+        widget.onBack?.call();
       }
       return response;
     } else {
@@ -240,6 +195,8 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (widget.pushed) {
         Navigator.pop(context);
+      } else {
+        widget.onBack?.call();
       }
       return null;
     }
@@ -266,6 +223,8 @@ class _LoginPageState extends State<LoginPage> {
 
       if (widget.pushed) {
         Navigator.pop(context);
+      } else {
+        widget.onBack?.call();
       }
       return authResponse;
     } else {
@@ -276,6 +235,8 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (widget.pushed) {
         Navigator.pop(context);
+      } else {
+        widget.onBack?.call();
       }
       return null;
     }
