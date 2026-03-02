@@ -298,7 +298,12 @@ class RevenueCatService {
   }) async {
     // Direct the user to the paywall for a better experience
     final offerings = await Purchases.getOfferings();
-    final proOffering = offerings.all['proonly'];
+    Offering? proOffering;
+    if (isPurchasedNotifier.value) {
+      proOffering = offerings.all['proonly-freemonth'];
+    } else {
+      proOffering = offerings.all['proonly'];
+    }
     if (proOffering == null) {
       buildToast(title: 'Subscription offering not available right now.');
       return;
