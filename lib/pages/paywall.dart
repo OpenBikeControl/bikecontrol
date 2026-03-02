@@ -249,7 +249,7 @@ class _PaywallState extends State<Paywall> {
 
   _PaywallPricing? _buildPricingFromOfferings(Offerings offerings) {
     final allOfferings = offerings.all.values.toList();
-    final proOffering = offerings.all['pro'];
+    final proOffering = offerings.all[_iapManager.isPurchased.value ? 'proonly-freemonth' : 'pro'];
     final defaultOffering = offerings.all['default'];
 
     final monthlyPackage =
