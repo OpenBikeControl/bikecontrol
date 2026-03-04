@@ -29,6 +29,7 @@ class ConnectionMethod extends StatefulWidget {
   final Widget? additionalChild;
   final bool? isConnected;
   final bool? isStarted;
+  final bool isRecommended;
   final bool isEnabled;
   final bool showTroubleshooting;
   final List<PlatformRequirement> requirements;
@@ -38,6 +39,7 @@ class ConnectionMethod extends StatefulWidget {
   const ConnectionMethod({
     super.key,
     required this.title,
+    required this.isRecommended,
     required this.type,
     required this.isEnabled,
     this.additionalChild,
@@ -120,22 +122,29 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: 8,
             children: [
-              PrimaryBadge(
-                trailing: widget.isStarted == true && (widget.isConnected == false)
-                    ? SizedBox(
-                        width: 19,
-                        height: 19,
-                        child: SmallProgressIndicator(
-                          color: Theme.of(context).colorScheme.primaryForeground,
-                        ),
-                      )
-                    : switch (widget.type) {
-                        ConnectionMethodType.bluetooth => Icon(Icons.bluetooth),
-                        ConnectionMethodType.network => Icon(Icons.wifi),
-                        ConnectionMethodType.openBikeControl => Icon(Icons.directions_bike),
-                        ConnectionMethodType.local => Icon(Icons.keyboard),
-                      },
-                child: Text(widget.type.name.capitalize()),
+              Row(
+                spacing: 8,
+                children: [
+                  PrimaryBadge(
+                    trailing: widget.isStarted == true && (widget.isConnected == false)
+                        ? SizedBox(
+                            width: 19,
+                            height: 19,
+                            child: SmallProgressIndicator(
+                              color: Theme.of(context).colorScheme.primaryForeground,
+                            ),
+                          )
+                        : switch (widget.type) {
+                            ConnectionMethodType.bluetooth => Icon(Icons.bluetooth),
+                            ConnectionMethodType.network => Icon(Icons.wifi),
+                            ConnectionMethodType.openBikeControl => Icon(Icons.directions_bike),
+                            ConnectionMethodType.local => Icon(Icons.keyboard),
+                          },
+                    child: Text(widget.type.name.capitalize()),
+                  ),
+
+                  if (widget.isRecommended) SecondaryBadge(leading: Icon(Icons.star), child: Text('Recommended')),
+                ],
               ),
               if (widget.title == context.i18n.enablePairingProcess ||
                   widget.title == context.i18n.enableZwiftControllerBluetooth)

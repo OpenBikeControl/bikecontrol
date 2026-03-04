@@ -1,10 +1,10 @@
-import 'package:prop/prop.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:flutter/material.dart';
+import 'package:prop/prop.dart';
 
 class ZwiftMdnsTile extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -27,6 +27,7 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
             return StatefulBuilder(
               builder: (context, setState) {
                 return ConnectionMethod(
+                  isRecommended: true,
                   supportedActions: core.zwiftMdnsEmulator.supportedActions,
                   type: ConnectionMethodType.network,
                   isEnabled: core.settings.getZwiftMdnsEmulatorEnabled(),

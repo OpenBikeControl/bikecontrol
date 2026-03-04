@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:flutter/foundation.dart';
@@ -49,7 +50,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
   }
 
   Future<void> startServer() async {
-    return clickEmulator.startServer();
+    return clickEmulator.startServer(core.settings.getTrainerApp() is Rouvy);
   }
 
   void stop() {
