@@ -194,9 +194,23 @@ class DeviceScriptService {
       return null;
     }
 
+    return runScriptSource(
+      source: source,
+      characteristicUuid: characteristicUuid,
+      data: data,
+      deviceTypeForLog: deviceType,
+    );
+  }
+
+  Future<ScriptExecutionResult> runScriptSource({
+    required String source,
+    required String characteristicUuid,
+    required Uint8List data,
+    String? deviceTypeForLog,
+  }) async {
     core.connection.signalNotification(
       LogNotification(
-        'Running custom script for device type "$deviceType" with characteristic $characteristicUuid input data: ${data.join()}',
+        'Running custom script${deviceTypeForLog != null ? ' for device type "$deviceTypeForLog"' : ''} with characteristic $characteristicUuid input data: ${data.join()}',
       ),
     );
 
