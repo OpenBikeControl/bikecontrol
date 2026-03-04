@@ -31,6 +31,7 @@ class _PairWidgetState extends State<RemoteMousePairingWidget> {
               isStarted: isStarted,
               showTroubleshooting: true,
               type: ConnectionMethodType.bluetooth,
+              isRecommended: false,
               instructionLink: 'INSTRUCTIONS_REMOTE_CONTROL.md',
               title: context.i18n.enablePairingProcess,
               description: context.i18n.pairingDescription,
