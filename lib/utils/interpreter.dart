@@ -80,6 +80,27 @@ class DeviceScriptService {
     return script ?? kDefaultDeviceScript;
   }
 
+  Future<bool> hasCustomScript(String deviceType) async {
+    if (kIsWeb) {
+      return false;
+    }
+
+    if (_customScriptCache.containsKey(deviceType)) {
+      return true;
+    }
+
+    if (_missingScriptCache.contains(deviceType)) {
+      return false;
+    }
+
+    final file = await _scriptFileForDeviceType(deviceType);
+    final exists = await file.exists();
+    if (!exists) {
+      _missingScriptCache.add(deviceType);
+    }
+    return exists;
+  }
+
   Future<ScriptValidationResult> saveScript({
     required String deviceType,
     required String source,
@@ -88,18 +109,33 @@ class DeviceScriptService {
       return ScriptValidationResult.invalid('Script files are not supported on web.');
     }
 
-    final validation = validateScript(source);
+    final cleaned = source.replaceAll('BikeControl', '').replaceAll('Bike Control', '').replaceAll('bikecontrol', '');
+    final validation = validateScript(cleaned);
     if (!validation.isValid) {
       return validation;
     }
 
     final file = await _scriptFileForDeviceType(deviceType);
-    await file.writeAsString(source, flush: true);
+    await file.writeAsString(cleaned, flush: true);
 
     _customScriptCache[deviceType] = source;
     _missingScriptCache.remove(deviceType);
 
     return const ScriptValidationResult.valid();
+  }
+
+  Future<void> deleteScript(String deviceType) async {
+    if (kIsWeb) {
+      return;
+    }
+
+    final file = await _scriptFileForDeviceType(deviceType);
+    if (await file.exists()) {
+      await file.delete();
+    }
+
+    _customScriptCache.remove(deviceType);
+    _missingScriptCache.add(deviceType);
   }
 
   ScriptValidationResult validateScript(String source) {
