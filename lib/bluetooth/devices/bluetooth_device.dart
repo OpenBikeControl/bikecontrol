@@ -18,10 +18,13 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -77,6 +80,8 @@ abstract class BluetoothDevice extends BaseDevice {
   ];
 
   static final List<String> _ignoredNames = ['ASSIOMA', 'QUARQ', 'POWERCRANK'];
+
+  List<BleService>? services;
 
   static BluetoothDevice? fromScanResult(BleDevice scanResult) {
     // skip devices with ignored names
@@ -203,8 +208,9 @@ abstract class BluetoothDevice extends BaseDevice {
       await UniversalBle.requestMtu(device.deviceId, 517);
     }
 
-    final services = await UniversalBle.discoverServices(device.deviceId);
-    final deviceInformationService = services.firstOrNullWhere(
+    services = await UniversalBle.discoverServices(device.deviceId);
+
+    final deviceInformationService = services!.firstOrNullWhere(
       (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID.toLowerCase(),
     );
     final firmwareCharacteristic = deviceInformationService?.characteristics.firstOrNullWhere(
@@ -221,7 +227,7 @@ abstract class BluetoothDevice extends BaseDevice {
       core.connection.signalChange(this);
     }
 
-    final batteryService = services.firstOrNullWhere(
+    final batteryService = services!.firstOrNullWhere(
       (service) => service.uuid == BleUuid.DEVICE_BATTERY_SERVICE_UUID.toLowerCase(),
     );
 
@@ -240,7 +246,7 @@ abstract class BluetoothDevice extends BaseDevice {
       }
     }
 
-    await handleServices(services);
+    await handleServices(services!);
   }
 
   Future<void> handleServices(List<BleService> services);
@@ -248,8 +254,15 @@ abstract class BluetoothDevice extends BaseDevice {
 
   @override
   Future<void> disconnect() async {
+    services?.clear();
     await UniversalBle.disconnect(device.deviceId);
     super.disconnect();
+  }
+
+  String? serviceUuidForCharacteristic(String characteristicUuid) {
+    return services
+        ?.firstOrNullWhere((service) => service.characteristics.any((c) => c.uuid == characteristicUuid.toLowerCase()))
+        ?.uuid;
   }
 
   @override
@@ -270,7 +283,7 @@ abstract class BluetoothDevice extends BaseDevice {
               builder: (context) {
                 return LoadingWidget(
                   futureCallback: () async {
-                    final completer = showDropdown<bool>(
+                    final completer = showDropdown<bool?>(
                       context: context,
                       builder: (c) => DropdownMenu(
                         children: [
@@ -285,6 +298,31 @@ abstract class BluetoothDevice extends BaseDevice {
                             onPressed: (context) {
                               closeOverlay(context, true);
                             },
+                          ),
+                          MenuDivider(),
+                          MenuLabel(child: Text('Experimental')),
+                          MenuButton(
+                            trailing:
+                                !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
+                                ? ProBadge()
+                                : null,
+                            onPressed: (overlayContext) async {
+                              await closeOverlay(context, null);
+                              if (!IAPManager.instance.isPurchased.value &&
+                                  !IAPManager.instance.hasActiveSubscription) {
+                                buildToast(
+                                  title: 'This feature is Full Version or Pro only.',
+                                  duration: Duration(seconds: 4),
+                                );
+                                return;
+                              }
+                              openDrawer(
+                                context: context,
+                                position: OverlayPosition.end,
+                                builder: (c) => DeviceScriptDrawer(deviceType: runtimeType.toString()),
+                              );
+                            },
+                            child: Text('Run Script'),
                           ),
                         ],
                       ),

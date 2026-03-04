@@ -10,6 +10,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -159,6 +160,24 @@ class Connection {
             print("backtrace: $backtrace");
           }
         }
+
+        try {
+          await _runCustomDeviceScript(
+            device: device,
+            characteristicUuid: characteristicUuid,
+            value: value,
+          );
+        } catch (e, backtrace) {
+          _actionStreams.add(
+            LogNotification(
+              "Error executing script for ${device.runtimeType} and char: $characteristicUuid: $e\n$backtrace",
+            ),
+          );
+          if (kDebugMode) {
+            print(e);
+            print("backtrace: $backtrace");
+          }
+        }
       }
     };
 
@@ -231,6 +250,68 @@ class Connection {
     } else {
       isScanning.value = false;
     }
+  }
+
+  Future<void> _runCustomDeviceScript({
+    required BluetoothDevice device,
+    required String characteristicUuid,
+    required Uint8List value,
+  }) async {
+    if (!IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription) {
+      return;
+    }
+
+    final scriptOutput = await DeviceScriptService.instance.runCustomScript(
+      deviceType: device.runtimeType.toString(),
+      characteristicUuid: characteristicUuid,
+      data: value,
+    );
+
+    if (scriptOutput == null) {
+      return;
+    }
+
+    final serviceUuid = device.serviceUuidForCharacteristic(scriptOutput.characteristicUuid);
+    if (serviceUuid == null) {
+      _actionStreams.add(
+        LogNotification(
+          'Script output characteristic ${scriptOutput.characteristicUuid} was not found on ${device.runtimeType}.',
+        ),
+      );
+      return;
+    }
+
+    final characteristic = device.services
+        ?.firstOrNullWhere((s) => s.uuid == serviceUuid)
+        ?.characteristics
+        .firstOrNullWhere((c) => c.uuid == scriptOutput.characteristicUuid);
+
+    if (characteristic == null) {
+      _actionStreams.add(
+        LogNotification(
+          'Script output characteristic ${scriptOutput.characteristicUuid} was not found on ${device.runtimeType}.',
+        ),
+      );
+      return;
+    } else if (!characteristic.properties.containsAny([
+      CharacteristicProperty.write,
+      CharacteristicProperty.writeWithoutResponse,
+    ])) {
+      _actionStreams.add(
+        LogNotification(
+          'Script output characteristic ${scriptOutput.characteristicUuid} on ${device.runtimeType} does not support writing.',
+        ),
+      );
+      return;
+    }
+
+    await UniversalBle.write(
+      device.device.deviceId,
+      serviceUuid,
+      scriptOutput.characteristicUuid,
+      scriptOutput.data,
+      withoutResponse: characteristic.properties.contains(CharacteristicProperty.writeWithoutResponse) == true,
+    );
   }
 
   Future<void> startMyWhooshServer() {

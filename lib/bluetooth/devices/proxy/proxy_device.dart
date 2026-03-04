@@ -20,8 +20,6 @@ class ProxyDevice extends BluetoothDevice {
         isBeta: true,
       );
 
-  late final List<BleService> services;
-
   @override
   Future<void> handleServices(List<BleService> services) async {
     emulator.setScanResult(scanResult);
