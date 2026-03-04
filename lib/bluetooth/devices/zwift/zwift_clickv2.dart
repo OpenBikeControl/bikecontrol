@@ -3,6 +3,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -58,7 +59,8 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> setupHandshake() async {
-    if (isUnlocked) {
+    final hasScript = await DeviceScriptService.instance.hasCustomScript(runtimeType.toString());
+    if (isUnlocked || hasScript) {
       super.setupHandshake();
       await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
     }

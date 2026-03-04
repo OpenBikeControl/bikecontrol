@@ -180,7 +180,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ..._buildTrainerConnectionActions(core.logic.obpConnectedApp!.supportedActions),
                 ],
 
-                if (core.logic.showMyWhooshLink) ...[
+                if (core.logic.showMyWhooshLink && (Platform.isIOS || core.settings.getMyWhooshLinkEnabled())) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
                   if (!core.settings.getMyWhooshLinkEnabled())
