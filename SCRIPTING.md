@@ -29,7 +29,7 @@ Validation checks on Save:
 - `main` returns `List<...>` or `Future<List<...>>`.
 
 ## Output Contract
-`main(...)` must return a list with at least 2 items:
+`main(...)` must return a list with 0 items (nothing should happen), or 2 items (send a write command):
 1. `String` characteristic UUID to write to.
 2. `List<int>` byte payload (values must be in `0..255`).
 
@@ -44,10 +44,9 @@ Future<List<dynamic>> main(String characteristicUuid, List<int> data) async {
 
 ## Runtime Behavior
 - Your script runs when a value from any characteristic is received for a device of the corresponding type.
-- If the script exists for that device type, BikeControl uses the output and calls `UniversalBle.write(...)`.
+- If the script exists for that device type, BikeControl uses the output and calls writes the value to the characteristic.
 - If the returned characteristic does not exist on the connected device, the write is skipped and a log entry is added.
 
 ## Notes
 - This is experimental and runs on every value update; keep scripts lightweight.
 - Invalid scripts are rejected on Save and are not written to disk.
-- Return an empty list to skip writing any value
