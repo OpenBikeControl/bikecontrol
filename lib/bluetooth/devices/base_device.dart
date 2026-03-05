@@ -114,6 +114,18 @@ abstract class BaseDevice {
         return;
       }
 
+      final hasSingleAction = _hasTriggerAction(button, ButtonTrigger.singleClick);
+      final hasDoubleAction = _hasTriggerAction(button, ButtonTrigger.doubleClick);
+      final hasLongPressAction = _hasTriggerAction(button, ButtonTrigger.longPress);
+      final isLongPressOnly = hasLongPressAction && !hasSingleAction && !hasDoubleAction;
+      if (supportsLongPress && isLongPressOnly && !_isLongPressSuppressed(button)) {
+        _cancelPendingClickTimers();
+        _longPressTimer?.cancel();
+        _activeLongPressButtons = {button};
+        await performDown([button], trigger: ButtonTrigger.longPress);
+        return;
+      }
+
       _scheduleLongPress(button);
     } catch (e, st) {
       actionStreamInternal.add(
@@ -168,7 +180,7 @@ abstract class BaseDevice {
     if (!supportsLongPress || !_hasTriggerAction(button, ButtonTrigger.longPress)) {
       return;
     }
-    if (button == ZwiftButtons.onOffLeft || button == ZwiftButtons.onOffRight) {
+    if (_isLongPressSuppressed(button)) {
       return;
     }
 
@@ -180,6 +192,10 @@ abstract class BaseDevice {
       _activeLongPressButtons = {button};
       unawaited(performDown([button], trigger: ButtonTrigger.longPress));
     });
+  }
+
+  bool _isLongPressSuppressed(ControllerButton button) {
+    return button == ZwiftButtons.onOffLeft || button == ZwiftButtons.onOffRight;
   }
 
   Future<void> _handleSingleButtonTap(ControllerButton button) async {
