@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
@@ -63,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
               'BikeControl',
             ).large,
             Text(
-              'Sign in to sync your subscription and manage devices',
+              AppLocalizations.of(context).signInToSyncYourSubscriptionAndManageDevices,
             ).small.muted,
           ],
         ),
@@ -143,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
               Button.secondary(
-                child: const Text('Logout'),
+                child: Text(AppLocalizations.of(context).logout),
                 onPressed: () async {
                   await core.supabase.auth.signOut();
                 },

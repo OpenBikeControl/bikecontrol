@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/pages/subscriptions/registered_devices_view.dart';
@@ -150,9 +151,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   const SizedBox(width: 8),
                   Text(
                     switch (_currentView) {
-                      SubscriptionPageView.login => 'Account',
-                      SubscriptionPageView.syncSettings => 'Sync Settings',
-                      SubscriptionPageView.devices => 'Registered Devices',
+                      SubscriptionPageView.login => AppLocalizations.of(context).account,
+                      SubscriptionPageView.syncSettings => AppLocalizations.of(context).syncSettings,
+                      SubscriptionPageView.devices => AppLocalizations.of(context).registeredDevices,
                       _ => '',
                     },
                   ).small,
@@ -208,7 +209,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Current Plan',
+                            AppLocalizations.of(context).currentPlan,
                           ).small.muted,
                           Text(
                             IAPManager.instance.getStatusMessage(),
@@ -222,8 +223,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   Divider(),
                   Text(
                     !_iapManager.isPurchased.value
-                        ? 'Unlock the full version - or Go Pro'
-                        : 'Unlock all features with Pro',
+                        ? AppLocalizations.of(context).unlockTheFullVersionOrGoPro
+                        : AppLocalizations.of(context).unlockAllFeaturesWithPro,
                   ).small.muted,
                   if (_iapManager.isWindows && !_iapManager.isWindowsLoggedIn) _buildWindowsAuthWarning(),
                   Row(
@@ -235,7 +236,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                             futureCallback: () => _buyFullVersion(),
                             renderChild: (isLoading, tap) => Button.secondary(
                               onPressed: tap,
-                              child: isLoading ? SmallProgressIndicator() : Text('Buy Full Version'),
+                              child: isLoading
+                                  ? SmallProgressIndicator()
+                                  : Text(AppLocalizations.of(context).buyFullVersion),
                             ),
                           ),
                         ),
@@ -249,7 +252,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               children: [
                                 isLoading ? SmallProgressIndicator() : Icon(Icons.workspace_premium, size: 16),
                                 const SizedBox(width: 8),
-                                Text('Go Pro'),
+                                Text(AppLocalizations.of(context).goPro),
                               ],
                             ),
                           ),
@@ -275,7 +278,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               children: [
                                 isLoading ? SmallProgressIndicator() : Icon(Icons.manage_accounts, size: 16),
                                 const SizedBox(width: 8),
-                                Text('Manage Subscription'),
+                                Text(AppLocalizations.of(context).manageSubscription),
                               ],
                             ),
                           ),
@@ -290,7 +293,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           // Account Section
           _buildProCard(
             icon: Icons.account_circle,
-            title: 'Account',
+            title: AppLocalizations.of(context).account,
             subtitle: _getAccountSubtitle(session),
             onTap: () => _navigateTo(SubscriptionPageView.login),
           ),
@@ -298,14 +301,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           // Sync Settings Section
           _buildProCard(
             icon: Icons.sync,
-            title: 'Sync Settings',
-            subtitle: 'Synchronize across devices',
+            title: AppLocalizations.of(context).syncSettings,
+            subtitle: AppLocalizations.of(context).synchronizeAcrossDevices,
             onTap: () {
               _handleLoggedInFeature(() {
                 if (IAPManager.instance.isProEnabledForCurrentDevice) {
                   _navigateTo(SubscriptionPageView.syncSettings);
                 } else {
-                  buildToast(title: 'Current Device is not registered');
+                  buildToast(title: AppLocalizations.of(context).currentDeviceIsNotRegistered);
                 }
               });
             },
@@ -314,8 +317,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           // Registered Devices Section
           _buildProCard(
             icon: Icons.devices,
-            title: 'Registered Devices',
-            subtitle: 'Manage your devices',
+            title: AppLocalizations.of(context).registeredDevices,
+            subtitle: AppLocalizations.of(context).manageYourDevices,
             onTap: () => _handleLoggedInFeature(() => _navigateTo(SubscriptionPageView.devices)),
           ),
         ],
@@ -393,7 +396,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   /// Get the account subtitle with Windows-specific messaging
   String _getAccountSubtitle(Session? session) {
     if (session != null) {
-      return 'Logged in as ${session.user.email}';
+      return AppLocalizations.of(context).loggedInAsMail(session.user.email ?? '?');
     }
 
     if (_iapManager.isWindows) {
@@ -419,7 +422,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Windows subscriptions require you to be logged in',
+              AppLocalizations.of(context).windowsSubscriptionsRequireYouToBeLoggedIn,
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.orange.shade700,
