@@ -224,11 +224,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
           border: () => Color(0xFF3A3A3A),
         ),
       ),
-      locale: screenshotMode
-          ? Locale('en')
-          : kDebugMode
-          ? Locale('it')
-          : null,
+      locale: screenshotMode ? Locale('en') : null,
       theme: ThemeData(
         colorScheme: ColorSchemes.lightNeutral.copyWith(
           card: () => BKColor.backgroundLight,

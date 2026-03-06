@@ -14,6 +14,7 @@ BikeControl Pro is now available - subscribe to the Pro version to support the p
 - Shimano Di2: long press and double clicks are now supported:
   - perform steering using long presses
   - gear changes are now reflected properly without losing any button presses
+- App is now available in Spanish
 
 **Fixes**:
 - macOS: Send keyboard key even if the trainer app isn't in foreground
