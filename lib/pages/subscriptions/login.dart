@@ -87,11 +87,10 @@ class _LoginPageState extends State<LoginPage> {
                   Buttons.gitHub,
                   onPressed: _signInWithGithub,
                 ),
-                if (kDebugMode) // TODO reactivate when Facebook has reviewed
-                  SignInButton(
-                    Buttons.facebook,
-                    onPressed: _signInWithFacebook,
-                  ),
+                SignInButton(
+                  Buttons.facebook,
+                  onPressed: _signInWithFacebook,
+                ),
               ],
             ),
           ),
@@ -125,26 +124,10 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isPremiumEnabled
-                          ? Colors.green.withAlpha(30)
-                          : hasActiveSubscription
-                          ? Colors.orange.withAlpha(30)
-                          : Colors.red.withAlpha(30),
+                      color: Colors.green.withAlpha(30),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      isPremiumEnabled
-                          ? Icons.check_circle
-                          : hasActiveSubscription
-                          ? Icons.warning
-                          : Icons.cancel,
-                      size: 28,
-                      color: isPremiumEnabled
-                          ? Colors.green
-                          : hasActiveSubscription
-                          ? Colors.orange
-                          : Colors.red,
-                    ),
+                    child: Icon(Icons.check_circle, size: 28, color: Colors.green),
                   ),
                   const SizedBox(width: 16),
                   Text(
