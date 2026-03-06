@@ -16,13 +16,19 @@ You may need to update the firmware in Zwift Companion app.
 To make your Click V2 work best you should connect it in the Zwift app once before a workout session.
 If you don't do that BikeControl will need to reconnect every minute.
 
+You have two possibilities:
+# BikeControl method
+Click on the "Unlock" button in BikeControl in the Devices tab, then follow on-screen instructions:
+[https://youtube.com/shorts/bSQKnpHnWCo?feature=share](https://youtube.com/shorts/bSQKnpHnWCo?feature=share)
+
+# Manual method
 1. Open Zwift app (not the Companion)
 2. Log in (subscription not required) → device connection screen
 3. Connect trainer, then connect Click v2
 4. Keep it connected for ~10–30 seconds
 5. Close Zwift completely, then connect in BikeControl
 
-Details/updates: https://github.com/OpenBikeControl/bikecontrol/issues/68
+Details/updates: [https://github.com/OpenBikeControl/bikecontrol/issues/68](GitHub issue)
 
 ## Android: Connection works, buttons work but nothing happens in MyWhoosh and similar
 *

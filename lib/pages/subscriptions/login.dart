@@ -87,6 +87,11 @@ class _LoginPageState extends State<LoginPage> {
                   Buttons.gitHub,
                   onPressed: _signInWithGithub,
                 ),
+                if (kDebugMode) // TODO reactivate when Facebook has reviewed
+                  SignInButton(
+                    Buttons.facebook,
+                    onPressed: _signInWithFacebook,
+                  ),
               ],
             ),
           ),
@@ -250,6 +255,14 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _signInWithGithub() async {
     await core.supabase.auth.signInWithOAuth(
       OAuthProvider.github,
+      redirectTo: kIsWeb ? null : 'bikecontrol://login/',
+      authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+    );
+  }
+
+  Future<void> _signInWithFacebook() async {
+    await core.supabase.auth.signInWithOAuth(
+      OAuthProvider.facebook,
       redirectTo: kIsWeb ? null : 'bikecontrol://login/',
       authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
     );

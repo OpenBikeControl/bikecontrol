@@ -47,8 +47,8 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
       },
     ),
 
-    Gap(8),
-    if (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled)
+    if (openLogs == null && (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled)) ...[
+      Gap(8),
       Builder(
         builder: (context) {
           return OutlineButton(
@@ -83,6 +83,7 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
           );
         },
       ),
+    ],
     Gap(4),
 
     BKMenuButton(openLogs: openLogs, currentPage: currentPage),
@@ -188,6 +189,20 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
+            if (openLogs != null)
+              MenuButton(
+                leading: Icon(Icons.star_rate),
+                child: Text(context.i18n.leaveAReview),
+                onPressed: (c) async {
+                  final InAppReview inAppReview = InAppReview.instance;
+
+                  if (await inAppReview.isAvailable()) {
+                    inAppReview.requestReview();
+                  } else {
+                    inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
+                  }
+                },
+              ),
             if (openLogs != null)
               MenuButton(
                 leading: Icon(Icons.article_outlined),

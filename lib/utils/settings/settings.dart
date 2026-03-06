@@ -33,10 +33,12 @@ class Settings {
     try {
       prefs = await SharedPreferences.getInstance();
       propPrefs.initialize(prefs);
-      try {
-        await NotificationRequirement.setup();
-      } catch (error, stack) {
-        recordError(error, stack, context: 'Notification setup');
+      if (!screenshotMode) {
+        try {
+          await NotificationRequirement.setup();
+        } catch (error, stack) {
+          recordError(error, stack, context: 'Notification setup');
+        }
       }
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 

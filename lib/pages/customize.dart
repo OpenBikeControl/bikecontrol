@@ -137,12 +137,12 @@ class _CustomizeState extends State<CustomizePage> {
             ],
           ),
 
-          if (core.actionHandler.supportedApp is! CustomApp)
+          if (core.actionHandler.supportedApp is! CustomApp && !screenshotMode)
             Text(
               context.i18n.customizeKeymapHint,
               style: TextStyle(fontSize: 12),
             ),
-          Gap(12),
+          if (!screenshotMode) Gap(12),
           if (core.actionHandler.supportedApp != null && core.connection.controllerDevices.isNotEmpty)
             KeymapExplanation(
               key: Key(core.actionHandler.supportedApp!.keymap.runtimeType.toString()),

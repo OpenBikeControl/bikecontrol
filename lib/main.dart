@@ -289,7 +289,7 @@ class _StarterState extends State<_Starter> with WidgetsBindingObserver {
 
     core.connection.initialize();
     WidgetsBinding.instance.addObserver(this);
-    if (!kIsWeb) {
+    if (!kIsWeb && !screenshotMode) {
       // It will handle app links while the app is already started - be it in
       // the foreground or in the background.
       _deeplinkSubscription = _appLinks.uriLinkStream.listen(
