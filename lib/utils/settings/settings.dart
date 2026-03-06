@@ -9,6 +9,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
@@ -63,6 +64,10 @@ class Settings {
         );
       } catch (e, s) {
         recordError(e, s, context: 'Supabase initialization');
+      }
+
+      if (!kIsWeb && Platform.isWindows) {
+        await WindowsStoreEnvironment.initialize();
       }
 
       // Initialize IAP manager

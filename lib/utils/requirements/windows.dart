@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:win32/win32.dart';
+import 'package:bike_control/utils/windows_store_environment.dart';
 
 const _hive = HKEY_CURRENT_USER;
-const bool isOutsideStoreBuild = bool.fromEnvironment('IS_OUTSIDE_STORE', defaultValue: false);
 
 class WindowsProtocolHandler {
-  bool get shouldRegisterForOutsideStoreBuild => isOutsideStoreBuild;
+  bool get shouldRegisterForOutsideStoreBuild => WindowsStoreEnvironment.isOutsideStoreCached;
 
   List<String> getArguments(List<String>? arguments) {
     if (arguments == null) return ['%s'];

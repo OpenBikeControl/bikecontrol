@@ -283,7 +283,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: windows
-          args: "-- --obfuscate --split-debug-info=symbols-win --dart-define=IS_OUTSIDE_STORE=true"
+          args: "-- --obfuscate --split-debug-info=symbols-win"
 
       - name: Zip Windows release
         shell: pwsh
