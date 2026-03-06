@@ -11,7 +11,7 @@ class Entitlement {
     required this.source,
   });
 
-  bool get isActive => status == 'active' || status == 'grace';
+  bool get isActive => status == 'active'; // || status == 'grace';
 
   factory Entitlement.fromJson(Map<String, dynamic> json) {
     return Entitlement(

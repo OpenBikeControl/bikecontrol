@@ -83,6 +83,10 @@ class _LoginPageState extends State<LoginPage> {
                   Buttons.apple,
                   onPressed: _signInWithApple,
                 ),
+                SignInButton(
+                  Buttons.gitHub,
+                  onPressed: _signInWithGithub,
+                ),
               ],
             ),
           ),
@@ -241,5 +245,13 @@ class _LoginPageState extends State<LoginPage> {
       }
       return null;
     }
+  }
+
+  Future<void> _signInWithGithub() async {
+    await core.supabase.auth.signInWithOAuth(
+      OAuthProvider.github,
+      redirectTo: kIsWeb ? null : 'bikecontrol://login/',
+      authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+    );
   }
 }
