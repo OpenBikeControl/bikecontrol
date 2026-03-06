@@ -312,11 +312,20 @@ jobs:
           }
           Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath $zipPath
 
+      - name: Create Store MSIX package
+        run: dart run msix:create --store --output-name bike_control.store
+
+      - name: Upload Store Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: BikeControl Store
+          path: build/windows/x64/runner/Release/bike_control.store.msix
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
-          name: BikeControl Windows
           path: build/windows/bike_control.windows.zip
 
       - name: Upload Artifacts
