@@ -262,6 +262,21 @@ jobs:
           }
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
+      - name: Decode Windows signing certificate
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace('${{ secrets.WINDOWS_MSIX_CERT_BASE64 }}')) {
+            throw 'Missing secret: WINDOWS_MSIX_CERT_BASE64'
+          }
+
+          if ([string]::IsNullOrWhiteSpace('${{ secrets.WINDOWS_MSIX_CERT_PASSWORD }}')) {
+            throw 'Missing secret: WINDOWS_MSIX_CERT_PASSWORD'
+          }
+
+          $certPath = Join-Path $env:RUNNER_TEMP 'windows-msix-signing.pfx'
+          [System.IO.File]::WriteAllBytes($certPath, [System.Convert]::FromBase64String('${{ secrets.WINDOWS_MSIX_CERT_BASE64 }}'))
+          "WINDOWS_MSIX_CERT_PATH=$certPath" >> $env:GITHUB_ENV
+
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
         with:
@@ -315,21 +330,6 @@ jobs:
       - name: Configure the Microsoft Store CLI
         if: false
         run: msstore reconfigure --tenantId $ --clientId $ --clientSecret $ --sellerId $
-
-      - name: Decode Windows signing certificate
-        shell: pwsh
-        run: |
-          if ([string]::IsNullOrWhiteSpace('${{ secrets.WINDOWS_MSIX_CERT_BASE64 }}')) {
-            throw 'Missing secret: WINDOWS_MSIX_CERT_BASE64'
-          }
-
-          if ([string]::IsNullOrWhiteSpace('${{ secrets.WINDOWS_MSIX_CERT_PASSWORD }}')) {
-            throw 'Missing secret: WINDOWS_MSIX_CERT_PASSWORD'
-          }
-
-          $certPath = Join-Path $env:RUNNER_TEMP 'windows-msix-signing.pfx'
-          [System.IO.File]::WriteAllBytes($certPath, [System.Convert]::FromBase64String('${{ secrets.WINDOWS_MSIX_CERT_BASE64 }}'))
-          "WINDOWS_MSIX_CERT_PATH=$certPath" >> $env:GITHUB_ENV
 
       - name: Create Store MSIX package
         run: dart run msix:create --store --output-name bike_control.store
