@@ -11,6 +11,7 @@
   "accessibilityUsageMonitor": "• Die App überwacht, welches Trainings-App-Fenster aktiv ist, um sicherzustellen, dass Gesten an die richtige App gesendet werden.",
   "accessibilityUsageNoData": "• Über diesen Dienst werden keine personenbezogenen Daten abgerufen oder erfasst.",
   "accessories": "Zubehör",
+  "account": "Konto",
   "actAsBluetoothKeyboard": "Als Bluetooth-Tastatur fungieren",
   "action": "Aktion",
   "adjustControllerButtons": "Controller-Tasten anpassen",
@@ -33,6 +34,7 @@
       }
     }
   },
+  "applyNow": "Jetzt anwenden",
   "asAFinalStepYoullChooseHowToConnectTo": "Im letzten Schritt wählen Sie die Verbindungsmethode aus für {trainerApp}",
   "battery": "Batterie",
   "beforeDate": "Vor dem {date}",
@@ -41,6 +43,7 @@
   "bluetoothTurnedOn": "Bluetooth ist eingeschaltet",
   "browserNotSupported": "Dieser Browser unterstützt kein Web-Bluetooth und die Plattform wird nicht unterstützt :(",
   "button": "Taste.",
+  "buyFullVersion": "Vollversion kaufen",
   "cancel": "Abbrechen",
   "changelog": "Änderungsprotokoll",
   "checkMyWhooshConnectionScreen": "Überprüfe den Verbindungsbildschirm in MyWhoosh, um zu sehen, ob „Link“ verbunden ist.",
@@ -102,6 +105,8 @@
       }
     }
   },
+  "currentDeviceIsNotRegistered": "Das aktuelle Gerät ist nicht registriert",
+  "currentPlan": "Aktueller Plan",
   "customizeControllerButtons": "Controller-Tasten anpassen für {appName}",
   "@customizeControllerButtons": {
     "placeholders": {
@@ -132,12 +137,15 @@
       }
     }
   },
+  "deviceLimitReached": "Gerätelimit erreicht für {platform}. Um ein neues Gerät zu registrieren, müssen andere Geräte widerrufen werden.",
+  "devicesActive": "{active} aktiv",
   "disconnectDevices": "Geräte trennen",
   "disconnected": "Getrennt",
   "donateByBuyingFromPlayStore": "App im Play Store kaufen",
   "donateViaCreditCard": "per Kreditkarte, Google Pay, Apple Pay und anderen Zahlungsarten",
   "donateViaPaypal": "via PayPal",
   "download": "Herunterladen",
+  "downloadLatestSettings": "Neueste Einstellungen herunterladen",
   "dragToReposition": "Zum Verschieben ziehen",
   "duplicate": "Duplikat",
   "enableAutoRotation": "Aktiviere die automatische Drehung auf Ihrem Gerät, um sicherzustellen, dass die App ordnungsgemäß funktioniert.",
@@ -179,6 +187,7 @@
   "fullVersion": "Vollversion",
   "fullVersionDescription": "Die Vollversion beinhaltet: \n- Unbegrenzte Befehle pro Tag \n- Zugriff auf alle zukünftigen Updates \n- Kein Abonnement! Nur eine einmalige Gebühr :)",
   "getSupport": "Unterstützung erhalten",
+  "goPro": "Pro werden",
   "gotIt": "Verstanden!",
   "grant": "Gewähren",
   "granted": "Gewährt",
@@ -196,7 +205,10 @@
   "importProfile": "Profil importieren",
   "instructions": "Anleitung",
   "jsonData": "JSON-Daten",
+  "justNow": "Soeben",
   "keyboardAccess": "Tastaturzugriff",
+  "lastSeen": "Zuletzt gesehen:",
+  "lastSynced": "Zuletzt synchronisiert:",
   "latestVersion": "aktuell: {version}",
   "@latestVersion": {
     "placeholders": {
@@ -227,6 +239,8 @@
   "licenseStatus": "Lizenzstatus",
   "loadScreenshotForPlacement": "Lade einen Screenshot aus dem Spiel zur Platzierung hoch.",
   "logViewer": "Protokollanzeige",
+  "loggedInAsMail": "Angemeldet als {email}",
+  "logout": "Abmelden",
   "logs": "Protokolle",
   "logsAreAlsoAt": "Die Protokolle befinden sich auch unter",
   "logsHaveBeenCopiedToClipboard": "Die Protokolle wurden in die Zwischenablage kopiert.",
@@ -235,6 +249,8 @@
   "mailSupportExplanation": "Die individuelle Unterstützung per E-Mail ist für mich sehr aufwendig.\n\nBitte nutze daher Reddit, Facebook oder GitHub für Fragen und Probleme, damit die gesamte Community davon profitieren kann.",
   "manageIgnoredDevices": "Ignorierte Geräte verwalten",
   "manageProfile": "Profil verwalten",
+  "manageSubscription": "Abonnement verwalten",
+  "manageYourDevices": "Geräte verwalten",
   "manualyControllingButton": "{trainerApp} manuell steuern!",
   "mediaKeyDetectionTooltip": "Aktiviere diese Option, damit BikeControl Bluetooth-Fernbedienungen erkennt. \nDazu muss BikeControl als Mediaplayer fungieren.",
   "miuiDeviceDetected": "MIUI-Gerät erkannt",
@@ -252,6 +268,7 @@
   "myWhooshLinkInfo": "Schau mal im Abschnitt zur Fehlerbehebung nach, wenn du Probleme hast. Eine deutlich zuverlässigere Verbindungsmethode kommt bald!",
   "needHelpClickHelp": "Hilfe benötigt? Klicke auf",
   "needHelpDontHesitate": "den Button oben und zögere nicht, uns zu kontaktieren.",
+  "never": "Niemals",
   "newConnectionMethodAnnouncement": "{trainerApp} wird in Kürze deutlich bessere und zuverlässigere Verbindungsmethoden unterstützen!",
   "newCustomProfile": "Neues benutzerdefiniertes Profil",
   "newProfileName": "Neuer Profilname",
@@ -264,6 +281,8 @@
       }
     }
   },
+  "newer": "NEUER",
+  "newerSettingsAvailable": "Neuere Einstellungen verfügbar",
   "next": "Nächste",
   "no": "Nein",
   "noActionAssigned": "Keine Maßnahmen zugewiesen",
@@ -272,6 +291,7 @@
   "noConnectionMethodSelected": "Keine Verbindungsmethode ausgewählt",
   "noControllerConnected": "Keine Verbindung",
   "noControllerUseCompanionMode": "Kein Controller? Nutze den Companion Mode",
+  "noDevicesRegistered": "Keine Geräte registriert",
   "noIgnoredDevices": "Keine ignorierten Geräte.",
   "noTrainerSelected": "Kein Trainer ausgewählt",
   "notConnected": "Nicht verbunden",
@@ -343,6 +363,8 @@
   "profileName": "Profilname",
   "purchase": "Kaufen",
   "recommendedConnectionMethods": "Empfohlene Verbindungsmethoden",
+  "registerCurrentDevice": "Aktuelles Gerät registrieren",
+  "registeredDevices": "Registrierte Geräte",
   "removeFromIgnoredList": "Aus der Ignorierliste entfernen",
   "rename": "Umbenennen",
   "renameProfile": "Profil umbenennen",
@@ -350,6 +372,8 @@
   "reset": "Zurücksetzen",
   "restart": "Neustart",
   "restorePurchaseInfo": "Klicke auf den Knopf oben und anschließend auf „Kauf wiederherstellen“. Bei Problemen kontaktiere mich bitte direkt.",
+  "revoke": "Widerrufen",
+  "revoked": "Widerrufen",
   "runAppOnPlatformRemotely": "{appName} auf {platform} laufen lassen und es von diesem Gerät aus fernsteuern via {preferredConnection}.",
   "@runAppOnPlatformRemotely": {
     "placeholders": {
@@ -375,6 +399,7 @@
   "save": "Speichern",
   "scan": "SCAN",
   "scanningForDevices": "Suche nach Geräten... Stelle sicher, dass diese eingeschaltet und in Reichweite sind und nicht mit einem anderen Gerät verbunden sind.",
+  "selectADeviceToSyncFrom": "Wählen Sie ein Gerät aus, von dem synchronisiert werden soll.",
   "selectKeymap": "Tastaturbelegung auswählen",
   "selectTargetWhereAppRuns": "Ziel auswählen, auf dem {appName} läuft",
   "@selectTargetWhereAppRuns": {
@@ -388,11 +413,16 @@
   "selectTrainerAppAndTarget": "Trainer-App und Zielgerät auswählen",
   "selectTrainerAppPlaceholder": "Trainer-App auswählen",
   "setting": "Einstellung",
+  "settingsAppliedFromId": "Einstellungen angewendet von {deviceId} ...",
+  "settingsDownloadedFromServer": "Einstellungen vom Server heruntergeladen",
+  "settingsSyncedSuccessfully": "Einstellungen erfolgreich synchronisiert",
+  "settingsSynchronization": "Einstellungen Synchronisierung",
   "setupComplete": "Einrichtung abgeschlossen!",
   "setupTrainer": "Trainer einrichten",
   "share": "Teilen",
   "showDonation": "Zeige Deine Wertschätzung durch eine Spende.",
   "showSupportedControllers": "Unterstützte Controller anzeigen",
+  "signInToSyncYourSubscriptionAndManageDevices": "Anmelden, um Ihr Abonnement zu synchronisieren und Geräte zu verwalten.",
   "signal": "Signal",
   "simulateButtons": "Trainersteuerung",
   "simulateKeyboardShortcut": "Tastenkombination simulieren",
@@ -401,6 +431,10 @@
   "skip": "Überspringen",
   "stop": "Stoppen",
   "supportedActions": "Unterstützte Aktionen",
+  "syncSettings": "Synchronisierungseinstellungen",
+  "syncStatus": "Synchronisierungsstatus",
+  "synchronizeAcrossDevices": "Synchronisierung über verschiedene Geräte hinweg",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronisiere die App-Einstellungen auf allen Geräten. Dies umfasst Ihre Tastaturbelegungen, Tastenkonfigurationen und Präferenzen.",
   "targetOtherDevice": "Anderes Gerät",
   "targetThisDevice": "Dieses Gerät",
   "theFollowingPermissionsRequired": "Folgende Berechtigungen sind erforderlich:",
@@ -414,7 +448,9 @@
   "troubleshootingGuide": "Fragen und Antworten",
   "tryingToConnectAgain": "Verbinde erneut...",
   "unassignAction": "Zuweisung aufheben",
+  "unlockAllFeaturesWithPro": "Schalten Sie alle Funktionen mit Pro frei.",
   "unlockFullVersion": "Vollversion freischalten",
+  "unlockTheFullVersionOrGoPro": "Schalte die Vollversion frei – oder wechsle zu Pro",
   "unlock_bikecontrolAndZwiftNetwork": "BikeControl und Zwift müssen sich im selben Netzwerk oder auf demselben Gerät befinden. Es kann einige Sekunden dauern, bis sie angezeigt werden.",
   "unlock_confirmByPressingAButtonOnYourDevice": "Bestätigen Sie durch Drücken einer Taste auf Ihrem Gerät.",
   "unlock_connectToBikecontrol": "Verbinde dich mit „BikeControl“, z.B. als Stromquelle.",
@@ -432,6 +468,7 @@
   "unlock_yourZwiftClickMightBeUnlockedAlready": "Ihr Zwift Click ist möglicherweise bereits freigeschaltet.",
   "unlockingNotPossible": "Eine Freischaltung ist derzeit noch nicht möglich, daher ist die App vorerst uneingeschränkt nutzbar!",
   "update": "Aktualisieren",
+  "uploadSettings": "Upload-Einstellungen",
   "useCustomKeymapForButton": "Verwende eine benutzerdefinierte Tastaturbelegung, um die",
   "version": "Version {version}",
   "@version": {
@@ -455,7 +492,10 @@
   },
   "whatsNew": "Was ist neu",
   "whyPermissionNeeded": "Wozu wird diese Berechtigung benötigt?",
+  "windowsSubscriptionsRequireYouToBeLoggedIn": "Für Windows-Abonnements ist eine Anmeldung erforderlich.",
   "yes": "Ja",
+  "yourDevices": "Deine Geräte",
+  "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Einstellungen werden automatisch synchronisiert, sobald Änderungen vorgenommen werdem. Tippe auf ein Gerät, um dessen Einstellungen anzuwenden.",
   "zwiftControllerAction": "Zwift Controller-Aktion",
   "zwiftControllerDescription": "Ermöglicht es BikeControl, als Zwift-kompatibler Controller zu fungieren."
 }
