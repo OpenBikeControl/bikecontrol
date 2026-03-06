@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/models/user_settings.dart';
 import 'package:bike_control/pages/button_edit.dart';
@@ -74,19 +76,19 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
   void _updateLastSyncText() {
     final lastSynced = _syncService.lastSyncedAt.value;
     if (lastSynced == null) {
-      _lastSyncText = 'Never';
+      _lastSyncText = AppLocalizations.of(context).never;
     } else {
       final now = DateTime.now();
       final diff = now.difference(lastSynced);
 
       if (diff.inMinutes < 1) {
-        _lastSyncText = 'Just now';
+        _lastSyncText = AppLocalizations.of(context).justNow;
       } else if (diff.inMinutes < 60) {
-        _lastSyncText = '${diff.inMinutes} minute${diff.inMinutes == 1 ? '' : 's'} ago';
+        _lastSyncText = '${diff.inMinutes}min ago';
       } else if (diff.inHours < 24) {
-        _lastSyncText = '${diff.inHours} hour${diff.inHours == 1 ? '' : 's'} ago';
+        _lastSyncText = '${diff.inHours}h ago';
       } else {
-        _lastSyncText = '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
+        _lastSyncText = '${diff.inDays}d ago';
       }
     }
   }
@@ -109,7 +111,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
 
       _updateLastSyncText();
       await _checkForUpdates();
-    } catch (e) {
+    } catch (e, s) {
+      recordError(e, s, context: 'Load Data');
       print('Error loading sync data: $e');
     } finally {
       if (mounted) {
@@ -126,7 +129,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           _hasNewerSettings = hasNewer;
         });
       }
-    } catch (e) {
+    } catch (e, s) {
+      recordError(e, s, context: 'Check for Updates');
       print('Error checking for updates: $e');
     }
   }
@@ -139,7 +143,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
 
       if (mounted) {
         if (success) {
-          buildToast(title: 'Settings synced successfully');
+          buildToast(title: AppLocalizations.of(context).settingsSyncedSuccessfully);
           await _loadData();
         } else if (_syncService.lastError.value != null) {
           buildToast(
@@ -163,7 +167,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
 
       if (mounted) {
         if (success) {
-          buildToast(title: 'Settings downloaded from server');
+          buildToast(title: AppLocalizations.of(context).settingsDownloadedFromServer);
           await _loadData();
           setState(() => _hasNewerSettings = false);
         } else if (_syncService.lastError.value != null) {
@@ -263,13 +267,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               filled: true,
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  spacing: 16,
-                  children: [
-                    CircularProgressIndicator(),
-                    Text('Syncing...').small.muted,
-                  ],
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             )
           else ...[
@@ -282,7 +280,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   children: [
                     Icon(Icons.cloud_download, size: 20),
                     const SizedBox(width: 12),
-                    Text('Download Latest Settings'),
+                    Text(AppLocalizations.of(context).downloadLatestSettings),
                   ],
                 ),
               ),
@@ -299,7 +297,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   Icon(Icons.info, size: 20, color: Theme.of(context).colorScheme.primary),
                   Expanded(
                     child: Text(
-                      'Your settings are automatically synced when you make changes. Tap on a device to apply its settings.',
+                      AppLocalizations.of(context).yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap,
                     ).small.muted,
                   ),
                 ],
@@ -338,8 +336,12 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Sync Status').small.muted,
-                    Text(_hasNewerSettings ? 'Newer settings available' : 'Settings Synchronization').large.bold,
+                    Text(AppLocalizations.of(context).syncStatus).small.muted,
+                    Text(
+                      _hasNewerSettings
+                          ? AppLocalizations.of(context).newerSettingsAvailable
+                          : AppLocalizations.of(context).settingsSynchronization,
+                    ).large.bold,
                   ],
                 ),
               ),
@@ -347,7 +349,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           ),
           Divider(),
           Text(
-            'Synchronize your app settings across all your devices. This includes your keymaps, button configurations, and preferences.',
+            AppLocalizations.of(context).synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes,
           ).small.muted,
           Container(
             padding: const EdgeInsets.all(16),
@@ -363,7 +365,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   children: [
                     Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                     const SizedBox(width: 8),
-                    Text('Last synced: ${_lastSyncText ?? 'Never'}').small,
+                    Text('${AppLocalizations.of(context).lastSynced} ${_lastSyncText ?? 'Never'}').small,
                   ],
                 ),
                 if (_serverSettings?.version != null)
@@ -382,7 +384,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                     children: [
                       Icon(Icons.cloud_upload, size: 20),
                       const SizedBox(width: 12),
-                      Text('Upload Settings'),
+                      Text(AppLocalizations.of(context).uploadSettings),
                     ],
                   ),
                 ),
@@ -419,8 +421,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Your Devices').small.muted,
-                    Text('Select a device to sync from').large.bold,
+                    Text(AppLocalizations.of(context).yourDevices).small.muted,
+                    Text(AppLocalizations.of(context).selectADeviceToSyncFrom).large.bold,
                   ],
                 ),
               ),
@@ -482,7 +484,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'NEWER',
+                      AppLocalizations.of(context).newer,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -510,7 +512,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               children: [
                 Icon(Icons.download, size: 20),
                 const SizedBox(width: 8),
-                Text('Apply now'),
+                Text(AppLocalizations.of(context).applyNow),
               ],
             ),
             onPressed: (context) async {
@@ -530,7 +532,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
 
       if (mounted) {
         if (success) {
-          buildToast(title: 'Settings downloaded from ${deviceId.substring(0, 8)}...');
+          buildToast(title: AppLocalizations.of(context).settingsAppliedFromId(deviceId.substring(0, 8)));
           await _loadData();
           setState(() => _hasNewerSettings = false);
         } else if (_syncService.lastError.value != null) {

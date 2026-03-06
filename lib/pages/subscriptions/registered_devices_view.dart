@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -70,7 +71,6 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                 spacing: 16,
                 children: [
                   CircularProgressIndicator(),
-                  Text('Loading devices...').small.muted,
                 ],
               ),
             ),
@@ -89,7 +89,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                             size: 16,
                           ),
                           const SizedBox(width: 8),
-                          const Text('Register current device'),
+                          Text(AppLocalizations.of(context).registerCurrentDevice),
                         ],
                       ),
               ),
@@ -111,7 +111,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                       size: 48,
                       color: Theme.of(context).colorScheme.mutedForeground,
                     ),
-                    Text('No devices registered').small.muted,
+                    Text(AppLocalizations.of(context).noDevicesRegistered).small.muted,
                   ],
                 ),
               ),
@@ -133,7 +133,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
             children: [
               Text(platform.toUpperCase()).small.bold,
               const Spacer(),
-              Text('${devices.where((d) => d.isActive).length} active').small.muted,
+              Text(AppLocalizations.of(context).devicesActive(devices.where((d) => d.isActive).length)).small.muted,
             ],
           ),
           Divider(),
@@ -165,17 +165,16 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                   device.deviceName?.isNotEmpty == true ? device.deviceName! : device.deviceId.split("|").first,
                 ).small.bold,
                 if (device.deviceName?.isNotEmpty == true) Text('ID: ${device.deviceId.split("|").first}').small.muted,
-                Text('Last seen: ${_formatDate(device.lastSeenAt)}').small.muted,
+                Text('${AppLocalizations.of(context).lastSeen} ${_formatDate(device.lastSeenAt)}').small.muted,
               ],
             ),
           ),
           if (isRevoked)
-            Text(
-              'Revoked').small
+            Text(AppLocalizations.of(context).revoked).small
           else
             Button.secondary(
               onPressed: () => _revokeDevice(device),
-              child: Text('Revoke'),
+              child: Text(AppLocalizations.of(context).revoke),
             ),
         ],
       ),
@@ -220,8 +219,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
     } on DeviceLimitReachedError catch (error) {
       if (!mounted) return;
       buildToast(
-        title:
-            'Device limit reached for ${error.platform.capitalize().replaceAll('os', 'OS')}. Revoke other devices to register a new one.',
+        title: AppLocalizations.of(context).deviceLimitReached(error.platform.capitalize().replaceAll('os', 'OS')),
       );
     } catch (error) {
       if (!mounted) return;
