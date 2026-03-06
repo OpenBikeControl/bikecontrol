@@ -5,8 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:win32/win32.dart';
 
 const _hive = HKEY_CURRENT_USER;
+const bool isOutsideStoreBuild = bool.fromEnvironment('IS_OUTSIDE_STORE', defaultValue: false);
 
 class WindowsProtocolHandler {
+  bool get shouldRegisterForOutsideStoreBuild => isOutsideStoreBuild;
+
   List<String> getArguments(List<String>? arguments) {
     if (arguments == null) return ['%s'];
 
@@ -28,6 +31,11 @@ class WindowsProtocolHandler {
     _regCreateStringKey(_hive, prefix, '', 'URL:$capitalized');
     _regCreateStringKey(_hive, prefix, 'URL Protocol', '');
     _regCreateStringKey(_hive, '$prefix\\shell\\open\\command', '', cmd);
+  }
+
+  void registerForOutsideStoreBuild(String scheme, {String? executable, List<String>? arguments}) {
+    if (!shouldRegisterForOutsideStoreBuild) return;
+    register(scheme, executable: executable, arguments: arguments);
   }
 
   void unregister(String scheme) {

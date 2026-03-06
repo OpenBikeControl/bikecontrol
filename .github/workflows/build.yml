@@ -262,21 +262,6 @@ jobs:
           }
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
-      - name: Decode Windows signing certificate
-        shell: pwsh
-        run: |
-          if ([string]::IsNullOrWhiteSpace('${{ secrets.WINDOWS_MSIX_CERT_BASE64 }}')) {
-            throw 'Missing secret: WINDOWS_MSIX_CERT_BASE64'
-          }
-
-          if ([string]::IsNullOrWhiteSpace('${{ secrets.WINDOWS_MSIX_CERT_PASSWORD }}')) {
-            throw 'Missing secret: WINDOWS_MSIX_CERT_PASSWORD'
-          }
-
-          $certPath = Join-Path $env:RUNNER_TEMP 'windows-msix-signing.pfx'
-          [System.IO.File]::WriteAllBytes($certPath, [System.Convert]::FromBase64String('${{ secrets.WINDOWS_MSIX_CERT_BASE64 }}'))
-          "WINDOWS_MSIX_CERT_PATH=$certPath" >> $env:GITHUB_ENV
-
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
         with:
@@ -298,12 +283,11 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: windows
-          args: "-- --obfuscate --split-debug-info=symbols-win"
+          args: "-- --obfuscate --split-debug-info=symbols-win --dart-define=IS_OUTSIDE_STORE=true"
 
-      - name: Zip directory (Windows)
+      - name: Zip Windows release
         shell: pwsh
         run: |
-  
           $source = "C:\Windows\System32"
           $destination = "build\windows\x64\runner\Release"
           
@@ -322,42 +306,18 @@ jobs:
               Write-Warning "$dll not found in $source"
             }
           }
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/bike_control.windows.zip"
+          $zipPath = "build/windows/bike_control.windows.zip"
+          if (Test-Path $zipPath) {
+            Remove-Item $zipPath -Force
+          }
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath $zipPath
 
-      - uses: microsoft/setup-msstore-cli@v1
-        if: false
-
-      - name: Configure the Microsoft Store CLI
-        if: false
-        run: msstore reconfigure --tenantId $ --clientId $ --clientSecret $ --sellerId $
-
-      - name: Create Store MSIX package
-        run: dart run msix:create --store --output-name bike_control.store
-
-      - name: Create signed sideload MSIX package
-        shell: pwsh
-        env:
-          WINDOWS_MSIX_CERT_PASSWORD: ${{ secrets.WINDOWS_MSIX_CERT_PASSWORD }}
-        run: |
-          dart run msix:create --output-name bike_control.signed --certificate-path "$env:WINDOWS_MSIX_CERT_PATH" --certificate-password "$env:WINDOWS_MSIX_CERT_PASSWORD" --install-certificate false
-
-      - name: Publish MSIX to the Microsoft Store
-        if: false
-        run: msstore publish -v "build/windows/x64/runner/Release/"
-
-      - name: Upload Store Artifact
+      - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
-          name: BikeControl Store
-          path: build/windows/x64/runner/Release/bike_control.store.msix
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          overwrite: true
-          name: BikeControl Signed
-          path: build/windows/x64/runner/Release/bike_control.signed.msix
+          name: BikeControl Windows
+          path: build/windows/bike_control.windows.zip
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -366,11 +326,11 @@ jobs:
           name: Windows Symbols
           path: symbols-win/
 
-      - name: Create Release (Windows signed MSIX)
+      - name: Create Release (Windows zip)
         if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/windows/x64/runner/Release/bike_control.signed.msix"
+          artifacts: "build/windows/bike_control.windows.zip"
           allowUpdates: true
           prerelease: true
           replacesArtifacts: false
