@@ -9,6 +9,7 @@ import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
+import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -126,6 +127,9 @@ class IAPManager {
 
   /// Check if the trial period has started.
   bool get hasTrialStarted {
+    if (isOutsideStoreWindowsBuild) {
+      return true;
+    }
     if (_revenueCatService != null) {
       return _revenueCatService!.hasTrialStarted;
     } else if (_windowsIapService != null) {
@@ -143,6 +147,9 @@ class IAPManager {
 
   /// Get the number of days remaining in the trial.
   int get trialDaysRemaining {
+    if (isOutsideStoreWindowsBuild) {
+      return 0;
+    }
     if (_revenueCatService != null) {
       return _revenueCatService!.trialDaysRemaining;
     } else if (_windowsIapService != null) {
@@ -155,6 +162,9 @@ class IAPManager {
   bool get isTrialExpired {
     if (isProEnabled) {
       return false;
+    }
+    if (isOutsideStoreWindowsBuild && !isPurchased.value) {
+      return true;
     }
     if (_revenueCatService != null) {
       return _revenueCatService!.isTrialExpired;
@@ -225,6 +235,8 @@ class IAPManager {
       return 'Pro version (unregistered device)$expiryInfo';
     } else if (isPurchased.value) {
       return AppLocalizations.current.fullVersion;
+    } else if (isOutsideStoreWindowsBuild) {
+      return AppLocalizations.current.trialExpired(dailyCommandLimit);
     } else if (!hasTrialStarted) {
       return '${_revenueCatService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining} day trial available';
     } else if (!isTrialExpired) {
@@ -247,6 +259,9 @@ class IAPManager {
 
   /// Purchase the full version.
   Future<void> purchaseFullVersion(BuildContext context, {bool fromPaywall = false}) async {
+    if (isOutsideStoreWindowsBuild) {
+      return purchaseSubscription(context, fromPaywall: fromPaywall);
+    }
     if ((Platform.isIOS || Platform.isMacOS) && !fromPaywall) {
       return _showPaywall(context, false);
     } else if (_revenueCatService != null) {
@@ -302,6 +317,9 @@ class IAPManager {
 
   /// Check if running on Windows
   bool get isWindows => _windowsIapService != null;
+
+  bool get isOutsideStoreWindowsBuild =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.windows && isOutsideStoreBuild;
 
   /// Check if user is logged in (Windows Stripe requires this)
   bool get isWindowsLoggedIn => _windowsIapService?.isLoggedIn ?? false;

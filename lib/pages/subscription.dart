@@ -176,6 +176,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Widget _buildMainView() {
     final session = core.supabase.auth.currentSession;
+    final isOutsideStoreWindowsBuild = _iapManager.isOutsideStoreWindowsBuild;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -222,7 +223,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 if (!_isPro) ...[
                   Divider(),
                   Text(
-                    !_iapManager.isPurchased.value
+                    (!_iapManager.isPurchased.value && !isOutsideStoreWindowsBuild)
                         ? AppLocalizations.of(context).unlockTheFullVersionOrGoPro
                         : AppLocalizations.of(context).unlockAllFeaturesWithPro,
                   ).small.muted,
@@ -230,7 +231,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   Row(
                     spacing: 8,
                     children: [
-                      if (!_iapManager.isPurchased.value)
+                      if (!_iapManager.isPurchased.value && !isOutsideStoreWindowsBuild)
                         Expanded(
                           child: LoadingWidget(
                             futureCallback: () => _buyFullVersion(),

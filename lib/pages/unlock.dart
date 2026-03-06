@@ -125,7 +125,9 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         children: [
           if (_isInTrialPhase && !_showManualSteps)
             Text(
-              AppLocalizations.of(context).unlock_yourTrialPhaseHasExpired,
+              IAPManager.instance.isOutsideStoreWindowsBuild
+                  ? AppLocalizations.of(context).trialExpired(IAPManager.dailyCommandLimit)
+                  : AppLocalizations.of(context).unlock_yourTrialPhaseHasExpired,
             )
           else if (_showManualSteps) ...[
             Warning(

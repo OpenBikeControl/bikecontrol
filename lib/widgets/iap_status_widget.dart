@@ -58,6 +58,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   @override
   Widget build(BuildContext context) {
     final iapManager = IAPManager.instance;
+    final isOutsideStoreWindowsBuild = iapManager.isOutsideStoreWindowsBuild;
     final isTrialExpired = iapManager.isTrialExpired;
     if (isTrialExpired) {
       _isSmall = false;
@@ -371,7 +372,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                               Text('Processing...'),
                                             ],
                                           )
-                                        : Text(AppLocalizations.of(context).unlockFullVersion),
+                                        : Text(
+                                            isOutsideStoreWindowsBuild
+                                                ? AppLocalizations.of(context).goPro
+                                                : AppLocalizations.of(context).unlockFullVersion,
+                                          ),
                                   ),
                                 ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
                                   PrimaryButton(
@@ -387,7 +392,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                               Text('Processing...'),
                                             ],
                                           )
-                                        : Text(AppLocalizations.of(context).unlockFullVersion),
+                                        : Text(
+                                            isOutsideStoreWindowsBuild
+                                                ? AppLocalizations.of(context).goPro
+                                                : AppLocalizations.of(context).unlockFullVersion,
+                                          ),
                                   ),
                                   Text(
                                     AppLocalizations.of(context).restorePurchaseInfo,
@@ -429,7 +438,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                             Text('Processing...'),
                                           ],
                                         )
-                                      : Text(AppLocalizations.of(context).unlockFullVersion),
+                                      : Text(
+                                          isOutsideStoreWindowsBuild
+                                              ? AppLocalizations.of(context).goPro
+                                              : AppLocalizations.of(context).unlockFullVersion,
+                                        ),
                                 );
                               },
                             ),
@@ -460,8 +473,12 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     });
 
     try {
-      // Use RevenueCat paywall if available, otherwise fall back to legacy
-      await IAPManager.instance.purchaseFullVersion(context);
+      if (IAPManager.instance.isOutsideStoreWindowsBuild) {
+        await IAPManager.instance.purchaseSubscription(context);
+      } else {
+        // Use RevenueCat paywall if available, otherwise fall back to legacy
+        await IAPManager.instance.purchaseFullVersion(context);
+      }
     } catch (e) {
       if (mounted) {
         buildToast(
