@@ -345,15 +345,26 @@ jobs:
         if: false
         run: msstore publish -v "build/windows/x64/runner/Release/"
 
+      - name: Upload Store Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: BikeControl Store
+          path: build/windows/x64/runner/Release/bike_control.store.msix
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
-          name: Releases
-          path: |
-            build/windows/x64/runner/Release/bike_control.store.msix
-            build/windows/x64/runner/Release/bike_control.signed.msix
-            symbols-win/
+          name: BikeControl Signed
+          path: build/windows/x64/runner/Release/bike_control.signed.msix
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Windows Symbols
+          path: symbols-win/
 
       - name: Create Release (Windows signed MSIX)
         if: inputs.build_github
