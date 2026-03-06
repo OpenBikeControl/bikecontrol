@@ -9,7 +9,7 @@ import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
-import 'package:bike_control/utils/requirements/windows.dart';
+import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -319,7 +319,7 @@ class IAPManager {
   bool get isWindows => _windowsIapService != null;
 
   bool get isOutsideStoreWindowsBuild =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.windows && isOutsideStoreBuild;
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.windows && WindowsStoreEnvironment.isOutsideStoreCached;
 
   /// Check if user is logged in (Windows Stripe requires this)
   bool get isWindowsLoggedIn => _windowsIapService?.isLoggedIn ?? false;
