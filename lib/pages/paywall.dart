@@ -73,58 +73,58 @@ class Paywall extends StatefulWidget {
 }
 
 class _PaywallState extends State<Paywall> {
-  static const List<_FeatureLine> _features = [
+  late final List<_FeatureLine> _features = [
     _FeatureLine(
       icon: Icons.functions,
-      label: 'Amount of actions',
+      label: AppLocalizations.current.paywall_amountOfActions,
       full: _PaywallCell.unlimited,
       pro: _PaywallCell.unlimited,
     ),
     _FeatureLine(
       icon: Icons.public,
-      label: 'Connect to your trainer',
+      label: AppLocalizations.current.paywall_connectToYourTrainer,
       full: _PaywallCell.check,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
       icon: Icons.tune,
-      label: 'Configure 3 actions per button',
+      label: AppLocalizations.current.paywall_configure3ActionsPerButton,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
       icon: Icons.devices,
-      label: 'Use BikeControl on all platforms',
+      label: AppLocalizations.current.paywall_useBikecontrolOnAllPlatforms,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
       icon: Icons.cloud_outlined,
-      label: 'Synchronize and backup',
+      label: AppLocalizations.current.paywall_synchronizeAndBackup,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
       icon: Icons.keyboard_command_key,
-      label: 'Start any command / shortcut with any button',
+      label: AppLocalizations.current.paywall_startAnyCommandShortcutWithAnyButton,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
       icon: Icons.music_note_outlined,
-      label: 'Control your device / music',
+      label: AppLocalizations.current.paywall_controlYourDeviceMusic,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
       icon: Icons.screenshot_monitor_outlined,
-      label: 'Create screenshots',
+      label: AppLocalizations.current.paywall_createScreenshots,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
       icon: Icons.volunteer_activism_outlined,
-      label: 'Support development of new features / devices and more',
+      label: AppLocalizations.of(context).paywall_supportDevelopmentOfNewFeaturesDevicesAndMore,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
@@ -280,17 +280,17 @@ class _PaywallState extends State<Paywall> {
         : _pricing.yearlyPrice;
 
     final yearlyBilled = yearlyStoreProduct != null
-        ? 'Billed at ${yearlyStoreProduct.priceString}/yr.'
+        ? AppLocalizations.of(context).paywall_billedAtYearly(yearlyStoreProduct.priceString)
         : _pricing.yearlyBilled;
 
     final monthlyPrice = monthlyStoreProduct != null ? '${monthlyStoreProduct.priceString}/mo' : _pricing.monthlyPrice;
 
     final monthlyBilled = monthlyStoreProduct != null
-        ? 'Billed at ${monthlyStoreProduct.priceString}/mo.'
+        ? AppLocalizations.of(context).paywall_billedAtPricemo(monthlyStoreProduct.priceString)
         : _pricing.monthlyBilled;
 
     final fullVersionSubtitle = lifetimeStoreProduct != null
-        ? 'Only ${lifetimeStoreProduct.priceString}'
+        ? '${AppLocalizations.of(context).only} ${lifetimeStoreProduct.priceString}'
         : _pricing.fullVersionSubtitle;
 
     String? discountBadge;
@@ -362,7 +362,7 @@ class _PaywallState extends State<Paywall> {
                         const SizedBox(width: 8),
                       ],
                       Text(
-                        _isRestoring ? 'Restoring purchases...' : 'Restore purchases',
+                        _isRestoring ? 'Restoring purchases...' : AppLocalizations.of(context).restorePurchases,
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 16,
@@ -437,9 +437,9 @@ class _PaywallState extends State<Paywall> {
         const Expanded(child: SizedBox()),
         SizedBox(
           width: fullColumnWidth,
-          child: const Center(
+          child: Center(
             child: Text(
-              'FULL',
+              AppLocalizations.of(context).full,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -514,7 +514,7 @@ class _PaywallState extends State<Paywall> {
   Widget _buildCell(_PaywallCell value, {required bool compact}) {
     return switch (value) {
       _PaywallCell.unlimited => Text(
-        'Unlimited',
+        AppLocalizations.of(context).unlimited,
         style: TextStyle(
           fontSize: compact ? 14 : 24,
           fontWeight: FontWeight.w500,
@@ -552,7 +552,7 @@ class _PaywallState extends State<Paywall> {
                   Expanded(
                     child: _buildPlanCard(
                       plan: _PaywallPlan.yearly,
-                      title: 'Yearly',
+                      title: AppLocalizations.of(context).paywall_yearly,
                       price: _pricing.yearlyPrice,
                       billed: _pricing.yearlyBilled,
                       badge: _pricing.discountBadge,
@@ -561,7 +561,7 @@ class _PaywallState extends State<Paywall> {
                   Expanded(
                     child: _buildPlanCard(
                       plan: _PaywallPlan.monthly,
-                      title: 'Monthly',
+                      title: AppLocalizations.of(context).paywall_monthly,
                       price: _pricing.monthlyPrice,
                       billed: _pricing.monthlyBilled,
                     ),
@@ -571,14 +571,14 @@ class _PaywallState extends State<Paywall> {
             else ...[
               _buildPlanCard(
                 plan: _PaywallPlan.yearly,
-                title: 'Yearly',
+                title: AppLocalizations.of(context).paywall_yearly,
                 price: _pricing.yearlyPrice,
                 billed: _pricing.yearlyBilled,
                 badge: _pricing.discountBadge,
               ),
               _buildPlanCard(
                 plan: _PaywallPlan.monthly,
-                title: 'Monthly',
+                title: AppLocalizations.of(context).paywall_monthly,
                 price: _pricing.monthlyPrice,
                 billed: _pricing.monthlyBilled,
               ),
