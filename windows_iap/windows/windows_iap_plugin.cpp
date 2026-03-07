@@ -340,6 +340,24 @@ namespace windows_iap
 		}
 	}
 
+	foundation::IAsyncAction getStoreId(
+		std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> resultCallback)
+	{
+		try
+		{
+			auto store = getStore();
+			auto license = co_await store.GetAppLicenseAsync();
+			auto skuStoreId = to_string(license.SkuStoreId());
+			resultCallback->Success(flutter::EncodableValue(skuStoreId));
+		}
+		catch (const winrt::hresult_error &error)
+		{
+			resultCallback->Error(
+				std::to_string(error.code().value),
+				to_string(error.message()));
+		}
+	}
+
 	//////////////////////////////////////////////////////////////////////// END OF MY CODE //////////////////////////////////////////////////////////////
 
 	// static
@@ -419,6 +437,10 @@ namespace windows_iap
 			auto serviceTicket = std::get<std::string>(serviceTicketIt->second);
 			auto publisherUserId = std::get<std::string>(publisherUserIdIt->second);
 			getCustomerPurchaseIdKey(serviceTicket, publisherUserId, std::move(result));
+		}
+		else if (method_call.method_name().compare("getStoreId") == 0)
+		{
+			getStoreId(std::move(result));
 		}
 		else
 		{

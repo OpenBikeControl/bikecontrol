@@ -22,8 +22,7 @@ const _escapeMap = {
 };
 
 /// A [RegExp] that matches whitespace characters that should be escaped.
-var _escapeRegExp = RegExp(
-    '[\\x00-\\x07\\x0E-\\x1F${_escapeMap.keys.map(_getHexLiteral).join()}]');
+var _escapeRegExp = RegExp('[\\x00-\\x07\\x0E-\\x1F${_escapeMap.keys.map(_getHexLiteral).join()}]');
 
 /// Returns [str] with all whitespace characters represented as their escape
 /// sequences.
@@ -52,8 +51,7 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
 
   @override
   Future<StorePurchaseStatus?> makePurchase(String storeId) async {
-    final result = await methodChannel
-        .invokeMethod<int>('makePurchase', {'storeId': storeId});
+    final result = await methodChannel.invokeMethod<int>('makePurchase', {'storeId': storeId});
     if (result == null) {
       return null;
     }
@@ -73,12 +71,9 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
   }
 
   Stream<List<Product>> productsStream() {
-    return const EventChannel('windows_iap_event_products')
-        .receiveBroadcastStream()
-        .map((event) {
+    return const EventChannel('windows_iap_event_products').receiveBroadcastStream().map((event) {
       if (event is String) {
-        return parseListNotNull(
-            json: jsonDecode(escape(event)), fromJson: Product.fromJson);
+        return parseListNotNull(json: jsonDecode(escape(event)), fromJson: Product.fromJson);
       } else {
         return [];
       }
@@ -91,28 +86,23 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
     if (result == null) {
       return [];
     }
-    return parseListNotNull(
-        json: jsonDecode(escape(result)), fromJson: Product.fromJson);
+    return parseListNotNull(json: jsonDecode(escape(result)), fromJson: Product.fromJson);
   }
 
   @override
   Future<bool> checkPurchase({required String storeId}) async {
-    final result = await methodChannel
-        .invokeMethod<bool>('checkPurchase', {'storeId': storeId});
+    final result = await methodChannel.invokeMethod<bool>('checkPurchase', {'storeId': storeId});
     return result ?? false;
   }
 
   @override
   Future<Trial> getTrialStatusAndRemainingDays() async {
-    final result =
-        await methodChannel.invokeMethod<Map>('getTrialStatusAndRemainingDays');
+    final result = await methodChannel.invokeMethod<Map>('getTrialStatusAndRemainingDays');
     return Trial(
       isTrial: result?['isTrial'] as bool? ?? false,
       isActive: result?['isActive'] as bool? ?? false,
-      isTrialOwnedByThisUser:
-          result?['isTrialOwnedByThisUser'] as bool? ?? false,
-      remainingDays: result?['remainingDays'] as String? ??
-          DateTime.now().add(Duration(days: 7)).toString(),
+      isTrialOwnedByThisUser: result?['isTrialOwnedByThisUser'] as bool? ?? false,
+      remainingDays: result?['remainingDays'] as String? ?? DateTime.now().add(Duration(days: 7)).toString(),
     );
   }
 
@@ -122,8 +112,7 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
     if (result == null) {
       return {};
     }
-    return result.map((key, value) =>
-        MapEntry(key.toString(), StoreLicense.fromJson(jsonDecode(value))));
+    return result.map((key, value) => MapEntry(key.toString(), StoreLicense.fromJson(jsonDecode(value))));
   }
 
   @override
@@ -139,5 +128,11 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
       },
     );
     return result ?? '';
+  }
+
+  @override
+  Future<String?> getStoreId() async {
+    final result = await methodChannel.invokeMethod<String>('getStoreId');
+    return result;
   }
 }

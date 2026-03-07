@@ -79,5 +79,7 @@ class WindowsIap {
     );
   }
 
-  Future<String> getStoreId() async {}
+  Future<String?> getStoreId() {
+    return WindowsIapPlatform.instance.getStoreId();
+  }
 }
