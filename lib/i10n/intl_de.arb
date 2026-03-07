@@ -365,7 +365,16 @@
       }
     }
   },
+  "bySigningInYouAgreeToOur": "Mit der Anmeldung stimmst du unserer {privacyPolicy} zu.",
+  "@bySigningInYouAgreeToOur": {
+    "placeholders": {
+      "privacyPolicy": {
+        "type": "String"
+      }
+    }
+  },
   "previous": "Vorherige",
+  "privacyPolicy": "Datenschutzerklärung",
   "profileExportedToClipboard": "Profil „{profileName} “ in die Zwischenablage kopiert",
   "@profileExportedToClipboard": {
     "placeholders": {
