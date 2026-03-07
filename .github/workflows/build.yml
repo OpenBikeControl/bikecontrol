@@ -326,6 +326,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
+          name: Windows Release
           path: build/windows/bike_control.windows.zip
 
       - name: Upload Artifacts

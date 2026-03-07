@@ -196,9 +196,10 @@ class WindowsIAPService {
     }
 
     try {
+      final storeId = await _windowsIapPlugin.getStoreId();
       await _stripeService.startCheckout(
         priceId: yearly ? 'yearly' : 'monthly',
-        userHasFullVersion: IAPManager.instance.isPurchased.value,
+        storeId: storeId,
         successUrl: 'bikecontrol://stripe-success',
         cancelUrl: 'bikecontrol://stripe-cancel',
       );

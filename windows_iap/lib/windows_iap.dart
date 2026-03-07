@@ -26,8 +26,7 @@ class WindowsIap {
   Future<List<Product>> getProducts() {
     if (Platform.isMacOS) {
       return Future.delayed(const Duration(seconds: 2), () {
-        throw PlatformException(
-            code: '123123123', message: 'Products can not loaded now.');
+        throw PlatformException(code: '123123123', message: 'Products can not loaded now.');
       });
     }
     return WindowsIapPlatform.instance.getProducts();
@@ -79,4 +78,6 @@ class WindowsIap {
       publisherUserId: publisherUserId,
     );
   }
+
+  Future<String> getStoreId() async {}
 }

@@ -37,7 +37,7 @@ class WindowsStripeService {
   /// Throws [StripeException] if the user is not logged in or the request fails
   Future<void> startCheckout({
     required String priceId,
-    required bool userHasFullVersion,
+    required String? storeId,
     String? successUrl,
     String? cancelUrl,
   }) async {
@@ -54,7 +54,9 @@ class WindowsStripeService {
         'price_id': priceId,
       };
 
-      body['has_full_version'] = userHasFullVersion;
+      if (storeId != null) {
+        body['store_id'] = storeId;
+      }
       if (successUrl != null) {
         body['success_url'] = successUrl;
       }
