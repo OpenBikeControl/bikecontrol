@@ -8,11 +8,13 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class LoginPage extends StatefulWidget {
   final bool pushed;
@@ -95,6 +97,31 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: AppLocalizations.of(context).bySigningInYouAgreeToOur(
+                  AppLocalizations.of(context).privacyPolicy,
+                ).split(AppLocalizations.of(context).privacyPolicy).first,
+              ),
+              TextSpan(
+                text: AppLocalizations.of(context).privacyPolicy,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () => launchUrlString('https://bikecontrol.app/privacy-policy'),
+              ),
+              TextSpan(
+                text: AppLocalizations.of(context).bySigningInYouAgreeToOur(
+                  AppLocalizations.of(context).privacyPolicy,
+                ).split(AppLocalizations.of(context).privacyPolicy).last,
+              ),
+            ],
+          ),
+          textAlign: TextAlign.center,
+        ).small.muted,
         if (kDebugMode && Platform.isWindows)
           Button.secondary(
             child: const Text('Register protocol handler'),
