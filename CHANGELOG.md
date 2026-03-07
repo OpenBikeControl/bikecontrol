@@ -1,4 +1,4 @@
-### 5.0.0 (Unreleased)
+### 5.0.0 (10-03-2026)
 
 BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
 - Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android and iOS) without additional charge

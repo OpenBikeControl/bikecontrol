@@ -107,9 +107,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildSignedIn(BuildContext context, Session session) {
-    final hasActiveSubscription = _iapManager.hasActiveSubscription;
-    final isPremiumEnabled = _iapManager.isProEnabled;
-    final isRegisteredDevice = _iapManager.entitlements.isRegisteredDevice;
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,7 +148,11 @@ class _LoginPageState extends State<LoginPage> {
   Future<AuthResponse?> _nativeGoogleSignIn() async {
     if (Platform.isAndroid || Platform.isIOS) {
       const webClientId = '709945926587-bgk7j9qc86t7nuemu100ngvl9c7irv9k.apps.googleusercontent.com';
-      const iosClientId = '709945926587-0iierajthibf4vhqf85fc7bbpgbdgua2.apps.googleusercontent.com';
+      final iosClientId = Platform.isAndroid
+          ? (kDebugMode
+                ? '709945926587-fr2uodlnea57jc3mr8qannt45hi0tjeq.apps.googleusercontent.com'
+                : '709945926587-orkcqc71o6i3cf5lkd85k9n93lobfgae.apps.googleusercontent.com')
+          : '709945926587-0iierajthibf4vhqf85fc7bbpgbdgua2.apps.googleusercontent.com';
       final scopes = ['email'];
       final googleSignIn = GoogleSignIn.instance;
       await googleSignIn.initialize(
