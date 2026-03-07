@@ -523,5 +523,10 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
+  "additionalTriggerAssignment": "Additional trigger assignment",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Another trigger is already assigned for this button. Go Pro to keep multiple trigger types, or replace the existing trigger assignment and continue with {triggerTitle}.",
+  "replaceExisting": "Replace Existing",
+  "longTapExplanation": "tap 1: key down\ntap 2: key up",
+  "removeOnePressAction": "The {device} does not support long press natively. To use this type you the long press action needs to be removed."
 }

@@ -246,8 +246,8 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final isDisabled = usesLongPressToggleMode && trigger != ButtonTrigger.longPress;
     final actionText = hasAction ? keyPair.toString() : context.i18n.noActionAssigned;
     final hintText = switch (trigger) {
-      ButtonTrigger.longPress when !supportsLongPress => 'tap 1: key down\ntap 2: key up',
-      ButtonTrigger.singleClick || ButtonTrigger.doubleClick when isDisabled => 'Remove long press action to re-enable',
+      ButtonTrigger.singleClick ||
+      ButtonTrigger.doubleClick when isDisabled => context.i18n.removeOnePressAction(device.name),
       _ => null,
     };
 
@@ -287,12 +287,9 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                 ),
             ],
           ),
-        if (hintText != null)
-          Text(
-            hintText,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ).xSmall.muted,
+
+        if (trigger == ButtonTrigger.longPress && !supportsLongPress && hasAction)
+          Text(context.i18n.longTapExplanation).xSmall.muted,
       ],
     );
 
@@ -304,6 +301,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           trigger: trigger,
           hasAction: hasAction,
           forceConflictDialog: showProBanner,
+          hintText: hintText,
         );
       },
       renderChild: (isLoading, tap) => Stack(
@@ -311,7 +309,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           if (_isMobile) ...[
             Divider(),
             Button.ghost(
-              onPressed: isDisabled ? null : tap,
+              onPressed: tap,
               child: Container(
                 width: _isMobile ? null : 120,
                 constraints: BoxConstraints(minHeight: 52),
@@ -330,7 +328,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                     ? Border.all(color: BKColor.main, width: 2)
                     : Border.all(color: Theme.of(context).colorScheme.border, width: 1),
               ),
-              onPressed: isDisabled ? null : tap,
+              onPressed: tap,
               child: Container(
                 width: _isMobile ? null : 140,
                 constraints: BoxConstraints(minHeight: 52),
@@ -356,14 +354,15 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     required ButtonTrigger trigger,
     required bool hasAction,
     bool forceConflictDialog = false,
+    required String? hintText,
   }) async {
     final isPro = IAPManager.instance.hasActiveSubscription;
     final hasOtherAssignedTrigger = _hasActiveTriggerOtherThan(button, trigger);
 
-    final shouldShowConflictDialog = forceConflictDialog || (!hasAction && hasOtherAssignedTrigger);
+    final shouldShowConflictDialog = hintText != null || forceConflictDialog || (!hasAction && hasOtherAssignedTrigger);
 
-    if (!isPro && shouldShowConflictDialog) {
-      final resolution = await _showTriggerConflictDialog(trigger);
+    if ((!isPro || hintText != null) && shouldShowConflictDialog) {
+      final resolution = await _showTriggerConflictDialog(trigger, hintText: hintText);
       if (!mounted || resolution == null) {
         return;
       }
@@ -403,7 +402,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     return _activeTriggers(button).any((candidate) => candidate != trigger);
   }
 
-  Future<_TriggerConflictResolution?> _showTriggerConflictDialog(ButtonTrigger trigger) {
+  Future<_TriggerConflictResolution?> _showTriggerConflictDialog(ButtonTrigger trigger, {required String? hintText}) {
     return showDialog<_TriggerConflictResolution>(
       context: context,
       builder: (c) => Container(
@@ -411,24 +410,27 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         child: AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.workspace_premium, color: Colors.orange),
-              const SizedBox(width: 8),
-              Text('Additional trigger assignment'),
+              if (!IAPManager.instance.hasActiveSubscription) ...[
+                Icon(Icons.workspace_premium, color: Colors.orange),
+                const SizedBox(width: 8),
+              ],
+              Text(AppLocalizations.of(context).additionalTriggerAssignment),
             ],
           ),
           content: Text(
-            'Another trigger is already assigned for this button. Go Pro to keep multiple trigger types, or replace the existing trigger assignment and continue with ${trigger.title}.',
+            hintText ?? AppLocalizations.of(context).anotherTriggerIsAlreadyAssignedForThisButton(trigger.title),
           ),
           actions: [
-            Button.secondary(onPressed: () => Navigator.of(c).pop(), child: Text('Cancel')),
+            Button.secondary(onPressed: () => Navigator.of(c).pop(), child: Text(AppLocalizations.of(context).cancel)),
             Button.secondary(
               onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.replaceOtherTriggers),
-              child: Text('Replace Existing'),
+              child: Text(AppLocalizations.of(context).replaceExisting),
             ),
-            PrimaryButton(
-              onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
-              child: Text('Go Pro'),
-            ),
+            if (!IAPManager.instance.hasActiveSubscription)
+              PrimaryButton(
+                onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
+                child: Text(AppLocalizations.of(context).goPro),
+              ),
           ],
         ),
       ),
