@@ -14,6 +14,7 @@
   "account": "Konto",
   "actAsBluetoothKeyboard": "Działa jako klawiatura Bluetooth",
   "action": "Działanie",
+  "additionalTriggerAssignment": "Dodatkowe przypisanie wyzwalacza",
   "adjustControllerButtons": "Dostosuj przyciski kontrolera",
   "afterDate": "Po {date}",
   "allow": "Zezwól",
@@ -26,6 +27,7 @@
   "alreadyBoughtTheApp": "Kupiłeś już aplikację? Nie musisz płacić za BikeControl. Z powodu problemów technicznych nie można ustalić, czy aplikacja została już zakupiona. \n\nWprowadź swój identyfikator zakupu w Sklepie Play (np. GPA.3356-1337-1338-1339), aby odblokować pełną wersję. Jeśli nie możesz jej znaleźć, skontaktuj się ze mną bezpośrednio.",
   "alreadyBoughtTheAppPreviously": "Już wcześniej kupiłeś aplikację?",
   "androidSystemAction": "Akcja systemu Android",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Do tego przycisku przypisano już inny wyzwalacz. Wybierz wersję Pro, aby zachować wiele typów wyzwalaczy, lub zastąp istniejące przypisanie wyzwalacza i kontynuuj {triggerTitle} .",
   "appIdActions": "{appId} działania",
   "@appIdActions": {
     "placeholders": {
@@ -44,6 +46,14 @@
   "browserNotSupported": "Ta przeglądarka nie obsługuje technologii Web Bluetooth i platforma nie jest obsługiwana :(",
   "button": "przycisk.",
   "buyFullVersion": "Kup pełną wersję",
+  "bySigningInYouAgreeToOur": "Logując się, wyrażasz zgodę na nasze {privacyPolicy} .",
+  "@bySigningInYouAgreeToOur": {
+    "placeholders": {
+      "privacyPolicy": {
+        "type": "String"
+      }
+    }
+  },
   "cancel": "Anuluj",
   "changelog": "Dziennik zmian",
   "checkMyWhooshConnectionScreen": "Sprawdź ekran połączenia w MyWhoosh, aby zobaczyć, czy „Link” jest połączony.",
@@ -247,6 +257,7 @@
   "logsHaveBeenCopiedToClipboard": "Dziennik zdarzeń został skopiowany do schowka",
   "longPress": "długie\nnaciśnięcie",
   "longPressMode": "Tryb długiego naciśnięcia (zamiast powtarzania)",
+  "longTapExplanation": "stuknięcie 1: press down \nstuknięcie 2: released",
   "mailSupportExplanation": "Udzielanie indywidualnego wsparcia przez e-mail to dla mnie dużo pracy.\n\nProszę rozważyć korzystanie z Reddita, Facebooka lub GitHuba w celu zadawania pytań i zgłaszania problemów, aby cała społeczność mogła z tego skorzystać.",
   "manageIgnoredDevices": "Zarządzaj ignorowanymi urządzeniami",
   "manageProfile": "Zarządzaj profilem",
@@ -365,16 +376,8 @@
       }
     }
   },
-  "bySigningInYouAgreeToOur": "Logując się, akceptujesz naszą {privacyPolicy}.",
-  "@bySigningInYouAgreeToOur": {
-    "placeholders": {
-      "privacyPolicy": {
-        "type": "String"
-      }
-    }
-  },
   "previous": "Poprzedni",
-  "privacyPolicy": "Politykę Prywatności",
+  "privacyPolicy": "Polityka prywatności",
   "profileExportedToClipboard": "Wyeksportowano profil „{profileName}\" do schowka",
   "@profileExportedToClipboard": {
     "placeholders": {
@@ -390,8 +393,10 @@
   "registerCurrentDevice": "Zarejestruj aktualne urządzenie",
   "registeredDevices": "Zarejestrowane urządzenia",
   "removeFromIgnoredList": "Usuń z listy ignorowanych",
+  "removeOnePressAction": "Ten {device} Nie obsługuje natywnie długiego naciśnięcia. Aby korzystać z tego typu, należy usunąć akcję długiego naciśnięcia.",
   "rename": "Zmiana nazwy",
   "renameProfile": "Zmień nazwę profilu",
+  "replaceExisting": "Zastąp istniejące",
   "requirement": "Wymóg",
   "reset": "Reset",
   "restart": "Uruchom ponownie",

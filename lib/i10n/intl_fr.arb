@@ -14,6 +14,7 @@
   "account": "Compte",
   "actAsBluetoothKeyboard": "Fonctionne comme un clavier Bluetooth",
   "action": "Action",
+  "additionalTriggerAssignment": "Affectation de déclencheur supplémentaire",
   "adjustControllerButtons": "Ajuster les boutons de la manette",
   "afterDate": "Après {date}",
   "allow": "Permettre",
@@ -26,6 +27,7 @@
   "alreadyBoughtTheApp": "Vous avez déjà acheté l'application ? Vous n'avez pas besoin de payer BikeControl une seconde fois. En raison de difficultés techniques, il est impossible de déterminer si l'application a déjà été achetée. \n\nSaisissez votre identifiant d'achat Play Store (par exemple : GPA.3356-1337-1338-1339) pour débloquer la version complète. Si vous ne le trouvez pas, veuillez me contacter directement.",
   "alreadyBoughtTheAppPreviously": "Vous avez déjà acheté l'application ?",
   "androidSystemAction": "Actions système Android",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Un autre déclencheur est déjà associé à ce bouton. Passez à la version Pro pour conserver plusieurs types de déclencheurs, ou remplacez l'attribution de déclencheur existante et poursuivez {triggerTitle} .",
   "appIdActions": "{appId} actions",
   "@appIdActions": {
     "placeholders": {
@@ -44,6 +46,14 @@
   "browserNotSupported": "Ce navigateur ne prend pas en charge Web Bluetooth et la plateforme n'est pas prise en charge :(",
   "button": "bouton.",
   "buyFullVersion": "Acheter la version complète",
+  "bySigningInYouAgreeToOur": "En vous connectant, vous acceptez nos conditions générales {privacyPolicy} .",
+  "@bySigningInYouAgreeToOur": {
+    "placeholders": {
+      "privacyPolicy": {
+        "type": "String"
+      }
+    }
+  },
   "cancel": "Annuler",
   "changelog": "Journal des modifications",
   "checkMyWhooshConnectionScreen": "Vérifiez l'écran de connexion dans MyWhoosh pour voir si « Link » est connecté.",
@@ -247,6 +257,7 @@
   "logsHaveBeenCopiedToClipboard": "Les journaux ont été copiés dans le presse-papiers.",
   "longPress": "long\nappui",
   "longPressMode": "Mode appui long (par rapport à la répétition)",
+  "longTapExplanation": "Appuyer 1: enfoncée\nAppuyer 2: relâchée",
   "mailSupportExplanation": "Répondre à tout le monde individuellement par e-mail, ça me prend beaucoup de temps.\n\nSi t'as des questions ou des problèmes, pense à utiliser Reddit, Facebook ou GitHub pour que tout le monde puisse en profiter.",
   "manageIgnoredDevices": "Gérer les périphériques ignorés",
   "manageProfile": "Gérer mon profil",
@@ -365,14 +376,6 @@
       }
     }
   },
-  "bySigningInYouAgreeToOur": "En vous connectant, vous acceptez notre {privacyPolicy}.",
-  "@bySigningInYouAgreeToOur": {
-    "placeholders": {
-      "privacyPolicy": {
-        "type": "String"
-      }
-    }
-  },
   "previous": "Précédent",
   "privacyPolicy": "Politique de Confidentialité",
   "profileExportedToClipboard": "Profil «{profileName} » exporté vers le presse-papiers",
@@ -390,8 +393,10 @@
   "registerCurrentDevice": "Enregistrer l'appareil actuel",
   "registeredDevices": "Appareils enregistrés",
   "removeFromIgnoredList": "Supprimer de la liste ignorée",
+  "removeOnePressAction": "Le{device} La fonction d'appui long n'est pas prise en charge nativement. Pour utiliser ce type d'appareil, il est nécessaire de désactiver cette fonction.",
   "rename": "Rebaptiser",
   "renameProfile": "Renommer le profil",
+  "replaceExisting": "Remplacer l'existant",
   "requirement": "Exigence",
   "reset": "Réinitialiser",
   "restart": "Redémarrage",
