@@ -14,6 +14,7 @@
   "account": "Account",
   "actAsBluetoothKeyboard": "Act as Bluetooth Keyboard",
   "action": "Action",
+  "additionalTriggerAssignment": "Additional trigger assignment",
   "adjustControllerButtons": "Adjust Controller Buttons",
   "afterDate": "After {date}",
   "allow": "Allow",
@@ -26,6 +27,7 @@
   "alreadyBoughtTheApp": "Already bought the app? You don't need to pay for BikeControl, again. Due to technical difficulties, it's not possible to determine if the app was bought already.\n\nEnter your Play Store purchase ID (e.g. GPA.3356-1337-1338-1339) to unlock the full version. If you can't find it, please get in touch with me directly.",
   "alreadyBoughtTheAppPreviously": "Already bought the app previously?",
   "androidSystemAction": "Android System Action",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Another trigger is already assigned for this button. Go Pro to keep multiple trigger types, or replace the existing trigger assignment and continue with {triggerTitle}.",
   "appIdActions": "{appId} actions",
   "@appIdActions": {
     "placeholders": {
@@ -44,6 +46,14 @@
   "browserNotSupported": "This Browser does not support Web Bluetooth and platform is not supported :(",
   "button": "button.",
   "buyFullVersion": "Buy Full Version",
+  "bySigningInYouAgreeToOur": "By signing in, you agree to our {privacyPolicy}.",
+  "@bySigningInYouAgreeToOur": {
+    "placeholders": {
+      "privacyPolicy": {
+        "type": "String"
+      }
+    }
+  },
   "cancel": "Cancel",
   "changelog": "Changelog",
   "checkMyWhooshConnectionScreen": "Check the connection screen in MyWhoosh to see if \"Link\" is connected.",
@@ -247,6 +257,7 @@
   "logsHaveBeenCopiedToClipboard": "Logs have been copied to clipboard",
   "longPress": "long\npress",
   "longPressMode": "Long Press Mode (vs. repeating)",
+  "longTapExplanation": "tap 1: key down\ntap 2: key up",
   "mailSupportExplanation": "Providing individual support via email is a lot of work for me.\n\nPlease consider using Reddit, Facebook or GitHub for questions and issues so that the whole community can benefit from it.",
   "manageIgnoredDevices": "Manage Ignored Devices",
   "manageProfile": "Manage Profile",
@@ -365,14 +376,6 @@
       }
     }
   },
-  "bySigningInYouAgreeToOur": "By signing in, you agree to our {privacyPolicy}.",
-  "@bySigningInYouAgreeToOur": {
-    "placeholders": {
-      "privacyPolicy": {
-        "type": "String"
-      }
-    }
-  },
   "previous": "Previous",
   "privacyPolicy": "Privacy Policy",
   "profileExportedToClipboard": "Profile \"{profileName}\" exported to clipboard",
@@ -390,8 +393,10 @@
   "registerCurrentDevice": "Register current device",
   "registeredDevices": "Registered Devices",
   "removeFromIgnoredList": "Remove from ignored list",
+  "removeOnePressAction": "The {device} does not support long press natively. To use this type you the long press action needs to be removed.",
   "rename": "Rename",
   "renameProfile": "Rename Profile",
+  "replaceExisting": "Replace Existing",
   "requirement": "Requirement",
   "reset": "Reset",
   "restart": "Restart",
@@ -523,10 +528,5 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "additionalTriggerAssignment": "Additional trigger assignment",
-  "anotherTriggerIsAlreadyAssignedForThisButton": "Another trigger is already assigned for this button. Go Pro to keep multiple trigger types, or replace the existing trigger assignment and continue with {triggerTitle}.",
-  "replaceExisting": "Replace Existing",
-  "longTapExplanation": "tap 1: key down\ntap 2: key up",
-  "removeOnePressAction": "The {device} does not support long press natively. To use this type you the long press action needs to be removed."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }
