@@ -364,7 +364,6 @@ class _PaywallState extends State<Paywall> {
                       Text(
                         _isRestoring ? 'Restoring purchases...' : AppLocalizations.of(context).restorePurchases,
                         style: const TextStyle(
-                          color: Colors.black,
                           fontSize: 16,
                         ),
                       ),
