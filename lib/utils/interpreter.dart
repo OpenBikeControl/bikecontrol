@@ -118,7 +118,7 @@ class DeviceScriptService {
     final file = await _scriptFileForDeviceType(deviceType);
     await file.writeAsString(cleaned, flush: true);
 
-    _customScriptCache[deviceType] = source;
+    _customScriptCache[deviceType] = cleaned;
     _missingScriptCache.remove(deviceType);
 
     return const ScriptValidationResult.valid();

@@ -22,7 +22,7 @@ class DeviceIdentityService {
     if (userId == null) return null;
 
     final localDeviceId = await getOrCreateDeviceId();
-    
+
     try {
       final response = await supabase
           .from('user_devices')
@@ -30,9 +30,9 @@ class DeviceIdentityService {
           .eq('user_id', userId)
           .eq('device_id', localDeviceId)
           .maybeSingle();
-      
+
       if (response == null) return null;
-      
+
       return response['id'] as String?;
     } catch (e) {
       return null;
@@ -73,7 +73,7 @@ class DeviceIdentityService {
     final trimmedTo255Characters = generated.length > 255 ? generated.substring(0, 255) : generated;
 
     await _storage.write(key: _deviceIdStorageKey, value: trimmedTo255Characters);
-    return generated;
+    return trimmedTo255Characters;
   }
 
   Future<String> _buildFingerprintSource(String platform) async {

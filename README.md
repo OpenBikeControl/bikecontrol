@@ -9,6 +9,8 @@ With BikeControl you can **control your favorite trainer app** using your Zwift 
 - Steering / navigation
 - adjust workout intensity
 - control music on your device
+- create screenshots or launch any command / shortcut
+- gestures: single click, double click, long press, etc. can be configured to do different things
 - more? If you can do it via keyboard, mouse, or touch, you can do it with BikeControl
 
 [![Youtube Video](https://github.com/user-attachments/assets/14a45ca1-e31b-4fbd-8d03-95aa60470405)](https://youtu.be/0r3LO5lFlyc)
