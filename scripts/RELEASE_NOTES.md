@@ -7,3 +7,5 @@ I recommend downloading from the official stores:
 <a href="https://apps.apple.com/us/app/swiftcontrol/id6753721284?platform=mac"><img width="270" alt="Mac App Store" src="https://github.com/user-attachments/assets/b3552436-409c-43b0-ba7d-b6a72ae30ff1" /></a>
 
 <a href="https://apps.microsoft.com/detail/9NP42GS03Z26"><img width="270" alt="Microsoft Store" src="https://github.com/user-attachments/assets/7a8a3cd6-ec26-4678-a850-732eedd27c48" /></a>
+
+(or direct download for Windows [here](https://bikecontrol.app/download/bikecontrol.windows.zip))

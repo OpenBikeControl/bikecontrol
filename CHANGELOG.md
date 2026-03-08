@@ -18,6 +18,7 @@ BikeControl Pro is now available - subscribe to the Pro version to support the p
 
 **Fixes**:
 - macOS: Send keyboard key even if the trainer app isn't in foreground
+- You can now download BikeControl on Windows without the Microsoft Store
 
 ### 4.7.0 (04-02-2026)
 

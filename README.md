@@ -27,6 +27,8 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 
 <a href="https://apps.microsoft.com/detail/9NP42GS03Z26"><img width="270" alt="Microsoft Store" src="https://github.com/user-attachments/assets/7a8a3cd6-ec26-4678-a850-732eedd27c48" /></a>
 
+(or direct download for Windows [here](https://bikecontrol.app/download/bikecontrol.windows.zip))
+
 ## Supported Apps
 - MyWhoosh
 - Zwift
