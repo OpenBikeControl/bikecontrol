@@ -28,7 +28,7 @@ Click on the "Unlock" button in BikeControl in the Devices tab, then follow on-s
 4. Keep it connected for ~10–30 seconds
 5. Close Zwift completely, then connect in BikeControl
 
-Details/updates: [https://github.com/OpenBikeControl/bikecontrol/issues/68](GitHub issue)
+Details/updates: [GitHub issue](https://github.com/OpenBikeControl/bikecontrol/issues/68)
 
 ## Android: Connection works, buttons work but nothing happens in MyWhoosh and similar
 *

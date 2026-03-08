@@ -53,7 +53,7 @@
 	<key>NSMotionUsageDescription</key>
 	<string>Access your accelerometer and gyroscope for steering support via your phone.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Access your phot library to store screenshots.</string>
+	<string>Access your photo library to store screenshots.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
