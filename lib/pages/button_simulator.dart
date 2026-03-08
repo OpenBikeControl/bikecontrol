@@ -43,6 +43,7 @@ class ButtonSimulator extends StatefulWidget {
 class _ButtonSimulatorState extends State<ButtonSimulator> {
   late final FocusNode _focusNode;
   Map<InGameAction, String> _hotkeys = {};
+  Map<InGameAction, List<int>> _recentValues = {};
 
   // Default hotkeys for actions
   static const List<String> _defaultHotkeyOrder = [
@@ -106,6 +107,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   }
 
   Future<void> _loadHotkeys() async {
+    _loadRecentValues();
     final savedHotkeys = core.settings.getButtonSimulatorHotkeys();
 
     // If no saved hotkeys, initialize with defaults
@@ -138,6 +140,46 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         _hotkeys = savedHotkeys;
       });
     }
+  }
+
+  void _loadRecentValues() {
+    final map = <InGameAction, List<int>>{};
+    for (final action in InGameAction.values) {
+      if (action.possibleValues != null) {
+        map[action] = action.possibleValues!.take(2).toList();
+      }
+    }
+    setState(() {
+      _recentValues = map;
+    });
+  }
+
+  Future<void> _sendQuickValue(InGameAction action, int value, TrainerConnection connection) async {
+    if (!connection.isConnected.value) {
+      buildToast(title: 'No connected trainer.');
+      return;
+    }
+    await connection.sendAction(
+      KeyPair(
+        buttons: [],
+        physicalKey: null,
+        logicalKey: null,
+        inGameAction: action,
+        inGameActionValue: value,
+      ),
+      isKeyDown: true,
+      isKeyUp: true,
+    );
+    _updateRecentValue(action, value);
+  }
+
+  void _updateRecentValue(InGameAction action, int value) {
+    final list = List<int>.from(_recentValues[action] ?? []);
+    list.remove(value);
+    list.insert(0, value);
+    setState(() {
+      _recentValues[action] = list.take(2).toList();
+    });
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -308,34 +350,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                                   ).toList(),
                                 )
                               else
-                                GridView.count(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  crossAxisSpacing: 8,
-                                  mainAxisSpacing: 8,
-                                  crossAxisCount: min(group.value.length, 3),
-                                  childAspectRatio: isMobile ? 1 : 2.4,
-                                  children: group.value.map(
-                                    (action) {
-                                      final hotkey = _hotkeys[action];
-                                      return Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          _buildButton(action, group, connection, isMobile),
-
-                                          if (hotkey != null)
-                                            Positioned(
-                                              top: -4,
-                                              right: -4,
-                                              child: KeyWidget(
-                                                label: hotkey.toUpperCase(),
-                                              ),
-                                            ),
-                                        ],
-                                      );
-                                    },
-                                  ).toList(),
-                                ),
+                                _buildActionGrid(group, connection, isMobile),
                               SizedBox(height: 12),
                             ],
                           ],
@@ -391,6 +406,108 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActionGrid(
+    MapEntry<String, List<InGameAction>> group,
+    TrainerConnection connection,
+    bool isMobile,
+  ) {
+    final hasQuickAccess = group.value.any((a) => a.possibleValues != null);
+
+    if (!hasQuickAccess) {
+      return GridView.count(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        crossAxisCount: min(group.value.length, 3),
+        childAspectRatio: isMobile ? 1 : 2.4,
+        children: group.value.map((action) {
+          final hotkey = _hotkeys[action];
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              _buildButton(action, group, connection, isMobile),
+              if (hotkey != null)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: KeyWidget(label: hotkey.toUpperCase()),
+                ),
+            ],
+          );
+        }).toList(),
+      );
+    }
+
+    // Use Wrap layout when quick-access buttons are present
+    final crossAxisCount = min(group.value.length, 3);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: group.value.map((action) {
+            final hotkey = _hotkeys[action];
+            final buttonHeight = isMobile ? 120.0 : 80.0;
+            return SizedBox(
+              width: crossAxisCount == 1
+                  ? availableWidth
+                  : (availableWidth - 8 * (crossAxisCount - 1)) / crossAxisCount,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    children: [
+                      SizedBox(
+                        height: buttonHeight,
+                        width: double.infinity,
+                        child: _buildButton(action, group, connection, isMobile),
+                      ),
+                      if (hotkey != null)
+                        Positioned(
+                          top: -4,
+                          right: -4,
+                          child: KeyWidget(label: hotkey.toUpperCase()),
+                        ),
+                    ],
+                  ),
+                  if (action.possibleValues != null) _buildQuickAccessButtons(action, connection),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickAccessButtons(InGameAction action, TrainerConnection connection) {
+    final recent = _recentValues[action] ?? action.possibleValues!.take(2).toList();
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        spacing: 4,
+        children: [
+          for (int i = 0; i < 2; i++)
+            Expanded(
+              child: SizedBox(
+                height: 42,
+                child: i < recent.length
+                    ? OutlineButton(
+                        size: ButtonSize.small,
+                        density: ButtonDensity.compact,
+                        onPressed: () => _sendQuickValue(action, recent[i], connection),
+                        child: Center(child: Text(recent[i].toString())),
+                      )
+                    : SizedBox.shrink(),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -480,6 +597,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                       isKeyDown: true,
                       isKeyUp: true,
                     );
+                    _updateRecentValue(action, e);
                   },
                 ),
               )
