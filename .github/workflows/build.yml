@@ -31,7 +31,7 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.41.0
+  FLUTTER_VERSION: 3.41.4
 
 jobs:
   build:
@@ -126,12 +126,12 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
-          args: "-- --obfuscate --split-debug-info=symbols --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
+          args: "--obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
       - name: Flutter Release macOS
         if: inputs.build_mac
         run:
-          flutter build macos --release --obfuscate --split-debug-info=symbols --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}
+          flutter build macos --release --obfuscate --split-debug-info=symbols --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Decode Keystore
         if: inputs.build_android
@@ -145,7 +145,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: android
-          args: "-- --obfuscate --split-debug-info=symbols --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }}"
+          args: "--obfuscate --split-debug-info=symbols -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
       - name: Extract latest changelog
         id: changelog
@@ -166,7 +166,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: ios
-          args: "--export-options-plist ios/ExportOptions.plist -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}"
+          args: "--export-options-plist ios/ExportOptions.plist --obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
       - name: Prepare App Store authentication key
         if: inputs.build_ios || inputs.build_mac
@@ -283,12 +283,11 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: windows
-          args: "-- --obfuscate --split-debug-info=symbols-win"
+          args: "--obfuscate --split-debug-info=symbols-win -- --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
-      - name: Zip directory (Windows)
+      - name: Zip Windows release
         shell: pwsh
         run: |
-  
           $source = "C:\Windows\System32"
           $destination = "build\windows\x64\runner\Release"
           
@@ -307,27 +306,43 @@ jobs:
               Write-Warning "$dll not found in $source"
             }
           }
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/Release/bike_control.windows.zip"
+          $zipPath = "build/windows/bike_control.windows.zip"
+          if (Test-Path $zipPath) {
+            Remove-Item $zipPath -Force
+          }
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath $zipPath
 
-      - uses: microsoft/setup-msstore-cli@v1
-        if: false
+      - name: Create Store MSIX package
+        run: dart run msix:create --store --output-name bike_control.store
 
-      - name: Configure the Microsoft Store CLI
-        if: false
-        run: msstore reconfigure --tenantId $ --clientId $ --clientSecret $ --sellerId $
+      - name: Upload Store Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: BikeControl Store
+          path: build/windows/x64/runner/Release/bike_control.store.msix
 
-      - name: Create MSIX package
-        run: dart run msix:create
-
-      - name: Publish MSIX to the Microsoft Store
-        if: false
-        run: msstore publish -v "build/windows/x64/runner/Release/"
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Windows Release
+          path: build/windows/bike_control.windows.zip
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
-          name: Releases
-          path: |
-            build/windows/x64/runner/Release/bike_control.msix
-            symbols-win/
+          name: Windows Symbols
+          path: symbols-win/
+
+      - name: Create Release (Windows zip)
+        if: inputs.build_github
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/windows/bike_control.windows.zip"
+          allowUpdates: true
+          prerelease: true
+          replacesArtifacts: false
+          tag: v${{ env.VERSION }}
+          token: ${{ secrets.TOKEN }}

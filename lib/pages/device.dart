@@ -214,6 +214,7 @@ class _DevicePageState extends State<DevicePage> {
               SelectableCard(
                 isActive: core.settings.getPhoneSteeringEnabled(),
                 icon: core.settings.getPhoneSteeringEnabled() ? Icons.check_box : Icons.check_box_outline_blank,
+                isProOnly: true,
                 title: Row(
                   spacing: 4,
                   children: [

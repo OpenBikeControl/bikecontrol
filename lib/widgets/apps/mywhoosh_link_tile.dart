@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/markdown.dart';
@@ -25,6 +27,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              isRecommended: Platform.isIOS,
               supportedActions: core.whooshLink.supportedActions,
               isEnabled: core.settings.getMyWhooshLinkEnabled(),
               type: ConnectionMethodType.network,

@@ -37,6 +37,7 @@ abstract class KeyPressSimulatorPlatform extends PlatformInterface {
     KeyboardKey? key,
     List<ModifierKey> modifiers = const [],
     bool keyDown = true,
+    String? targetApp,
   }) {
     throw UnimplementedError('simulateKeyPress() has not been implemented.');
   }

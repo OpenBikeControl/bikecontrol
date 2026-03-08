@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:async';
 
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/customize.dart';
@@ -13,7 +14,6 @@ import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -67,9 +67,11 @@ class _NavigationState extends State<Navigation> {
 
     core.logic.startEnabledConnectionMethod();
 
-    core.connection.actionStream.listen((_) {
+    _actionListener = core.connection.actionStream.listen((_) {
       _updateTrainerConnectionStatus();
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     _updateTrainerConnectionStatus();
 
@@ -81,6 +83,12 @@ class _NavigationState extends State<Navigation> {
       );
       _checkAndShowChangelog();
     });
+  }
+
+  @override
+  void dispose() {
+    _actionListener.cancel();
+    super.dispose();
   }
 
   @override
@@ -129,6 +137,8 @@ class _NavigationState extends State<Navigation> {
   final List<BCPage> _tabs = BCPage.values.whereNot((e) => e == BCPage.logs).toList();
 
   bool _isTrainerConnected = false;
+
+  late StreamSubscription<BaseNotification> _actionListener;
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +194,6 @@ class _NavigationState extends State<Navigation> {
               child: switch (_selectedPage) {
                 BCPage.devices => Align(
                   alignment: Alignment.topLeft,
-                  key: _pageKeys[BCPage.devices],
                   child: DevicePage(
                     isMobile: _isMobile,
                     onUpdate: () {
@@ -196,7 +205,6 @@ class _NavigationState extends State<Navigation> {
                 ),
                 BCPage.trainer => Align(
                   alignment: Alignment.topLeft,
-                  key: _pageKeys[BCPage.trainer],
                   child: TrainerPage(
                     onUpdate: () {
                       setState(() {});
@@ -211,7 +219,6 @@ class _NavigationState extends State<Navigation> {
                 ),
                 BCPage.customization => Align(
                   alignment: Alignment.topLeft,
-                  key: _pageKeys[BCPage.customization],
                   child: CustomizePage(isMobile: _isMobile),
                 ),
                 BCPage.logs => Padding(
@@ -229,42 +236,24 @@ class _NavigationState extends State<Navigation> {
   }
 
   Widget _buildNavigationMenu() {
-    return Column(
-      children: [
-        Expanded(
-          child: NavigationSidebar(
-            backgroundColor: Theme.of(context).brightness == Brightness.light
-                ? BKColor.backgroundLight
-                : Theme.of(context).colorScheme.card,
-            onSelected: (int index) {
-              setState(() {
-                _selectedPage = BCPage.values[index];
-              });
-            },
-            spacing: 4,
-            children: _tabs.map((page) => _buildNavigationItemDesktop(page)).toList(),
-          ),
-        ),
-
-        NavigationSidebar(
-          backgroundColor: Theme.of(context).brightness == Brightness.light
-              ? BKColor.backgroundLight
-              : Theme.of(context).colorScheme.card,
-          onSelected: (int index) {
-            setState(() {
-              _selectedPage = BCPage.logs;
-            });
-          },
-          children: [
-            NavigationDivider(),
-            NavigationItem(
-              label: Text(BCPage.logs.getTitle(context)),
-              selected: _selectedPage == BCPage.logs,
-              child: _buildIcon(BCPage.logs),
-            ),
-          ],
+    return NavigationSidebar(
+      backgroundColor: Theme.of(context).brightness == Brightness.light
+          ? BKColor.backgroundLight
+          : Theme.of(context).colorScheme.card,
+      onSelected: (Key? key) {
+        setState(() {
+          _selectedPage = _pageKeys.entries.firstWhere((entry) => entry.value == key).key;
+        });
+      },
+      spacing: 4,
+      selectedKey: _pageKeys[_selectedPage],
+      footer: [
+        SliverPadding(
+          padding: const EdgeInsets.all(8.0),
+          sliver: _buildNavigationItemDesktop(BCPage.logs),
         ),
       ],
+      children: _tabs.map((page) => _buildNavigationItemDesktop(page)).toList(),
     );
   }
 
@@ -311,17 +300,19 @@ class _NavigationState extends State<Navigation> {
 
   Widget _buildNavigationBar() {
     return NavigationBar(
-      padding:
-          EdgeInsets.only(top: 6, left: 12, right: 12, bottom: !kIsWeb && Platform.isMacOS ? 8 : 0) *
-          Theme.of(context).scaling,
+      padding: EdgeInsets.only(top: 6, left: 12, right: 12, bottom: 12) * Theme.of(context).scaling,
       labelType: NavigationLabelType.all,
-      onSelected: (int index) {
+      alignment: NavigationBarAlignment.spaceAround,
+      spacing: 8,
+      selectedKey: _pageKeys[_selectedPage],
+      onSelected: (Key? key) {
         setState(() {
-          _selectedPage = _tabs[index];
+          _selectedPage = _pageKeys.entries.firstWhere((entry) => entry.value == key).key;
         });
       },
       children: _tabs.map((page) {
         return NavigationItem(
+          key: _pageKeys[page],
           selected: _selectedPage == page,
           selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
             decoration: (context, states, value) {
@@ -346,16 +337,19 @@ class _NavigationState extends State<Navigation> {
             },
           ),
           enabled: _isPageEnabled(page),
-          label: Text(
-            page == BCPage.trainer && !screenshotMode
-                ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
-                : page.getTitle(context),
-            style: TextStyle(
-              color: !_isPageEnabled(page)
-                  ? null
-                  : Theme.of(context).colorScheme.brightness == Brightness.dark
-                  ? Colors.white
-                  : null,
+          label: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              page == BCPage.trainer && !screenshotMode
+                  ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
+                  : page.getTitle(context),
+              style: TextStyle(
+                color: !_isPageEnabled(page)
+                    ? null
+                    : Theme.of(context).colorScheme.brightness == Brightness.dark
+                    ? Colors.white
+                    : null,
+              ),
             ),
           ),
           child: _buildIcon(page),
@@ -380,8 +374,9 @@ class _NavigationState extends State<Navigation> {
     };
   }
 
-  NavigationBarItem _buildNavigationItemDesktop(BCPage page) {
+  NavigationItem _buildNavigationItemDesktop(BCPage page) {
     return NavigationItem(
+      key: _pageKeys[page],
       selected: _selectedPage == page,
       selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
         decoration: (context, states, value) {

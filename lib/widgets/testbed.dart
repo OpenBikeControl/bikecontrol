@@ -108,7 +108,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
         } else {
           final button = data.buttonsClicked.first;
           if (core.actionHandler.supportedApp is! CustomApp &&
-              core.actionHandler.supportedApp?.keymap.getKeyPair(button) == null) {
+              !core.actionHandler.supportedApp!.keymap.hasAnyMappedAction(button)) {
             buildToast(
               level: LogLevel.LOGLEVEL_WARNING,
               titleWidget: Text.rich(

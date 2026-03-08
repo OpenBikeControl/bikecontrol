@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -7,26 +8,41 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
+import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../bluetooth/devices/base_device.dart';
+
 class ButtonEditPage extends StatefulWidget {
   final Keymap keymap;
+  final BaseDevice device;
   final KeyPair keyPair;
+  final ButtonTrigger trigger;
   final VoidCallback onUpdate;
-  const ButtonEditPage({super.key, required this.keyPair, required this.onUpdate, required this.keymap});
+  const ButtonEditPage({
+    super.key,
+    required this.keyPair,
+    required this.device,
+    required this.onUpdate,
+    required this.keymap,
+    required this.trigger,
+  });
 
   @override
   State<ButtonEditPage> createState() => _ButtonEditPageState();
@@ -54,25 +70,30 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
   late StreamSubscription<BaseNotification> _actionSubscription;
 
+  bool get _usesFallbackLongPressMode {
+    final button = _keyPair.buttons.firstOrNull;
+    if (button == null || widget.trigger != ButtonTrigger.longPress) {
+      return false;
+    }
+    return widget.device.supportsLongPress == false;
+  }
+
   @override
   void initState() {
     super.initState();
     _keyPair = widget.keyPair;
+    _keyPair.trigger = widget.trigger;
     _actionSubscription = core.connection.actionStream.listen((data) async {
       if (!mounted) {
         return;
       }
       if (data is ButtonNotification && data.buttonsClicked.length == 1) {
         final clickedButton = data.buttonsClicked.first;
-        final keyPair = widget.keymap.keyPairs.firstOrNullWhere(
-          (kp) => kp.buttons.contains(clickedButton),
-        );
-        if (keyPair != null) {
-          setState(() {
-            _keyPair = keyPair;
-          });
-          _triggerBump();
-        }
+        final keyPair = widget.keymap.getOrCreateKeyPair(clickedButton, trigger: widget.trigger);
+        setState(() {
+          _keyPair = keyPair;
+        });
+        _triggerBump();
       }
     });
   }
@@ -124,6 +145,16 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                   ],
                 ),
+                Text('Editing ${widget.trigger.title}').xSmall.muted,
+                if (_usesFallbackLongPressMode)
+                  Warning(
+                    important: false,
+                    children: [
+                      Text(
+                        'This device uses long press toggle mode: first click sends key down, second click sends key up.',
+                      ).small,
+                    ],
+                  ),
                 if (core.logic.hasNoConnectionMethod)
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 300),
@@ -149,7 +180,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ..._buildTrainerConnectionActions(core.logic.obpConnectedApp!.supportedActions),
                 ],
 
-                if (core.logic.showMyWhooshLink) ...[
+                if (core.logic.showMyWhooshLink && (Platform.isIOS || core.settings.getMyWhooshLinkEnabled())) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
                   if (!core.settings.getMyWhooshLinkEnabled())
@@ -248,77 +279,107 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 children: [
                                   MenuButton(
                                     leading: Icon(Icons.play_arrow_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.playPause),
+                                    child: _buildProMenuItemLabel(context.i18n.playPause),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.stop_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.stop),
+                                    child: _buildProMenuItemLabel(context.i18n.stop),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.skip_previous_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.previous),
+                                    child: _buildProMenuItemLabel(context.i18n.previous),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.skip_next_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.next),
+                                    child: _buildProMenuItemLabel(context.i18n.next),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.volume_up_outlined),
-                                    onPressed: (c) {
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: Text(context.i18n.volumeUp),
+                                    child: _buildProMenuItemLabel(context.i18n.volumeUp),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.volume_down_outlined),
-                                    child: Text(context.i18n.volumeDown),
-                                    onPressed: (c) {
+                                    child: _buildProMenuItemLabel(context.i18n.volumeDown),
+                                    onPressed: (c) async {
+                                      if (!await _ensureProForFeature(context)) {
+                                        return;
+                                      }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.command = null;
+                                      _keyPair.screenshotPath = null;
 
                                       setState(() {});
                                       widget.onUpdate();
@@ -335,9 +396,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     Builder(
                       builder: (context) => SelectableCard(
                         icon: Icons.settings_remote_outlined,
-                        isActive: _keyPair.androidAction != null && core.settings.getLocalEnabled(),
+                        isActive:
+                            _keyPair.androidAction != null &&
+                            _keyPair.androidAction != AndroidSystemAction.assistant &&
+                            core.settings.getLocalEnabled(),
                         title: Text(AppLocalizations.of(context).androidSystemAction),
-                        value: _keyPair.androidAction?.title,
+                        value: _keyPair.androidAction != AndroidSystemAction.assistant
+                            ? _keyPair.androidAction?.title
+                            : null,
                         trailing: IconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
                           onPressed: () {
@@ -352,10 +418,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                               context: context,
                               builder: (c) => DropdownMenu(
                                 children: AndroidSystemAction.values
+                                    .where((action) => action != AndroidSystemAction.assistant)
                                     .map(
                                       (action) => MenuButton(
                                         leading: Icon(action.icon),
-                                        onPressed: (_) {
+                                        onPressed: (_) async {
+                                          if (!await _ensureProForFeature(context)) {
+                                            return;
+                                          }
                                           _keyPair.androidAction = action;
                                           _keyPair.physicalKey = null;
                                           _keyPair.logicalKey = null;
@@ -363,10 +433,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                           _keyPair.touchPosition = Offset.zero;
                                           _keyPair.inGameAction = null;
                                           _keyPair.inGameActionValue = null;
+                                          _keyPair.command = null;
+                                          _keyPair.screenshotPath = null;
                                           setState(() {});
                                           widget.onUpdate();
                                         },
-                                        child: Text(action.title),
+                                        child: _buildProMenuItemLabel(action.title),
                                       ),
                                     )
                                     .toList(),
@@ -375,6 +447,58 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           }
                         },
                       ),
+                    ),
+                  if (core.logic.showLocalControl && core.actionHandler is AndroidActions)
+                    Builder(
+                      builder: (context) => SelectableCard(
+                        icon: Icons.assistant_outlined,
+                        isActive:
+                            _keyPair.androidAction == AndroidSystemAction.assistant && core.settings.getLocalEnabled(),
+                        title: Text(AndroidSystemAction.assistant.title),
+                        value: _keyPair.androidAction == AndroidSystemAction.assistant
+                            ? _keyPair.androidAction?.title
+                            : null,
+                        isProOnly: true,
+                        onPressed: () {
+                          _keyPair.androidAction = AndroidSystemAction.assistant;
+                          _keyPair.physicalKey = null;
+                          _keyPair.logicalKey = null;
+                          _keyPair.modifiers = [];
+                          _keyPair.touchPosition = Offset.zero;
+                          _keyPair.inGameAction = null;
+                          _keyPair.inGameActionValue = null;
+                          _keyPair.command = null;
+                          _keyPair.screenshotPath = null;
+                          setState(() {});
+                          widget.onUpdate();
+                        },
+                      ),
+                    ),
+                ],
+
+                if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: 'Other Actions'),
+                  SelectableCard(
+                    isProOnly: true,
+                    title: Text(Platform.isMacOS || Platform.isIOS ? 'Launch Shortcut' : 'Run Command'),
+                    icon: Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
+                    isActive: _keyPair.command?.trim().isNotEmpty == true,
+                    value: _keyPair.command,
+                    onPressed: () async {
+                      await _showCommandDialog(context);
+                    },
+                  ),
+                  if (Platform.isMacOS || Platform.isWindows)
+                    SelectableCard(
+                      isProOnly: true,
+                      title: Text('Take Screenshot'),
+                      icon: Icons.image_outlined,
+                      isActive: _keyPair.screenshotPath?.trim().isNotEmpty == true,
+                      value: _keyPair.screenshotPath,
+                      onPressed: () async {
+                        await _showScreenshotDialog();
+                      },
                     ),
                 ],
 
@@ -406,6 +530,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                           _keyPair.inGameAction = InGameAction.headwindSpeed;
                                           _keyPair.inGameActionValue = value;
                                           _keyPair.androidAction = null;
+                                          _keyPair.command = null;
+                                          _keyPair.screenshotPath = null;
                                           widget.onUpdate();
                                           setState(() {});
                                         },
@@ -420,6 +546,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   _keyPair.inGameAction = InGameAction.headwindHeartRateMode;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
+                                  _keyPair.command = null;
+                                  _keyPair.screenshotPath = null;
                                   widget.onUpdate();
                                   setState(() {});
                                 },
@@ -434,20 +562,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 SizedBox(height: 8),
                 ColoredTitle(text: context.i18n.setting),
-                SelectableCard(
-                  icon: _keyPair.isLongPress ? Icons.check_box : Icons.check_box_outline_blank,
-                  title: Text(context.i18n.longPressMode),
-                  isActive: _keyPair.isLongPress,
-                  onPressed: () {
-                    _keyPair.isLongPress = !_keyPair.isLongPress;
-                    widget.onUpdate();
-                    setState(() {});
-                  },
-                ),
                 SizedBox(height: 8),
                 DestructiveButton(
                   onPressed: () {
-                    _keyPair.isLongPress = false;
                     _keyPair.physicalKey = null;
                     _keyPair.logicalKey = null;
                     _keyPair.modifiers = [];
@@ -455,6 +572,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     _keyPair.inGameAction = null;
                     _keyPair.inGameActionValue = null;
                     _keyPair.androidAction = null;
+                    _keyPair.command = null;
+                    _keyPair.screenshotPath = null;
                     widget.onUpdate();
                     setState(() {});
                   },
@@ -496,9 +615,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             _keyPair.physicalKey = null;
                             _keyPair.logicalKey = null;
                             _keyPair.androidAction = null;
+                            _keyPair.command = null;
+                            _keyPair.screenshotPath = null;
                             _keyPair.inGameAction = action;
                             _keyPair.inGameActionValue = ingame;
-                            _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
                             widget.onUpdate();
                             setState(() {});
                           },
@@ -512,9 +632,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 _keyPair.physicalKey = null;
                 _keyPair.logicalKey = null;
                 _keyPair.androidAction = null;
+                _keyPair.command = null;
+                _keyPair.screenshotPath = null;
                 _keyPair.inGameAction = action;
                 _keyPair.inGameActionValue = null;
-                _keyPair.isLongPress = _keyPair.isLongPress ? true : action.isLongPress;
                 widget.onUpdate();
                 setState(() {});
               }
@@ -525,12 +646,188 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     }).toList();
   }
 
+  Future<void> _showCommandDialog(BuildContext context) async {
+    if (Platform.isWindows) {
+      final result = await FilePicker.platform.pickFiles(
+        dialogTitle: 'Select command to run',
+        type: FileType.any,
+        allowMultiple: false,
+      );
+      if (result == null) {
+        return;
+      }
+      final selectedPath = result.files.single.path?.trim();
+      if (selectedPath == null || selectedPath.isEmpty) {
+        buildToast(title: 'No executable file selected');
+        return;
+      }
+      _setCommand(selectedPath);
+      return;
+    }
+
+    final controller = TextEditingController(text: _keyPair.command ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: AlertDialog(
+          title: Text('Launch Shortcut'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 10,
+            children: [
+              TextField(
+                controller: controller,
+                hintText: 'Shortcut name',
+                autofocus: true,
+                onTapOutside: (_) {
+                  FocusScope.of(context).unfocus();
+                },
+              ),
+              if (Platform.isMacOS)
+                Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small
+              else
+                Text(
+                  'Note that Shortcuts on iOS are very limited: BikeControl needs to be in the foreground when you want to run the command, and your shortcut should have "Open BikeControl" as its first action so BikeControl can continue to trigger shortcuts.',
+                ).xSmall,
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.i18n.cancel),
+            ),
+            if (_keyPair.command?.trim().isNotEmpty == true)
+              TextButton(
+                onPressed: () => Navigator.pop(context, ''),
+                child: Text('Clear'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    final shortcutName = result.trim();
+    _setCommand(shortcutName.isEmpty ? null : shortcutName);
+  }
+
+  void _setCommand(String? value) {
+    _keyPair.command = value;
+
+    if (_keyPair.command != null) {
+      _keyPair.screenshotPath = null;
+      _keyPair.physicalKey = null;
+      _keyPair.logicalKey = null;
+      _keyPair.modifiers = [];
+      _keyPair.touchPosition = Offset.zero;
+      _keyPair.inGameAction = null;
+      _keyPair.inGameActionValue = null;
+      _keyPair.androidAction = null;
+    }
+
+    widget.onUpdate();
+    setState(() {});
+  }
+
+  Future<void> _showScreenshotDialog() async {
+    final selectedPath = Directory.current.path;
+
+    final path = selectedPath.trim();
+    if (path.isEmpty) {
+      buildToast(title: 'No path selected');
+      return;
+    }
+
+    final hasWriteAccess = await _ensureScreenshotDirectoryWritable(path);
+    if (!hasWriteAccess) {
+      buildToast(title: 'Cannot write to this folder. Please grant write permission and try again.');
+      return;
+    }
+
+    _setScreenshotPath(path);
+  }
+
+  Future<bool> _ensureScreenshotDirectoryWritable(String directoryPath) async {
+    try {
+      final directory = Directory(directoryPath);
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+
+      final testFile = File(
+        '${directory.path}${Platform.pathSeparator}.bikecontrol-write-test-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      await testFile.writeAsString('ok', flush: true);
+      if (await testFile.exists()) {
+        await testFile.delete();
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  void _setScreenshotPath(String? value) {
+    _keyPair.screenshotPath = value;
+
+    if (_keyPair.screenshotPath != null) {
+      _keyPair.command = null;
+      _keyPair.physicalKey = null;
+      _keyPair.logicalKey = null;
+      _keyPair.modifiers = [];
+      _keyPair.touchPosition = Offset.zero;
+      _keyPair.inGameAction = null;
+      _keyPair.inGameActionValue = null;
+      _keyPair.androidAction = null;
+    }
+
+    widget.onUpdate();
+    setState(() {});
+  }
+
+  Future<bool> _ensureProForFeature(BuildContext context) async {
+    if (IAPManager.instance.hasActiveSubscription) {
+      return true;
+    }
+    await showGoProDialog(context);
+    return IAPManager.instance.hasActiveSubscription;
+  }
+
+  Widget _buildProMenuItemLabel(String text) {
+    final isPro = IAPManager.instance.hasActiveSubscription;
+    if (isPro) {
+      return Text(text);
+    }
+
+    return Row(
+      children: [
+        Expanded(child: Text(text)),
+        const ProBadge(
+          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          fontSize: 9,
+        ),
+      ],
+    );
+  }
+
   Future<void> _showModeDropdown(BuildContext context, SupportedMode supportedMode) async {
     final trainerApp = core.settings.getTrainerApp();
 
+    final triggerForPredefined = widget.trigger == ButtonTrigger.doubleClick
+        ? ButtonTrigger.singleClick
+        : widget.trigger;
     final actionsWithInGameAction = trainerApp?.keymap.keyPairs
         .where(
           (kp) =>
+              kp.trigger == triggerForPredefined &&
               kp.inGameAction != null &&
               switch (supportedMode) {
                 SupportedMode.keyboard => kp.physicalKey != null,
@@ -577,10 +874,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   } else {
                     _keyPair.touchPosition = Offset.zero;
                   }
-                  _keyPair.isLongPress = keyPairAction.isLongPress;
                   _keyPair.inGameAction = keyPairAction.inGameAction;
                   _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
                   _keyPair.androidAction = null;
+                  _keyPair.command = keyPairAction.command;
+                  _keyPair.screenshotPath = keyPairAction.screenshotPath;
                   setState(() {});
                 },
                 child: Column(
@@ -622,9 +920,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         builder: (c) => HotKeyListenerDialog(
           customApp: core.actionHandler.supportedApp! as CustomApp,
           keyPair: _keyPair,
+          trigger: widget.trigger,
         ),
       );
       _keyPair.androidAction = null;
+      _keyPair.command = null;
+      _keyPair.screenshotPath = null;
       setState(() {});
       widget.onUpdate();
     } else if (supportedMode == SupportedMode.touch) {
@@ -634,6 +935,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       _keyPair.physicalKey = null;
       _keyPair.logicalKey = null;
       _keyPair.androidAction = null;
+      _keyPair.command = null;
+      _keyPair.screenshotPath = null;
       await Navigator.of(context).push<bool?>(
         MaterialPageRoute(
           builder: (c) => TouchAreaSetupPage(
@@ -655,6 +958,7 @@ class SelectableCard extends StatelessWidget {
   final bool isActive;
   final String? value;
   final VoidCallback? onPressed;
+  final bool isProOnly;
 
   const SelectableCard({
     super.key,
@@ -665,50 +969,74 @@ class SelectableCard extends StatelessWidget {
     required this.isActive,
     this.value,
     required this.onPressed,
+    this.isProOnly = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Button.outline(
-      style:
-          ButtonStyle(
-                variance: ButtonVariance.outline,
-              )
-              .withBorder(
-                border: isActive
-                    ? Border.all(color: BKColor.main, width: 2)
-                    : Border.all(color: Theme.of(context).colorScheme.border, width: 2),
-                hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
-                focusBorder: Border.all(color: BKColor.main, width: 2),
-              )
-              .withBackgroundColor(
-                color: isActive
-                    ? Theme.of(context).brightness == Brightness.dark
-                          ? Theme.of(context).colorScheme.card
-                          : Theme.of(context).colorScheme.card.withLuminance(0.9)
-                    : Theme.of(context).colorScheme.background,
-                hoverColor: Theme.of(context).colorScheme.card,
-              ),
-      onPressed: onPressed,
-      alignment: Alignment.topLeft,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Basic(
-          leading: icon != null
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 3.0),
-                  child: Icon(
-                    icon,
-                    color: icon == Icons.delete_outline ? Theme.of(context).colorScheme.destructive : null,
+    final isPro = IAPManager.instance.hasActiveSubscription;
+
+    return Stack(
+      children: [
+        Button.outline(
+          style:
+              ButtonStyle(
+                    variance: ButtonVariance.outline,
+                  )
+                  .withBorder(
+                    border: isActive
+                        ? Border.all(color: BKColor.main, width: 2)
+                        : Border.all(color: Theme.of(context).colorScheme.border, width: 2),
+                    hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
+                    focusBorder: Border.all(color: BKColor.main, width: 2),
+                  )
+                  .withBackgroundColor(
+                    color: isActive
+                        ? Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context).colorScheme.card
+                              : Theme.of(context).colorScheme.card.withLuminance(0.9)
+                        : Theme.of(context).colorScheme.background,
+                    hoverColor: Theme.of(context).colorScheme.card,
                   ),
-                )
-              : null,
-          title: title,
-          subtitle: value != null && isActive ? Text(value!) : subtitle,
-          trailing: trailing,
+          onPressed: () async {
+            if (isProOnly && !isPro) {
+              await showGoProDialog(context);
+            } else {
+              onPressed?.call();
+            }
+          },
+          alignment: Alignment.topLeft,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Basic(
+              leading: icon != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 3.0),
+                      child: Icon(
+                        icon,
+                        color: icon == Icons.delete_outline ? Theme.of(context).colorScheme.destructive : null,
+                      ),
+                    )
+                  : null,
+              title: title,
+              subtitle: value != null && isActive ? Text(value!) : subtitle,
+              trailing: trailing,
+            ),
+          ),
         ),
-      ),
+        if (isProOnly && !isPro)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: const ProBadge(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

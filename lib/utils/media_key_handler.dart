@@ -105,9 +105,9 @@ class MediaKeyHandler {
       () => ControllerButton(keyPressed),
     );
 
-    availableDevice.handleButtonsClickedWithoutLongPressSupport([button]);
+    availableDevice.handleButtonsClicked([button]);
 
-    return core.actionHandler.supportedApp?.keymap.getKeyPair(button)?.hasNoAction == false;
+    return core.actionHandler.supportedApp?.keymap.hasAnyMappedAction(button) == true;
   }
 
   bool _onMediaKeyPressedListener(PressedButton mediaKey) {

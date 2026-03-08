@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:accessibility/accessibility.dart';
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 
@@ -50,6 +53,8 @@ class AndroidActions extends BaseActions {
       if (availableDevice == null) {
         core.connection.addDevices([hidDevice]);
         availableDevice = hidDevice;
+      } else {
+        availableDevice.supportsLongPress = false;
       }
       if (keyPressed.keyDown) {
         availableDevice.handleButtonsClicked([button]);
@@ -60,15 +65,23 @@ class AndroidActions extends BaseActions {
   }
 
   @override
-  Future<ActionResult> performAction(ControllerButton button, {required bool isKeyDown, required bool isKeyUp}) async {
-    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
+  Future<ActionResult> performAction(
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
+    final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp, trigger: trigger);
     if (superResult is! NotHandled) {
       // Increment command count after successful execution
       return superResult;
     }
-    final keyPair = supportedApp!.keymap.getKeyPair(button)!;
+    final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger)!;
 
     if (keyPair.isSpecialKey) {
+      if (!IAPManager.instance.hasActiveSubscription) {
+        return Error('Pro subscription required for media control');
+      }
       await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
         PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,
         PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,
@@ -81,11 +94,22 @@ class AndroidActions extends BaseActions {
       return Success("Key pressed: ${keyPair.toString()}");
     }
 
-    if (keyPair.androidAction != null) {
+    if (keyPair.androidAction == AndroidSystemAction.assistant) {
+      try {
+        await _launchAssistant();
+      } on PlatformException {
+        return Error('No assistant app available on this device');
+      }
+    }
+
+    if (keyPair.androidAction != null && keyPair.androidAction != AndroidSystemAction.assistant) {
+      if (!IAPManager.instance.hasActiveSubscription) {
+        return Error('Pro subscription required for Android system actions');
+      }
       if (!core.settings.getLocalEnabled() || !core.logic.showLocalControl || !isKeyDown) {
         return Ignored('Global action ignored');
       }
-      await accessibilityHandler.performGlobalAction(keyPair.androidAction!.globalAction);
+      await accessibilityHandler.performGlobalAction(keyPair.androidAction!.globalAction!);
       await IAPManager.instance.incrementCommandCount();
       return Success("Global action: ${keyPair.androidAction!.title}");
     }
@@ -107,11 +131,34 @@ class AndroidActions extends BaseActions {
             : "up"}",
       );
     }
-    return NotHandled('No action assigned for ${button.name}');
+    return NotHandled('No action assigned for ${button.name.splitByUpperCase()}');
   }
 
   void ignoreHidDevices() {
     accessibilityHandler.ignoreHidDevices();
+  }
+
+  Future<void> _launchAssistant() async {
+    final intents = [
+      AndroidIntent(action: 'android.intent.action.VOICE_COMMAND'),
+      AndroidIntent(action: 'android.intent.action.VOICE_ASSIST'),
+      AndroidIntent(action: 'android.intent.action.ASSIST'),
+    ];
+    PlatformException? lastException;
+
+    for (final intent in intents) {
+      try {
+        await intent.launch();
+        return;
+      } on PlatformException catch (e) {
+        lastException = e;
+      }
+    }
+
+    throw PlatformException(
+      code: 'assistant_unavailable',
+      message: lastException?.message ?? 'Could not launch assistant',
+    );
   }
 
   void updateHandledKeys() {

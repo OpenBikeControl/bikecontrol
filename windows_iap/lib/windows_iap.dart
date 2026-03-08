@@ -68,4 +68,18 @@ class WindowsIap {
   Future<Trial> getTrialStatusAndRemainingDays() {
     return WindowsIapPlatform.instance.getTrialStatusAndRemainingDays();
   }
+
+  Future<String> getCustomerPurchaseIdKey({
+    required String serviceTicket,
+    required String publisherUserId,
+  }) {
+    return WindowsIapPlatform.instance.getCustomerPurchaseIdKey(
+      serviceTicket: serviceTicket,
+      publisherUserId: publisherUserId,
+    );
+  }
+
+  Future<String?> getStoreId() {
+    return WindowsIapPlatform.instance.getStoreId();
+  }
 }

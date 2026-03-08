@@ -32,13 +32,13 @@ Future<void> main() async {
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
-    version: '4.2.0',
+    version: '5.0.0',
     buildNumber: '1',
     buildSignature: '',
   );
-  IAPManager.instance.isPurchased.value = true;
   FlutterSecureStorage.setMockInitialValues({});
   SharedPreferences.setMockInitialValues({});
+  IAPManager.instance.isPurchased.value = true;
 
   screenshotMode = true;
 
@@ -77,6 +77,7 @@ Future<void> main() async {
 
   testGoldens('Init', (WidgetTester tester) async {
     screenshotMode = true;
+    IAPManager.instance.isPurchased.value = true;
     await tester.loadAssets();
     for (final size in sizes) {
       await tester.pumpWidget(
@@ -108,6 +109,7 @@ Future<void> main() async {
     }
   });
   testGoldens('Device', (WidgetTester tester) async {
+    IAPManager.instance.isPurchased.value = true;
     for (final size in sizes) {
       await tester.pumpWidget(
         ScreenshotApp(
@@ -123,7 +125,7 @@ Future<void> main() async {
                   required Widget child,
                 }) => CustomFrame(
                   platform: size.type,
-                  title: 'Control your favorite trainer app using ANY controller',
+                  title: 'Control your trainer app using ANY controller',
                   device: device,
                   child: child,
                 ),
@@ -145,6 +147,7 @@ Future<void> main() async {
   });
 
   testGoldens('Trainer', (WidgetTester tester) async {
+    IAPManager.instance.isPurchased.value = true;
     screenshotMode = true;
     for (final size in sizes) {
       await tester.pumpWidget(
@@ -183,6 +186,7 @@ Future<void> main() async {
   });
 
   testGoldens('Customization', (WidgetTester tester) async {
+    IAPManager.instance.isPurchased.value = true;
     screenshotMode = true;
 
     for (final size in sizes) {
@@ -222,6 +226,7 @@ Future<void> main() async {
   });
 
   testGoldens('Trainer Controls', (WidgetTester tester) async {
+    IAPManager.instance.isPurchased.value = true;
     screenshotMode = true;
 
     core.settings.setMyWhooshLinkEnabled(true);

@@ -7,6 +7,7 @@ import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ import '../messages/notification.dart';
 abstract class BaseDevice {
   final String? _name;
   final bool isBeta;
+  bool supportsLongPress;
   final String uniqueId;
   final List<ControllerButton> availableButtons;
 
@@ -27,6 +29,7 @@ abstract class BaseDevice {
     required this.uniqueId,
     required this.availableButtons,
     this.isBeta = false,
+    this.supportsLongPress = true,
     String? buttonPrefix,
   }) {
     if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
@@ -44,8 +47,14 @@ abstract class BaseDevice {
 
   bool isConnected = false;
 
+  static const Duration _longPressTriggerDelay = Duration(milliseconds: 550);
+  static const Duration _doubleClickDelay = Duration(milliseconds: 320);
+
   Timer? _longPressTimer;
+  Timer? _singleClickTimer;
   Set<ControllerButton> _previouslyPressedButtons = <ControllerButton>{};
+  Set<ControllerButton> _activeLongPressButtons = <ControllerButton>{};
+  ControllerButton? _pendingSingleClickButton;
 
   String get name => _name ?? runtimeType.toString();
 
@@ -68,32 +77,56 @@ abstract class BaseDevice {
 
   Future<void> connect();
 
-  Future<void> handleButtonsClickedWithoutLongPressSupport(List<ControllerButton> clickedButtons) async {
-    if (clickedButtons.length == 1) {
-      final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(clickedButtons.single);
-      if (keyPair != null && (keyPair.isLongPress || keyPair.inGameAction?.isLongPress == true)) {
-        // For long press actions: perform down, wait, then release
-        await handleButtonsClicked(clickedButtons, longPress: true);
-        _longPressTimer?.cancel();
-        await Future.delayed(const Duration(milliseconds: 800));
-        await handleButtonsClicked([], longPress: true);
-      } else {
-        // For non-long-press actions: perform a single click
-        // First call performs the click action (isKeyDown: true, isKeyUp: true)
-        await handleButtonsClicked(clickedButtons);
-        // Second call cleans up state (clears timer, logs release, clears _previouslyPressedButtons)
-        // but doesn't perform a release action since longPress: false
-        await handleButtonsClicked([]);
-      }
-    } else {
-      await handleButtonsClicked(clickedButtons);
-      await handleButtonsClicked([]);
-    }
-  }
-
   Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked, {bool longPress = false}) async {
     try {
-      await _handleButtonsClickedInternal(buttonsClicked, longPress: longPress);
+      if (buttonsClicked == null) {
+        return;
+      }
+
+      if (longPress) {
+        await _handleExplicitLongPress(buttonsClicked);
+        return;
+      }
+
+      if (buttonsClicked.isEmpty) {
+        await _handleButtonsReleased();
+        return;
+      }
+
+      actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked, device: this));
+
+      if (buttonsClicked.length != 1) {
+        _cancelPendingClickTimers();
+        if (_activeLongPressButtons.isNotEmpty) {
+          await performRelease(_activeLongPressButtons.toList(), trigger: ButtonTrigger.longPress);
+          _activeLongPressButtons.clear();
+        }
+        _previouslyPressedButtons = buttonsClicked.toSet();
+        await performClick(buttonsClicked, trigger: ButtonTrigger.singleClick);
+        return;
+      }
+
+      final button = buttonsClicked.single;
+      final wasAlreadyPressed =
+          _previouslyPressedButtons.length == 1 && _previouslyPressedButtons.singleOrNull == button;
+      _previouslyPressedButtons = {button};
+      if (wasAlreadyPressed) {
+        return;
+      }
+
+      final hasSingleAction = _hasTriggerAction(button, ButtonTrigger.singleClick);
+      final hasDoubleAction = _hasTriggerAction(button, ButtonTrigger.doubleClick);
+      final hasLongPressAction = _hasTriggerAction(button, ButtonTrigger.longPress);
+      final isLongPressOnly = hasLongPressAction && !hasSingleAction && !hasDoubleAction;
+      if (supportsLongPress && isLongPressOnly && !_isLongPressSuppressed(button)) {
+        _cancelPendingClickTimers();
+        _longPressTimer?.cancel();
+        _activeLongPressButtons = {button};
+        await performDown([button], trigger: ButtonTrigger.longPress);
+        return;
+      }
+
+      _scheduleLongPress(button);
     } catch (e, st) {
       actionStreamInternal.add(
         LogNotification('Error handling button clicks: $e\n$st'),
@@ -101,59 +134,132 @@ abstract class BaseDevice {
     }
   }
 
-  Future<void> _handleButtonsClickedInternal(List<ControllerButton>? buttonsClicked, {required bool longPress}) async {
-    if (buttonsClicked == null) {
-      // ignore, no changes
-    } else if (buttonsClicked.isEmpty) {
-      actionStreamInternal.add(LogNotification('Buttons released'));
-      _longPressTimer?.cancel();
+  Future<void> _handleButtonsReleased() async {
+    actionStreamInternal.add(LogNotification('Buttons released'));
 
-      // Handle release events for long press keys
-      final buttonsReleased = _previouslyPressedButtons.toList();
-      final isLongPress =
-          longPress ||
-          buttonsReleased.singleOrNull != null &&
-              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
-      if (buttonsReleased.isNotEmpty && isLongPress) {
-        await performRelease(buttonsReleased);
+    _longPressTimer?.cancel();
+    final releasedButtons = _previouslyPressedButtons.toList();
+    _previouslyPressedButtons.clear();
+
+    if (releasedButtons.isEmpty) {
+      return;
+    }
+
+    if (_activeLongPressButtons.isNotEmpty && supportsLongPress) {
+      await performRelease(_activeLongPressButtons.toList(), trigger: ButtonTrigger.longPress);
+      _activeLongPressButtons.clear();
+      return;
+    }
+
+    if (releasedButtons.length != 1) {
+      return;
+    }
+
+    await _handleSingleButtonTap(releasedButtons.single);
+  }
+
+  Future<void> _handleExplicitLongPress(List<ControllerButton> buttonsClicked) async {
+    if (buttonsClicked.isEmpty) {
+      if (_activeLongPressButtons.isNotEmpty) {
+        await performRelease(_activeLongPressButtons.toList(), trigger: ButtonTrigger.longPress);
+        _activeLongPressButtons.clear();
       }
       _previouslyPressedButtons.clear();
-    } else {
-      actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked));
-
-      // Handle release events for buttons that are no longer pressed
-      final buttonsReleased = _previouslyPressedButtons.difference(buttonsClicked.toSet()).toList();
-      final wasLongPress =
-          longPress ||
-          buttonsReleased.singleOrNull != null &&
-              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsReleased.single)?.isLongPress == true;
-      if (buttonsReleased.isNotEmpty && wasLongPress) {
-        await performRelease(buttonsReleased);
-      }
-
-      final isLongPress =
-          longPress ||
-          buttonsClicked.singleOrNull != null &&
-              core.actionHandler.supportedApp?.keymap.getKeyPair(buttonsClicked.single)?.isLongPress == true;
-
-      if (!isLongPress &&
-          !(buttonsClicked.singleOrNull == ZwiftButtons.onOffLeft ||
-              buttonsClicked.singleOrNull == ZwiftButtons.onOffRight)) {
-        // we don't want to trigger the long press timer for the on/off buttons, also not when it's a long press key
-        _longPressTimer?.cancel();
-        _longPressTimer = Timer.periodic(const Duration(milliseconds: 350), (timer) async {
-          performClick(buttonsClicked);
-        });
-      }
-      // Update currently pressed buttons
-      _previouslyPressedButtons = buttonsClicked.toSet();
-
-      if (isLongPress) {
-        return performDown(buttonsClicked);
-      } else {
-        return performClick(buttonsClicked);
-      }
+      return;
     }
+
+    actionStreamInternal.add(ButtonNotification(buttonsClicked: buttonsClicked, device: this));
+    _cancelPendingClickTimers();
+    _activeLongPressButtons = buttonsClicked.toSet();
+    _previouslyPressedButtons = buttonsClicked.toSet();
+    await performDown(buttonsClicked, trigger: ButtonTrigger.longPress);
+  }
+
+  void _scheduleLongPress(ControllerButton button) {
+    _longPressTimer?.cancel();
+    if (!supportsLongPress || !_hasTriggerAction(button, ButtonTrigger.longPress)) {
+      return;
+    }
+    if (_isLongPressSuppressed(button)) {
+      return;
+    }
+
+    _longPressTimer = Timer(_longPressTriggerDelay, () {
+      final stillPressed = _previouslyPressedButtons.length == 1 && _previouslyPressedButtons.singleOrNull == button;
+      if (!stillPressed) {
+        return;
+      }
+      _activeLongPressButtons = {button};
+      unawaited(performDown([button], trigger: ButtonTrigger.longPress));
+    });
+  }
+
+  bool _isLongPressSuppressed(ControllerButton button) {
+    return button == ZwiftButtons.onOffLeft || button == ZwiftButtons.onOffRight;
+  }
+
+  Future<void> _handleSingleButtonTap(ControllerButton button) async {
+    final hasSingleAction = _hasTriggerAction(button, ButtonTrigger.singleClick);
+    final hasDoubleAction = _hasTriggerAction(button, ButtonTrigger.doubleClick);
+    final hasLongPressAction = _hasTriggerAction(button, ButtonTrigger.longPress);
+
+    if (!supportsLongPress && hasLongPressAction) {
+      _cancelPendingClickTimers();
+      final isLongPressAlreadyHeld = _activeLongPressButtons.contains(button);
+      if (isLongPressAlreadyHeld) {
+        await performRelease([button], trigger: ButtonTrigger.longPress);
+        _activeLongPressButtons.remove(button);
+      } else {
+        await performDown([button], trigger: ButtonTrigger.longPress);
+        _activeLongPressButtons.add(button);
+      }
+      return;
+    }
+
+    if (hasDoubleAction) {
+      final isSecondTap =
+          _pendingSingleClickButton == button &&
+          (_singleClickTimer?.isActive ?? false) &&
+          _activeLongPressButtons.isEmpty;
+
+      if (isSecondTap) {
+        _singleClickTimer?.cancel();
+        _singleClickTimer = null;
+        _pendingSingleClickButton = null;
+        await performClick([button], trigger: ButtonTrigger.doubleClick);
+        return;
+      }
+
+      _singleClickTimer?.cancel();
+      _singleClickTimer = Timer(_doubleClickDelay, () {
+        final pendingButton = _pendingSingleClickButton;
+        _pendingSingleClickButton = null;
+        _singleClickTimer = null;
+        if (pendingButton != null && hasSingleAction) {
+          unawaited(performClick([pendingButton], trigger: ButtonTrigger.singleClick));
+        }
+      });
+      _pendingSingleClickButton = button;
+      return;
+    }
+
+    if (hasSingleAction) {
+      await performClick([button], trigger: ButtonTrigger.singleClick);
+    }
+  }
+
+  bool _hasTriggerAction(ControllerButton button, ButtonTrigger trigger) {
+    final keyPair = core.actionHandler.supportedApp?.keymap.getKeyPair(button, trigger: trigger);
+    if (keyPair == null && core.actionHandler.supportedApp == null) {
+      return trigger == ButtonTrigger.singleClick;
+    }
+    return keyPair != null && !keyPair.hasNoAction;
+  }
+
+  void _cancelPendingClickTimers() {
+    _singleClickTimer?.cancel();
+    _singleClickTimer = null;
+    _pendingSingleClickButton = null;
   }
 
   String _getCommandLimitMessage() {
@@ -173,53 +279,89 @@ abstract class BaseDevice {
         );
   }
 
-  Future<void> performDown(List<ControllerButton> buttonsClicked) async {
+  bool _canExecuteCommand() {
+    try {
+      return IAPManager.instance.canExecuteCommand;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<void> performDown(
+    List<ControllerButton> buttonsClicked, {
+    ButtonTrigger trigger = ButtonTrigger.longPress,
+  }) async {
     for (final action in buttonsClicked) {
       // Check IAP status before executing command
-      if (!IAPManager.instance.canExecuteCommand) {
+      if (!_canExecuteCommand()) {
         //actionStreamInternal.add(AlertNotification(LogLevel.LOGLEVEL_ERROR, _getCommandLimitMessage()));
         continue;
       }
 
       // For repeated actions, don't trigger key down/up events (useful for long press)
-      final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: false);
+      final result = await core.actionHandler.performAction(
+        action,
+        isKeyDown: true,
+        isKeyUp: false,
+        trigger: trigger,
+      );
 
       actionStreamInternal.add(ActionNotification(result));
     }
   }
 
-  Future<void> performClick(List<ControllerButton> buttonsClicked) async {
+  Future<void> performClick(
+    List<ControllerButton> buttonsClicked, {
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
     for (final action in buttonsClicked) {
       // Check IAP status before executing command
-      if (!IAPManager.instance.canExecuteCommand) {
+      if (!_canExecuteCommand()) {
         _showCommandLimitAlert();
         continue;
       }
 
-      final result = await core.actionHandler.performAction(action, isKeyDown: true, isKeyUp: true);
+      final result = await core.actionHandler.performAction(
+        action,
+        isKeyDown: true,
+        isKeyUp: true,
+        trigger: trigger,
+      );
       actionStreamInternal.add(ActionNotification(result));
     }
   }
 
-  Future<void> performRelease(List<ControllerButton> buttonsReleased) async {
+  Future<void> performRelease(
+    List<ControllerButton> buttonsReleased, {
+    ButtonTrigger trigger = ButtonTrigger.longPress,
+  }) async {
     for (final action in buttonsReleased) {
       // Check IAP status before executing command
-      if (!IAPManager.instance.canExecuteCommand) {
+      if (!_canExecuteCommand()) {
         _showCommandLimitAlert();
         continue;
       }
 
-      final result = await core.actionHandler.performAction(action, isKeyDown: false, isKeyUp: true);
+      final result = await core.actionHandler.performAction(
+        action,
+        isKeyDown: false,
+        isKeyUp: true,
+        trigger: trigger,
+      );
       actionStreamInternal.add(LogNotification(result.message));
     }
   }
 
   Future<void> disconnect() async {
     _longPressTimer?.cancel();
+    _singleClickTimer?.cancel();
+    _singleClickTimer = null;
+    _pendingSingleClickButton = null;
     // Release any held keys in long press mode
     if (core.actionHandler is DesktopActions) {
-      await (core.actionHandler as DesktopActions).releaseAllHeldKeys(_previouslyPressedButtons.toList());
+      await (core.actionHandler as DesktopActions).releaseAllHeldKeys(_activeLongPressButtons.toList());
     }
+    _activeLongPressButtons.clear();
     _previouslyPressedButtons.clear();
     isConnected = false;
   }

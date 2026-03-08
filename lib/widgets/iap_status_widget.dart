@@ -58,6 +58,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   @override
   Widget build(BuildContext context) {
     final iapManager = IAPManager.instance;
+    final isOutsideStoreWindowsBuild = iapManager.isOutsideStoreWindowsBuild;
     final isTrialExpired = iapManager.isTrialExpired;
     if (isTrialExpired) {
       _isSmall = false;
@@ -94,11 +95,12 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
               child: ValueListenableBuilder(
                 valueListenable: IAPManager.instance.isPurchased,
                 builder: (context, isPurchased, child) {
+                  final hasPremiumAccess = iapManager.isProEnabled || isPurchased;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isPurchased) ...[
+                      if (hasPremiumAccess) ...[
                         Row(
                           children: [
                             Icon(Icons.check_circle, color: Colors.green),
@@ -195,7 +197,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                           ),
                         ),
                       ],
-                      if (!isPurchased && !_isSmall) ...[
+                      if (!hasPremiumAccess && !_isSmall) ...[
                         if (Platform.isAndroid)
                           Padding(
                             padding: const EdgeInsets.only(left: 42.0, top: 16.0),
@@ -370,9 +372,12 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                               Text('Processing...'),
                                             ],
                                           )
-                                        : Text(AppLocalizations.of(context).unlockFullVersion),
+                                        : Text(
+                                            isOutsideStoreWindowsBuild
+                                                ? AppLocalizations.of(context).goPro
+                                                : AppLocalizations.of(context).unlockFullVersion,
+                                          ),
                                   ),
-                                  Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
                                 ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
                                   PrimaryButton(
                                     onPressed: _isPurchasing ? null : () => _handlePurchase(context),
@@ -387,7 +392,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                               Text('Processing...'),
                                             ],
                                           )
-                                        : Text(AppLocalizations.of(context).unlockFullVersion),
+                                        : Text(
+                                            isOutsideStoreWindowsBuild
+                                                ? AppLocalizations.of(context).goPro
+                                                : AppLocalizations.of(context).unlockFullVersion,
+                                          ),
                                   ),
                                   Text(
                                     AppLocalizations.of(context).restorePurchaseInfo,
@@ -402,6 +411,11 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                     },
                                   ),
                                 ],
+                                if (IAPManager.instance.isUsingRevenueCat)
+                                  _buildRestoreAction(
+                                    label: 'Restore Purchases',
+                                    leftPadding: 0,
+                                  ),
                               ],
                             ),
                           )
@@ -424,28 +438,25 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                             Text('Processing...'),
                                           ],
                                         )
-                                      : Text(AppLocalizations.of(context).unlockFullVersion),
+                                      : Text(
+                                          isOutsideStoreWindowsBuild
+                                              ? AppLocalizations.of(context).goPro
+                                              : AppLocalizations.of(context).unlockFullVersion,
+                                        ),
                                 );
                               },
                             ),
                           ),
-                          if (Platform.isMacOS)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 42.0, top: 8.0, bottom: 8),
-                              child: LoadingWidget(
-                                futureCallback: () async {
-                                  await IAPManager.instance.restorePurchases();
-                                },
-                                renderChild: (isLoading, tap) => LinkButton(
-                                  onPressed: tap,
-                                  child: isLoading ? SmallProgressIndicator() : const Text('Restore Purchase').small,
-                                ),
-                              ),
+                          if (IAPManager.instance.isUsingRevenueCat)
+                            _buildRestoreAction(
+                              label: 'Restore Purchases',
+                              leftPadding: 42.0,
                             ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 42.0, top: 8.0),
-                            child: Text(AppLocalizations.of(context).fullVersionDescription).xSmall,
-                          ),
+                          if (Platform.isWindows)
+                            _buildRestoreAction(
+                              label: 'Restore / Sync subscription',
+                              leftPadding: 42.0,
+                            ),
                         ],
                       ],
                     ],
@@ -462,8 +473,12 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     });
 
     try {
-      // Use RevenueCat paywall if available, otherwise fall back to legacy
-      await IAPManager.instance.purchaseFullVersion(context);
+      if (IAPManager.instance.isOutsideStoreWindowsBuild) {
+        await IAPManager.instance.purchaseSubscription(context);
+      } else {
+        // Use RevenueCat paywall if available, otherwise fall back to legacy
+        await IAPManager.instance.purchaseFullVersion(context);
+      }
     } catch (e) {
       if (mounted) {
         buildToast(
@@ -478,6 +493,25 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
         });
       }
     }
+  }
+
+  Widget _buildRestoreAction({
+    required String label,
+    required double leftPadding,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(left: leftPadding, top: 8.0, bottom: 8),
+      child: LoadingWidget(
+        futureCallback: () async {
+          await IAPManager.instance.restorePurchases();
+          await IAPManager.instance.refreshEntitlementsOnResume();
+        },
+        renderChild: (isLoading, tap) => LinkButton(
+          onPressed: tap,
+          child: isLoading ? SmallProgressIndicator() : Text(label).small,
+        ),
+      ),
+    );
   }
 
   Future<bool> _redeemPurchase({

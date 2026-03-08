@@ -12,7 +12,7 @@ import 'package:universal_ble/universal_ble.dart';
 import '../bluetooth_device.dart';
 
 class SramAxs extends BluetoothDevice {
-  SramAxs(super.scanResult) : super(availableButtons: [], isBeta: true);
+  SramAxs(super.scanResult) : super(availableButtons: [], isBeta: true, supportsLongPress: false);
 
   Timer? _singleClickTimer;
   int _tapCount = 0;
@@ -32,7 +32,9 @@ class SramAxs extends BluetoothDevice {
     );
 
     if (service == null) {
-      actionStreamInternal.add(LogNotification('SramAxs: Relevant service not found: ${SramAxsConstants.SERVICE_UUID_RELEVANT}'));
+      actionStreamInternal.add(
+        LogNotification('SramAxs: Relevant service not found: ${SramAxsConstants.SERVICE_UUID_RELEVANT}'),
+      );
       return;
     }
 
@@ -58,9 +60,10 @@ class SramAxs extends BluetoothDevice {
     () => ControllerButton('SRAM Double Tap', action: InGameAction.shiftDown, sourceDeviceId: device.deviceId),
   );
 
-  void _emitClick(ControllerButton button) {
+  Future<void> _emitClick(ControllerButton button) async {
     // Use the common pipeline so long-press handling and app action execution stays consistent.
-    handleButtonsClickedWithoutLongPressSupport([button]);
+    await handleButtonsClicked([button]);
+    await handleButtonsClicked([]);
   }
 
   void _registerTap() {
@@ -73,7 +76,7 @@ class SramAxs extends BluetoothDevice {
       _singleClickTimer?.cancel();
       _singleClickTimer = Timer(Duration(milliseconds: windowMs), () {
         if (_tapCount == 1) {
-          _emitClick(_singleClickButton());
+          unawaited(_emitClick(_singleClickButton()));
         }
         _tapCount = 0;
       });
@@ -84,7 +87,7 @@ class SramAxs extends BluetoothDevice {
     if (_tapCount == 2) {
       _singleClickTimer?.cancel();
       _singleClickTimer = null;
-      _emitClick(_doubleClickButton());
+      unawaited(_emitClick(_doubleClickButton()));
       _tapCount = 0;
       return;
     }
@@ -92,7 +95,7 @@ class SramAxs extends BluetoothDevice {
     // If we get more than two taps fast, treat as a double click and restart counting.
     _singleClickTimer?.cancel();
     _singleClickTimer = null;
-    _emitClick(_doubleClickButton());
+    unawaited(_emitClick(_doubleClickButton()));
     _tapCount = 0;
   }
 

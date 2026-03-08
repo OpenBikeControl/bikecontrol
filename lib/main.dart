@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:app_links/app_links.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/onboarding.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -56,6 +59,10 @@ void main() async {
 
       final error = await core.settings.init();
 
+      if (error != null) {
+        recordError(error, null, context: 'SettingsInit');
+      }
+
       runApp(BikeControlApp(error: error));
     },
     (Object error, StackTrace stack) {
@@ -82,6 +89,12 @@ Future<void> recordError(
   StackTrace? stack, {
   required String context,
 }) async {
+  if (kDebugMode) {
+    print('Error in $context: $error');
+    if (stack != null) {
+      debugPrintStack(stackTrace: stack);
+    }
+  }
   await _persistCrash(
     type: 'dart',
     error: error.toString(),
@@ -114,16 +127,26 @@ Future<void> _persistCrash({
       final fileLength = await file.length();
       if (fileLength > 5 * 1024 * 1024) {
         // If log file exceeds 5MB, truncate it
-        final lines = await file.readAsLines();
-        final half = lines.length ~/ 2;
-        final truncatedLines = lines.sublist(half);
-        await file.writeAsString(truncatedLines.join('\n'));
+        try {
+          final lines = file.readAsLinesSync();
+          final half = lines.length ~/ 2;
+          final truncatedLines = lines.sublist(half);
+          await file.writeAsString(truncatedLines.join('\n'));
+        } catch (e) {
+          if (kDebugMode) {
+            print('Failed to truncate log file: $e');
+          }
+          file.deleteSync();
+        }
       }
     }
 
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
     core.connection.signalNotification(LogNotification('App crashed: $error'));
-  } catch (_) {
+  } catch (error) {
+    if (kDebugMode) {
+      print('Failed to write crash log: $error');
+    }
     // Avoid throwing from the crash logger
   }
 }
@@ -195,18 +218,20 @@ class _BikeControlAppState extends State<BikeControlApp> {
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       title: 'BikeControl',
       darkTheme: ThemeData(
-        colorScheme: ColorSchemes.darkDefaultColor.copyWith(
+        colorScheme: ColorSchemes.darkNeutral.copyWith(
           card: () => Color(0xFF001A29),
           background: () => Color(0xFF232323),
           muted: () => Color(0xFF3A3A3A),
+          border: () => Color(0xFF3A3A3A),
         ),
       ),
+      locale: screenshotMode ? Locale('en') : null,
       theme: ThemeData(
-        colorScheme: ColorSchemes.lightDefaultColor.copyWith(
-          card: () => BKColor.background,
+        colorScheme: ColorSchemes.lightNeutral.copyWith(
+          card: () => BKColor.backgroundLight,
         ),
       ),
-      //themeMode: ThemeMode.dark,
+      //themeMode: ThemeMode.light,
       home: widget.error != null
           ? Center(
               child: Text(
@@ -254,12 +279,53 @@ class _Starter extends StatefulWidget {
   State<_Starter> createState() => _StarterState();
 }
 
-class _StarterState extends State<_Starter> {
+class _StarterState extends State<_Starter> with WidgetsBindingObserver {
+  final _appLinks = AppLinks();
+
+  StreamSubscription<Uri>? _deeplinkSubscription;
+
   @override
   void initState() {
     super.initState();
 
     core.connection.initialize();
+    WindowsProtocolHandler().registerForOutsideStoreBuild('bikecontrol');
+    WidgetsBinding.instance.addObserver(this);
+    if (!kIsWeb && !screenshotMode) {
+      // It will handle app links while the app is already started - be it in
+      // the foreground or in the background.
+      _deeplinkSubscription = _appLinks.uriLinkStream.listen(
+        (Uri? uri) {
+          if (uri != null) {
+            if (uri.scheme == "bikecontrol") {
+              IAPManager.instance.refreshEntitlementsOnAppStart();
+            }
+          }
+        },
+        onError: (Object err, StackTrace stackTrace) {
+          if (kDebugMode) {
+            print('Error handling deep link: $err');
+            debugPrintStack(stackTrace: stackTrace);
+          }
+          recordError(err, stackTrace, context: 'DeepLink');
+        },
+      );
+    }
+    unawaited(IAPManager.instance.refreshEntitlementsOnAppStart());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _deeplinkSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(IAPManager.instance.refreshEntitlementsOnResume());
+    }
   }
 
   @override

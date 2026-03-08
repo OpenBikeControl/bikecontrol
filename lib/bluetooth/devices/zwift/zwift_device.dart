@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/single_line_exception.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -165,22 +166,28 @@ abstract class ZwiftDevice extends BluetoothDevice {
   List<ControllerButton> processClickNotification(Uint8List message);
 
   @override
-  Future<void> performDown(List<ControllerButton> buttonsClicked) async {
+  Future<void> performDown(
+    List<ControllerButton> buttonsClicked, {
+    ButtonTrigger trigger = ButtonTrigger.longPress,
+  }) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
         core.settings.getVibrationEnabled()) {
       await _vibrate();
     }
-    return super.performDown(buttonsClicked);
+    return super.performDown(buttonsClicked, trigger: trigger);
   }
 
   @override
-  Future<void> performClick(List<ControllerButton> buttonsClicked) async {
+  Future<void> performClick(
+    List<ControllerButton> buttonsClicked, {
+    ButtonTrigger trigger = ButtonTrigger.singleClick,
+  }) async {
     if (buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) &&
         core.settings.getVibrationEnabled() &&
         canVibrate) {
       await _vibrate();
     }
-    return super.performClick(buttonsClicked);
+    return super.performClick(buttonsClicked, trigger: trigger);
   }
 
   Future<void> _vibrate() async {

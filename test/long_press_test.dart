@@ -23,6 +23,7 @@ void main() {
       // Verify the decoded KeyPair has the correct properties
       expect(decoded, isNotNull);
       expect(decoded!.isLongPress, true);
+      expect(decoded.trigger, ButtonTrigger.longPress);
       expect(decoded.buttons, equals([ZwiftButtons.a]));
       expect(decoded.physicalKey, equals(PhysicalKeyboardKey.keyA));
       expect(decoded.logicalKey, equals(LogicalKeyboardKey.keyA));
@@ -45,6 +46,7 @@ void main() {
       // Verify the decoded KeyPair defaults isLongPress to false
       expect(decoded, isNotNull);
       expect(decoded!.isLongPress, false);
+      expect(decoded.trigger, ButtonTrigger.singleClick);
     });
 
     test('KeyPair constructor should default isLongPress to false', () {
@@ -55,6 +57,7 @@ void main() {
       );
 
       expect(keyPair.isLongPress, false);
+      expect(keyPair.trigger, ButtonTrigger.singleClick);
     });
 
     test('KeyPair should correctly encode isLongPress false', () {
@@ -70,6 +73,24 @@ void main() {
 
       expect(decoded, isNotNull);
       expect(decoded!.isLongPress, false);
+      expect(decoded.trigger, ButtonTrigger.singleClick);
+    });
+
+    test('KeyPair should encode and decode screenshotPath', () {
+      const screenshotPath = '/Users/test/Desktop/bikecontrol-screenshot.png';
+      final keyPair = KeyPair(
+        buttons: [ZwiftButtons.a],
+        physicalKey: null,
+        logicalKey: null,
+        screenshotPath: screenshotPath,
+      );
+
+      final encoded = keyPair.encode();
+      final decoded = KeyPair.decode(encoded);
+
+      expect(decoded, isNotNull);
+      expect(decoded!.screenshotPath, screenshotPath);
+      expect(decoded.command, isNull);
     });
   });
 }

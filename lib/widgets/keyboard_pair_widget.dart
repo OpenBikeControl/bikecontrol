@@ -23,6 +23,7 @@ class _PairWidgetState extends State<RemoteKeyboardPairingWidget> {
           builder: (context, isConnected, child) {
             return ConnectionMethod(
               supportedActions: null,
+              isRecommended: false,
               isEnabled: core.logic.isRemoteKeyboardControlEnabled,
               isStarted: isStarted,
               showTroubleshooting: true,

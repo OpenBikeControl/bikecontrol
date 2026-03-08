@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -13,6 +14,7 @@ import 'package:prop/prop.dart' as zp;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:version/version.dart';
 
 /// RevenueCat-based IAP service for iOS, macOS, and Android
@@ -27,23 +29,32 @@ class RevenueCatService {
 
   // RevenueCat entitlement identifier
   static const String fullVersionEntitlement = 'Full Version';
+  static const String proVersionEntitlement = 'pro';
 
   final FlutterSecureStorage _prefs;
   final ValueNotifier<bool> isPurchasedNotifier;
+  final ValueNotifier<bool> isProNotifier;
   final int Function() getDailyCommandLimit;
   final void Function(int limit) setDailyCommandLimit;
+  final EntitlementsService entitlementsService;
+  final String premiumProductKeyMonthly;
+  final String premiumProductKeyYearly;
 
   bool _isInitialized = false;
+  bool _isConfigured = false;
   String? _trialStartDate;
   String? _lastCommandDate;
   int? _dailyCommandCount;
-  StreamSubscription<CustomerInfo>? _customerInfoSubscription;
 
   RevenueCatService(
     this._prefs, {
     required this.isPurchasedNotifier,
+    required this.isProNotifier,
     required this.getDailyCommandLimit,
     required this.setDailyCommandLimit,
+    required this.entitlementsService,
+    required this.premiumProductKeyMonthly,
+    required this.premiumProductKeyYearly,
   });
 
   /// Initialize the RevenueCat service
@@ -85,6 +96,10 @@ class RevenueCatService {
 
       // Configure RevenueCat
       final configuration = PurchasesConfiguration(apiKey);
+      final session = core.supabase.auth.currentSession;
+      if (session != null) {
+        configuration.appUserID = session.user.id;
+      }
 
       // Enable debug logs in debug mode
       if (kDebugMode) {
@@ -92,6 +107,7 @@ class RevenueCatService {
       }
 
       await Purchases.configure(configuration);
+      _isConfigured = true;
 
       debugPrint('RevenueCat initialized successfully');
       core.connection.signalNotification(
@@ -120,6 +136,8 @@ class RevenueCatService {
       if (!isTrialExpired && Platform.isAndroid) {
         setDailyCommandLimit(80);
       }
+      await _syncRevenueCatUser(session);
+      await setAttributes();
     } catch (e, s) {
       recordError(e, s, context: 'Initializing RevenueCat Service');
       core.connection.signalNotification(
@@ -153,13 +171,15 @@ class RevenueCatService {
 
   /// Handle customer info updates from RevenueCat
   Future<bool> _handleCustomerInfoUpdate(CustomerInfo customerInfo) async {
-    final hasEntitlement = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
+    final hasFullVersionEntitlements = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
 
     final userId = await Purchases.appUserID;
     core.connection.signalNotification(LogNotification('User ID: $userId at ${customerInfo.requestDate}'));
-    core.connection.signalNotification(LogNotification('Full Version entitlement: $hasEntitlement'));
+    core.connection.signalNotification(LogNotification('Full Version entitlement: $hasFullVersionEntitlements'));
 
-    if (!hasEntitlement) {
+    isProNotifier.value = customerInfo.entitlements.active.containsKey(proVersionEntitlement);
+
+    if (!hasFullVersionEntitlements) {
       // purchased before IAP migration
       if (Platform.isAndroid) {
         final storedStatus = await _prefs.read(key: _purchaseStatusKey);
@@ -181,23 +201,24 @@ class RevenueCatService {
         }
       }
     } else {
-      isPurchasedNotifier.value = hasEntitlement;
+      isPurchasedNotifier.value = hasFullVersionEntitlements;
     }
     return isPurchasedNotifier.value;
   }
 
   /// Present the RevenueCat paywall
-  Future<void> presentPaywall() async {
+  Future<void> presentPaywall(Offering offering) async {
     try {
       if (!_isInitialized) {
         await initialize();
       }
 
-      final paywallResult = await RevenueCatUI.presentPaywall(displayCloseButton: true);
+      final paywallResult = await RevenueCatUI.presentPaywall(displayCloseButton: true, offering: offering);
 
       debugPrint('Paywall result: $paywallResult');
-
-      // The customer info listener will handle the purchase update
+      if (paywallResult == PaywallResult.purchased || paywallResult == PaywallResult.restored) {
+        await refreshEntitlementsWithRetry();
+      }
     } catch (e, s) {
       debugPrint('Error presenting paywall: $e');
       recordError(e, s, context: 'Presenting paywall');
@@ -215,6 +236,7 @@ class RevenueCatService {
     try {
       final customerInfo = await Purchases.restorePurchases();
       final result = await _handleCustomerInfoUpdate(customerInfo);
+      await refreshEntitlementsWithRetry();
 
       if (result) {
         core.connection.signalNotification(
@@ -234,16 +256,29 @@ class RevenueCatService {
   }
 
   /// Purchase the full version (use paywall instead)
-  Future<void> purchaseFullVersion(BuildContext context) async {
+  Future<void> purchaseFullVersion(BuildContext context, {bool directPurchase = false}) async {
     // Direct the user to the paywall for a better experience
-    if (Platform.isMacOS) {
+    final offerings = await Purchases.getOfferings();
+    final defaultOffering = offerings.all['pro'];
+    if (defaultOffering == null) {
+      buildToast(title: 'Full version offering not available right now.');
+      return;
+    }
+
+    if (Platform.isMacOS || directPurchase) {
       try {
-        final offerings = await Purchases.getOfferings();
-        final purchaseParams = PurchaseParams.package(offerings.current!.availablePackages.first);
+        final lifetimePackage = defaultOffering.lifetime;
+        if (lifetimePackage == null) {
+          await presentPaywall(defaultOffering);
+          return;
+        }
+
+        final purchaseParams = PurchaseParams.package(lifetimePackage);
         PurchaseResult result = await Purchases.purchase(purchaseParams);
         core.connection.signalNotification(
           LogNotification('Purchase result: $result'),
         );
+        await refreshEntitlementsWithRetry();
       } on PlatformException catch (e) {
         var errorCode = PurchasesErrorHelper.getErrorCode(e);
         if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
@@ -251,7 +286,100 @@ class RevenueCatService {
         }
       }
     } else {
-      await presentPaywall();
+      await presentPaywall(defaultOffering);
+    }
+  }
+
+  /// Purchase the subscription (use paywall instead)
+  Future<void> purchaseSubscription(
+    BuildContext context, {
+    bool yearly = false,
+    bool directPurchase = false,
+  }) async {
+    // Direct the user to the paywall for a better experience
+    final offerings = await Purchases.getOfferings();
+    Offering? proOffering;
+    if (isPurchasedNotifier.value) {
+      proOffering = offerings.all['proonly-freemonth'];
+    } else {
+      proOffering = offerings.all['proonly'];
+    }
+    if (proOffering == null) {
+      buildToast(title: 'Subscription offering not available right now.');
+      return;
+    }
+
+    if (Platform.isMacOS || directPurchase) {
+      try {
+        final packageToPurchase = yearly
+            ? (proOffering.annual ?? proOffering.monthly)
+            : (proOffering.monthly ?? proOffering.annual);
+        if (packageToPurchase == null) {
+          await presentPaywall(proOffering);
+          return;
+        }
+
+        final purchaseParams = PurchaseParams.package(packageToPurchase);
+        PurchaseResult result = await Purchases.purchase(purchaseParams);
+        core.connection.signalNotification(
+          LogNotification('Purchase result: $result'),
+        );
+        await refreshEntitlementsWithRetry();
+      } on PlatformException catch (e) {
+        var errorCode = PurchasesErrorHelper.getErrorCode(e);
+        if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
+          buildToast(title: e.message);
+        }
+      }
+    } else {
+      await presentPaywall(proOffering);
+    }
+  }
+
+  Future<void> logInWithSupabaseUserId(String supabaseUserId) async {
+    if (!_isConfigured) {
+      return;
+    }
+    await Purchases.logIn(supabaseUserId);
+  }
+
+  Future<void> logOut() async {
+    if (!_isConfigured) {
+      return;
+    }
+    try {
+      await Purchases.logOut();
+    } on PlatformException catch (error) {
+      // RevenueCat throws when logging out anonymous users.
+      if (error.code != '22') {
+        // LogOut was called but the current user is anonymous.
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> refreshEntitlementsWithRetry() async {
+    const retryDelays = [
+      Duration(seconds: 1),
+      Duration(seconds: 2),
+      Duration(seconds: 4),
+    ];
+
+    await entitlementsService.refresh(force: true);
+    if (entitlementsService.hasActive(premiumProductKeyMonthly) ||
+        entitlementsService.hasActive(premiumProductKeyYearly)) {
+      isPurchasedNotifier.value = true;
+      return;
+    }
+
+    for (final delay in retryDelays) {
+      await Future.delayed(delay);
+      await entitlementsService.refresh(force: true);
+      if (entitlementsService.hasActive(premiumProductKeyMonthly) ||
+          entitlementsService.hasActive(premiumProductKeyYearly)) {
+        isPurchasedNotifier.value = true;
+        return;
+      }
     }
   }
 
@@ -345,9 +473,7 @@ class RevenueCatService {
   }
 
   /// Dispose the service
-  void dispose() {
-    _customerInfoSubscription?.cancel();
-  }
+  void dispose() {}
 
   Future<void> reset(bool fullReset) async {
     if (fullReset) {
@@ -370,8 +496,14 @@ class RevenueCatService {
   }
 
   Future<void> setAttributes() async {
+    if (!_isConfigured) {
+      return;
+    }
+    final Session? session = core.supabase.auth.currentSession;
+
     // attributes are fully anonymous
     await Purchases.setAttributes({
+      if (session?.user.id != null) "bikecontrol_user": session!.user.id,
       "bikecontrol_trainer": core.settings.getTrainerApp()?.name ?? '-',
       "bikecontrol_target": core.settings.getLastTarget()?.name ?? '-',
       if (core.connection.controllerDevices.isNotEmpty)
@@ -381,5 +513,16 @@ class RevenueCatService {
         ),
       'bikecontrol_keymap': core.settings.getKeyMap()?.name ?? '-',
     });
+  }
+
+  Future<void> _syncRevenueCatUser(Session? session) async {
+    if (!_isConfigured) {
+      return;
+    }
+    if (session == null) {
+      await logOut();
+      return;
+    }
+    await logInWithSupabaseUserId(session.user.id);
   }
 }

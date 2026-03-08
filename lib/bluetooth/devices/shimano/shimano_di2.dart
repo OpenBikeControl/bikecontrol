@@ -141,6 +141,7 @@ class ShimanoDi2 extends BluetoothDevice {
   @override
   Widget showInformation(BuildContext context) {
     return Column(
+      spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         super.showInformation(context),

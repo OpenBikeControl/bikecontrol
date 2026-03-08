@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -12,6 +13,7 @@ enum InGameAction {
   shiftUp('Shift Up', icon: BootstrapIcons.patchPlus),
   shiftDown('Shift Down', icon: BootstrapIcons.patchMinus),
   uturn('U-Turn', alternativeTitle: 'Down', icon: BootstrapIcons.arrowDownUp),
+  tuck('Tuck', icon: BootstrapIcons.speedometer),
   steerLeft('Steer Left', alternativeTitle: 'Left', icon: RadixIcons.doubleArrowLeft, isLongPress: true),
   steerRight('Steer Right', alternativeTitle: 'Right', icon: RadixIcons.doubleArrowRight, isLongPress: true),
 
@@ -100,13 +102,13 @@ class ControllerButton {
 
   String get displayName {
     if (sourceDeviceId == null) {
-      return name;
+      return name.splitByUpperCase();
     }
 
     final shortenedId = sourceDeviceId!.length <= _deviceIdSuffixLength
         ? sourceDeviceId!
         : sourceDeviceId!.substring(sourceDeviceId!.length - _deviceIdSuffixLength);
-    return '$name (${shortenedId.toUpperCase()})';
+    return '${name.splitByUpperCase()} (${shortenedId.toUpperCase()})';
   }
 
   @override

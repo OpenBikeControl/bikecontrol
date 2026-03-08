@@ -22,6 +22,18 @@ class CustomizePage extends StatefulWidget {
 
 class _CustomizeState extends State<CustomizePage> {
   @override
+  void initState() {
+    IAPManager.instance.entitlements.addListener(_onIAPChange);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    IAPManager.instance.entitlements.removeListener(_onIAPChange);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.only(bottom: widget.isMobile ? 146 : 16, left: 16, right: 16, top: 16),
@@ -125,12 +137,12 @@ class _CustomizeState extends State<CustomizePage> {
             ],
           ),
 
-          if (core.actionHandler.supportedApp is! CustomApp)
+          if (core.actionHandler.supportedApp is! CustomApp && !screenshotMode)
             Text(
               context.i18n.customizeKeymapHint,
               style: TextStyle(fontSize: 12),
             ),
-          Gap(12),
+          if (!screenshotMode) Gap(12),
           if (core.actionHandler.supportedApp != null && core.connection.controllerDevices.isNotEmpty)
             KeymapExplanation(
               key: Key(core.actionHandler.supportedApp!.keymap.runtimeType.toString()),
@@ -160,7 +172,11 @@ class _CustomizeState extends State<CustomizePage> {
       final customApp = CustomApp(profileName: profile);
       final savedKeymap = core.settings.getCustomAppKeymap(profile);
       if (savedKeymap != null) {
-        customApp.decodeKeymap(savedKeymap);
+        try {
+          customApp.decodeKeymap(savedKeymap);
+        } catch (e, s) {
+          recordError(e, s, context: 'getAllApps');
+        }
       }
       return customApp;
     }).toList();
@@ -171,5 +187,9 @@ class _CustomizeState extends State<CustomizePage> {
     }
 
     return [if (baseApp != null) baseApp, ...customApps];
+  }
+
+  void _onIAPChange() {
+    setState(() {});
   }
 }

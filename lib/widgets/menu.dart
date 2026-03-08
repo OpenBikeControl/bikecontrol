@@ -3,24 +3,52 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/paywall.dart';
+import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
+import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:intl/intl.dart';
+import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import '../utils/iap/iap_manager.dart';
 
 List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCallback? openLogs) {
+  final iap = IAPManager.instance;
   return [
-    if (IAPManager.instance.isPurchased.value)
+    // Pro/Subscription Button
+    Builder(
+      builder: (context) {
+        return Button(
+          style: ButtonStyle.primary().withBackgroundColor(color: iap.isProEnabled ? Colors.green : null),
+          onPressed: () {
+            openDrawer(
+              context: context,
+              builder: (c) => SubscriptionPage(),
+              position: OverlayPosition.end,
+            );
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.workspace_premium, size: 14),
+              const SizedBox(width: 4),
+              Text('Pro'),
+            ],
+          ),
+        );
+      },
+    ),
+
+    if (openLogs == null && (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled)) ...[
+      Gap(8),
       Builder(
         builder: (context) {
           return OutlineButton(
@@ -30,33 +58,6 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
                 context: context,
                 builder: (c) => DropdownMenu(
                   children: [
-                    if ((!Platform.isIOS && !Platform.isMacOS)) ...[
-                      MenuLabel(child: Text(context.i18n.showDonation)),
-                      MenuButton(
-                        child: Text(context.i18n.donateViaCreditCard),
-                        onPressed: (c) {
-                          final currency = NumberFormat.simpleCurrency(locale: kIsWeb ? 'de_DE' : Platform.localeName);
-                          final link = switch (currency.currencyName) {
-                            'USD' => 'https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201',
-                            _ => 'https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200',
-                          };
-                          launchUrlString(link);
-                        },
-                      ),
-                      if (!kIsWeb && Platform.isAndroid && isFromPlayStore == false)
-                        MenuButton(
-                          child: Text(context.i18n.donateByBuyingFromPlayStore),
-                          onPressed: (c) {
-                            launchUrlString('https://play.google.com/store/apps/details?id=de.jonasbark.swiftcontrol');
-                          },
-                        ),
-                      MenuButton(
-                        child: Text(context.i18n.donateViaPaypal),
-                        onPressed: (c) {
-                          launchUrlString('https://paypal.me/boni');
-                        },
-                      ),
-                    ],
                     MenuButton(
                       leading: Icon(Icons.star_rate),
                       child: Text(context.i18n.leaveAReview),
@@ -82,6 +83,7 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
           );
         },
       ),
+    ],
     Gap(4),
 
     BKMenuButton(openLogs: openLogs, currentPage: currentPage),
@@ -99,7 +101,7 @@ Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title).join(', ')}
-Status: ${IAPManager.instance.isPurchased.value ? 'Full Version' : 'Test Version'}${userId != null ? ' (User ID: $userId)' : ''}
+Status: ${IAPManager.instance.getStatusMessage()}${userId != null ? ' (User ID: $userId)' : ''}
 Logs: 
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
@@ -144,9 +146,35 @@ class BKMenuButton extends StatelessWidget {
                 },
               ),
               MenuButton(
+                child: Text('Send Key'),
+                onPressed: (c) async {
+                  await Future.delayed(Duration(seconds: 2));
+                  await keyPressSimulator.simulateKeyDown(
+                    PhysicalKeyboardKey.keyK,
+                    [],
+                    core.settings.getTrainerApp()?.packageName,
+                  );
+                  await keyPressSimulator.simulateKeyUp(
+                    PhysicalKeyboardKey.keyK,
+                    [],
+                    core.settings.getTrainerApp()?.packageName,
+                  );
+                },
+              ),
+              MenuButton(
                 child: Text('Disconnect'),
                 onPressed: (c) async {
                   core.connection.disconnectAll();
+                },
+              ),
+              MenuButton(
+                child: Text('Show Paywall'),
+                onPressed: (c) async {
+                  openDrawer(
+                    context: context,
+                    builder: (c) => Paywall(),
+                    position: OverlayPosition.bottom,
+                  );
                 },
               ),
               MenuDivider(),
@@ -161,6 +189,20 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
+            if (openLogs != null)
+              MenuButton(
+                leading: Icon(Icons.star_rate),
+                child: Text(context.i18n.leaveAReview),
+                onPressed: (c) async {
+                  final InAppReview inAppReview = InAppReview.instance;
+
+                  if (await inAppReview.isAvailable()) {
+                    inAppReview.requestReview();
+                  } else {
+                    inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
+                  }
+                },
+              ),
             if (openLogs != null)
               MenuButton(
                 leading: Icon(Icons.article_outlined),

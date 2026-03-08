@@ -123,7 +123,7 @@ class _LogviewerState extends State<LogViewer> {
               child: Row(
                 children: [
                   Text('Logs file: '),
-                  SelectableText('${Directory.current.path}/app.log').inlineCode,
+                  Expanded(child: SelectableText('${Directory.current.path}/app.log').inlineCode),
                 ],
               ).small,
             ),
