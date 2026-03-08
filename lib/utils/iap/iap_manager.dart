@@ -262,7 +262,7 @@ class IAPManager {
     if (isOutsideStoreWindowsBuild) {
       return purchaseSubscription(context, fromPaywall: fromPaywall);
     }
-    if ((Platform.isIOS || Platform.isMacOS) && !fromPaywall) {
+    if ((Platform.isWindows || Platform.isMacOS) && !fromPaywall) {
       return _showPaywall(context, false);
     } else if (_revenueCatService != null) {
       return _revenueCatService!.purchaseFullVersion(
@@ -280,7 +280,7 @@ class IAPManager {
     SubscriptionPlan plan = SubscriptionPlan.monthly,
     bool fromPaywall = false,
   }) async {
-    if ((Platform.isIOS || Platform.isMacOS) && !fromPaywall) {
+    if ((Platform.isWindows || Platform.isMacOS) && !fromPaywall) {
       return _showPaywall(context, true);
     } else if (_revenueCatService != null) {
       return _revenueCatService!.purchaseSubscription(
