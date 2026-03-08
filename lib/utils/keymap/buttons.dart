@@ -13,6 +13,7 @@ enum InGameAction {
   shiftUp('Shift Up', icon: BootstrapIcons.patchPlus),
   shiftDown('Shift Down', icon: BootstrapIcons.patchMinus),
   uturn('U-Turn', alternativeTitle: 'Down', icon: BootstrapIcons.arrowDownUp),
+  tuck('Tuck', icon: BootstrapIcons.speedometer),
   steerLeft('Steer Left', alternativeTitle: 'Left', icon: RadixIcons.doubleArrowLeft, isLongPress: true),
   steerRight('Steer Right', alternativeTitle: 'Right', icon: RadixIcons.doubleArrowRight, isLongPress: true),
 

@@ -27,6 +27,7 @@ class WhooshLink extends TrainerConnection {
           InGameAction.cameraAngle,
           InGameAction.emote,
           InGameAction.uturn,
+          InGameAction.tuck,
           InGameAction.steerLeft,
           InGameAction.steerRight,
         ],
@@ -133,6 +134,12 @@ class WhooshLink extends TrainerConnection {
         'MessageType': 'Controls',
         'InGameControls': {
           'UTurn': 'true',
+        },
+      },
+      InGameAction.tuck => {
+        'MessageType': 'Controls',
+        'InGameControls': {
+          'Tuck': 'true',
         },
       },
       InGameAction.steerLeft => {

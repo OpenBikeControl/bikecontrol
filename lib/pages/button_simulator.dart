@@ -477,7 +477,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                         inGameAction: action,
                         inGameActionValue: e,
                       ),
-                      isKeyDown: false,
+                      isKeyDown: true,
                       isKeyUp: true,
                     );
                   },
@@ -509,7 +509,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         isKeyUp: !down,
       );
       await IAPManager.instance.incrementCommandCount();
-      if (result is! Success) {
+      if (result is! Success && result is! Ignored) {
         buildToast(title: result.message);
       }
     }
