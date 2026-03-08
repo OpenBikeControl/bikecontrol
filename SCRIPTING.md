@@ -44,7 +44,7 @@ Future<List<dynamic>> main(String characteristicUuid, List<int> data) async {
 
 ## Runtime Behavior
 - Your script runs when a value from any characteristic is received for a device of the corresponding type.
-- If the script exists for that device type, BikeControl uses the output and calls writes the value to the characteristic.
+- If the script exists for that device type, BikeControl uses the output and writes the value to the characteristic.
 - If the returned characteristic does not exist on the connected device, the write is skipped and a log entry is added.
 
 ## Notes
