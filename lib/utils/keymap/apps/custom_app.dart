@@ -38,7 +38,7 @@ class CustomApp extends SupportedApp {
       return;
     }
 
-    final keyPairs = data.map((e) => KeyPair.decode(e)).whereNotNull().toList();
+    final keyPairs = data.map((e) => KeyPair.decode(e)).whereType<KeyPair>().toList();
     if (keyPairs.isEmpty) {
       return;
     }
@@ -83,3 +83,4 @@ class CustomApp extends SupportedApp {
     }
   }
 }
+

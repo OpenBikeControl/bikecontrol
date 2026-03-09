@@ -247,9 +247,7 @@ class KeymapManager {
       } else {
         final customApp = CustomApp(profileName: newName);
 
-        final connectedDeviceButtons = IterableFlatMap(
-          core.connection.controllerDevices,
-        ).flatMap((e) => e.availableButtons).toSet();
+        final connectedDeviceButtons = core.connection.controllerDevices.expand((e) => e.availableButtons).toSet();
         core.actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
           pair.buttons.filter((button) => connectedDeviceButtons.contains(button) == true).forEachIndexed((
             button,
@@ -290,9 +288,7 @@ class KeymapManager {
     } else {
       final customApp = CustomApp(profileName: newName);
 
-      final connectedDeviceButtons = IterableFlatMap(
-        core.connection.controllerDevices,
-      ).flatMap((e) => e.availableButtons).toSet();
+      final connectedDeviceButtons = core.connection.controllerDevices.expand((e) => e.availableButtons).toSet();
       core.actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
         pair.buttons.filter((button) => connectedDeviceButtons.contains(button) == true).forEachIndexed((
           button,
@@ -317,3 +313,4 @@ class KeymapManager {
     }
   }
 }
+

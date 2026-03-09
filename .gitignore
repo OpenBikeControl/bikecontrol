@@ -54,3 +54,6 @@ service-account.json
 .env
 lib/generated
 pubspec_overrides.yaml
+
+# FVM Version Cache
+.fvm/

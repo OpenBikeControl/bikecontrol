@@ -50,7 +50,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
   }
 
   Future<void> startServer() async {
-    return clickEmulator.startServer(core.settings.getTrainerApp() is Rouvy);
+    return clickEmulator.startServer();
   }
 
   void stop() {
@@ -119,3 +119,4 @@ class FtmsMdnsConstants {
   static const DC_MESSAGE_ENABLE_CHARACTERISTIC_NOTIFICATIONS = 0x05; // Enable Characteristic Notifications
   static const DC_MESSAGE_CHARACTERISTIC_NOTIFICATION = 0x06; // Characteristic Notification
 }
+
