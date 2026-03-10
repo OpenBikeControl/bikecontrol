@@ -51,6 +51,8 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
   - only single or double click is supported (no individual button mapping possible, yet)
 - Wahoo Kickr Bike Shift
 - Wahoo Kickr Bike Pro
+- Wahoo Kickr Bike V1
+- Wahoo Kickr Bike V2
 - CYCPLUS BC2 Virtual Shifter
 - Thinkrider VS200 Virtual Shifter (beta)
 - Elite Sterzo Smart (for steering support)
