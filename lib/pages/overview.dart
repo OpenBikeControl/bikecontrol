@@ -519,9 +519,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   Widget _buildControllerCard(BaseDevice device) {
+    final id = device.uniqueId;
+    final pressedButton = _flowButton[id];
+    final generation = _flowGeneration[id] ?? 0;
+
     return Button.card(
       onPressed: () => _openControllerSettings(device),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -542,7 +545,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           Row(
             spacing: 9,
             children: device.availableButtons.map((btn) {
-              return ButtonWidget(button: btn);
+              final pressGen = pressedButton?.name == btn.name ? generation : 0;
+              return _AnimatedButtonWidget(key: ValueKey(btn.name), button: btn, pressGeneration: pressGen);
             }).toList(),
           ),
         ],
@@ -769,6 +773,59 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+}
+
+// ── Animated button press widget ────────────────────────────────────
+
+class _AnimatedButtonWidget extends StatefulWidget {
+  final ControllerButton button;
+  final int pressGeneration;
+
+  const _AnimatedButtonWidget({super.key, required this.button, required this.pressGeneration});
+
+  @override
+  State<_AnimatedButtonWidget> createState() => _AnimatedButtonWidgetState();
+}
+
+class _AnimatedButtonWidgetState extends State<_AnimatedButtonWidget> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 70),
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedButtonWidget old) {
+    super.didUpdateWidget(old);
+    if (widget.pressGeneration != old.pressGeneration && widget.pressGeneration > 0) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) => Transform.scale(
+        scale: _scale.value,
+        child: child,
+      ),
+      child: ButtonWidget(button: widget.button),
     );
   }
 }

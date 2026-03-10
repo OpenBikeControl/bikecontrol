@@ -149,10 +149,6 @@ class _CustomizeState extends State<CustomizePage> {
               keymap: core.actionHandler.supportedApp!.keymap,
               onUpdate: () {
                 setState(() {});
-
-                if (core.actionHandler.supportedApp is CustomApp) {
-                  core.settings.setKeyMap(core.actionHandler.supportedApp!);
-                }
               },
             )
           else if (core.connection.controllerDevices.isEmpty)

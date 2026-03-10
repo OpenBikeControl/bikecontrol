@@ -504,11 +504,18 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         trigger: trigger,
         onUpdate: () {
           selectedKeymap.signalUpdate();
+
+          if (core.actionHandler.supportedApp is CustomApp) {
+            core.settings.setKeyMap(core.actionHandler.supportedApp!);
+          }
           widget.onUpdate();
         },
       ),
       position: OverlayPosition.end,
     );
+    if (core.actionHandler.supportedApp is CustomApp) {
+      core.settings.setKeyMap(core.actionHandler.supportedApp!);
+    }
     widget.onUpdate();
     _isDrawerOpen = false;
   }
