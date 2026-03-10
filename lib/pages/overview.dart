@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -511,6 +512,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     );
   }
 
+  void _openTrainerConnectionSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TrainerConnectionSettingsPage()),
+    );
+  }
+
   Widget _buildControllerCard(BaseDevice device) {
     return Button.card(
       onPressed: () => _openControllerSettings(device),
@@ -552,14 +559,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final appName = trainerApp?.name ?? 'No app selected';
     final connectionType = connectedTrainers.isNotEmpty ? connectedTrainers.first.title : null;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
+    return Button.card(
+      onPressed: _openTrainerConnectionSettings,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
