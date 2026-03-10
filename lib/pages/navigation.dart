@@ -5,6 +5,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/pages/device.dart';
+import 'package:bike_control/pages/overview.dart';
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -42,7 +43,8 @@ enum BCPage {
 
 class Navigation extends StatefulWidget {
   final BCPage page;
-  const Navigation({super.key, this.page = BCPage.devices});
+  final bool showOverview;
+  const Navigation({super.key, this.page = BCPage.devices, this.showOverview = false});
 
   @override
   State<Navigation> createState() => _NavigationState();
@@ -50,6 +52,7 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
+  late bool _showOverview;
   late BCPage _selectedPage;
 
   final Map<BCPage, Key> _pageKeys = {
@@ -64,6 +67,7 @@ class _NavigationState extends State<Navigation> {
     super.initState();
 
     _selectedPage = widget.page;
+    _showOverview = widget.showOverview;
 
     core.logic.startEnabledConnectionMethod();
 
@@ -173,7 +177,7 @@ class _NavigationState extends State<Navigation> {
         ),
         Divider(),
       ],
-      footers: _isMobile
+      footers: _isMobile && !_showOverview
           ? [
               if (_isMobile) Center(child: HelpButton(isMobile: true)),
               Divider(),
@@ -181,57 +185,59 @@ class _NavigationState extends State<Navigation> {
             ]
           : [],
       floatingFooter: true,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!_isMobile) ...[
-            _buildNavigationMenu(),
-            VerticalDivider(),
-          ],
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
-              child: switch (_selectedPage) {
-                BCPage.devices => Align(
-                  alignment: Alignment.topLeft,
-                  child: DevicePage(
-                    isMobile: _isMobile,
-                    onUpdate: () {
-                      setState(() {
-                        _selectedPage = BCPage.trainer;
-                      });
+      child: _showOverview
+          ? const OverviewPage()
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!_isMobile) ...[
+                  _buildNavigationMenu(),
+                  VerticalDivider(),
+                ],
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 200),
+                    child: switch (_selectedPage) {
+                      BCPage.devices => Align(
+                        alignment: Alignment.topLeft,
+                        child: DevicePage(
+                          isMobile: _isMobile,
+                          onUpdate: () {
+                            setState(() {
+                              _selectedPage = BCPage.trainer;
+                            });
+                          },
+                        ),
+                      ),
+                      BCPage.trainer => Align(
+                        alignment: Alignment.topLeft,
+                        child: TrainerPage(
+                          onUpdate: () {
+                            setState(() {});
+                          },
+                          goToNextPage: () {
+                            setState(() {
+                              _selectedPage = BCPage.customization;
+                            });
+                          },
+                          isMobile: _isMobile,
+                        ),
+                      ),
+                      BCPage.customization => Align(
+                        alignment: Alignment.topLeft,
+                        child: CustomizePage(isMobile: _isMobile),
+                      ),
+                      BCPage.logs => Padding(
+                        padding: EdgeInsets.only(bottom: _isMobile ? 146 : 16, left: 16, right: 16, top: 16),
+                        child: LogViewer(
+                          key: _pageKeys[BCPage.logs],
+                        ),
+                      ),
                     },
                   ),
                 ),
-                BCPage.trainer => Align(
-                  alignment: Alignment.topLeft,
-                  child: TrainerPage(
-                    onUpdate: () {
-                      setState(() {});
-                    },
-                    goToNextPage: () {
-                      setState(() {
-                        _selectedPage = BCPage.customization;
-                      });
-                    },
-                    isMobile: _isMobile,
-                  ),
-                ),
-                BCPage.customization => Align(
-                  alignment: Alignment.topLeft,
-                  child: CustomizePage(isMobile: _isMobile),
-                ),
-                BCPage.logs => Padding(
-                  padding: EdgeInsets.only(bottom: _isMobile ? 146 : 16, left: 16, right: 16, top: 16),
-                  child: LogViewer(
-                    key: _pageKeys[BCPage.logs],
-                  ),
-                ),
-              },
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 

@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../bluetooth/devices/base_device.dart';
 import '../actions/base_actions.dart';
 import 'apps/custom_app.dart';
 
@@ -111,17 +112,31 @@ class Keymap {
 
   void reset() {
     for (final keyPair in keyPairs) {
-      keyPair.physicalKey = null;
-      keyPair.logicalKey = null;
-      keyPair.touchPosition = Offset.zero;
-      keyPair.trigger = ButtonTrigger.singleClick;
-      keyPair.inGameAction = null;
-      keyPair.inGameActionValue = null;
-      keyPair.androidAction = null;
-      keyPair.command = null;
-      keyPair.screenshotPath = null;
+      _resetKeyPair(keyPair);
     }
     _updateStream.add(null);
+  }
+
+  void resetForDevice(BaseDevice device) {
+    final deviceButtonNames = device.availableButtons.map((b) => b.name).toSet();
+    for (final keyPair in keyPairs) {
+      if (keyPair.buttons.any((b) => deviceButtonNames.contains(b.name))) {
+        _resetKeyPair(keyPair);
+      }
+    }
+    _updateStream.add(null);
+  }
+
+  void _resetKeyPair(KeyPair keyPair) {
+    keyPair.physicalKey = null;
+    keyPair.logicalKey = null;
+    keyPair.touchPosition = Offset.zero;
+    keyPair.trigger = ButtonTrigger.singleClick;
+    keyPair.inGameAction = null;
+    keyPair.inGameActionValue = null;
+    keyPair.androidAction = null;
+    keyPair.command = null;
+    keyPair.screenshotPath = null;
   }
 
   void addKeyPair(KeyPair keyPair) {

@@ -13,7 +13,6 @@ import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/pages/device.dart';
@@ -23,7 +22,6 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
-import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -273,15 +271,31 @@ abstract class BluetoothDevice extends BaseDevice {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // cardTopRow: status dot + name + gear/menu button
         Row(
-          spacing: 8,
           children: [
-            Text(
-              toString().screenshot ?? runtimeType.toString(),
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Expanded(
+              child: Row(
+                spacing: 6,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: isConnected
+                          ? const Color(0xFF22C55E)
+                          : Theme.of(context).colorScheme.mutedForeground,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Text(
+                    toString().screenshot,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  if (isBeta) BetaPill(),
+                ],
+              ),
             ),
-            if (isBeta) BetaPill(),
-            Expanded(child: SizedBox()),
             Builder(
               builder: (context) {
                 return LoadingWidget(
@@ -336,77 +350,94 @@ abstract class BluetoothDevice extends BaseDevice {
                       await core.connection.disconnect(this, forget: true, persistForget: persist);
                     }
                   },
-                  renderChild: (isLoading, tap) => IconButton(
-                    variance: ButtonVariance.muted,
-                    icon: isLoading ? SmallProgressIndicator() : Icon(Icons.clear),
-                    onPressed: tap,
+                  renderChild: (isLoading, tap) => GestureDetector(
+                    onTap: tap,
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.muted,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Center(
+                          child: isLoading
+                              ? SmallProgressIndicator()
+                              : Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+                        ),
+                      ),
+                    ),
                   ),
                 );
               },
             ),
           ],
         ),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            DeviceInfo(
-              title: context.i18n.connection,
-              icon: switch (isConnected) {
-                true => Icons.bluetooth_connected_outlined,
-                false => Icons.bluetooth_disabled_outlined,
-              },
-              value: isConnected ? context.i18n.connected : context.i18n.disconnected,
+        // metaRow: battery + signal
+        if (batteryLevel != null || rssi != null) ...[
+          const Gap(12),
+          Row(
+            children: [
+              if (batteryLevel != null) ...[
+                Icon(LucideIcons.batteryFull, size: 14, color: const Color(0xFF22C55E)),
+                const Gap(4),
+                Text(
+                  '$batteryLevel%',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.mutedForeground),
+                ),
+                if (rssi != null) const Gap(16),
+              ],
+              if (rssi != null)
+                StreamBuilder(
+                  stream: core.connection.rssiConnectionStream
+                      .where((device) => device == this)
+                      .map((event) => event.rssi),
+                  builder: (context, rssiValue) {
+                    final currentRssi = rssiValue.data ?? rssi!;
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(LucideIcons.signal, size: 14, color: const Color(0xFF22C55E)),
+                        const Gap(4),
+                        Text(
+                          switch (currentRssi) {
+                            >= -50 => 'Strong',
+                            >= -70 => 'Good',
+                            >= -85 => 'Fair',
+                            _ => 'Weak',
+                          },
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.mutedForeground),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+        // connBadge
+        if (isConnected) ...[
+          const Gap(12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7),
+              borderRadius: BorderRadius.circular(100),
             ),
-
-            if (batteryLevel != null)
-              DeviceInfo(
-                title: context.i18n.battery,
-                icon: switch (batteryLevel!) {
-                  >= 80 => Icons.battery_full,
-                  >= 60 => Icons.battery_6_bar,
-                  >= 50 => Icons.battery_5_bar,
-                  >= 25 => Icons.battery_4_bar,
-                  >= 10 => Icons.battery_2_bar,
-                  _ => Icons.battery_alert,
-                },
-                value: '$batteryLevel%',
-              ),
-            if (firmwareVersion != null)
-              DeviceInfo(
-                title: context.i18n.firmware,
-                icon: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
-                    ? Icons.warning
-                    : Icons.text_fields_sharp,
-                value: firmwareVersion!,
-                additionalInfo: (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
-                    ? Text(
-                        ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
-                        style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
-                      )
-                    : null,
-              ),
-
-            if (rssi != null)
-              StreamBuilder(
-                stream: core.connection.rssiConnectionStream
-                    .where((device) => device == this)
-                    .map((event) => event.rssi),
-                builder: (context, rssiValue) {
-                  return DeviceInfo(
-                    title: context.i18n.signal,
-                    icon: switch (rssiValue.data ?? rssi!) {
-                      >= -50 => Icons.signal_cellular_4_bar,
-                      >= -60 => Icons.signal_cellular_alt_2_bar,
-                      >= -70 => Icons.signal_cellular_alt_1_bar,
-                      _ => Icons.signal_cellular_alt,
-                    },
-                    value: '$rssi dBm',
-                  );
-                },
-              ),
-          ],
-        ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(LucideIcons.bluetooth, size: 12, color: const Color(0xFF16A34A)),
+                const Gap(4),
+                Text(
+                  context.i18n.connected,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF16A34A)),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -31,7 +31,8 @@ enum _TriggerConflictResolution {
 class KeymapExplanation extends StatefulWidget {
   final Keymap keymap;
   final VoidCallback onUpdate;
-  const KeymapExplanation({super.key, required this.keymap, required this.onUpdate});
+  final BaseDevice? filterDevice;
+  const KeymapExplanation({super.key, required this.keymap, required this.onUpdate, this.filterDevice});
 
   @override
   State<KeymapExplanation> createState() => _KeymapExplanationState();
@@ -99,7 +100,10 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   @override
   Widget build(BuildContext context) {
-    final keyButtonMap = core.connection.controllerDevices.associateWith((device) {
+    final devices = widget.filterDevice != null
+        ? core.connection.controllerDevices.where((d) => d == widget.filterDevice).toList()
+        : core.connection.controllerDevices;
+    final keyButtonMap = devices.associateWith((device) {
       return device.availableButtons.distinct().sortedBy(
         (button) => button.color != null ? '0${(button.icon?.codePoint ?? 0)}' : '1${(button.icon?.codePoint ?? 0)}',
       );
@@ -109,7 +113,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        if (core.connection.controllerDevices.isNotEmpty && !screenshotMode)
+        if (devices.isNotEmpty && !screenshotMode)
           Text(
             AppLocalizations.of(context).clickAButtonOnYourController,
             style: TextStyle(fontSize: 12),
