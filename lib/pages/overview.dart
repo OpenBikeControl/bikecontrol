@@ -146,7 +146,6 @@ class OverviewPage extends StatefulWidget {
 }
 
 class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMixin {
-  bool _isTrainerConnected = false;
   late StreamSubscription<BaseNotification> _actionListener;
 
   // Layout keys
@@ -167,7 +166,10 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   final Map<String, bool> _flowIsError = {};
   final Map<String, ActionResult> _flowResult = {};
   final Map<String, int> _flowGeneration = {};
-  String? _lastPressedDeviceId;
+
+  // Per-device button press animation state (separate from flow)
+  final Map<String, ControllerButton> _pressedButton = {};
+  final Map<String, int> _pressGeneration = {};
 
   // Activity log
   final List<_ActivityEntry> _activityLog = [];
@@ -183,16 +185,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       } else if (notification is ActionNotification) {
         _onActionResult(notification.result, notification.button);
       }
-      _refreshTrainerStatus();
     });
-    _refreshTrainerStatus();
-  }
-
-  void _refreshTrainerStatus() async {
-    final connected = await core.logic.isTrainerConnected();
-    if (mounted) {
-      setState(() => _isTrainerConnected = connected);
-    }
   }
 
   // ── Position measurement ──────────────────────────────────────────
@@ -253,52 +246,33 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   void _onButtonPressed(BaseDevice device, ControllerButton button) {
     final id = device.uniqueId;
-    _lastPressedDeviceId = id;
+    _pressGeneration[id] = (_pressGeneration[id] ?? 0) + 1;
+    setState(() {
+      _pressedButton[id] = button;
+    });
+  }
 
-    if (!_hasMeasured || !_cardCenterY.containsKey(id) || _trainerCenterY == null) {
+  void _onActionResult(ActionResult result, ControllerButton button) {
+    _activityLog.insert(0, _ActivityEntry(button: button, time: DateTime.now(), result: result));
+    if (_activityLog.length > _maxLogEntries) _activityLog.removeLast();
+
+    final id = button.sourceDeviceId;
+    if (id == null || !_hasMeasured || !_cardCenterY.containsKey(id) || _trainerCenterY == null) {
+      setState(() {});
       return;
-    }
-
-    bool isError = false;
-    ActionResult? immediate;
-    if (button.action == null) {
-      isError = true;
-      immediate = const NotHandled('No action assigned');
-    } else if (!_isTrainerConnected) {
-      isError = true;
-      immediate = const Error('Trainer not connected');
     }
 
     _flowGeneration[id] = (_flowGeneration[id] ?? 0) + 1;
 
     setState(() {
       _flowButton[id] = button;
-      _flowIsError[id] = isError;
-      if (immediate != null) {
-        _flowResult[id] = immediate;
-      } else {
-        _flowResult.remove(id);
-      }
+      _flowIsError[id] = result is! Success;
+      _flowResult[id] = result;
     });
 
     final c = _controllerFor(id);
     c.reset();
     c.forward();
-  }
-
-  void _onActionResult(ActionResult result, ControllerButton button) {
-    // Add activity log entry
-    _activityLog.insert(0, _ActivityEntry(button: button, time: DateTime.now(), result: result));
-    if (_activityLog.length > _maxLogEntries) _activityLog.removeLast();
-
-    final id = _lastPressedDeviceId;
-    if (id == null || !_flowButton.containsKey(id)) return;
-    if (_flowResult.containsKey(id)) return;
-
-    setState(() {
-      _flowResult[id] = result;
-      _flowIsError[id] = result is! Success;
-    });
   }
 
   void _onDeviceFlowDone(String deviceId) {
@@ -367,8 +341,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       isMobile: widget.isMobile,
                       footerBuilder: (device) {
                         final id = device.uniqueId;
-                        final pressedButton = _flowButton[id];
-                        final generation = _flowGeneration[id] ?? 0;
+                        final pressedButton = _pressedButton[id];
+                        final generation = _pressGeneration[id] ?? 0;
                         return [
                           const Gap(12),
                           Divider(),

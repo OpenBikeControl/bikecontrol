@@ -312,7 +312,9 @@ abstract class BaseDevice {
         trigger: trigger,
       );
 
-      actionStreamInternal.add(ActionNotification(result, button: action));
+      actionStreamInternal.add(
+        ActionNotification(result, button: action.copyWith(sourceDeviceId: action.sourceDeviceId ?? uniqueId)),
+      );
     }
   }
 
@@ -333,7 +335,9 @@ abstract class BaseDevice {
         isKeyUp: true,
         trigger: trigger,
       );
-      actionStreamInternal.add(ActionNotification(result, button: action));
+      actionStreamInternal.add(
+        ActionNotification(result, button: action.copyWith(sourceDeviceId: action.sourceDeviceId ?? uniqueId)),
+      );
     }
   }
 
