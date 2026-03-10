@@ -19,6 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../bluetooth/devices/base_device.dart';
 import '../widgets/changelog_dialog.dart';
 
 enum BCPage {
@@ -186,7 +187,7 @@ class _NavigationState extends State<Navigation> {
           : [],
       floatingFooter: true,
       child: _showOverview
-          ? const OverviewPage()
+          ? OverviewPage(isMobile: _isMobile)
           : Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -201,12 +202,14 @@ class _NavigationState extends State<Navigation> {
                       BCPage.devices => Align(
                         alignment: Alignment.topLeft,
                         child: DevicePage(
+                          cardKeys: {},
                           isMobile: _isMobile,
                           onUpdate: () {
                             setState(() {
                               _selectedPage = BCPage.trainer;
                             });
                           },
+                          footerBuilder: (BaseDevice p1) => [],
                         ),
                       ),
                       BCPage.trainer => Align(

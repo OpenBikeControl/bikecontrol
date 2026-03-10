@@ -5,7 +5,6 @@ import 'dart:isolate';
 import 'package:app_links/app_links.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/onboarding.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
@@ -246,22 +245,10 @@ class _BikeControlAppState extends State<BikeControlApp> {
                     widget.customChild ??
                     (AnimatedSwitcher(
                       duration: Duration(milliseconds: 600),
-                      child: core.settings.getShowOnboarding()
-                          ? OnboardingPage(
-                              onComplete: () {
-                                setState(() {
-                                  if (core.obpMdnsEmulator.connectedApp.value == null) {
-                                    _showPage = BCPage.trainer;
-                                  } else {
-                                    _showPage = BCPage.devices;
-                                  }
-                                });
-                              },
-                            )
-                          : Navigation(
-                              page: _showPage ?? widget.page,
-                              showOverview: true,
-                            ),
+                      child: Navigation(
+                        page: _showPage ?? widget.page,
+                        showOverview: true,
+                      ),
                     )),
               ),
             ),

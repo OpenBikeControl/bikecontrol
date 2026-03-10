@@ -142,14 +142,10 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                           height: 52,
                           child: Row(
                             children: [
-                              Transform.scale(
-                                scale: 0.7,
-                                child: SizedBox(
-                                  width: 80,
-                                  child: ButtonWidget(
-                                    button: button,
-                                    big: true,
-                                  ),
+                              Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: ButtonWidget(
+                                  button: button,
                                 ),
                               ),
                               Expanded(

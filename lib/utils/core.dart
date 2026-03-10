@@ -19,7 +19,6 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/settings/settings.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
@@ -73,7 +72,7 @@ class Permissions {
     } else if (Platform.isMacOS) {
       list = [
         BluetoothTurnedOn(),
-        if (core.settings.getShowOnboarding()) NotificationRequirement(),
+        NotificationRequirement(),
       ];
     } else if (Platform.isIOS) {
       list = [

@@ -172,7 +172,7 @@ class DesktopActions extends BaseActions {
         }
       }
     }
-    return NotHandled('Action not handled for button: $button');
+    return NotHandled('Action not handled for button: ${button.displayName}');
   }
 
   // Release all held keys (useful for cleanup)

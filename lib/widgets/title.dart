@@ -199,7 +199,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
         ),
         if (packageInfoValue != null)
           Text(
-            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${core.settings.getShowOnboarding() ? 'Onboarding' : IAPManager.instance.getStatusMessage()}',
+            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${IAPManager.instance.getStatusMessage()}',
             style: TextStyle(fontSize: 12),
           ).mono.muted
         else

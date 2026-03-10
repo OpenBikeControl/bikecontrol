@@ -119,28 +119,19 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: 8,
             children: [
-              Row(
-                spacing: 8,
-                children: [
-                  PrimaryBadge(
-                    trailing: widget.trainerConnection.isStarted.value && !widget.trainerConnection.isConnected.value
-                        ? SizedBox(
-                            width: 19,
-                            height: 19,
-                            child: SmallProgressIndicator(
-                              color: Theme.of(context).colorScheme.primaryForeground,
-                            ),
-                          )
-                        : Icon(widget.trainerConnection.type.icon),
-                    child: Text(widget.trainerConnection.type.name.capitalize()),
-                  ),
+              widget.trainerConnection.isStarted.value && !widget.trainerConnection.isConnected.value
+                  ? SizedBox(
+                      width: 19,
+                      height: 19,
+                      child: SmallProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                  : Icon(widget.trainerConnection.type.icon, color: Theme.of(context).colorScheme.primary),
 
-                  if (widget.isRecommended) SecondaryBadge(leading: Icon(Icons.star), child: Text('Recommended')),
-                ],
-              ),
+              Flexible(child: Text(widget.title)),
               if (widget.title == context.i18n.enablePairingProcess ||
                   widget.title == context.i18n.enableZwiftControllerBluetooth)
                 Padding(
@@ -149,14 +140,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                 ),
             ],
           ),
-          Text(widget.title),
-          Text(
-            widget.description,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
+          if (widget.isRecommended) SecondaryBadge(leading: Icon(Icons.star), child: Text('Recommended')),
+          Text(widget.description).textMuted,
           if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
           if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(height: 8),
           if (widget.instructionLink != null)

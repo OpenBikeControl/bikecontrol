@@ -10,10 +10,14 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:prop/emulators/shared.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import '../utils/iap/iap_manager.dart';
+import 'device.dart';
 
 // ── Data for a single device lane (90° routed path) ──────────────────
 class _Lane {
@@ -134,7 +138,8 @@ class _ActivityEntry {
 // ── OverviewPage ─────────────────────────────────────────────────────
 
 class OverviewPage extends StatefulWidget {
-  const OverviewPage({super.key});
+  final bool isMobile;
+  const OverviewPage({super.key, required this.isMobile});
 
   @override
   State<OverviewPage> createState() => _OverviewPageState();
@@ -334,26 +339,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       if (mounted) _measurePositions();
     });
 
-    if (devices.isEmpty) {
-      return SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader(icon: Icons.gamepad, title: 'Controllers'),
-            const Gap(8),
-            _buildEmptyCard('No controllers connected'),
-            const Gap(32),
-            _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
-            const Gap(8),
-            _buildTrainerCard(trainerApp, enabledTrainers),
-            const Gap(16),
-            _buildActivityLog(),
-          ],
-        ),
-      );
-    }
-
     final gutterWidth = 12.0 + devices.length * _laneWidth;
     final lanes = _hasMeasured ? _buildLanes(devices) : <_Lane>[];
 
@@ -366,20 +351,49 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Gap(20),
+              Gap(widget.isMobile ? 12 : 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    ValueListenableBuilder(
+                      valueListenable: IAPManager.instance.isPurchased,
+                      builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
+                    ),
                     _buildSectionHeader(icon: Icons.gamepad, title: 'Controllers'),
                     const Gap(8),
-                    for (int i = 0; i < devices.length; i++) ...[
-                      if (i > 0) const Gap(8),
-                      KeyedSubtree(
-                        key: _cardKeys[devices[i].uniqueId],
-                        child: _buildControllerCard(devices[i]),
-                      ),
-                    ],
+                    DevicePage(
+                      cardKeys: _cardKeys,
+                      isMobile: widget.isMobile,
+                      footerBuilder: (device) {
+                        final id = device.uniqueId;
+                        final pressedButton = _flowButton[id];
+                        final generation = _flowGeneration[id] ?? 0;
+                        return [
+                          const Gap(12),
+                          Divider(),
+                          const Gap(12),
+                          Wrap(
+                            alignment: WrapAlignment.start,
+                            runAlignment: WrapAlignment.start,
+                            crossAxisAlignment: WrapCrossAlignment.start,
+                            spacing: 9,
+                            runSpacing: 9,
+                            children: device.availableButtons.map((btn) {
+                              final pressGen = pressedButton?.name == btn.name ? generation : 0;
+                              return _AnimatedButtonWidget(
+                                key: ValueKey(btn.name),
+                                button: btn,
+                                pressGeneration: pressGen,
+                              );
+                            }).toList(),
+                          ),
+                        ];
+                      },
+                      onUpdate: () {
+                        setState(() {});
+                      },
+                    ),
                     const Gap(32),
                     _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
                     const Gap(8),
@@ -392,7 +406,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   ],
                 ),
               ),
-              SizedBox(width: gutterWidth + 20),
+              SizedBox(width: gutterWidth + (widget.isMobile ? 12 : 20)),
             ],
           ),
           if (lanes.isNotEmpty)
@@ -536,52 +550,18 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   // ── Controller card ───────────────────────────────────────────────
 
-  void _openControllerSettings(BaseDevice device) {
-    Navigator.of(context).push(
+  Future<void> _openControllerSettings(BaseDevice device) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),
     );
+    setState(() {});
   }
 
-  void _openTrainerConnectionSettings() {
-    Navigator.of(context).push(
+  Future<void> _openTrainerConnectionSettings() async {
+    await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TrainerConnectionSettingsPage()),
     );
-  }
-
-  Widget _buildControllerCard(BaseDevice device) {
-    final id = device.uniqueId;
-    final pressedButton = _flowButton[id];
-    final generation = _flowGeneration[id] ?? 0;
-
-    return Button.card(
-      onPressed: () => _openControllerSettings(device),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          device.showInformation(context),
-          const Gap(12),
-          Divider(),
-          const Gap(12),
-          Text(
-            'Buttons',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.5,
-              color: Theme.of(context).colorScheme.mutedForeground,
-            ),
-          ),
-          const Gap(8),
-          Row(
-            spacing: 9,
-            children: device.availableButtons.map((btn) {
-              final pressGen = pressedButton?.name == btn.name ? generation : 0;
-              return _AnimatedButtonWidget(key: ValueKey(btn.name), button: btn, pressGeneration: pressGen);
-            }).toList(),
-          ),
-        ],
-      ),
-    );
+    setState(() {});
   }
 
   // ── Trainer card ──────────────────────────────────────────────────
@@ -610,7 +590,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(appName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                      Text(appName).small.semiBold,
                       Icon(Icons.keyboard_arrow_down, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
                     ],
                   ),
@@ -687,10 +667,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         ),
         const Gap(8),
         Expanded(
-          child: Text(
-            trainer.title,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
-          ),
+          child: connected ? Text(trainer.title).xSmall.semiBold : Text(trainer.title).xSmall.semiBold.muted,
         ),
         if (started && !connected)
           SizedBox(
@@ -743,7 +720,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               children: [
                 Row(
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text(title).small.semiBold,
                     if (isNew) ...[
                       const Gap(6),
                       Container(
@@ -766,13 +743,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   ],
                 ),
                 const Gap(2),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Theme.of(context).colorScheme.mutedForeground,
-                  ),
-                ),
+                Text(description).xSmall.muted,
               ],
             ),
           ),
@@ -794,18 +765,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         Row(
           children: [
             Expanded(
-              child: Text('Activity', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              child: _buildSectionHeader(icon: Icons.list, title: 'Activity'),
             ),
             GhostButton(
               onPressed: () => setState(() => _activityLog.clear()),
-              child: Text(
-                'Clear',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.mutedForeground,
-                ),
-              ),
+              child: Text('Clear').xSmall.muted,
             ),
           ],
         ),
@@ -834,21 +798,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final isError = entry.isError;
     final isSuccess = entry.isSuccess;
 
-    // Action text
-    final String actionText;
-    final TextStyle actionStyle;
-    if (isError) {
-      actionText = entry.result.message;
-      actionStyle = TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        fontStyle: FontStyle.italic,
-        color: Theme.of(context).colorScheme.mutedForeground,
-      );
-    } else {
-      actionText = entry.result.message;
-      actionStyle = const TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
-    }
+    final actionText = entry.result.message;
 
     // Time
     final ago = DateTime.now().difference(entry.time);
@@ -890,17 +840,14 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(actionText, style: actionStyle),
+                isError ? Text(actionText).xSmall.italic.muted : Text(actionText).xSmall,
                 if (errorFix != null)
                   GhostButton(
                     onPressed: errorFix.$2,
-                    child: Text(
-                      errorFix.$1,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF0E74B7)),
-                    ),
+                    child: Text(errorFix.$1).xSmall,
                   )
                 else
-                  Text(timeText, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground)),
+                  Text(timeText).xSmall.muted,
               ],
             ),
           ),
@@ -951,27 +898,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       children: [
         Icon(icon, size: 16, color: BKColor.main),
         const Gap(6),
-        Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(title).xSmall,
       ],
-    );
-  }
-
-  Widget _buildEmptyCard(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
-      child: Text(
-        message,
-        style: TextStyle(
-          fontSize: 13,
-          color: Theme.of(context).colorScheme.mutedForeground,
-        ),
-      ),
     );
   }
 

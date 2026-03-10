@@ -237,7 +237,9 @@ class StubActions extends BaseActions {
     ButtonTrigger trigger = ButtonTrigger.singleClick,
   }) async {
     performedActions.add(PerformedAction(button, isDown: isKeyDown, isUp: isKeyUp, trigger: trigger));
-    return Future.value(Ignored('${button.name.splitByUpperCase()} clicked'));
+    return Future.value(
+      Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst, type: ErrorType.noConnectionMethod),
+    );
   }
 
   @override

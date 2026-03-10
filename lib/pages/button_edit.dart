@@ -1008,7 +1008,7 @@ class SelectableCard extends StatelessWidget {
           alignment: Alignment.topLeft,
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 2.0),
             child: Basic(
               leading: icon != null
                   ? Padding(
@@ -1019,6 +1019,7 @@ class SelectableCard extends StatelessWidget {
                       ),
                     )
                   : null,
+              leadingAlignment: Alignment.centerLeft,
               title: title,
               subtitle: value != null && isActive ? Text(value!) : subtitle,
               trailing: trailing,

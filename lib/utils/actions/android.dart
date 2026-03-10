@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:accessibility/accessibility.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -131,7 +132,10 @@ class AndroidActions extends BaseActions {
             : "up"}",
       );
     }
-    return NotHandled('No action assigned for ${button.name.splitByUpperCase()}');
+    return Error(
+      AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
+      type: ErrorType.noActionAssigned,
+    );
   }
 
   void ignoreHidDevices() {

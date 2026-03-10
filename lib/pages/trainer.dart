@@ -3,7 +3,6 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
-import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -18,7 +17,6 @@ import 'package:bike_control/widgets/keyboard_pair_widget.dart';
 import 'package:bike_control/widgets/mouse_pair_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -157,49 +155,26 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                 Gap(12),
               ],
 
-              for (final grouped in recommendedTiles.chunked(widget.isMobile ? 1 : 2)) ...[
+              for (final tile in recommendedTiles) ...[
                 IntrinsicHeight(
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Row(
-                      spacing: 8,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: grouped.map((tile) => Expanded(child: tile)).toList(),
-                    ),
+                    child: tile,
                   ),
                 ),
               ],
               Gap(12),
               if (otherTiles.isNotEmpty) ...[
                 SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: Accordion(
-                    items: [
-                      AccordionItem(
-                        expanded:
-                            recommendedTiles.isEmpty || (core.logic.showRemote && core.remotePairing.isStarted.value),
-                        trigger: AccordionTrigger(child: ColoredTitle(text: context.i18n.otherConnectionMethods)),
-                        content: Column(
-                          children: [
-                            for (final grouped in otherTiles.chunked(widget.isMobile ? 1 : 2)) ...[
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 12.0),
-                                child: IntrinsicHeight(
-                                  child: Row(
-                                    spacing: 8,
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: grouped.map((tile) => Expanded(child: tile)).toList(),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
+                ColoredTitle(text: context.i18n.otherConnectionMethods),
+                SizedBox(height: 8),
+                for (final tile in otherTiles)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: IntrinsicHeight(
+                      child: tile,
+                    ),
                   ),
-                ),
               ],
               Gap(12),
 
@@ -233,13 +208,6 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
                         );
                       }
                     },
-                  ),
-                  PrimaryButton(
-                    leading: Icon(BCPage.customization.icon),
-                    onPressed: () {
-                      widget.goToNextPage();
-                    },
-                    child: Text(context.i18n.adjustControllerButtons),
                   ),
                 ],
               ),

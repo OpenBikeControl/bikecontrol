@@ -17,7 +17,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -281,34 +280,8 @@ abstract class BluetoothDevice extends BaseDevice {
                       shape: BoxShape.circle,
                     ),
                   ),
-                  Text(
-                    toString().screenshot,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
+                  Text(toString().screenshot).bold,
                   if (isBeta) BetaPill(),
-
-                  // connBadge
-                  if (isConnected) ...[
-                    Gap(8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(LucideIcons.bluetooth, size: 12, color: const Color(0xFF16A34A)),
-                          const Gap(4),
-                          Text(
-                            context.i18n.connected,
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF16A34A)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),

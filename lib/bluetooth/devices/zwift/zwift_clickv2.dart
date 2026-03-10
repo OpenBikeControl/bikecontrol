@@ -2,7 +2,6 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
-import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
@@ -91,7 +90,7 @@ class ZwiftClickV2 extends ZwiftRide {
           children: [
             super.showInformation(context),
 
-            if (isConnected && !core.settings.getShowOnboarding())
+            if (isConnected)
               if (isUnlocked && lastUnlockDate != null)
                 Warning(
                   important: false,

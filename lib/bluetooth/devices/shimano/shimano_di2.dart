@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
@@ -145,11 +144,10 @@ class ShimanoDi2 extends BluetoothDevice {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         super.showInformation(context),
-        if (!core.settings.getShowOnboarding())
-          Text(
-            'Make sure to set your Di2 buttons to D-Fly channels in the Shimano E-TUBE app.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
+        Text(
+          'Make sure to set your Di2 buttons to D-Fly channels in the Shimano E-TUBE app.',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
       ],
     );
   }

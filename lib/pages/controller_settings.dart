@@ -236,56 +236,37 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
             onTap: tap,
           ),
         ),
-        _buildActionButton(
-          icon: LucideIcons.fileCode,
-          label: 'Run Script',
-          trailing: !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
-              ? ProBadge()
-              : null,
-          onTap: () {
-            if (!IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription) {
-              buildToast(title: 'This feature is Full Version or Pro only.', duration: Duration(seconds: 4));
-              return;
-            }
-            openDrawer(
-              context: context,
-              position: OverlayPosition.end,
-              builder: (c) => DeviceScriptDrawer(deviceType: device.runtimeType.toString()),
+        Builder(
+          builder: (context) {
+            return _buildActionButton(
+              icon: LucideIcons.fileCode,
+              label: 'Run Script',
+              trailing: !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
+                  ? ProBadge()
+                  : null,
+              onTap: () {
+                if (!IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription) {
+                  buildToast(title: 'This feature is Full Version or Pro only.', duration: Duration(seconds: 4));
+                  return;
+                }
+                openDrawer(
+                  context: context,
+                  position: OverlayPosition.end,
+                  builder: (c) => DeviceScriptDrawer(deviceType: device.runtimeType.toString()),
+                );
+              },
             );
           },
         ),
         const Gap(4),
-        GestureDetector(
-          onTap: () {
+        Button.outline(
+          onPressed: () {
             core.settings.getTrainerApp()?.keymap.resetForDevice(device);
             setState(() {});
             buildToast(title: 'Button mappings reset to defaults');
           },
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Theme.of(context).colorScheme.border),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 6,
-                children: [
-                  Icon(LucideIcons.rotateCcw, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-                  Text(
-                    'Reset to defaults',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).colorScheme.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          leading: Icon(LucideIcons.rotateCcw, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+          child: Text('Reset to defaults'),
         ),
       ],
     );
@@ -299,35 +280,12 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     bool isDestructive = false,
     Widget? trailing,
   }) {
-    final color = isDestructive ? Theme.of(context).colorScheme.destructive : Theme.of(context).colorScheme.foreground;
-    return GestureDetector(
-      onTap: onTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Theme.of(context).colorScheme.border),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                if (isLoading) SmallProgressIndicator() else Icon(icon, size: 16, color: color),
-                const Gap(8),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: color),
-                  ),
-                ),
-                if (trailing != null) trailing,
-              ],
-            ),
-          ),
-        ),
-      ),
+    return Button(
+      style: isDestructive ? ButtonStyle.destructive() : ButtonStyle.outline(),
+      onPressed: onTap,
+      leading: isLoading ? SmallProgressIndicator() : Icon(icon),
+      trailing: trailing,
+      child: Text(label),
     );
   }
 }
