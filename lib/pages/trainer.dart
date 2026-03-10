@@ -25,7 +25,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../utils/keymap/apps/supported_app.dart';
 import '../utils/keymap/apps/zwift.dart';
 
 class TrainerPage extends StatefulWidget {
@@ -145,63 +144,11 @@ class _TrainerPageState extends State<TrainerPage> with WidgetsBindingObserver {
               valueListenable: IAPManager.instance.isPurchased,
               builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
             ),
-            SizedBox(
-              width: double.infinity,
-              child: Accordion(
-                items: [
-                  AccordionItem(
-                    trigger: AccordionTrigger(
-                      child: IgnorePointer(
-                        child: Row(
-                          spacing: 12,
-                          children: [
-                            Flexible(
-                              child: Select<SupportedApp>(
-                                itemBuilder: (c, app) => Row(
-                                  spacing: 4,
-                                  children: [
-                                    Expanded(child: Text(screenshotMode ? 'Trainer app' : app.name)),
-                                    if (app.supportsOpenBikeProtocol.isNotEmpty) Icon(Icons.star),
-                                  ],
-                                ),
-                                popup: SelectPopup(
-                                  items: SelectItemList(
-                                    children: SupportedApp.supportedApps.map((app) {
-                                      return SelectItemButton(
-                                        value: app,
-                                        child: Row(
-                                          spacing: 4,
-                                          children: [
-                                            Text(app.name),
-                                            if (app.supportsOpenBikeProtocol.isNotEmpty) Icon(Icons.star),
-                                          ],
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ).call,
-                                placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
-                                value: core.settings.getTrainerApp(),
-                                onChanged: (selectedApp) async {},
-                              ),
-                            ),
-                            if (core.settings.getLastTarget() != null) ...[
-                              if (!widget.isMobile) Icon(core.settings.getLastTarget()!.icon),
-                              Text(core.settings.getLastTarget()!.getTitle(context)),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    content: ConfigurationPage(
-                      onUpdate: () {
-                        setState(() {});
-                        widget.onUpdate();
-                      },
-                    ),
-                  ),
-                ],
-              ),
+            ConfigurationPage(
+              onUpdate: () {
+                setState(() {});
+                widget.onUpdate();
+              },
             ),
             if (core.settings.getTrainerApp() != null) ...[
               if (recommendedTiles.isNotEmpty) ...[
