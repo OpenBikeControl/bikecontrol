@@ -1,3 +1,8 @@
+### 5.1.0 (unreleased)
+
+**Features**:
+- support for Wahoo KICKR BIKE V1 & KICKR BIKE V2
+
 ### 5.0.0 (10-03-2026)
 
 BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
