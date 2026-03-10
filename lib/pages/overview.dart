@@ -66,35 +66,43 @@ class _FlowLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (final lane in lanes) {
-      const radius = 8.0;
-      final linePaint = Paint()
-        ..color = color.withValues(alpha: 0.45)
-        ..strokeWidth = 4
-        ..strokeCap = ui.StrokeCap.round
-        ..strokeJoin = ui.StrokeJoin.round
-        ..style = ui.PaintingStyle.stroke;
+    if (lanes.isEmpty) return;
+    const radius = 8.0;
 
+    final redColor = const Color(0xFFEF4444);
+    final bottomColor = isTrainerConnected ? color : redColor;
+
+    Paint makeStroke(Color c) => Paint()
+      ..color = c
+      ..strokeWidth = 4
+      ..strokeCap = ui.StrokeCap.round
+      ..strokeJoin = ui.StrokeJoin.round
+      ..style = ui.PaintingStyle.stroke;
+
+    // Draw all strokes in a layer to prevent alpha accumulation at junctions
+    canvas.saveLayer(Offset.zero & size, Paint()..color = const Color(0x73FFFFFF));
+
+    final topPaint = makeStroke(color);
+    final bottomPaint = makeStroke(bottomColor);
+
+    for (final lane in lanes) {
       final midY = (lane.startY + lane.endY) / 2;
 
-      // Top portion (always solid): horizontal → corner → vertical down to chevron
+      // Top portion: horizontal → corner → vertical down to chevron
       final topPath = ui.Path()
         ..moveTo(lane.startX, lane.startY)
         ..lineTo(lane.channelX - radius, lane.startY)
         ..quadraticBezierTo(lane.channelX, lane.startY, lane.channelX, lane.startY + radius)
         ..lineTo(lane.channelX, midY + 6);
-      canvas.drawPath(topPath, linePaint);
+      canvas.drawPath(topPath, topPaint);
 
       // Middle vertical segment: solid if connected, dashed if not
       final segStart = midY + 6;
       final segEnd = lane.endY - radius;
       if (isTrainerConnected) {
-        canvas.drawLine(Offset(lane.channelX, segStart), Offset(lane.channelX, segEnd), linePaint);
+        canvas.drawLine(Offset(lane.channelX, segStart), Offset(lane.channelX, segEnd), topPaint);
       } else {
-        final dashPaint = Paint()
-          ..color = const Color(0xFFEF4444).withValues(alpha: 0.45)
-          ..strokeWidth = 4
-          ..strokeCap = ui.StrokeCap.round;
+        final dashPaint = makeStroke(redColor);
         const dash = 5.0;
         const gap = 7.0;
         for (double y = segStart; y < segEnd; y += dash + gap) {
@@ -103,21 +111,30 @@ class _FlowLinePainter extends CustomPainter {
         }
       }
 
-      // Bottom portion (always solid): corner → horizontal to trainer
-      final bottomPath = ui.Path()
+      // Bottom curve
+      final curvePath = ui.Path()
         ..moveTo(lane.channelX, lane.endY - radius)
-        ..quadraticBezierTo(lane.channelX, lane.endY, lane.channelX - radius, lane.endY)
-        ..lineTo(lane.endX, lane.endY);
-      canvas.drawPath(bottomPath, linePaint);
+        ..quadraticBezierTo(lane.channelX, lane.endY, lane.channelX - radius, lane.endY);
+      canvas.drawPath(curvePath, bottomPaint);
+    }
 
-      // Start dot (card right edge)
-      final dotPaint = Paint()..color = color;
+    // Shared bottom horizontal (once)
+    final outerLane = lanes.last;
+    canvas.drawLine(
+      Offset(outerLane.channelX - radius, outerLane.endY),
+      Offset(outerLane.endX, outerLane.endY),
+      bottomPaint,
+    );
+
+    canvas.restore();
+
+    // Dots and chevrons drawn outside the layer (full opacity)
+    final dotPaint = Paint()..color = color;
+    final endDotPaint = Paint()..color = (isTrainerConnected ? color : redColor);
+    for (final lane in lanes) {
       canvas.drawCircle(Offset(lane.startX, lane.startY), 4, dotPaint);
 
-      // End dot (trainer card right edge, vertical center)
-      canvas.drawCircle(Offset(lane.endX, lane.endY), 4, dotPaint);
-
-      // Down-pointing chevron at vertical center of the connection line
+      final midY = (lane.startY + lane.endY) / 2;
       final arrowPaint = Paint()
         ..color = color.withValues(alpha: 0.5)
         ..strokeWidth = 3
@@ -129,6 +146,8 @@ class _FlowLinePainter extends CustomPainter {
         ..lineTo(lane.channelX + 5, midY - 4);
       canvas.drawPath(chevron, arrowPaint);
     }
+
+    canvas.drawCircle(Offset(outerLane.endX, outerLane.endY), 4, endDotPaint);
   }
 
   @override
