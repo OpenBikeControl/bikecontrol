@@ -15,8 +15,11 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/settings/settings.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
@@ -45,6 +48,7 @@ class Core {
   late final zwiftEmulator = ZwiftEmulator();
   late final zwiftMdnsEmulator = FtmsMdnsEmulator();
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
+  late final local = Local();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
   late final remotePairing = RemotePairing();
   late final remoteKeyboardPairing = RemoteKeyboardPairing();
@@ -242,6 +246,7 @@ class CoreLogic {
       showMyWhooshLink;
 
   List<TrainerConnection> get connectedTrainerConnections => [
+    if (core.settings.getLocalEnabled()) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
@@ -252,6 +257,7 @@ class CoreLogic {
   ].filter((e) => e.isConnected.value).toList();
 
   List<TrainerConnection> get enabledTrainerConnections => [
+    if (core.settings.getLocalEnabled()) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
@@ -355,5 +361,21 @@ class CoreLogic {
         );
       });
     }
+  }
+}
+
+class Local extends TrainerConnection {
+  Local()
+    : super(
+        title: ConnectionMethodType.local.name.capitalize(),
+        supportedActions: InGameAction.values,
+      );
+
+  @override
+  ValueNotifier<bool> get isConnected => ValueNotifier(core.settings.getLocalEnabled());
+
+  @override
+  Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
+    return NotHandled('');
   }
 }

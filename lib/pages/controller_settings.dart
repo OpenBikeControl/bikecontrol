@@ -24,7 +24,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
   Widget build(BuildContext context) {
     final device = widget.device;
     final trainerApp = core.settings.getTrainerApp();
-    final keymap = trainerApp?.keymap;
+    final keymap = core.actionHandler.supportedApp?.keymap;
 
     return Scaffold(
       headers: [
@@ -299,9 +299,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     bool isDestructive = false,
     Widget? trailing,
   }) {
-    final color = isDestructive
-        ? Theme.of(context).colorScheme.destructive
-        : Theme.of(context).colorScheme.foreground;
+    final color = isDestructive ? Theme.of(context).colorScheme.destructive : Theme.of(context).colorScheme.foreground;
     return GestureDetector(
       onTap: onTap,
       child: MouseRegion(
@@ -316,13 +314,13 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                if (isLoading)
-                  SmallProgressIndicator()
-                else
-                  Icon(icon, size: 16, color: color),
+                if (isLoading) SmallProgressIndicator() else Icon(icon, size: 16, color: color),
                 const Gap(8),
                 Expanded(
-                  child: Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: color)),
+                  child: Text(
+                    label,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: color),
+                  ),
                 ),
                 if (trailing != null) trailing,
               ],

@@ -296,7 +296,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final devices = core.connection.controllerDevices;
     final trainerApp = core.settings.getTrainerApp();
-    final connectedTrainers = core.logic.connectedTrainerConnections;
+    final enabledTrainers = core.logic.enabledTrainerConnections;
 
     for (final d in devices) {
       _cardKeys.putIfAbsent(d.uniqueId, GlobalKey.new);
@@ -318,7 +318,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             const Gap(16),
             _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
             const Gap(8),
-            _buildTrainerCard(trainerApp, connectedTrainers),
+            _buildTrainerCard(trainerApp, enabledTrainers),
           ],
         ),
       );
@@ -355,7 +355,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     const Gap(8),
                     KeyedSubtree(
                       key: _trainerKey,
-                      child: _buildTrainerCard(trainerApp, connectedTrainers),
+                      child: _buildTrainerCard(trainerApp, enabledTrainers),
                     ),
                     const Gap(12),
                     if (_isTrainerConnected && trainerApp != null) _buildFlowStatus(devices.first, trainerApp.name),
@@ -554,10 +554,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   Widget _buildTrainerCard(
     SupportedApp? trainerApp,
-    List<TrainerConnection> connectedTrainers,
+    List<TrainerConnection> enabledTrainers,
   ) {
     final appName = trainerApp?.name ?? 'No app selected';
-    final connectionType = connectedTrainers.isNotEmpty ? connectedTrainers.first.title : null;
 
     return Button.card(
       onPressed: _openTrainerConnectionSettings,
@@ -579,82 +578,35 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               ],
             ),
           ),
-          const Gap(12),
-          if (connectionType != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: BKColor.mainEnd.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+          if (enabledTrainers.isNotEmpty) ...[
+            const Gap(12),
+            Divider(),
+            const Gap(12),
+            for (final enabledTrainer in enabledTrainers)
+              Row(
                 children: [
-                  Icon(Icons.wifi, size: 12, color: BKColor.mainEnd),
-                  const Gap(4),
-                  Text(
-                    connectionType,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: BKColor.mainEnd,
+                  Expanded(
+                    child: Text(
+                      enabledTrainer.title,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: enabledTrainer.isConnected.value
+                            ? Color(0xFF22C55E)
+                            : Theme.of(context).colorScheme.mutedForeground,
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            const Gap(12),
-          ],
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Status',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.mutedForeground,
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+                  const Gap(6),
                   _dot(
                     6,
-                    _isTrainerConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
-                  ),
-                  const Gap(4),
-                  Text(
-                    _isTrainerConnected ? 'Connected' : 'Not connected',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _isTrainerConnected
-                          ? const Color(0xFF22C55E)
-                          : Theme.of(context).colorScheme.mutedForeground,
-                    ),
+                    enabledTrainer.isConnected.value
+                        ? Color(0xFF22C55E)
+                        : Theme.of(context).colorScheme.mutedForeground,
                   ),
                 ],
               ),
-            ],
-          ),
-          const Gap(12),
-          Divider(),
-          const Gap(12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Target Device',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.mutedForeground,
-                ),
-              ),
-              Text('This Device', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-            ],
-          ),
+          ],
           const Gap(12),
           Divider(),
           const Gap(12),

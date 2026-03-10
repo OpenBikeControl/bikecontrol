@@ -412,7 +412,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         ),
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
-                            buildToast(title: 'Enable Local Connection method, first.');
+                            buildToast(title: context.i18n.enableLocalConnectionMethodFirst);
                           } else {
                             showDropdown(
                               context: context,
