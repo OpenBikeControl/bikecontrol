@@ -116,8 +116,6 @@ class SramAxs extends BluetoothDevice {
 
   @override
   Widget showInformation(BuildContext context) {
-    final windowMs = core.settings.getSramAxsDoubleClickWindowMs();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 12,
@@ -131,45 +129,49 @@ class SramAxs extends BluetoothDevice {
           '• SRAM Double Tap, assigned to Shift Down\n\n'
           'You can assign an action to each in the app settings.',
         ).xSmall,
-        Builder(
-          builder: (context) {
-            return PrimaryButton(
-              size: ButtonSize.small,
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text('${windowMs}ms'),
+      ],
+    );
+  }
+
+  @override
+  Widget? buildPreferences(BuildContext context) {
+    final windowMs = core.settings.getSramAxsDoubleClickWindowMs();
+    return Builder(
+      builder: (context) {
+        return PrimaryButton(
+          size: ButtonSize.small,
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text('${windowMs}ms'),
+          ),
+          onPressed: () {
+            final values = [
+              for (var v = 150; v <= 600; v += 50) v,
+            ];
+            showDropdown(
+              context: context,
+              builder: (b) => DropdownMenu(
+                children: values
+                    .map(
+                      (v) => MenuButton(
+                        child: Text('${v}ms'),
+                        onPressed: (c) async {
+                          await core.settings.setSramAxsDoubleClickWindowMs(v);
+                          (context as Element).markNeedsBuild();
+                        },
+                      ),
+                    )
+                    .toList(),
               ),
-              onPressed: () {
-                final values = [
-                  for (var v = 150; v <= 600; v += 50) v,
-                ];
-                showDropdown(
-                  context: context,
-                  builder: (b) => DropdownMenu(
-                    children: values
-                        .map(
-                          (v) => MenuButton(
-                            child: Text('${v}ms'),
-                            onPressed: (c) async {
-                              await core.settings.setSramAxsDoubleClickWindowMs(v);
-                              // Force rebuild to show new value.
-                              (context as Element).markNeedsBuild();
-                            },
-                          ),
-                        )
-                        .toList(),
-                  ),
-                );
-              },
-              child: const Text('Double-click window:'),
             );
           },
-        ),
-      ],
+          child: const Text('Double-click window:'),
+        );
+      },
     );
   }
 }

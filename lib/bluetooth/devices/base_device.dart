@@ -368,6 +368,8 @@ abstract class BaseDevice {
 
   Widget showInformation(BuildContext context);
 
+  Widget? buildPreferences(BuildContext context) => null;
+
   ControllerButton getOrAddButton(String key, ControllerButton Function() creator) {
     if (core.actionHandler.supportedApp == null) {
       return creator();

@@ -260,7 +260,10 @@ class _BikeControlAppState extends State<BikeControlApp> {
                                     });
                                   },
                                 )
-                              : Navigation(page: _showPage ?? widget.page),
+                              : Navigation(
+                                  page: _showPage ?? widget.page,
+                                  showOverview: true,
+                                ),
                         )),
                     Positioned.fill(child: Testbed()),
                   ],
