@@ -27,9 +27,8 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
             return StatefulBuilder(
               builder: (context, setState) {
                 return ConnectionMethod(
+                  trainerConnection: core.zwiftMdnsEmulator,
                   isRecommended: true,
-                  supportedActions: core.zwiftMdnsEmulator.supportedActions,
-                  type: ConnectionMethodType.network,
                   isEnabled: core.settings.getZwiftMdnsEmulatorEnabled(),
                   title: context.i18n.enableZwiftControllerNetwork,
                   description: !isStarted
@@ -38,8 +37,6 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
                       ? context.i18n.connected
                       : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
                   instructionLink: 'INSTRUCTIONS_ZWIFT.md',
-                  isStarted: isStarted,
-                  isConnected: isConnected,
                   onChange: (start) {
                     core.settings.setZwiftMdnsEmulatorEnabled(start);
                     if (start) {

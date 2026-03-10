@@ -22,16 +22,13 @@ class _PairWidgetState extends State<RemoteKeyboardPairingWidget> {
           valueListenable: core.remoteKeyboardPairing.isConnected,
           builder: (context, isConnected, child) {
             return ConnectionMethod(
-              supportedActions: null,
+              trainerConnection: core.remoteKeyboardPairing,
               isRecommended: false,
               isEnabled: core.logic.isRemoteKeyboardControlEnabled,
-              isStarted: isStarted,
               showTroubleshooting: true,
-              type: ConnectionMethodType.bluetooth,
               instructionLink: 'https://youtube.com/shorts/qalBSiAz7wg',
               title: AppLocalizations.of(context).actAsBluetoothKeyboard,
               description: AppLocalizations.of(context).bluetoothKeyboardExplanation,
-              isConnected: isConnected,
               requirements: core.permissions.getRemoteControlRequirements(),
               onChange: (value) async {
                 core.settings.setRemoteKeyboardControlEnabled(value);

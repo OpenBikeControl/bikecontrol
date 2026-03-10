@@ -18,13 +18,8 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
-import 'package:bike_control/widgets/ui/loading_widget.dart';
-import 'package:bike_control/widgets/ui/pro_badge.dart';
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -282,9 +277,7 @@ abstract class BluetoothDevice extends BaseDevice {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: isConnected
-                          ? const Color(0xFF22C55E)
-                          : Theme.of(context).colorScheme.mutedForeground,
+                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -293,84 +286,42 @@ abstract class BluetoothDevice extends BaseDevice {
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   if (isBeta) BetaPill(),
-                ],
-              ),
-            ),
-            Builder(
-              builder: (context) {
-                return LoadingWidget(
-                  futureCallback: () async {
-                    final completer = showDropdown<bool?>(
-                      context: context,
-                      builder: (c) => DropdownMenu(
+
+                  // connBadge
+                  if (isConnected) ...[
+                    Gap(8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          MenuButton(
-                            child: Text('Disconnect and Forget for this session'),
-                            onPressed: (context) {
-                              closeOverlay(context, false);
-                            },
-                          ),
-                          MenuButton(
-                            child: Text('Disconnect and Forget'),
-                            onPressed: (context) {
-                              closeOverlay(context, true);
-                            },
-                          ),
-                          MenuDivider(),
-                          MenuLabel(child: Text('Experimental')),
-                          MenuButton(
-                            trailing:
-                                !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
-                                ? ProBadge()
-                                : null,
-                            onPressed: (overlayContext) async {
-                              await closeOverlay(context, null);
-                              if (!IAPManager.instance.isPurchased.value &&
-                                  !IAPManager.instance.hasActiveSubscription) {
-                                buildToast(
-                                  title: 'This feature is Full Version or Pro only.',
-                                  duration: Duration(seconds: 4),
-                                );
-                                return;
-                              }
-                              openDrawer(
-                                context: context,
-                                position: OverlayPosition.end,
-                                builder: (c) => DeviceScriptDrawer(deviceType: runtimeType.toString()),
-                              );
-                            },
-                            child: Text('Run Script'),
+                          Icon(LucideIcons.bluetooth, size: 12, color: const Color(0xFF16A34A)),
+                          const Gap(4),
+                          Text(
+                            context.i18n.connected,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF16A34A)),
                           ),
                         ],
                       ),
-                    );
-
-                    final persist = await completer.future;
-                    if (persist != null) {
-                      await core.connection.disconnect(this, forget: true, persistForget: persist);
-                    }
-                  },
-                  renderChild: (isLoading, tap) => GestureDetector(
-                    onTap: tap,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.muted,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Center(
-                          child: isLoading
-                              ? SmallProgressIndicator()
-                              : Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-                        ),
-                      ),
                     ),
-                  ),
-                );
-              },
+                  ],
+                ],
+              ),
+            ),
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.muted,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Center(
+                child: Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+              ),
             ),
           ],
         ),
@@ -384,7 +335,11 @@ abstract class BluetoothDevice extends BaseDevice {
                 const Gap(4),
                 Text(
                   '$batteryLevel%',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.mutedForeground),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.mutedForeground,
+                  ),
                 ),
                 if (rssi != null) const Gap(16),
               ],
@@ -407,35 +362,17 @@ abstract class BluetoothDevice extends BaseDevice {
                             >= -85 => 'Fair',
                             _ => 'Weak',
                           },
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.mutedForeground),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          ),
                         ),
                       ],
                     );
                   },
                 ),
             ],
-          ),
-        ],
-        // connBadge
-        if (isConnected) ...[
-          const Gap(12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCFCE7),
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(LucideIcons.bluetooth, size: 12, color: const Color(0xFF16A34A)),
-                const Gap(4),
-                Text(
-                  context.i18n.connected,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF16A34A)),
-                ),
-              ],
-            ),
           ),
         ],
       ],

@@ -29,6 +29,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   OpenBikeControlBluetoothEmulator()
     : super(
         title: connectionTitle,
+        type: ConnectionMethodType.openBikeControl,
         supportedActions: InGameAction.values,
       );
 

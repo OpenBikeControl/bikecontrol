@@ -62,17 +62,20 @@ class _FlowLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (final lane in lanes) {
+      const radius = 8.0;
       final linePaint = Paint()
-        ..color = color.withValues(alpha: 0.25)
-        ..strokeWidth = 2
+        ..color = color.withValues(alpha: 0.45)
+        ..strokeWidth = 4
         ..strokeCap = ui.StrokeCap.round
-        ..strokeJoin = ui.StrokeJoin.miter
+        ..strokeJoin = ui.StrokeJoin.round
         ..style = ui.PaintingStyle.stroke;
 
       final path = ui.Path()
         ..moveTo(lane.startX, lane.startY)
-        ..lineTo(lane.channelX, lane.startY)
-        ..lineTo(lane.channelX, lane.endY)
+        ..lineTo(lane.channelX - radius, lane.startY)
+        ..quadraticBezierTo(lane.channelX, lane.startY, lane.channelX, lane.startY + radius)
+        ..lineTo(lane.channelX, lane.endY - radius)
+        ..quadraticBezierTo(lane.channelX, lane.endY, lane.channelX - radius, lane.endY)
         ..lineTo(lane.endX, lane.endY);
       canvas.drawPath(path, linePaint);
 
@@ -87,13 +90,13 @@ class _FlowLinePainter extends CustomPainter {
       final midY = (lane.startY + lane.endY) / 2;
       final arrowPaint = Paint()
         ..color = color.withValues(alpha: 0.5)
-        ..strokeWidth = 1.5
+        ..strokeWidth = 3
         ..strokeCap = ui.StrokeCap.round
         ..style = ui.PaintingStyle.stroke;
       final chevron = ui.Path()
-        ..moveTo(lane.channelX - 4, midY - 3)
-        ..lineTo(lane.channelX, midY + 1)
-        ..lineTo(lane.channelX + 4, midY - 3);
+        ..moveTo(lane.channelX - 5, midY - 4)
+        ..lineTo(lane.channelX, midY + 2)
+        ..lineTo(lane.channelX + 5, midY - 4);
       canvas.drawPath(chevron, arrowPaint);
     }
   }
@@ -340,7 +343,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             _buildSectionHeader(icon: Icons.gamepad, title: 'Controllers'),
             const Gap(8),
             _buildEmptyCard('No controllers connected'),
-            const Gap(16),
+            const Gap(32),
             _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
             const Gap(8),
             _buildTrainerCard(trainerApp, enabledTrainers),
@@ -377,7 +380,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                         child: _buildControllerCard(devices[i]),
                       ),
                     ],
-                    const Gap(16),
+                    const Gap(32),
                     _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
                     const Gap(8),
                     KeyedSubtree(
@@ -594,49 +597,46 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.muted,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(appName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                Icon(Icons.keyboard_arrow_down, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-              ],
-            ),
+          Row(
+            spacing: 12,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.muted,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(appName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                      Icon(Icons.keyboard_arrow_down, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.muted,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Center(
+                  child: Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+                ),
+              ),
+            ],
           ),
           if (enabledTrainers.isNotEmpty) ...[
             const Gap(12),
             Divider(),
             const Gap(12),
-            for (final enabledTrainer in enabledTrainers)
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      enabledTrainer.title,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: enabledTrainer.isConnected.value
-                            ? Color(0xFF22C55E)
-                            : Theme.of(context).colorScheme.mutedForeground,
-                      ),
-                    ),
-                  ),
-                  const Gap(6),
-                  _dot(
-                    6,
-                    enabledTrainer.isConnected.value
-                        ? Color(0xFF22C55E)
-                        : Theme.of(context).colorScheme.mutedForeground,
-                  ),
-                ],
-              ),
+            for (final enabledTrainer in enabledTrainers) ...[
+              _buildTrainerConnectionRow(enabledTrainer),
+              if (enabledTrainer != enabledTrainers.last) const Gap(6),
+            ],
           ],
           const Gap(12),
           Divider(),
@@ -662,6 +662,48 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTrainerConnectionRow(TrainerConnection trainer) {
+    final connected = trainer.isConnected.value;
+    final started = trainer.isStarted.value;
+    final color = connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground;
+
+    return Row(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: connected ? null : Theme.of(context).colorScheme.muted,
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Icon(
+            trainer.type.icon,
+            size: 16,
+            color: connected ? null : Theme.of(context).colorScheme.mutedForeground,
+          ),
+        ),
+        const Gap(8),
+        Expanded(
+          child: Text(
+            trainer.title,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+          ),
+        ),
+        if (started && !connected)
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5,
+              color: Theme.of(context).colorScheme.mutedForeground,
+            ),
+          )
+        else
+          _dot(6, color),
+      ],
     );
   }
 
@@ -754,17 +796,14 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             Expanded(
               child: Text('Activity', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ),
-            GestureDetector(
-              onTap: () => setState(() => _activityLog.clear()),
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: Text(
-                  'Clear',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.mutedForeground,
-                  ),
+            GhostButton(
+              onPressed: () => setState(() => _activityLog.clear()),
+              child: Text(
+                'Clear',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).colorScheme.mutedForeground,
                 ),
               ),
             ),
@@ -823,14 +862,18 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     // Row bg
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final Color rowBg;
     if (isError) {
-      rowBg = const Color(0xFFFEF2F2);
-    } else if (isLatest && isSuccess) {
-      rowBg = const Color(0xFFF0FDFA);
+      rowBg = isDark ? const Color(0x1AEF4444) : const Color(0xFFFEF2F2);
+    } else if (isSuccess) {
+      rowBg = isDark ? const Color(0x1A22C55E) : const Color(0xFFF0FDFA);
     } else {
       rowBg = Colors.transparent;
     }
+
+    // Error fix action
+    final errorFix = _errorFixAction(entry);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -848,7 +891,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(actionText, style: actionStyle),
-                Text(timeText, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground)),
+                if (errorFix != null)
+                  GhostButton(
+                    onPressed: errorFix.$2,
+                    child: Text(
+                      errorFix.$1,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF0E74B7)),
+                    ),
+                  )
+                else
+                  Text(timeText, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground)),
               ],
             ),
           ),
@@ -857,6 +909,41 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         ],
       ),
     );
+  }
+
+  (String, VoidCallback)? _errorFixAction(_ActivityEntry entry) {
+    final result = entry.result;
+    if (result is! Error) return null;
+
+    final device = core.connection.controllerDevices
+        .where((d) => d.availableButtons.any((b) => b.name == entry.button.name))
+        .firstOrNull;
+
+    return switch (result.type) {
+      ErrorType.noActionAssigned || ErrorType.noKeymapSet => (
+        'Configure button mapping',
+        () {
+          if (device != null) {
+            _openControllerSettings(device);
+          } else {
+            _openTrainerConnectionSettings();
+          }
+        },
+      ),
+      ErrorType.noConnectionMethod || ErrorType.trainerNotConnected => (
+        'Open connection settings',
+        () => _openTrainerConnectionSettings(),
+      ),
+      ErrorType.proRequired => (
+        'Upgrade to Pro',
+        () {}, // handled elsewhere
+      ),
+      ErrorType.headwindNotConnected => (
+        'Connect Headwind fan',
+        () {}, // no dedicated page
+      ),
+      ErrorType.other => null,
+    };
   }
 
   Widget _buildSectionHeader({required IconData icon, required String title}) {

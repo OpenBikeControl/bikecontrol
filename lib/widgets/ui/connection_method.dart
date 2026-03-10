@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/markdown.dart';
@@ -15,20 +16,21 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 enum ConnectionMethodType {
-  bluetooth,
-  network,
-  openBikeControl,
-  local,
+  bluetooth(icon: Icons.bluetooth),
+  network(icon: Icons.wifi),
+  openBikeControl(icon: Icons.directions_bike),
+  local(icon: Icons.keyboard);
+
+  final IconData icon;
+  const ConnectionMethodType({required this.icon});
 }
 
 class ConnectionMethod extends StatefulWidget {
+  final TrainerConnection trainerConnection;
   final String title;
   final String description;
   final String? instructionLink;
-  final ConnectionMethodType type;
   final Widget? additionalChild;
-  final bool? isConnected;
-  final bool? isStarted;
   final bool isRecommended;
   final bool isEnabled;
   final bool showTroubleshooting;
@@ -38,19 +40,17 @@ class ConnectionMethod extends StatefulWidget {
 
   const ConnectionMethod({
     super.key,
+    required this.trainerConnection,
     required this.title,
     required this.isRecommended,
-    required this.type,
     required this.isEnabled,
     this.additionalChild,
     required this.description,
     this.instructionLink,
     this.showTroubleshooting = false,
     required this.onChange,
-    required this.supportedActions,
+    this.supportedActions,
     required this.requirements,
-    this.isConnected,
-    this.isStarted,
   });
 
   @override
@@ -77,7 +77,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (widget.requirements.isNotEmpty && widget.isEnabled && widget.isStarted == false) {
+    if (widget.requirements.isNotEmpty && widget.isEnabled && !widget.trainerConnection.isStarted.value) {
       Future.wait(widget.requirements.map((e) => e.getStatus())).then((states) {
         final allDone = states.all((e) => e);
         if (allDone && widget.isEnabled) {
@@ -126,7 +126,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                 spacing: 8,
                 children: [
                   PrimaryBadge(
-                    trailing: widget.isStarted == true && (widget.isConnected == false)
+                    trailing: widget.trainerConnection.isStarted.value && !widget.trainerConnection.isConnected.value
                         ? SizedBox(
                             width: 19,
                             height: 19,
@@ -134,13 +134,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                               color: Theme.of(context).colorScheme.primaryForeground,
                             ),
                           )
-                        : switch (widget.type) {
-                            ConnectionMethodType.bluetooth => Icon(Icons.bluetooth),
-                            ConnectionMethodType.network => Icon(Icons.wifi),
-                            ConnectionMethodType.openBikeControl => Icon(Icons.directions_bike),
-                            ConnectionMethodType.local => Icon(Icons.keyboard),
-                          },
-                    child: Text(widget.type.name.capitalize()),
+                        : Icon(widget.trainerConnection.type.icon),
+                    child: Text(widget.trainerConnection.type.name.capitalize()),
                   ),
 
                   if (widget.isRecommended) SecondaryBadge(leading: Icon(Icons.star), child: Text('Recommended')),

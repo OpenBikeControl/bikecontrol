@@ -26,16 +26,13 @@ class _PairWidgetState extends State<RemoteMousePairingWidget> {
           valueListenable: core.remotePairing.isConnected,
           builder: (context, isConnected, child) {
             return ConnectionMethod(
-              supportedActions: null,
+              trainerConnection: core.remotePairing,
               isEnabled: core.logic.isRemoteControlEnabled,
-              isStarted: isStarted,
               showTroubleshooting: true,
-              type: ConnectionMethodType.bluetooth,
               isRecommended: false,
               instructionLink: 'INSTRUCTIONS_REMOTE_CONTROL.md',
               title: context.i18n.enablePairingProcess,
               description: context.i18n.pairingDescription,
-              isConnected: isConnected,
               requirements: core.permissions.getRemoteControlRequirements(),
               onChange: (value) async {
                 core.settings.setRemoteControlEnabled(value);

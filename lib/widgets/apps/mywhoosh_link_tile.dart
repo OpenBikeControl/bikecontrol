@@ -27,10 +27,9 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
           valueListenable: core.whooshLink.isConnected,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              trainerConnection: core.whooshLink,
               isRecommended: Platform.isIOS,
-              supportedActions: core.whooshLink.supportedActions,
               isEnabled: core.settings.getMyWhooshLinkEnabled(),
-              type: ConnectionMethodType.network,
               title: context.i18n.connectUsingMyWhooshLink,
               instructionLink: 'INSTRUCTIONS_MYWHOOSH_LINK.md',
               description: isConnected
@@ -67,8 +66,6 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                   });
                 }
               },
-              isStarted: isStarted,
-              isConnected: isConnected,
             );
           },
         );

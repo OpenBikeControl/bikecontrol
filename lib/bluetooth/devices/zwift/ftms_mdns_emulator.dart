@@ -19,6 +19,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
   FtmsMdnsEmulator()
     : super(
         title: connectionTitle,
+        type: ConnectionMethodType.network,
         supportedActions: [
           InGameAction.shiftUp,
           InGameAction.shiftDown,

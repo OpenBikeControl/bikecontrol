@@ -33,10 +33,13 @@ class _LocalTileState extends State<LocalTile> {
     if (core.logic.canRunAndroidService) {
       core.logic.isAndroidServiceRunning().then((isRunning) {
         core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+        core.local.isStarted.value = isRunning;
         setState(() {
           _isRunningAndroidService = isRunning;
         });
       });
+    } else {
+      core.local.isStarted.value = core.settings.getLocalEnabled();
     }
 
     if (Platform.isAndroid) {
@@ -189,9 +192,8 @@ class _LocalTileState extends State<LocalTile> {
         ),
     ];
     return ConnectionMethod(
-      supportedActions: null,
+      trainerConnection: core.local,
       isEnabled: core.settings.getLocalEnabled(),
-      type: ConnectionMethodType.local,
       isRecommended: true,
       showTroubleshooting: true,
       instructionLink: 'INSTRUCTIONS_LOCAL.md',
@@ -201,18 +203,19 @@ class _LocalTileState extends State<LocalTile> {
       ),
       description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
       requirements: core.permissions.getLocalControlRequirements(),
-      isStarted: core.logic.canRunAndroidService ? _isRunningAndroidService == true : core.settings.getLocalEnabled(),
       onChange: (value) {
         core.settings.setLocalEnabled(value);
         setState(() {});
         if (core.logic.canRunAndroidService) {
           core.logic.isAndroidServiceRunning().then((isRunning) {
             core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+            core.local.isStarted.value = isRunning;
             setState(() {
               _isRunningAndroidService = isRunning;
             });
           });
         } else {
+          core.local.isStarted.value = value;
           core.connection.signalNotification(LogNotification('Local Control: $value'));
         }
       },
