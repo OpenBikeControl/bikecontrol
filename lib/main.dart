@@ -12,7 +12,6 @@ import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
-import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -243,31 +242,27 @@ class _BikeControlAppState extends State<BikeControlApp> {
               key: ValueKey('Test'),
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
               child: _Starter(
-                child: Stack(
-                  children: [
+                child:
                     widget.customChild ??
-                        (AnimatedSwitcher(
-                          duration: Duration(milliseconds: 600),
-                          child: core.settings.getShowOnboarding()
-                              ? OnboardingPage(
-                                  onComplete: () {
-                                    setState(() {
-                                      if (core.obpMdnsEmulator.connectedApp.value == null) {
-                                        _showPage = BCPage.trainer;
-                                      } else {
-                                        _showPage = BCPage.devices;
-                                      }
-                                    });
-                                  },
-                                )
-                              : Navigation(
-                                  page: _showPage ?? widget.page,
-                                  showOverview: true,
-                                ),
-                        )),
-                    Positioned.fill(child: Testbed()),
-                  ],
-                ),
+                    (AnimatedSwitcher(
+                      duration: Duration(milliseconds: 600),
+                      child: core.settings.getShowOnboarding()
+                          ? OnboardingPage(
+                              onComplete: () {
+                                setState(() {
+                                  if (core.obpMdnsEmulator.connectedApp.value == null) {
+                                    _showPage = BCPage.trainer;
+                                  } else {
+                                    _showPage = BCPage.devices;
+                                  }
+                                });
+                              },
+                            )
+                          : Navigation(
+                              page: _showPage ?? widget.page,
+                              showOverview: true,
+                            ),
+                    )),
               ),
             ),
     );

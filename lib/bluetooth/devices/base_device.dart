@@ -126,6 +126,12 @@ abstract class BaseDevice {
         return;
       }
 
+      if (!hasLongPressAction && !hasDoubleAction && !hasSingleAction) {
+        // make sure we see this as an error
+        await performClick([button]);
+        return;
+      }
+
       _scheduleLongPress(button);
     } catch (e, st) {
       actionStreamInternal.add(
@@ -306,7 +312,7 @@ abstract class BaseDevice {
         trigger: trigger,
       );
 
-      actionStreamInternal.add(ActionNotification(result));
+      actionStreamInternal.add(ActionNotification(result, button: action));
     }
   }
 
@@ -327,7 +333,7 @@ abstract class BaseDevice {
         isKeyUp: true,
         trigger: trigger,
       );
-      actionStreamInternal.add(ActionNotification(result));
+      actionStreamInternal.add(ActionNotification(result, button: action));
     }
   }
 

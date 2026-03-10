@@ -12,6 +12,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:prop/emulators/shared.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 // ── Data for a single device lane (90° routed path) ──────────────────
@@ -114,6 +115,19 @@ class _FlowLinePainter extends CustomPainter {
   }
 }
 
+// ── Activity log entry ───────────────────────────────────────────────
+
+class _ActivityEntry {
+  final ControllerButton button;
+  final DateTime time;
+  final ActionResult result;
+
+  _ActivityEntry({required this.button, required this.time, required this.result});
+
+  bool get isError => result is Error || result is NotHandled;
+  bool get isSuccess => result is Success;
+}
+
 // ── OverviewPage ─────────────────────────────────────────────────────
 
 class OverviewPage extends StatefulWidget {
@@ -147,14 +161,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   final Map<String, int> _flowGeneration = {};
   String? _lastPressedDeviceId;
 
+  // Activity log
+  final List<_ActivityEntry> _activityLog = [];
+  static const _maxLogEntries = 6;
+
   @override
   void initState() {
     super.initState();
     _actionListener = core.connection.actionStream.listen((notification) {
+      Logger.warn('Notification received: ${notification.runtimeType} - $notification');
       if (notification is ButtonNotification && notification.buttonsClicked.isNotEmpty) {
         _onButtonPressed(notification.device, notification.buttonsClicked.first);
       } else if (notification is ActionNotification) {
-        _onActionResult(notification.result);
+        _onActionResult(notification.result, notification.button);
       }
       _refreshTrainerStatus();
     });
@@ -243,6 +262,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     _flowGeneration[id] = (_flowGeneration[id] ?? 0) + 1;
+
     setState(() {
       _flowButton[id] = button;
       _flowIsError[id] = isError;
@@ -258,10 +278,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     c.forward();
   }
 
-  void _onActionResult(ActionResult result) {
+  void _onActionResult(ActionResult result, ControllerButton button) {
+    // Add activity log entry
+    _activityLog.insert(0, _ActivityEntry(button: button, time: DateTime.now(), result: result));
+    if (_activityLog.length > _maxLogEntries) _activityLog.removeLast();
+
     final id = _lastPressedDeviceId;
     if (id == null || !_flowButton.containsKey(id)) return;
     if (_flowResult.containsKey(id)) return;
+
     setState(() {
       _flowResult[id] = result;
       _flowIsError[id] = result is! Success;
@@ -319,6 +344,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
             const Gap(8),
             _buildTrainerCard(trainerApp, enabledTrainers),
+            const Gap(16),
+            _buildActivityLog(),
           ],
         ),
       );
@@ -357,8 +384,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       key: _trainerKey,
                       child: _buildTrainerCard(trainerApp, enabledTrainers),
                     ),
-                    const Gap(12),
-                    if (_isTrainerConnected && trainerApp != null) _buildFlowStatus(devices.first, trainerApp.name),
+                    const Gap(16),
+                    _buildActivityLog(),
                   ],
                 ),
               ),
@@ -713,27 +740,120 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     );
   }
 
-  Widget _buildFlowStatus(BaseDevice device, String trainerName) {
+  // ── Activity log ────────────────────────────────────────────────────
+
+  Widget _buildActivityLog() {
+    if (_activityLog.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 8,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text('Activity', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            ),
+            GestureDetector(
+              onTap: () => setState(() => _activityLog.clear()),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Text(
+                  'Clear',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.mutedForeground,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.background,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Theme.of(context).colorScheme.border),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < _activityLog.length; i++) ...[
+                if (i > 0) Container(height: 1, color: Theme.of(context).colorScheme.muted),
+                _buildActivityRow(_activityLog[i], isLatest: i == 0),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityRow(_ActivityEntry entry, {required bool isLatest}) {
+    final button = entry.button;
+    final isError = entry.isError;
+    final isSuccess = entry.isSuccess;
+
+    // Action text
+    final String actionText;
+    final TextStyle actionStyle;
+    if (isError) {
+      actionText = entry.result.message;
+      actionStyle = TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        fontStyle: FontStyle.italic,
+        color: Theme.of(context).colorScheme.mutedForeground,
+      );
+    } else {
+      actionText = entry.result.message;
+      actionStyle = const TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
+    }
+
+    // Time
+    final ago = DateTime.now().difference(entry.time);
+    final String timeText;
+    if (ago.inSeconds < 2) {
+      timeText = 'Just now';
+    } else if (ago.inSeconds < 60) {
+      timeText = '${ago.inSeconds}s ago';
+    } else {
+      timeText = '${ago.inMinutes}m ago';
+    }
+
+    // Row bg
+    final Color rowBg;
+    if (isError) {
+      rowBg = const Color(0xFFFEF2F2);
+    } else if (isLatest && isSuccess) {
+      rowBg = const Color(0xFFF0FDFA);
+    } else {
+      rowBg = Colors.transparent;
+    }
+
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: BKColor.mainEnd.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(10),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      color: rowBg,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _dot(6, BKColor.mainEnd),
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: ButtonWidget(button: button),
+          ),
           const Gap(8),
-          Text(
-            'Data flowing: ${device.name} → ${trainerName.split(' ').first}',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: BKColor.mainEnd,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(actionText, style: actionStyle),
+                Text(timeText, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground)),
+              ],
             ),
           ),
+          if (isSuccess) Icon(LucideIcons.check, size: 14, color: const Color(0xFF22C55E)),
+          if (isError) Icon(LucideIcons.triangleAlert, size: 14, color: const Color(0xFFF59E0B)),
         ],
       ),
     );

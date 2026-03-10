@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -31,7 +32,7 @@ class Connection {
   List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
   List<BaseDevice> get controllerDevices => [
-    ...bluetoothDevices.where((d) => d is! WahooKickrHeadwind),
+    ...bluetoothDevices.where((d) => d is! WahooKickrHeadwind && d is! ProxyDevice),
     ...gamepadDevices,
     ...gyroscopeDevices,
     ...devices.whereType<HidDevice>(),
