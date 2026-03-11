@@ -25,7 +25,7 @@ class HoverCardButton extends StatelessWidget {
               hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94),
             )
             .withPadding(
-              padding: EdgeInsets.only(left: 16, top: 16, bottom: 16, right: trailing != null ? 6 : 16),
+              padding: EdgeInsets.only(left: 16, top: 16, bottom: 16, right: trailing != null ? 10 : 16),
             ),
         leading: leading,
         trailing: trailing,

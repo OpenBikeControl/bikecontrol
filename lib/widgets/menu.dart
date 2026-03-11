@@ -7,6 +7,7 @@ import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
@@ -26,7 +27,11 @@ List<Widget> buildMenuButtons(BuildContext context) {
     Builder(
       builder: (context) {
         return Button(
-          style: ButtonStyle.primary().withBackgroundColor(color: iap.isProEnabled ? Colors.green : null),
+          style: ButtonStyle.primary()
+              .withBackgroundColor(color: iap.isProEnabled && false ? BKColor.mainEnd : null)
+              .withBorderRadius(
+                borderRadius: BorderRadius.circular(16),
+              ),
           onPressed: () {
             openDrawer(
               context: context,
@@ -50,8 +55,9 @@ List<Widget> buildMenuButtons(BuildContext context) {
       Gap(8),
       Builder(
         builder: (context) {
-          return OutlineButton(
-            density: ButtonDensity.icon,
+          return IconButton(
+            variance: ButtonVariance.menu,
+            density: ButtonDensity.iconDense,
             onPressed: () {
               showDropdown(
                 context: context,
@@ -74,11 +80,7 @@ List<Widget> buildMenuButtons(BuildContext context) {
                 ),
               );
             },
-            child: Icon(
-              Icons.favorite,
-              color: Colors.red,
-              size: 18,
-            ),
+            icon: Icon(Icons.favorite_outline),
           );
         },
       ),
@@ -111,9 +113,10 @@ class BKMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlineButton(
-      density: ButtonDensity.icon,
-      child: Icon(Icons.more_vert, size: 18),
+    return IconButton(
+      variance: ButtonVariance.menu,
+      density: ButtonDensity.iconDense,
+      icon: Icon(Icons.more_vert),
       onPressed: () => showDropdown(
         context: context,
         builder: (c) => DropdownMenu(

@@ -401,6 +401,7 @@ abstract class BaseDevice {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             spacing: 4,
             children: [
               Row(

@@ -221,7 +221,9 @@ class _BikeControlAppState extends State<BikeControlApp> {
       ),
       locale: screenshotMode ? Locale('en') : null,
       theme: ThemeData(
-        colorScheme: ColorSchemes.lightSlate,
+        colorScheme: ColorSchemes.lightSlate.copyWith(
+          mutedForeground: () => Color(0xFFA1A1AA),
+        ),
       ),
       //themeMode: ThemeMode.light,
       home: widget.error != null

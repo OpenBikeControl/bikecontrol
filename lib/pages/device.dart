@@ -7,6 +7,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/card_button.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -60,27 +61,39 @@ class _DevicePageState extends State<DevicePage> {
         ScanWidget(),
 
         Gap(6),
-        ...core.connection.controllerDevices.map(
-          (device) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            key: widget.cardKeys[device.uniqueId],
-            child: HoverCardButton(
-              onPressed: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),
-                );
-                widget.onUpdate();
-              },
-              trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-              child: Column(
-                children: [
-                  device.showInformation(context),
-                  ...widget.footerBuilder(device),
-                ],
-              ),
-            ),
-          ),
-        ),
+        ...core.connection.controllerDevices
+            .map(
+              (device) => [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  key: widget.cardKeys[device.uniqueId],
+                  child: HoverCardButton(
+                    buttonStyle: ButtonStyle.ghost(),
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),
+                      );
+                      widget.onUpdate();
+                    },
+                    trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                    child: Row(
+                      children: [
+                        Flexible(child: device.showInformation(context)),
+                        if (!widget.isMobile)
+                          Container(
+                            constraints: BoxConstraints(maxWidth: 300),
+                            child: Wrap(
+                              children: widget.footerBuilder(device),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                Divider(thickness: 0.5),
+              ],
+            )
+            .flatten(),
 
         if (core.connection.accessories.isNotEmpty) ...[
           Gap(12),
@@ -116,21 +129,27 @@ class _DevicePageState extends State<DevicePage> {
           ValueListenableBuilder(
             valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
             builder: (context, value, child) {
-              return SelectableCard(
-                isActive: value,
-                icon: value ? Icons.check_box : Icons.check_box_outline_blank,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(context.i18n.enableMediaKeyDetection),
-                    Text(context.i18n.mediaKeyDetectionTooltip).xSmall.normal.muted,
-                  ],
+              return Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 6),
+                child: Button.ghost(
+                  onPressed: () {
+                    final newValue = !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
+                    core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = newValue;
+                    core.settings.setMediaKeyDetectionEnabled(newValue);
+                  },
+                  child: Basic(
+                    title: Text(context.i18n.enableMediaKeyDetection),
+                    subtitle: Text(context.i18n.mediaKeyDetectionTooltip).xSmall.normal.muted,
+                    trailing: Switch(
+                      value: value,
+                      onChanged: (val) {
+                        core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = val;
+                        core.settings.setMediaKeyDetectionEnabled(val);
+                      },
+                    ),
+                  ),
                 ),
-                onPressed: () {
-                  final newValue = !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
-                  core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = newValue;
-                  core.settings.setMediaKeyDetectionEnabled(newValue);
-                },
               );
             },
           ),

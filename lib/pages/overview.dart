@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -524,80 +525,90 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final leftColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Gap(20),
         ValueListenableBuilder(
           valueListenable: IAPManager.instance.isPurchased,
           builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
         ),
-        Row(
-          children: [
-            Expanded(
-              child: _buildSectionHeader(icon: Icons.gamepad, title: AppLocalizations.of(context).controllers),
-            ),
-            if (core.settings.getIgnoredDevices().isNotEmpty)
-              Button.text(
-                style: ButtonStyle.menu(),
-                leading: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.muted,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 6),
-                  margin: EdgeInsets.only(right: 4),
-                  child: Text(
-                    core.settings.getIgnoredDevices().length.toString(),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.mutedForeground,
+        Card(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildSectionHeader(icon: Icons.gamepad, title: AppLocalizations.of(context).controllers),
                     ),
-                  ),
+                    if (core.settings.getIgnoredDevices().isNotEmpty)
+                      Button.text(
+                        style: ButtonStyle.menu(),
+                        leading: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.muted,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          margin: EdgeInsets.only(right: 4),
+                          child: Text(
+                            core.settings.getIgnoredDevices().length.toString(),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.mutedForeground,
+                            ),
+                          ),
+                        ),
+                        onPressed: () async {
+                          await showDialog(
+                            context: context,
+                            builder: (context) => IgnoredDevicesDialog(),
+                          );
+                          setState(() {});
+                        },
+                        child: Text(context.i18n.manageIgnoredDevices).small,
+                      ),
+                  ],
                 ),
-                onPressed: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => IgnoredDevicesDialog(),
-                  );
+              ),
+              DevicePage(
+                cardKeys: _cardKeys,
+                isMobile: widget.isMobile,
+                footerBuilder: (device) {
+                  final id = device.uniqueId;
+                  final pressedButton = _pressedButton[id];
+                  final generation = _pressGeneration[id] ?? 0;
+                  return [
+                    const Gap(12),
+                    Wrap(
+                      alignment: WrapAlignment.start,
+                      runAlignment: WrapAlignment.start,
+                      crossAxisAlignment: WrapCrossAlignment.start,
+                      spacing: 9,
+                      runSpacing: 9,
+                      children: device.availableButtons.map((btn) {
+                        final pressGen = pressedButton?.name == btn.name ? generation : 0;
+                        return _AnimatedButtonWidget(
+                          key: ValueKey(btn.name),
+                          button: btn,
+                          pressGeneration: pressGen,
+                        );
+                      }).toList(),
+                    ),
+                  ];
+                },
+                onUpdate: () {
                   setState(() {});
                 },
-                child: Text(context.i18n.manageIgnoredDevices).small,
               ),
-          ],
-        ),
-        DevicePage(
-          cardKeys: _cardKeys,
-          isMobile: widget.isMobile,
-          footerBuilder: (device) {
-            final id = device.uniqueId;
-            final pressedButton = _pressedButton[id];
-            final generation = _pressGeneration[id] ?? 0;
-            return [
-              const Gap(12),
-              Divider(color: Theme.of(context).colorScheme.border.withAlpha(140), indent: 30, endIndent: 30),
-              const Gap(12),
-              Wrap(
-                alignment: WrapAlignment.start,
-                runAlignment: WrapAlignment.start,
-                crossAxisAlignment: WrapCrossAlignment.start,
-                spacing: 9,
-                runSpacing: 9,
-                children: device.availableButtons.map((btn) {
-                  final pressGen = pressedButton?.name == btn.name ? generation : 0;
-                  return _AnimatedButtonWidget(
-                    key: ValueKey(btn.name),
-                    button: btn,
-                    pressGeneration: pressGen,
-                  );
-                }).toList(),
-              ),
-            ];
-          },
-          onUpdate: () {
-            setState(() {});
-          },
+            ],
+          ),
         ),
         const Gap(22),
-        _buildErrorBanner(),
-        const Gap(22),
-        _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
-        const Gap(8),
+        if (_screenWidth < 800) ...[
+          _buildErrorBanner(),
+          const Gap(22),
+        ],
+
         KeyedSubtree(
           key: _trainerKey,
           child: _buildTrainerCard(trainerApp, enabledTrainers),
@@ -644,7 +655,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       ),
                       SizedBox(
                         width: rightWidth,
-                        child: Padding(
+                        child: Container(
                           padding: EdgeInsets.only(right: hPad, left: hPad),
                           child: activityColumn,
                         ),
@@ -678,7 +689,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
     // Desktop: two-column layout
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Stack(
         key: _stackKey,
         clipBehavior: Clip.none,
@@ -693,15 +703,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   child: leftColumn,
                 ),
               ),
-              SizedBox(width: gutterWidth + 20),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: SizedBox(
-                  width: 400,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 20),
-                    child: activityColumn,
+              Container(
+                decoration: BoxDecoration(
+                  color: Color(0xFFF8FAFB),
+                  border: Border(
+                    left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                    bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
                   ),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 20),
+                constraints: BoxConstraints(maxWidth: min(500, MediaQuery.sizeOf(context).width * 0.4)),
+                child: Container(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: activityColumn,
                 ),
               ),
             ],
@@ -927,6 +941,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
+          const Gap(16),
           Row(
             spacing: 12,
             children: [
@@ -1023,6 +1039,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       children: [
         Row(
           children: [
+            Gap(16),
             Expanded(
               child: _buildSectionHeader(icon: Icons.list, title: 'Activity'),
             ),
@@ -1032,20 +1049,14 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ),
           ],
         ),
-        Card(
-          fillColor: Theme.of(context).colorScheme.background,
-          filled: true,
-          padding: EdgeInsets.zero,
-          clipBehavior: Clip.antiAlias,
-          child: AnimatedList(
-            key: _activityListKey,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            initialItemCount: _activityLog.length,
-            itemBuilder: (context, index, animation) {
-              return _buildAnimatedActivityItem(_activityLog[index], index, animation);
-            },
-          ),
+        AnimatedList(
+          key: _activityListKey,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          initialItemCount: _activityLog.length,
+          itemBuilder: (context, index, animation) {
+            return _buildAnimatedActivityItem(_activityLog[index], index, animation);
+          },
         ),
       ],
     );
@@ -1059,7 +1070,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (index > 0) Divider(color: Theme.of(context).colorScheme.border.withAlpha(160)),
+            if (index > 0)
+              Divider(
+                color: Theme.of(context).colorScheme.border.withAlpha(160),
+                endIndent: 16,
+                indent: 16,
+                thickness: 0.5,
+              ),
             _buildActivityRow(entry, isLatest: index == 0),
           ],
         ),
@@ -1106,6 +1123,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       rowBg = isDark ? const Color(0x1AF59E0B) : const Color(0xFFFFFBEB);
     } else if (isSuccess) {
       rowBg = isDark ? const Color(0x1A22C55E) : const Color(0xFFF0FDFA);
+    } else if (entry.button == null) {
+      rowBg = Color(0xFFDBEAFE);
     } else {
       rowBg = Colors.transparent;
     }
@@ -1113,48 +1132,50 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     // Error fix action
     final errorFix = _errorFixAction(entry);
 
+    const size = 14.0;
     // Leading icon
     final Widget leadingIcon;
     if (button != null) {
-      leadingIcon = ButtonWidget(button: button);
+      leadingIcon = (!isSuccess)
+          ? ButtonWidget(button: button, size: 16, color: const Color(0xFFEF4444))
+          : ButtonWidget(button: button, size: 16, color: const Color(0xFF22C55E));
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_ERROR) {
-      leadingIcon = Icon(LucideIcons.circleX, size: 18, color: const Color(0xFFEF4444));
+      leadingIcon = Icon(LucideIcons.circleX, size: 16, color: const Color(0xFFEF4444));
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {
-      leadingIcon = Icon(LucideIcons.triangleAlert, size: 18, color: const Color(0xFFF59E0B));
+      leadingIcon = Icon(LucideIcons.triangleAlert, size: 16, color: const Color(0xFFF59E0B));
+    } else if (entry.button == null) {
+      leadingIcon = Icon(LucideIcons.bluetooth, size: 16, color: Color(0xFF2563EB));
     } else {
-      leadingIcon = Icon(LucideIcons.info, size: 18, color: Theme.of(context).colorScheme.mutedForeground);
+      leadingIcon = Icon(LucideIcons.info, size: 16, color: Theme.of(context).colorScheme.mutedForeground);
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      color: rowBg,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 24,
-            height: 24,
-            child: Center(child: leadingIcon),
+    return SizedBox(
+      width: double.infinity,
+      child: Basic(
+        padding: EdgeInsets.all(16),
+        leading: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: rowBg,
+            shape: BoxShape.circle,
           ),
-          const Gap(8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                isError ? Text(actionText).xSmall.italic.muted : Text(actionText).xSmall,
-                if (errorFix != null) ...[
-                  Gap(4),
-                  OutlineButton(
-                    onPressed: errorFix.$2,
-                    child: Text(errorFix.$1).xSmall,
-                  ),
-                ] else
-                  Text(timeText).xSmall.muted,
-              ],
-            ),
-          ),
-          if (!entry.isAlert && isSuccess) Icon(LucideIcons.check, size: 14, color: const Color(0xFF22C55E)),
-          if (!entry.isAlert && isError) Icon(LucideIcons.triangleAlert, size: 14, color: const Color(0xFFF59E0B)),
-        ],
+          child: leadingIcon,
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            isError ? Text(actionText, style: TextStyle(color: Color(0xFFEF4444))).small : Text(actionText).small,
+            if (errorFix != null) ...[
+              Gap(4),
+              OutlineButton(
+                onPressed: errorFix.$2,
+                child: Text(errorFix.$1).xSmall,
+              ),
+            ],
+          ],
+        ),
+        trailing: Text(timeText).xSmall.muted,
       ),
     );
   }
@@ -1220,12 +1241,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                 offset: Offset(20 * (1 - t), 0),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final maxW = (constraints.maxWidth * 0.8).clamp(0.0, 400.0);
+                    final maxW = max(400.0, (constraints.maxWidth * 0.8));
                     return ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: maxW),
                       child: entry != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
+                          ? Card(
+                              padding: EdgeInsets.all(2),
+                              borderRadius: BorderRadius.circular(22),
                               child: _buildActivityRow(entry, isLatest: true),
                             )
                           : const SizedBox.shrink(),
@@ -1301,7 +1323,7 @@ class _AnimatedButtonWidgetState extends State<_AnimatedButtonWidget> with Singl
         scale: _scale.value,
         child: child,
       ),
-      child: ButtonWidget(button: widget.button),
+      child: ButtonWidget(button: widget.button, color: Colors.gray),
     );
   }
 }
