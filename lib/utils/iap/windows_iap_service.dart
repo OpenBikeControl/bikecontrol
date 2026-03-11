@@ -58,6 +58,12 @@ class WindowsIAPService {
 
   /// Check if the user has already purchased the app
   Future<void> _checkExistingPurchase() async {
+    if (_entitlementsService.hasActive(IAPManager.fullVersionProductKey) &&
+        IAPManager.instance.isOutsideStoreWindowsBuild) {
+      IAPManager.instance.isPurchased.value = true;
+      return;
+    }
+
     if (_entitlementsService.hasActive(IAPManager.premiumMonthlyProductKey)) {
       IAPManager.instance.isPurchased.value = true;
       return;
@@ -212,6 +218,40 @@ class WindowsIAPService {
       }
     } catch (e, s) {
       recordError(e, s, context: 'Starting Stripe checkout');
+      if (context.mounted) {
+        buildToast(
+          title: 'Checkout Error',
+          subtitle: 'Failed to start checkout. Please try again.',
+        );
+      }
+    }
+  }
+
+  /// Start Stripe Checkout to purchase the full version (one-time payment)
+  /// Shows a dialog if user is not logged in
+  Future<void> purchaseFullVersionViaStripe(BuildContext context) async {
+    if (!isLoggedIn) {
+      await _showLoginRequiredDialog(context);
+      return;
+    }
+
+    try {
+      final storeId = await _windowsIapPlugin.getStoreId();
+      await _stripeService.startCheckout(
+        priceId: 'full',
+        storeId: storeId,
+        successUrl: 'bikecontrol://stripe-success',
+        cancelUrl: 'bikecontrol://stripe-cancel',
+      );
+    } on StripeException catch (e) {
+      if (context.mounted) {
+        buildToast(
+          title: 'Checkout Error',
+          subtitle: e.message,
+        );
+      }
+    } catch (e, s) {
+      recordError(e, s, context: 'Starting Stripe full version checkout');
       if (context.mounted) {
         buildToast(
           title: 'Checkout Error',

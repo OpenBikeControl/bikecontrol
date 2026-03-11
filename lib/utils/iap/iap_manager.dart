@@ -30,6 +30,7 @@ class IAPManager {
 
   static const String premiumMonthlyProductKey = 'premium_monthly';
   static const String premiumYearlyProductKey = 'premium_yearly';
+  static const String fullVersionProductKey = 'full_version';
   static int dailyCommandLimit = 15;
 
   RevenueCatService? _revenueCatService;
@@ -260,7 +261,10 @@ class IAPManager {
   /// Purchase the full version.
   Future<void> purchaseFullVersion(BuildContext context, {bool fromPaywall = false}) async {
     if (isOutsideStoreWindowsBuild) {
-      return purchaseSubscription(context, fromPaywall: fromPaywall);
+      if (!fromPaywall) {
+        return _showPaywall(context, false);
+      }
+      return _windowsIapService!.purchaseFullVersionViaStripe(context);
     }
     if ((Platform.isWindows || Platform.isMacOS) && !fromPaywall) {
       return _showPaywall(context, false);
@@ -403,6 +407,8 @@ class IAPManager {
 
   void _syncPurchaseFlagFromEntitlements() {
     if (isProEnabled) {
+      isPurchased.value = true;
+    } else if (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)) {
       isPurchased.value = true;
     }
   }
