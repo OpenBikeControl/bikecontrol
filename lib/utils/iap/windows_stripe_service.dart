@@ -28,9 +28,9 @@ class WindowsStripeService {
   /// Get the current session
   Session? get _session => _supabase.auth.currentSession;
 
-  /// Start a Stripe Checkout session for subscription purchase
+  /// Start a Stripe Checkout session for purchase
   ///
-  /// [priceId] must be either 'monthly' or 'yearly'
+  /// [priceId] must be 'monthly', 'yearly', or 'full' (one-time purchase)
   /// [successUrl] optional, defaults to app origin + '/success'
   /// [cancelUrl] optional, defaults to app origin + '/cancel'
   ///
@@ -45,8 +45,8 @@ class WindowsStripeService {
       throw StripeException('Authentication required. Please log in to purchase a subscription.');
     }
 
-    if (priceId != 'monthly' && priceId != 'yearly') {
-      throw StripeException('Invalid price_id. Must be "monthly" or "yearly"');
+    if (priceId != 'monthly' && priceId != 'yearly' && priceId != 'full') {
+      throw StripeException('Invalid price_id. Must be "monthly", "yearly", or "full"');
     }
 
     try {
