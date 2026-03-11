@@ -11,7 +11,8 @@ import '../utils/core.dart';
 import 'card_button.dart';
 
 class TrainerFeatures extends StatelessWidget {
-  const TrainerFeatures({super.key});
+  final bool withCard;
+  const TrainerFeatures({super.key, this.withCard = true});
 
   @override
   Widget build(BuildContext context) {
@@ -85,52 +86,66 @@ class TrainerFeatures extends StatelessWidget {
     VoidCallback? onTap,
     bool isNew = false,
   }) {
-    return SizedBox(
-      width: double.infinity,
-      child: HoverCardButton(
-        onPressed: onTap,
-        leading: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: iconBgColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 16, color: iconColor),
-        ),
-        trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(title).small.semiBold,
-                if (isNew) ...[
-                  const Gap(6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: iconColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'NEW',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+    return withCard
+        ? SizedBox(
+            width: double.infinity,
+            child: HoverCardButton(
+              onPressed: onTap,
+              leading: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 16, color: iconColor),
+              ),
+              trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(title).small.semiBold,
+                      if (isNew) ...[
+                        const Gap(6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: iconColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'NEW',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
+                  const Gap(2),
+                  Text(description).xSmall.muted,
                 ],
-              ],
+              ),
             ),
-            const Gap(2),
-            Text(description).xSmall.muted,
-          ],
-        ),
-      ),
-    );
+          )
+        : SizedBox(
+            width: double.infinity,
+            child: Button.ghost(
+              style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12)),
+              onPressed: onTap,
+              child: Basic(
+                title: Text(title),
+                subtitle: Text(description),
+                trailingAlignment: Alignment.centerRight,
+                trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+              ),
+            ),
+          );
   }
 }

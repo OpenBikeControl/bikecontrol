@@ -256,7 +256,7 @@ class CoreLogic {
   ].filter((e) => e.isConnected.value).toList();
 
   List<TrainerConnection> get enabledTrainerConnections => [
-    if (core.settings.getLocalEnabled()) core.local,
+    if (core.settings.getLocalEnabled() && showLocalControl) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,

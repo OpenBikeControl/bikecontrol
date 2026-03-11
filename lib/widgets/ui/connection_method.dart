@@ -1,14 +1,13 @@
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/permissions_list.dart';
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -91,42 +90,42 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
 
   @override
   Widget build(BuildContext context) {
-    return SelectableCard(
-      onPressed: () {
-        if (kIsWeb) {
-          buildToast(title: 'Not Supported on Web :)');
-        } else if (widget.requirements.isEmpty) {
-          widget.onChange(!widget.isEnabled);
-        } else {
-          Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) async {
-            final notDone = widget.requirements.filter((e) => !e.status).toList();
-            if (notDone.isEmpty) {
-              widget.onChange(!widget.isEnabled);
-            } else {
-              await openPermissionSheet(context, notDone);
-              _recheckRequirements();
-              setState(() {});
-            }
-          });
-        }
-      },
-      isActive: widget.isEnabled,
-      icon: widget.isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-      trailing: widget.trainerConnection.isStarted.value && !widget.trainerConnection.isConnected.value
-          ? SizedBox(
-              width: 19,
-              height: 19,
-              child: SmallProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            )
-          : Icon(widget.trainerConnection.type.icon, color: Theme.of(context).colorScheme.primary),
-      title: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 6,
-        children: [
-          Row(
+    void callback() {
+      if (kIsWeb) {
+        buildToast(title: 'Not Supported on Web :)');
+      } else if (widget.requirements.isEmpty) {
+        widget.onChange(!widget.isEnabled);
+      } else {
+        Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) async {
+          final notDone = widget.requirements.filter((e) => !e.status).toList();
+          if (notDone.isEmpty) {
+            widget.onChange(!widget.isEnabled);
+          } else {
+            await openPermissionSheet(context, notDone);
+            _recheckRequirements();
+            setState(() {});
+          }
+        });
+      }
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: Button.card(
+        onPressed: callback,
+        child: Basic(
+          trailing: Switch(
+            value: widget.isEnabled,
+            onChanged: (value) {
+              callback();
+            },
+          ),
+          leading: StatusIcon(
+            status: widget.trainerConnection.isConnected.value,
+            started: widget.trainerConnection.isStarted.value,
+            icon: widget.trainerConnection.type.icon,
+          ),
+          title: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
@@ -141,83 +140,90 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                 SecondaryBadge(child: Text('Recommended')),
             ],
           ),
-          Text(widget.description).xSmall.textMuted,
-          if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
-          if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(),
-          if (widget.instructionLink != null)
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Button(
-                  style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
-                      ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
-                      : ButtonStyle.outline(),
-                  leading: Icon(
-                    widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
-                  ),
-                  onPressed: () {
-                    if (widget.instructionLink!.contains("youtube")) {
-                      launchUrlString(widget.instructionLink!);
-                    } else {
-                      openDrawer(
-                        context: context,
-                        position: OverlayPosition.bottom,
-                        builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
-                      );
-                    }
-                  },
-                  child: Text(AppLocalizations.of(context).instructions),
-                ),
-                if (widget.supportedActions != null)
-                  Button.outline(
-                    leading: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(12),
+          subtitle: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 6,
+            children: [
+              Text(widget.description).xSmall.textMuted,
+              if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
+              if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(),
+              if (widget.instructionLink != null)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Button(
+                      style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
+                          ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
+                          : ButtonStyle.outline(),
+                      leading: Icon(
+                        widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 6),
-                      margin: EdgeInsets.only(right: 4),
-                      child: Text(
-                        widget.supportedActions!.length.toString(),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primaryForeground,
-                        ),
-                      ),
+                      onPressed: () {
+                        if (widget.instructionLink!.contains("youtube")) {
+                          launchUrlString(widget.instructionLink!);
+                        } else {
+                          openDrawer(
+                            context: context,
+                            position: OverlayPosition.bottom,
+                            builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
+                          );
+                        }
+                      },
+                      child: Text(AppLocalizations.of(context).instructions),
                     ),
-                    onPressed: () {
-                      openDrawer(
-                        context: context,
-                        position: OverlayPosition.right,
-                        builder: (c) => Container(
-                          padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                          width: 230,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12,
-                            children: [
-                              ColoredTitle(
-                                text: AppLocalizations.of(context).supportedActions,
-                              ),
-                              Gap(12),
-                              ...widget.supportedActions!.map(
-                                (e) => Basic(
-                                  leading: e.icon != null ? Icon(e.icon) : null,
-                                  title: Text(e.title),
-                                ),
-                              ),
-                            ],
+                    if (widget.supportedActions != null)
+                      Button.outline(
+                        leading: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          margin: EdgeInsets.only(right: 4),
+                          child: Text(
+                            widget.supportedActions!.length.toString(),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primaryForeground,
+                            ),
                           ),
                         ),
-                      );
-                    },
-                    child: Text(AppLocalizations.of(context).supportedActions),
-                  ),
-              ],
-            ),
-        ],
+                        onPressed: () {
+                          openDrawer(
+                            context: context,
+                            position: OverlayPosition.right,
+                            builder: (c) => Container(
+                              padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                              width: 230,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 12,
+                                children: [
+                                  ColoredTitle(
+                                    text: AppLocalizations.of(context).supportedActions,
+                                  ),
+                                  Gap(12),
+                                  ...widget.supportedActions!.map(
+                                    (e) => Basic(
+                                      leading: e.icon != null ? Icon(e.icon) : null,
+                                      title: Text(e.title),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(AppLocalizations.of(context).supportedActions),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

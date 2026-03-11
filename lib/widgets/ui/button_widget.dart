@@ -35,7 +35,7 @@ class ButtonWidget extends StatelessWidget {
               ? Icon(
                   button.icon,
                   color: color ?? Colors.white,
-                  size: big && button.color != null ? null : 14,
+                  size: size ?? (big && button.color != null ? null : 14),
                 )
               : Text(
                   button.displayName.splitByUpperCase(),
