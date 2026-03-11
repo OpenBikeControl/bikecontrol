@@ -408,7 +408,7 @@ abstract class BaseDevice {
                 children: [
                   Text(
                     toString(),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
                   ),
                   if (isBeta) BetaPill(),
                 ],
