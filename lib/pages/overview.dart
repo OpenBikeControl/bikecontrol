@@ -263,6 +263,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   // Activity log
   final List<_ActivityEntry> _activityLog = [];
+  final GlobalKey<AnimatedListState> _activityListKey = GlobalKey<AnimatedListState>();
   static const _maxLogEntries = 20;
 
   // Error banner
@@ -412,10 +413,23 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     });
   }
 
+  void _insertActivityEntry(_ActivityEntry entry) {
+    _activityLog.insert(0, entry);
+    _activityListKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
+    if (_activityLog.length > _maxLogEntries) {
+      final removed = _activityLog.removeLast();
+      final removeIndex = _activityLog.length;
+      _activityListKey.currentState?.removeItem(
+        removeIndex,
+        (context, animation) => _buildAnimatedActivityItem(removed, removeIndex, animation),
+        duration: const Duration(milliseconds: 200),
+      );
+    }
+  }
+
   void _onActionResult(ActionResult result, ControllerButton button) {
     final entry = _ActivityEntry(button: button, time: DateTime.now(), result: result);
-    _activityLog.insert(0, entry);
-    if (_activityLog.length > _maxLogEntries) _activityLog.removeLast();
+    _insertActivityEntry(entry);
 
     if (entry.isError) {
       _latestError = entry;
@@ -454,10 +468,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       alertMessage: notification.alertMessage,
       alertLevel: notification.level,
     );
-    setState(() {
-      _activityLog.insert(0, entry);
-      if (_activityLog.length > _maxLogEntries) _activityLog.removeLast();
-    });
+    _insertActivityEntry(entry);
+    setState(() {});
   }
 
   void _onDeviceFlowDone(String deviceId) {
@@ -618,7 +630,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   for (final lane in lanes)
                     if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
                   for (final lane in lanes)
-                    if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false)) _buildAnimatedActivityChip(lane),
+                    if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
+                      _buildAnimatedActivityChip(lane),
                 ],
               ),
             ),
@@ -672,7 +685,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           for (final lane in lanes)
             if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
           for (final lane in lanes)
-            if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false)) _buildAnimatedActivityChip(lane),
+            if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
+              _buildAnimatedActivityChip(lane),
         ],
       ),
     );
@@ -980,7 +994,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               child: _buildSectionHeader(icon: Icons.list, title: 'Activity'),
             ),
             GhostButton(
-              onPressed: () => setState(() => _activityLog.clear()),
+              onPressed: _clearActivityLog,
               child: Text('Clear').xSmall.muted,
             ),
           ],
@@ -990,17 +1004,46 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           filled: true,
           padding: EdgeInsets.zero,
           clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              for (int i = 0; i < _activityLog.length; i++) ...[
-                if (i > 0) Divider(color: Theme.of(context).colorScheme.border.withAlpha(160)),
-                _buildActivityRow(_activityLog[i], isLatest: i == 0),
-              ],
-            ],
+          child: AnimatedList(
+            key: _activityListKey,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            initialItemCount: _activityLog.length,
+            itemBuilder: (context, index, animation) {
+              return _buildAnimatedActivityItem(_activityLog[index], index, animation);
+            },
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildAnimatedActivityItem(_ActivityEntry entry, int index, Animation<double> animation) {
+    return SizeTransition(
+      sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+      child: FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (index > 0) Divider(color: Theme.of(context).colorScheme.border.withAlpha(160)),
+            _buildActivityRow(entry, isLatest: index == 0),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _clearActivityLog() {
+    for (int i = _activityLog.length - 1; i >= 0; i--) {
+      final entry = _activityLog[i];
+      _activityListKey.currentState?.removeItem(
+        i,
+        (context, animation) => _buildAnimatedActivityItem(entry, i, animation),
+        duration: const Duration(milliseconds: 200),
+      );
+    }
+    _activityLog.clear();
   }
 
   Widget _buildActivityRow(_ActivityEntry entry, {required bool isLatest}) {
