@@ -421,16 +421,26 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
             hintText ?? AppLocalizations.of(context).anotherTriggerIsAlreadyAssignedForThisButton(trigger.title),
           ),
           actions: [
-            Button.secondary(onPressed: () => Navigator.of(c).pop(), child: Text(AppLocalizations.of(context).cancel)),
-            Button.secondary(
-              onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.replaceOtherTriggers),
-              child: Text(AppLocalizations.of(context).replaceExisting),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              spacing: 8,
+              children: [
+                Button.secondary(
+                  onPressed: () => Navigator.of(c).pop(),
+                  child: Text(AppLocalizations.of(context).cancel),
+                ),
+
+                Button.secondary(
+                  onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.replaceOtherTriggers),
+                  child: Text(AppLocalizations.of(context).replaceExisting),
+                ),
+                if (!IAPManager.instance.hasActiveSubscription)
+                  PrimaryButton(
+                    onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
+                    child: Text(AppLocalizations.of(context).goPro),
+                  ),
+              ],
             ),
-            if (!IAPManager.instance.hasActiveSubscription)
-              PrimaryButton(
-                onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
-                child: Text(AppLocalizations.of(context).goPro),
-              ),
           ],
         ),
       ),
