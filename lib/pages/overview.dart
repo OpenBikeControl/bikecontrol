@@ -214,6 +214,8 @@ class OverviewPage extends StatefulWidget {
 class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMixin {
   late StreamSubscription<BaseNotification> _actionListener;
 
+  late double _screenWidth;
+
   // Layout keys
   final GlobalKey _stackKey = GlobalKey();
   final Map<String, GlobalKey> _cardKeys = {};
@@ -227,6 +229,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   double? _trainerCenterY;
   double? _errorBannerRightX;
   double? _errorBannerCenterY;
+  final GlobalKey _activityLogKey = GlobalKey();
+  double? _activityLeftX;
   bool _hasMeasured = false;
 
   // Per-device flow animation state
@@ -262,6 +266,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         _onActionResult(notification.result, notification.button);
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    _screenWidth = MediaQuery.sizeOf(context).width;
+    super.didChangeDependencies();
   }
 
   // ── Position measurement ──────────────────────────────────────────
@@ -302,6 +312,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       final offset = errorBox.localToGlobal(Offset.zero, ancestor: stackBox);
       _errorBannerRightX = offset.dx + errorBox.size.width;
       _errorBannerCenterY = offset.dy + errorBox.size.height / 2;
+    }
+
+    final activityBox = _activityLogKey.currentContext?.findRenderObject() as RenderBox?;
+    if (activityBox != null && activityBox.hasSize) {
+      final offset = activityBox.localToGlobal(Offset.zero, ancestor: stackBox);
+      _activityLeftX = offset.dx;
     }
 
     if (changed || !_hasMeasured) {
@@ -413,6 +429,126 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final gutterWidth = 12.0 + devices.length * _laneWidth;
     final lanes = _hasMeasured ? _buildLanes(devices) : <_Lane>[];
 
+    final leftColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ValueListenableBuilder(
+          valueListenable: IAPManager.instance.isPurchased,
+          builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
+        ),
+        _buildSectionHeader(icon: Icons.gamepad, title: 'Controllers'),
+        DevicePage(
+          cardKeys: _cardKeys,
+          isMobile: widget.isMobile,
+          footerBuilder: (device) {
+            final id = device.uniqueId;
+            final pressedButton = _pressedButton[id];
+            final generation = _pressGeneration[id] ?? 0;
+            return [
+              const Gap(12),
+              Divider(),
+              const Gap(12),
+              Wrap(
+                alignment: WrapAlignment.start,
+                runAlignment: WrapAlignment.start,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                spacing: 9,
+                runSpacing: 9,
+                children: device.availableButtons.map((btn) {
+                  final pressGen = pressedButton?.name == btn.name ? generation : 0;
+                  return _AnimatedButtonWidget(
+                    key: ValueKey(btn.name),
+                    button: btn,
+                    pressGeneration: pressGen,
+                  );
+                }).toList(),
+              ),
+            ];
+          },
+          onUpdate: () {
+            setState(() {});
+          },
+        ),
+        const Gap(16),
+        _buildErrorBanner(),
+        const Gap(16),
+        _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
+        const Gap(8),
+        KeyedSubtree(
+          key: _trainerKey,
+          child: _buildTrainerCard(trainerApp, enabledTrainers),
+        ),
+      ],
+    );
+
+    final activityColumn = KeyedSubtree(
+      key: _activityLogKey,
+      child: _buildActivityLog(),
+    );
+
+    if (_screenWidth < 800) {
+      // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
+      final screenWidth = _screenWidth;
+      final leftWidth = screenWidth * 1;
+      final rightWidth = screenWidth * 0.75;
+      final hPad = 12.0;
+
+      return Scrollbar(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const ClampingScrollPhysics(),
+          child: SizedBox(
+            width: leftWidth + rightWidth,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Stack(
+                key: _stackKey,
+                clipBehavior: Clip.none,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: leftWidth,
+                        child: Padding(
+                          padding: EdgeInsets.only(left: hPad, right: gutterWidth + hPad),
+                          child: leftColumn,
+                        ),
+                      ),
+                      SizedBox(
+                        width: rightWidth,
+                        child: Padding(
+                          padding: EdgeInsets.only(right: hPad, left: hPad),
+                          child: activityColumn,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (lanes.isNotEmpty)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          painter: _FlowLinePainter(
+                            lanes: lanes,
+                            color: BKColor.mainEnd,
+                            isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
+                          ),
+                        ),
+                      ),
+                    ),
+                  for (final lane in lanes)
+                    if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
+                  for (final lane in lanes)
+                    if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedActivityChip(lane),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Desktop: two-column layout
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Stack(
@@ -422,63 +558,24 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Gap(widget.isMobile ? 12 : 20),
+              const Gap(20),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ValueListenableBuilder(
-                      valueListenable: IAPManager.instance.isPurchased,
-                      builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
-                    ),
-                    _buildSectionHeader(icon: Icons.gamepad, title: 'Controllers'),
-                    DevicePage(
-                      cardKeys: _cardKeys,
-                      isMobile: widget.isMobile,
-                      footerBuilder: (device) {
-                        final id = device.uniqueId;
-                        final pressedButton = _pressedButton[id];
-                        final generation = _pressGeneration[id] ?? 0;
-                        return [
-                          const Gap(12),
-                          Divider(),
-                          const Gap(12),
-                          Wrap(
-                            alignment: WrapAlignment.start,
-                            runAlignment: WrapAlignment.start,
-                            crossAxisAlignment: WrapCrossAlignment.start,
-                            spacing: 9,
-                            runSpacing: 9,
-                            children: device.availableButtons.map((btn) {
-                              final pressGen = pressedButton?.name == btn.name ? generation : 0;
-                              return _AnimatedButtonWidget(
-                                key: ValueKey(btn.name),
-                                button: btn,
-                                pressGeneration: pressGen,
-                              );
-                            }).toList(),
-                          ),
-                        ];
-                      },
-                      onUpdate: () {
-                        setState(() {});
-                      },
-                    ),
-                    const Gap(16),
-                    _buildErrorBanner(),
-                    const Gap(16),
-                    _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
-                    const Gap(8),
-                    KeyedSubtree(
-                      key: _trainerKey,
-                      child: _buildTrainerCard(trainerApp, enabledTrainers),
-                    ),
-                    const Gap(16),
-                    _buildActivityLog(),
-                  ],
+                child: Padding(
+                  padding: EdgeInsets.only(right: gutterWidth),
+                  child: leftColumn,
                 ),
               ),
-              SizedBox(width: gutterWidth + (widget.isMobile ? 12 : 20)),
+              SizedBox(width: gutterWidth + 20),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: SizedBox(
+                  width: 400,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 20),
+                    child: activityColumn,
+                  ),
+                ),
+              ),
             ],
           ),
           if (lanes.isNotEmpty)
@@ -495,6 +592,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ),
           for (final lane in lanes)
             if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
+          for (final lane in lanes)
+            if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedActivityChip(lane),
         ],
       ),
     );
@@ -573,6 +672,54 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                 showResult: showResult,
               ),
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimatedActivityChip(_Lane lane) {
+    if (_activityLeftX == null) return const SizedBox.shrink();
+    final controller = _flowControllers[lane.deviceId];
+    final button = _flowButton[lane.deviceId];
+    final isError = _flowIsError[lane.deviceId] ?? false;
+    if (controller == null || button == null) return const SizedBox.shrink();
+
+    final midY = (lane.startY + lane.endY) / 2;
+
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final t = controller.value;
+
+        // Appear at 45% of raw animation time (~270ms) — after the main
+        // chip has clearly passed the vertical channel center.
+        if (t < 0.45) return const SizedBox.shrink();
+
+        // Own eased progress from the split point to end of animation
+        final localT = Curves.easeOutCubic.transform(((t - 0.45) / 0.55).clamp(0.0, 1.0));
+
+        final pos = Offset(
+          lane.channelX + localT * (_activityLeftX! - lane.channelX),
+          midY,
+        );
+
+        double opacity = 1.0;
+        if (localT < 0.15) {
+          opacity = localT / 0.15;
+        } else if (t > 0.82) {
+          opacity = (1.0 - t) / 0.18;
+        }
+
+        final travelT = Curves.easeOutCubic.transform(t.clamp(0.0, 1.0));
+        final showResult = isError ? travelT > 0.2 : travelT >= 0.95;
+
+        return Positioned(
+          left: pos.dx - _chipSize / 2,
+          top: pos.dy - _chipSize / 2,
+          child: Opacity(
+            opacity: opacity.clamp(0.0, 1.0),
+            child: _buildFlowChip(button: button, isError: isError, showResult: showResult),
           ),
         );
       },
@@ -828,8 +975,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   // ── Activity log ────────────────────────────────────────────────────
 
   Widget _buildActivityLog() {
-    if (_activityLog.isEmpty) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
@@ -845,17 +990,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ),
           ],
         ),
-        Container(
+        Card(
+          fillColor: Theme.of(context).colorScheme.background,
+          filled: true,
+          padding: EdgeInsets.zero,
           clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Theme.of(context).colorScheme.border),
-          ),
           child: Column(
             children: [
               for (int i = 0; i < _activityLog.length; i++) ...[
-                if (i > 0) Container(height: 1, color: Theme.of(context).colorScheme.muted),
+                if (i > 0) Divider(),
                 _buildActivityRow(_activityLog[i], isLatest: i == 0),
               ],
             ],
