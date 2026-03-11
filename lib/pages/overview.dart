@@ -14,6 +14,7 @@ import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:prop/emulators/shared.dart';
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/iap/iap_manager.dart';
@@ -191,17 +192,23 @@ class _FlowLinePainter extends CustomPainter {
 // ── Activity log entry ───────────────────────────────────────────────
 
 class _ActivityEntry {
-  final ControllerButton button;
+  final ControllerButton? button;
   final DateTime time;
-  final ActionResult result;
+  final ActionResult? result;
+  final String? alertMessage;
+  final LogLevel? alertLevel;
 
-  _ActivityEntry({required this.button, required this.time, required this.result});
+  _ActivityEntry({this.button, required this.time, this.result, this.alertMessage, this.alertLevel});
 
-  bool get isError => result is Error || result is NotHandled;
+  bool get isAlert => alertMessage != null;
+  bool get isError => result is Error || result is NotHandled || alertLevel == LogLevel.LOGLEVEL_ERROR;
   bool get isSuccess => result is Success;
+  bool get isWarning => alertLevel == LogLevel.LOGLEVEL_WARNING;
+
+  String get message => alertMessage ?? result?.message ?? '';
 }
 
-// ── OverviewPage ─────────────────────────────────────────────────────
+// ── OverviewPage ──────────────iiiiiiiiii───────────────────────────────────────
 
 class OverviewPage extends StatefulWidget {
   final bool isMobile;
@@ -246,7 +253,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   // Activity log
   final List<_ActivityEntry> _activityLog = [];
-  static const _maxLogEntries = 6;
+  static const _maxLogEntries = 20;
 
   // Error banner
   _ActivityEntry? _latestError;
@@ -264,6 +271,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         _onButtonPressed(notification.device, notification.buttonsClicked.first);
       } else if (notification is ActionNotification) {
         _onActionResult(notification.result, notification.button);
+      } else if (notification is AlertNotification) {
+        _onAlert(notification);
       }
     });
   }
@@ -385,6 +394,18 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final c = _controllerFor(id);
     c.reset();
     c.forward();
+  }
+
+  void _onAlert(AlertNotification notification) {
+    final entry = _ActivityEntry(
+      time: DateTime.now(),
+      alertMessage: notification.alertMessage,
+      alertLevel: notification.level,
+    );
+    setState(() {
+      _activityLog.insert(0, entry);
+      if (_activityLog.length > _maxLogEntries) _activityLog.removeLast();
+    });
   }
 
   void _onDeviceFlowDone(String deviceId) {
@@ -998,7 +1019,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           child: Column(
             children: [
               for (int i = 0; i < _activityLog.length; i++) ...[
-                if (i > 0) Divider(),
+                if (i > 0) Divider(color: Theme.of(context).colorScheme.border.withAlpha(160)),
                 _buildActivityRow(_activityLog[i], isLatest: i == 0),
               ],
             ],
@@ -1013,7 +1034,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final isError = entry.isError;
     final isSuccess = entry.isSuccess;
 
-    final actionText = entry.result.message;
+    final actionText = entry.message;
 
     // Time
     final ago = DateTime.now().difference(entry.time);
@@ -1031,6 +1052,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final Color rowBg;
     if (isError) {
       rowBg = isDark ? const Color(0x1AEF4444) : const Color(0xFFFEF2F2);
+    } else if (entry.isWarning) {
+      rowBg = isDark ? const Color(0x1AF59E0B) : const Color(0xFFFFFBEB);
     } else if (isSuccess) {
       rowBg = isDark ? const Color(0x1A22C55E) : const Color(0xFFF0FDFA);
     } else {
@@ -1040,6 +1063,18 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     // Error fix action
     final errorFix = _errorFixAction(entry);
 
+    // Leading icon
+    final Widget leadingIcon;
+    if (button != null) {
+      leadingIcon = ButtonWidget(button: button);
+    } else if (entry.alertLevel == LogLevel.LOGLEVEL_ERROR) {
+      leadingIcon = Icon(LucideIcons.circleX, size: 18, color: const Color(0xFFEF4444));
+    } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {
+      leadingIcon = Icon(LucideIcons.triangleAlert, size: 18, color: const Color(0xFFF59E0B));
+    } else {
+      leadingIcon = Icon(LucideIcons.info, size: 18, color: Theme.of(context).colorScheme.mutedForeground);
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       color: rowBg,
@@ -1048,7 +1083,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           SizedBox(
             width: 24,
             height: 24,
-            child: ButtonWidget(button: button),
+            child: Center(child: leadingIcon),
           ),
           const Gap(8),
           Expanded(
@@ -1066,8 +1101,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               ],
             ),
           ),
-          if (isSuccess) Icon(LucideIcons.check, size: 14, color: const Color(0xFF22C55E)),
-          if (isError) Icon(LucideIcons.triangleAlert, size: 14, color: const Color(0xFFF59E0B)),
+          if (!entry.isAlert && isSuccess) Icon(LucideIcons.check, size: 14, color: const Color(0xFF22C55E)),
+          if (!entry.isAlert && isError) Icon(LucideIcons.triangleAlert, size: 14, color: const Color(0xFFF59E0B)),
         ],
       ),
     );
@@ -1076,9 +1111,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   (String, VoidCallback)? _errorFixAction(_ActivityEntry entry) {
     final result = entry.result;
     if (result is! Error) return null;
+    final button = entry.button;
+    if (button == null) return null;
 
     final device = core.connection.controllerDevices
-        .where((d) => d.availableButtons.any((b) => b.name == entry.button.name))
+        .where((d) => d.availableButtons.any((b) => b.name == button.name))
         .firstOrNull;
 
     return switch (result.type) {
