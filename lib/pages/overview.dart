@@ -55,6 +55,26 @@ class _Lane {
     final f = _seg3 > 0 ? (d - _seg1 - _seg2) / _seg3 : 0.0;
     return Offset(channelX + f * (endX - channelX), endY);
   }
+
+  /// Error path: horizontal → vertical straight down to [targetY], then left to [targetX].
+  Offset errorPositionAt(double t, double targetX, double targetY) {
+    final seg1 = (channelX - startX).abs();
+    final seg2 = (targetY - startY).abs();
+    final seg3 = (channelX - targetX).abs();
+    final total = seg1 + seg2 + seg3;
+    if (total == 0) return Offset(startX, startY);
+    final d = t * total;
+    if (d <= seg1) {
+      final f = seg1 > 0 ? d / seg1 : 0.0;
+      return Offset(startX + f * (channelX - startX), startY);
+    }
+    if (d <= seg1 + seg2) {
+      final f = seg2 > 0 ? (d - seg1) / seg2 : 0.0;
+      return Offset(channelX, startY + f * (targetY - startY));
+    }
+    final f = seg3 > 0 ? (d - seg1 - seg2) / seg3 : 0.0;
+    return Offset(channelX + f * (targetX - channelX), targetY);
+  }
 }
 
 // ── CustomPainter: 90° routed paths with start/end dots ──────────────
@@ -198,12 +218,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   final GlobalKey _stackKey = GlobalKey();
   final Map<String, GlobalKey> _cardKeys = {};
   final GlobalKey _trainerKey = GlobalKey();
+  final GlobalKey _errorBannerKey = GlobalKey();
 
   // Measured pixel positions (relative to the Stack)
   final Map<String, double> _cardRightX = {};
   final Map<String, double> _cardCenterY = {};
   double? _trainerRightX;
   double? _trainerCenterY;
+  double? _errorBannerRightX;
+  double? _errorBannerCenterY;
   bool _hasMeasured = false;
 
   // Per-device flow animation state
@@ -220,6 +243,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   // Activity log
   final List<_ActivityEntry> _activityLog = [];
   static const _maxLogEntries = 6;
+
+  // Error banner
+  _ActivityEntry? _latestError;
+  late final AnimationController _errorBannerController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 350),
+  );
 
   @override
   void initState() {
@@ -267,6 +297,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       }
     }
 
+    final errorBox = _errorBannerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (errorBox != null && errorBox.hasSize) {
+      final offset = errorBox.localToGlobal(Offset.zero, ancestor: stackBox);
+      _errorBannerRightX = offset.dx + errorBox.size.width;
+      _errorBannerCenterY = offset.dy + errorBox.size.height / 2;
+    }
+
     if (changed || !_hasMeasured) {
       _hasMeasured = true;
       setState(() {});
@@ -299,8 +336,21 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   void _onActionResult(ActionResult result, ControllerButton button) {
-    _activityLog.insert(0, _ActivityEntry(button: button, time: DateTime.now(), result: result));
+    final entry = _ActivityEntry(button: button, time: DateTime.now(), result: result);
+    _activityLog.insert(0, entry);
     if (_activityLog.length > _maxLogEntries) _activityLog.removeLast();
+
+    if (entry.isError) {
+      _latestError = entry;
+      _errorBannerController.forward(from: 0);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _measurePositions();
+      });
+    } else if (_latestError != null) {
+      _errorBannerController.reverse().then((_) {
+        if (mounted) setState(() => _latestError = null);
+      });
+    }
 
     final id = button.sourceDeviceId;
     if (id == null || !_hasMeasured || !_cardCenterY.containsKey(id) || _trainerCenterY == null) {
@@ -339,6 +389,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     for (final c in _flowControllers.values) {
       c.dispose();
     }
+    _errorBannerController.dispose();
     _actionListener.cancel();
     super.dispose();
   }
@@ -381,7 +432,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
                     ),
                     _buildSectionHeader(icon: Icons.gamepad, title: 'Controllers'),
-                    const Gap(8),
                     DevicePage(
                       cardKeys: _cardKeys,
                       isMobile: widget.isMobile,
@@ -414,7 +464,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                         setState(() {});
                       },
                     ),
-                    const Gap(32),
+                    const Gap(16),
+                    _buildErrorBanner(),
+                    const Gap(16),
                     _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
                     const Gap(8),
                     KeyedSubtree(
@@ -489,10 +541,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         final t = controller.value;
         final travelT = Curves.easeOutCubic.transform(t.clamp(0.0, 1.0));
 
-        final maxProgress = isError ? 0.45 : 1.0;
-        final progress = (travelT * maxProgress).clamp(0.0, maxProgress);
-
-        final pos = lane.positionAt(progress);
+        final Offset pos;
+        final bool showResult;
+        if (isError && _errorBannerCenterY != null && _errorBannerRightX != null) {
+          pos = lane.errorPositionAt(travelT, _errorBannerRightX!, _errorBannerCenterY!);
+          showResult = travelT > 0.2;
+        } else {
+          pos = lane.positionAt(travelT);
+          showResult = travelT >= 0.95;
+        }
 
         double opacity = 1.0;
         if (t < 0.08) {
@@ -501,13 +558,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           opacity = (1.0 - t) / 0.18;
         }
 
-        double scale = 1.0;
-        if (isError && travelT >= maxProgress) {
-          final p = ((travelT - maxProgress) / (1.0 - maxProgress)).clamp(0.0, 1.0);
-          scale = 1.0 + 0.15 * (1.0 - Curves.easeOut.transform(p));
-        }
-
-        final showResult = travelT >= maxProgress * 0.95;
+        const scale = 1.0;
 
         return Positioned(
           left: pos.dx - _chipSize / 2,
@@ -912,6 +963,50 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       ),
       ErrorType.other => null,
     };
+  }
+
+  Widget _buildErrorBanner() {
+    return KeyedSubtree(
+      key: _errorBannerKey,
+      child: AnimatedBuilder(
+        animation: _errorBannerController,
+        builder: (context, _) {
+          final entry = _latestError;
+          if (entry == null && _errorBannerController.value == 0) {
+            return const SizedBox.shrink();
+          }
+
+          final t = CurvedAnimation(
+            parent: _errorBannerController,
+            curve: Curves.easeOutCubic,
+          ).value;
+
+          return Align(
+            alignment: Alignment.centerRight,
+            child: Opacity(
+              opacity: t,
+              child: Transform.translate(
+                offset: Offset(20 * (1 - t), 0),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final maxW = (constraints.maxWidth * 0.8).clamp(0.0, 400.0);
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxW),
+                      child: entry != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: _buildActivityRow(entry, isLatest: true),
+                            )
+                          : const SizedBox.shrink(),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildSectionHeader({required IconData icon, required String title}) {

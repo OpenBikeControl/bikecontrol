@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -10,6 +11,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_screen_capture/flutter_screen_capture.dart';
@@ -172,7 +174,10 @@ class DesktopActions extends BaseActions {
         }
       }
     }
-    return NotHandled('Action not handled for button: ${button.displayName}');
+    return Error(
+      AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
+      type: ErrorType.noActionAssigned,
+    );
   }
 
   // Release all held keys (useful for cleanup)
