@@ -114,12 +114,6 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
       child: Button.card(
         onPressed: callback,
         child: Basic(
-          trailing: Switch(
-            value: widget.isEnabled,
-            onChanged: (value) {
-              callback();
-            },
-          ),
           leading: StatusIcon(
             status: widget.trainerConnection.isConnected.value,
             started: widget.trainerConnection.isStarted.value,
@@ -138,6 +132,12 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                 )
               else if (widget.isRecommended)
                 SecondaryBadge(child: Text('Recommended')),
+              Switch(
+                value: widget.isEnabled,
+                onChanged: (value) {
+                  callback();
+                },
+              ),
             ],
           ),
           subtitle: Column(

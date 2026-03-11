@@ -35,17 +35,18 @@ class _ScanWidgetState extends State<ScanWidget> {
           Basic(
             padding: EdgeInsets.all(12),
             title: Column(
-              spacing: 4,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(context.i18n.permissionsRequired).xSmall.normal,
+                Gap(12),
                 ..._needsPermissions!.map((e) => Text(e.name).xSmall.normal.li),
               ],
             ),
-            subtitle: Padding(
+            subtitle: Container(
+              width: double.infinity,
               padding: const EdgeInsets.only(top: 12.0),
               child: PrimaryButton(
-                child: Text(context.i18n.enablePermissions),
+                child: Center(child: Text(context.i18n.enablePermissions)),
                 onPressed: () async {
                   await openPermissionSheet(context, _needsPermissions!);
                   _checkRequirements();

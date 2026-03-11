@@ -209,8 +209,10 @@ class _ActivityEntry {
   final ActionResult? result;
   final String? alertMessage;
   final LogLevel? alertLevel;
+  final String? buttonTitle;
+  final VoidCallback? onTap;
 
-  _ActivityEntry({this.button, required this.time, this.result, this.alertMessage, this.alertLevel});
+  _ActivityEntry({this.button, required this.time, this.result, this.alertMessage, this.alertLevel, this.buttonTitle, this.onTap});
 
   bool get isAlert => alertMessage != null;
   bool get isError => result is Error || result is NotHandled || alertLevel == LogLevel.LOGLEVEL_ERROR;
@@ -470,8 +472,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       time: DateTime.now(),
       alertMessage: notification.alertMessage,
       alertLevel: notification.level,
+      buttonTitle: notification.buttonTitle,
+      onTap: notification.onTap,
     );
     _insertActivityEntry(entry);
+
+    if (notification.onTap != null) {
+      _latestError = entry;
+      _errorBannerController.forward(from: 0);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _measurePositions();
+      });
+    }
+
     setState(() {});
   }
 
@@ -569,6 +582,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   ],
                 ),
               ),
+              Gap(8),
               DevicePage(
                 cardKeys: _cardKeys,
                 isMobile: widget.isMobile,
@@ -624,8 +638,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     if (_screenWidth < 800) {
       // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
       final screenWidth = _screenWidth;
-      final leftWidth = screenWidth * 1;
-      final rightWidth = screenWidth * 0.75;
+      final leftWidth = screenWidth * 0.98;
+      final rightWidth = screenWidth * 0.85;
       final hPad = 12.0;
 
       return Scrollbar(
@@ -638,7 +652,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           child: SizedBox(
             width: leftWidth + rightWidth,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Stack(
                 key: _stackKey,
                 clipBehavior: Clip.none,
@@ -649,14 +662,22 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       SizedBox(
                         width: leftWidth,
                         child: Padding(
-                          padding: EdgeInsets.only(left: hPad, right: gutterWidth + hPad),
+                          padding: EdgeInsets.only(left: hPad, right: gutterWidth - 10 + hPad),
                           child: leftColumn,
                         ),
                       ),
-                      SizedBox(
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF8FAFB),
+                          border: Border(
+                            left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                            bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                          ),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 20),
                         width: rightWidth,
                         child: Container(
-                          padding: EdgeInsets.only(right: hPad, left: hPad),
+                          padding: const EdgeInsets.only(right: 20),
                           child: activityColumn,
                         ),
                       ),
@@ -787,7 +808,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
         final Offset pos;
         final bool showResult;
-        if (isError && _errorBannerCenterY != null && _errorBannerRightX != null) {
+        if (isError && _screenWidth >= 800 && _errorBannerCenterY != null && _errorBannerRightX != null) {
           pos = lane.errorPositionAt(travelT, _errorBannerRightX!, _errorBannerCenterY!);
           showResult = travelT > 0.2;
         } else {
@@ -1170,6 +1191,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               OutlineButton(
                 onPressed: errorFix.$2,
                 child: Text(errorFix.$1).xSmall,
+              ),
+            ],
+            if (entry.onTap != null && entry.buttonTitle != null) ...[
+              Gap(4),
+              OutlineButton(
+                onPressed: entry.onTap!,
+                child: Text(entry.buttonTitle!).xSmall,
               ),
             ],
           ],

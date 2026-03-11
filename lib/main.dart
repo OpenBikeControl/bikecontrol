@@ -11,6 +11,7 @@ import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -223,6 +224,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
       theme: ThemeData(
         colorScheme: ColorSchemes.lightSlate.copyWith(
           mutedForeground: () => Color(0xFFA1A1AA),
+          primary: () => BKColor.main,
         ),
         radius: 0.7,
       ),

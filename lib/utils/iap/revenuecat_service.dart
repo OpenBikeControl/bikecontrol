@@ -252,6 +252,7 @@ class RevenueCatService {
       );
       recordError(e, s, context: 'Restore Purchases');
       debugPrint('Error restoring purchases: $e');
+      rethrow;
     }
   }
 
