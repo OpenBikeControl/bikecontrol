@@ -1019,7 +1019,6 @@ class SelectableCard extends StatelessWidget {
                       ),
                     )
                   : null,
-              leadingAlignment: Alignment.centerLeft,
               title: title,
               subtitle: value != null && isActive ? Text(value!) : subtitle,
               trailing: trailing,

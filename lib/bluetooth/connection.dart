@@ -405,6 +405,14 @@ class Connection {
         final connectionStateSubscription = device.device.connectionStream.listen((state) {
           device.isConnected = state;
           _connectionStreams.add(device);
+          if (!state) {
+            _actionStreams.add(
+              AlertNotification(
+                state ? LogLevel.LOGLEVEL_INFO : LogLevel.LOGLEVEL_WARNING,
+                '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+              ),
+            );
+          }
           core.flutterLocalNotificationsPlugin.show(
             1338,
             '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',

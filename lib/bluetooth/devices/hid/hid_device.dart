@@ -44,7 +44,7 @@ class HidDevice extends BaseDevice {
           Warning(
             children: [
               Text(
-                'For it to work properly, even when BikeControl is in the background, you need to enable the local connection method in the next tab.',
+                'For it to work properly, even when BikeControl is in the background, you need to enable the local connection method in the trainer settings.',
               ).small,
             ],
           ),

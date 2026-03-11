@@ -51,37 +51,42 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
         Divider(),
       ],
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Device card
-            _buildDeviceCard(device),
-            const Gap(24),
+        padding: EdgeInsets.only(bottom: 16, left: 16, right: 16, top: 16),
+        child: Center(
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 800),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Device card
+                _buildDeviceCard(device),
+                const Gap(24),
 
-            // Button mapping
-            if (keymap != null) ...[
-              _buildSectionHeader('Button Mapping', trailing: _buildTrainerLabel(trainerApp!.name)),
-              const Gap(12),
-              KeymapExplanation(
-                keymap: keymap,
-                onUpdate: () => setState(() {}),
-                filterDevice: device,
-              ),
-              const Gap(24),
-            ],
+                // Button mapping
+                if (keymap != null) ...[
+                  _buildSectionHeader('Button Mapping', trailing: _buildTrainerLabel(trainerApp!.name)),
+                  const Gap(12),
+                  KeymapExplanation(
+                    keymap: keymap,
+                    onUpdate: () => setState(() {}),
+                    filterDevice: device,
+                  ),
+                  const Gap(24),
+                ],
 
-            // Preferences
-            if (device.buildPreferences(context) != null) ...[
-              _buildSectionHeader('Preferences'),
-              const Gap(16),
-              device.buildPreferences(context)!,
-              const Gap(24),
-            ],
+                // Preferences
+                if (device.buildPreferences(context) != null) ...[
+                  _buildSectionHeader('Preferences'),
+                  const Gap(16),
+                  device.buildPreferences(context)!,
+                  const Gap(24),
+                ],
 
-            // Actions
-            _buildActions(device),
-          ],
+                // Actions
+                _buildActions(device),
+              ],
+            ),
+          ),
         ),
       ),
     );

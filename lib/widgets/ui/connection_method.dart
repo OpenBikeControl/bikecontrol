@@ -112,38 +112,38 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
       },
       isActive: widget.isEnabled,
       icon: widget.isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+      trailing: widget.trainerConnection.isStarted.value && !widget.trainerConnection.isConnected.value
+          ? SizedBox(
+              width: 19,
+              height: 19,
+              child: SmallProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            )
+          : Icon(widget.trainerConnection.type.icon, color: Theme.of(context).colorScheme.primary),
       title: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 8,
+        spacing: 6,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
-              widget.trainerConnection.isStarted.value && !widget.trainerConnection.isConnected.value
-                  ? SizedBox(
-                      width: 19,
-                      height: 19,
-                      child: SmallProgressIndicator(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    )
-                  : Icon(widget.trainerConnection.type.icon, color: Theme.of(context).colorScheme.primary),
-
               Flexible(child: Text(widget.title)),
               if (widget.title == context.i18n.enablePairingProcess ||
                   widget.title == context.i18n.enableZwiftControllerBluetooth)
                 Padding(
                   padding: const EdgeInsets.only(top: 1.0),
                   child: BetaPill(),
-                ),
+                )
+              else if (widget.isRecommended)
+                SecondaryBadge(child: Text('Recommended')),
             ],
           ),
-          if (widget.isRecommended) SecondaryBadge(leading: Icon(Icons.star), child: Text('Recommended')),
-          Text(widget.description).textMuted,
+          Text(widget.description).xSmall.textMuted,
           if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
-          if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(height: 8),
+          if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(),
           if (widget.instructionLink != null)
             Wrap(
               spacing: 8,

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -12,11 +13,17 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
+import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/shared.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../main.dart';
 import '../utils/iap/iap_manager.dart';
 import 'device.dart';
 
@@ -218,8 +225,9 @@ class OverviewPage extends StatefulWidget {
   State<OverviewPage> createState() => _OverviewPageState();
 }
 
-class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMixin {
+class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMixin, WidgetsBindingObserver {
   late StreamSubscription<BaseNotification> _actionListener;
+  late Timer _timeRefreshTimer;
 
   late double _screenWidth;
 
@@ -265,6 +273,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
+
+    // keep screen on - this is required for iOS to keep the bluetooth connection alive
+    if (!screenshotMode) {
+      WakelockPlus.enable();
+    }
+
+    _timeRefreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (_activityLog.isNotEmpty) setState(() {});
+    });
     _actionListener = core.connection.actionStream.listen((notification) {
       Logger.warn('Notification received: ${notification.runtimeType} - $notification');
       if (notification is ButtonNotification && notification.buttonsClicked.isNotEmpty) {
@@ -275,12 +292,45 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         _onAlert(notification);
       }
     });
+
+    WidgetsBinding.instance.addObserver(this);
+
+    if (!kIsWeb) {
+      if (core.logic.showForegroundMessage) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // show snackbar to inform user that the app needs to stay in foreground
+          buildToast(title: AppLocalizations.current.touchSimulationForegroundMessage);
+        });
+      }
+
+      core.whooshLink.isStarted.addListener(() {
+        if (mounted) setState(() {});
+      });
+
+      core.zwiftEmulator.isConnected.addListener(() {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   @override
   void didChangeDependencies() {
     _screenWidth = MediaQuery.sizeOf(context).width;
     super.didChangeDependencies();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (core.logic.showForegroundMessage) {
+        UniversalBle.getBluetoothAvailabilityState().then((state) {
+          if (state == AvailabilityState.poweredOn && mounted) {
+            core.remotePairing.reconnect();
+            buildToast(title: AppLocalizations.current.touchSimulationForegroundMessage);
+          }
+        });
+      }
+    }
   }
 
   // ── Position measurement ──────────────────────────────────────────
@@ -423,10 +473,14 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _horizontalScrollController.dispose();
+
     for (final c in _flowControllers.values) {
       c.dispose();
     }
     _errorBannerController.dispose();
+    _timeRefreshTimer.cancel();
     _actionListener.cancel();
     super.dispose();
   }
@@ -515,7 +569,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       final hPad = 12.0;
 
       return Scrollbar(
+        controller: _horizontalScrollController,
         child: SingleChildScrollView(
+          controller: _horizontalScrollController,
           scrollDirection: Axis.horizontal,
           physics: const ClampingScrollPhysics(),
           child: SizedBox(
@@ -624,6 +680,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   static const _chipSize = 26.0;
   static const _laneWidth = 16.0;
+
+  late final ScrollController _horizontalScrollController = ScrollController();
 
   List<_Lane> _buildLanes(List<BaseDevice> devices) {
     final lanes = <_Lane>[];
@@ -890,37 +948,40 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final started = trainer.isStarted.value;
     final color = connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground;
 
-    return Row(
-      children: [
-        Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            color: connected ? null : Theme.of(context).colorScheme.muted,
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Icon(
-            trainer.type.icon,
-            size: 16,
-            color: connected ? null : Theme.of(context).colorScheme.mutedForeground,
-          ),
-        ),
-        const Gap(8),
-        Expanded(
-          child: connected ? Text(trainer.title).xSmall.semiBold : Text(trainer.title).xSmall.semiBold.muted,
-        ),
-        if (started && !connected)
-          SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(
-              strokeWidth: 1.5,
-              color: Theme.of(context).colorScheme.mutedForeground,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: connected ? null : Theme.of(context).colorScheme.muted,
+              borderRadius: BorderRadius.circular(5),
             ),
-          )
-        else
-          _dot(6, color),
-      ],
+            child: Icon(
+              trainer.type.icon,
+              size: 16,
+              color: connected ? null : Theme.of(context).colorScheme.mutedForeground,
+            ),
+          ),
+          const Gap(8),
+          Expanded(
+            child: connected ? Text(trainer.title).xSmall.semiBold : Text(trainer.title).xSmall.semiBold.muted,
+          ),
+          if (started && !connected)
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                color: Theme.of(context).colorScheme.mutedForeground,
+              ),
+            )
+          else
+            _dot(6, color),
+        ],
+      ),
     );
   }
 
@@ -1091,12 +1152,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 isError ? Text(actionText).xSmall.italic.muted : Text(actionText).xSmall,
-                if (errorFix != null)
-                  GhostButton(
+                if (errorFix != null) ...[
+                  Gap(4),
+                  OutlineButton(
                     onPressed: errorFix.$2,
                     child: Text(errorFix.$1).xSmall,
-                  )
-                else
+                  ),
+                ] else
                   Text(timeText).xSmall.muted,
               ],
             ),
@@ -1190,13 +1252,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   Widget _buildSectionHeader({required IconData icon, required String title}) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: BKColor.main),
-        const Gap(6),
-        Text(title).xSmall,
-      ],
-    );
+    return ColoredTitle(text: title, icon: icon);
   }
 
   Widget _dot(double size, Color color) {

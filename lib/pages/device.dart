@@ -151,16 +151,9 @@ class _DevicePageState extends State<DevicePage> {
                 icon: value ? Icons.check_box : Icons.check_box_outline_blank,
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
                   children: [
                     Text(context.i18n.enableMediaKeyDetection),
-                    Text(
-                      context.i18n.mediaKeyDetectionTooltip,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
+                    Text(context.i18n.mediaKeyDetectionTooltip).xSmall.normal.muted,
                   ],
                 ),
                 onPressed: () {
