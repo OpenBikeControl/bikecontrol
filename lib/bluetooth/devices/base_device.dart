@@ -108,7 +108,9 @@ abstract class BaseDevice {
 
       final button = buttonsClicked.single;
       final wasAlreadyPressed =
-          _previouslyPressedButtons.length == 1 && _previouslyPressedButtons.singleOrNull == button;
+          supportsLongPress &&
+          _previouslyPressedButtons.length == 1 &&
+          _previouslyPressedButtons.singleOrNull == button;
       _previouslyPressedButtons = {button};
       if (wasAlreadyPressed) {
         return;
