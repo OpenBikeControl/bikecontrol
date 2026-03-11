@@ -24,6 +24,7 @@ class GyroscopeSteering extends BaseDevice {
         isBeta: true,
         uniqueId: 'gyroscope_steering_device',
         buttonPrefix: 'gyro',
+        icon: LucideIcons.phone,
       );
 
   StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;

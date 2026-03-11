@@ -4,7 +4,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -118,6 +118,7 @@ class _TestDevice extends BaseDevice {
         'TestDevice',
         uniqueId: 'test-device-id',
         availableButtons: [button],
+        icon: Icons.gamepad,
       );
 
   @override

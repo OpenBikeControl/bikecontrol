@@ -202,17 +202,6 @@ abstract class ZwiftDevice extends BluetoothDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
-    return Column(
-      spacing: 16,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        super.showInformation(context),
-      ],
-    );
-  }
-
-  @override
   Widget? buildPreferences(BuildContext context) {
     if (!canVibrate) return null;
     return Checkbox(

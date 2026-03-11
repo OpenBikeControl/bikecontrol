@@ -8,7 +8,13 @@ import 'package:flutter/material.dart' show PopupMenuButton, PopupMenuItem;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class HidDevice extends BaseDevice {
-  HidDevice(super.name) : super(availableButtons: [], uniqueId: name!, supportsLongPress: false);
+  HidDevice(super.name)
+    : super(
+        availableButtons: [],
+        uniqueId: name!,
+        supportsLongPress: false,
+        icon: LucideIcons.gamepad2,
+      );
 
   @override
   Future<void> connect() {

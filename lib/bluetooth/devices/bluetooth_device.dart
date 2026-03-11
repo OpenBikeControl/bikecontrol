@@ -15,10 +15,8 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -42,6 +40,7 @@ abstract class BluetoothDevice extends BaseDevice {
     String? buttonPrefix,
   }) : super(
          scanResult.name,
+         icon: LucideIcons.gamepad,
          uniqueId: scanResult.deviceId,
          availableButtons: allowMultiple
              ? availableButtons.toList().map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
@@ -261,95 +260,64 @@ abstract class BluetoothDevice extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // cardTopRow: status dot + name + gear/menu button
-        Row(
-          children: [
-            Expanded(
-              child: Row(
-                spacing: 6,
+  List<Widget> showMetaInformation(BuildContext context) {
+    return [
+      // metaRow: battery + signal
+      if (batteryLevel != null || rssi != null) ...[
+        const Gap(4),
+        if (batteryLevel != null) ...[
+          Icon(
+            switch (batteryLevel!) {
+              >= 80 => LucideIcons.batteryFull,
+              >= 60 => LucideIcons.batteryFull,
+              >= 50 => LucideIcons.batteryMedium,
+              >= 25 => LucideIcons.batteryLow,
+              >= 10 => LucideIcons.batteryLow,
+              _ => LucideIcons.batteryWarning,
+            },
+            size: 14,
+            color: batteryLevel! < 20 ? Theme.of(context).colorScheme.destructive : const Color(0xFF22C55E),
+          ),
+          const Gap(4),
+          Text(
+            '$batteryLevel%',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.mutedForeground,
+            ),
+          ),
+          if (rssi != null) const Gap(16),
+        ],
+        if (rssi != null)
+          StreamBuilder(
+            stream: core.connection.rssiConnectionStream.where((device) => device == this).map((event) => event.rssi),
+            builder: (context, rssiValue) {
+              final currentRssi = rssiValue.data ?? rssi!;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
-                      shape: BoxShape.circle,
+                  Icon(LucideIcons.signal, size: 14, color: const Color(0xFF22C55E)),
+                  const Gap(4),
+                  Text(
+                    switch (currentRssi) {
+                      >= -50 => 'Strong',
+                      >= -70 => 'Good',
+                      >= -85 => 'Fair',
+                      _ => 'Weak',
+                    },
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.mutedForeground,
                     ),
                   ),
-                  Text(toString().screenshot).bold,
-                  if (isBeta) BetaPill(),
                 ],
-              ),
-            ),
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.muted,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Center(
-                child: Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-              ),
-            ),
-          ],
-        ),
-        // metaRow: battery + signal
-        if (batteryLevel != null || rssi != null) ...[
-          const Gap(12),
-          Row(
-            children: [
-              if (batteryLevel != null) ...[
-                Icon(LucideIcons.batteryFull, size: 14, color: const Color(0xFF22C55E)),
-                const Gap(4),
-                Text(
-                  '$batteryLevel%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.mutedForeground,
-                  ),
-                ),
-                if (rssi != null) const Gap(16),
-              ],
-              if (rssi != null)
-                StreamBuilder(
-                  stream: core.connection.rssiConnectionStream
-                      .where((device) => device == this)
-                      .map((event) => event.rssi),
-                  builder: (context, rssiValue) {
-                    final currentRssi = rssiValue.data ?? rssi!;
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(LucideIcons.signal, size: 14, color: const Color(0xFF22C55E)),
-                        const Gap(4),
-                        Text(
-                          switch (currentRssi) {
-                            >= -50 => 'Strong',
-                            >= -70 => 'Good',
-                            >= -85 => 'Fair',
-                            _ => 'Weak',
-                          },
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).colorScheme.mutedForeground,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-            ],
+              );
+            },
           ),
-        ],
       ],
-    );
+    ];
   }
 
   void debugSubscribeToAll(List<BleService> services) {
