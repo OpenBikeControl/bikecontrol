@@ -11,7 +11,9 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/card_button.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
+import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -521,7 +523,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             final generation = _pressGeneration[id] ?? 0;
             return [
               const Gap(12),
-              Divider(),
+              Divider(color: Theme.of(context).colorScheme.border.withAlpha(140)),
               const Gap(12),
               Wrap(
                 alignment: WrapAlignment.start,
@@ -544,9 +546,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             setState(() {});
           },
         ),
-        const Gap(16),
+        const Gap(22),
         _buildErrorBanner(),
-        const Gap(16),
+        const Gap(22),
         _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
         const Gap(8),
         KeyedSubtree(
@@ -616,7 +618,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   for (final lane in lanes)
                     if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
                   for (final lane in lanes)
-                    if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedActivityChip(lane),
+                    if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false)) _buildAnimatedActivityChip(lane),
                 ],
               ),
             ),
@@ -670,7 +672,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           for (final lane in lanes)
             if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
           for (final lane in lanes)
-            if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedActivityChip(lane),
+            if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false)) _buildAnimatedActivityChip(lane),
         ],
       ),
     );
@@ -870,7 +872,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   ) {
     final appName = trainerApp?.name ?? 'No app selected';
 
-    return Button.card(
+    return HoverCardButton(
       onPressed: _openTrainerConnectionSettings,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -909,35 +911,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           ),
           if (enabledTrainers.isNotEmpty) ...[
             const Gap(12),
-            Divider(),
-            const Gap(12),
             for (final enabledTrainer in enabledTrainers) ...[
               _buildTrainerConnectionRow(enabledTrainer),
               if (enabledTrainer != enabledTrainers.last) const Gap(6),
             ],
+            const Gap(12),
           ],
+          Divider(color: Theme.of(context).colorScheme.border.withAlpha(140)),
           const Gap(12),
-          Divider(),
-          const Gap(12),
-          _buildFeatureBanner(
-            icon: Icons.radio,
-            iconColor: BKColor.mainEnd,
-            bgColor: BKColor.mainEnd.withValues(alpha: 0.03),
-            iconBgColor: BKColor.mainEnd.withValues(alpha: 0.08),
-            title: 'Device Mirroring',
-            description: 'BLE-to-WiFi bridge for trainers & sensors',
-            isNew: true,
-          ),
-          const Gap(8),
-          _buildFeatureBanner(
-            icon: Icons.bolt,
-            iconColor: BKColor.main,
-            bgColor: BKColor.main.withValues(alpha: 0.03),
-            iconBgColor: BKColor.main.withValues(alpha: 0.08),
-            title: 'Legacy Trainer Support',
-            description: 'Virtual shifting for older smart trainers',
-            isNew: true,
-          ),
+          TrainerFeatures(),
         ],
       ),
     );
@@ -980,75 +962,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             )
           else
             _dot(6, color),
-        ],
-      ),
-    );
-  }
-
-  // ── Shared widgets ────────────────────────────────────────────────
-
-  Widget _buildFeatureBanner({
-    required IconData icon,
-    required Color iconColor,
-    required Color bgColor,
-    required Color iconBgColor,
-    required String title,
-    required String description,
-    bool isNew = false,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: iconColor),
-          ),
-          const Gap(10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(title).small.semiBold,
-                    if (isNew) ...[
-                      const Gap(6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: iconColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'NEW',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const Gap(2),
-                Text(description).xSmall.muted,
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
         ],
       ),
     );

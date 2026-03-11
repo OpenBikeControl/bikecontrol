@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -113,15 +112,8 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        if (devices.isNotEmpty && !screenshotMode)
-          Text(
-            AppLocalizations.of(context).clickAButtonOnYourController,
-            style: TextStyle(fontSize: 12),
-          ).muted,
-
         for (final devicePair in keyButtonMap.entries) ...[
-          SizedBox(height: 12),
-          ColoredTitle(text: devicePair.key.toString()),
+          if (widget.filterDevice == null) ColoredTitle(text: devicePair.key.toString()),
           if (devicePair.value.isEmpty)
             Text(
               devicePair.key.buttonExplanation,

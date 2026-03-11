@@ -1,9 +1,8 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
-import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/device_script_drawer.dart';
-import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -66,11 +65,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                 if (keymap != null) ...[
                   _buildSectionHeader('Button Mapping', trailing: _buildTrainerLabel(trainerApp!.name)),
                   const Gap(12),
-                  KeymapExplanation(
-                    keymap: keymap,
-                    onUpdate: () => setState(() {}),
-                    filterDevice: device,
-                  ),
+                  CustomizePage(isMobile: false, filterDevice: widget.device),
                   const Gap(24),
                 ],
 
@@ -93,81 +88,15 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
   }
 
   Widget _buildDeviceCard(BaseDevice device) {
-    final btDevice = device is BluetoothDevice ? device : null;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.card,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.muted,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(LucideIcons.gamepad2, size: 24),
-          ),
-          const Gap(14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  device.name,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
-                ),
-                const Gap(2),
-                Row(
-                  spacing: 6,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: device.isConnected
-                            ? const Color(0xFF22C55E)
-                            : Theme.of(context).colorScheme.mutedForeground,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    Text(
-                      device.isConnected ? 'Connected' : 'Disconnected',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: device.isConnected
-                            ? const Color(0xFF22C55E)
-                            : Theme.of(context).colorScheme.mutedForeground,
-                      ),
-                    ),
-                    if (btDevice?.batteryLevel != null) ...[
-                      Text(
-                        '  \u00b7  ',
-                        style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.mutedForeground),
-                      ),
-                      Icon(LucideIcons.batteryMedium, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-                      Text(
-                        '${btDevice!.batteryLevel}%',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).colorScheme.mutedForeground,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: device.showInformation(context),
     );
   }
 
@@ -216,6 +145,38 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
+        Button.outline(
+          onPressed: () {
+            core.settings.getTrainerApp()?.keymap.resetForDevice(device);
+            setState(() {});
+            buildToast(title: 'Button mappings reset to defaults');
+          },
+          leading: Icon(LucideIcons.rotateCcw, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+          child: Text('Reset to defaults'),
+        ),
+        const Gap(12),
+        Builder(
+          builder: (context) {
+            return _buildActionButton(
+              icon: LucideIcons.fileCode,
+              label: 'Run Script',
+              trailing: !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
+                  ? ProBadge()
+                  : null,
+              onTap: () {
+                if (!IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription) {
+                  buildToast(title: 'This feature is Full Version or Pro only.', duration: Duration(seconds: 4));
+                  return;
+                }
+                openDrawer(
+                  context: context,
+                  position: OverlayPosition.end,
+                  builder: (c) => DeviceScriptDrawer(deviceType: device.runtimeType.toString()),
+                );
+              },
+            );
+          },
+        ),
         LoadingWidget(
           futureCallback: () async {
             await core.connection.disconnect(device, forget: true, persistForget: false);
@@ -240,38 +201,6 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
             isDestructive: true,
             onTap: tap,
           ),
-        ),
-        Builder(
-          builder: (context) {
-            return _buildActionButton(
-              icon: LucideIcons.fileCode,
-              label: 'Run Script',
-              trailing: !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
-                  ? ProBadge()
-                  : null,
-              onTap: () {
-                if (!IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription) {
-                  buildToast(title: 'This feature is Full Version or Pro only.', duration: Duration(seconds: 4));
-                  return;
-                }
-                openDrawer(
-                  context: context,
-                  position: OverlayPosition.end,
-                  builder: (c) => DeviceScriptDrawer(deviceType: device.runtimeType.toString()),
-                );
-              },
-            );
-          },
-        ),
-        const Gap(4),
-        Button.outline(
-          onPressed: () {
-            core.settings.getTrainerApp()?.keymap.resetForDevice(device);
-            setState(() {});
-            buildToast(title: 'Button mappings reset to defaults');
-          },
-          leading: Icon(LucideIcons.rotateCcw, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-          child: Text('Reset to defaults'),
         ),
       ],
     );

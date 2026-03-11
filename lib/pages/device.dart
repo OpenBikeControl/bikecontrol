@@ -5,6 +5,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/card_button.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
@@ -64,7 +65,7 @@ class _DevicePageState extends State<DevicePage> {
           (device) => Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             key: widget.cardKeys[device.uniqueId],
-            child: Button.card(
+            child: HoverCardButton(
               onPressed: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),

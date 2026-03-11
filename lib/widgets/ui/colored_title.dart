@@ -10,12 +10,10 @@ class ColoredTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      spacing: 6,
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 16, color: BKColor.main),
-          const Gap(6),
-        ],
-        Text(text).xSmall,
+        if (icon != null) Icon(icon, size: 18, color: BKColor.main),
+        Text(text).small.bold,
       ],
     );
   }

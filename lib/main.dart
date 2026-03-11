@@ -11,7 +11,6 @@ import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -225,9 +224,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
       ),
       locale: screenshotMode ? Locale('en') : null,
       theme: ThemeData(
-        colorScheme: ColorSchemes.lightNeutral.copyWith(
-          card: () => BKColor.backgroundLight,
-        ),
+        colorScheme: ColorSchemes.lightNeutral,
       ),
       //themeMode: ThemeMode.light,
       home: widget.error != null

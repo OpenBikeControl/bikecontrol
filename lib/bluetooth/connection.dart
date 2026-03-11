@@ -490,7 +490,7 @@ class Connection {
       // Remove device from the list
       devices.remove(device);
       hasDevices.value = devices.isNotEmpty;
-    } else if (device is GyroscopeSteering) {
+    } else if (device is GyroscopeSteering || device is HidDevice) {
       // Clean up subscriptions
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);

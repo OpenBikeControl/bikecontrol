@@ -1,6 +1,4 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
-import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -14,10 +12,9 @@ import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/keyboard_pair_widget.dart';
 import 'package:bike_control/widgets/mouse_pair_widget.dart';
+import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
-import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/keymap/apps/zwift.dart';
@@ -148,41 +145,9 @@ class _TrainerPageState extends State<TrainerPage> {
                   ],
                   Gap(12),
 
-                  SizedBox(height: 4),
-                  Flex(
-                    direction: widget.isMobile || MediaQuery.sizeOf(context).width < 750
-                        ? Axis.vertical
-                        : Axis.horizontal,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      PrimaryButton(
-                        leading: Icon(Icons.computer_outlined),
-                        child: Text(
-                          AppLocalizations.of(
-                            context,
-                          ).manualyControllingButton(core.settings.getTrainerApp()?.name ?? 'your trainer'),
-                        ),
-                        onPressed: () {
-                          if (core.settings.getTrainerApp() == null) {
-                            buildToast(
-                              level: LogLevel.LOGLEVEL_WARNING,
-                              title: context.i18n.selectTrainerApp,
-                            );
-                            widget.onUpdate();
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (c) => ButtonSimulator(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
+                  Divider(),
+                  const Gap(24),
+                  TrainerFeatures(),
                 ],
               ],
             ),

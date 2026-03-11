@@ -278,7 +278,6 @@ abstract class BluetoothDevice extends BaseDevice {
             size: 14,
             color: batteryLevel! < 20 ? Theme.of(context).colorScheme.destructive : const Color(0xFF22C55E),
           ),
-          const Gap(4),
           Text(
             '$batteryLevel%',
             style: TextStyle(
