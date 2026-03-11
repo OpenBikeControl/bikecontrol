@@ -29,6 +29,7 @@ class TrainerFeatures extends StatelessWidget {
             ).manualyControllingButton(core.settings.getTrainerApp()?.name ?? 'your trainer'),
             description: context.i18n.noControllerUseCompanionMode,
             isNew: false,
+            withCard: withCard,
             onTap: () {
               if (core.settings.getTrainerApp() == null) {
                 buildToast(
@@ -49,6 +50,7 @@ class TrainerFeatures extends StatelessWidget {
           const Gap(12),
           FeatureWidget(
             icon: Icons.radio,
+            withCard: withCard,
             iconColor: BKColor.mainEnd,
             bgColor: BKColor.mainEnd.withValues(alpha: 0.03),
             iconBgColor: BKColor.mainEnd.withValues(alpha: 0.08),
@@ -59,6 +61,7 @@ class TrainerFeatures extends StatelessWidget {
           const Gap(8),
           FeatureWidget(
             icon: Icons.bolt,
+            withCard: withCard,
             iconColor: BKColor.main,
             bgColor: BKColor.main.withValues(alpha: 0.03),
             iconBgColor: BKColor.main.withValues(alpha: 0.08),

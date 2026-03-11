@@ -212,7 +212,15 @@ class _ActivityEntry {
   final String? buttonTitle;
   final VoidCallback? onTap;
 
-  _ActivityEntry({this.button, required this.time, this.result, this.alertMessage, this.alertLevel, this.buttonTitle, this.onTap});
+  _ActivityEntry({
+    this.button,
+    required this.time,
+    this.result,
+    this.alertMessage,
+    this.alertLevel,
+    this.buttonTitle,
+    this.onTap,
+  });
 
   bool get isAlert => alertMessage != null;
   bool get isError => result is Error || result is NotHandled || alertLevel == LogLevel.LOGLEVEL_ERROR;
@@ -639,7 +647,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
       final screenWidth = _screenWidth;
       final leftWidth = screenWidth * 0.98;
-      final rightWidth = screenWidth * 0.85;
+      final rightWidth = screenWidth * 0.95;
       final hPad = 12.0;
 
       return Scrollbar(

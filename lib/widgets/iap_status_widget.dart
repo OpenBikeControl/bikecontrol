@@ -52,6 +52,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
         : Container(
             padding: const EdgeInsets.only(bottom: 16.0),
             child: Card(
+              filled: true,
+
               padding: EdgeInsets.only(top: 8, left: 8, right: 8),
               child: ValueListenableBuilder(
                 valueListenable: IAPManager.instance.isPurchased,
@@ -405,7 +407,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
         builder: (context) {
           return LoadingWidget(
             futureCallback: () async {
-              if (_alreadyBoughtQuestion == null && DateTime.now().isBefore(_normalDate)) {
+              if (Platform.isAndroid && _alreadyBoughtQuestion == null && DateTime.now().isBefore(_normalDate)) {
                 showDropdown(
                   context: context,
                   builder: (c) => DropdownMenu(
@@ -457,7 +459,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                   : Text(
                       label,
                       style: TextStyle(color: Theme.of(context).colorScheme.primary),
-                    ).small.normal,
+                    ).xSmall.normal.underline,
             ),
           );
         },
