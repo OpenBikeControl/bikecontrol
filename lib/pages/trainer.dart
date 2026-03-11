@@ -2,14 +2,12 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
-import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/keyboard_pair_widget.dart';
 import 'package:bike_control/widgets/mouse_pair_widget.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
@@ -107,10 +105,6 @@ class _TrainerPageState extends State<TrainerPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ValueListenableBuilder(
-                  valueListenable: IAPManager.instance.isPurchased,
-                  builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: true),
-                ),
                 ConfigurationPage(
                   onUpdate: () {
                     setState(() {});

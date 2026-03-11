@@ -13,7 +13,7 @@ class ColoredTitle extends StatelessWidget {
       spacing: 6,
       children: [
         if (icon != null && false) Icon(icon, size: 18, color: BKColor.main),
-        Text(text).small.semiBold.medium,
+        Text(text).small.medium,
       ],
     );
   }
