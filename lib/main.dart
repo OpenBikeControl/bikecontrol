@@ -226,6 +226,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
           mutedForeground: () => Color(0xFFA1A1AA),
           primary: () => BKColor.main,
         ),
+        typography: Typography.geist().scale(isMobile ? 0.8 : 1),
         radius: 0.7,
       ),
       //themeMode: ThemeMode.light,
