@@ -224,6 +224,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
         colorScheme: ColorSchemes.lightSlate.copyWith(
           mutedForeground: () => Color(0xFFA1A1AA),
         ),
+        radius: 0.7,
       ),
       //themeMode: ThemeMode.light,
       home: widget.error != null
@@ -236,8 +237,13 @@ class _BikeControlAppState extends State<BikeControlApp> {
           : ToastLayer(
               key: ValueKey('Test'),
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
-              child: _Starter(
-                child: widget.customChild ?? Navigation(),
+              child: ComponentTheme<CardTheme>(
+                data: CardTheme(
+                  borderWidth: 1.5,
+                ),
+                child: _Starter(
+                  child: widget.customChild ?? Navigation(),
+                ),
               ),
             ),
     );

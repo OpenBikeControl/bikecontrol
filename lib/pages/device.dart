@@ -60,10 +60,9 @@ class _DevicePageState extends State<DevicePage> {
         // leave it in for the extra scanning options
         ScanWidget(),
 
-        Gap(6),
         ...core.connection.controllerDevices
-            .map(
-              (device) => [
+            .mapIndexed(
+              (index, device) => [
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   key: widget.cardKeys[device.uniqueId],
@@ -90,7 +89,12 @@ class _DevicePageState extends State<DevicePage> {
                     ),
                   ),
                 ),
-                Divider(thickness: 0.5),
+                if (index != core.connection.controllerDevices.length - 1)
+                  Divider(
+                    thickness: 0.5,
+                    indent: 20,
+                    endIndent: 20,
+                  ),
               ],
             )
             .flatten(),
@@ -130,6 +134,9 @@ class _DevicePageState extends State<DevicePage> {
             valueListenable: core.mediaKeyHandler.isMediaKeyDetectionEnabled,
             builder: (context, value, child) {
               return Container(
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
+                ),
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 6),
                 child: Button.ghost(

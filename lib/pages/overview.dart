@@ -13,14 +13,13 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/widgets/card_button.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/shared.dart';
@@ -535,7 +534,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(top: 12.0, left: 12, right: 12),
                 child: Row(
                   children: [
                     Expanded(
@@ -936,55 +935,72 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   ) {
     final appName = trainerApp?.name ?? 'No app selected';
 
-    return HoverCardButton(
-      onPressed: _openTrainerConnectionSettings,
+    return Card(
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
-          const Gap(16),
-          Row(
-            spacing: 12,
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.muted,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(appName).small.semiBold,
-                      Icon(Icons.keyboard_arrow_down, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-                    ],
-                  ),
+          Button.ghost(
+            onPressed: _openTrainerConnectionSettings,
+            child: Column(
+              children: [
+                Gap(4),
+                _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
+                const Gap(16),
+                Row(
+                  spacing: 12,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.muted,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(appName).small.semiBold,
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 14,
+                              color: Theme.of(context).colorScheme.mutedForeground,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.muted,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          LucideIcons.settings,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.mutedForeground,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.muted,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Center(
-                  child: Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-                ),
-              ),
-            ],
+                if (enabledTrainers.isNotEmpty) ...[
+                  const Gap(12),
+                  for (final enabledTrainer in enabledTrainers) ...[
+                    _buildTrainerConnectionRow(enabledTrainer),
+                    if (enabledTrainer != enabledTrainers.last) const Gap(6),
+                  ],
+                  const Gap(12),
+                ] else
+                  const Gap(12),
+              ],
+            ),
           ),
-          if (enabledTrainers.isNotEmpty) ...[
-            const Gap(12),
-            for (final enabledTrainer in enabledTrainers) ...[
-              _buildTrainerConnectionRow(enabledTrainer),
-              if (enabledTrainer != enabledTrainers.last) const Gap(6),
-            ],
-            const Gap(12),
-          ],
-          const Gap(12),
-          TrainerFeatures(),
+          Divider(thickness: 0.5),
+          TrainerFeatures(withCard: false),
         ],
       ),
     );
@@ -993,34 +1009,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   Widget _buildTrainerConnectionRow(TrainerConnection trainer) {
     final connected = trainer.isConnected.value;
     final started = trainer.isStarted.value;
-    final color = connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground;
 
     return Row(
       children: [
-        Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.muted,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  trainer.type.icon,
-                  size: 20,
-                  color: connected ? null : Theme.of(context).colorScheme.mutedForeground,
-                ),
-              ),
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: (started && !connected) ? SmallProgressIndicator() : _dot(12, color),
-            ),
-          ],
+        StatusIcon(
+          icon: trainer.type.icon,
+          status: connected,
+          started: started,
         ),
         const Gap(8),
         Expanded(
@@ -1137,8 +1132,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final Widget leadingIcon;
     if (button != null) {
       leadingIcon = (!isSuccess)
-          ? ButtonWidget(button: button, size: 16, color: const Color(0xFFEF4444))
-          : ButtonWidget(button: button, size: 16, color: const Color(0xFF22C55E));
+          ? ButtonWidget(button: button, size: size - 4, color: const Color(0xFFEF4444))
+          : ButtonWidget(button: button, size: size - 4, color: const Color(0xFF22C55E));
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_ERROR) {
       leadingIcon = Icon(LucideIcons.circleX, size: 16, color: const Color(0xFFEF4444));
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {
@@ -1154,8 +1149,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       child: Basic(
         padding: EdgeInsets.all(16),
         leading: Container(
-          width: 28,
-          height: 28,
+          width: 22,
+          height: 22,
           decoration: BoxDecoration(
             color: rowBg,
             shape: BoxShape.circle,
@@ -1264,14 +1259,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   Widget _buildSectionHeader({required IconData icon, required String title}) {
     return ColoredTitle(text: title, icon: icon);
-  }
-
-  Widget _dot(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
   }
 }
 
