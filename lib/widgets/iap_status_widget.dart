@@ -167,7 +167,6 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Divider(endIndent: 16, indent: 16),
-                              Gap(16),
                               const SizedBox(),
                               if (_alreadyBoughtQuestion == AlreadyBoughtOption.fullPurchase) ...[
                                 Text(

@@ -646,73 +646,81 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     if (_screenWidth < 800) {
       // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
       final screenWidth = _screenWidth;
-      final leftWidth = screenWidth * 0.98;
-      final rightWidth = screenWidth * 0.95;
+      final leftWidth = screenWidth * 1;
+      final rightWidth = screenWidth * 0.96;
       final hPad = 12.0;
 
-      return Scrollbar(
-        controller: _horizontalScrollController,
-        thumbVisibility: true,
-        child: SingleChildScrollView(
-          controller: _horizontalScrollController,
-          scrollDirection: Axis.horizontal,
-          physics: const ClampingScrollPhysics(),
-          child: SizedBox(
-            width: leftWidth + rightWidth,
+      return Column(
+        children: [
+          Container(
+            color: Theme.of(context).colorScheme.muted,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: _Tabs(controller: _horizontalScrollController, leftWidth: leftWidth - 50),
+          ),
+          Divider(),
+          Expanded(
             child: SingleChildScrollView(
-              child: Stack(
-                key: _stackKey,
-                clipBehavior: Clip.none,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              controller: _horizontalScrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const ClampingScrollPhysics(),
+              child: SizedBox(
+                width: leftWidth + rightWidth,
+                child: SingleChildScrollView(
+                  child: Stack(
+                    key: _stackKey,
+                    clipBehavior: Clip.none,
                     children: [
-                      SizedBox(
-                        width: leftWidth,
-                        child: Padding(
-                          padding: EdgeInsets.only(left: hPad, right: gutterWidth - 10 + hPad),
-                          child: leftColumn,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: leftWidth,
+                            child: Padding(
+                              padding: EdgeInsets.only(left: hPad, right: gutterWidth - 10 + hPad),
+                              child: leftColumn,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFF8FAFB),
+                              border: Border(
+                                left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                                bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                              ),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            width: rightWidth,
+                            child: Container(
+                              padding: const EdgeInsets.only(right: 20),
+                              child: activityColumn,
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFFF8FAFB),
-                          border: Border(
-                            left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-                            bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                      if (lanes.isNotEmpty)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _FlowLinePainter(
+                                lanes: lanes,
+                                color: BKColor.mainEnd,
+                                isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
+                              ),
+                            ),
                           ),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        width: rightWidth,
-                        child: Container(
-                          padding: const EdgeInsets.only(right: 20),
-                          child: activityColumn,
-                        ),
-                      ),
+                      for (final lane in lanes)
+                        if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
+                      for (final lane in lanes)
+                        if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
+                          _buildAnimatedActivityChip(lane),
                     ],
                   ),
-                  if (lanes.isNotEmpty)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: CustomPaint(
-                          painter: _FlowLinePainter(
-                            lanes: lanes,
-                            color: BKColor.mainEnd,
-                            isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
-                          ),
-                        ),
-                      ),
-                    ),
-                  for (final lane in lanes)
-                    if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
-                  for (final lane in lanes)
-                    if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
-                      _buildAnimatedActivityChip(lane),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       );
     }
 
@@ -1077,6 +1085,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         AnimatedList(
           key: _activityListKey,
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           initialItemCount: _activityLog.length,
           itemBuilder: (context, index, animation) {
@@ -1352,5 +1361,62 @@ class _AnimatedButtonWidgetState extends State<_AnimatedButtonWidget> with Singl
       ),
       child: ButtonWidget(button: widget.button, color: Colors.gray),
     );
+  }
+}
+
+class _Tabs extends StatefulWidget {
+  final ScrollController controller;
+  final double leftWidth;
+  const _Tabs({super.key, required this.controller, required this.leftWidth});
+
+  @override
+  State<_Tabs> createState() => _TabsState();
+}
+
+class _TabsState extends State<_Tabs> {
+  @override
+  void initState() {
+    widget.controller.addListener(_update);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_update);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tabs(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      expand: true,
+      onChanged: (index) {
+        if (index == 1) {
+          widget.controller.animateTo(
+            widget.leftWidth,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          widget.controller.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      },
+      index: widget.controller.hasClients && widget.controller.offset > widget.leftWidth / 2 ? 1 : 0,
+      children: [
+        TabItem(
+          child: Text('Main'),
+        ),
+        TabItem(child: Text('Activity')),
+      ],
+    );
+  }
+
+  void _update() {
+    setState(() {});
   }
 }
