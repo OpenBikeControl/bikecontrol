@@ -18,37 +18,36 @@ class TrainerFeatures extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildFeatureBanner(
-          context: context,
-          icon: Icons.computer,
-          iconColor: BKColor.main,
-          bgColor: BKColor.main.withValues(alpha: 0.03),
-          iconBgColor: BKColor.main.withValues(alpha: 0.08),
-          title: AppLocalizations.of(
-            context,
-          ).manualyControllingButton(core.settings.getTrainerApp()?.name ?? 'your trainer'),
-          description: context.i18n.noControllerUseCompanionMode,
-          isNew: false,
-          onTap: () {
-            if (core.settings.getTrainerApp() == null) {
-              buildToast(
-                level: LogLevel.LOGLEVEL_WARNING,
-                title: context.i18n.selectTrainerApp,
-              );
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (c) => ButtonSimulator(),
-                ),
-              );
-            }
-          },
-        ),
+        if (core.settings.getTrainerApp() != null)
+          FeatureWidget(
+            icon: Icons.computer,
+            iconColor: BKColor.main,
+            bgColor: BKColor.main.withValues(alpha: 0.03),
+            iconBgColor: BKColor.main.withValues(alpha: 0.08),
+            title: AppLocalizations.of(
+              context,
+            ).manualyControllingButton(core.settings.getTrainerApp()?.name ?? 'your trainer'),
+            description: context.i18n.noControllerUseCompanionMode,
+            isNew: false,
+            onTap: () {
+              if (core.settings.getTrainerApp() == null) {
+                buildToast(
+                  level: LogLevel.LOGLEVEL_WARNING,
+                  title: context.i18n.selectTrainerApp,
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (c) => ButtonSimulator(),
+                  ),
+                );
+              }
+            },
+          ),
         if (kDebugMode && false) ...[
           const Gap(12),
-          _buildFeatureBanner(
-            context: context,
+          FeatureWidget(
             icon: Icons.radio,
             iconColor: BKColor.mainEnd,
             bgColor: BKColor.mainEnd.withValues(alpha: 0.03),
@@ -58,8 +57,7 @@ class TrainerFeatures extends StatelessWidget {
             isNew: true,
           ),
           const Gap(8),
-          _buildFeatureBanner(
-            context: context,
+          FeatureWidget(
             icon: Icons.bolt,
             iconColor: BKColor.main,
             bgColor: BKColor.main.withValues(alpha: 0.03),
@@ -72,20 +70,34 @@ class TrainerFeatures extends StatelessWidget {
       ],
     );
   }
+}
 
-  // ── Shared widgets ────────────────────────────────────────────────
+class FeatureWidget extends StatelessWidget {
+  final IconData? icon;
+  final Color? iconColor;
+  final Color? bgColor;
+  final Color? iconBgColor;
+  final String title;
+  final String? description;
+  final VoidCallback? onTap;
+  final bool isNew;
+  final bool withCard;
 
-  Widget _buildFeatureBanner({
-    required BuildContext context,
-    required IconData icon,
-    required Color iconColor,
-    required Color bgColor,
-    required Color iconBgColor,
-    required String title,
-    required String description,
-    VoidCallback? onTap,
-    bool isNew = false,
-  }) {
+  const FeatureWidget({
+    super.key,
+    this.icon,
+    this.iconColor,
+    this.bgColor,
+    this.iconBgColor,
+    required this.title,
+    this.description,
+    this.onTap,
+    this.isNew = false,
+    this.withCard = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return withCard
         ? SizedBox(
             width: double.infinity,
@@ -128,8 +140,10 @@ class TrainerFeatures extends StatelessWidget {
                       ],
                     ],
                   ),
-                  const Gap(2),
-                  Text(description).xSmall.muted,
+                  if (description != null) ...[
+                    const Gap(2),
+                    Text(description!).xSmall.muted,
+                  ],
                 ],
               ),
             ),
@@ -141,11 +155,50 @@ class TrainerFeatures extends StatelessWidget {
               onPressed: onTap,
               child: Basic(
                 title: Text(title),
-                subtitle: Text(description),
+                subtitle: description != null ? Text(description!) : null,
                 trailingAlignment: Alignment.centerRight,
                 trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
               ),
             ),
           );
+  }
+}
+
+class SwitchFeature extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String title;
+  final String? subtitle;
+  final bool value;
+
+  final bool isProOnly;
+  const SwitchFeature({
+    super.key,
+    required this.onPressed,
+    required this.title,
+    this.subtitle,
+    required this.value,
+    this.isProOnly = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      child: Button.ghost(
+        style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12)),
+        onPressed: onPressed,
+        child: Basic(
+          padding: EdgeInsets.zero,
+          title: Text(title),
+          subtitle: subtitle != null ? Text(subtitle!).xSmall.normal.muted : null,
+          trailing: Switch(
+            value: value,
+            onChanged: (val) {
+              onPressed();
+            },
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -524,7 +524,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final leftColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Gap(20),
+        const Gap(8),
         ValueListenableBuilder(
           valueListenable: IAPManager.instance.isPurchased,
           builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
@@ -612,6 +612,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           key: _trainerKey,
           child: _buildTrainerCard(trainerApp, enabledTrainers),
         ),
+        if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
       ],
     );
 
@@ -1150,12 +1151,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         padding: EdgeInsets.all(16),
         leading: Container(
           width: 22,
-          height: 22,
+          height: 24,
           decoration: BoxDecoration(
             color: rowBg,
             shape: BoxShape.circle,
           ),
-          child: leadingIcon,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 2.0),
+            child: leadingIcon,
+          ),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

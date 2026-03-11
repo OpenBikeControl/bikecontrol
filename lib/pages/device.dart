@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/widgets/card_button.dart';
+import 'package:bike_control/widgets/scan.dart';
+import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -13,9 +15,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
-import '../widgets/scan.dart';
-import 'button_edit.dart';
-import 'controller_settings.dart';
 
 class DevicePage extends StatefulWidget {
   final bool isMobile;
@@ -63,11 +62,11 @@ class _DevicePageState extends State<DevicePage> {
         ...core.connection.controllerDevices
             .mapIndexed(
               (index, device) => [
-                Padding(
+                Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.only(bottom: 12.0),
                   key: widget.cardKeys[device.uniqueId],
-                  child: HoverCardButton(
-                    buttonStyle: ButtonStyle.ghost(),
+                  child: Button.ghost(
                     onPressed: () async {
                       await Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),
@@ -121,12 +120,18 @@ class _DevicePageState extends State<DevicePage> {
         ],
 
         if (!screenshotMode && core.connection.controllerDevices.isEmpty)
-          OutlineButton(
-            onPressed: () {
-              launchUrlString('https://bikecontrol.app/#supported-devices');
-            },
-            leading: Icon(Icons.gamepad_outlined),
-            child: Text(context.i18n.showSupportedControllers),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
+            ),
+            child: FeatureWidget(
+              onTap: () {
+                launchUrlString('https://bikecontrol.app/#supported-devices');
+              },
+              icon: Icons.gamepad_outlined,
+              title: context.i18n.showSupportedControllers,
+              withCard: false,
+            ),
           ),
 
         if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS))
@@ -137,54 +142,35 @@ class _DevicePageState extends State<DevicePage> {
                 decoration: BoxDecoration(
                   border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
                 ),
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 6),
-                child: Button.ghost(
+                child: SwitchFeature(
                   onPressed: () {
                     final newValue = !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
                     core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = newValue;
                     core.settings.setMediaKeyDetectionEnabled(newValue);
                   },
-                  child: Basic(
-                    title: Text(context.i18n.enableMediaKeyDetection),
-                    subtitle: Text(context.i18n.mediaKeyDetectionTooltip).xSmall.normal.muted,
-                    trailing: Switch(
-                      value: value,
-                      onChanged: (val) {
-                        core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = val;
-                        core.settings.setMediaKeyDetectionEnabled(val);
-                      },
-                    ),
-                  ),
+                  title: context.i18n.enableMediaKeyDetection,
+                  subtitle: context.i18n.mediaKeyDetectionTooltip,
+                  value: value,
                 ),
               );
             },
           ),
         if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
-          SelectableCard(
-            isActive: core.settings.getPhoneSteeringEnabled(),
-            icon: core.settings.getPhoneSteeringEnabled() ? Icons.check_box : Icons.check_box_outline_blank,
-            isProOnly: true,
-            title: Row(
-              spacing: 4,
-              children: [
-                Icon(LucideIcons.ferrisWheel, size: 16),
-                SizedBox(),
-                Expanded(child: Text(AppLocalizations.of(context).enableSteeringWithPhone)),
-                IconButton.secondary(
-                  icon: Icon(Icons.ondemand_video),
-                  onPressed: () {
-                    launchUrlString('https://youtube.com/shorts/zqD5ARGIVmE?feature=share');
-                  },
-                ),
-              ],
+          Container(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
             ),
-            onPressed: () {
-              final enable = !core.settings.getPhoneSteeringEnabled();
-              core.settings.setPhoneSteeringEnabled(enable);
-              core.connection.toggleGyroscopeSteering(enable);
-              setState(() {});
-            },
+            child: SwitchFeature(
+              value: core.settings.getPhoneSteeringEnabled(),
+              isProOnly: true,
+              title: AppLocalizations.of(context).enableSteeringWithPhone,
+              onPressed: () {
+                final enable = !core.settings.getPhoneSteeringEnabled();
+                core.settings.setPhoneSteeringEnabled(enable);
+                core.connection.toggleGyroscopeSteering(enable);
+                setState(() {});
+              },
+            ),
           ),
       ],
     );

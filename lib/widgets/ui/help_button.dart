@@ -162,14 +162,14 @@ class HelpButton extends StatelessWidget {
                 ),
               );
             },
-            leading: Icon(Icons.help_outline),
-            style: ButtonVariance.primary.withBorderRadius(
+            leading: Icon(LucideIcons.messageCircle),
+            style: ButtonStyle.secondary().withBorderRadius(
               borderRadius: border,
               hoverBorderRadius: border,
             ),
             child: Padding(
               padding: EdgeInsets.only(
-                bottom: 0,
+                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
               ),
               child: Text(context.i18n.troubleshootingGuide),
             ),
