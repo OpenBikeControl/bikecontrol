@@ -3,6 +3,7 @@ import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:prop/protocol/zp.pbenum.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -43,28 +44,30 @@ class TrainerFeatures extends StatelessWidget {
             }
           },
         ),
-        const Gap(12),
-        _buildFeatureBanner(
-          context: context,
-          icon: Icons.radio,
-          iconColor: BKColor.mainEnd,
-          bgColor: BKColor.mainEnd.withValues(alpha: 0.03),
-          iconBgColor: BKColor.mainEnd.withValues(alpha: 0.08),
-          title: 'Device Mirroring',
-          description: 'BLE-to-WiFi bridge for trainers & sensors',
-          isNew: true,
-        ),
-        const Gap(8),
-        _buildFeatureBanner(
-          context: context,
-          icon: Icons.bolt,
-          iconColor: BKColor.main,
-          bgColor: BKColor.main.withValues(alpha: 0.03),
-          iconBgColor: BKColor.main.withValues(alpha: 0.08),
-          title: 'Legacy Trainer Support',
-          description: 'Virtual shifting for older smart trainers',
-          isNew: true,
-        ),
+        if (kDebugMode && false) ...[
+          const Gap(12),
+          _buildFeatureBanner(
+            context: context,
+            icon: Icons.radio,
+            iconColor: BKColor.mainEnd,
+            bgColor: BKColor.mainEnd.withValues(alpha: 0.03),
+            iconBgColor: BKColor.mainEnd.withValues(alpha: 0.08),
+            title: 'Device Mirroring',
+            description: 'BLE-to-WiFi bridge for trainers & sensors',
+            isNew: true,
+          ),
+          const Gap(8),
+          _buildFeatureBanner(
+            context: context,
+            icon: Icons.bolt,
+            iconColor: BKColor.main,
+            bgColor: BKColor.main.withValues(alpha: 0.03),
+            iconBgColor: BKColor.main.withValues(alpha: 0.08),
+            title: 'Legacy Trainer Support',
+            description: 'Virtual shifting for older smart trainers',
+            isNew: true,
+          ),
+        ],
       ],
     );
   }
@@ -86,7 +89,6 @@ class TrainerFeatures extends StatelessWidget {
       width: double.infinity,
       child: HoverCardButton(
         onPressed: onTap,
-
         leading: Container(
           width: 32,
           height: 32,

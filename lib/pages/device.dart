@@ -6,14 +6,13 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/card_button.dart';
-import 'package:bike_control/widgets/ignored_devices_dialog.dart';
-import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../widgets/scan.dart';
 import 'button_edit.dart';
 import 'controller_settings.dart';
 
@@ -60,7 +59,7 @@ class _DevicePageState extends State<DevicePage> {
         // leave it in for the extra scanning options
         ScanWidget(),
 
-        Gap(12),
+        Gap(6),
         ...core.connection.controllerDevices.map(
           (device) => Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
@@ -72,6 +71,7 @@ class _DevicePageState extends State<DevicePage> {
                 );
                 widget.onUpdate();
               },
+              trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
               child: Column(
                 children: [
                   device.showInformation(context),
@@ -104,43 +104,12 @@ class _DevicePageState extends State<DevicePage> {
         ],
 
         if (!screenshotMode && core.connection.controllerDevices.isEmpty)
-          Column(
-            spacing: 8,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              OutlineButton(
-                onPressed: () {
-                  launchUrlString('https://bikecontrol.app/#supported-devices');
-                },
-                leading: Icon(Icons.gamepad_outlined),
-                child: Text(context.i18n.showSupportedControllers),
-              ),
-              if (core.settings.getIgnoredDevices().isNotEmpty)
-                OutlineButton(
-                  leading: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.destructive,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 6),
-                    margin: EdgeInsets.only(right: 4),
-                    child: Text(
-                      core.settings.getIgnoredDevices().length.toString(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primaryForeground,
-                      ),
-                    ),
-                  ),
-                  onPressed: () async {
-                    await showDialog(
-                      context: context,
-                      builder: (context) => IgnoredDevicesDialog(),
-                    );
-                    setState(() {});
-                  },
-                  child: Text(context.i18n.manageIgnoredDevices),
-                ),
-            ],
+          OutlineButton(
+            onPressed: () {
+              launchUrlString('https://bikecontrol.app/#supported-devices');
+            },
+            leading: Icon(Icons.gamepad_outlined),
+            child: Text(context.i18n.showSupportedControllers),
           ),
 
         if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS))

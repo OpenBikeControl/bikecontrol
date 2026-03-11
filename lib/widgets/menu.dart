@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/pages/markdown.dart';
-import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/utils/core.dart';
@@ -20,7 +19,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../utils/iap/iap_manager.dart';
 
-List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCallback? openLogs) {
+List<Widget> buildMenuButtons(BuildContext context) {
   final iap = IAPManager.instance;
   return [
     // Pro/Subscription Button
@@ -47,7 +46,7 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
       },
     ),
 
-    if (openLogs == null && (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled)) ...[
+    if (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled) ...[
       Gap(8),
       Builder(
         builder: (context) {
@@ -86,7 +85,7 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
     ],
     Gap(4),
 
-    BKMenuButton(openLogs: openLogs, currentPage: currentPage),
+    BKMenuButton(),
   ];
 }
 
@@ -108,9 +107,7 @@ ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transfor
 }
 
 class BKMenuButton extends StatelessWidget {
-  final VoidCallback? openLogs;
-  final BCPage currentPage;
-  const BKMenuButton({super.key, this.openLogs, required this.currentPage});
+  const BKMenuButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +176,7 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
-            if (currentPage == BCPage.logs) ...[
+            if (kDebugMode) ...[
               MenuButton(
                 child: Text('Reset IAP State'),
                 onPressed: (c) async {
@@ -189,28 +186,19 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
-            if (openLogs != null)
-              MenuButton(
-                leading: Icon(Icons.star_rate),
-                child: Text(context.i18n.leaveAReview),
-                onPressed: (c) async {
-                  final InAppReview inAppReview = InAppReview.instance;
+            MenuButton(
+              leading: Icon(Icons.star_rate),
+              child: Text(context.i18n.leaveAReview),
+              onPressed: (c) async {
+                final InAppReview inAppReview = InAppReview.instance;
 
-                  if (await inAppReview.isAvailable()) {
-                    inAppReview.requestReview();
-                  } else {
-                    inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
-                  }
-                },
-              ),
-            if (openLogs != null)
-              MenuButton(
-                leading: Icon(Icons.article_outlined),
-                child: Text(context.i18n.logs),
-                onPressed: (c) {
-                  openLogs!();
-                },
-              ),
+                if (await inAppReview.isAvailable()) {
+                  inAppReview.requestReview();
+                } else {
+                  inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
+                }
+              },
+            ),
             MenuButton(
               leading: Icon(Icons.update_outlined),
               child: Text(context.i18n.changelog),

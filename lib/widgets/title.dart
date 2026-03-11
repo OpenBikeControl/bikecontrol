@@ -200,8 +200,8 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
         if (packageInfoValue != null)
           Text(
             'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${IAPManager.instance.getStatusMessage()}',
-            style: TextStyle(fontSize: 12),
-          ).mono.muted
+            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground.withAlpha(200)),
+          )
         else
           SmallProgressIndicator(),
 

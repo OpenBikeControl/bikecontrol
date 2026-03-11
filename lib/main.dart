@@ -188,17 +188,14 @@ void initializeActions(ConnectionType connectionType) {
 
 class BikeControlApp extends StatefulWidget {
   final Widget? customChild;
-  final BCPage page;
   final String? error;
-  const BikeControlApp({super.key, this.error, this.page = BCPage.devices, this.customChild});
+  const BikeControlApp({super.key, this.error, this.customChild});
 
   @override
   State<BikeControlApp> createState() => _BikeControlAppState();
 }
 
 class _BikeControlAppState extends State<BikeControlApp> {
-  BCPage? _showPage;
-
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
@@ -224,7 +221,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
       ),
       locale: screenshotMode ? Locale('en') : null,
       theme: ThemeData(
-        colorScheme: ColorSchemes.lightNeutral,
+        colorScheme: ColorSchemes.lightSlate,
       ),
       //themeMode: ThemeMode.light,
       home: widget.error != null
@@ -238,15 +235,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
               key: ValueKey('Test'),
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
               child: _Starter(
-                child:
-                    widget.customChild ??
-                    (AnimatedSwitcher(
-                      duration: Duration(milliseconds: 600),
-                      child: Navigation(
-                        page: _showPage ?? widget.page,
-                        showOverview: true,
-                      ),
-                    )),
+                child: widget.customChild ?? Navigation(),
               ),
             ),
     );

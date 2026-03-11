@@ -165,7 +165,7 @@ class ZwiftClickV2 extends ZwiftRide {
                             );
                           },
                           leading: const Icon(Icons.lock_open_rounded),
-                          style: ButtonStyle.primary(size: ButtonSize.small),
+                          style: ButtonStyle.outline(size: ButtonSize.small),
                           child: Text(AppLocalizations.of(context).unlock_unlockNow),
                         ),
                       ],

@@ -5,18 +5,33 @@ class HoverCardButton extends StatelessWidget {
   final Widget child;
   final Widget? leading;
   final Widget? trailing;
-  const HoverCardButton({super.key, required this.onPressed, required this.child, this.leading, this.trailing});
+  final ButtonStyle? buttonStyle;
+  const HoverCardButton({
+    super.key,
+    this.buttonStyle,
+    required this.onPressed,
+    required this.child,
+    this.leading,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Button.card(
-      style: ButtonStyle.card().withBackgroundColor(
-        hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94),
+    return SizedBox(
+      width: trailing != null ? double.infinity : null,
+      child: Button.card(
+        style: (buttonStyle ?? ButtonStyle.card())
+            .withBackgroundColor(
+              hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94),
+            )
+            .withPadding(
+              padding: EdgeInsets.only(left: 16, top: 16, bottom: 16, right: trailing != null ? 6 : 16),
+            ),
+        leading: leading,
+        trailing: trailing,
+        onPressed: onPressed,
+        child: child,
       ),
-      leading: leading,
-      trailing: trailing,
-      onPressed: onPressed,
-      child: child,
     );
   }
 }

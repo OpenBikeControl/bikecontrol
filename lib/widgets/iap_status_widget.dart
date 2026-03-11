@@ -316,7 +316,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                                       onPressed: () {
                                                         Navigator.of(context).pop();
                                                       },
-                                                      child: Text('OK'),
+                                                      child: Text(AppLocalizations.of(context).ok),
                                                     ),
                                                   ],
                                                 );
@@ -415,7 +415,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   ],
                                   if (IAPManager.instance.isUsingRevenueCat)
                                     _buildRestoreAction(
-                                      label: 'Restore Purchases',
+                                      label: AppLocalizations.of(context).restorePurchases,
                                       leftPadding: 0,
                                     ),
                                 ],
@@ -451,7 +451,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                             ),
                             if (IAPManager.instance.isUsingRevenueCat)
                               _buildRestoreAction(
-                                label: 'Restore Purchases',
+                                label: AppLocalizations.of(context).restorePurchases,
                                 leftPadding: 42.0,
                               ),
                             if (Platform.isWindows)

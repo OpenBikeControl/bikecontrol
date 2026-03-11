@@ -13,9 +13,11 @@ import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -261,6 +263,8 @@ abstract class BluetoothDevice extends BaseDevice {
 
   @override
   List<Widget> showMetaInformation(BuildContext context) {
+    final foregroundColor = Theme.of(context).colorScheme.mutedForeground;
+    const fontSize = 11.0;
     return [
       // metaRow: battery + signal
       if (batteryLevel != null || rssi != null) ...[
@@ -276,16 +280,38 @@ abstract class BluetoothDevice extends BaseDevice {
               _ => LucideIcons.batteryWarning,
             },
             size: 14,
-            color: batteryLevel! < 20 ? Theme.of(context).colorScheme.destructive : const Color(0xFF22C55E),
+            color: batteryLevel! < 20 ? Theme.of(context).colorScheme.destructive : foregroundColor,
           ),
           Text(
             '$batteryLevel%',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.mutedForeground,
+              fontSize: fontSize,
+              color: foregroundColor,
             ),
           ),
+          if (firmwareVersion != null || rssi != null) const Gap(16),
+        ],
+        if (firmwareVersion != null) ...[
+          if (firmwareVersion != null)
+            if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+              Icon(
+                Icons.warning,
+                size: fontSize,
+              )
+            else
+              Text('FW', style: TextStyle(fontSize: 10, color: foregroundColor)).inlineCode,
+          Text(
+            firmwareVersion!,
+            style: TextStyle(
+              fontSize: fontSize,
+              color: foregroundColor,
+            ),
+          ),
+          if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+            Text(
+              ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
+              style: TextStyle(color: foregroundColor, fontSize: fontSize),
+            ),
           if (rssi != null) const Gap(16),
         ],
         if (rssi != null)
@@ -296,7 +322,7 @@ abstract class BluetoothDevice extends BaseDevice {
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(LucideIcons.signal, size: 14, color: const Color(0xFF22C55E)),
+                  Icon(LucideIcons.signal, size: 14, color: foregroundColor),
                   const Gap(4),
                   Text(
                     switch (currentRssi) {
@@ -305,11 +331,7 @@ abstract class BluetoothDevice extends BaseDevice {
                       >= -85 => 'Fair',
                       _ => 'Weak',
                     },
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).colorScheme.mutedForeground,
-                    ),
+                    style: TextStyle(fontSize: fontSize, color: foregroundColor),
                   ),
                 ],
               );

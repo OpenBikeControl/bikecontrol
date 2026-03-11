@@ -429,28 +429,18 @@ abstract class BaseDevice {
                     ),
                   ),
                   Text(
-                    isConnected ? 'Connected' : 'Disconnected',
+                    isConnected ? AppLocalizations.of(context).connected : AppLocalizations.of(context).disconnected,
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
+                      fontSize: 11,
+                      color: isConnected
+                          ? Theme.of(context).colorScheme.mutedForeground
+                          : Theme.of(context).colorScheme.destructive,
                     ),
                   ),
                   ...showMetaInformation(context),
                 ],
               ),
             ],
-          ),
-        ),
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.muted,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Center(
-            child: Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
           ),
         ),
       ],

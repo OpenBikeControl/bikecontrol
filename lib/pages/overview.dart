@@ -9,14 +9,17 @@ import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/card_button.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
+import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/shared.dart';
@@ -525,7 +528,39 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           valueListenable: IAPManager.instance.isPurchased,
           builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
         ),
-        _buildSectionHeader(icon: Icons.gamepad, title: 'Controllers'),
+        Row(
+          children: [
+            Expanded(
+              child: _buildSectionHeader(icon: Icons.gamepad, title: AppLocalizations.of(context).controllers),
+            ),
+            if (core.settings.getIgnoredDevices().isNotEmpty)
+              Button.text(
+                style: ButtonStyle.menu(),
+                leading: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.muted,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  margin: EdgeInsets.only(right: 4),
+                  child: Text(
+                    core.settings.getIgnoredDevices().length.toString(),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.mutedForeground,
+                    ),
+                  ),
+                ),
+                onPressed: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (context) => IgnoredDevicesDialog(),
+                  );
+                  setState(() {});
+                },
+                child: Text(context.i18n.manageIgnoredDevices).small,
+              ),
+          ],
+        ),
         DevicePage(
           cardKeys: _cardKeys,
           isMobile: widget.isMobile,
@@ -535,7 +570,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             final generation = _pressGeneration[id] ?? 0;
             return [
               const Gap(12),
-              Divider(color: Theme.of(context).colorScheme.border.withAlpha(140)),
+              Divider(color: Theme.of(context).colorScheme.border.withAlpha(140), indent: 30, endIndent: 30),
               const Gap(12),
               Wrap(
                 alignment: WrapAlignment.start,
@@ -584,6 +619,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
       return Scrollbar(
         controller: _horizontalScrollController,
+        thumbVisibility: true,
         child: SingleChildScrollView(
           controller: _horizontalScrollController,
           scrollDirection: Axis.horizontal,
@@ -931,7 +967,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ],
             const Gap(12),
           ],
-          Divider(color: Theme.of(context).colorScheme.border.withAlpha(140)),
           const Gap(12),
           TrainerFeatures(),
         ],
@@ -944,40 +979,38 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final started = trainer.isStarted.value;
     final color = connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: connected ? null : Theme.of(context).colorScheme.muted,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Icon(
-              trainer.type.icon,
-              size: 16,
-              color: connected ? null : Theme.of(context).colorScheme.mutedForeground,
-            ),
-          ),
-          const Gap(8),
-          Expanded(
-            child: connected ? Text(trainer.title).xSmall.semiBold : Text(trainer.title).xSmall.semiBold.muted,
-          ),
-          if (started && !connected)
-            SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                color: Theme.of(context).colorScheme.mutedForeground,
+    return Row(
+      children: [
+        Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.muted,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  trainer.type.icon,
+                  size: 20,
+                  color: connected ? null : Theme.of(context).colorScheme.mutedForeground,
+                ),
               ),
-            )
-          else
-            _dot(6, color),
-        ],
-      ),
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              child: (started && !connected) ? SmallProgressIndicator() : _dot(12, color),
+            ),
+          ],
+        ),
+        const Gap(8),
+        Expanded(
+          child: connected ? Text(trainer.title).small.semiBold : Text(trainer.title).small.muted,
+        ),
+      ],
     );
   }
 
@@ -1057,7 +1090,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final ago = DateTime.now().difference(entry.time);
     final String timeText;
     if (ago.inSeconds < 2) {
-      timeText = 'Just now';
+      timeText = AppLocalizations.of(context).justNow;
     } else if (ago.inSeconds < 60) {
       timeText = '${ago.inSeconds}s ago';
     } else {
@@ -1152,7 +1185,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         () => _openTrainerConnectionSettings(),
       ),
       ErrorType.proRequired => (
-        'Upgrade to Pro',
+        AppLocalizations.of(context).goPro,
         () {}, // handled elsewhere
       ),
       ErrorType.headwindNotConnected => (

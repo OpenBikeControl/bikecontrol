@@ -231,9 +231,9 @@ class IAPManager {
     if (kIsWeb) {
       return "Web";
     } else if (isProEnabledForCurrentDevice) {
-      return 'Pro version$expiryInfo';
+      return 'Pro$expiryInfo';
     } else if (isProEnabled) {
-      return 'Pro version (unregistered device)$expiryInfo';
+      return 'Pro (unregistered device)$expiryInfo';
     } else if (isPurchased.value) {
       return AppLocalizations.current.fullVersion;
     } else if (isOutsideStoreWindowsBuild) {
