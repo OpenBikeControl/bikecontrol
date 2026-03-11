@@ -121,7 +121,7 @@ class FeatureWidget extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(title).small.semiBold,
+                      Flexible(child: Text(title).small.semiBold),
                       if (isNew) ...[
                         const Gap(6),
                         Container(
@@ -172,12 +172,14 @@ class SwitchFeature extends StatelessWidget {
   final String title;
   final String? subtitle;
   final bool value;
-
   final bool isProOnly;
+  final bool isMobile;
+
   const SwitchFeature({
     super.key,
     required this.onPressed,
     required this.title,
+    required this.isMobile,
     this.subtitle,
     required this.value,
     this.isProOnly = false,
@@ -185,14 +187,14 @@ class SwitchFeature extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Button.ghost(
         style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12)),
         onPressed: onPressed,
         child: Basic(
           padding: EdgeInsets.zero,
-          title: Text(title),
+          title: isMobile && false ? Text(title).xSmall.normal : Text(title),
           subtitle: subtitle != null ? Text(subtitle!).xSmall.normal.muted : null,
           trailing: Switch(
             value: value,

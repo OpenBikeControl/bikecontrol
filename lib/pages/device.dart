@@ -143,13 +143,13 @@ class _DevicePageState extends State<DevicePage> {
                   border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
                 ),
                 child: SwitchFeature(
+                  isMobile: widget.isMobile,
                   onPressed: () {
                     final newValue = !core.mediaKeyHandler.isMediaKeyDetectionEnabled.value;
                     core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = newValue;
                     core.settings.setMediaKeyDetectionEnabled(newValue);
                   },
                   title: context.i18n.enableMediaKeyDetection,
-                  subtitle: context.i18n.mediaKeyDetectionTooltip,
                   value: value,
                 ),
               );
@@ -163,6 +163,7 @@ class _DevicePageState extends State<DevicePage> {
             child: SwitchFeature(
               value: core.settings.getPhoneSteeringEnabled(),
               isProOnly: true,
+              isMobile: widget.isMobile,
               title: AppLocalizations.of(context).enableSteeringWithPhone,
               onPressed: () {
                 final enable = !core.settings.getPhoneSteeringEnabled();

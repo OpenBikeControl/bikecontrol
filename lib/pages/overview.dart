@@ -662,7 +662,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             child: SingleChildScrollView(
               controller: _horizontalScrollController,
               scrollDirection: Axis.horizontal,
-              physics: const ClampingScrollPhysics(),
+              physics: const PageScrollPhysics(),
               child: SizedBox(
                 width: leftWidth + rightWidth,
                 child: SingleChildScrollView(
@@ -682,7 +682,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                           ),
                           Container(
                             decoration: BoxDecoration(
-                              color: Color(0xFFF8FAFB),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.gray.shade900
+                                  : Color(0xFFF8FAFB),
                               border: Border(
                                 left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
                                 bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
@@ -742,7 +744,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Color(0xFFF8FAFB),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
                   border: Border(
                     left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
                     bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
