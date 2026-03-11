@@ -9,10 +9,11 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart' show LogLevel;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -22,19 +23,21 @@ abstract class BaseDevice {
   final bool isBeta;
   bool supportsLongPress;
   final String uniqueId;
+  final IconData icon;
   final List<ControllerButton> availableButtons;
 
   BaseDevice(
     this._name, {
     required this.uniqueId,
     required this.availableButtons,
+    required this.icon,
     this.isBeta = false,
     this.supportsLongPress = true,
     String? buttonPrefix,
   }) {
     if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
       final allButtons = core.actionHandler.supportedApp!.keymap.keyPairs
-          .flatMap((e) => e.buttons)
+          .expand((e) => e.buttons)
           .filter(
             (e) =>
                 e.sourceDeviceId == uniqueId ||
@@ -378,7 +381,81 @@ abstract class BaseDevice {
     isConnected = false;
   }
 
-  Widget showInformation(BuildContext context);
+  List<Widget> showMetaInformation(BuildContext context) {
+    return [];
+  }
+
+  Widget showInformation(BuildContext context) {
+    return Row(
+      spacing: 12,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.muted,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 24),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 4,
+            children: [
+              Row(
+                spacing: 6,
+                children: [
+                  Text(
+                    toString(),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                  ),
+                  if (isBeta) BetaPill(),
+                ],
+              ),
+              Wrap(
+                runSpacing: 6,
+                spacing: 6,
+                alignment: WrapAlignment.start,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runAlignment: WrapAlignment.start,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Text(
+                    isConnected ? 'Connected' : 'Disconnected',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
+                    ),
+                  ),
+                  ...showMetaInformation(context),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.muted,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Center(
+            child: Icon(LucideIcons.settings, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget? buildPreferences(BuildContext context) => null;
 
