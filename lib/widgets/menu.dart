@@ -6,6 +6,7 @@ import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:dartx/dartx.dart';
@@ -189,6 +190,15 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
+            MenuButton(
+              leading: Icon(Icons.logo_dev_sharp),
+              child: Text(context.i18n.logs),
+              onPressed: (c) async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => LogViewer()),
+                );
+              },
+            ),
             MenuButton(
               leading: Icon(Icons.star_rate),
               child: Text(context.i18n.leaveAReview),
