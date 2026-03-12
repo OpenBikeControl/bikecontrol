@@ -34,13 +34,13 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
+  Widget showInformation(BuildContext context, {required bool showFull}) {
     return Column(
       spacing: 16,
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        super.showInformation(context),
+        super.showInformation(context, showFull: showFull),
         if (!isConnected)
           Button.primary(
             style: ButtonStyle.primary(size: ButtonSize.small),

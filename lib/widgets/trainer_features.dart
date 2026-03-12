@@ -1,7 +1,9 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/protocol/zp.pbenum.dart';
@@ -189,20 +191,41 @@ class SwitchFeature extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: Button.ghost(
-        style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12)),
-        onPressed: onPressed,
-        child: Basic(
-          padding: EdgeInsets.zero,
-          title: isMobile && false ? Text(title).xSmall.normal : Text(title),
-          subtitle: subtitle != null ? Text(subtitle!).xSmall.normal.muted : null,
-          trailing: Switch(
-            value: value,
-            onChanged: (val) {
-              onPressed();
-            },
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          Button.ghost(
+            style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12)),
+            onPressed: !isProOnly
+                ? onPressed
+                : () async {
+                    if (await IAPManager.instance.ensureProForFeature(context)) {
+                      onPressed();
+                    }
+                  },
+            child: Basic(
+              padding: EdgeInsets.only(right: isProOnly && !IAPManager.instance.isProEnabled ? 32 : 0),
+              title: isMobile && false ? Text(title).xSmall.normal : Text(title),
+              subtitle: subtitle != null ? Text(subtitle!).xSmall.normal.muted : null,
+              trailing: Switch(
+                value: value,
+                onChanged: (val) {
+                  onPressed();
+                },
+              ),
+            ),
           ),
-        ),
+          if (isProOnly && !IAPManager.instance.isProEnabled)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: ProBadge(
+                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(8)),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

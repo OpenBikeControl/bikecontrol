@@ -381,11 +381,11 @@ abstract class BaseDevice {
     isConnected = false;
   }
 
-  List<Widget> showMetaInformation(BuildContext context) {
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     return [];
   }
 
-  Widget showInformation(BuildContext context) {
+  Widget showInformation(BuildContext context, {required bool showFull}) {
     return Row(
       spacing: 12,
       children: [
@@ -438,7 +438,7 @@ abstract class BaseDevice {
                           : Theme.of(context).colorScheme.destructive,
                     ),
                   ),
-                  ...showMetaInformation(context),
+                  ...showMetaInformation(context, showFull: showFull),
                 ],
               ),
             ],

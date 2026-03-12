@@ -58,7 +58,7 @@ class GamepadDevice extends BaseDevice {
   }
 
   @override
-  List<Widget> showMetaInformation(BuildContext context) {
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     return [
       if (Platform.isAndroid && !core.settings.getLocalEnabled())
         Warning(

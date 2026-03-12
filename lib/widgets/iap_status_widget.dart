@@ -374,12 +374,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     });
 
     try {
-      if (IAPManager.instance.isOutsideStoreWindowsBuild) {
-        await IAPManager.instance.purchaseSubscription(context);
-      } else {
-        // Use RevenueCat paywall if available, otherwise fall back to legacy
-        await IAPManager.instance.purchaseFullVersion(context);
-      }
+      // Use RevenueCat paywall if available, otherwise fall back to legacy
+      await IAPManager.instance.purchaseFullVersion(context);
     } catch (e) {
       if (mounted) {
         buildToast(

@@ -76,7 +76,7 @@ class _DevicePageState extends State<DevicePage> {
                     trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                     child: Row(
                       children: [
-                        Flexible(child: device.showInformation(context)),
+                        Flexible(child: device.showInformation(context, showFull: false)),
                         if (!widget.isMobile)
                           Container(
                             constraints: BoxConstraints(maxWidth: 300),
@@ -113,7 +113,7 @@ class _DevicePageState extends State<DevicePage> {
                 fillColor: Theme.of(context).brightness == Brightness.dark
                     ? Theme.of(context).colorScheme.card
                     : Theme.of(context).colorScheme.card.withLuminance(0.95),
-                child: device.showInformation(context),
+                child: device.showInformation(context, showFull: false),
               ),
             ),
           ),

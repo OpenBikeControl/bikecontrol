@@ -311,10 +311,10 @@ class GyroscopeSteering extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
+  Widget showInformation(BuildContext context, {required bool showFull}) {
     return Column(
       children: [
-        super.showInformation(context),
+        super.showInformation(context, showFull: showFull),
         const Gap(12),
         Row(
           spacing: 8,

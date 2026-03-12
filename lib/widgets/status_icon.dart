@@ -5,17 +5,17 @@ class StatusIcon extends StatelessWidget {
   final bool status;
   final bool started;
   final IconData icon;
+  final VoidCallback? onPressed;
 
-  const StatusIcon({super.key, required this.status, required this.icon, required this.started});
+  const StatusIcon({super.key, required this.status, required this.icon, required this.started, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final color = status ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground;
     return Stack(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Container(
+        if (onPressed == null)
+          Container(
             width: 38,
             height: 38,
             decoration: BoxDecoration(
@@ -27,8 +27,17 @@ class StatusIcon extends StatelessWidget {
               size: 20,
               color: status ? null : Theme.of(context).colorScheme.mutedForeground,
             ),
+          )
+        else
+          Button(
+            style: ButtonStyle.fixedIcon(),
+            onPressed: onPressed,
+            child: Icon(
+              icon,
+              size: 20,
+              color: status ? null : Theme.of(context).colorScheme.mutedForeground,
+            ),
           ),
-        ),
         Positioned(
           right: 0,
           top: 0,
