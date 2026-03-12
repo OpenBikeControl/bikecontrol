@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 enum _PaywallPlan {
   yearly,
@@ -370,6 +371,20 @@ class _PaywallState extends State<Paywall> {
                     ],
                   ),
                 ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Button.text(
+                    onPressed: () => launchUrlString('https://bikecontrol.app/terms-of-use'),
+                    child: Text(AppLocalizations.of(context).termsOfUse).small.muted,
+                  ),
+                  Text('|').small.muted,
+                  Button.text(
+                    onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
+                    child: Text(AppLocalizations.of(context).privacyPolicy).small.muted,
+                  ),
+                ],
               ),
             ],
           ),
