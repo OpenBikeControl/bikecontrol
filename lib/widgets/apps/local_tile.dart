@@ -33,6 +33,7 @@ class _LocalTileState extends State<LocalTile> {
     if (core.logic.canRunAndroidService) {
       core.logic.isAndroidServiceRunning().then((isRunning) {
         core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+        core.local.isConnected.value = isRunning;
         core.local.isStarted.value = isRunning;
         setState(() {
           _isRunningAndroidService = isRunning;
@@ -210,12 +211,14 @@ class _LocalTileState extends State<LocalTile> {
           core.logic.isAndroidServiceRunning().then((isRunning) {
             core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
             core.local.isStarted.value = isRunning;
+            core.local.isConnected.value = isRunning;
             setState(() {
               _isRunningAndroidService = isRunning;
             });
           });
         } else {
           core.local.isStarted.value = value;
+          core.local.isConnected.value = value;
           core.connection.signalNotification(LogNotification('Local Control: $value'));
         }
       },

@@ -320,6 +320,7 @@ class _InstructionVideosDrawerState extends State<_InstructionVideosDrawer> {
                 final shortVideos = videos.where((video) => video.isShort).toList();
 
                 return SingleChildScrollView(
+                  physics: ClampingScrollPhysics(),
                   child: Column(
                     spacing: 12,
                     crossAxisAlignment: CrossAxisAlignment.stretch,

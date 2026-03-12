@@ -369,13 +369,24 @@ class Local extends TrainerConnection {
         title: ConnectionMethodType.local.name.capitalize(),
         type: ConnectionMethodType.local,
         supportedActions: InGameAction.values,
-      );
+      ) {
+    if (core.logic.canRunAndroidService) {
+      core.logic.isAndroidServiceRunning().then((isRunning) {
+        core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+        isStarted.value = isRunning;
+        isConnected.value = isRunning;
+      });
+    }
+  }
+
+  final ValueNotifier<bool> _isConnected = ValueNotifier(core.settings.getLocalEnabled());
+  final ValueNotifier<bool> _isStarted = ValueNotifier(core.settings.getLocalEnabled());
 
   @override
-  ValueNotifier<bool> get isConnected => ValueNotifier(core.settings.getLocalEnabled());
+  ValueNotifier<bool> get isConnected => _isConnected;
 
   @override
-  ValueNotifier<bool> get isStarted => ValueNotifier(core.settings.getLocalEnabled());
+  ValueNotifier<bool> get isStarted => _isStarted;
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {

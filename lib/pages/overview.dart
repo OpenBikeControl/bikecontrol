@@ -22,6 +22,7 @@ import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
+import 'package:lottie/lottie.dart';
 import 'package:prop/emulators/shared.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -1281,7 +1282,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         builder: (context, _) {
           final entry = _latestError;
           if (entry == null && _errorBannerController.value == 0) {
-            return const SizedBox.shrink();
+            return Center(child: Lottie.asset('assets/bicycle.json', width: 120, height: 90));
           }
 
           final t = CurvedAnimation(
