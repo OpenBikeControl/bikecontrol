@@ -548,7 +548,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         const Gap(8),
         ValueListenableBuilder(
           valueListenable: IAPManager.instance.isPurchased,
-          builder: (context, value, child) => value ? SizedBox.shrink() : IAPStatusWidget(small: false),
+          builder: (context, value, child) => value ? SizedBox(height: 12) : IAPStatusWidget(small: false),
         ),
         Card(
           padding: EdgeInsets.zero,
@@ -669,8 +669,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   key: _stackKey,
                   clipBehavior: Clip.none,
                   children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: hPad, right: gutterWidth - 10 + hPad),
+                    SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        left: hPad,
+                        right: gutterWidth - 10 + hPad,
+                        bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
+                      ),
                       child: leftColumn,
                     ),
                     if (lanes.isNotEmpty)
@@ -947,6 +951,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),
     );
+    _clearErrorBanner();
     setState(() {});
   }
 
@@ -954,7 +959,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TrainerConnectionSettingsPage()),
     );
+    _clearErrorBanner();
     setState(() {});
+  }
+
+  void _clearErrorBanner() {
+    if (_latestError != null) {
+      _errorBannerController.reverse().then((_) {
+        if (mounted) setState(() => _latestError = null);
+      });
+    }
   }
 
   // ── Trainer card ──────────────────────────────────────────────────
@@ -973,6 +987,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           Button.ghost(
             onPressed: _openTrainerConnectionSettings,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Gap(4),
                 _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
@@ -1024,8 +1039,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     if (enabledTrainer != enabledTrainers.last) const Gap(6),
                   ],
                   const Gap(12),
-                ] else
+                ] else ...[
                   const Gap(12),
+                  Text(context.i18n.noConnectionMethodIsConnectedOrActive).small.muted,
+                  const Gap(12),
+                ],
               ],
             ),
           ),

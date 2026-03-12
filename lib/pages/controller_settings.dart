@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
@@ -62,12 +63,13 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                 const Gap(24),
 
                 // Button mapping
-                if (keymap != null) ...[
-                  _buildSectionHeader('Button Mapping', trailing: _buildTrainerLabel(trainerApp!.name)),
-                  const Gap(12),
-                  CustomizePage(isMobile: false, filterDevice: widget.device),
-                  const Gap(24),
-                ],
+                _buildSectionHeader(
+                  'Button Mapping',
+                  trailing: _buildTrainerLabel(trainerApp?.name ?? '-'),
+                ),
+                const Gap(12),
+                CustomizePage(isMobile: false, filterDevice: widget.device),
+                const Gap(24),
 
                 // Preferences
                 if (device.buildPreferences(context) != null) ...[
@@ -78,7 +80,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                 ],
 
                 // Actions
-                _buildActions(device),
+                _buildActions(device, keymap),
               ],
             ),
           ),
@@ -140,21 +142,23 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     );
   }
 
-  Widget _buildActions(BaseDevice device) {
+  Widget _buildActions(BaseDevice device, Keymap? keymap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        Button.outline(
-          onPressed: () {
-            core.settings.getTrainerApp()?.keymap.resetForDevice(device);
-            setState(() {});
-            buildToast(title: 'Button mappings reset to defaults');
-          },
-          leading: Icon(LucideIcons.rotateCcw, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-          child: Text('Reset to defaults'),
-        ),
-        const Gap(12),
+        if (keymap != null) ...[
+          Button.outline(
+            onPressed: () {
+              core.settings.getTrainerApp()?.keymap.resetForDevice(device);
+              setState(() {});
+              buildToast(title: 'Button mappings reset to defaults');
+            },
+            leading: Icon(LucideIcons.rotateCcw, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+            child: Text('Reset to defaults'),
+          ),
+          const Gap(12),
+        ],
         Builder(
           builder: (context) {
             return _buildActionButton(
@@ -217,7 +221,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     return Button(
       style: isDestructive ? ButtonStyle.destructive() : ButtonStyle.outline(),
       onPressed: onTap,
-      leading: isLoading ? SmallProgressIndicator() : Icon(icon),
+      leading: isLoading ? SmallProgressIndicator() : Icon(icon, size: 18),
       trailing: trailing,
       child: Text(label),
     );
