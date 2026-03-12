@@ -1,8 +1,3 @@
-### 5.1.0 (unreleased)
-
-**Features**:
-- support for Wahoo KICKR BIKE V1 & KICKR BIKE V2
-
 ### 5.0.0 (10-03-2026)
 
 BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
@@ -15,10 +10,12 @@ BikeControl Pro is now available - subscribe to the Pro version to support the p
 - and much more to come in the future!
 
 **Features**:
+- New app design - let me know what you think about it!
 - Bluetooth media buttons are now supported on iOS
 - Shimano Di2: long press and double clicks are now supported:
   - perform steering using long presses
   - gear changes are now reflected properly without losing any button presses
+- support for Wahoo KICKR BIKE V1 & KICKR BIKE V2
 - App is now available in Spanish
 
 **Fixes**:

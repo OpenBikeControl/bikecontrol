@@ -14,6 +14,57 @@ class MyWhoosh extends SupportedApp {
         compatibleTargets: Target.values,
         supportsZwiftEmulation: false,
         star: true,
+        additionalKeyPairs: [
+          KeyPair(
+            buttons: [ControllerButton('Peace', action: InGameAction.emote)],
+            inGameAction: InGameAction.emote,
+            inGameActionValue: 1,
+            physicalKey: PhysicalKeyboardKey.digit1,
+            logicalKey: LogicalKeyboardKey.digit1,
+          ),
+          KeyPair(
+            buttons: [ControllerButton('Wave', action: InGameAction.emote)],
+            inGameAction: InGameAction.emote,
+            inGameActionValue: 2,
+            physicalKey: PhysicalKeyboardKey.digit2,
+            logicalKey: LogicalKeyboardKey.digit2,
+          ),
+          KeyPair(
+            buttons: [ControllerButton('First Bump', action: InGameAction.emote)],
+            inGameAction: InGameAction.emote,
+            inGameActionValue: 3,
+            physicalKey: PhysicalKeyboardKey.digit3,
+            logicalKey: LogicalKeyboardKey.digit3,
+          ),
+          KeyPair(
+            buttons: [ControllerButton('Dab', action: InGameAction.emote)],
+            inGameAction: InGameAction.emote,
+            inGameActionValue: 4,
+            physicalKey: PhysicalKeyboardKey.digit4,
+            logicalKey: LogicalKeyboardKey.digit4,
+          ),
+          KeyPair(
+            buttons: [ControllerButton('Elbow Flick', action: InGameAction.emote)],
+            inGameAction: InGameAction.emote,
+            inGameActionValue: 5,
+            physicalKey: PhysicalKeyboardKey.digit5,
+            logicalKey: LogicalKeyboardKey.digit5,
+          ),
+          KeyPair(
+            buttons: [ControllerButton('Toast', action: InGameAction.emote)],
+            inGameAction: InGameAction.emote,
+            inGameActionValue: 6,
+            physicalKey: PhysicalKeyboardKey.digit6,
+            logicalKey: LogicalKeyboardKey.digit6,
+          ),
+          KeyPair(
+            buttons: [ControllerButton('Thumbs up', action: InGameAction.emote)],
+            inGameAction: InGameAction.emote,
+            inGameActionValue: 7,
+            physicalKey: PhysicalKeyboardKey.digit7,
+            logicalKey: LogicalKeyboardKey.digit7,
+          ),
+        ],
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values

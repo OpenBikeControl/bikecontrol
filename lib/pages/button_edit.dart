@@ -816,19 +816,21 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final triggerForPredefined = widget.trigger == ButtonTrigger.doubleClick
         ? ButtonTrigger.singleClick
         : widget.trigger;
-    final actionsWithInGameAction = trainerApp?.keymap.keyPairs
-        .where(
-          (kp) =>
-              kp.trigger == triggerForPredefined &&
-              kp.inGameAction != null &&
-              switch (supportedMode) {
-                SupportedMode.keyboard => kp.physicalKey != null,
-                SupportedMode.touch => kp.touchPosition != Offset.zero,
-                SupportedMode.media => kp.isSpecialKey,
-              },
-        )
-        .distinctBy((kp) => kp.inGameAction)
-        .toList();
+    final actionsWithInGameAction = [
+      ...?trainerApp?.keymap.keyPairs
+          .where(
+            (kp) =>
+                kp.trigger == triggerForPredefined &&
+                kp.inGameAction != null &&
+                switch (supportedMode) {
+                  SupportedMode.keyboard => kp.physicalKey != null,
+                  SupportedMode.touch => kp.touchPosition != Offset.zero,
+                  SupportedMode.media => kp.isSpecialKey,
+                },
+          )
+          .distinctBy((kp) => kp.inGameAction),
+      ...?trainerApp?.additionalKeyPairs,
+    ];
 
     final isEnabled =
         supportedMode == SupportedMode.keyboard &&
@@ -841,7 +843,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       return buildToast(
         title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
       );
-    } else if (actionsWithInGameAction != null && actionsWithInGameAction.isNotEmpty) {
+    } else if (actionsWithInGameAction.isNotEmpty) {
       showDropdown(
         context: context,
         builder: (c) => DropdownMenu(
@@ -876,7 +878,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(keyPairAction.inGameAction?.title ?? ''),
+                    Text(
+                      keyPairAction.inGameActionValue != null
+                          ? keyPairAction.buttons.first.name
+                          : keyPairAction.inGameAction?.title ?? '',
+                    ),
                     Text(switch (supportedMode) {
                       SupportedMode.keyboard => keyPairAction.logicalKey?.keyLabel ?? 'Not assigned',
                       SupportedMode.touch =>
