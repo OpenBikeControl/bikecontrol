@@ -333,8 +333,13 @@ class IAPManager {
   /// Open Stripe Billing Portal (Windows only)
   /// Returns false if user has no Stripe customer (should hide button)
   Future<bool> openBillingPortal(BuildContext context) async {
-    if (_windowsIapService == null) return false;
-    return _windowsIapService!.openBillingPortal(context);
+    if (_revenueCatService != null) {
+      return _revenueCatService!.openBillingPortal(context);
+    } else if (_windowsIapService != null) {
+      return _windowsIapService!.openBillingPortal(context);
+    } else {
+      return false;
+    }
   }
 
   /// Check if user has a Stripe customer record (Windows only)
