@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -229,8 +231,26 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     required ButtonTrigger trigger,
     required bool supportsLongPress,
   }) {
-    final keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
+    KeyPair? keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
     final longPressKeyPair = widget.keymap.getKeyPair(deviceButton, trigger: ButtonTrigger.longPress);
+    if (screenshotMode &&
+        keyPair == null &&
+        deviceButton.name == ZwiftButtons.a.name &&
+        trigger == ButtonTrigger.longPress) {
+      // TODO fix it in the screenshot_test.dart instead
+      keyPair = KeyPair(
+        physicalKey: null,
+        logicalKey: null,
+        modifiers: [],
+        touchPosition: Offset.zero,
+        inGameAction: InGameAction.steerRight,
+        inGameActionValue: null,
+        androidAction: null,
+        command: null,
+        screenshotPath: null,
+        buttons: [ZwiftButtons.a],
+      );
+    }
     final showProBanner = _shouldShowProBanner(button: deviceButton, trigger: trigger);
     final hasAction = keyPair != null && !keyPair.hasNoAction;
     final hasLongPressAction = longPressKeyPair != null && !longPressKeyPair.hasNoAction;

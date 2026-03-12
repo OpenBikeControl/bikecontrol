@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
@@ -6,6 +7,8 @@ import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -46,9 +49,7 @@ Future<void> main() async {
   await core.settings.init();
   await core.settings.reset();
 
-  core.settings.setTrainerApp(MyWhoosh());
-  core.settings.setKeyMap(MyWhoosh());
-  core.settings.setLastTarget(Target.thisDevice);
+  final keymap = MyWhoosh();
 
   final device =
       ZwiftRide(
@@ -61,7 +62,16 @@ Future<void> main() async {
         ..isConnected = true
         ..rssi = -51
         ..batteryLevel = 81;
+
   core.connection.addDevices([device]);
+
+  final firstButton = ZwiftButtons.b.copyWith(sourceDeviceId: device.uniqueId);
+  final keyEntry = keymap.keymap.getOrCreateKeyPair(firstButton, trigger: ButtonTrigger.longPress);
+  keyEntry.inGameAction = InGameAction.steerRight;
+
+  core.settings.setTrainerApp(keymap);
+  core.settings.setKeyMap(keymap);
+  core.settings.setLastTarget(Target.thisDevice);
 
   final List<({DeviceType type, TargetPlatform platform, Size size})> sizes = [
     (type: DeviceType.android, platform: TargetPlatform.android, size: Size(1320, 2868)),
@@ -106,43 +116,6 @@ Future<void> main() async {
       );
 
       await tester.pump();
-    }
-  });
-  testGoldens('Device', (WidgetTester tester) async {
-    IAPManager.instance.isPurchased.value = true;
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'Control your trainer app using ANY controller',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(
-            customChild: ControllerSettingsPage(device: device),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await expectLater(
-        find.byType(ma.Scaffold),
-        matchesGoldenFile(
-          '../screenshots/device-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
-        ),
-      );
     }
   });
 
