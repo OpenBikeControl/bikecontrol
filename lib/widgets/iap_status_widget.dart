@@ -277,7 +277,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   _alreadyBoughtQuestion == null) ...[
                                 PrimaryButton(
                                   onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                  leading: Icon(Icons.star),
+                                  leading: Icon(Icons.star, size: 16),
                                   child: _isPurchasing
                                       ? Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -293,7 +293,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                               ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
                                 PrimaryButton(
                                   onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                  leading: Icon(Icons.star),
+                                  leading: Icon(Icons.star, size: 16),
                                   child: _isPurchasing
                                       ? Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -332,7 +332,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                               builder: (context) {
                                 return PrimaryButton(
                                   onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                  leading: Icon(Icons.star),
+                                  leading: Icon(Icons.star, size: 16),
                                   child: _isPurchasing
                                       ? Row(
                                           mainAxisAlignment: MainAxisAlignment.center,

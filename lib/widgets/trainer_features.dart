@@ -210,6 +210,10 @@ class SwitchFeature extends StatelessWidget {
               trailing: Switch(
                 value: value,
                 onChanged: (val) {
+                  if (isProOnly && !IAPManager.instance.isProEnabled) {
+                    IAPManager.instance.ensureProForFeature(context);
+                    return;
+                  }
                   onPressed();
                 },
               ),

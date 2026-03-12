@@ -645,9 +645,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
     if (_screenWidth < 800) {
       // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
-      final screenWidth = _screenWidth;
-      final leftWidth = screenWidth * 1;
-      final rightWidth = screenWidth * 0.96;
       final hPad = 12.0;
 
       return Column(
@@ -655,71 +652,64 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           Container(
             color: Theme.of(context).colorScheme.muted,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _Tabs(controller: _horizontalScrollController, leftWidth: leftWidth - 50),
+            child: _Tabs(
+              controller: _horizontalScrollController,
+              leftWidth: _screenWidth - 50,
+              hasErrors: _activityLog.any((e) => e.isError),
+            ),
           ),
           Divider(),
           Expanded(
-            child: SingleChildScrollView(
+            child: PageView(
               controller: _horizontalScrollController,
               scrollDirection: Axis.horizontal,
               physics: const PageScrollPhysics(),
-              child: SizedBox(
-                width: leftWidth + rightWidth,
-                child: SingleChildScrollView(
-                  child: Stack(
-                    key: _stackKey,
-                    clipBehavior: Clip.none,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: leftWidth,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: hPad, right: gutterWidth - 10 + hPad),
-                              child: leftColumn,
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.gray.shade900
-                                  : Color(0xFFF8FAFB),
-                              border: Border(
-                                left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-                                bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-                              ),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            width: rightWidth,
-                            child: Container(
-                              padding: const EdgeInsets.only(right: 20),
-                              child: activityColumn,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (lanes.isNotEmpty)
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              painter: _FlowLinePainter(
-                                lanes: lanes,
-                                color: BKColor.mainEnd,
-                                isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
-                              ),
+              children: [
+                Stack(
+                  key: _stackKey,
+                  clipBehavior: Clip.none,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: hPad, right: gutterWidth - 10 + hPad),
+                      child: leftColumn,
+                    ),
+                    if (lanes.isNotEmpty)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: CustomPaint(
+                            painter: _FlowLinePainter(
+                              lanes: lanes,
+                              color: BKColor.mainEnd,
+                              isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
                             ),
                           ),
                         ),
-                      for (final lane in lanes)
-                        if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
-                      for (final lane in lanes)
-                        if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
-                          _buildAnimatedActivityChip(lane),
-                    ],
+                      ),
+                    for (final lane in lanes)
+                      if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
+                    for (final lane in lanes)
+                      if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
+                        _buildAnimatedActivityChip(lane),
+                  ],
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
+                    border: Border(
+                      left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                      bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                    ),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      right: 20,
+                      bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
+                    ),
+                    child: activityColumn,
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
@@ -786,7 +776,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   static const _chipSize = 26.0;
   static const _laneWidth = 16.0;
 
-  late final ScrollController _horizontalScrollController = ScrollController();
+  late final PageController _horizontalScrollController = PageController();
 
   List<_Lane> _buildLanes(List<BaseDevice> devices) {
     final lanes = <_Lane>[];
@@ -1130,6 +1120,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       );
     }
     _activityLog.clear();
+    setState(() {});
   }
 
   Widget _buildActivityRow(_ActivityEntry entry, {required bool isLatest}) {
@@ -1369,7 +1360,9 @@ class _AnimatedButtonWidgetState extends State<_AnimatedButtonWidget> with Singl
 class _Tabs extends StatefulWidget {
   final ScrollController controller;
   final double leftWidth;
-  const _Tabs({super.key, required this.controller, required this.leftWidth});
+  final bool hasErrors;
+
+  const _Tabs({super.key, required this.controller, required this.leftWidth, required this.hasErrors});
 
   @override
   State<_Tabs> createState() => _TabsState();
@@ -1386,6 +1379,14 @@ class _TabsState extends State<_Tabs> {
   void dispose() {
     widget.controller.removeListener(_update);
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _Tabs oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.hasErrors != widget.hasErrors) {
+      setState(() {});
+    }
   }
 
   @override
@@ -1413,7 +1414,25 @@ class _TabsState extends State<_Tabs> {
         TabItem(
           child: Text('Main'),
         ),
-        TabItem(child: Text('Activity')),
+        TabItem(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Activity'),
+              if (widget.hasErrors) ...[
+                Gap(6),
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.destructive.withAlpha(160),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }
