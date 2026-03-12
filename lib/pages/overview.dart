@@ -619,6 +619,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   ];
                 },
                 onUpdate: () {
+                  _clearErrorBanner();
                   setState(() {});
                 },
               ),
@@ -950,17 +951,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   // ── Controller card ───────────────────────────────────────────────
 
   Future<void> _openControllerSettings(BaseDevice device) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),
-    );
+    await context.push(ControllerSettingsPage(device: device));
     _clearErrorBanner();
     setState(() {});
   }
 
   Future<void> _openTrainerConnectionSettings() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TrainerConnectionSettingsPage()),
-    );
+    await context.push(const TrainerConnectionSettingsPage());
     _clearErrorBanner();
     setState(() {});
   }

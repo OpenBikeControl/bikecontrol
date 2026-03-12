@@ -39,12 +39,7 @@ class TrainerFeatures extends StatelessWidget {
                   title: context.i18n.selectTrainerApp,
                 );
               } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (c) => ButtonSimulator(),
-                  ),
-                );
+                context.push(ButtonSimulator());
               }
             },
           ),

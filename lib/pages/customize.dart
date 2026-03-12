@@ -151,9 +151,7 @@ class _CustomizeState extends State<CustomizePage> {
               Button.outline(
                 child: Text('Open connection settings'),
                 onPressed: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TrainerConnectionSettingsPage()),
-                  );
+                  context.push(const TrainerConnectionSettingsPage());
                   setState(() {});
                 },
               ),

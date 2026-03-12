@@ -13,6 +13,7 @@ import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' as m;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'pages/navigation.dart';
@@ -230,6 +231,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
         typography: Typography.geist().scale(isMobile ? 0.9 : 1),
         radius: 0.7,
       ),
+      materialTheme: m.ThemeData(),
       //themeMode: ThemeMode.light,
       home: widget.error != null
           ? Center(

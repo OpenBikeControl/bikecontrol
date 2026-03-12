@@ -935,13 +935,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       _keyPair.androidAction = null;
       _keyPair.command = null;
       _keyPair.screenshotPath = null;
-      await Navigator.of(context).push<bool?>(
-        MaterialPageRoute(
-          builder: (c) => TouchAreaSetupPage(
-            keyPair: _keyPair,
-          ),
-        ),
-      );
+      await context.push(TouchAreaSetupPage(keyPair: _keyPair));
       setState(() {});
       widget.onUpdate();
     }

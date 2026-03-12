@@ -194,9 +194,7 @@ class BKMenuButton extends StatelessWidget {
               leading: Icon(Icons.logo_dev_sharp),
               child: Text(context.i18n.logs),
               onPressed: (c) async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => LogViewer()),
-                );
+                await context.push(LogViewer());
               },
             ),
             MenuButton(

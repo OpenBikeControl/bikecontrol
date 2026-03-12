@@ -68,9 +68,7 @@ class _DevicePageState extends State<DevicePage> {
                   key: widget.cardKeys[device.uniqueId],
                   child: Button.ghost(
                     onPressed: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => ControllerSettingsPage(device: device)),
-                      );
+                      await context.push(ControllerSettingsPage(device: device));
                       widget.onUpdate();
                     },
                     trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
