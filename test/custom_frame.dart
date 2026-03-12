@@ -1,6 +1,6 @@
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:golden_screenshot/golden_screenshot.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 
 import 'screenshot_test.dart';
 
@@ -50,7 +50,7 @@ class CustomFrame extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 170,
+                    top: [DeviceType.androidTablet, DeviceType.iPad, DeviceType.desktop].contains(platform) ? 120 : 170,
                     left: 8,
                     right: 8,
                     bottom: -30,

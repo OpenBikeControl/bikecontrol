@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -130,7 +131,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   padding: const EdgeInsets.only(top: 1.0),
                   child: BetaPill(),
                 )
-              else if (widget.isRecommended)
+              else if (widget.isRecommended && !screenshotMode)
                 SecondaryBadge(child: Text('Recommended')),
               Switch(
                 value: widget.isEnabled,
