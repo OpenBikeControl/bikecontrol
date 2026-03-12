@@ -45,6 +45,7 @@
   "bluetoothTurnedOn": "Bluetooth activé",
   "browserNotSupported": "Ce navigateur ne prend pas en charge Web Bluetooth et la plateforme n'est pas prise en charge :(",
   "button": "bouton.",
+  "buttonMapping": "Affectation des boutons",
   "buyFullVersion": "Acheter la version complète",
   "bySigningInYouAgreeToOur": "En vous connectant, vous acceptez nos conditions générales {privacyPolicy} .",
   "@bySigningInYouAgreeToOur": {
@@ -57,6 +58,7 @@
   "cancel": "Annuler",
   "changelog": "Journal des modifications",
   "checkMyWhooshConnectionScreen": "Vérifiez l'écran de connexion dans MyWhoosh pour voir si « Link » est connecté.",
+  "checkPurchasingOptions": "Vérifier les options d'achat",
   "chooseAnotherScreenshot": "Choisissez une autre capture d'écran",
   "chooseBikeControlInConnectionScreen": "Sélectionnez BikeControl dans l'écran de connexion.",
   "clickAButtonOnYourController": "Cliquez sur un bouton de votre manette pour modifier son action ou appuyez sur l'icône de modification.",
@@ -95,6 +97,7 @@
     }
   },
   "controllerConnectedClickButton": "Super ! Votre manette est connectée. Cliquez sur un bouton de votre manette pour continuer.",
+  "controllerSettings": "Paramètres de la manette",
   "controllers": "Contrôleurs",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Impossible d'effectuer {button}: Aucun clavier défini",
   "create": "Créer",
@@ -149,6 +152,8 @@
   },
   "deviceLimitReached": "Limite d'appareils atteinte pour {platform}. Révoquez les autres appareils pour en enregistrer un nouveau.",
   "devicesActive": "{active} actif",
+  "disconnectAndForget": "Déconnectez-vous et oubliez",
+  "disconnectAndForgetForThisSession": "Déconnecter",
   "disconnectDevices": "Déconnecter les appareils",
   "disconnected": "Déconnecté",
   "donateByBuyingFromPlayStore": "en achetant l'application sur le Play Store",
@@ -306,6 +311,7 @@
   "noDevicesRegistered": "Aucun appareil enregistré",
   "noIgnoredDevices": "Aucun appareil ignoré.",
   "noTrainerSelected": "Aucun Trainer sélectionné",
+  "notAssignedOrNoConnectionMethodActive": "Non attribué",
   "notConnected": "Non connecté",
   "notificationDescription": "Cela permet à l'application de rester active en arrière-plan et de vous informer lorsque la connexion à vos appareils change.",
   "ok": "OK",
@@ -367,6 +373,7 @@
       }
     }
   },
+  "preferences": "Préférences",
   "pressButtonOnClickDevice": "Appuyez sur un bouton de votre appareil Click",
   "pressKeyToAssign": "Appuyez sur une touche de votre clavier pour l'attribuer à {buttonName}",
   "@pressKeyToAssign": {
@@ -399,6 +406,7 @@
   "replaceExisting": "Remplacer l'existant",
   "requirement": "Exigence",
   "reset": "Réinitialiser",
+  "resetToDefaults": "Réinitialiser les paramètres par défaut",
   "restart": "Redémarrage",
   "restorePurchaseInfo": "Cliquez sur le bouton ci-dessus, puis sur « Restaurer l’achat ». Veuillez me contacter directement en cas de problème.",
   "restorePurchases": "Restaurer les achats",
@@ -426,6 +434,7 @@
       }
     }
   },
+  "runScript": "Exécuter le script",
   "save": "Sauvegarder",
   "scan": "BALAYAGE",
   "scanningForDevices": "Recherche d'appareils en cours... Assurez-vous qu'ils sont allumés, à portée et non connectés à un autre appareil.",
@@ -468,9 +477,11 @@
   "targetOtherDevice": "Autre appareil",
   "targetThisDevice": "Cet appareil",
   "theFollowingPermissionsRequired": "Les autorisations suivantes sont requises :",
+  "thisFeatureIsOnlyAvailableWithPro": "Cette fonctionnalité est uniquement disponible avec la version Pro. Passez à la version Pro pour débloquer toutes les fonctionnalités.",
   "touchAreaInstructions": "1. Créez une capture d'écran de votre application (par exemple dans MyWhoosh) en mode paysage.\n2. Chargez la capture d'écran à l'aide du bouton ci-dessous.\n3. L'application est automatiquement réglée en mode paysage pour un mappage précis.\n4. Appuyez sur un bouton de votre appareil Click pour créer une zone tactile.\n5. Faites glisser les zones tactiles vers la position souhaitée sur la capture d'écran.\n6. Enregistrez et fermez cet écran.",
   "touchSimulationForegroundMessage": "Pour simuler les touches, l'application doit rester au premier plan.",
   "trainer": "Trainer",
+  "trainerConnection": "Connexion avec le formateur",
   "trialDaysRemaining": "{trialDaysRemaining} jours restants",
   "trialExpired": "Période d'essai expirée. Commandes limitées à {dailyCommandLimit} par jour.",
   "trialPeriodActive": "Période d'essai active -{trialDaysRemaining} jours restants",

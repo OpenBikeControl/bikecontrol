@@ -45,6 +45,7 @@
   "bluetoothTurnedOn": "Bluetooth turned on",
   "browserNotSupported": "This Browser does not support Web Bluetooth and platform is not supported :(",
   "button": "button.",
+  "buttonMapping": "Button Mapping",
   "buyFullVersion": "Buy Full Version",
   "bySigningInYouAgreeToOur": "By signing in, you agree to our {privacyPolicy}.",
   "@bySigningInYouAgreeToOur": {
@@ -57,6 +58,7 @@
   "cancel": "Cancel",
   "changelog": "Changelog",
   "checkMyWhooshConnectionScreen": "Check the connection screen in MyWhoosh to see if \"Link\" is connected.",
+  "checkPurchasingOptions": "Check purchasing options",
   "chooseAnotherScreenshot": "Choose another screenshot",
   "chooseBikeControlInConnectionScreen": "Choose BikeControl in the connection screen.",
   "clickAButtonOnYourController": "Click a button on your controller to edit its action or tap the edit icon.",
@@ -95,6 +97,7 @@
     }
   },
   "controllerConnectedClickButton": "Great! Your controller is connected. Click a button on your controller to continue.",
+  "controllerSettings": "Controller Settings",
   "controllers": "Controllers",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Could not perform {button}: No keymap set",
   "create": "Create",
@@ -149,6 +152,8 @@
   },
   "deviceLimitReached": "Device limit reached for {platform}. Revoke other devices to register a new one.",
   "devicesActive": "{active} active",
+  "disconnectAndForget": "Disconnect and Forget",
+  "disconnectAndForgetForThisSession": "Disconnect",
   "disconnectDevices": "Disconnect Devices",
   "disconnected": "Disconnected",
   "donateByBuyingFromPlayStore": "by buying the app from Play Store",
@@ -171,7 +176,7 @@
     }
   },
   "enableLocalConnectionMethodFirst": "Enable Local Connection method, first.",
-  "enableMediaKeyDetection": "Enable Media Key Detection",
+  "enableMediaKeyDetection": "Enable Bluetooth Media remotes",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Enable MyWhoosh Link in the connection settings first.",
   "enablePairingProcess": "Act as Bluetooth Mouse",
   "enablePermissions": "Enable Permissions",
@@ -306,6 +311,7 @@
   "noDevicesRegistered": "No devices registered",
   "noIgnoredDevices": "No ignored devices.",
   "noTrainerSelected": "No Trainer selected",
+  "notAssignedOrNoConnectionMethodActive": "Not assigned",
   "notConnected": "Not connected",
   "notificationDescription": "This keeps the app alive in background and updates you when the connection to your devices changes.",
   "ok": "OK",
@@ -367,6 +373,7 @@
       }
     }
   },
+  "preferences": "Preferences",
   "pressButtonOnClickDevice": "Press a button on your Click device",
   "pressKeyToAssign": "Press a key on your keyboard to assign to {buttonName}",
   "@pressKeyToAssign": {
@@ -399,6 +406,7 @@
   "replaceExisting": "Replace Existing",
   "requirement": "Requirement",
   "reset": "Reset",
+  "resetToDefaults": "Reset to defaults",
   "restart": "Restart",
   "restorePurchaseInfo": "Click on the button above, then on \"Restore Purchase\". Please contact me directly if you have any issues.",
   "restorePurchases": "Restore purchases",
@@ -426,6 +434,7 @@
       }
     }
   },
+  "runScript": "Run Script",
   "save": "Save",
   "scan": "SCAN",
   "scanningForDevices": "Scanning for devices... Make sure they are powered on and in range and not connected to another device.",
@@ -468,9 +477,11 @@
   "targetOtherDevice": "Other Device",
   "targetThisDevice": "This Device",
   "theFollowingPermissionsRequired": "The following permissions are required:",
+  "thisFeatureIsOnlyAvailableWithPro": "This feature is only available with Pro. Upgrade to Pro to unlock all features.",
   "touchAreaInstructions": "1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation\n2. Load the screenshot with the button below\n3. The app is automatically set to landscape orientation for accurate mapping\n4. Press a button on your Click device to create a touch area\n5. Drag the touch areas to the desired position on the screenshot\n6. Save and close this screen",
   "touchSimulationForegroundMessage": "To simulate touches the app needs to stay in the foreground.",
   "trainer": "Trainer",
+  "trainerConnection": "Trainer Connection",
   "trialDaysRemaining": "{trialDaysRemaining} days remaining",
   "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
   "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
@@ -528,7 +539,5 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "checkPurchasingOptions": "Check purchasing options",
-  "notAssignedOrNoConnectionMethodActive": "Not assigned"
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }

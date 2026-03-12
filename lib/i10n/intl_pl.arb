@@ -45,6 +45,7 @@
   "bluetoothTurnedOn": "Włączono Bluetooth",
   "browserNotSupported": "Ta przeglądarka nie obsługuje technologii Web Bluetooth i platforma nie jest obsługiwana :(",
   "button": "przycisk.",
+  "buttonMapping": "Mapowanie przycisków",
   "buyFullVersion": "Kup pełną wersję",
   "bySigningInYouAgreeToOur": "Logując się, wyrażasz zgodę na nasze {privacyPolicy} .",
   "@bySigningInYouAgreeToOur": {
@@ -57,6 +58,7 @@
   "cancel": "Anuluj",
   "changelog": "Dziennik zmian",
   "checkMyWhooshConnectionScreen": "Sprawdź ekran połączenia w MyWhoosh, aby zobaczyć, czy „Link” jest połączony.",
+  "checkPurchasingOptions": "Sprawdź opcje zakupu",
   "chooseAnotherScreenshot": "Wybierz inny zrzut ekranu",
   "chooseBikeControlInConnectionScreen": "Wybierz BikeControl na ekranie połączenia.",
   "clickAButtonOnYourController": "Kliknij przycisk na kontrolerze, aby edytować jego akcję lub naciśnij ikonę edycji.",
@@ -95,6 +97,7 @@
     }
   },
   "controllerConnectedClickButton": "Świetnie! Twój kontroler jest połączony. Kliknij przycisk na kontrolerze, aby kontynuować.",
+  "controllerSettings": "Ustawienia kontrolera",
   "controllers": "Kontrolery",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Nie można wykonać {button}: Nie zmapowano klawisza",
   "create": "Utwórz",
@@ -149,6 +152,8 @@
   },
   "deviceLimitReached": "Osiągnięto limit urządzeń {platform}. Anuluj inne urządzenia, aby zarejestrować nowe.",
   "devicesActive": "{active} aktywny",
+  "disconnectAndForget": "Odłącz się i zapomnij",
+  "disconnectAndForgetForThisSession": "Odłączyć",
   "disconnectDevices": "Odłącz urządzenia",
   "disconnected": "Rozłączony",
   "donateByBuyingFromPlayStore": "kupując aplikację w Play Store",
@@ -171,7 +176,7 @@
     }
   },
   "enableLocalConnectionMethodFirst": "Najpierw włącz metodę połączenia lokalnego.",
-  "enableMediaKeyDetection": "Włącz rozpoznawanie klawiszy multimedialnych",
+  "enableMediaKeyDetection": "Włącz piloty multimedialne Bluetooth",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Najpierw włącz MyWhoosh Link w ustawieniach połączenia.",
   "enablePairingProcess": "Działa jako mysz Bluetooth",
   "enablePermissions": "Nadaj uprawnienia",
@@ -306,6 +311,7 @@
   "noDevicesRegistered": "Brak zarejestrowanych urządzeń",
   "noIgnoredDevices": "Brak ignorowanych urządzeń.",
   "noTrainerSelected": "Nie wybrano trenażera",
+  "notAssignedOrNoConnectionMethodActive": "Nie przypisano",
   "notConnected": "Nie połączono",
   "notificationDescription": "Dzięki temu aplikacja działa w tle i powiadamia Cię o każdej zmianie połączenia z Twoim urządzeniem.",
   "ok": "OK",
@@ -367,6 +373,7 @@
       }
     }
   },
+  "preferences": "Preferencje",
   "pressButtonOnClickDevice": "Wciśnij przycisk na swoim urządzeniu Click",
   "pressKeyToAssign": "Naciśnij klawisz na klawiaturze, aby go przypisać do {buttonName}",
   "@pressKeyToAssign": {
@@ -399,6 +406,7 @@
   "replaceExisting": "Zastąp istniejące",
   "requirement": "Wymóg",
   "reset": "Reset",
+  "resetToDefaults": "Przywróć ustawienia domyślne",
   "restart": "Uruchom ponownie",
   "restorePurchaseInfo": "Kliknij przycisk powyżej, a następnie „Przywróć zakup”. W razie jakichkolwiek problemów skontaktuj się ze mną bezpośrednio.",
   "restorePurchases": "Przywróć zakupy",
@@ -426,6 +434,7 @@
       }
     }
   },
+  "runScript": "Uruchom skrypt",
   "save": "Zapisz",
   "scan": "SKANUJ",
   "scanningForDevices": "Skanowanie urządzeń... Upewnij się, że są włączone, znajdują się w zasięgu i nie są podłączone do innego urządzenia.",
@@ -468,9 +477,11 @@
   "targetOtherDevice": "Inne urządzenie",
   "targetThisDevice": "To urządzenie",
   "theFollowingPermissionsRequired": "Wymagane są następujące uprawnienia:",
+  "thisFeatureIsOnlyAvailableWithPro": "Ta funkcja jest dostępna tylko w wersji Pro. Zaktualizuj do wersji Pro, aby odblokować wszystkie funkcje.",
   "touchAreaInstructions": "1. Utwórz zrzut ekranu w grze swojej aplikacji (np. w MyWhoosh) w orientacji poziomej\n2. Załaduj zrzut ekranu za pomocą poniższego przycisku\n3. Aplikacja automatycznie ustawi się w orientacji poziomej, aby zapewnić dokładne odwzorowanie\n4. Naciśnij przycisk na urządzeniu Click, aby utworzyć obszar dotykowy\n5. Przeciągnij obszary dotykowe do żądanej pozycji na zrzucie ekranu\n6. Zapisz i zamknij ten ekran.",
   "touchSimulationForegroundMessage": "Aby symulować dotyk, aplikacja musi pozostać na pierwszym planie.",
   "trainer": "Trenażer",
+  "trainerConnection": "Połączenie trenera",
   "trialDaysRemaining": "Pozostało {trialDaysRemaining} dni",
   "trialExpired": "Wersja próbna wygasła. Liczba poleceń ograniczona do {dailyCommandLimit} na dzień.",
   "trialPeriodActive": "Okres próbny jest aktywny - pozostało {trialDaysRemaining} dni",

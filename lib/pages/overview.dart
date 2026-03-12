@@ -995,7 +995,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Gap(4),
-                _buildSectionHeader(icon: Icons.monitor, title: 'Trainer Connection'),
+                _buildSectionHeader(icon: Icons.monitor, title: AppLocalizations.of(context).trainerConnection),
                 const Gap(16),
                 Row(
                   spacing: 12,
@@ -1041,7 +1041,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   const Gap(12),
                   for (final enabledTrainer in enabledTrainers) ...[
                     _buildTrainerConnectionRow(enabledTrainer),
-                    if (enabledTrainer != enabledTrainers.last) const Gap(6),
+                    if (enabledTrainer != enabledTrainers.last) const Gap(8),
                   ],
                   const Gap(12),
                 ] else ...[
