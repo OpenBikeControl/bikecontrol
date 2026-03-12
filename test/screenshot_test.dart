@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/controller_settings.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:prop/protocol/zp.pbenum.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -116,6 +118,51 @@ Future<void> main() async {
       );
 
       await tester.pump();
+    }
+  });
+
+  testGoldens('Device', (WidgetTester tester) async {
+    IAPManager.instance.isPurchased.value = true;
+    for (final size in sizes) {
+      await tester.pumpWidget(
+        ScreenshotApp(
+          device: ScreenshotDevice(
+            platform: size.platform,
+            resolution: size.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(
+                  platform: size.type,
+                  title: 'Control your trainer app using ANY controller',
+                  device: device,
+                  child: child,
+                ),
+          ),
+          home: BikeControlApp(),
+        ),
+      );
+
+      await tester.pump();
+
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'),
+      );
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
+      );
+
+      await tester.pump();
+      await expectLater(
+        find.byType(ma.Scaffold),
+        matchesGoldenFile(
+          '../screenshots/device-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
+        ),
+      );
     }
   });
 

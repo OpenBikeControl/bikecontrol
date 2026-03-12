@@ -76,7 +76,7 @@ class _NavigationState extends State<Navigation> {
               backgroundColor: Theme.of(context).colorScheme.background,
               trailing: buildMenuButtons(context),
             ),
-            if (!_isMobile)
+            if (!_isMobile && !screenshotMode)
               Container(
                 alignment: Alignment.topCenter,
                 child: HelpButton(isMobile: false),

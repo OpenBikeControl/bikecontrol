@@ -75,7 +75,7 @@ class _DevicePageState extends State<DevicePage> {
                     child: Row(
                       children: [
                         Flexible(child: device.showInformation(context, showFull: false)),
-                        if (!widget.isMobile)
+                        if (!widget.isMobile && !screenshotMode)
                           Container(
                             constraints: BoxConstraints(maxWidth: 300),
                             child: Wrap(
