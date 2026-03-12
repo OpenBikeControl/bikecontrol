@@ -262,7 +262,7 @@ abstract class BluetoothDevice extends BaseDevice {
   }
 
   @override
-  List<Widget> showMetaInformation(BuildContext context) {
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     final foregroundColor = Theme.of(context).colorScheme.mutedForeground;
     const fontSize = 11.0;
     return [
@@ -291,15 +291,15 @@ abstract class BluetoothDevice extends BaseDevice {
           ),
           if (firmwareVersion != null || rssi != null) const Gap(16),
         ],
-        if (firmwareVersion != null) ...[
-          if (firmwareVersion != null)
-            if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
-              Icon(
-                Icons.warning,
-                size: fontSize,
-              )
-            else
-              Text('FW', style: TextStyle(fontSize: 10, color: foregroundColor)).inlineCode,
+        if (firmwareVersion != null &&
+            (showFull || (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion))) ...[
+          if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+            Icon(
+              Icons.warning,
+              size: fontSize,
+            )
+          else
+            Text('FW', style: TextStyle(fontSize: 10, color: foregroundColor)).inlineCode,
           Text(
             firmwareVersion!,
             style: TextStyle(
@@ -319,22 +319,26 @@ abstract class BluetoothDevice extends BaseDevice {
             stream: core.connection.rssiConnectionStream.where((device) => device == this).map((event) => event.rssi),
             builder: (context, rssiValue) {
               final currentRssi = rssiValue.data ?? rssi!;
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(LucideIcons.signal, size: 14, color: foregroundColor),
-                  const Gap(4),
-                  Text(
-                    switch (currentRssi) {
-                      >= -50 => 'Strong',
-                      >= -70 => 'Good',
-                      >= -85 => 'Fair',
-                      _ => 'Weak',
-                    },
-                    style: TextStyle(fontSize: fontSize, color: foregroundColor),
-                  ),
-                ],
-              );
+              if (showFull || currentRssi > -85) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.signal, size: 14, color: foregroundColor),
+                    const Gap(4),
+                    Text(
+                      switch (currentRssi) {
+                        >= -50 => 'Strong',
+                        >= -70 => 'Good',
+                        >= -85 => 'Fair',
+                        _ => 'Weak',
+                      },
+                      style: TextStyle(fontSize: fontSize, color: foregroundColor),
+                    ),
+                  ],
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
             },
           ),
       ],

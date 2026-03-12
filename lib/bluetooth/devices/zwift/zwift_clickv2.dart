@@ -79,7 +79,7 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
+  Widget showInformation(BuildContext context, {required bool showFull}) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     return StatefulBuilder(
       builder: (context, setState) {
@@ -88,7 +88,7 @@ class ZwiftClickV2 extends ZwiftRide {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 8,
           children: [
-            super.showInformation(context),
+            super.showInformation(context, showFull: showFull),
 
             if (isConnected)
               if (isUnlocked && lastUnlockDate != null)
@@ -129,7 +129,7 @@ class ZwiftClickV2 extends ZwiftRide {
                         ),
                       ],
                     ),
-                    if (kDebugMode)
+                    if (kDebugMode && showFull)
                       Button(
                         onPressed: () {
                           test();
@@ -170,7 +170,7 @@ class ZwiftClickV2 extends ZwiftRide {
                         ),
                       ],
                     ),
-                    if (kDebugMode && !isUnlocked)
+                    if (kDebugMode && !isUnlocked && showFull)
                       Button(
                         onPressed: () {
                           super.setupHandshake();
@@ -179,7 +179,7 @@ class ZwiftClickV2 extends ZwiftRide {
                         style: ButtonStyle.primary(size: ButtonSize.small),
                         child: Text('Handshake'),
                       ),
-                    if (kDebugMode)
+                    if (kDebugMode && showFull)
                       Button(
                         onPressed: () {
                           test();

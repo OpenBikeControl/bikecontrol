@@ -22,7 +22,7 @@ class HidDevice extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
+  Widget showInformation(BuildContext context, {required bool showFull}) {
     return Column(
       children: [
         Row(

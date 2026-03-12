@@ -7,6 +7,7 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -44,71 +45,81 @@ class _CustomizeState extends State<CustomizePage> {
         Row(
           spacing: 8,
           children: [
-            Flexible(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: 300),
-                child: Select<SupportedApp?>(
-                  value: core.actionHandler.supportedApp,
-                  popup: SelectPopup(
-                    items: SelectItemList(
-                      children: [
-                        ..._getAllApps().map(
-                          (a) => SelectItemButton(
-                            value: a,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(child: Text(a.name)),
-                                if (a is CustomApp)
-                                  BetaPill(text: 'CUSTOM')
-                                else if (a.supportsOpenBikeProtocol.isNotEmpty)
-                                  Icon(Icons.star, size: 16),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SelectItemButton(
-                          value: CustomApp(profileName: 'New'),
+            Expanded(
+              child: Select<SupportedApp?>(
+                value: core.actionHandler.supportedApp,
+                popup: SelectPopup(
+                  items: SelectItemList(
+                    children: [
+                      ..._getAllApps().map(
+                        (a) => SelectItemButton(
+                          value: a,
                           child: Row(
-                            spacing: 6,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(Icons.add, color: Theme.of(context).colorScheme.mutedForeground),
-                              Expanded(child: Text(context.i18n.createNewKeymap).normal.muted),
+                              Expanded(child: Text(a.name)),
+                              if (a is CustomApp)
+                                BetaPill(text: 'CUSTOM')
+                              else if (a.supportsOpenBikeProtocol.isNotEmpty)
+                                Icon(Icons.star, size: 16),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ).call,
-                  itemBuilder: (c, app) => Row(
-                    spacing: 8,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: Text(screenshotMode ? 'Trainer app' : app!.name)),
-                      if (app is CustomApp) BetaPill(text: 'CUSTOM'),
+                      ),
+                      SelectItemButton(
+                        value: CustomApp(profileName: 'New'),
+                        child: Row(
+                          spacing: 6,
+                          children: [
+                            Icon(Icons.add, color: Theme.of(context).colorScheme.mutedForeground),
+                            Expanded(child: Text(context.i18n.createNewKeymap).normal.muted),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                  placeholder: Text(context.i18n.selectKeymap),
+                ).call,
+                itemBuilder: (c, app) => Row(
+                  spacing: 8,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text(screenshotMode ? 'Trainer app' : app!.name)),
+                    if (app is CustomApp) BetaPill(text: 'CUSTOM'),
+                  ],
+                ),
+                placeholder: Text(context.i18n.selectKeymap),
 
-                  onChanged: (app) async {
-                    if (app == null) {
-                      return;
-                    } else if (app.name == 'New') {
-                      final profileName = await KeymapManager().showNewProfileDialog(context);
-                      if (profileName != null && profileName.isNotEmpty) {
-                        final customApp = CustomApp(profileName: profileName);
-                        core.actionHandler.init(customApp);
-                        await core.settings.setKeyMap(customApp);
+                onChanged: (app) async {
+                  if (app == null) {
+                    return;
+                  } else if (app.name == 'New') {
+                    final profileName = await KeymapManager().showNewProfileDialog(context);
+                    if (profileName != null && profileName.isNotEmpty) {
+                      final customApp = CustomApp(profileName: profileName);
+                      core.actionHandler.init(customApp);
+                      await core.settings.setKeyMap(customApp);
 
-                        setState(() {});
-                      }
-                    } else {
-                      core.actionHandler.init(app);
-                      await core.settings.setKeyMap(app);
                       setState(() {});
                     }
-                  },
-                ),
+                  } else {
+                    core.actionHandler.init(app);
+                    await core.settings.setKeyMap(app);
+                    setState(() {});
+                  }
+                },
+              ),
+            ),
+            Tooltip(
+              tooltip: (c) => Text(context.i18n.synchronizeAcrossDevices),
+              child: StatusIcon(
+                status: IAPManager.instance.isProEnabled,
+                icon: Icons.cloud_upload,
+                started: IAPManager.instance.isProEnabled,
+                onPressed: IAPManager.instance.isProEnabled
+                    ? null
+                    : () {
+                        IAPManager.instance.ensureProForFeature(context);
+                      },
               ),
             ),
             KeymapManager().getManageProfileDialog(

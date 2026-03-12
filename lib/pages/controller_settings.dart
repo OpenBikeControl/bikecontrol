@@ -96,7 +96,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
-      child: device.showInformation(context),
+      child: device.showInformation(context, showFull: true),
     );
   }
 
@@ -163,9 +163,9 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
               trailing: !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
                   ? ProBadge()
                   : null,
-              onTap: () {
+              onTap: () async {
                 if (!IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription) {
-                  buildToast(title: 'This feature is Full Version or Pro only.', duration: Duration(seconds: 4));
+                  await IAPManager.instance.purchaseFullVersion(context);
                   return;
                 }
                 openDrawer(

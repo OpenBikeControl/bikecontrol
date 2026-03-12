@@ -280,7 +280,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.play_arrow_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
@@ -298,7 +298,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.stop_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
@@ -316,7 +316,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.skip_previous_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
@@ -334,7 +334,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.skip_next_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
@@ -352,7 +352,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.volume_up_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
@@ -371,7 +371,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     leading: Icon(Icons.volume_down_outlined),
                                     child: _buildProMenuItemLabel(context.i18n.volumeDown),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
@@ -423,7 +423,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       (action) => MenuButton(
                                         leading: Icon(action.icon),
                                         onPressed: (_) async {
-                                          if (!await _ensureProForFeature(context)) {
+                                          if (!await IAPManager.instance.ensureProForFeature(context)) {
                                             return;
                                           }
                                           _keyPair.androidAction = action;
@@ -791,14 +791,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
     widget.onUpdate();
     setState(() {});
-  }
-
-  Future<bool> _ensureProForFeature(BuildContext context) async {
-    if (IAPManager.instance.hasActiveSubscription) {
-      return true;
-    }
-    await showGoProDialog(context);
-    return IAPManager.instance.hasActiveSubscription;
   }
 
   Widget _buildProMenuItemLabel(String text) {
