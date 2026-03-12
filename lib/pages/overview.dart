@@ -263,6 +263,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   final GlobalKey _activityLogKey = GlobalKey();
   double? _activityLeftX;
   bool _hasMeasured = false;
+  bool _isInForeground = true;
 
   // Per-device flow animation state
   final Map<String, AnimationController> _flowControllers = {};
@@ -338,6 +339,10 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    final wasForeground = _isInForeground;
+    _isInForeground = state == AppLifecycleState.resumed;
+    if (_isInForeground != wasForeground && mounted) setState(() {});
+
     if (state == AppLifecycleState.resumed) {
       if (core.logic.showForegroundMessage) {
         UniversalBle.getBluetoothAvailabilityState().then((state) {
@@ -627,10 +632,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           ),
         ),
         const Gap(22),
-        if (_screenWidth < 800) ...[
-          _buildErrorBanner(),
-          const Gap(22),
-        ],
+        if (_screenWidth < 800)
+          _buildErrorBanner()
+        else
+          Center(child: Lottie.asset('assets/bicycle.json', width: 120, height: 90, animate: _isInForeground)),
+        const Gap(22),
 
         KeyedSubtree(
           key: _trainerKey,
@@ -1279,7 +1285,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         builder: (context, _) {
           final entry = _latestError;
           if (entry == null && _errorBannerController.value == 0) {
-            return Center(child: Lottie.asset('assets/bicycle.json', width: 120, height: 90));
+            return Center(child: Lottie.asset('assets/bicycle.json', width: 120, height: 90, animate: _isInForeground));
           }
 
           final t = CurvedAnimation(

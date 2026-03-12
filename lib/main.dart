@@ -231,7 +231,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
         typography: Typography.geist().scale(isMobile ? 0.9 : 1),
         radius: 0.7,
       ),
-      materialTheme: m.ThemeData(),
+      materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
       //themeMode: ThemeMode.light,
       home: widget.error != null
           ? Center(
