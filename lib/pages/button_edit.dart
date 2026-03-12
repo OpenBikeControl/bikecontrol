@@ -280,7 +280,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.play_arrow_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
@@ -298,7 +298,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.stop_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
@@ -316,7 +316,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.skip_previous_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
@@ -334,7 +334,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.skip_next_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
@@ -352,7 +352,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.volume_up_outlined),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
@@ -371,7 +371,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     leading: Icon(Icons.volume_down_outlined),
                                     child: _buildProMenuItemLabel(context.i18n.volumeDown),
                                     onPressed: (c) async {
-                                      if (!await _ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
@@ -412,7 +412,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         ),
                         onPressed: () {
                           if (!core.settings.getLocalEnabled()) {
-                            buildToast(title: 'Enable Local Connection method, first.');
+                            buildToast(title: context.i18n.enableLocalConnectionMethodFirst);
                           } else {
                             showDropdown(
                               context: context,
@@ -423,7 +423,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       (action) => MenuButton(
                                         leading: Icon(action.icon),
                                         onPressed: (_) async {
-                                          if (!await _ensureProForFeature(context)) {
+                                          if (!await IAPManager.instance.ensureProForFeature(context)) {
                                             return;
                                           }
                                           _keyPair.androidAction = action;
@@ -793,14 +793,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     setState(() {});
   }
 
-  Future<bool> _ensureProForFeature(BuildContext context) async {
-    if (IAPManager.instance.hasActiveSubscription) {
-      return true;
-    }
-    await showGoProDialog(context);
-    return IAPManager.instance.hasActiveSubscription;
-  }
-
   Widget _buildProMenuItemLabel(String text) {
     final isPro = IAPManager.instance.hasActiveSubscription;
     if (isPro) {
@@ -824,19 +816,21 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final triggerForPredefined = widget.trigger == ButtonTrigger.doubleClick
         ? ButtonTrigger.singleClick
         : widget.trigger;
-    final actionsWithInGameAction = trainerApp?.keymap.keyPairs
-        .where(
-          (kp) =>
-              kp.trigger == triggerForPredefined &&
-              kp.inGameAction != null &&
-              switch (supportedMode) {
-                SupportedMode.keyboard => kp.physicalKey != null,
-                SupportedMode.touch => kp.touchPosition != Offset.zero,
-                SupportedMode.media => kp.isSpecialKey,
-              },
-        )
-        .distinctBy((kp) => kp.inGameAction)
-        .toList();
+    final actionsWithInGameAction = [
+      ...?trainerApp?.keymap.keyPairs
+          .where(
+            (kp) =>
+                kp.trigger == triggerForPredefined &&
+                kp.inGameAction != null &&
+                switch (supportedMode) {
+                  SupportedMode.keyboard => kp.physicalKey != null,
+                  SupportedMode.touch => kp.touchPosition != Offset.zero,
+                  SupportedMode.media => kp.isSpecialKey,
+                },
+          )
+          .distinctBy((kp) => kp.inGameAction),
+      ...?trainerApp?.additionalKeyPairs,
+    ];
 
     final isEnabled =
         supportedMode == SupportedMode.keyboard &&
@@ -849,7 +843,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       return buildToast(
         title: AppLocalizations.of(context).enableLocalConnectionMethodFirst,
       );
-    } else if (actionsWithInGameAction != null && actionsWithInGameAction.isNotEmpty) {
+    } else if (actionsWithInGameAction.isNotEmpty) {
       showDropdown(
         context: context,
         builder: (c) => DropdownMenu(
@@ -884,7 +878,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(keyPairAction.inGameAction?.title ?? ''),
+                    Text(
+                      keyPairAction.inGameActionValue != null
+                          ? keyPairAction.buttons.first.name
+                          : keyPairAction.inGameAction?.title ?? '',
+                    ),
                     Text(switch (supportedMode) {
                       SupportedMode.keyboard => keyPairAction.logicalKey?.keyLabel ?? 'Not assigned',
                       SupportedMode.touch =>
@@ -937,13 +935,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       _keyPair.androidAction = null;
       _keyPair.command = null;
       _keyPair.screenshotPath = null;
-      await Navigator.of(context).push<bool?>(
-        MaterialPageRoute(
-          builder: (c) => TouchAreaSetupPage(
-            keyPair: _keyPair,
-          ),
-        ),
-      );
+      await context.push(TouchAreaSetupPage(keyPair: _keyPair));
       setState(() {});
       widget.onUpdate();
     }
@@ -994,9 +986,9 @@ class SelectableCard extends StatelessWidget {
                     color: isActive
                         ? Theme.of(context).brightness == Brightness.dark
                               ? Theme.of(context).colorScheme.card
-                              : Theme.of(context).colorScheme.card.withLuminance(0.9)
+                              : Theme.of(context).colorScheme.card.withLuminance(0.97)
                         : Theme.of(context).colorScheme.background,
-                    hoverColor: Theme.of(context).colorScheme.card,
+                    hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94),
                   ),
           onPressed: () async {
             if (isProOnly && !isPro) {
@@ -1008,7 +1000,7 @@ class SelectableCard extends StatelessWidget {
           alignment: Alignment.topLeft,
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 2.0),
             child: Basic(
               leading: icon != null
                   ? Padding(

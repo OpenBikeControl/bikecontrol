@@ -5,16 +5,15 @@ import 'dart:isolate';
 import 'package:app_links/app_links.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/onboarding.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
-import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' as m;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'pages/navigation.dart';
@@ -191,17 +190,14 @@ void initializeActions(ConnectionType connectionType) {
 
 class BikeControlApp extends StatefulWidget {
   final Widget? customChild;
-  final BCPage page;
   final String? error;
-  const BikeControlApp({super.key, this.error, this.page = BCPage.devices, this.customChild});
+  const BikeControlApp({super.key, this.error, this.customChild});
 
   @override
   State<BikeControlApp> createState() => _BikeControlAppState();
 }
 
 class _BikeControlAppState extends State<BikeControlApp> {
-  BCPage? _showPage;
-
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
@@ -218,19 +214,24 @@ class _BikeControlAppState extends State<BikeControlApp> {
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       title: 'BikeControl',
       darkTheme: ThemeData(
-        colorScheme: ColorSchemes.darkNeutral.copyWith(
+        colorScheme: ColorSchemes.darkSlate.copyWith(
           card: () => Color(0xFF001A29),
           background: () => Color(0xFF232323),
           muted: () => Color(0xFF3A3A3A),
           border: () => Color(0xFF3A3A3A),
+          secondary: () => Color(0xFF3A3A3A),
         ),
       ),
-      locale: screenshotMode ? Locale('en') : null,
+      locale: screenshotMode ? Locale('es') : null,
       theme: ThemeData(
-        colorScheme: ColorSchemes.lightNeutral.copyWith(
-          card: () => BKColor.backgroundLight,
+        colorScheme: ColorSchemes.lightSlate.copyWith(
+          mutedForeground: () => Color(0xFFA1A1AA),
+          primary: () => BKColor.main,
         ),
+        typography: Typography.geist().scale(isMobile ? 0.9 : 1),
+        radius: 0.7,
       ),
+      materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
       //themeMode: ThemeMode.light,
       home: widget.error != null
           ? Center(
@@ -242,28 +243,12 @@ class _BikeControlAppState extends State<BikeControlApp> {
           : ToastLayer(
               key: ValueKey('Test'),
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
-              child: _Starter(
-                child: Stack(
-                  children: [
-                    widget.customChild ??
-                        (AnimatedSwitcher(
-                          duration: Duration(milliseconds: 600),
-                          child: core.settings.getShowOnboarding()
-                              ? OnboardingPage(
-                                  onComplete: () {
-                                    setState(() {
-                                      if (core.obpMdnsEmulator.connectedApp.value == null) {
-                                        _showPage = BCPage.trainer;
-                                      } else {
-                                        _showPage = BCPage.devices;
-                                      }
-                                    });
-                                  },
-                                )
-                              : Navigation(page: _showPage ?? widget.page),
-                        )),
-                    Positioned.fill(child: Testbed()),
-                  ],
+              child: ComponentTheme<CardTheme>(
+                data: CardTheme(
+                  borderWidth: 1.5,
+                ),
+                child: _Starter(
+                  child: widget.customChild ?? Navigation(),
                 ),
               ),
             ),

@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -31,7 +32,7 @@ class Connection {
   List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
   List<BaseDevice> get controllerDevices => [
-    ...bluetoothDevices.where((d) => d is! WahooKickrHeadwind),
+    ...bluetoothDevices.where((d) => d is! WahooKickrHeadwind && d is! ProxyDevice),
     ...gamepadDevices,
     ...gyroscopeDevices,
     ...devices.whereType<HidDevice>(),
@@ -195,7 +196,7 @@ class Connection {
           performScanning();
         }
       });
-      if (core.settings.getPhoneSteeringEnabled()) {
+      if (core.settings.getPhoneSteeringEnabled() && IAPManager.instance.isProEnabledForCurrentDevice) {
         toggleGyroscopeSteering(true);
       }
     }
@@ -404,6 +405,14 @@ class Connection {
         final connectionStateSubscription = device.device.connectionStream.listen((state) {
           device.isConnected = state;
           _connectionStreams.add(device);
+          if (!state) {
+            _actionStreams.add(
+              AlertNotification(
+                state ? LogLevel.LOGLEVEL_INFO : LogLevel.LOGLEVEL_WARNING,
+                '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+              ),
+            );
+          }
           core.flutterLocalNotificationsPlugin.show(
             1338,
             '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
@@ -481,7 +490,7 @@ class Connection {
       // Remove device from the list
       devices.remove(device);
       hasDevices.value = devices.isNotEmpty;
-    } else if (device is GyroscopeSteering) {
+    } else if (device is GyroscopeSteering || device is HidDevice) {
       // Clean up subscriptions
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);

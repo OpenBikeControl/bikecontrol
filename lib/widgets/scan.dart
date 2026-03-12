@@ -32,25 +32,25 @@ class _ScanWidgetState extends State<ScanWidget> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (_needsPermissions != null && _needsPermissions!.isNotEmpty)
-          Card(
-            child: Basic(
-              title: Column(
-                spacing: 8,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(context.i18n.permissionsRequired).xSmall,
-                  ..._needsPermissions!.map((e) => Text(e.name).li),
-                ],
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: PrimaryButton(
-                  child: Text(context.i18n.enablePermissions),
-                  onPressed: () async {
-                    await openPermissionSheet(context, _needsPermissions!);
-                    _checkRequirements();
-                  },
-                ),
+          Basic(
+            padding: EdgeInsets.all(12),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(context.i18n.permissionsRequired).xSmall.normal,
+                Gap(12),
+                ..._needsPermissions!.map((e) => Text(e.name).xSmall.normal.li),
+              ],
+            ),
+            subtitle: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 12.0),
+              child: PrimaryButton(
+                child: Center(child: Text(context.i18n.enablePermissions)),
+                onPressed: () async {
+                  await openPermissionSheet(context, _needsPermissions!);
+                  _checkRequirements();
+                },
               ),
             ),
           )

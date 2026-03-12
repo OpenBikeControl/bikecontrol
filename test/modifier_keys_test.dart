@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -10,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
+  await AppLocalizations.load(Locale('en'));
   FlutterSecureStorage.setMockInitialValues({});
   SharedPreferences.setMockInitialValues({});
   screenshotMode = true;

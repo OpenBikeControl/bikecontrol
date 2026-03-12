@@ -4,10 +4,8 @@ import 'dart:math';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
-import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
@@ -24,6 +22,7 @@ class GyroscopeSteering extends BaseDevice {
         isBeta: true,
         uniqueId: 'gyroscope_steering_device',
         buttonPrefix: 'gyro',
+        icon: LucideIcons.phone,
       );
 
   StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;
@@ -312,23 +311,32 @@ class GyroscopeSteering extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
+  Widget showInformation(BuildContext context, {required bool showFull}) {
+    return Column(
+      children: [
+        super.showInformation(context, showFull: showFull),
+        const Gap(12),
+        Row(
+          spacing: 8,
+          children: [
+            Text(_isCalibrated ? 'Calibrated' : 'Calibrating...').xSmall.muted,
+            Text(
+              'Steering Angle: ${_isCalibrated ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°' : 'Calibrating...'}',
+            ).xSmall.muted,
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget? buildPreferences(BuildContext context) {
     return StatefulBuilder(
       builder: (c, setState) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 12,
         children: [
-          Row(
-            spacing: 12,
-            children: [
-              Text(
-                toString().screenshot,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              if (isBeta) BetaPill(),
-            ],
-          ),
           // Magnetometer mode toggle
           Checkbox(
             trailing: Expanded(child: Text('Use Magnetometer Mode')),

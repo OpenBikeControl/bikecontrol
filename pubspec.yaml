@@ -20,6 +20,7 @@ dependencies:
       url: https://github.com/jonasbark/universal_ble.git
   gamepads: ^0.1.8+2
 
+  lottie: ^3.3.2
   d4rt: ^0.2.2
   path_provider: ^2.1.5
   smtc_windows: ^1.1.0
@@ -114,6 +115,7 @@ flutter:
     - INSTRUCTIONS_LOCAL.md
     - shorebird.yaml
     - assets/silence.mp3
+    - assets/bicycle.json
     - icon.png
 
 flutter_intl:

@@ -20,6 +20,7 @@ abstract class SupportedApp {
   final String packageName;
   final String name;
   final Keymap keymap;
+  final List<KeyPair> additionalKeyPairs;
   final bool supportsZwiftEmulation;
   final List<OpenBikeProtocolSupport> supportsOpenBikeProtocol;
   final bool star;
@@ -31,6 +32,7 @@ abstract class SupportedApp {
     required this.compatibleTargets,
     required this.supportsZwiftEmulation,
     this.supportsOpenBikeProtocol = const [],
+    this.additionalKeyPairs = const [],
     this.star = false,
   });
 

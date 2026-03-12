@@ -199,21 +199,15 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
         ),
         if (packageInfoValue != null)
           Text(
-            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${core.settings.getShowOnboarding() ? 'Onboarding' : IAPManager.instance.getStatusMessage()}',
-            style: TextStyle(fontSize: 12),
-          ).mono.muted
+            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${IAPManager.instance.getStatusMessage()}',
+            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground.withAlpha(200)),
+          ).mono
         else
           SmallProgressIndicator(),
 
         if (_newVersion != null && _updateType != null)
-          Container(
-            margin: EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.destructive,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
             child: LoadingWidget(
               futureCallback: () async {
                 if (_updateType == UpdateType.shorebird) {
@@ -235,10 +229,10 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
                   );
                 }
               },
-              renderChild: (isLoading, tap) => GhostButton(
+              renderChild: (isLoading, tap) => Button.outline(
                 onPressed: tap,
-                trailing: isLoading ? SmallProgressIndicator() : Icon(Icons.update),
-                child: Text(AppLocalizations.current.newVersionAvailableWithVersion(_newVersion.toString())),
+                leading: isLoading ? SmallProgressIndicator() : Icon(Icons.update),
+                child: Text(AppLocalizations.current.newVersionAvailableWithVersion(_newVersion.toString())).xSmall,
               ),
             ),
           ),

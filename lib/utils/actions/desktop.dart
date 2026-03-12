@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
-import 'package:bike_control/main.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -10,7 +10,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_screen_capture/flutter_screen_capture.dart';
 import 'package:image/image.dart' as image_lib;
@@ -106,20 +106,6 @@ class DesktopActions extends BaseActions {
       if (keyPair.physicalKey != null) {
         // Increment command count after successful execution
         await IAPManager.instance.incrementCommandCount();
-        if (keyPair.logicalKey != null && navigatorKey.currentContext?.mounted == true) {
-          final label = keyPair.logicalKey!.keyLabel;
-          final keyName = label.isNotEmpty ? label : keyPair.logicalKey!.debugName ?? 'Key';
-          buildToast(
-            location: ToastLocation.bottomLeft,
-            title:
-                '${isKeyDown
-                    ? "↓"
-                    : isKeyUp
-                    ? "↑"
-                    : "•"} $keyName',
-          );
-        }
-
         final trainerApp = core.settings.getTrainerApp();
         // only those two seem to support targeting specific PIDs, for the rest we just send the key events globally
         final packageName = (trainerApp is Rouvy || trainerApp is MyWhoosh) ? trainerApp!.packageName : null;
@@ -172,7 +158,10 @@ class DesktopActions extends BaseActions {
         }
       }
     }
-    return NotHandled('Action not handled for button: $button');
+    return Error(
+      AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
+      type: ErrorType.noActionAssigned,
+    );
   }
 
   // Release all held keys (useful for cleanup)

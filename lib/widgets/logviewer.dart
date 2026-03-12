@@ -51,83 +51,103 @@ class _LogviewerState extends State<LogViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(context.i18n.logViewer).bold,
-              OutlineButton(
-                child: Text(context.i18n.share),
-                onPressed: () {
-                  final logText = core.connection.lastLogEntries
-                      .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
-                      .join('\n');
-                  Clipboard.setData(ClipboardData(text: logText));
+    return Scaffold(
+      headers: [
+        AppBar(
+          leading: [
+            IconButton.ghost(
+              icon: Icon(LucideIcons.arrowLeft, size: 24),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+          title: Text(context.i18n.logs),
+          trailing: [
+            IconButton.ghost(
+              icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+          backgroundColor: Theme.of(context).colorScheme.background,
+        ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 12,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(context.i18n.logViewer).bold,
+                OutlineButton(
+                  child: Text(context.i18n.share),
+                  onPressed: () {
+                    final logText = core.connection.lastLogEntries
+                        .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
+                        .join('\n');
+                    Clipboard.setData(ClipboardData(text: logText));
 
-                  buildToast(title: context.i18n.logsHaveBeenCopiedToClipboard);
-                },
-              ),
-            ],
-          ),
-          core.connection.lastLogEntries.isEmpty
-              ? Container()
-              : Expanded(
-                  child: Card(
-                    child: SelectionArea(
-                      child: SingleChildScrollView(
-                        controller: _scrollController,
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Text.rich(
-                            TextSpan(
-                              children: core.connection.lastLogEntries
-                                  .map(
-                                    (action) => [
-                                      TextSpan(
-                                        text: action.date.toString().split(" ").last,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontFeatures: [FontFeature.tabularFigures()],
-                                          fontFamily: "monospace",
-                                          fontFamilyFallback: <String>["Courier"],
+                    buildToast(title: context.i18n.logsHaveBeenCopiedToClipboard);
+                  },
+                ),
+              ],
+            ),
+            core.connection.lastLogEntries.isEmpty
+                ? Container()
+                : Expanded(
+                    child: Card(
+                      child: SelectionArea(
+                        child: SingleChildScrollView(
+                          controller: _scrollController,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Text.rich(
+                              TextSpan(
+                                children: core.connection.lastLogEntries
+                                    .map(
+                                      (action) => [
+                                        TextSpan(
+                                          text: action.date.toString().split(" ").last,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontFeatures: [FontFeature.tabularFigures()],
+                                            fontFamily: "monospace",
+                                            fontFamilyFallback: <String>["Courier"],
+                                          ),
                                         ),
-                                      ),
-                                      TextSpan(
-                                        text: "  ${action.entry}\n",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontFeatures: [FontFeature.tabularFigures()],
-                                          fontWeight: FontWeight.bold,
+                                        TextSpan(
+                                          text: "  ${action.entry}\n",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontFeatures: [FontFeature.tabularFigures()],
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  )
-                                  .flatten()
-                                  .toList(),
+                                      ],
+                                    )
+                                    .flatten()
+                                    .toList(),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-          if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux))
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Row(
-                children: [
-                  Text('Logs file: '),
-                  Expanded(child: SelectableText('${Directory.current.path}/app.log').inlineCode),
-                ],
-              ).small,
-            ),
-        ],
+            if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux))
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    Text('Logs file: '),
+                    Expanded(child: SelectableText('${Directory.current.path}/app.log').inlineCode),
+                  ],
+                ).small,
+              ),
+          ],
+        ),
       ),
     );
   }

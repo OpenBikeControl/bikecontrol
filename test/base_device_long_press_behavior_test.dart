@@ -1,14 +1,17 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-void main() {
+Future<void> main() async {
   const testButton = ControllerButton('testButton');
+
+  await AppLocalizations.load(Locale('en'));
 
   CustomApp buildApp({
     required bool hasSingle,
@@ -118,11 +121,9 @@ class _TestDevice extends BaseDevice {
         'TestDevice',
         uniqueId: 'test-device-id',
         availableButtons: [button],
+        icon: Icons.gamepad,
       );
 
   @override
   Future<void> connect() async {}
-
-  @override
-  Widget showInformation(BuildContext context) => const SizedBox.shrink();
 }

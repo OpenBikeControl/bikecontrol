@@ -15,6 +15,8 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:dartx/dartx.dart';
@@ -45,6 +47,7 @@ class Core {
   late final zwiftEmulator = ZwiftEmulator();
   late final zwiftMdnsEmulator = FtmsMdnsEmulator();
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
+  late final local = Local();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
   late final remotePairing = RemotePairing();
   late final remoteKeyboardPairing = RemoteKeyboardPairing();
@@ -69,7 +72,7 @@ class Permissions {
     } else if (Platform.isMacOS) {
       list = [
         BluetoothTurnedOn(),
-        if (core.settings.getShowOnboarding()) NotificationRequirement(),
+        NotificationRequirement(),
       ];
     } else if (Platform.isIOS) {
       list = [
@@ -242,6 +245,7 @@ class CoreLogic {
       showMyWhooshLink;
 
   List<TrainerConnection> get connectedTrainerConnections => [
+    if (core.settings.getLocalEnabled()) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
@@ -252,6 +256,7 @@ class CoreLogic {
   ].filter((e) => e.isConnected.value).toList();
 
   List<TrainerConnection> get enabledTrainerConnections => [
+    if (core.settings.getLocalEnabled() && showLocalControl) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
@@ -355,5 +360,36 @@ class CoreLogic {
         );
       });
     }
+  }
+}
+
+class Local extends TrainerConnection {
+  Local()
+    : super(
+        title: ConnectionMethodType.local.name.capitalize(),
+        type: ConnectionMethodType.local,
+        supportedActions: InGameAction.values,
+      ) {
+    if (core.logic.canRunAndroidService) {
+      core.logic.isAndroidServiceRunning().then((isRunning) {
+        core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+        isStarted.value = isRunning;
+        isConnected.value = isRunning;
+      });
+    }
+  }
+
+  final ValueNotifier<bool> _isConnected = ValueNotifier(core.settings.getLocalEnabled());
+  final ValueNotifier<bool> _isStarted = ValueNotifier(core.settings.getLocalEnabled());
+
+  @override
+  ValueNotifier<bool> get isConnected => _isConnected;
+
+  @override
+  ValueNotifier<bool> get isStarted => _isStarted;
+
+  @override
+  Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
+    return NotHandled('');
   }
 }

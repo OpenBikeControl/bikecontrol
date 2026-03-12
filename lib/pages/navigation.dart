@@ -1,48 +1,19 @@
 import 'dart:async';
 
-import 'package:bike_control/bluetooth/messages/notification.dart';
-import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/customize.dart';
-import 'package:bike_control/pages/device.dart';
-import 'package:bike_control/pages/trainer.dart';
+import 'package:bike_control/pages/overview.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../widgets/changelog_dialog.dart';
 
-enum BCPage {
-  devices(Icons.gamepad),
-  trainer(Icons.pedal_bike),
-  customization(Icons.videogame_asset_outlined),
-  logs(Icons.article);
-
-  final IconData icon;
-
-  const BCPage(this.icon);
-
-  String getTitle(BuildContext context) {
-    return switch (this) {
-      BCPage.devices => context.i18n.controllers,
-      BCPage.trainer => context.i18n.trainer,
-      BCPage.customization => context.i18n.configuration,
-      BCPage.logs => context.i18n.logs,
-    };
-  }
-}
-
 class Navigation extends StatefulWidget {
-  final BCPage page;
-  const Navigation({super.key, this.page = BCPage.devices});
+  const Navigation({super.key});
 
   @override
   State<Navigation> createState() => _NavigationState();
@@ -50,30 +21,12 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
-  late BCPage _selectedPage;
-
-  final Map<BCPage, Key> _pageKeys = {
-    BCPage.devices: Key('devices_page'),
-    BCPage.trainer: Key('trainer_page'),
-    BCPage.customization: Key('customization_page'),
-    BCPage.logs: Key('logs_page'),
-  };
 
   @override
   void initState() {
     super.initState();
 
-    _selectedPage = widget.page;
-
     core.logic.startEnabledConnectionMethod();
-
-    _actionListener = core.connection.actionStream.listen((_) {
-      _updateTrainerConnectionStatus();
-      if (mounted) {
-        setState(() {});
-      }
-    });
-    _updateTrainerConnectionStatus();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       SystemChrome.setSystemUIOverlayStyle(
@@ -83,31 +36,6 @@ class _NavigationState extends State<Navigation> {
       );
       _checkAndShowChangelog();
     });
-  }
-
-  @override
-  void dispose() {
-    _actionListener.cancel();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant Navigation oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.page != oldWidget.page) {
-      setState(() {
-        _selectedPage = widget.page;
-      });
-    }
-  }
-
-  void _updateTrainerConnectionStatus() async {
-    final isConnected = await core.logic.isTrainerConnected();
-    if (mounted) {
-      setState(() {
-        _isTrainerConnected = isConnected;
-      });
-    }
   }
 
   @override
@@ -134,12 +62,6 @@ class _NavigationState extends State<Navigation> {
     }
   }
 
-  final List<BCPage> _tabs = BCPage.values.whereNot((e) => e == BCPage.logs).toList();
-
-  bool _isTrainerConnected = false;
-
-  late StreamSubscription<BaseNotification> _actionListener;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,17 +74,7 @@ class _NavigationState extends State<Navigation> {
                   (screenshotMode ? 2 : Theme.of(context).scaling),
               title: AppTitle(),
               backgroundColor: Theme.of(context).colorScheme.background,
-              trailing: buildMenuButtons(
-                context,
-                _selectedPage,
-                _isMobile
-                    ? () {
-                        setState(() {
-                          _selectedPage = BCPage.logs;
-                        });
-                      }
-                    : null,
-              ),
+              trailing: buildMenuButtons(context),
             ),
             if (!_isMobile)
               Container(
@@ -173,273 +85,15 @@ class _NavigationState extends State<Navigation> {
         ),
         Divider(),
       ],
-      footers: _isMobile
-          ? [
-              if (_isMobile) Center(child: HelpButton(isMobile: true)),
-              Divider(),
-              _buildNavigationBar(),
-            ]
-          : [],
+      footers: [
+        if (_isMobile)
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: HelpButton(isMobile: true),
+          ),
+      ],
       floatingFooter: true,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!_isMobile) ...[
-            _buildNavigationMenu(),
-            VerticalDivider(),
-          ],
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
-              child: switch (_selectedPage) {
-                BCPage.devices => Align(
-                  alignment: Alignment.topLeft,
-                  child: DevicePage(
-                    isMobile: _isMobile,
-                    onUpdate: () {
-                      setState(() {
-                        _selectedPage = BCPage.trainer;
-                      });
-                    },
-                  ),
-                ),
-                BCPage.trainer => Align(
-                  alignment: Alignment.topLeft,
-                  child: TrainerPage(
-                    onUpdate: () {
-                      setState(() {});
-                    },
-                    goToNextPage: () {
-                      setState(() {
-                        _selectedPage = BCPage.customization;
-                      });
-                    },
-                    isMobile: _isMobile,
-                  ),
-                ),
-                BCPage.customization => Align(
-                  alignment: Alignment.topLeft,
-                  child: CustomizePage(isMobile: _isMobile),
-                ),
-                BCPage.logs => Padding(
-                  padding: EdgeInsets.only(bottom: _isMobile ? 146 : 16, left: 16, right: 16, top: 16),
-                  child: LogViewer(
-                    key: _pageKeys[BCPage.logs],
-                  ),
-                ),
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavigationMenu() {
-    return NavigationSidebar(
-      backgroundColor: Theme.of(context).brightness == Brightness.light
-          ? BKColor.backgroundLight
-          : Theme.of(context).colorScheme.card,
-      onSelected: (Key? key) {
-        setState(() {
-          _selectedPage = _pageKeys.entries.firstWhere((entry) => entry.value == key).key;
-        });
-      },
-      spacing: 4,
-      selectedKey: _pageKeys[_selectedPage],
-      footer: [
-        SliverPadding(
-          padding: const EdgeInsets.all(8.0),
-          sliver: _buildNavigationItemDesktop(BCPage.logs),
-        ),
-      ],
-      children: _tabs.map((page) => _buildNavigationItemDesktop(page)).toList(),
-    );
-  }
-
-  Widget _buildIcon(BCPage page) {
-    final needsAttention = _needsAttention(page);
-    return Stack(
-      children: [
-        Icon(
-          page.icon,
-          color: !_isPageEnabled(page)
-              ? null
-              : Theme.of(context).colorScheme.brightness == Brightness.dark
-              ? Colors.white
-              : null,
-        ),
-        if (needsAttention) ...[
-          Positioned(
-            right: 0,
-            top: 0,
-            child: RepeatedAnimationBuilder<double>(
-              duration: Duration(seconds: 1),
-              reverseDuration: Duration(seconds: 1),
-              start: 10,
-              end: 12,
-              mode: LoopingMode.pingPong,
-              builder: (context, value, child) {
-                return Container(
-                  width: value,
-                  height: value,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildNavigationBar() {
-    return NavigationBar(
-      padding: EdgeInsets.only(top: 6, left: 12, right: 12, bottom: 12) * Theme.of(context).scaling,
-      labelType: NavigationLabelType.all,
-      alignment: NavigationBarAlignment.spaceAround,
-      spacing: 8,
-      selectedKey: _pageKeys[_selectedPage],
-      onSelected: (Key? key) {
-        setState(() {
-          _selectedPage = _pageKeys.entries.firstWhere((entry) => entry.value == key).key;
-        });
-      },
-      children: _tabs.map((page) {
-        return NavigationItem(
-          key: _pageKeys[page],
-          selected: _selectedPage == page,
-          selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
-            decoration: (context, states, value) {
-              return BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [BKColor.main, BKColor.mainEnd],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              );
-            },
-          ),
-          style: ButtonStyle.ghost(density: ButtonDensity.dense).copyWith(
-            decoration: (context, states, value) {
-              return BoxDecoration(
-                gradient: states.contains(WidgetState.hovered)
-                    ? const LinearGradient(
-                        colors: [BKColor.main, BKColor.mainEnd],
-                      )
-                    : null,
-                borderRadius: BorderRadius.circular(8),
-              );
-            },
-          ),
-          enabled: _isPageEnabled(page),
-          label: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              page == BCPage.trainer && !screenshotMode
-                  ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
-                  : page.getTitle(context),
-              style: TextStyle(
-                color: !_isPageEnabled(page)
-                    ? null
-                    : Theme.of(context).colorScheme.brightness == Brightness.dark
-                    ? Colors.white
-                    : null,
-              ),
-            ),
-          ),
-          child: _buildIcon(page),
-        );
-      }).toList(),
-    );
-  }
-
-  bool _isPageEnabled(BCPage page) {
-    return switch (page) {
-      BCPage.customization => core.settings.getTrainerApp() != null,
-      _ => true,
-    };
-  }
-
-  bool _needsAttention(BCPage page) {
-    return switch (page) {
-      BCPage.devices => core.connection.controllerDevices.isEmpty,
-      BCPage.customization => false,
-      BCPage.trainer => core.settings.getTrainerApp() == null || !_isTrainerConnected,
-      BCPage.logs => false,
-    };
-  }
-
-  NavigationItem _buildNavigationItemDesktop(BCPage page) {
-    return NavigationItem(
-      key: _pageKeys[page],
-      selected: _selectedPage == page,
-      selectedStyle: ButtonStyle.primary(density: ButtonDensity.dense).copyWith(
-        decoration: (context, states, value) {
-          return BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [BKColor.main, BKColor.mainEnd],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          );
-        },
-        padding: (context, states, value) {
-          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-        },
-      ),
-      style: ButtonStyle.ghost(density: ButtonDensity.dense).copyWith(
-        decoration: (context, states, value) {
-          return BoxDecoration(
-            gradient: states.contains(WidgetState.hovered)
-                ? const LinearGradient(
-                    colors: [BKColor.main, BKColor.mainEnd],
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(8),
-          );
-        },
-        padding: (context, states, value) {
-          return EdgeInsets.symmetric(horizontal: 12, vertical: 16);
-        },
-      ),
-      enabled: _isPageEnabled(page),
-      child: SizedBox(
-        width: screenshotMode ? 180 : 152,
-        child: Basic(
-          padding: screenshotMode ? EdgeInsets.all(0) : null,
-          leading: _buildIcon(page),
-          leadingAlignment: Alignment.centerLeft,
-          title: Text(
-            page == BCPage.trainer && !screenshotMode
-                ? core.settings.getTrainerApp()?.name.split(' ').first ?? page.getTitle(context)
-                : page.getTitle(context),
-            style: TextStyle(
-              color: !_isPageEnabled(page)
-                  ? null
-                  : Theme.of(context).colorScheme.brightness == Brightness.dark
-                  ? Colors.white
-                  : null,
-            ),
-          ),
-          subtitle: _needsAttention(page)
-              ? Text(
-                  switch (page) {
-                    BCPage.devices => AppLocalizations.of(context).noControllerConnected,
-                    BCPage.trainer when !_isTrainerConnected => AppLocalizations.of(context).notConnected,
-                    BCPage.trainer when core.settings.getTrainerApp() == null => AppLocalizations.of(
-                      context,
-                    ).noTrainerSelected,
-                    _ => '',
-                  },
-                  style: _selectedPage == page ? TextStyle(color: Colors.gray.shade300) : null,
-                )
-              : null,
-        ),
-      ),
+      child: OverviewPage(isMobile: _isMobile),
     );
   }
 }

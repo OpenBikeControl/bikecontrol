@@ -92,7 +92,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
         return;
       }
       if (data is ButtonNotification && data.buttonsClicked.isNotEmpty) {
-        if (core.settings.getShowOnboarding()) {
+        if (false) {
           final button = data.buttonsClicked.first;
           final sample = _KeySample(
             button: button,
@@ -264,7 +264,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
             if (widget.showKeyboard)
               Positioned(
                 right: 12,
-                bottom: _isMobile && !core.settings.getShowOnboarding() ? 92 : 12,
+                bottom: 12,
                 child: IgnorePointer(
                   child: _KeyboardOverlay(
                     items: _keys,

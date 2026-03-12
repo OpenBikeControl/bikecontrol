@@ -11,7 +11,7 @@ class SmallProgressIndicator extends StatelessWidget {
       child: CircularProgressIndicator(
         color: color,
         size: 12,
-        strokeWidth: 2,
+        strokeWidth: 1.5,
       ),
     );
   }

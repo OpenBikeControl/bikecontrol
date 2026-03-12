@@ -21,6 +21,7 @@ class WhooshLink extends TrainerConnection {
   WhooshLink()
     : super(
         title: connectionTitle,
+        type: ConnectionMethodType.network,
         supportedActions: [
           InGameAction.shiftUp,
           InGameAction.shiftDown,

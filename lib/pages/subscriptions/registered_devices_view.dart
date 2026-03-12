@@ -172,9 +172,12 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
           if (isRevoked)
             Text(AppLocalizations.of(context).revoked).small
           else
-            Button.secondary(
-              onPressed: () => _revokeDevice(device),
-              child: Text(AppLocalizations.of(context).revoke),
+            LoadingWidget(
+              futureCallback: () => _revokeDevice(device),
+              renderChild: (isLoading, tap) => Button.secondary(
+                onPressed: tap,
+                child: isLoading ? SmallProgressIndicator() : Text(AppLocalizations.of(context).revoke),
+              ),
             ),
         ],
       ),

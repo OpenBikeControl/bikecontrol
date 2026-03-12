@@ -2,7 +2,6 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
-import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
@@ -80,7 +79,7 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
+  Widget showInformation(BuildContext context, {required bool showFull}) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     return StatefulBuilder(
       builder: (context, setState) {
@@ -89,9 +88,9 @@ class ZwiftClickV2 extends ZwiftRide {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 8,
           children: [
-            super.showInformation(context),
+            super.showInformation(context, showFull: showFull),
 
-            if (isConnected && !core.settings.getShowOnboarding())
+            if (isConnected)
               if (isUnlocked && lastUnlockDate != null)
                 Warning(
                   important: false,
@@ -130,7 +129,7 @@ class ZwiftClickV2 extends ZwiftRide {
                         ),
                       ],
                     ),
-                    if (kDebugMode)
+                    if (kDebugMode && showFull)
                       Button(
                         onPressed: () {
                           test();
@@ -166,12 +165,12 @@ class ZwiftClickV2 extends ZwiftRide {
                             );
                           },
                           leading: const Icon(Icons.lock_open_rounded),
-                          style: ButtonStyle.primary(size: ButtonSize.small),
+                          style: ButtonStyle.outline(size: ButtonSize.small),
                           child: Text(AppLocalizations.of(context).unlock_unlockNow),
                         ),
                       ],
                     ),
-                    if (kDebugMode && !isUnlocked)
+                    if (kDebugMode && !isUnlocked && showFull)
                       Button(
                         onPressed: () {
                           super.setupHandshake();
@@ -180,7 +179,7 @@ class ZwiftClickV2 extends ZwiftRide {
                         style: ButtonStyle.primary(size: ButtonSize.small),
                         child: Text('Handshake'),
                       ),
-                    if (kDebugMode)
+                    if (kDebugMode && showFull)
                       Button(
                         onPressed: () {
                           test();

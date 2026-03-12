@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../bluetooth/devices/base_device.dart';
 import '../actions/base_actions.dart';
 import 'apps/custom_app.dart';
 
@@ -70,6 +71,18 @@ class Keymap {
     return pairs.firstOrNullWhere((element) => element.trigger == ButtonTrigger.singleClick) ?? pairs.firstOrNull;
   }
 
+  KeyPair? findSimilarKeyPair(ControllerButton button, {ButtonTrigger? trigger}) {
+    final existing = getKeyPair(button, trigger: trigger);
+    if (existing != null) {
+      return existing;
+    }
+    final pairs = keyPairs.where((element) => element.buttons.any((b) => b.action == button.action)).toList();
+    if (trigger != null) {
+      return pairs.firstOrNullWhere((element) => element.trigger == trigger);
+    }
+    return pairs.firstOrNullWhere((element) => element.trigger == ButtonTrigger.singleClick) ?? pairs.firstOrNull;
+  }
+
   KeyPair getOrCreateKeyPair(ControllerButton button, {required ButtonTrigger trigger}) {
     final existing = getKeyPair(button, trigger: trigger);
     if (existing != null) {
@@ -111,17 +124,31 @@ class Keymap {
 
   void reset() {
     for (final keyPair in keyPairs) {
-      keyPair.physicalKey = null;
-      keyPair.logicalKey = null;
-      keyPair.touchPosition = Offset.zero;
-      keyPair.trigger = ButtonTrigger.singleClick;
-      keyPair.inGameAction = null;
-      keyPair.inGameActionValue = null;
-      keyPair.androidAction = null;
-      keyPair.command = null;
-      keyPair.screenshotPath = null;
+      _resetKeyPair(keyPair);
     }
     _updateStream.add(null);
+  }
+
+  void resetForDevice(BaseDevice device) {
+    final deviceButtonNames = device.availableButtons.map((b) => b.name).toSet();
+    for (final keyPair in keyPairs) {
+      if (keyPair.buttons.any((b) => deviceButtonNames.contains(b.name))) {
+        _resetKeyPair(keyPair);
+      }
+    }
+    _updateStream.add(null);
+  }
+
+  void _resetKeyPair(KeyPair keyPair) {
+    keyPair.physicalKey = null;
+    keyPair.logicalKey = null;
+    keyPair.touchPosition = Offset.zero;
+    keyPair.trigger = ButtonTrigger.singleClick;
+    keyPair.inGameAction = null;
+    keyPair.inGameActionValue = null;
+    keyPair.androidAction = null;
+    keyPair.command = null;
+    keyPair.screenshotPath = null;
   }
 
   void addKeyPair(KeyPair keyPair) {
@@ -154,10 +181,13 @@ class Keymap {
 
   void addNewButtons(List<ControllerButton> availableButtons) {
     final newButtons = availableButtons.filter(
-      (button) => getKeyPair(button, trigger: ButtonTrigger.singleClick) == null,
-    );
+      (button) {
+        final existing = getKeyPair(button, trigger: ButtonTrigger.singleClick);
+        return existing == null;
+      },
+    ).toList();
     for (final button in newButtons) {
-      final buttonFromBase = core.settings.getTrainerApp()?.keymap.getKeyPair(
+      final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
         button,
         trigger: ButtonTrigger.singleClick,
       );
@@ -355,12 +385,12 @@ class KeyPair {
     if (text != null && text.isNotEmpty) {
       return text;
     }
-    final baseKey = logicalKey?.keyLabel ?? text ?? 'Not assigned';
+    final baseKey = logicalKey?.keyLabel ?? text ?? AppLocalizations.current.notAssignedOrNoConnectionMethodActive;
 
     if (physicalKey == null || !core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
-      return 'Not assigned';
+      return AppLocalizations.current.notAssignedOrNoConnectionMethodActive;
     }
-    if (modifiers.isEmpty || baseKey == 'Not assigned') {
+    if (modifiers.isEmpty || baseKey == AppLocalizations.current.notAssignedOrNoConnectionMethodActive) {
       if (baseKey.trim().isEmpty) {
         return 'Space';
       }

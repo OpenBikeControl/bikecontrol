@@ -31,6 +31,7 @@ class RemotePairing extends TrainerConnection {
   RemotePairing()
     : super(
         title: connectionTitle,
+        type: ConnectionMethodType.bluetooth,
         supportedActions: InGameAction.values,
       );
 

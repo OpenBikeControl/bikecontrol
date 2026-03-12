@@ -24,10 +24,10 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
           valueListenable: core.obpMdnsEmulator.connectedApp,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              trainerConnection: core.obpMdnsEmulator,
               isRecommended: true,
               supportedActions: isConnected?.supportedActions,
               isEnabled: core.settings.getObpMdnsEnabled(),
-              type: ConnectionMethodType.openBikeControl,
               title: context.i18n.connectDirectlyOverNetwork,
 
               description: isConnected != null
@@ -56,8 +56,8 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                 }
                 setState(() {});
               },
-              isStarted: isStarted,
-              isConnected: isConnected != null,
+
+
             );
           },
         );

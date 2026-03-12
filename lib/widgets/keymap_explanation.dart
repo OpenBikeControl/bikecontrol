@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
@@ -31,7 +32,8 @@ enum _TriggerConflictResolution {
 class KeymapExplanation extends StatefulWidget {
   final Keymap keymap;
   final VoidCallback onUpdate;
-  const KeymapExplanation({super.key, required this.keymap, required this.onUpdate});
+  final BaseDevice? filterDevice;
+  const KeymapExplanation({super.key, required this.keymap, required this.onUpdate, this.filterDevice});
 
   @override
   State<KeymapExplanation> createState() => _KeymapExplanationState();
@@ -99,7 +101,10 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
 
   @override
   Widget build(BuildContext context) {
-    final keyButtonMap = core.connection.controllerDevices.associateWith((device) {
+    final devices = widget.filterDevice != null
+        ? core.connection.controllerDevices.where((d) => d == widget.filterDevice).toList()
+        : core.connection.controllerDevices;
+    final keyButtonMap = devices.associateWith((device) {
       return device.availableButtons.distinct().sortedBy(
         (button) => button.color != null ? '0${(button.icon?.codePoint ?? 0)}' : '1${(button.icon?.codePoint ?? 0)}',
       );
@@ -109,15 +114,8 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        if (core.connection.controllerDevices.isNotEmpty && !screenshotMode)
-          Text(
-            AppLocalizations.of(context).clickAButtonOnYourController,
-            style: TextStyle(fontSize: 12),
-          ).muted,
-
         for (final devicePair in keyButtonMap.entries) ...[
-          SizedBox(height: 12),
-          ColoredTitle(text: devicePair.key.toString()),
+          if (widget.filterDevice == null) ColoredTitle(text: devicePair.key.toString()),
           if (devicePair.value.isEmpty)
             Text(
               devicePair.key.buttonExplanation,
@@ -138,14 +136,10 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                           height: 52,
                           child: Row(
                             children: [
-                              Transform.scale(
-                                scale: 0.7,
-                                child: SizedBox(
-                                  width: 80,
-                                  child: ButtonWidget(
-                                    button: button,
-                                    big: true,
-                                  ),
+                              Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: ButtonWidget(
+                                  button: button,
                                 ),
                               ),
                               Expanded(
@@ -237,8 +231,26 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     required ButtonTrigger trigger,
     required bool supportsLongPress,
   }) {
-    final keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
+    KeyPair? keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
     final longPressKeyPair = widget.keymap.getKeyPair(deviceButton, trigger: ButtonTrigger.longPress);
+    if (screenshotMode &&
+        keyPair == null &&
+        deviceButton.name == ZwiftButtons.a.name &&
+        trigger == ButtonTrigger.longPress) {
+      // TODO fix it in the screenshot_test.dart instead
+      keyPair = KeyPair(
+        physicalKey: null,
+        logicalKey: null,
+        modifiers: [],
+        touchPosition: Offset.zero,
+        inGameAction: InGameAction.steerRight,
+        inGameActionValue: null,
+        androidAction: null,
+        command: null,
+        screenshotPath: null,
+        buttons: [ZwiftButtons.a],
+      );
+    }
     final showProBanner = _shouldShowProBanner(button: deviceButton, trigger: trigger);
     final hasAction = keyPair != null && !keyPair.hasNoAction;
     final hasLongPressAction = longPressKeyPair != null && !longPressKeyPair.hasNoAction;
@@ -421,16 +433,26 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
             hintText ?? AppLocalizations.of(context).anotherTriggerIsAlreadyAssignedForThisButton(trigger.title),
           ),
           actions: [
-            Button.secondary(onPressed: () => Navigator.of(c).pop(), child: Text(AppLocalizations.of(context).cancel)),
-            Button.secondary(
-              onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.replaceOtherTriggers),
-              child: Text(AppLocalizations.of(context).replaceExisting),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              spacing: 8,
+              children: [
+                Button.secondary(
+                  onPressed: () => Navigator.of(c).pop(),
+                  child: Text(AppLocalizations.of(context).cancel),
+                ),
+
+                Button.secondary(
+                  onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.replaceOtherTriggers),
+                  child: Text(AppLocalizations.of(context).replaceExisting),
+                ),
+                if (!IAPManager.instance.hasActiveSubscription)
+                  PrimaryButton(
+                    onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
+                    child: Text(AppLocalizations.of(context).goPro),
+                  ),
+              ],
             ),
-            if (!IAPManager.instance.hasActiveSubscription)
-              PrimaryButton(
-                onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
-                child: Text(AppLocalizations.of(context).goPro),
-              ),
           ],
         ),
       ),
@@ -500,11 +522,18 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         trigger: trigger,
         onUpdate: () {
           selectedKeymap.signalUpdate();
+
+          if (core.actionHandler.supportedApp is CustomApp) {
+            core.settings.setKeyMap(core.actionHandler.supportedApp!);
+          }
           widget.onUpdate();
         },
       ),
       position: OverlayPosition.end,
     );
+    if (core.actionHandler.supportedApp is CustomApp) {
+      core.settings.setKeyMap(core.actionHandler.supportedApp!);
+    }
     widget.onUpdate();
     _isDrawerOpen = false;
   }

@@ -10,6 +10,8 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
+import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -231,9 +233,9 @@ class IAPManager {
     if (kIsWeb) {
       return "Web";
     } else if (isProEnabledForCurrentDevice) {
-      return 'Pro version$expiryInfo';
+      return 'Pro$expiryInfo';
     } else if (isProEnabled) {
-      return 'Pro version (unregistered device)$expiryInfo';
+      return 'Pro (unregistered device)$expiryInfo';
     } else if (isPurchased.value) {
       return AppLocalizations.current.fullVersion;
     } else if (isOutsideStoreWindowsBuild) {
@@ -411,5 +413,17 @@ class IAPManager {
     } else if (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)) {
       isPurchased.value = true;
     }
+  }
+
+  Future<bool> ensureProForFeature(BuildContext context) async {
+    if (isProEnabledForCurrentDevice) {
+      return true;
+    } else if (isProEnabled) {
+      buildToast(title: AppLocalizations.of(context).currentDeviceIsNotRegistered);
+      return isProEnabledForCurrentDevice;
+    } else {
+      await showGoProDialog(context);
+    }
+    return IAPManager.instance.hasActiveSubscription;
   }
 }

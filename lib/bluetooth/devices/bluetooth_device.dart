@@ -16,17 +16,9 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/widgets/device_script_drawer.dart';
-import 'package:bike_control/widgets/ui/beta_pill.dart';
-import 'package:bike_control/widgets/ui/device_info.dart';
-import 'package:bike_control/widgets/ui/loading_widget.dart';
-import 'package:bike_control/widgets/ui/pro_badge.dart';
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -50,6 +42,7 @@ abstract class BluetoothDevice extends BaseDevice {
     String? buttonPrefix,
   }) : super(
          scanResult.name,
+         icon: LucideIcons.gamepad,
          uniqueId: scanResult.deviceId,
          availableButtons: allowMultiple
              ? availableButtons.toList().map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
@@ -269,146 +262,87 @@ abstract class BluetoothDevice extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          spacing: 8,
-          children: [
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
+    final foregroundColor = Theme.of(context).colorScheme.mutedForeground;
+    const fontSize = 11.0;
+    return [
+      // metaRow: battery + signal
+      if (batteryLevel != null || rssi != null) ...[
+        const Gap(4),
+        if (batteryLevel != null) ...[
+          Icon(
+            switch (batteryLevel!) {
+              >= 80 => LucideIcons.batteryFull,
+              >= 60 => LucideIcons.batteryFull,
+              >= 50 => LucideIcons.batteryMedium,
+              >= 25 => LucideIcons.batteryLow,
+              >= 10 => LucideIcons.batteryLow,
+              _ => LucideIcons.batteryWarning,
+            },
+            size: 14,
+            color: batteryLevel! < 20 ? Theme.of(context).colorScheme.destructive : foregroundColor,
+          ),
+          Text(
+            '$batteryLevel%',
+            style: TextStyle(
+              fontSize: fontSize,
+              color: foregroundColor,
+            ),
+          ),
+          if (firmwareVersion != null || rssi != null) const Gap(16),
+        ],
+        if (firmwareVersion != null &&
+            (showFull || (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion))) ...[
+          if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+            Icon(
+              Icons.warning,
+              size: fontSize,
+            )
+          else
+            Text('FW', style: TextStyle(fontSize: 10, color: foregroundColor)).inlineCode,
+          Text(
+            firmwareVersion!,
+            style: TextStyle(
+              fontSize: fontSize,
+              color: foregroundColor,
+            ),
+          ),
+          if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
             Text(
-              toString().screenshot ?? runtimeType.toString(),
-              style: TextStyle(fontWeight: FontWeight.bold),
+              ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
+              style: TextStyle(color: foregroundColor, fontSize: fontSize),
             ),
-            if (isBeta) BetaPill(),
-            Expanded(child: SizedBox()),
-            Builder(
-              builder: (context) {
-                return LoadingWidget(
-                  futureCallback: () async {
-                    final completer = showDropdown<bool?>(
-                      context: context,
-                      builder: (c) => DropdownMenu(
-                        children: [
-                          MenuButton(
-                            child: Text('Disconnect and Forget for this session'),
-                            onPressed: (context) {
-                              closeOverlay(context, false);
-                            },
-                          ),
-                          MenuButton(
-                            child: Text('Disconnect and Forget'),
-                            onPressed: (context) {
-                              closeOverlay(context, true);
-                            },
-                          ),
-                          MenuDivider(),
-                          MenuLabel(child: Text('Experimental')),
-                          MenuButton(
-                            trailing:
-                                !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
-                                ? ProBadge()
-                                : null,
-                            onPressed: (overlayContext) async {
-                              await closeOverlay(context, null);
-                              if (!IAPManager.instance.isPurchased.value &&
-                                  !IAPManager.instance.hasActiveSubscription) {
-                                buildToast(
-                                  title: 'This feature is Full Version or Pro only.',
-                                  duration: Duration(seconds: 4),
-                                );
-                                return;
-                              }
-                              openDrawer(
-                                context: context,
-                                position: OverlayPosition.end,
-                                builder: (c) => DeviceScriptDrawer(deviceType: runtimeType.toString()),
-                              );
-                            },
-                            child: Text('Run Script'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    final persist = await completer.future;
-                    if (persist != null) {
-                      await core.connection.disconnect(this, forget: true, persistForget: persist);
-                    }
-                  },
-                  renderChild: (isLoading, tap) => IconButton(
-                    variance: ButtonVariance.muted,
-                    icon: isLoading ? SmallProgressIndicator() : Icon(Icons.clear),
-                    onPressed: tap,
-                  ),
+          if (rssi != null) const Gap(16),
+        ],
+        if (rssi != null)
+          StreamBuilder(
+            stream: core.connection.rssiConnectionStream.where((device) => device == this).map((event) => event.rssi),
+            builder: (context, rssiValue) {
+              final currentRssi = rssiValue.data ?? rssi!;
+              if (showFull || currentRssi > -85) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.signal, size: 14, color: foregroundColor),
+                    const Gap(4),
+                    Text(
+                      switch (currentRssi) {
+                        >= -50 => 'Strong',
+                        >= -70 => 'Good',
+                        >= -85 => 'Fair',
+                        _ => 'Weak',
+                      },
+                      style: TextStyle(fontSize: fontSize, color: foregroundColor),
+                    ),
+                  ],
                 );
-              },
-            ),
-          ],
-        ),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            DeviceInfo(
-              title: context.i18n.connection,
-              icon: switch (isConnected) {
-                true => Icons.bluetooth_connected_outlined,
-                false => Icons.bluetooth_disabled_outlined,
-              },
-              value: isConnected ? context.i18n.connected : context.i18n.disconnected,
-            ),
-
-            if (batteryLevel != null)
-              DeviceInfo(
-                title: context.i18n.battery,
-                icon: switch (batteryLevel!) {
-                  >= 80 => Icons.battery_full,
-                  >= 60 => Icons.battery_6_bar,
-                  >= 50 => Icons.battery_5_bar,
-                  >= 25 => Icons.battery_4_bar,
-                  >= 10 => Icons.battery_2_bar,
-                  _ => Icons.battery_alert,
-                },
-                value: '$batteryLevel%',
-              ),
-            if (firmwareVersion != null)
-              DeviceInfo(
-                title: context.i18n.firmware,
-                icon: this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion
-                    ? Icons.warning
-                    : Icons.text_fields_sharp,
-                value: firmwareVersion!,
-                additionalInfo: (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
-                    ? Text(
-                        ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
-                        style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
-                      )
-                    : null,
-              ),
-
-            if (rssi != null)
-              StreamBuilder(
-                stream: core.connection.rssiConnectionStream
-                    .where((device) => device == this)
-                    .map((event) => event.rssi),
-                builder: (context, rssiValue) {
-                  return DeviceInfo(
-                    title: context.i18n.signal,
-                    icon: switch (rssiValue.data ?? rssi!) {
-                      >= -50 => Icons.signal_cellular_4_bar,
-                      >= -60 => Icons.signal_cellular_alt_2_bar,
-                      >= -70 => Icons.signal_cellular_alt_1_bar,
-                      _ => Icons.signal_cellular_alt,
-                    },
-                    value: '$rssi dBm',
-                  );
-                },
-              ),
-          ],
-        ),
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
       ],
-    );
+    ];
   }
 
   void debugSubscribeToAll(List<BleService> services) {

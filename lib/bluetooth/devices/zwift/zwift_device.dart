@@ -202,22 +202,14 @@ abstract class ZwiftDevice extends BluetoothDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context) {
-    return Column(
-      spacing: 16,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        super.showInformation(context),
-
-        if (canVibrate)
-          Checkbox(
-            trailing: Expanded(child: Text(context.i18n.enableVibrationFeedback)),
-            state: core.settings.getVibrationEnabled() ? CheckboxState.checked : CheckboxState.unchecked,
-            onChanged: (value) async {
-              await core.settings.setVibrationEnabled(value == CheckboxState.checked);
-            },
-          ),
-      ],
+  Widget? buildPreferences(BuildContext context) {
+    if (!canVibrate) return null;
+    return Checkbox(
+      trailing: Expanded(child: Text(context.i18n.enableVibrationFeedback)),
+      state: core.settings.getVibrationEnabled() ? CheckboxState.checked : CheckboxState.unchecked,
+      onChanged: (value) async {
+        await core.settings.setVibrationEnabled(value == CheckboxState.checked);
+      },
     );
   }
 }

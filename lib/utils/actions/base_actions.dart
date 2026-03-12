@@ -38,8 +38,19 @@ class Ignored extends ActionResult {
   const Ignored(super.message);
 }
 
+enum ErrorType {
+  noKeymapSet,
+  noActionAssigned,
+  noConnectionMethod,
+  trainerNotConnected,
+  proRequired,
+  headwindNotConnected,
+  other,
+}
+
 class Error extends ActionResult {
-  const Error(super.message);
+  final ErrorType type;
+  const Error(super.message, {this.type = ErrorType.other});
 }
 
 abstract class BaseActions {
@@ -116,12 +127,16 @@ abstract class BaseActions {
     if (supportedApp == null) {
       return Error(
         AppLocalizations.current.couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet(button.name.splitByUpperCase()),
+        type: ErrorType.noKeymapSet,
       );
     }
 
     final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger);
     if (keyPair == null || keyPair.hasNoAction) {
-      return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
+      return Error(
+        AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
+        type: ErrorType.noActionAssigned,
+      );
     }
 
     final guard = proGuard(button: button, trigger: trigger, keyPair: keyPair);
@@ -134,7 +149,7 @@ abstract class BaseActions {
         keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
       final headwind = core.connection.accessories.where((h) => h.isConnected).firstOrNull;
       if (headwind == null) {
-        return Error('No Headwind connected');
+        return Error('No Headwind connected', type: ErrorType.headwindNotConnected);
       }
 
       // Increment command count after successful execution
@@ -146,10 +161,10 @@ abstract class BaseActions {
       if (GyroscopeSteeringButtons.values.contains(button)) {
         return Ignored('Too many messages from gyroscope steering');
       } else {
-        return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst);
+        return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst, type: ErrorType.noConnectionMethod);
       }
     } else if (!(await core.logic.isTrainerConnected())) {
-      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive);
+      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive, type: ErrorType.trainerNotConnected);
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
@@ -191,7 +206,7 @@ abstract class BaseActions {
     required KeyPair keyPair,
   }) {
     if (keyPair.isProAction && !IAPManager.instance.hasActiveSubscription) {
-      return Error('Pro subscription required for action: $keyPair');
+      return Error('Pro subscription required for action: $keyPair', type: ErrorType.proRequired);
     }
 
     if (!IAPManager.instance.hasActiveSubscription && supportedApp != null) {
@@ -201,7 +216,7 @@ abstract class BaseActions {
       }).toList();
 
       if (activeTriggers.length > 1 && trigger != activeTriggers.first) {
-        return Error('Pro subscription required for additional trigger types');
+        return Error('Pro subscription required for additional trigger types', type: ErrorType.proRequired);
       }
     }
 
@@ -222,7 +237,9 @@ class StubActions extends BaseActions {
     ButtonTrigger trigger = ButtonTrigger.singleClick,
   }) async {
     performedActions.add(PerformedAction(button, isDown: isKeyDown, isUp: isKeyUp, trigger: trigger));
-    return Future.value(Ignored('${button.name.splitByUpperCase()} clicked'));
+    return Future.value(
+      Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst, type: ErrorType.noConnectionMethod),
+    );
   }
 
   @override

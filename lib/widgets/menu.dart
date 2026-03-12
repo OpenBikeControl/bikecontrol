@@ -2,12 +2,13 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/pages/markdown.dart';
-import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
@@ -20,14 +21,18 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../utils/iap/iap_manager.dart';
 
-List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCallback? openLogs) {
+List<Widget> buildMenuButtons(BuildContext context) {
   final iap = IAPManager.instance;
   return [
     // Pro/Subscription Button
     Builder(
       builder: (context) {
         return Button(
-          style: ButtonStyle.primary().withBackgroundColor(color: iap.isProEnabled ? Colors.green : null),
+          style: ButtonStyle.primary()
+              .withBackgroundColor(color: iap.isProEnabled && false ? BKColor.mainEnd : null)
+              .withBorderRadius(
+                borderRadius: BorderRadius.circular(16),
+              ),
           onPressed: () {
             openDrawer(
               context: context,
@@ -47,12 +52,13 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
       },
     ),
 
-    if (openLogs == null && (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled)) ...[
+    if (IAPManager.instance.isPurchased.value || IAPManager.instance.isProEnabled) ...[
       Gap(8),
       Builder(
         builder: (context) {
-          return OutlineButton(
-            density: ButtonDensity.icon,
+          return IconButton(
+            variance: ButtonVariance.menu,
+            density: ButtonDensity.iconDense,
             onPressed: () {
               showDropdown(
                 context: context,
@@ -75,18 +81,14 @@ List<Widget> buildMenuButtons(BuildContext context, BCPage currentPage, VoidCall
                 ),
               );
             },
-            child: Icon(
-              Icons.favorite,
-              color: Colors.red,
-              size: 18,
-            ),
+            icon: Icon(Icons.favorite_outline),
           );
         },
       ),
     ],
     Gap(4),
 
-    BKMenuButton(openLogs: openLogs, currentPage: currentPage),
+    BKMenuButton(),
   ];
 }
 
@@ -108,15 +110,14 @@ ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transfor
 }
 
 class BKMenuButton extends StatelessWidget {
-  final VoidCallback? openLogs;
-  final BCPage currentPage;
-  const BKMenuButton({super.key, this.openLogs, required this.currentPage});
+  const BKMenuButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return OutlineButton(
-      density: ButtonDensity.icon,
-      child: Icon(Icons.more_vert, size: 18),
+    return IconButton(
+      variance: ButtonVariance.menu,
+      density: ButtonDensity.iconDense,
+      icon: Icon(Icons.more_vert),
       onPressed: () => showDropdown(
         context: context,
         builder: (c) => DropdownMenu(
@@ -179,7 +180,7 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
-            if (currentPage == BCPage.logs) ...[
+            if (kDebugMode) ...[
               MenuButton(
                 child: Text('Reset IAP State'),
                 onPressed: (c) async {
@@ -189,28 +190,26 @@ class BKMenuButton extends StatelessWidget {
               ),
               MenuDivider(),
             ],
-            if (openLogs != null)
-              MenuButton(
-                leading: Icon(Icons.star_rate),
-                child: Text(context.i18n.leaveAReview),
-                onPressed: (c) async {
-                  final InAppReview inAppReview = InAppReview.instance;
+            MenuButton(
+              leading: Icon(Icons.logo_dev_sharp),
+              child: Text(context.i18n.logs),
+              onPressed: (c) async {
+                await context.push(LogViewer());
+              },
+            ),
+            MenuButton(
+              leading: Icon(Icons.star_rate),
+              child: Text(context.i18n.leaveAReview),
+              onPressed: (c) async {
+                final InAppReview inAppReview = InAppReview.instance;
 
-                  if (await inAppReview.isAvailable()) {
-                    inAppReview.requestReview();
-                  } else {
-                    inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
-                  }
-                },
-              ),
-            if (openLogs != null)
-              MenuButton(
-                leading: Icon(Icons.article_outlined),
-                child: Text(context.i18n.logs),
-                onPressed: (c) {
-                  openLogs!();
-                },
-              ),
+                if (await inAppReview.isAvailable()) {
+                  inAppReview.requestReview();
+                } else {
+                  inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
+                }
+              },
+            ),
             MenuButton(
               leading: Icon(Icons.update_outlined),
               child: Text(context.i18n.changelog),

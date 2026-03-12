@@ -25,14 +25,13 @@ class IAPStatusWidget extends StatefulWidget {
   State<IAPStatusWidget> createState() => _IAPStatusWidgetState();
 }
 
-final _normalDate = DateTime(2026, 3, 15, 0, 0, 0, 0, 0);
+final _normalDate = DateTime(2026, 4, 15, 0, 0, 0, 0, 0);
 final _iapDate = DateTime(2025, 12, 21, 0, 0, 0, 0, 0);
 
 enum AlreadyBoughtOption { fullPurchase, iap, no }
 
 class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   bool _isPurchasing = false;
-  bool _isSmall = false;
   AlreadyBoughtOption? _alreadyBoughtQuestion;
 
   final _purchaseIdField = const TextFieldKey(#purchaseId);
@@ -40,58 +39,22 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   bool _isLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-    _isSmall = widget.small;
-  }
-
-  @override
-  void didUpdateWidget(covariant IAPStatusWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.small != widget.small) {
-      setState(() {
-        _isSmall = widget.small;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final iapManager = IAPManager.instance;
     final isOutsideStoreWindowsBuild = iapManager.isOutsideStoreWindowsBuild;
     final isTrialExpired = iapManager.isTrialExpired;
-    if (isTrialExpired) {
-      _isSmall = false;
-    }
     final trialDaysRemaining = iapManager.trialDaysRemaining;
     final commandsRemaining = iapManager.commandsRemainingToday;
     final dailyCommandCount = iapManager.dailyCommandCount;
 
     return kIsWeb
         ? SizedBox()
-        : Button(
-            onPressed: _isSmall
-                ? () {
-                    setState(() {
-                      _isSmall = false;
-                    });
-                  }
-                : () {
-                    if (Platform.isAndroid) {
-                      if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) {
-                        _handlePurchase(context);
-                      }
-                    } else {
-                      _handlePurchase(context);
-                    }
-                  },
-            style: ButtonStyle.card().withBackgroundColor(
-              color: Theme.of(context).colorScheme.muted,
-              hoverColor: Theme.of(context).colorScheme.primaryForeground,
-            ),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 700),
-              width: double.infinity,
+        : Container(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Card(
+              filled: true,
+
+              padding: EdgeInsets.only(top: 8, left: 8, right: 8),
               child: ValueListenableBuilder(
                 valueListenable: IAPManager.instance.isPurchased,
                 builder: (context, isPurchased, child) {
@@ -119,23 +82,25 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                             leadingAlignment: Alignment.centerLeft,
                             leading: Icon(Icons.access_time, color: Colors.blue),
                             title: Text(AppLocalizations.of(context).trialPeriodActive(trialDaysRemaining)),
-                            subtitle: _isSmall
-                                ? null
-                                : Text(
-                                    AppLocalizations.of(context).trialPeriodDescription(IAPManager.dailyCommandLimit),
-                                  ),
-                            trailing: _isSmall ? Icon(Icons.expand_more) : null,
+                            subtitle: Text(
+                              AppLocalizations.of(context).trialPeriodDescription(IAPManager.dailyCommandLimit),
+                            ),
                           )
-                        else
+                        else ...[
                           Basic(
-                            leadingAlignment: Alignment.centerLeft,
-                            leading: Icon(Icons.lock),
-                            title: Text(AppLocalizations.of(context).trialPeriodActive(trialDaysRemaining)),
+                            padding: EdgeInsets.all(8),
+                            leading: Icon(
+                              Icons.info_outline,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            title: Text(
+                              AppLocalizations.of(context).trialPeriodActive(trialDaysRemaining),
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               spacing: 6,
                               children: [
-                                SizedBox(),
                                 Text(
                                   commandsRemaining >= 0
                                       ? context.i18n
@@ -147,7 +112,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                       : AppLocalizations.of(
                                           context,
                                         ).dailyLimitReached(dailyCommandCount, IAPManager.dailyCommandLimit),
-                                ).small,
+                                ).xSmall,
                                 if (commandsRemaining >= 0 && dailyCommandCount > 0)
                                   SizedBox(
                                     width: 300,
@@ -159,21 +124,19 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   ),
                               ],
                             ),
-                            trailing: _isSmall ? Icon(Icons.expand_more) : null,
                             trailingAlignment: Alignment.centerRight,
                           ),
+                        ],
                       ] else ...[
                         Basic(
                           leadingAlignment: Alignment.centerLeft,
                           leading: Icon(Icons.lock),
                           title: Text(AppLocalizations.of(context).trialExpired(IAPManager.dailyCommandLimit)),
-                          trailing: _isSmall ? Icon(Icons.expand_more) : null,
                           trailingAlignment: Alignment.centerRight,
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 6,
                             children: [
-                              SizedBox(),
                               Text(
                                 commandsRemaining >= 0
                                     ? context.i18n.commandsRemainingToday(
@@ -183,7 +146,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                     : AppLocalizations.of(
                                         context,
                                       ).dailyLimitReached(dailyCommandCount, IAPManager.dailyCommandLimit),
-                              ).small,
+                              ).xSmall.muted,
                               if (commandsRemaining >= 0)
                                 SizedBox(
                                   width: 300,
@@ -197,237 +160,123 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                           ),
                         ),
                       ],
-                      if (!hasPremiumAccess && !_isSmall) ...[
+                      if (!hasPremiumAccess) ...[
+                        Gap(20),
                         if (Platform.isAndroid)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 42.0, top: 16.0),
-                            child: Column(
-                              spacing: 8,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Divider(),
-                                const SizedBox(),
-                                if (_alreadyBoughtQuestion == null && DateTime.now().isBefore(_normalDate)) ...[
-                                  Text(AppLocalizations.of(context).alreadyBoughtTheAppPreviously).small,
-                                  Row(
-                                    children: [
-                                      Builder(
-                                        builder: (context) {
-                                          return OutlineButton(
-                                            child: Text(AppLocalizations.of(context).yes),
-                                            onPressed: () {
-                                              showDropdown(
-                                                context: context,
-                                                builder: (c) => DropdownMenu(
-                                                  children: [
-                                                    MenuButton(
-                                                      child: Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        ).beforeDate(DateFormat.yMMMd().format(_iapDate)),
-                                                      ),
-                                                      onPressed: (c) {
-                                                        setState(() {
-                                                          _alreadyBoughtQuestion = AlreadyBoughtOption.fullPurchase;
-                                                        });
-                                                      },
-                                                    ),
-                                                    MenuButton(
-                                                      child: Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        ).afterDate(DateFormat.yMMMd().format(_iapDate)),
-                                                      ),
-                                                      onPressed: (c) {
-                                                        setState(() {
-                                                          _alreadyBoughtQuestion = AlreadyBoughtOption.iap;
-                                                        });
-                                                      },
-                                                    ),
-                                                  ],
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Divider(endIndent: 16, indent: 16),
+                              const SizedBox(),
+                              if (_alreadyBoughtQuestion == AlreadyBoughtOption.fullPurchase) ...[
+                                Text(
+                                  AppLocalizations.of(context).alreadyBoughtTheApp,
+                                ).xSmall,
+                                Form(
+                                  onSubmit: (context, values) async {
+                                    String purchaseId = _purchaseIdField[values]!.trim();
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    final redeemed = await _redeemPurchase(
+                                      purchaseId: purchaseId,
+                                      supabaseAnonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+                                      supabaseUrl: 'https://pikrcyynovdvogrldfnw.supabase.co',
+                                    );
+                                    if (redeemed) {
+                                      await IAPManager.instance.redeem(purchaseId);
+                                      buildToast(
+                                        title: 'Success',
+                                        subtitle: 'Purchase redeemed successfully!',
+                                      );
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                      if (mounted) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text('Error'),
+                                              content: Text(
+                                                'Failed to redeem purchase. Please check your Purchase ID and try again or contact me directly. Sorry about that!',
+                                              ),
+                                              actions: [
+                                                OutlineButton(
+                                                  child: Text(context.i18n.getSupport),
+                                                  onPressed: () async {
+                                                    final appUserId = await Purchases.appUserID;
+                                                    launchUrlString(
+                                                      'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help%20for%20$appUserId',
+                                                    );
+                                                  },
                                                 ),
-                                              );
-                                            },
-                                          );
-                                        },
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text(AppLocalizations.of(context).ok),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Row(
+                                    spacing: 8,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Expanded(
+                                        child: FormField(
+                                          showErrors: {
+                                            FormValidationMode.submitted,
+                                            FormValidationMode.changed,
+                                          },
+                                          key: _purchaseIdField,
+                                          label: Text('Purchase ID'),
+                                          validator: RegexValidator(
+                                            RegExp(r'GPA.[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{5}'),
+                                            message: 'Please enter a valid Purchase ID.',
+                                          ),
+                                          child: TextField(
+                                            placeholder: Text('GPA.****-****-****-*****'),
+                                          ),
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      OutlineButton(
-                                        child: Text(AppLocalizations.of(context).no),
-                                        onPressed: () {
-                                          setState(() {
-                                            _alreadyBoughtQuestion = AlreadyBoughtOption.no;
-                                          });
+                                      FormErrorBuilder(
+                                        builder: (context, errors, child) {
+                                          return PrimaryButton(
+                                            onPressed: errors.isEmpty ? () => context.submitForm() : null,
+                                            child: _isLoading
+                                                ? SmallProgressIndicator(color: Colors.black)
+                                                : const Text('Submit'),
+                                          );
                                         },
                                       ),
                                     ],
                                   ),
-                                ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.fullPurchase) ...[
-                                  Text(
-                                    AppLocalizations.of(context).alreadyBoughtTheApp,
-                                  ).small,
-                                  Form(
-                                    onSubmit: (context, values) async {
-                                      String purchaseId = _purchaseIdField[values]!.trim();
-                                      setState(() {
-                                        _isLoading = true;
-                                      });
-                                      final redeemed = await _redeemPurchase(
-                                        purchaseId: purchaseId,
-                                        supabaseAnonKey:
-                                            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpa3JjeXlub3Zkdm9ncmxkZm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNjMyMzksImV4cCI6MjA4MTYzOTIzOX0.oxJovYahRiZ6XvCVR-qww6OQ5jY6cjOyUiFHJsW9MVk',
-                                        supabaseUrl: 'https://pikrcyynovdvogrldfnw.supabase.co',
-                                      );
-                                      if (redeemed) {
-                                        await IAPManager.instance.redeem(purchaseId);
-                                        buildToast(
-                                          title: 'Success',
-                                          subtitle: 'Purchase redeemed successfully!',
-                                        );
-                                        setState(() {
-                                          _isLoading = false;
-                                        });
-                                      } else {
-                                        setState(() {
-                                          _isLoading = false;
-                                        });
-                                        if (mounted) {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return AlertDialog(
-                                                title: Text('Error'),
-                                                content: Text(
-                                                  'Failed to redeem purchase. Please check your Purchase ID and try again or contact me directly. Sorry about that!',
-                                                ),
-                                                actions: [
-                                                  OutlineButton(
-                                                    child: Text(context.i18n.getSupport),
-                                                    onPressed: () async {
-                                                      final appUserId = await Purchases.appUserID;
-                                                      launchUrlString(
-                                                        'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help%20for%20$appUserId',
-                                                      );
-                                                    },
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context).pop();
-                                                    },
-                                                    child: Text('OK'),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        }
-                                      }
-                                    },
-                                    child: Row(
-                                      spacing: 8,
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Expanded(
-                                          child: FormField(
-                                            showErrors: {
-                                              FormValidationMode.submitted,
-                                              FormValidationMode.changed,
-                                            },
-                                            key: _purchaseIdField,
-                                            label: Text('Purchase ID'),
-                                            validator: RegexValidator(
-                                              RegExp(r'GPA.[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{5}'),
-                                              message: 'Please enter a valid Purchase ID.',
-                                            ),
-                                            child: TextField(
-                                              placeholder: Text('GPA.****-****-****-*****'),
-                                            ),
-                                          ),
-                                        ),
-                                        FormErrorBuilder(
-                                          builder: (context, errors, child) {
-                                            return PrimaryButton(
-                                              onPressed: errors.isEmpty ? () => context.submitForm() : null,
-                                              child: _isLoading
-                                                  ? SmallProgressIndicator(color: Colors.black)
-                                                  : const Text('Submit'),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.no ||
-                                    DateTime.now().isAfter(_normalDate)) ...[
-                                  PrimaryButton(
-                                    onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                    leading: Icon(Icons.star),
-                                    child: _isPurchasing
-                                        ? Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SmallProgressIndicator(),
-                                              const SizedBox(width: 8),
-                                              Text('Processing...'),
-                                            ],
-                                          )
-                                        : Text(
-                                            isOutsideStoreWindowsBuild
-                                                ? AppLocalizations.of(context).goPro
-                                                : AppLocalizations.of(context).unlockFullVersion,
-                                          ),
-                                  ),
-                                ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
-                                  PrimaryButton(
-                                    onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                    leading: Icon(Icons.star),
-                                    child: _isPurchasing
-                                        ? Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SmallProgressIndicator(),
-                                              const SizedBox(width: 8),
-                                              Text('Processing...'),
-                                            ],
-                                          )
-                                        : Text(
-                                            isOutsideStoreWindowsBuild
-                                                ? AppLocalizations.of(context).goPro
-                                                : AppLocalizations.of(context).unlockFullVersion,
-                                          ),
-                                  ),
-                                  Text(
-                                    AppLocalizations.of(context).restorePurchaseInfo,
-                                  ).xSmall,
-                                  OutlineButton(
-                                    child: Text(context.i18n.getSupport),
-                                    onPressed: () async {
-                                      final appUserId = await Purchases.appUserID;
-                                      launchUrlString(
-                                        'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help%20for%20$appUserId',
-                                      );
-                                    },
-                                  ),
-                                ],
-                                if (IAPManager.instance.isUsingRevenueCat)
-                                  _buildRestoreAction(
-                                    label: 'Restore Purchases',
-                                    leftPadding: 0,
-                                  ),
-                              ],
-                            ),
-                          )
-                        else ...[
-                          const SizedBox(height: 16),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 42.0),
-                            child: Builder(
-                              builder: (context) {
-                                return PrimaryButton(
+                                ),
+                                OutlineButton(
+                                  child: Text(context.i18n.getSupport),
+                                  onPressed: () async {
+                                    final appUserId = await Purchases.appUserID;
+                                    launchUrlString(
+                                      'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help%20for%20$appUserId',
+                                    );
+                                  },
+                                ),
+                              ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.no ||
+                                  DateTime.now().isAfter(_normalDate) ||
+                                  _alreadyBoughtQuestion == null) ...[
+                                PrimaryButton(
                                   onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                  leading: Icon(Icons.star),
+                                  leading: Icon(Icons.star, size: 16),
                                   child: _isPurchasing
                                       ? Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -438,18 +287,69 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                             Text('Processing...'),
                                           ],
                                         )
-                                      : Text(
-                                          isOutsideStoreWindowsBuild
-                                              ? AppLocalizations.of(context).goPro
-                                              : AppLocalizations.of(context).unlockFullVersion,
-                                        ),
+                                      : Text(AppLocalizations.of(context).checkPurchasingOptions),
+                                ),
+                              ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
+                                PrimaryButton(
+                                  onPressed: _isPurchasing ? null : () => _handlePurchase(context),
+                                  leading: Icon(Icons.star, size: 16),
+                                  child: _isPurchasing
+                                      ? Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SmallProgressIndicator(),
+                                            const SizedBox(width: 8),
+                                            Text('Processing...'),
+                                          ],
+                                        )
+                                      : Text(AppLocalizations.of(context).checkPurchasingOptions),
+                                ),
+                                Text(AppLocalizations.of(context).restorePurchaseInfo).xSmall,
+                                OutlineButton(
+                                  child: Text(context.i18n.getSupport),
+                                  onPressed: () async {
+                                    final appUserId = await Purchases.appUserID;
+                                    launchUrlString(
+                                      'mailto:jonas@bikecontrol.app?subject=Bike%20Control%20Purchase%20Redemption%20Help%20for%20$appUserId',
+                                    );
+                                  },
+                                ),
+                              ],
+                              if (IAPManager.instance.isUsingRevenueCat && _alreadyBoughtQuestion == null)
+                                _buildRestoreAction(
+                                  label: AppLocalizations.of(context).restorePurchases,
+                                  leftPadding: 0,
+                                ),
+                            ],
+                          )
+                        else ...[
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 42.0),
+                            child: Builder(
+                              builder: (context) {
+                                return PrimaryButton(
+                                  onPressed: _isPurchasing ? null : () => _handlePurchase(context),
+                                  leading: Icon(Icons.star, size: 16),
+                                  child: _isPurchasing
+                                      ? Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SmallProgressIndicator(),
+                                            const SizedBox(width: 8),
+                                            Text('Processing...'),
+                                          ],
+                                        )
+                                      : Text(AppLocalizations.of(context).checkPurchasingOptions),
                                 );
                               },
                             ),
                           ),
                           if (IAPManager.instance.isUsingRevenueCat)
                             _buildRestoreAction(
-                              label: 'Restore Purchases',
+                              label: AppLocalizations.of(context).restorePurchases,
                               leftPadding: 42.0,
                             ),
                           if (Platform.isWindows)
@@ -473,12 +373,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
     });
 
     try {
-      if (IAPManager.instance.isOutsideStoreWindowsBuild) {
-        await IAPManager.instance.purchaseSubscription(context);
-      } else {
-        // Use RevenueCat paywall if available, otherwise fall back to legacy
-        await IAPManager.instance.purchaseFullVersion(context);
-      }
+      // Use RevenueCat paywall if available, otherwise fall back to legacy
+      await IAPManager.instance.purchaseFullVersion(context);
     } catch (e) {
       if (mounted) {
         buildToast(
@@ -501,15 +397,66 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
   }) {
     return Padding(
       padding: EdgeInsets.only(left: leftPadding, top: 8.0, bottom: 8),
-      child: LoadingWidget(
-        futureCallback: () async {
-          await IAPManager.instance.restorePurchases();
-          await IAPManager.instance.refreshEntitlementsOnResume();
+      child: Builder(
+        builder: (context) {
+          return LoadingWidget(
+            futureCallback: () async {
+              if (Platform.isAndroid && _alreadyBoughtQuestion == null && DateTime.now().isBefore(_normalDate)) {
+                showDropdown(
+                  context: context,
+                  builder: (c) => DropdownMenu(
+                    children: [
+                      MenuLabel(child: Text(AppLocalizations.of(context).alreadyBoughtTheAppPreviously)),
+                      MenuButton(
+                        subMenu: [
+                          MenuButton(
+                            child: Text(AppLocalizations.of(context).beforeDate(DateFormat.yMMMd().format(_iapDate))),
+                            onPressed: (c) {
+                              setState(() {
+                                _alreadyBoughtQuestion = AlreadyBoughtOption.fullPurchase;
+                              });
+                            },
+                          ),
+                          MenuButton(
+                            child: Text(AppLocalizations.of(context).afterDate(DateFormat.yMMMd().format(_iapDate))),
+                            onPressed: (c) {
+                              setState(() {
+                                _alreadyBoughtQuestion = AlreadyBoughtOption.iap;
+                              });
+                            },
+                          ),
+                        ],
+                        child: Text(AppLocalizations.of(context).yes),
+                      ),
+                      MenuButton(
+                        child: Text(AppLocalizations.of(context).no),
+                        onPressed: (c) async {
+                          setState(() {
+                            _alreadyBoughtQuestion = AlreadyBoughtOption.no;
+                          });
+                          await IAPManager.instance.restorePurchases();
+                          await IAPManager.instance.refreshEntitlementsOnResume();
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                await IAPManager.instance.restorePurchases();
+                await IAPManager.instance.refreshEntitlementsOnResume();
+              }
+            },
+            renderChild: (isLoading, tap) => LinkButton(
+              onPressed: tap,
+              child: isLoading
+                  ? SmallProgressIndicator()
+                  : Text(
+                      label,
+                      style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                    ).xSmall.normal.underline,
+            ),
+          );
         },
-        renderChild: (isLoading, tap) => LinkButton(
-          onPressed: tap,
-          child: isLoading ? SmallProgressIndicator() : Text(label).small,
-        ),
       ),
     );
   }

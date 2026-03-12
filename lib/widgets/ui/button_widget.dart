@@ -6,7 +6,10 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 class ButtonWidget extends StatelessWidget {
   final ControllerButton button;
   final bool big;
-  const ButtonWidget({super.key, required this.button, this.big = false});
+  final double? size;
+  final Color? color;
+
+  const ButtonWidget({super.key, required this.button, this.big = false, this.color, this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -14,23 +17,25 @@ class ButtonWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         constraints: BoxConstraints(
-          minWidth: big && button.color != null ? 40 : 30,
-          minHeight: big && button.color != null ? 40 : 0,
+          minWidth: size ?? (big && button.color != null ? 40 : 30),
+          minHeight: size ?? (big && button.color != null ? 40 : 0),
         ),
         decoration: BoxDecoration(
           border: Border.all(
-            color: button.color != null ? Colors.black.getContrastColor(0.3) : Theme.of(context).colorScheme.primary,
+            color:
+                color ??
+                (button.color != null ? Colors.black.getContrastColor(0.3) : Theme.of(context).colorScheme.primary),
           ),
           shape: button.color != null || button.icon != null ? BoxShape.circle : BoxShape.rectangle,
           borderRadius: button.color != null || button.icon != null ? null : BorderRadius.circular(8),
-          color: button.color ?? Colors.black,
+          color: color?.withLuminance(0.9) ?? button.color ?? Colors.black,
         ),
         child: Center(
           child: button.icon != null
               ? Icon(
                   button.icon,
-                  color: Colors.white,
-                  size: big && button.color != null ? null : 14,
+                  color: color ?? Colors.white,
+                  size: size ?? (big && button.color != null ? null : 14),
                 )
               : Text(
                   button.displayName.splitByUpperCase(),
@@ -39,7 +44,7 @@ class ButtonWidget extends StatelessWidget {
                     fontFamily: screenshotMode ? null : 'monospace',
                     fontSize: big && button.color != null ? 20 : 12,
                     fontWeight: button.color != null ? FontWeight.bold : null,
-                    color: Colors.white,
+                    color: color?.getContrastColor(0.3) ?? Colors.white,
                   ),
                 ),
         ),

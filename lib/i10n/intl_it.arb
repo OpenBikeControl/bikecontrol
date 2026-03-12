@@ -45,6 +45,7 @@
   "bluetoothTurnedOn": "Bluetooth attivato",
   "browserNotSupported": "Questo browser non supporta il Web Bluetooth e la piattaforma non è supportata :(",
   "button": "pulsante.",
+  "buttonMapping": "Mappatura dei pulsanti",
   "buyFullVersion": "Acquista la versione completa",
   "bySigningInYouAgreeToOur": "Accedendo, accetti i nostri {privacyPolicy} .",
   "@bySigningInYouAgreeToOur": {
@@ -57,6 +58,7 @@
   "cancel": "Cancella",
   "changelog": "Registro delle modifiche",
   "checkMyWhooshConnectionScreen": "Controlla la schermata di connessione in MyWhoosh per vedere se è connesso.",
+  "checkPurchasingOptions": "Controlla le opzioni di acquisto",
   "chooseAnotherScreenshot": "Scegli un altro screenshot",
   "chooseBikeControlInConnectionScreen": "Selezionare BikeControl nella schermata di connessione.",
   "clickAButtonOnYourController": "Fai clic su un pulsante del controller per modificarne l'azione oppure tocca l'icona di modifica.",
@@ -95,6 +97,7 @@
     }
   },
   "controllerConnectedClickButton": "Ottimo! Il tuo controller è connesso. Clicca su un pulsante del controller per continuare.",
+  "controllerSettings": "Impostazioni del controller",
   "controllers": "Controller",
   "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Non è stato possibile eseguire{button} : Nessuna mappa dei tasti impostata",
   "create": "Crea",
@@ -149,6 +152,8 @@
   },
   "deviceLimitReached": "Limite di dispositivi raggiunto per {platform}. Revoca altri dispositivi per registrarne uno nuovo.",
   "devicesActive": "{active} attivo",
+  "disconnectAndForget": "Disconnettiti e dimentica",
+  "disconnectAndForgetForThisSession": "Disconnettersi",
   "disconnectDevices": "Dispositivi disconnessi",
   "disconnected": "Disconnesso",
   "donateByBuyingFromPlayStore": "acquistando l'app dal Play Store",
@@ -171,7 +176,7 @@
     }
   },
   "enableLocalConnectionMethodFirst": "Abilitare prima il metodo di connessione locale.",
-  "enableMediaKeyDetection": "Abilita rilevamento tasti multimediali",
+  "enableMediaKeyDetection": "Abilita i telecomandi multimediali Bluetooth",
   "enableMywhooshLinkInTheConnectionSettingsFirst": "Per prima cosa, abilita MyWhoosh Link nelle impostazioni di connessione.",
   "enablePairingProcess": "Funziona come un mouse Bluetooth",
   "enablePermissions": "Abilita autorizzazioni",
@@ -306,6 +311,7 @@
   "noDevicesRegistered": "Nessun dispositivo registrato",
   "noIgnoredDevices": "Nessun dispositivo ignorato.",
   "noTrainerSelected": "Nessun Trainer selezionato",
+  "notAssignedOrNoConnectionMethodActive": "Non assegnato",
   "notConnected": "Non connesso",
   "notificationDescription": "In questo modo l'app rimane attiva in background e ti aggiorna quando cambia la connessione ai tuoi dispositivi.",
   "ok": "Ok",
@@ -367,6 +373,7 @@
       }
     }
   },
+  "preferences": "Preferenze",
   "pressButtonOnClickDevice": "Premi un pulsante sul tuo dispositivo Click",
   "pressKeyToAssign": "Premi un tasto sulla tastiera per assegnarlo a{buttonName}",
   "@pressKeyToAssign": {
@@ -399,6 +406,7 @@
   "replaceExisting": "Sostituisci esistente",
   "requirement": "Requisiti",
   "reset": "Reset",
+  "resetToDefaults": "Ripristina i valori predefiniti",
   "restart": "Riavvia",
   "restorePurchaseInfo": "Clicca sul pulsante qui sopra, poi su \"Ripristina acquisto\". In caso di problemi, contattami direttamente.",
   "restorePurchases": "Ripristina gli acquisti",
@@ -426,6 +434,7 @@
       }
     }
   },
+  "runScript": "Esegui script",
   "save": "Salva",
   "scan": "Scansione",
   "scanningForDevices": "Ricerca dispositivi in corso... Assicurarsi che siano accesi e nel raggio d'azione e che non siano connessi a un altro dispositivo.",
@@ -468,9 +477,11 @@
   "targetOtherDevice": "Altro dispositivo",
   "targetThisDevice": "Questo dispositivo",
   "theFollowingPermissionsRequired": "Sono richieste le seguenti autorizzazioni:",
+  "thisFeatureIsOnlyAvailableWithPro": "Questa funzionalità è disponibile solo con la versione Pro. Passa alla versione Pro per sbloccare tutte le funzionalità.",
   "touchAreaInstructions": "1. Crea uno screenshot in-game della tua app (ad esempio all'interno di MyWhoosh) in orientamento orizzontale \n2. Carica lo screenshot con il pulsante qui sotto \n3. L'app viene automaticamente impostata in orientamento orizzontale per una mappatura accurata \n4. Premi un pulsante sul tuo dispositivo Click per creare un'area touch \n5. Trascina le aree touch nella posizione desiderata sullo screenshot \n6. Salva e chiudi questa schermata",
   "touchSimulationForegroundMessage": "Per simulare i tocchi, l'app deve rimanere in primo piano.",
   "trainer": "Trainer",
+  "trainerConnection": "Collegamento con l&#39;allenatore",
   "trialDaysRemaining": "{trialDaysRemaining}giorni rimanenti",
   "trialExpired": "Prova scaduta. Comandi limitati a{dailyCommandLimit} al giorno.",
   "trialPeriodActive": "Periodo di prova attivo -{trialDaysRemaining} giorni rimanenti",

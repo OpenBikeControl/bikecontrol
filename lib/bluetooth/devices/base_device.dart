@@ -9,10 +9,11 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart' show LogLevel;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -22,19 +23,21 @@ abstract class BaseDevice {
   final bool isBeta;
   bool supportsLongPress;
   final String uniqueId;
+  final IconData icon;
   final List<ControllerButton> availableButtons;
 
   BaseDevice(
     this._name, {
     required this.uniqueId,
     required this.availableButtons,
+    required this.icon,
     this.isBeta = false,
     this.supportsLongPress = true,
     String? buttonPrefix,
   }) {
     if (availableButtons.isEmpty && core.actionHandler.supportedApp is CustomApp) {
       final allButtons = core.actionHandler.supportedApp!.keymap.keyPairs
-          .flatMap((e) => e.buttons)
+          .expand((e) => e.buttons)
           .filter(
             (e) =>
                 e.sourceDeviceId == uniqueId ||
@@ -108,7 +111,9 @@ abstract class BaseDevice {
 
       final button = buttonsClicked.single;
       final wasAlreadyPressed =
-          _previouslyPressedButtons.length == 1 && _previouslyPressedButtons.singleOrNull == button;
+          supportsLongPress &&
+          _previouslyPressedButtons.length == 1 &&
+          _previouslyPressedButtons.singleOrNull == button;
       _previouslyPressedButtons = {button};
       if (wasAlreadyPressed) {
         return;
@@ -123,6 +128,12 @@ abstract class BaseDevice {
         _longPressTimer?.cancel();
         _activeLongPressButtons = {button};
         await performDown([button], trigger: ButtonTrigger.longPress);
+        return;
+      }
+
+      if (!hasLongPressAction && !hasDoubleAction && !hasSingleAction) {
+        // make sure we see this as an error
+        await performClick([button]);
         return;
       }
 
@@ -306,7 +317,9 @@ abstract class BaseDevice {
         trigger: trigger,
       );
 
-      actionStreamInternal.add(ActionNotification(result));
+      actionStreamInternal.add(
+        ActionNotification(result, button: action.copyWith(sourceDeviceId: action.sourceDeviceId ?? uniqueId)),
+      );
     }
   }
 
@@ -327,7 +340,9 @@ abstract class BaseDevice {
         isKeyUp: true,
         trigger: trigger,
       );
-      actionStreamInternal.add(ActionNotification(result));
+      actionStreamInternal.add(
+        ActionNotification(result, button: action.copyWith(sourceDeviceId: action.sourceDeviceId ?? uniqueId)),
+      );
     }
   }
 
@@ -366,7 +381,74 @@ abstract class BaseDevice {
     isConnected = false;
   }
 
-  Widget showInformation(BuildContext context);
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
+    return [];
+  }
+
+  Widget showInformation(BuildContext context, {required bool showFull}) {
+    return Row(
+      spacing: 12,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.muted,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 24),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 4,
+            children: [
+              Row(
+                spacing: 6,
+                children: [
+                  Text(
+                    toString(),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                  ),
+                  if (isBeta) BetaPill(),
+                ],
+              ),
+              Wrap(
+                runSpacing: 6,
+                spacing: 6,
+                alignment: WrapAlignment.start,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runAlignment: WrapAlignment.start,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Text(
+                    isConnected ? AppLocalizations.of(context).connected : AppLocalizations.of(context).disconnected,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isConnected
+                          ? Theme.of(context).colorScheme.mutedForeground
+                          : Theme.of(context).colorScheme.destructive,
+                    ),
+                  ),
+                  ...showMetaInformation(context, showFull: showFull),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget? buildPreferences(BuildContext context) => null;
 
   ControllerButton getOrAddButton(String key, ControllerButton Function() creator) {
     if (core.actionHandler.supportedApp == null) {

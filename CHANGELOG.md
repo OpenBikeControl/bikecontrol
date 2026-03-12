@@ -1,3 +1,27 @@
+### 5.0.0 (10-03-2026)
+
+BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
+- Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android and iOS) without additional charge
+- Synchronize and backup your keymap settings across devices
+- Individual actions for single, long and double clicks, e.g. hold a button to steer, double click to perform a specific action. This means your two button devices can now have up to 6 different actions!
+- Windows, iOS, macOS: start any command/Shortcut, e.g. capture a screenshot, screen video, open a specific app, ... the possibilities are endless!
+- Windows, macOS: new screenshot action to capture a screenshot of the current screen and save it to your specified folder
+- Android: Open Assistant
+- and much more to come in the future!
+
+**Features**:
+- New app design - let me know what you think about it!
+- Bluetooth media buttons are now supported on iOS
+- Shimano Di2: long press and double clicks are now supported:
+  - perform steering using long presses
+  - gear changes are now reflected properly without losing any button presses
+- support for Wahoo KICKR BIKE V1 & KICKR BIKE V2
+- App is now available in Spanish
+
+**Fixes**:
+- macOS: Send keyboard key even if the trainer app isn't in foreground
+- You can now download BikeControl on Windows without the Microsoft Store
+
 ### 4.7.0 (04-02-2026)
 
 **Features**:

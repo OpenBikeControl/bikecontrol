@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:bike_control/pages/markdown.dart';
-import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
@@ -163,14 +162,19 @@ class HelpButton extends StatelessWidget {
                 ),
               );
             },
-            leading: Icon(Icons.help_outline),
-            style: ButtonVariance.primary.withBorderRadius(
+            leading: Padding(
+              padding: EdgeInsets.only(
+                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
+              ),
+              child: Icon(LucideIcons.messageCircle),
+            ),
+            style: ButtonStyle.secondary().withBorderRadius(
               borderRadius: border,
               hoverBorderRadius: border,
             ),
             child: Padding(
               padding: EdgeInsets.only(
-                bottom: core.settings.getShowOnboarding() && (kIsWeb || Platform.isAndroid || Platform.isIOS) ? 14 : 0,
+                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
               ),
               child: Text(context.i18n.troubleshootingGuide),
             ),
@@ -316,6 +320,7 @@ class _InstructionVideosDrawerState extends State<_InstructionVideosDrawer> {
                 final shortVideos = videos.where((video) => video.isShort).toList();
 
                 return SingleChildScrollView(
+                  physics: ClampingScrollPhysics(),
                   child: Column(
                     spacing: 12,
                     crossAxisAlignment: CrossAxisAlignment.stretch,

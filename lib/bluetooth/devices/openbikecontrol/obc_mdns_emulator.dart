@@ -29,6 +29,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   OpenBikeControlMdnsEmulator()
     : super(
         title: connectionTitle,
+        type: ConnectionMethodType.openBikeControl,
         supportedActions: InGameAction.values,
       );
 
