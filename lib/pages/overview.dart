@@ -277,7 +277,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   // Activity log
   final List<_ActivityEntry> _activityLog = [];
   final GlobalKey<AnimatedListState> _activityListKey = GlobalKey<AnimatedListState>();
-  static const _maxLogEntries = 20;
+  static const _maxLogEntries = 30;
 
   // Error banner
   _ActivityEntry? _latestError;
@@ -721,57 +721,58 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     // Desktop: two-column layout
-    return SingleChildScrollView(
-      child: Stack(
-        key: _stackKey,
-        clipBehavior: Clip.none,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Gap(20),
-              Expanded(
-                child: Padding(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Gap(20),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Stack(
+              key: _stackKey,
+              clipBehavior: Clip.none,
+              children: [
+                Padding(
                   padding: EdgeInsets.only(right: gutterWidth),
                   child: leftColumn,
                 ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
-                  border: Border(
-                    left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-                    bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                if (lanes.isNotEmpty)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _FlowLinePainter(
+                          lanes: lanes,
+                          color: BKColor.mainEnd,
+                          isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 20),
-                constraints: BoxConstraints(maxWidth: min(500, MediaQuery.sizeOf(context).width * 0.4)),
-                child: Container(
-                  padding: const EdgeInsets.only(right: 20),
-                  child: activityColumn,
-                ),
-              ),
-            ],
-          ),
-          if (lanes.isNotEmpty)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  painter: _FlowLinePainter(
-                    lanes: lanes,
-                    color: BKColor.mainEnd,
-                    isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
-                  ),
-                ),
-              ),
+                for (final lane in lanes)
+                  if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
+                for (final lane in lanes)
+                  if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
+                    _buildAnimatedActivityChip(lane),
+              ],
             ),
-          for (final lane in lanes)
-            if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
-          for (final lane in lanes)
-            if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
-              _buildAnimatedActivityChip(lane),
-        ],
-      ),
+          ),
+        ),
+        Container(
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
+            border: Border(
+              left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+              bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+            ),
+          ),
+          padding: EdgeInsets.symmetric(vertical: 20),
+          constraints: BoxConstraints(maxWidth: min(500, MediaQuery.sizeOf(context).width * 0.4)),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(right: 20),
+            child: activityColumn,
+          ),
+        ),
+      ],
     );
   }
 
