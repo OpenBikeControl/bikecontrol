@@ -1,7 +1,8 @@
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
-import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -49,17 +50,18 @@ Future<void> main() async {
   core.settings.setKeyMap(MyWhoosh());
   core.settings.setLastTarget(Target.thisDevice);
 
-  core.connection.addDevices([
-    ZwiftRide(
-        BleDevice(
-          name: 'Controller',
-          deviceId: '00:11:22:33:44:55',
-        ),
-      )
-      ..firmwareVersion = '1.2.0'
-      ..rssi = -51
-      ..batteryLevel = 81,
-  ]);
+  final device =
+      ZwiftRide(
+          BleDevice(
+            name: 'Controller',
+            deviceId: '00:11:22:33:44:55',
+          ),
+        )
+        ..firmwareVersion = '1.2.0'
+        ..isConnected = true
+        ..rssi = -51
+        ..batteryLevel = 81;
+  core.connection.addDevices([device]);
 
   final List<({DeviceType type, TargetPlatform platform, Size size})> sizes = [
     (type: DeviceType.android, platform: TargetPlatform.android, size: Size(1320, 2868)),
@@ -99,9 +101,7 @@ Future<void> main() async {
                   child: child,
                 ),
           ),
-          home: BikeControlApp(
-            page: BCPage.devices,
-          ),
+          home: BikeControlApp(),
         ),
       );
 
@@ -131,7 +131,7 @@ Future<void> main() async {
                 ),
           ),
           home: BikeControlApp(
-            page: BCPage.devices,
+            customChild: ControllerSettingsPage(device: device),
           ),
         ),
       );
@@ -170,7 +170,7 @@ Future<void> main() async {
                 ),
           ),
           home: BikeControlApp(
-            page: BCPage.trainer,
+            customChild: TrainerConnectionSettingsPage(),
           ),
         ),
       );
@@ -210,7 +210,7 @@ Future<void> main() async {
                 ),
           ),
           home: BikeControlApp(
-            page: BCPage.customization,
+            customChild: ControllerSettingsPage(device: device),
           ),
         ),
       );

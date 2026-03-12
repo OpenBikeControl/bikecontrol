@@ -180,8 +180,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                     });
                                     final redeemed = await _redeemPurchase(
                                       purchaseId: purchaseId,
-                                      supabaseAnonKey:
-                                          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpa3JjeXlub3Zkdm9ncmxkZm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNjMyMzksImV4cCI6MjA4MTYzOTIzOX0.oxJovYahRiZ6XvCVR-qww6OQ5jY6cjOyUiFHJsW9MVk',
+                                      supabaseAnonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
                                       supabaseUrl: 'https://pikrcyynovdvogrldfnw.supabase.co',
                                     );
                                     if (redeemed) {

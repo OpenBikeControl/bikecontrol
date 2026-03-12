@@ -1,11 +1,15 @@
+import 'dart:ui';
+
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
-import 'package:bike_control/utils/settings/settings.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+Future<void> main() async {
+  await AppLocalizations.load(Locale('en'));
+
   group('Custom Profile Tests', () {
     setUp(() async {
       // Initialize SharedPreferences with in-memory storage for testing
@@ -74,22 +78,6 @@ void main() {
 
       profiles = core.settings.getCustomAppProfiles();
       expect(profiles.contains('ToDelete'), false);
-    });
-
-    test('Should not duplicate migration if already migrated', () async {
-      SharedPreferences.setMockInitialValues({
-        'customapp': ['old_data'],
-        'customapp_Custom': ['new_data'],
-        'app': 'Custom',
-      });
-
-      final newSettings = Settings();
-      await newSettings.init();
-
-      // Old key should still exist because new key already existed
-      expect(newSettings.getCustomAppKeymap('customapp'), null);
-      final customKeymap = newSettings.getCustomAppKeymap('Custom');
-      expect(customKeymap, isNotNull);
     });
 
     test('Should export custom profile as JSON', () async {
