@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/subscriptions/login.dart';
@@ -261,30 +263,24 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                       ),
                     ],
                   ),
-                ] else if (_isPro && _iapManager.isWindows) ...[
+                ] else if (_isPro) ...[
                   // Show manage subscription button for Windows Pro users
-                  if (_hasStripeCustomer == true)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Divider(),
-                        LoadingWidget(
-                          futureCallback: () async {
-                            await _openBillingPortal();
-                          },
-                          renderChild: (isLoading, tap) => Button.secondary(
-                            onPressed: tap,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                isLoading ? SmallProgressIndicator() : Icon(Icons.manage_accounts, size: 16),
-                                const SizedBox(width: 8),
-                                Text(AppLocalizations.of(context).manageSubscription),
-                              ],
-                            ),
-                          ),
+                  if (_hasStripeCustomer == true || Platform.isIOS || Platform.isAndroid)
+                    LoadingWidget(
+                      futureCallback: () async {
+                        await _openBillingPortal();
+                      },
+                      renderChild: (isLoading, tap) => Button.secondary(
+                        onPressed: tap,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            isLoading ? SmallProgressIndicator() : Icon(Icons.manage_accounts, size: 16),
+                            const SizedBox(width: 8),
+                            Text(AppLocalizations.of(context).manageSubscription),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                 ],
               ],

@@ -526,4 +526,9 @@ class RevenueCatService {
     }
     await logInWithSupabaseUserId(session.user.id);
   }
+
+  Future<bool> openBillingPortal(BuildContext context) async {
+    await RevenueCatUI.presentCustomerCenter();
+    return true;
+  }
 }
