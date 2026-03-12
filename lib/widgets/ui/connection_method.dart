@@ -123,7 +123,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
-              Flexible(child: Text(widget.title)),
+              Expanded(child: Text(widget.title)),
               if (widget.title == context.i18n.enablePairingProcess ||
                   widget.title == context.i18n.enableZwiftControllerBluetooth)
                 Padding(
