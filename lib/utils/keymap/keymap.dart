@@ -71,6 +71,18 @@ class Keymap {
     return pairs.firstOrNullWhere((element) => element.trigger == ButtonTrigger.singleClick) ?? pairs.firstOrNull;
   }
 
+  KeyPair? findSimilarKeyPair(ControllerButton button, {ButtonTrigger? trigger}) {
+    final existing = getKeyPair(button, trigger: trigger);
+    if (existing != null) {
+      return existing;
+    }
+    final pairs = keyPairs.where((element) => element.buttons.any((b) => b.action == button.action)).toList();
+    if (trigger != null) {
+      return pairs.firstOrNullWhere((element) => element.trigger == trigger);
+    }
+    return pairs.firstOrNullWhere((element) => element.trigger == ButtonTrigger.singleClick) ?? pairs.firstOrNull;
+  }
+
   KeyPair getOrCreateKeyPair(ControllerButton button, {required ButtonTrigger trigger}) {
     final existing = getKeyPair(button, trigger: trigger);
     if (existing != null) {
@@ -169,10 +181,13 @@ class Keymap {
 
   void addNewButtons(List<ControllerButton> availableButtons) {
     final newButtons = availableButtons.filter(
-      (button) => getKeyPair(button, trigger: ButtonTrigger.singleClick) == null,
-    );
+      (button) {
+        final existing = getKeyPair(button, trigger: ButtonTrigger.singleClick);
+        return existing == null;
+      },
+    ).toList();
     for (final button in newButtons) {
-      final buttonFromBase = core.settings.getTrainerApp()?.keymap.getKeyPair(
+      final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
         button,
         trigger: ButtonTrigger.singleClick,
       );
@@ -370,12 +385,12 @@ class KeyPair {
     if (text != null && text.isNotEmpty) {
       return text;
     }
-    final baseKey = logicalKey?.keyLabel ?? text ?? 'Not assigned';
+    final baseKey = logicalKey?.keyLabel ?? text ?? AppLocalizations.current.notAssignedOrNoConnectionMethodActive;
 
     if (physicalKey == null || !core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
-      return 'Not assigned';
+      return AppLocalizations.current.notAssignedOrNoConnectionMethodActive;
     }
-    if (modifiers.isEmpty || baseKey == 'Not assigned') {
+    if (modifiers.isEmpty || baseKey == AppLocalizations.current.notAssignedOrNoConnectionMethodActive) {
       if (baseKey.trim().isEmpty) {
         return 'Space';
       }

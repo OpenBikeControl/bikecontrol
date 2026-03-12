@@ -375,6 +375,9 @@ class Local extends TrainerConnection {
   ValueNotifier<bool> get isConnected => ValueNotifier(core.settings.getLocalEnabled());
 
   @override
+  ValueNotifier<bool> get isStarted => ValueNotifier(core.settings.getLocalEnabled());
+
+  @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
     return NotHandled('');
   }

@@ -196,7 +196,7 @@ class Connection {
           performScanning();
         }
       });
-      if (core.settings.getPhoneSteeringEnabled()) {
+      if (core.settings.getPhoneSteeringEnabled() && IAPManager.instance.isProEnabledForCurrentDevice) {
         toggleGyroscopeSteering(true);
       }
     }

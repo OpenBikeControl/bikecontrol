@@ -529,5 +529,6 @@
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
   "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "checkPurchasingOptions": "Check purchasing options"
+  "checkPurchasingOptions": "Check purchasing options",
+  "notAssignedOrNoConnectionMethodActive": "Not assigned"
 }
