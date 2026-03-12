@@ -1,3 +1,5 @@
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -20,11 +22,11 @@ Future<bool> showGoProDialog(BuildContext context) async {
             Text('Pro Feature'),
           ],
         ),
-        content: Text('This feature is only available with Pro. Upgrade to Pro to unlock all features.'),
+        content: Text(AppLocalizations.of(context).thisFeatureIsOnlyAvailableWithPro),
         actions: [
           Button.secondary(
             onPressed: () => Navigator.of(c).pop(false),
-            child: Text('Cancel'),
+            child: Text(context.i18n.cancel),
           ),
           LoadingWidget(
             futureCallback: () async {
@@ -38,7 +40,7 @@ Future<bool> showGoProDialog(BuildContext context) async {
                 children: [
                   isLoading ? SmallProgressIndicator() : Icon(Icons.workspace_premium, size: 16),
                   const SizedBox(width: 8),
-                  Text('Go Pro'),
+                  Text(context.i18n.goPro),
                 ],
               ),
             ),

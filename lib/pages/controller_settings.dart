@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -7,7 +8,6 @@ import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ControllerSettingsPage extends StatefulWidget {
@@ -37,7 +37,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
             ),
           ],
           title: Text(
-            'Controller Settings',
+            AppLocalizations.of(context).controllerSettings,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           trailing: [
@@ -64,7 +64,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
 
                 // Button mapping
                 _buildSectionHeader(
-                  'Button Mapping',
+                  AppLocalizations.of(context).buttonMapping,
                   trailing: _buildTrainerLabel(trainerApp?.name ?? '-'),
                 ),
                 const Gap(12),
@@ -73,7 +73,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
 
                 // Preferences
                 if (device.buildPreferences(context) != null) ...[
-                  _buildSectionHeader('Preferences'),
+                  _buildSectionHeader(AppLocalizations.of(context).preferences),
                   const Gap(16),
                   device.buildPreferences(context)!,
                   const Gap(24),
@@ -152,10 +152,9 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
             onPressed: () {
               core.settings.getTrainerApp()?.keymap.resetForDevice(device);
               setState(() {});
-              buildToast(title: 'Button mappings reset to defaults');
             },
             leading: Icon(LucideIcons.rotateCcw, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-            child: Text('Reset to defaults'),
+            child: Text(AppLocalizations.of(context).resetToDefaults),
           ),
           const Gap(12),
         ],
@@ -163,7 +162,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
           builder: (context) {
             return _buildActionButton(
               icon: LucideIcons.fileCode,
-              label: 'Run Script',
+              label: AppLocalizations.of(context).runScript,
               trailing: !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription
                   ? ProBadge()
                   : null,
@@ -188,7 +187,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
           },
           renderChild: (isLoading, tap) => _buildActionButton(
             icon: LucideIcons.bluetoothOff,
-            label: 'Disconnect and Forget for this session',
+            label: AppLocalizations.of(context).disconnectAndForgetForThisSession,
             isLoading: isLoading,
             onTap: tap,
           ),
@@ -200,7 +199,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
           },
           renderChild: (isLoading, tap) => _buildActionButton(
             icon: LucideIcons.trash2,
-            label: 'Disconnect and Forget',
+            label: AppLocalizations.of(context).disconnectAndForget,
             isLoading: isLoading,
             isDestructive: true,
             onTap: tap,
