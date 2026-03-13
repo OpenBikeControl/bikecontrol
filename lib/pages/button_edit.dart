@@ -512,6 +512,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       isActive:
                           _keyPair.inGameAction != null &&
                           (_keyPair.inGameAction == InGameAction.headwindSpeed ||
+                              _keyPair.inGameAction == InGameAction.headwindSpeedInc ||
+                              _keyPair.inGameAction == InGameAction.headwindSpeedDec ||
                               _keyPair.inGameAction == InGameAction.headwindHeartRateMode),
                       value: _keyPair.inGameAction != null
                           ? '${_keyPair.inGameAction} ${_keyPair.inGameActionValue ?? ""}'.trim()
@@ -539,6 +541,30 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                     )
                                     .toList(),
                                 child: Text('Set Speed'),
+                              ),
+                              MenuButton(
+                                child: Text('Increase Speed'),
+                                onPressed: (_) {
+                                  _keyPair.inGameAction = InGameAction.headwindSpeedInc;
+                                  _keyPair.inGameActionValue = null;
+                                  _keyPair.androidAction = null;
+                                  _keyPair.command = null;
+                                  _keyPair.screenshotPath = null;
+                                  widget.onUpdate();
+                                  setState(() {});
+                                },
+                              ),
+                              MenuButton(
+                                child: Text('Decrease Speed'),
+                                onPressed: (_) {
+                                  _keyPair.inGameAction = InGameAction.headwindSpeedDec;
+                                  _keyPair.inGameActionValue = null;
+                                  _keyPair.androidAction = null;
+                                  _keyPair.command = null;
+                                  _keyPair.screenshotPath = null;
+                                  widget.onUpdate();
+                                  setState(() {});
+                                },
                               ),
                               MenuButton(
                                 child: Text('Set to Heart Rate Mode'),
