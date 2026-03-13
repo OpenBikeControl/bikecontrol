@@ -138,7 +138,7 @@ Future<void> main() async {
                   required Widget child,
                 }) => CustomFrame(
                   platform: size.type,
-                  title: 'Control your trainer app using ANY controller',
+                  title: 'Control any trainer with ANY controller',
                   device: device,
                   child: child,
                 ),
