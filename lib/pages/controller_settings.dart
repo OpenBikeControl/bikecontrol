@@ -8,6 +8,7 @@ import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/trainer_label.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ControllerSettingsPage extends StatefulWidget {
@@ -118,28 +119,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
   }
 
   Widget _buildTrainerLabel(String name) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.muted,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 4,
-        children: [
-          Icon(LucideIcons.monitor, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-          Text(
-            name.split(' ').first,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.mutedForeground,
-            ),
-          ),
-        ],
-      ),
-    );
+    return TrainerLabel(name: name);
   }
 
   Widget _buildActions(BaseDevice device, Keymap? keymap) {

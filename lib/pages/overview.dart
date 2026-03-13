@@ -21,6 +21,7 @@ import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/trainer_label.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lottie/lottie.dart';
 import 'package:prop/emulators/shared.dart';
@@ -33,173 +34,156 @@ import '../main.dart';
 import '../utils/iap/iap_manager.dart';
 import 'device.dart';
 
-// ── Data for a single device lane (90° routed path) ──────────────────
-class _Lane {
-  final String deviceId;
-  final double startX, startY;
-  final double channelX;
-  final double endX, endY;
-
-  const _Lane(
-    this.deviceId, {
-    required this.startX,
-    required this.startY,
-    required this.channelX,
-    required this.endX,
-    required this.endY,
-  });
-
-  double get _seg1 => (channelX - startX).abs();
-  double get _seg2 => (endY - startY).abs();
-  double get _seg3 => (channelX - endX).abs();
-  double get totalLength => _seg1 + _seg2 + _seg3;
-
-  Offset positionAt(double t) {
-    final total = totalLength;
-    if (total == 0) return Offset(startX, startY);
-    final d = t * total;
-    if (d <= _seg1) {
-      final f = _seg1 > 0 ? d / _seg1 : 0.0;
-      return Offset(startX + f * (channelX - startX), startY);
-    }
-    if (d <= _seg1 + _seg2) {
-      final f = _seg2 > 0 ? (d - _seg1) / _seg2 : 0.0;
-      return Offset(channelX, startY + f * (endY - startY));
-    }
-    final f = _seg3 > 0 ? (d - _seg1 - _seg2) / _seg3 : 0.0;
-    return Offset(channelX + f * (endX - channelX), endY);
-  }
-
-  /// Error path: horizontal → vertical straight down to [targetY], then left to [targetX].
-  Offset errorPositionAt(double t, double targetX, double targetY) {
-    final seg1 = (channelX - startX).abs();
-    final seg2 = (targetY - startY).abs();
-    final seg3 = (channelX - targetX).abs();
-    final total = seg1 + seg2 + seg3;
-    if (total == 0) return Offset(startX, startY);
-    final d = t * total;
-    if (d <= seg1) {
-      final f = seg1 > 0 ? d / seg1 : 0.0;
-      return Offset(startX + f * (channelX - startX), startY);
-    }
-    if (d <= seg1 + seg2) {
-      final f = seg2 > 0 ? (d - seg1) / seg2 : 0.0;
-      return Offset(channelX, startY + f * (targetY - startY));
-    }
-    final f = seg3 > 0 ? (d - seg1 - seg2) / seg3 : 0.0;
-    return Offset(channelX + f * (targetX - channelX), targetY);
-  }
+// ── Quadratic Bezier helper ──────────────────────────────────────────
+Offset _quadBezier(double t, Offset p0, Offset p1, Offset p2) {
+  final u = 1 - t;
+  return Offset(
+    u * u * p0.dx + 2 * u * t * p1.dx + t * t * p2.dx,
+    u * u * p0.dy + 2 * u * t * p1.dy + t * t * p2.dy,
+  );
 }
 
-// ── CustomPainter: 90° routed paths with start/end dots ──────────────
-class _FlowLinePainter extends CustomPainter {
-  final List<_Lane> lanes;
+// ── Horizontal flow line painter ──────────────────────────────────────
+class _HorizontalFlowPainter extends CustomPainter {
+  final double bicycleX, bicycleY;
+  final double logoLeftX, logoRightX, logoCenterY;
+  final double trainerCenterX, trainerCenterY;
   final Color color;
   final bool isTrainerConnected;
-  _FlowLinePainter({required this.lanes, required this.color, required this.isTrainerConnected});
+
+  _HorizontalFlowPainter({
+    required this.bicycleX,
+    required this.bicycleY,
+    required this.logoLeftX,
+    required this.logoRightX,
+    required this.logoCenterY,
+    required this.trainerCenterX,
+    required this.trainerCenterY,
+    required this.color,
+    required this.isTrainerConnected,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (lanes.isEmpty) return;
-    const radius = 8.0;
-
-    final redColor = const Color(0xFFEF4444);
-    final bottomColor = isTrainerConnected ? color : redColor;
-
-    Paint makeStroke(Color c) => Paint()
-      ..color = c
-      ..strokeWidth = 4
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.3)
+      ..strokeWidth = 2
       ..strokeCap = ui.StrokeCap.round
-      ..strokeJoin = ui.StrokeJoin.round
       ..style = ui.PaintingStyle.stroke;
 
-    // Draw all strokes in a layer to prevent alpha accumulation at junctions
-    canvas.saveLayer(Offset.zero & size, Paint()..color = const Color(0x73FFFFFF));
+    // Left segment: bicycle → logo left edge
+    final leftPath = ui.Path()
+      ..moveTo(bicycleX, bicycleY)
+      ..quadraticBezierTo((bicycleX + logoLeftX) / 2, logoCenterY, logoLeftX, logoCenterY);
+    canvas.drawPath(leftPath, paint);
 
-    final topPaint = makeStroke(color);
-    final bottomPaint = makeStroke(bottomColor);
+    // Right segment: logo right edge → trainer center
+    final rightColor = isTrainerConnected ? color : const Color(0xFFEF4444);
 
-    for (final lane in lanes) {
-      final midY = (lane.startY + lane.endY) / 2;
-
-      // Top portion: horizontal → corner → vertical down to chevron
-      final topPath = ui.Path()
-        ..moveTo(lane.startX, lane.startY)
-        ..lineTo(lane.channelX - radius, lane.startY)
-        ..quadraticBezierTo(lane.channelX, lane.startY, lane.channelX, lane.startY + radius)
-        ..lineTo(lane.channelX, midY + 6);
-      canvas.drawPath(topPath, topPaint);
-
-      // Middle vertical segment: solid if connected, dashed if not
-      final segStart = midY + 6;
-      final segEnd = lane.endY - radius;
-      if (isTrainerConnected) {
-        canvas.drawLine(Offset(lane.channelX, segStart), Offset(lane.channelX, segEnd), topPaint);
-      } else {
-        final dashPaint = makeStroke(redColor);
-        const dash = 5.0;
-        const gap = 7.0;
-        for (double y = segStart; y < segEnd; y += dash + gap) {
-          final end = (y + dash).clamp(y, segEnd);
-          canvas.drawLine(Offset(lane.channelX, y), Offset(lane.channelX, end), dashPaint);
-        }
-      }
-
-      // Bottom curve
-      final curvePath = ui.Path()
-        ..moveTo(lane.channelX, lane.endY - radius)
-        ..quadraticBezierTo(lane.channelX, lane.endY, lane.channelX - radius, lane.endY);
-      canvas.drawPath(curvePath, bottomPaint);
-    }
-
-    // Shared bottom horizontal (once)
-    final outerLane = lanes.last;
-    canvas.drawLine(
-      Offset(outerLane.channelX - radius, outerLane.endY),
-      Offset(outerLane.endX, outerLane.endY),
-      bottomPaint,
-    );
-
-    canvas.restore();
-
-    // Dots and chevrons drawn outside the layer (full opacity)
-    final dotPaint = Paint()..color = color;
-    final endDotPaint = Paint()..color = (isTrainerConnected ? color : redColor);
-    for (final lane in lanes) {
-      canvas.drawCircle(Offset(lane.startX, lane.startY), 4, dotPaint);
-
-      final midY = (lane.startY + lane.endY) / 2;
-      final arrowPaint = Paint()
-        ..color = color.withValues(alpha: 0.5)
-        ..strokeWidth = 3
+    if (isTrainerConnected) {
+      final rightPaint = Paint()
+        ..color = rightColor.withValues(alpha: 0.3)
+        ..strokeWidth = 2
         ..strokeCap = ui.StrokeCap.round
         ..style = ui.PaintingStyle.stroke;
-      final chevron = ui.Path()
-        ..moveTo(lane.channelX - 5, midY - 4)
-        ..lineTo(lane.channelX, midY + 2)
-        ..lineTo(lane.channelX + 5, midY - 4);
-      canvas.drawPath(chevron, arrowPaint);
+      final rightPath = ui.Path()
+        ..moveTo(logoRightX, logoCenterY)
+        ..quadraticBezierTo((logoRightX + trainerCenterX) / 2, logoCenterY, trainerCenterX, trainerCenterY);
+      canvas.drawPath(rightPath, rightPaint);
+    } else {
+      final dashPaint = Paint()
+        ..color = rightColor.withValues(alpha: 0.3)
+        ..strokeWidth = 2
+        ..strokeCap = ui.StrokeCap.round;
+      const dash = 5.0;
+      const gap = 7.0;
+      final span = (trainerCenterX - logoRightX).clamp(1.0, double.infinity);
+      for (double x = logoRightX; x < trainerCenterX; x += dash + gap) {
+        final end = (x + dash).clamp(x, trainerCenterX);
+        final frac = (x - logoRightX) / span;
+        final y = logoCenterY + (trainerCenterY - logoCenterY) * frac;
+        final endFrac = (end - logoRightX) / span;
+        final endY = logoCenterY + (trainerCenterY - logoCenterY) * endFrac;
+        canvas.drawLine(Offset(x, y), Offset(end, endY), dashPaint);
+      }
     }
 
-    canvas.drawCircle(Offset(outerLane.endX, outerLane.endY), 4, endDotPaint);
+    // Chevrons
+    final chevronPaint = Paint()
+      ..color = color.withValues(alpha: 0.35)
+      ..strokeWidth = 2
+      ..strokeCap = ui.StrokeCap.round
+      ..style = ui.PaintingStyle.stroke;
+
+    final lP0 = Offset(bicycleX, bicycleY);
+    final lP1 = Offset((bicycleX + logoLeftX) / 2, logoCenterY);
+    final lP2 = Offset(logoLeftX, logoCenterY);
+    final c1 = _quadBezier(0.4, lP0, lP1, lP2);
+    final chevron1 = ui.Path()
+      ..moveTo(c1.dx - 4, c1.dy - 5)
+      ..lineTo(c1.dx + 2, c1.dy)
+      ..lineTo(c1.dx - 4, c1.dy + 5);
+    canvas.drawPath(chevron1, chevronPaint);
+
+    if (isTrainerConnected) {
+      final rP0 = Offset(logoRightX, logoCenterY);
+      final rP1 = Offset((logoRightX + trainerCenterX) / 2, logoCenterY);
+      final rP2 = Offset(trainerCenterX, trainerCenterY);
+      final c2 = _quadBezier(0.6, rP0, rP1, rP2);
+      final chevron2 = ui.Path()
+        ..moveTo(c2.dx - 4, c2.dy - 5)
+        ..lineTo(c2.dx + 2, c2.dy)
+        ..lineTo(c2.dx - 4, c2.dy + 5);
+      canvas.drawPath(chevron2, chevronPaint);
+    }
   }
 
   @override
-  bool shouldRepaint(covariant _FlowLinePainter old) {
-    if (old.isTrainerConnected != isTrainerConnected) return true;
-    if (old.lanes.length != lanes.length) return true;
-    for (int i = 0; i < lanes.length; i++) {
-      final a = old.lanes[i], b = lanes[i];
-      if (a.startX != b.startX ||
-          a.startY != b.startY ||
-          a.channelX != b.channelX ||
-          a.endX != b.endX ||
-          a.endY != b.endY) {
-        return true;
-      }
-    }
-    return false;
+  bool shouldRepaint(covariant _HorizontalFlowPainter old) {
+    return old.bicycleX != bicycleX ||
+        old.bicycleY != bicycleY ||
+        old.logoLeftX != logoLeftX ||
+        old.logoRightX != logoRightX ||
+        old.logoCenterY != logoCenterY ||
+        old.trainerCenterX != trainerCenterX ||
+        old.trainerCenterY != trainerCenterY ||
+        old.isTrainerConnected != isTrainerConnected;
   }
+}
+
+// ── Bubble pointer painter ──────────────────────────────────────────
+class _BubblePointerPainter extends CustomPainter {
+  final Color fillColor;
+  final Color borderColor;
+
+  _BubblePointerPainter({required this.fillColor, required this.borderColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = ui.Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = fillColor);
+
+    // Only draw the two diagonal sides (not the bottom, which merges into the card)
+    final borderPath = ui.Path()
+      ..moveTo(0, size.height)
+      ..lineTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height);
+    canvas.drawPath(
+      borderPath,
+      Paint()
+        ..color = borderColor
+        ..style = ui.PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _BubblePointerPainter old) =>
+      old.fillColor != fillColor || old.borderColor != borderColor;
 }
 
 // ── Activity log entry ───────────────────────────────────────────────
@@ -231,7 +215,7 @@ class _ActivityEntry {
   String get message => alertMessage ?? result?.message ?? '';
 }
 
-// ── OverviewPage ──────────────iiiiiiiiii───────────────────────────────────────
+// ── OverviewPage ─────────────────────────────────────────────────────
 
 class OverviewPage extends StatefulWidget {
   final bool isMobile;
@@ -248,21 +232,26 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   late double _screenWidth;
 
   // Layout keys
-  final GlobalKey _stackKey = GlobalKey();
   final Map<String, GlobalKey> _cardKeys = {};
   final GlobalKey _trainerKey = GlobalKey();
   final GlobalKey _errorBannerKey = GlobalKey();
+  final GlobalKey _flowRowKey = GlobalKey();
+  final GlobalKey _bicycleKey = GlobalKey();
+  final GlobalKey _logoKey = GlobalKey();
+  final GlobalKey _trainerLabelKey = GlobalKey();
 
-  // Measured pixel positions (relative to the Stack)
-  final Map<String, double> _cardRightX = {};
-  final Map<String, double> _cardCenterY = {};
-  double? _trainerRightX;
+  // Flow row measured positions (relative to _flowRowKey)
+  double? _bicycleCenterX;
+  double? _bicycleCenterY;
+  double? _logoCenterX;
+  double? _logoCenterY;
+  double? _logoLeftX;
+  double? _logoRightX;
+  double? _trainerLabelCenterX;
   double? _trainerCenterY;
-  double? _errorBannerRightX;
-  double? _errorBannerCenterY;
-  final GlobalKey _activityLogKey = GlobalKey();
-  double? _activityLeftX;
   bool _hasMeasured = false;
+
+  final GlobalKey _activityLogKey = GlobalKey();
   bool _isInForeground = true;
 
   // Per-device flow animation state
@@ -286,7 +275,17 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   late final AnimationController _errorBannerController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 350),
+  )..addListener(_onErrorBannerTick);
+  late final AnimationController _errorShakeController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 300),
   );
+
+  void _onErrorBannerTick() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _measurePositions();
+    });
+  }
 
   @override
   void initState() {
@@ -358,47 +357,76 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   // ── Position measurement ──────────────────────────────────────────
 
   void _measurePositions() {
-    final stackBox = _stackKey.currentContext?.findRenderObject() as RenderBox?;
-    if (stackBox == null || !stackBox.hasSize) return;
+    final flowRowBox = _flowRowKey.currentContext?.findRenderObject() as RenderBox?;
+    if (flowRowBox == null || !flowRowBox.hasSize) return;
 
     bool changed = false;
 
-    for (final entry in _cardKeys.entries) {
-      final box = entry.value.currentContext?.findRenderObject() as RenderBox?;
-      if (box == null || !box.hasSize) continue;
-      final offset = box.localToGlobal(Offset.zero, ancestor: stackBox);
-      final rightX = offset.dx + box.size.width;
-      final centerY = offset.dy + box.size.height / 2;
-      if (_cardRightX[entry.key] != rightX || _cardCenterY[entry.key] != centerY) {
-        _cardRightX[entry.key] = rightX;
-        _cardCenterY[entry.key] = centerY;
+    double? measureCenterX(GlobalKey key) {
+      final box = key.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return null;
+      final offset = box.localToGlobal(Offset.zero, ancestor: flowRowBox);
+      return offset.dx + box.size.width / 2;
+    }
+
+    final bx = measureCenterX(_bicycleKey);
+    final lx = measureCenterX(_logoKey);
+    final tx = measureCenterX(_trainerLabelKey);
+
+    if (bx != null && bx != _bicycleCenterX) {
+      _bicycleCenterX = bx;
+      changed = true;
+    }
+    if (lx != null && lx != _logoCenterX) {
+      _logoCenterX = lx;
+      changed = true;
+    }
+    if (tx != null && tx != _trainerLabelCenterX) {
+      _trainerLabelCenterX = tx;
+      changed = true;
+    }
+
+    // Bicycle center Y
+    final bicycleBox = _bicycleKey.currentContext?.findRenderObject() as RenderBox?;
+    if (bicycleBox != null && bicycleBox.hasSize) {
+      final offset = bicycleBox.localToGlobal(Offset.zero, ancestor: flowRowBox);
+      final newY = offset.dy + bicycleBox.size.height / 2;
+      if (newY != _bicycleCenterY) {
+        _bicycleCenterY = newY;
         changed = true;
       }
     }
 
-    final trainerBox = _trainerKey.currentContext?.findRenderObject() as RenderBox?;
+    // Trainer label center Y
+    final trainerBox = _trainerLabelKey.currentContext?.findRenderObject() as RenderBox?;
     if (trainerBox != null && trainerBox.hasSize) {
-      final offset = trainerBox.localToGlobal(Offset.zero, ancestor: stackBox);
-      final rightX = offset.dx + trainerBox.size.width;
-      final centerY = offset.dy + trainerBox.size.height / 2;
-      if (_trainerRightX != rightX || _trainerCenterY != centerY) {
-        _trainerRightX = rightX;
-        _trainerCenterY = centerY;
+      final offset = trainerBox.localToGlobal(Offset.zero, ancestor: flowRowBox);
+      final newCenterY = offset.dy + trainerBox.size.height / 2;
+      if (newCenterY != _trainerCenterY) {
+        _trainerCenterY = newCenterY;
         changed = true;
       }
     }
 
-    final errorBox = _errorBannerKey.currentContext?.findRenderObject() as RenderBox?;
-    if (errorBox != null && errorBox.hasSize) {
-      final offset = errorBox.localToGlobal(Offset.zero, ancestor: stackBox);
-      _errorBannerRightX = offset.dx + errorBox.size.width;
-      _errorBannerCenterY = offset.dy + errorBox.size.height / 2;
-    }
-
-    final activityBox = _activityLogKey.currentContext?.findRenderObject() as RenderBox?;
-    if (activityBox != null && activityBox.hasSize) {
-      final offset = activityBox.localToGlobal(Offset.zero, ancestor: stackBox);
-      _activityLeftX = offset.dx;
+    // Logo center Y, left X, right X
+    final logoBox = _logoKey.currentContext?.findRenderObject() as RenderBox?;
+    if (logoBox != null && logoBox.hasSize) {
+      final offset = logoBox.localToGlobal(Offset.zero, ancestor: flowRowBox);
+      final newCenterY = offset.dy + logoBox.size.height / 2;
+      final newLeftX = offset.dx;
+      final newRightX = offset.dx + logoBox.size.width;
+      if (newCenterY != _logoCenterY) {
+        _logoCenterY = newCenterY;
+        changed = true;
+      }
+      if (newLeftX != _logoLeftX) {
+        _logoLeftX = newLeftX;
+        changed = true;
+      }
+      if (newRightX != _logoRightX) {
+        _logoRightX = newRightX;
+        changed = true;
+      }
     }
 
     if (changed || !_hasMeasured) {
@@ -451,11 +479,14 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _insertActivityEntry(entry);
 
     if (entry.isError) {
+      final alreadyShown = _latestError != null && _errorBannerController.value > 0;
       _latestError = entry;
-      _errorBannerController.forward(from: 0);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _measurePositions();
-      });
+      if (alreadyShown) {
+        _errorShakeController.forward(from: 0);
+      } else {
+        _errorBannerController.forward(from: 0);
+      }
+      setState(() {});
     } else if (_latestError != null) {
       _errorBannerController.reverse().then((_) {
         if (mounted) setState(() => _latestError = null);
@@ -463,7 +494,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     final id = button.sourceDeviceId;
-    if (id == null || !_hasMeasured || !_cardCenterY.containsKey(id) || _trainerCenterY == null) {
+    if (id == null || !_hasMeasured || _bicycleCenterX == null || _logoCenterX == null) {
       setState(() {});
       return;
     }
@@ -492,11 +523,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _insertActivityEntry(entry);
 
     if (notification.onTap != null) {
+      final alreadyShown = _latestError != null && _errorBannerController.value > 0;
       _latestError = entry;
-      _errorBannerController.forward(from: 0);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _measurePositions();
-      });
+      if (alreadyShown) {
+        _errorShakeController.forward(from: 0);
+      } else {
+        _errorBannerController.forward(from: 0);
+      }
     }
 
     setState(() {});
@@ -524,6 +557,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       c.dispose();
     }
     _errorBannerController.dispose();
+    _errorShakeController.dispose();
     _timeRefreshTimer.cancel();
     _actionListener.cancel();
     super.dispose();
@@ -544,9 +578,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _measurePositions();
     });
-
-    final gutterWidth = 12.0 + devices.length * _laneWidth;
-    final lanes = _hasMeasured ? _buildLanes(devices) : <_Lane>[];
 
     final leftColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -632,10 +663,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           ),
         ),
         const Gap(22),
-        if (_screenWidth < 800)
-          _buildErrorBanner()
-        else
-          Center(child: Lottie.asset('assets/bicycle.json', width: 120, height: 90, animate: _isInForeground)),
+        _buildFlowRow(trainerApp, enabledTrainers),
         const Gap(22),
 
         KeyedSubtree(
@@ -673,36 +701,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               scrollDirection: Axis.horizontal,
               physics: const PageScrollPhysics(),
               children: [
-                Stack(
-                  key: _stackKey,
-                  clipBehavior: Clip.none,
-                  children: [
-                    SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        left: hPad,
-                        right: gutterWidth - 10 + hPad,
-                        bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
-                      ),
-                      child: leftColumn,
-                    ),
-                    if (lanes.isNotEmpty)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: CustomPaint(
-                            painter: _FlowLinePainter(
-                              lanes: lanes,
-                              color: BKColor.mainEnd,
-                              isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
-                            ),
-                          ),
-                        ),
-                      ),
-                    for (final lane in lanes)
-                      if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
-                    for (final lane in lanes)
-                      if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
-                        _buildAnimatedActivityChip(lane),
-                  ],
+                SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    left: hPad,
+                    right: hPad,
+                    bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
+                  ),
+                  child: leftColumn,
                 ),
                 Container(
                   decoration: BoxDecoration(
@@ -735,33 +740,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         const Gap(20),
         Expanded(
           child: SingleChildScrollView(
-            child: Stack(
-              key: _stackKey,
-              clipBehavior: Clip.none,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(right: gutterWidth),
-                  child: leftColumn,
-                ),
-                if (lanes.isNotEmpty)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: _FlowLinePainter(
-                          lanes: lanes,
-                          color: BKColor.mainEnd,
-                          isTrainerConnected: enabledTrainers.any((t) => t.isConnected.value),
-                        ),
-                      ),
-                    ),
-                  ),
-                for (final lane in lanes)
-                  if (_flowButton.containsKey(lane.deviceId)) _buildAnimatedFlowChip(lane),
-                for (final lane in lanes)
-                  if (_flowButton.containsKey(lane.deviceId) && (_flowIsError[lane.deviceId] ?? false))
-                    _buildAnimatedActivityChip(lane),
-              ],
-            ),
+            child: leftColumn,
           ),
         ),
         Container(
@@ -784,42 +763,132 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     );
   }
 
-  // ── Lane building ─────────────────────────────────────────────────
+  // ── Flow row ──────────────────────────────────────────────────────
 
   static const _chipSize = 26.0;
-  static const _laneWidth = 16.0;
 
   late final PageController _horizontalScrollController = PageController();
 
-  List<_Lane> _buildLanes(List<BaseDevice> devices) {
-    final lanes = <_Lane>[];
-    if (_trainerCenterY == null || _trainerRightX == null) return lanes;
+  Widget _buildFlowRow(SupportedApp? trainerApp, List<TrainerConnection> enabledTrainers) {
+    final isConnected = enabledTrainers.any((t) => t.isConnected.value);
+    final appName = trainerApp?.name ?? '-';
+    final compact = _screenWidth < 518;
 
-    for (int i = 0; i < devices.length; i++) {
-      final id = devices[i].uniqueId;
-      final startX = _cardRightX[id];
-      final startY = _cardCenterY[id];
-      if (startX == null || startY == null) continue;
+    // Find first active flow for the chip animation
+    final activeDeviceId = _flowButton.keys.firstOrNull;
 
-      final channelX = startX + 12 + i * _laneWidth;
-      lanes.add(
-        _Lane(
-          id,
-          startX: startX,
-          startY: startY,
-          channelX: channelX,
-          endX: _trainerRightX!,
-          endY: _trainerCenterY!,
+    final flowStack = Stack(
+      key: _flowRowKey,
+      clipBehavior: Clip.none,
+      children: [
+        // Flow lines (painted BEHIND content)
+        if (_hasMeasured &&
+            _bicycleCenterX != null &&
+            _bicycleCenterY != null &&
+            _logoCenterY != null &&
+            _logoLeftX != null &&
+            _logoRightX != null &&
+            _trainerLabelCenterX != null &&
+            _trainerCenterY != null)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _HorizontalFlowPainter(
+                  bicycleX: _bicycleCenterX!,
+                  bicycleY: _bicycleCenterY!,
+                  logoLeftX: _logoLeftX!,
+                  logoRightX: _logoRightX!,
+                  logoCenterY: _logoCenterY!,
+                  trainerCenterX: _trainerLabelCenterX!,
+                  trainerCenterY: _trainerCenterY!,
+                  color: BKColor.mainEnd,
+                  isTrainerConnected: isConnected,
+                ),
+              ),
+            ),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            KeyedSubtree(
+              key: _bicycleKey,
+              child: Lottie.asset('assets/bicycle.json', width: 80, height: 60, animate: _isInForeground),
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  AnimatedBuilder(
+                    animation: _errorBannerController,
+                    builder: (context, child) {
+                      final t = compact
+                          ? 0.0
+                          : CurvedAnimation(
+                              parent: _errorBannerController,
+                              curve: Curves.easeOutCubic,
+                            ).value;
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 12 * (1 - t)),
+                        child: child,
+                      );
+                    },
+                    child: KeyedSubtree(
+                      key: _logoKey,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset('icon.png', width: 40, height: 40),
+                      ),
+                    ),
+                  ),
+                  // Error banner below logo (wide layout)
+                  _buildErrorBanner(),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8, bottom: 21),
+              child: KeyedSubtree(
+                key: _trainerLabelKey,
+                child: TrainerLabel(name: appName),
+              ),
+            ),
+          ],
         ),
+        // Animated flow chip (on top of everything)
+        if (activeDeviceId != null) _buildAnimatedFlowChip(activeDeviceId, isConnected),
+      ],
+    );
+
+    if (compact) {
+      return Column(
+        children: [
+          flowStack,
+          // Error banner below the flow row (compact layout)
+          _buildErrorBanner(),
+        ],
       );
     }
-    return lanes;
+
+    return flowStack;
   }
 
-  Widget _buildAnimatedFlowChip(_Lane lane) {
-    final controller = _flowControllers[lane.deviceId]!;
-    final button = _flowButton[lane.deviceId]!;
-    final isError = _flowIsError[lane.deviceId] ?? false;
+  Widget _buildAnimatedFlowChip(String deviceId, bool isTrainerConnected) {
+    final controller = _flowControllers[deviceId];
+    final button = _flowButton[deviceId];
+    final isError = _flowIsError[deviceId] ?? false;
+    if (controller == null || button == null) return const SizedBox.shrink();
+    if (_bicycleCenterX == null || _logoCenterX == null || _logoCenterY == null || _bicycleCenterY == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Left curve: bicycle → logo left
+    final lP0 = Offset(_bicycleCenterX!, _bicycleCenterY!);
+    final lP1 = Offset((_bicycleCenterX! + (_logoLeftX ?? _logoCenterX!)) / 2, _logoCenterY!);
+    final lP2 = Offset(_logoLeftX ?? _logoCenterX!, _logoCenterY!);
+
+    // Right curve: logo right → trainer center
+    final rP0 = Offset(_logoRightX ?? _logoCenterX!, _logoCenterY!);
+    final rP1 = Offset(((_logoRightX ?? _logoCenterX!) + (_trainerLabelCenterX ?? _logoCenterX!)) / 2, _logoCenterY!);
+    final rP2 = Offset(_trainerLabelCenterX ?? _logoCenterX!, _trainerCenterY ?? _logoCenterY!);
 
     return AnimatedBuilder(
       animation: controller,
@@ -829,11 +898,22 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
         final Offset pos;
         final bool showResult;
-        if (isError && _screenWidth >= 800 && _errorBannerCenterY != null && _errorBannerRightX != null) {
-          pos = lane.errorPositionAt(travelT, _errorBannerRightX!, _errorBannerCenterY!);
-          showResult = travelT > 0.2;
+
+        if (isError) {
+          // Follow left curve from bicycle to logo
+          pos = _quadBezier(travelT, lP0, lP1, lP2);
+          showResult = travelT > 0.4;
+        } else if (isTrainerConnected) {
+          // Follow left curve then right curve
+          if (travelT <= 0.5) {
+            pos = _quadBezier(travelT * 2, lP0, lP1, lP2);
+          } else {
+            pos = _quadBezier((travelT - 0.5) * 2, rP0, rP1, rP2);
+          }
+          showResult = travelT >= 0.95;
         } else {
-          pos = lane.positionAt(travelT);
+          // No trainer: follow left curve to logo
+          pos = _quadBezier(travelT, lP0, lP1, lP2);
           showResult = travelT >= 0.95;
         }
 
@@ -844,69 +924,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           opacity = (1.0 - t) / 0.18;
         }
 
-        const scale = 1.0;
-
         return Positioned(
           left: pos.dx - _chipSize / 2,
           top: pos.dy - _chipSize / 2,
           child: Opacity(
             opacity: opacity.clamp(0.0, 1.0),
-            child: Transform.scale(
-              scale: scale,
-              child: _buildFlowChip(
-                button: button,
-                isError: isError,
-                showResult: showResult,
-              ),
+            child: _buildFlowChip(
+              button: button,
+              isError: isError,
+              showResult: showResult,
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAnimatedActivityChip(_Lane lane) {
-    if (_activityLeftX == null) return const SizedBox.shrink();
-    final controller = _flowControllers[lane.deviceId];
-    final button = _flowButton[lane.deviceId];
-    final isError = _flowIsError[lane.deviceId] ?? false;
-    if (controller == null || button == null) return const SizedBox.shrink();
-
-    final midY = (lane.startY + lane.endY) / 2;
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        final t = controller.value;
-
-        // Appear at 45% of raw animation time (~270ms) — after the main
-        // chip has clearly passed the vertical channel center.
-        if (t < 0.45) return const SizedBox.shrink();
-
-        // Own eased progress from the split point to end of animation
-        final localT = Curves.easeOutCubic.transform(((t - 0.45) / 0.55).clamp(0.0, 1.0));
-
-        final pos = Offset(
-          lane.channelX + localT * (_activityLeftX! - lane.channelX),
-          midY,
-        );
-
-        double opacity = 1.0;
-        if (localT < 0.15) {
-          opacity = localT / 0.15;
-        } else if (t > 0.82) {
-          opacity = (1.0 - t) / 0.18;
-        }
-
-        final travelT = Curves.easeOutCubic.transform(t.clamp(0.0, 1.0));
-        final showResult = isError ? travelT > 0.2 : travelT >= 0.95;
-
-        return Positioned(
-          left: pos.dx - _chipSize / 2,
-          top: pos.dy - _chipSize / 2,
-          child: Opacity(
-            opacity: opacity.clamp(0.0, 1.0),
-            child: _buildFlowChip(button: button, isError: isError, showResult: showResult),
           ),
         );
       },
@@ -1278,46 +1305,66 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   Widget _buildErrorBanner() {
+    final entry = _latestError;
+    if (entry == null && _errorBannerController.value == 0) {
+      return const SizedBox.shrink();
+    }
+
     return KeyedSubtree(
       key: _errorBannerKey,
-      child: AnimatedBuilder(
-        animation: _errorBannerController,
-        builder: (context, _) {
-          final entry = _latestError;
-          if (entry == null && _errorBannerController.value == 0) {
-            return Center(child: Lottie.asset('assets/bicycle.json', width: 120, height: 90, animate: _isInForeground));
-          }
-
-          final t = CurvedAnimation(
-            parent: _errorBannerController,
-            curve: Curves.easeOutCubic,
-          ).value;
-
-          return Align(
-            alignment: Alignment.centerRight,
-            child: Opacity(
-              opacity: t,
-              child: Transform.translate(
-                offset: Offset(20 * (1 - t), 0),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final maxW = max(400.0, (constraints.maxWidth * 0.8));
-                    return ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxW),
-                      child: entry != null
-                          ? Card(
+      child: SizeTransition(
+        sizeFactor: CurvedAnimation(
+          parent: _errorBannerController,
+          curve: Curves.easeOutCubic,
+        ),
+        axisAlignment: -1.0,
+        child: entry != null
+            ? Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: AnimatedBuilder(
+                  animation: _errorShakeController,
+                  builder: (context, child) {
+                    final t = _errorShakeController.value;
+                    final scale = 1.0 + 0.03 * sin(t * pi);
+                    return Transform.scale(scale: scale, child: child);
+                  },
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    clipBehavior: Clip.none,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: 400),
+                            child: Card(
                               padding: EdgeInsets.all(2),
                               borderRadius: BorderRadius.circular(22),
                               child: _buildActivityRow(entry, isLatest: true),
-                            )
-                          : const SizedBox.shrink(),
-                    );
-                  },
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_logoCenterX != null)
+                        Positioned(
+                          left: _logoCenterX! - 5,
+                          top: 0,
+                          child: SizedBox(
+                            width: 14,
+                            height: 7,
+                            child: CustomPaint(
+                              painter: _BubblePointerPainter(
+                                fillColor: Theme.of(context).colorScheme.card,
+                                borderColor: Theme.of(context).colorScheme.border,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
+              )
+            : const SizedBox.shrink(),
       ),
     );
   }
