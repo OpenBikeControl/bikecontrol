@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui' as ui;
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -17,9 +16,12 @@ import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
+import 'package:bike_control/widgets/ui/animated_button_widget.dart';
+import 'package:bike_control/widgets/ui/bubble_pointer_painter.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/horizontal_flow_painter.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/trainer_label.dart';
 import 'package:flutter/foundation.dart';
@@ -33,158 +35,6 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../main.dart';
 import '../utils/iap/iap_manager.dart';
 import 'device.dart';
-
-// ── Quadratic Bezier helper ──────────────────────────────────────────
-Offset _quadBezier(double t, Offset p0, Offset p1, Offset p2) {
-  final u = 1 - t;
-  return Offset(
-    u * u * p0.dx + 2 * u * t * p1.dx + t * t * p2.dx,
-    u * u * p0.dy + 2 * u * t * p1.dy + t * t * p2.dy,
-  );
-}
-
-// ── Horizontal flow line painter ──────────────────────────────────────
-class _HorizontalFlowPainter extends CustomPainter {
-  final double bicycleX, bicycleY;
-  final double logoLeftX, logoRightX, logoCenterY;
-  final double trainerCenterX, trainerCenterY;
-  final Color color;
-  final bool isTrainerConnected;
-
-  _HorizontalFlowPainter({
-    required this.bicycleX,
-    required this.bicycleY,
-    required this.logoLeftX,
-    required this.logoRightX,
-    required this.logoCenterY,
-    required this.trainerCenterX,
-    required this.trainerCenterY,
-    required this.color,
-    required this.isTrainerConnected,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withValues(alpha: 0.3)
-      ..strokeWidth = 2
-      ..strokeCap = ui.StrokeCap.round
-      ..style = ui.PaintingStyle.stroke;
-
-    // Left segment: bicycle → logo left edge
-    final leftPath = ui.Path()
-      ..moveTo(bicycleX, bicycleY)
-      ..quadraticBezierTo((bicycleX + logoLeftX) / 2, logoCenterY, logoLeftX, logoCenterY);
-    canvas.drawPath(leftPath, paint);
-
-    // Right segment: logo right edge → trainer center
-    final rightColor = isTrainerConnected ? color : const Color(0xFFEF4444);
-
-    if (isTrainerConnected) {
-      final rightPaint = Paint()
-        ..color = rightColor.withValues(alpha: 0.3)
-        ..strokeWidth = 2
-        ..strokeCap = ui.StrokeCap.round
-        ..style = ui.PaintingStyle.stroke;
-      final rightPath = ui.Path()
-        ..moveTo(logoRightX, logoCenterY)
-        ..quadraticBezierTo((logoRightX + trainerCenterX) / 2, logoCenterY, trainerCenterX, trainerCenterY);
-      canvas.drawPath(rightPath, rightPaint);
-    } else {
-      final dashPaint = Paint()
-        ..color = rightColor.withValues(alpha: 0.3)
-        ..strokeWidth = 2
-        ..strokeCap = ui.StrokeCap.round;
-      const dash = 5.0;
-      const gap = 7.0;
-      final span = (trainerCenterX - logoRightX).clamp(1.0, double.infinity);
-      for (double x = logoRightX; x < trainerCenterX; x += dash + gap) {
-        final end = (x + dash).clamp(x, trainerCenterX);
-        final frac = (x - logoRightX) / span;
-        final y = logoCenterY + (trainerCenterY - logoCenterY) * frac;
-        final endFrac = (end - logoRightX) / span;
-        final endY = logoCenterY + (trainerCenterY - logoCenterY) * endFrac;
-        canvas.drawLine(Offset(x, y), Offset(end, endY), dashPaint);
-      }
-    }
-
-    // Chevrons
-    final chevronPaint = Paint()
-      ..color = color.withValues(alpha: 0.35)
-      ..strokeWidth = 2
-      ..strokeCap = ui.StrokeCap.round
-      ..style = ui.PaintingStyle.stroke;
-
-    final lP0 = Offset(bicycleX, bicycleY);
-    final lP1 = Offset((bicycleX + logoLeftX) / 2, logoCenterY);
-    final lP2 = Offset(logoLeftX, logoCenterY);
-    final c1 = _quadBezier(0.4, lP0, lP1, lP2);
-    final chevron1 = ui.Path()
-      ..moveTo(c1.dx - 4, c1.dy - 5)
-      ..lineTo(c1.dx + 2, c1.dy)
-      ..lineTo(c1.dx - 4, c1.dy + 5);
-    canvas.drawPath(chevron1, chevronPaint);
-
-    if (isTrainerConnected) {
-      final rP0 = Offset(logoRightX, logoCenterY);
-      final rP1 = Offset((logoRightX + trainerCenterX) / 2, logoCenterY);
-      final rP2 = Offset(trainerCenterX, trainerCenterY);
-      final c2 = _quadBezier(0.6, rP0, rP1, rP2);
-      final chevron2 = ui.Path()
-        ..moveTo(c2.dx - 4, c2.dy - 5)
-        ..lineTo(c2.dx + 2, c2.dy)
-        ..lineTo(c2.dx - 4, c2.dy + 5);
-      canvas.drawPath(chevron2, chevronPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _HorizontalFlowPainter old) {
-    return old.bicycleX != bicycleX ||
-        old.bicycleY != bicycleY ||
-        old.logoLeftX != logoLeftX ||
-        old.logoRightX != logoRightX ||
-        old.logoCenterY != logoCenterY ||
-        old.trainerCenterX != trainerCenterX ||
-        old.trainerCenterY != trainerCenterY ||
-        old.isTrainerConnected != isTrainerConnected;
-  }
-}
-
-// ── Bubble pointer painter ──────────────────────────────────────────
-class _BubblePointerPainter extends CustomPainter {
-  final Color fillColor;
-  final Color borderColor;
-
-  _BubblePointerPainter({required this.fillColor, required this.borderColor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = ui.Path()
-      ..moveTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(path, Paint()..color = fillColor);
-
-    // Only draw the two diagonal sides (not the bottom, which merges into the card)
-    final borderPath = ui.Path()
-      ..moveTo(0, size.height)
-      ..lineTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height);
-    canvas.drawPath(
-      borderPath,
-      Paint()
-        ..color = borderColor
-        ..style = ui.PaintingStyle.stroke
-        ..strokeWidth = 1,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _BubblePointerPainter old) =>
-      old.fillColor != fillColor || old.borderColor != borderColor;
-}
 
 // ── Activity log entry ───────────────────────────────────────────────
 
@@ -645,7 +495,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       runSpacing: 9,
                       children: device.availableButtons.map((btn) {
                         final pressGen = pressedButton?.name == btn.name ? generation : 0;
-                        return _AnimatedButtonWidget(
+                        return AnimatedButtonWidget(
                           key: ValueKey(btn.name),
                           button: btn,
                           pressGeneration: pressGen,
@@ -743,6 +593,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             child: leftColumn,
           ),
         ),
+        const Gap(20),
         Container(
           height: double.infinity,
           decoration: BoxDecoration(
@@ -793,7 +644,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           Positioned.fill(
             child: IgnorePointer(
               child: CustomPaint(
-                painter: _HorizontalFlowPainter(
+                painter: HorizontalFlowPainter(
                   bicycleX: _bicycleCenterX!,
                   bicycleY: _bicycleCenterY!,
                   logoLeftX: _logoLeftX!,
@@ -863,7 +714,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         children: [
           flowStack,
           // Error banner below the flow row (compact layout)
-          _buildErrorBanner(),
+          _buildErrorBanner(useAbsolutePointer: true),
         ],
       );
     }
@@ -901,19 +752,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
         if (isError) {
           // Follow left curve from bicycle to logo
-          pos = _quadBezier(travelT, lP0, lP1, lP2);
+          pos = quadBezier(travelT, lP0, lP1, lP2);
           showResult = travelT > 0.4;
         } else if (isTrainerConnected) {
           // Follow left curve then right curve
           if (travelT <= 0.5) {
-            pos = _quadBezier(travelT * 2, lP0, lP1, lP2);
+            pos = quadBezier(travelT * 2, lP0, lP1, lP2);
           } else {
-            pos = _quadBezier((travelT - 0.5) * 2, rP0, rP1, rP2);
+            pos = quadBezier((travelT - 0.5) * 2, rP0, rP1, rP2);
           }
           showResult = travelT >= 0.95;
         } else {
           // No trainer: follow left curve to logo
-          pos = _quadBezier(travelT, lP0, lP1, lP2);
+          pos = quadBezier(travelT, lP0, lP1, lP2);
           showResult = travelT >= 0.95;
         }
 
@@ -1116,11 +967,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           children: [
             Gap(16),
             Expanded(
-              child: _buildSectionHeader(icon: Icons.list, title: 'Activity'),
+              child: _buildSectionHeader(icon: Icons.list, title: AppLocalizations.of(context).activity),
             ),
             GhostButton(
               onPressed: _clearActivityLog,
-              child: Text('Clear').xSmall.muted,
+              child: Text(AppLocalizations.of(context).clear).xSmall.muted,
             ),
           ],
         ),
@@ -1304,10 +1155,54 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     };
   }
 
-  Widget _buildErrorBanner() {
+  Widget _buildErrorBanner({bool useAbsolutePointer = false}) {
     final entry = _latestError;
     if (entry == null && _errorBannerController.value == 0) {
       return const SizedBox.shrink();
+    }
+
+    Widget buildPointer() => SizedBox(
+      width: 14,
+      height: 7,
+      child: CustomPaint(
+        painter: BubblePointerPainter(
+          fillColor: Theme.of(context).colorScheme.card,
+          borderColor: Theme.of(context).colorScheme.border,
+        ),
+      ),
+    );
+
+    Widget buildCard() => Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 400),
+        child: Card(
+          padding: EdgeInsets.all(2),
+          borderRadius: BorderRadius.circular(22),
+          child: _buildActivityRow(entry!, isLatest: true),
+        ),
+      ),
+    );
+
+    Widget buildContent() {
+      if (useAbsolutePointer && _logoCenterX != null) {
+        // Compact: position pointer at logo's X
+        return Stack(
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
+          children: [
+            Padding(padding: const EdgeInsets.only(top: 6), child: buildCard()),
+            Positioned(left: _logoCenterX! - 5, top: 0, child: buildPointer()),
+          ],
+        );
+      }
+      // Wide: pointer centered above card
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          buildPointer(),
+          Transform.translate(offset: const Offset(0, -1), child: buildCard()),
+        ],
+      );
     }
 
     return KeyedSubtree(
@@ -1328,40 +1223,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     final scale = 1.0 + 0.03 * sin(t * pi);
                     return Transform.scale(scale: scale, child: child);
                   },
-                  child: Stack(
-                    alignment: Alignment.topCenter,
-                    clipBehavior: Clip.none,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: 400),
-                            child: Card(
-                              padding: EdgeInsets.all(2),
-                              borderRadius: BorderRadius.circular(22),
-                              child: _buildActivityRow(entry, isLatest: true),
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_logoCenterX != null)
-                        Positioned(
-                          left: _logoCenterX! - 5,
-                          top: 0,
-                          child: SizedBox(
-                            width: 14,
-                            height: 7,
-                            child: CustomPaint(
-                              painter: _BubblePointerPainter(
-                                fillColor: Theme.of(context).colorScheme.card,
-                                borderColor: Theme.of(context).colorScheme.border,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                  child: buildContent(),
                 ),
               )
             : const SizedBox.shrink(),
@@ -1371,59 +1233,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   Widget _buildSectionHeader({required IconData icon, required String title}) {
     return ColoredTitle(text: title, icon: icon);
-  }
-}
-
-// ── Animated button press widget ────────────────────────────────────
-
-class _AnimatedButtonWidget extends StatefulWidget {
-  final ControllerButton button;
-  final int pressGeneration;
-
-  const _AnimatedButtonWidget({super.key, required this.button, required this.pressGeneration});
-
-  @override
-  State<_AnimatedButtonWidget> createState() => _AnimatedButtonWidgetState();
-}
-
-class _AnimatedButtonWidgetState extends State<_AnimatedButtonWidget> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 70),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-  }
-
-  @override
-  void didUpdateWidget(_AnimatedButtonWidget old) {
-    super.didUpdateWidget(old);
-    if (widget.pressGeneration != old.pressGeneration && widget.pressGeneration > 0) {
-      _controller.forward(from: 0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) => Transform.scale(
-        scale: _scale.value,
-        child: child,
-      ),
-      child: ButtonWidget(button: widget.button, color: Colors.gray),
-    );
   }
 }
 
@@ -1482,13 +1291,13 @@ class _TabsState extends State<_Tabs> {
       index: widget.controller.hasClients && widget.controller.offset > widget.leftWidth / 2 ? 1 : 0,
       children: [
         TabItem(
-          child: Text('Main'),
+          child: Text(AppLocalizations.of(context).main),
         ),
         TabItem(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Activity'),
+              Text(AppLocalizations.of(context).activity),
               if (widget.hasErrors) ...[
                 Gap(6),
                 Container(
