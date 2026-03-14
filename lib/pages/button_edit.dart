@@ -514,6 +514,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           (_keyPair.inGameAction == InGameAction.headwindSpeed ||
                               _keyPair.inGameAction == InGameAction.headwindSpeedInc ||
                               _keyPair.inGameAction == InGameAction.headwindSpeedDec ||
+                              _keyPair.inGameAction == InGameAction.headwindSpeedCyclicInc ||
+                              _keyPair.inGameAction == InGameAction.headwindSpeedCyclicDec ||
                               _keyPair.inGameAction == InGameAction.headwindHeartRateMode),
                       value: _keyPair.inGameAction != null
                           ? '${_keyPair.inGameAction} ${_keyPair.inGameActionValue ?? ""}'.trim()
@@ -558,6 +560,30 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 child: Text('Decrease Speed'),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedDec;
+                                  _keyPair.inGameActionValue = null;
+                                  _keyPair.androidAction = null;
+                                  _keyPair.command = null;
+                                  _keyPair.screenshotPath = null;
+                                  widget.onUpdate();
+                                  setState(() {});
+                                },
+                              ),
+                              MenuButton(
+                                child: Text('Increase Speed Cyclically'),
+                                onPressed: (_) {
+                                  _keyPair.inGameAction = InGameAction.headwindSpeedCyclicInc;
+                                  _keyPair.inGameActionValue = null;
+                                  _keyPair.androidAction = null;
+                                  _keyPair.command = null;
+                                  _keyPair.screenshotPath = null;
+                                  widget.onUpdate();
+                                  setState(() {});
+                                },
+                              ),
+                              MenuButton(
+                                child: Text('Decrease Speed Cyclically'),
+                                onPressed: (_) {
+                                  _keyPair.inGameAction = InGameAction.headwindSpeedCyclicDec;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
                                   _keyPair.command = null;

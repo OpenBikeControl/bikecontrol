@@ -41,6 +41,8 @@ enum InGameAction {
   headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100], icon: Icons.air),
   headwindSpeedInc('Headwind Speed Increase', icon: Icons.air),
   headwindSpeedDec('Headwind Speed Decrease', icon: Icons.air),
+  headwindSpeedCyclicInc('Headwind Speed Cyclic Increase', icon: Icons.air),
+  headwindSpeedCyclicDec('Headwind Speed Cyclic Decrease', icon: Icons.air),
   headwindHeartRateMode('Headwind HR Mode', icon: Icons.favorite),
 
   // openbikecontrol
