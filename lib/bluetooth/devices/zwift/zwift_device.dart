@@ -102,7 +102,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
     }
 
     try {
-      if (bytes.startsWith(startCommand)) {
+      if (bytes.length >= startCommand.length && bytes.sublist(0, startCommand.length).toString() == startCommand.toString()) {
         processDevicePublicKeyResponse(bytes);
       } else {
         processData(bytes);
@@ -213,3 +213,4 @@ abstract class ZwiftDevice extends BluetoothDevice {
     );
   }
 }
+

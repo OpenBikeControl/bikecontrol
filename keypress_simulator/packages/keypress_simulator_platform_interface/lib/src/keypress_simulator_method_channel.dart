@@ -40,13 +40,13 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
   }) async {
     PhysicalKeyboardKey? physicalKey = key is PhysicalKeyboardKey ? key : null;
     if (key is LogicalKeyboardKey) {
-      physicalKey = key.physicalKey;
+      physicalKey = PhysicalKeyboardKey(key.keyId);
     }
     if (key != null && physicalKey == null) {
       throw UnsupportedError('Unsupported key: $key.');
     }
     final Map<Object?, Object?> arguments = {
-      'keyCode': physicalKey?.keyCode,
+      'keyCode': physicalKey?.usbHidUsage,
       'modifiers': modifiers.map((e) => e.name).toList(),
       'keyDown': keyDown,
       'targetAppName': targetApp,
@@ -87,3 +87,6 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
     await methodChannel.invokeMethod('simulateMediaKey', arguments);
   }
 }
+
+
+
