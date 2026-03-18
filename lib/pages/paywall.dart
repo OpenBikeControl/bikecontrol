@@ -284,7 +284,7 @@ class _PaywallState extends State<Paywall> {
         ? AppLocalizations.of(context).paywall_billedAtYearly(yearlyStoreProduct.priceString)
         : _pricing.yearlyBilled;
 
-    final monthlyPrice = monthlyStoreProduct != null ? '${monthlyStoreProduct.priceString}/mo' : _pricing.monthlyPrice;
+    final monthlyPrice = monthlyStoreProduct != null ? '' : _pricing.monthlyPrice;
 
     final monthlyBilled = monthlyStoreProduct != null
         ? AppLocalizations.of(context).paywall_billedAtPricemo(monthlyStoreProduct.priceString)
@@ -650,7 +650,7 @@ class _PaywallState extends State<Paywall> {
                   ],
                 ),
                 Text(
-                  price,
+                  billed,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
@@ -659,7 +659,7 @@ class _PaywallState extends State<Paywall> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  billed,
+                  price,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
