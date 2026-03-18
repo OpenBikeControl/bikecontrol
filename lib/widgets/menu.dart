@@ -15,7 +15,7 @@ import 'package:flutter/material.dart' show showLicensePage;
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:purchases_flutter/purchases_flutter.dart' show Purchases;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -126,7 +126,7 @@ class BKMenuButton extends StatelessWidget {
               MenuButton(
                 child: Text(context.i18n.continueAction),
                 onPressed: (c) {
-                  IAPManager.instance.purchaseFullVersion(context);
+                  //IAPManager.instance.purchaseFullVersion(context);
                   core.connection.addDevices([
                     ZwiftClickV2(
                         BleDevice(

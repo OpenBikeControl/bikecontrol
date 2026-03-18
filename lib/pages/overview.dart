@@ -363,6 +363,17 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   void _onAlert(AlertNotification notification) {
+    final isInForeground = navigatorKey.currentState?.canPop() == false;
+
+    if (!isInForeground) {
+      buildToast(
+        level: notification.level,
+        title: notification.alertMessage,
+        closeTitle: notification.buttonTitle ?? 'Close',
+        onClose: notification.onTap,
+      );
+    }
+
     final entry = _ActivityEntry(
       time: DateTime.now(),
       alertMessage: notification.alertMessage,
