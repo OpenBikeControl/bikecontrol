@@ -475,4 +475,12 @@ class Settings {
     _syncService?.dispose();
     _syncService = null;
   }
+
+  Future<void> setShowExperimental(bool value) async {
+    await prefs.setBool('show_experimental', value);
+  }
+
+  bool getShowExperimental() {
+    return prefs.getBool('show_experimental') ?? false;
+  }
 }

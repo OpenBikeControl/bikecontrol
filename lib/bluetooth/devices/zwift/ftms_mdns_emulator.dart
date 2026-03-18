@@ -51,7 +51,8 @@ class FtmsMdnsEmulator extends TrainerConnection {
   }
 
   Future<void> startServer() async {
-    return clickEmulator.startServer(core.settings.getTrainerApp() is Rouvy);
+    final isRouvy = core.settings.getTrainerApp() is Rouvy;
+    return clickEmulator.startServer(isRouvy, name: isRouvy ? 'BikeControl' : null);
   }
 
   void stop() {

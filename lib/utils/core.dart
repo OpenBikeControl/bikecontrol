@@ -171,7 +171,11 @@ class CoreLogic {
   }
 
   bool get showZwiftMsdnEmulator {
-    return core.settings.getTrainerApp()?.supportsZwiftEmulation == true && core.settings.getTrainerApp() is! Rouvy;
+    if (core.settings.getShowExperimental()) {
+      return core.settings.getTrainerApp()?.supportsZwiftEmulation == true || core.settings.getTrainerApp() is Rouvy;
+    } else {
+      return core.settings.getTrainerApp()?.supportsZwiftEmulation == true && core.settings.getTrainerApp() is! Rouvy;
+    }
   }
 
   bool get showObpMdnsEmulator {
