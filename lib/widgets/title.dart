@@ -223,10 +223,17 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
                     mode: LaunchMode.externalApplication,
                   );
                 } else if (_updateType == UpdateType.windowsStore) {
-                  await launchUrlString(
-                    'ms-windows-store://pdp/?productid=9NP42GS03Z26',
-                    mode: LaunchMode.externalApplication,
-                  );
+                  if (IAPManager.instance.isOutsideStoreWindowsBuild) {
+                    await launchUrlString(
+                      'https://bikecontrol.app/download/bikecontrol.windows.zip',
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } else {
+                    await launchUrlString(
+                      'ms-windows-store://pdp/?productid=9NP42GS03Z26',
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
                 }
               },
               renderChild: (isLoading, tap) => Button.outline(
