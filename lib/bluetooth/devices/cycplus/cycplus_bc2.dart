@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:flutter/material.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
@@ -29,8 +29,7 @@ class CycplusBc2 extends BluetoothDevice {
   }
 
   // Track last state for index 6 and 7
-  int _lastStateIndex6 = 0x00;
-  int _lastStateIndex7 = 0x00;
+  static const _pressedState = 0x01;
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
@@ -40,20 +39,14 @@ class CycplusBc2 extends BluetoothDevice {
 
         // Process index 6 (shift up)
         final currentByte6 = bytes[6];
-        if (_shouldTriggerShift(currentByte6, _lastStateIndex6)) {
+        if (currentByte6 == _pressedState) {
           buttonsToPress.add(availableButtons[0]);
-          _lastStateIndex6 = 0x00; // Reset after successful press
-        } else {
-          _updateState(currentByte6, (val) => _lastStateIndex6 = val);
         }
 
         // Process index 7 (shift down)
         final currentByte7 = bytes[7];
-        if (_shouldTriggerShift(currentByte7, _lastStateIndex7)) {
+        if (currentByte7 == _pressedState) {
           buttonsToPress.add(availableButtons[1]);
-          _lastStateIndex7 = 0x00; // Reset after successful press
-        } else {
-          _updateState(currentByte7, (val) => _lastStateIndex7 = val);
         }
 
         handleButtonsClicked(buttonsToPress);
@@ -67,34 +60,6 @@ class CycplusBc2 extends BluetoothDevice {
       }
     }
     return Future.value();
-  }
-
-  // Check if we should trigger a shift based on current and last state
-  bool _shouldTriggerShift(int currentByte, int lastByte) {
-    const pressedValues = {0x01, 0x02, 0x03};
-
-    // State change from one pressed value to another different pressed value
-    // This is the ONLY time we trigger a shift
-    if (pressedValues.contains(currentByte) && pressedValues.contains(lastByte) && currentByte != lastByte) {
-      return true;
-    }
-
-    return false;
-  }
-
-  // Update state tracking
-  void _updateState(int currentByte, void Function(int) setState) {
-    const pressedValues = {0x01, 0x02, 0x03};
-    const releaseValue = 0x00;
-
-    // Button released: current is 0x00 and last was pressed
-    if (currentByte == releaseValue) {
-      setState(releaseValue);
-    }
-    // Lock the new pressed state
-    else if (pressedValues.contains(currentByte)) {
-      setState(currentByte);
-    }
   }
 }
 

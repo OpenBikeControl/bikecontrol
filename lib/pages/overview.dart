@@ -702,7 +702,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     ),
                   ),
                   // Error banner below logo (wide layout)
-                  _buildErrorBanner(),
+                  if (!compact) _buildErrorBanner(),
                 ],
               ),
             ),

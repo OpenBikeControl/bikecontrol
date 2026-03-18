@@ -151,7 +151,7 @@ class _CustomizeState extends State<CustomizePage> {
               Button.outline(
                 child: Text('Open connection settings'),
                 onPressed: () async {
-                  context.push(const TrainerConnectionSettingsPage());
+                  await context.push(const TrainerConnectionSettingsPage());
                   setState(() {});
                 },
               ),
