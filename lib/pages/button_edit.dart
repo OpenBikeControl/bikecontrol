@@ -816,21 +816,21 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final triggerForPredefined = widget.trigger == ButtonTrigger.doubleClick
         ? ButtonTrigger.singleClick
         : widget.trigger;
-    final actionsWithInGameAction = [
-      ...?trainerApp?.keymap.keyPairs
-          .where(
-            (kp) =>
-                kp.trigger == triggerForPredefined &&
-                kp.inGameAction != null &&
-                switch (supportedMode) {
-                  SupportedMode.keyboard => kp.physicalKey != null,
-                  SupportedMode.touch => kp.touchPosition != Offset.zero,
-                  SupportedMode.media => kp.isSpecialKey,
-                },
-          )
-          .distinctBy((kp) => kp.inGameAction),
-      ...?trainerApp?.additionalKeyPairs,
-    ];
+    final actionsWithInGameAction =
+        [
+          ...?trainerApp?.keymap.keyPairs
+              .where((kp) => kp.trigger == triggerForPredefined)
+              .distinctBy((kp) => kp.inGameAction),
+          ...?trainerApp?.additionalKeyPairs,
+        ].where(
+          (kp) =>
+              kp.inGameAction != null &&
+              switch (supportedMode) {
+                SupportedMode.keyboard => kp.physicalKey != null,
+                SupportedMode.touch => kp.touchPosition != Offset.zero,
+                SupportedMode.media => kp.isSpecialKey,
+              },
+        );
 
     final isEnabled =
         supportedMode == SupportedMode.keyboard &&
