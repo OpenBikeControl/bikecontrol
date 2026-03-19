@@ -55,43 +55,47 @@ class _ScanWidgetState extends State<ScanWidget> {
             ),
           )
         else
-          ValueListenableBuilder(
-            valueListenable: core.connection.isScanning,
-            builder: (context, isScanning, widget) {
-              if (isScanning) {
-                return Column(
-                  spacing: 18,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (core.connection.controllerDevices.isEmpty)
-                      Column(
-                        spacing: 14,
-                        children: [
-                          SizedBox(),
-                          SmoothWifiAnimation(),
-                          Text(
-                            context.i18n.scanningForDevices,
-                            textAlign: TextAlign.center,
-                          ).small.muted,
-                        ],
+          Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: ValueListenableBuilder(
+              valueListenable: core.connection.isScanning,
+              builder: (context, isScanning, widget) {
+                if (isScanning) {
+                  return Column(
+                    spacing: 18,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (core.connection.controllerDevices.isEmpty)
+                        Column(
+                          spacing: 14,
+                          children: [
+                            SizedBox(),
+                            SmoothWifiAnimation(),
+                            Text(
+                              context.i18n.scanningForDevices,
+                              textAlign: TextAlign.center,
+                            ).small.muted,
+                          ],
+                        ),
+                      SizedBox(),
+                    ],
+                  );
+                } else {
+                  return Row(
+                    children: [
+                      PrimaryButton(
+                        onPressed: () {
+                          core.connection.performScanning();
+                        },
+                        child: Text(context.i18n.scan),
                       ),
-                    SizedBox(),
-                  ],
-                );
-              } else {
-                return Row(
-                  children: [
-                    PrimaryButton(
-                      onPressed: () {
-                        core.connection.performScanning();
-                      },
-                      child: Text(context.i18n.scan),
-                    ),
-                  ],
-                );
-              }
-            },
+                    ],
+                  );
+                }
+              },
+            ),
           ),
       ],
     );

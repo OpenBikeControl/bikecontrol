@@ -1,5 +1,7 @@
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class TrainerConnectionSettingsPage extends StatefulWidget {
@@ -27,29 +29,31 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           trailing: [
-            Builder(
-              builder: (context) {
-                return IconButton.ghost(
-                  icon: Icon(Icons.more_vert, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-                  onPressed: () {
-                    showDropdown(
-                      context: context,
-                      builder: (c) => DropdownMenu(
-                        children: [
-                          MenuCheckbox(
-                            value: core.settings.getShowExperimental(),
-                            child: Text('Show experimental'),
-                            onChanged: (c, value) {
-                              core.settings.setShowExperimental(value);
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+            if (core.settings.getTrainerApp() is Rouvy || core.settings.getTrainerApp() is TrainingPeaks)
+              Builder(
+                builder: (context) {
+                  return IconButton.ghost(
+                    icon: Icon(Icons.more_vert, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
+                    onPressed: () {
+                      showDropdown(
+                        context: context,
+                        builder: (c) => DropdownMenu(
+                          children: [
+                            MenuCheckbox(
+                              value: core.settings.getShowExperimental(),
+                              child: Text('Show experimental'),
+                              onChanged: (c, value) {
+                                core.settings.setShowExperimental(value);
+                                setState(() {});
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             IconButton.ghost(
               icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
               onPressed: () => Navigator.of(context).pop(),
