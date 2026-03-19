@@ -179,11 +179,15 @@ class CoreLogic {
   }
 
   bool get showObpMdnsEmulator {
-    return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.containsAny([
-          OpenBikeProtocolSupport.network,
-          OpenBikeProtocolSupport.dircon,
-        ]) ==
-        true;
+    if (core.settings.getShowExperimental()) {
+      return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.containsAny([
+            OpenBikeProtocolSupport.network,
+            OpenBikeProtocolSupport.dircon,
+          ]) ==
+          true;
+    } else {
+      return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(OpenBikeProtocolSupport.network) == true;
+    }
   }
 
   bool get showObpBluetoothEmulator {
