@@ -23,28 +23,40 @@ class TrainingPeaks extends SupportedApp {
         keymap: Keymap(
           keyPairs: [
             // Explicit controller-button mappings with updated touch coordinates
-            KeyPair(
-              buttons: [ZwiftButtons.shiftUpRight],
-              physicalKey: PhysicalKeyboardKey.numpadAdd,
-              logicalKey: LogicalKeyboardKey.numpadAdd,
-              touchPosition: Offset(22.65384615384622, 7.0769230769229665),
-            ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.shiftUp)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [ZwiftButtons.shiftUpRight],
+                    physicalKey: PhysicalKeyboardKey.numpadAdd,
+                    logicalKey: LogicalKeyboardKey.numpadAdd,
+                    inGameAction: InGameAction.shiftUp,
+                    touchPosition: Offset(22.65384615384622, 7.0769230769229665),
+                  ),
+                ),
             KeyPair(
               buttons: [ZwiftButtons.shiftDownRight],
               physicalKey: PhysicalKeyboardKey.numpadAdd,
               logicalKey: LogicalKeyboardKey.numpadAdd,
+              inGameAction: InGameAction.shiftUp,
               touchPosition: Offset(22.61769250748708, 8.13909075507417),
             ),
-            KeyPair(
-              buttons: [ZwiftButtons.shiftUpLeft],
-              physicalKey: PhysicalKeyboardKey.numpadSubtract,
-              logicalKey: LogicalKeyboardKey.numpadSubtract,
-              touchPosition: Offset(18.14448747554958, 6.772862761010401),
-            ),
+            ...ControllerButton.values
+                .filter((e) => e.action == InGameAction.shiftDown)
+                .map(
+                  (b) => KeyPair(
+                    buttons: [ZwiftButtons.shiftUpLeft],
+                    physicalKey: PhysicalKeyboardKey.numpadSubtract,
+                    logicalKey: LogicalKeyboardKey.numpadSubtract,
+                    inGameAction: InGameAction.shiftDown,
+                    touchPosition: Offset(18.14448747554958, 6.772862761010401),
+                  ),
+                ),
             KeyPair(
               buttons: [ZwiftButtons.shiftDownLeft],
               physicalKey: PhysicalKeyboardKey.numpadSubtract,
               logicalKey: LogicalKeyboardKey.numpadSubtract,
+              inGameAction: InGameAction.shiftDown,
               touchPosition: Offset(18.128205128205135, 6.75213675213675),
             ),
 
@@ -56,6 +68,7 @@ class TrainingPeaks extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.arrowRight,
                     logicalKey: LogicalKeyboardKey.arrowRight,
+                    inGameAction: InGameAction.steerRight,
                     touchPosition: Offset(56.75858807279006, 92.42753954973301),
                   ),
                 ),
@@ -67,6 +80,7 @@ class TrainingPeaks extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.arrowLeft,
                     logicalKey: LogicalKeyboardKey.arrowLeft,
+                    inGameAction: InGameAction.steerLeft,
                     touchPosition: Offset(41.11538461538456, 92.64957264957286),
                   ),
                 ),

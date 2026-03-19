@@ -184,7 +184,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
                   'https://www.reddit.com/r/BikeControl/comments/1qt9cg5/great_news_for_zwift_click_v2_owners_introducing/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button',
                 );
               },
-              child: Text('Example Video'),
+              child: Text(AppLocalizations.of(context).instructionVideo),
             ),
             SizedBox(height: 32),
             Text(AppLocalizations.of(context).unlock_bikecontrolAndZwiftNetwork).small,
