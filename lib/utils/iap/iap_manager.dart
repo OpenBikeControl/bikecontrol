@@ -67,6 +67,11 @@ class IAPManager {
   bool get isProEnabledForCurrentDevice =>
       hasActiveSubscription && ((isLoggedIn && entitlements.isRegisteredDevice) || (!isLoggedIn && isLocalPro.value));
 
+  bool get isProEnabledForCurrentDeviceOrDidPurchaseOld => isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
+
+  bool get hasPurchasedBefore50RVC =>
+      isPurchased.value && _revenueCatService != null && _revenueCatService!.hasPurchasedBefore50;
+
   DateTime? get premiumActiveUntil =>
       entitlements.activeUntil(premiumMonthlyProductKey) ?? entitlements.activeUntil(premiumYearlyProductKey);
 

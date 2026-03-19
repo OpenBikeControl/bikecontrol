@@ -45,6 +45,7 @@ class RevenueCatService {
   String? _trialStartDate;
   String? _lastCommandDate;
   int? _dailyCommandCount;
+  bool hasPurchasedBefore50 = false;
 
   RevenueCatService(
     this._prefs, {
@@ -171,15 +172,15 @@ class RevenueCatService {
 
   /// Handle customer info updates from RevenueCat
   Future<bool> _handleCustomerInfoUpdate(CustomerInfo customerInfo) async {
-    final hasFullVersionEntitlements = customerInfo.entitlements.active.containsKey(fullVersionEntitlement);
+    final fullVersionEntitlements = customerInfo.entitlements.active[fullVersionEntitlement];
 
     final userId = await Purchases.appUserID;
     core.connection.signalNotification(LogNotification('User ID: $userId at ${customerInfo.requestDate}'));
-    core.connection.signalNotification(LogNotification('Full Version entitlement: $hasFullVersionEntitlements'));
+    core.connection.signalNotification(LogNotification('Full Version entitlement: ${fullVersionEntitlements != null}'));
 
     isProNotifier.value = customerInfo.entitlements.active.containsKey(proVersionEntitlement);
 
-    if (!hasFullVersionEntitlements) {
+    if (fullVersionEntitlements == null) {
       // purchased before IAP migration
       if (Platform.isAndroid) {
         final storedStatus = await _prefs.read(key: _purchaseStatusKey);
@@ -187,6 +188,7 @@ class RevenueCatService {
           core.connection.signalNotification(LogNotification('Setting full version based on stored status'));
           await Purchases.setAttributes({_purchaseStatusKey: "true"});
           isPurchasedNotifier.value = true;
+          hasPurchasedBefore50 = true;
         }
       } else {
         final purchasedVersion = customerInfo.originalApplicationVersion;
@@ -194,15 +196,21 @@ class RevenueCatService {
         if (purchasedVersion != null && purchasedVersion.contains(".")) {
           final parsedVersion = Version.parse(purchasedVersion);
           isPurchasedNotifier.value = parsedVersion < Version(4, 2, 0) || parsedVersion >= Version(4, 4, 0);
+          hasPurchasedBefore50 = parsedVersion < Version(5, 0, 0);
         } else {
           final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
           isPurchasedNotifier.value =
               purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58) || purchasedVersionAsInt >= 77;
+          hasPurchasedBefore50 = purchasedVersionAsInt < 114;
         }
       }
     } else {
-      isPurchasedNotifier.value = hasFullVersionEntitlements;
+      isPurchasedNotifier.value = true;
+      hasPurchasedBefore50 = DateTime.parse(
+        fullVersionEntitlements.originalPurchaseDate,
+      ).isBefore(DateTime(2026, 4, 19));
     }
+
     return isPurchasedNotifier.value;
   }
 

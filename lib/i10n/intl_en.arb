@@ -221,6 +221,7 @@
   "ignoredDevices": "Ignored Devices",
   "importAction": "Import",
   "importProfile": "Import Profile",
+  "instructionVideo": "Instruction Video",
   "instructions": "Instructions",
   "jsonData": "JSON Data",
   "justNow": "Just now",
@@ -543,6 +544,5 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "instructionVideo": "Instruction Video"
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }

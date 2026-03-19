@@ -6,6 +6,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/scan.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
@@ -160,7 +161,7 @@ class _DevicePageState extends State<DevicePage> {
             ),
             child: SwitchFeature(
               value: core.settings.getPhoneSteeringEnabled(),
-              isProOnly: true,
+              isProOnly: !IAPManager.instance.hasPurchasedBefore50RVC,
               isMobile: widget.isMobile,
               title: AppLocalizations.of(context).enableSteeringWithPhone,
               onPressed: () {

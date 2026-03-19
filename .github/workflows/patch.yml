@@ -2,6 +2,22 @@ name: "Patch"
 
 on:
   workflow_dispatch:
+    inputs:
+      build_windows:
+        description: 'Build for Windows'
+        required: false
+        default: true
+        type: boolean
+      build_android:
+        description: 'Build for Android'
+        required: false
+        default: true
+        type: boolean
+      build_ios:
+        description: 'Build for iOS'
+        required: false
+        default: true
+        type: boolean
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
@@ -50,6 +66,7 @@ jobs:
           flutter pub global run intl_utils:generate;
 
       - name: Install certificates
+        if: inputs.build_ios == 'true'
         env:
           DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
           DEVELOPER_ID_INSTALLER_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
@@ -92,6 +109,7 @@ jobs:
           cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Decode Keystore
+        if: inputs.build_android == 'true'
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
           echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
@@ -105,6 +123,7 @@ jobs:
           args: '--allow-asset-diffs --allow-native-diffs --obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch Android
+        if: inputs.build_android == 'true'
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: android
@@ -112,6 +131,7 @@ jobs:
           args: '--allow-asset-diffs --allow-native-diffs --obfuscate --split-debug-info=symbols -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch iOS
+        if: inputs.build_ios == 'true'
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: ios
@@ -120,6 +140,7 @@ jobs:
 
   windows:
     name: Patch Windows
+    if: inputs.build_windows == 'true'
     runs-on: windows-latest
 
     steps:
