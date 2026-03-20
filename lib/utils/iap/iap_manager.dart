@@ -69,8 +69,7 @@ class IAPManager {
 
   bool get isProEnabledForCurrentDeviceOrDidPurchaseOld => isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
 
-  bool get hasPurchasedBefore50RVC =>
-      isPurchased.value && _revenueCatService != null && _revenueCatService!.hasPurchasedBefore50;
+  bool get hasPurchasedBefore50RVC => isPurchased.value && (_revenueCatService?.hasPurchasedBefore50 ?? false);
 
   DateTime? get premiumActiveUntil =>
       entitlements.activeUntil(premiumMonthlyProductKey) ?? entitlements.activeUntil(premiumYearlyProductKey);
@@ -425,8 +424,8 @@ class IAPManager {
     }
   }
 
-  Future<bool> ensureProForFeature(BuildContext context) async {
-    if (isProEnabledForCurrentDevice) {
+  Future<bool> ensureProForFeature(BuildContext context, {bool isAllowedForOldPurchases = false}) async {
+    if (isProEnabledForCurrentDevice || (isAllowedForOldPurchases && hasPurchasedBefore50RVC)) {
       return true;
     } else if (isProEnabled) {
       buildToast(title: AppLocalizations.of(context).currentDeviceIsNotRegistered);

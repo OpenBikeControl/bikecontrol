@@ -280,7 +280,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   MenuButton(
                                     leading: Icon(Icons.play_arrow_outlined),
                                     onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(
+                                        context,
+                                        isAllowedForOldPurchases: true,
+                                      )) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
@@ -293,12 +296,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: _buildProMenuItemLabel(context.i18n.playPause),
+                                    child: _buildProMenuItemLabel(
+                                      context.i18n.playPause,
+                                      isAllowedForOldPurchases: true,
+                                    ),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.stop_outlined),
                                     onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(
+                                        context,
+                                        isAllowedForOldPurchases: true,
+                                      )) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
@@ -311,12 +320,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: _buildProMenuItemLabel(context.i18n.stop),
+                                    child: _buildProMenuItemLabel(context.i18n.stop, isAllowedForOldPurchases: true),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.skip_previous_outlined),
                                     onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(
+                                        context,
+                                        isAllowedForOldPurchases: true,
+                                      )) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
@@ -329,12 +341,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: _buildProMenuItemLabel(context.i18n.previous),
+                                    child: _buildProMenuItemLabel(
+                                      context.i18n.previous,
+                                      isAllowedForOldPurchases: true,
+                                    ),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.skip_next_outlined),
                                     onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(
+                                        context,
+                                        isAllowedForOldPurchases: true,
+                                      )) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
@@ -347,12 +365,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: _buildProMenuItemLabel(context.i18n.next),
+                                    child: _buildProMenuItemLabel(context.i18n.next, isAllowedForOldPurchases: true),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.volume_up_outlined),
                                     onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(
+                                        context,
+                                        isAllowedForOldPurchases: true,
+                                      )) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
@@ -365,13 +386,22 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       setState(() {});
                                       widget.onUpdate();
                                     },
-                                    child: _buildProMenuItemLabel(context.i18n.volumeUp),
+                                    child: _buildProMenuItemLabel(
+                                      context.i18n.volumeUp,
+                                      isAllowedForOldPurchases: true,
+                                    ),
                                   ),
                                   MenuButton(
                                     leading: Icon(Icons.volume_down_outlined),
-                                    child: _buildProMenuItemLabel(context.i18n.volumeDown),
+                                    child: _buildProMenuItemLabel(
+                                      context.i18n.volumeDown,
+                                      isAllowedForOldPurchases: true,
+                                    ),
                                     onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(context)) {
+                                      if (!await IAPManager.instance.ensureProForFeature(
+                                        context,
+                                        isAllowedForOldPurchases: true,
+                                      )) {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
@@ -793,8 +823,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     setState(() {});
   }
 
-  Widget _buildProMenuItemLabel(String text) {
-    final isPro = IAPManager.instance.hasActiveSubscription;
+  Widget _buildProMenuItemLabel(String text, {bool isAllowedForOldPurchases = false}) {
+    final isPro =
+        IAPManager.instance.hasActiveSubscription ||
+        (isAllowedForOldPurchases && IAPManager.instance.hasPurchasedBefore50RVC);
     if (isPro) {
       return Text(text);
     }

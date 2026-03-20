@@ -80,7 +80,7 @@ class AndroidActions extends BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger)!;
 
     if (keyPair.isSpecialKey) {
-      if (!IAPManager.instance.hasActiveSubscription) {
+      if (!IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld) {
         return Error('Pro subscription required for media control');
       }
       await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
@@ -96,6 +96,9 @@ class AndroidActions extends BaseActions {
     }
 
     if (keyPair.androidAction == AndroidSystemAction.assistant) {
+      if (!IAPManager.instance.hasActiveSubscription) {
+        return Error('Pro subscription required for Assistant');
+      }
       try {
         await _launchAssistant();
       } on PlatformException {

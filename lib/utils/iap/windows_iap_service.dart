@@ -76,13 +76,6 @@ class WindowsIAPService {
       return;
     }
 
-    final boughtProducts = await _windowsIapPlugin.getAddonLicenses();
-    if (boughtProducts.containsKey(IAPManager.premiumMonthlyProductKey) &&
-        boughtProducts[IAPManager.premiumMonthlyProductKey]!.isActive == true) {
-      IAPManager.instance.isLocalPro.value = true;
-      return;
-    }
-
     final trial = await _windowsIapPlugin.getTrialStatusAndRemainingDays();
     core.connection.signalNotification(LogNotification('Trial status: $trial'));
     final trialEndDate = trial.remainingDays;

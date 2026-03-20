@@ -40,6 +40,11 @@ class DesktopActions extends BaseActions {
       if (!isKeyDown) {
         return Ignored('Screenshot capture only runs on key down');
       }
+
+      if (!IAPManager.instance.isProEnabledForCurrentDevice) {
+        return Error('Pro subscription required for Screenshot action');
+      }
+
       final screenshotDirectory = keyPair.screenshotPath!.trim();
       try {
         final capturedArea = await ScreenCapture().captureEntireScreen();
@@ -65,6 +70,11 @@ class DesktopActions extends BaseActions {
       if (!isKeyDown) {
         return Ignored('Shortcut launch only runs on key down');
       }
+
+      if (!IAPManager.instance.isProEnabledForCurrentDevice) {
+        return Error('Pro subscription required for Screenshot action');
+      }
+
       final commandPath = keyPair.command!.trim();
       if (defaultTargetPlatform == TargetPlatform.macOS) {
         final launched = await launchUrlString('shortcuts://run-shortcut?name=$commandPath');
@@ -90,7 +100,7 @@ class DesktopActions extends BaseActions {
     if (core.settings.getLocalEnabled()) {
       // Handle media keys
       if (keyPair.isSpecialKey) {
-        if (!IAPManager.instance.hasActiveSubscription) {
+        if (!IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld) {
           return Error('Pro subscription required for media control');
         }
         try {
