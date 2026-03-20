@@ -1,4 +1,5 @@
 dependency_overrides:
+  path_provider_foundation: ">=2.3.0 <2.6.0"
   prop:
     path: prop
 
