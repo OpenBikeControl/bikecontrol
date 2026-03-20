@@ -6,7 +6,7 @@ class ClickEmulator {
   final ValueNotifier<bool> isStarted = ValueNotifier(false);
   final ValueNotifier<bool> isConnected = ValueNotifier(false);
 
-  Future<void> startServer() async {
+  Future<void> startServer(bool hello, {String? name}) async {
     isStarted.value = true;
   }
 
