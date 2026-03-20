@@ -109,6 +109,8 @@ Future<void> _persistCrash({
   String? information,
 }) async {
   try {
+    core.connection.signalNotification(LogNotification('App crashed $type: $error${stack != null ? '\n$stack' : ''}'));
+
     final timestamp = DateTime.now().toIso8601String();
     final crashData = StringBuffer()
       ..writeln('--- $timestamp ---')
@@ -141,7 +143,6 @@ Future<void> _persistCrash({
     }
 
     await file.writeAsString(crashData.toString(), mode: FileMode.append);
-    core.connection.signalNotification(LogNotification('App crashed: $error'));
   } catch (error) {
     if (kDebugMode) {
       print('Failed to write crash log: $error');

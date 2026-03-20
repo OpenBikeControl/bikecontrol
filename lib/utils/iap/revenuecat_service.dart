@@ -111,15 +111,25 @@ class RevenueCatService {
       _isConfigured = true;
 
       debugPrint('RevenueCat initialized successfully');
-      core.connection.signalNotification(
-        LogNotification('RevenueCat initialized'),
-      );
+      core.connection.signalNotification(LogNotification('RevenueCat initialized'));
 
       // Listen for customer info updates
       Purchases.addCustomerInfoUpdateListener((customerInfo) {
         _handleCustomerInfoUpdate(customerInfo);
       });
+      _isInitialized = true;
 
+      // Check existing purchase status
+      await _checkExistingPurchase();
+      await _syncRevenueCatUser(session);
+    } catch (e, s) {
+      debugPrint('Error initializing RevenueCat: $e');
+      recordError(e, s, context: 'Initializing RevenueCat');
+      isPurchasedNotifier.value = false;
+      _isInitialized = true;
+    }
+
+    try {
       _trialStartDate = await _prefs.read(key: _trialStartDateKey);
       core.connection.signalNotification(
         LogNotification('Trial start date: $_trialStartDate => $trialDaysRemaining'),
@@ -129,27 +139,18 @@ class RevenueCatService {
       final commandCount = await _prefs.read(key: _dailyCommandCountKey) ?? '0';
       _dailyCommandCount = int.tryParse(commandCount);
 
-      // Check existing purchase status
-      await _checkExistingPurchase();
-
-      _isInitialized = true;
-
       if (!isTrialExpired && Platform.isAndroid) {
         setDailyCommandLimit(80);
       }
-      await _syncRevenueCatUser(session);
       await setAttributes();
     } catch (e, s) {
-      recordError(e, s, context: 'Initializing RevenueCat Service');
+      recordError(e, s, context: 'Initializing Trial and Command Tracking');
       core.connection.signalNotification(
         AlertNotification(
           zp.LogLevel.LOGLEVEL_ERROR,
-          'There was an error initializing RevenueCat. Please check your configuration.',
+          'There was an error initializing the trial period or command tracking. Please try again.',
         ),
       );
-      debugPrint('Failed to initialize RevenueCat: $e');
-      isPurchasedNotifier.value = false;
-      _isInitialized = true;
     }
   }
 
