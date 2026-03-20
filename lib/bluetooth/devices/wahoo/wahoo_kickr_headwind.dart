@@ -126,6 +126,27 @@ class WahooKickrHeadwind extends BluetoothDevice {
         final speed = keyPair.inGameActionValue ?? 0;
         await setSpeed(speed);
         return Success('Headwind speed set to $speed%');
+      } else if (keyPair.inGameAction == InGameAction.headwindSpeedInc ||
+                 keyPair.inGameAction == InGameAction.headwindSpeedDec ||
+                 keyPair.inGameAction == InGameAction.headwindSpeedCyclicInc ||
+                 keyPair.inGameAction == InGameAction.headwindSpeedCyclicDec) {
+        final step = 25;
+        int speed = 0;
+        switch (keyPair.inGameAction) {
+          case InGameAction.headwindSpeedInc:
+            speed = _currentSpeed + step > 100 ? 100 : _currentSpeed + step;
+          case InGameAction.headwindSpeedDec:
+            speed = _currentSpeed - step < 0 ? 0 : _currentSpeed - step;
+          case InGameAction.headwindSpeedCyclicInc:
+            speed = _currentSpeed + step > 100 ? (_currentSpeed < 100 ? 100 : 0) : _currentSpeed + step;
+          case InGameAction.headwindSpeedCyclicDec:
+            speed = _currentSpeed - step < 0 ? (_currentSpeed > 0 ? 0 : 100) : _currentSpeed - step;
+          default:
+            return Error('Failed to control Headwind: Unknown action');
+        }
+        await setSpeed(speed);
+        _currentSpeed = speed;
+        return Success('Headwind speed set to $speed%');
       } else if (keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
         await setHeartRateMode();
         return Success('Headwind set to Heart Rate mode');
