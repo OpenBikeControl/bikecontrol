@@ -19,6 +19,7 @@ class WindowsIAPService {
   static const int dailyCommandLimit = 15;
 
   static const String _purchaseStatusKey = 'iap_purchase_status_2';
+  static const String _boughtBefore50 = 'iap_bought_before_50';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
   static const String _lastCommandDateKey = 'iap_last_command_date';
 
@@ -68,6 +69,8 @@ class WindowsIAPService {
       IAPManager.instance.isPurchased.value = true;
       return;
     }
+
+    hasPurchasedBefore50 = (await _prefs.read(key: _boughtBefore50)) == 'true';
 
     final storedStatus = await _prefs.read(key: _purchaseStatusKey);
     core.connection.signalNotification(LogNotification('Is purchased status: $storedStatus'));
@@ -122,6 +125,8 @@ class WindowsIAPService {
 
   /// Get the number of days remaining in the trial
   int trialDaysRemaining = 0;
+
+  bool hasPurchasedBefore50 = false;
 
   /// Check if the trial has expired
   bool get isTrialExpired {
@@ -348,5 +353,10 @@ class WindowsIAPService {
         ],
       ),
     );
+  }
+
+  Future<void> setBoughtBefore50() async {
+    hasPurchasedBefore50 = true;
+    await _prefs.write(key: _boughtBefore50, value: 'true');
   }
 }
