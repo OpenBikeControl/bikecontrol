@@ -8,6 +8,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -54,7 +55,10 @@ class _NavigationState extends State<Navigation> {
       final currentVersion = packageInfo.version;
       final lastSeenVersion = core.settings.getLastSeenVersion();
 
-      if (Platform.isWindows && lastSeenVersion != null && Version.parse(lastSeenVersion) <= Version(5, 0, 0)) {
+      if (!kIsWeb &&
+          Platform.isWindows &&
+          lastSeenVersion != null &&
+          Version.parse(lastSeenVersion) <= Version(5, 0, 0)) {
         IAPManager.instance.setWinBoughtBefore50();
       }
 
