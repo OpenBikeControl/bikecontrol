@@ -127,7 +127,7 @@ flutter_intl:
 
 msix_config:
   display_name: BikeControl
-  publisher_display_name: Jonas Bark
+  publisher_display_name: OpenBikeControl UG
   identity_name: JonasBark.SwiftControl
   publisher: CN=EDA6D86E-3E52-4054-9F3A-4277AFCCB2C4
   store: false
