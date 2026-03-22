@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -1163,6 +1164,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         () {}, // no dedicated page
       ),
       ErrorType.other => null,
+      ErrorType.deviceRegistrationNeeded => (
+        'Register device',
+        () {
+          openDrawer(
+            context: context,
+            builder: (c) => SubscriptionPage(),
+            position: OverlayPosition.end,
+          );
+        },
+      ),
     };
   }
 
