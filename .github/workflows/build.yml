@@ -245,6 +245,16 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
+      - name: Configure Microsoft Store CLI
+        uses: microsoft/microsoft-store-apppublisher@v1.1
+
+      - name: Reconfigure store credentials
+        run: msstore reconfigure `
+          --tenantId ${{ secrets.AZURE_AD_TENANT_ID }} `
+          --sellerId ${{ secrets.SELLER_ID }} `
+          --clientId ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }} `
+          --clientSecret ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+
       - name: rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
         shell: pwsh
         run: |
@@ -316,11 +326,15 @@ jobs:
         run: dart run msix:create --store --output-name bike_control.store
 
       - name: Upload Store Artifact
+        if: false
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: BikeControl Store
           path: build/windows/x64/runner/Release/bike_control.store.msix
+
+      - name: Publish App package
+        run: msstore publish 'build/windows/x64/runner/Release/bike_control.store.msix' -id 9NP42GS03Z26
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
