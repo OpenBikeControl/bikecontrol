@@ -72,17 +72,36 @@ class _DevicePageState extends State<DevicePage> {
                       await context.push(ControllerSettingsPage(device: device));
                       widget.onUpdate();
                     },
-                    trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
-                    child: Row(
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.mutedForeground,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
                       children: [
-                        Flexible(child: device.showInformation(context, showFull: false)),
-                        if (!widget.isMobile && !screenshotMode)
-                          Container(
-                            constraints: BoxConstraints(maxWidth: 300),
-                            child: Wrap(
-                              children: widget.footerBuilder(device),
+                        Row(
+                          spacing: 12,
+                          children: [
+                            Flexible(
+                              child: device.showInformation(context, showFull: false),
                             ),
-                          ),
+                            if (!widget.isMobile && !screenshotMode)
+                              Flexible(
+                                child: Wrap(
+                                  alignment: WrapAlignment.start,
+                                  runAlignment: WrapAlignment.start,
+                                  crossAxisAlignment: WrapCrossAlignment.start,
+                                  spacing: 9,
+                                  runSpacing: 9,
+                                  children: widget.footerBuilder(device),
+                                ),
+                              ),
+                          ],
+                        ),
+                        ...device.showAdditionalInformation(context),
                       ],
                     ),
                   ),

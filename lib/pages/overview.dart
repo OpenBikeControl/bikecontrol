@@ -497,24 +497,14 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   final id = device.uniqueId;
                   final pressedButton = _pressedButton[id];
                   final generation = _pressGeneration[id] ?? 0;
-                  return [
-                    const Gap(12),
-                    Wrap(
-                      alignment: WrapAlignment.start,
-                      runAlignment: WrapAlignment.start,
-                      crossAxisAlignment: WrapCrossAlignment.start,
-                      spacing: 9,
-                      runSpacing: 9,
-                      children: device.availableButtons.map((btn) {
-                        final pressGen = pressedButton?.name == btn.name ? generation : 0;
-                        return AnimatedButtonWidget(
-                          key: ValueKey(btn.name),
-                          button: btn,
-                          pressGeneration: pressGen,
-                        );
-                      }).toList(),
-                    ),
-                  ];
+                  return device.availableButtons.map((btn) {
+                    final pressGen = pressedButton?.name == btn.name ? generation : 0;
+                    return AnimatedButtonWidget(
+                      key: ValueKey(btn.name),
+                      button: btn,
+                      pressGeneration: pressGen,
+                    );
+                  }).toList();
                 },
                 onUpdate: () {
                   _clearErrorBanner();

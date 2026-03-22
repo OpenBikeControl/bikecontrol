@@ -385,6 +385,10 @@ abstract class BaseDevice {
     return [];
   }
 
+  List<Widget> showAdditionalInformation(BuildContext context) {
+    return [];
+  }
+
   Widget showInformation(BuildContext context, {required bool showFull}) {
     return Row(
       spacing: 12,
