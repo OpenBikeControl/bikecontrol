@@ -79,140 +79,111 @@ class ZwiftClickV2 extends ZwiftRide {
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull}) {
+  List<Widget> showAdditionalInformation(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 8,
+    if (!isConnected) return [];
+    if (isUnlocked && lastUnlockDate != null) {
+      return [
+        Warning(
+          important: false,
           children: [
-            super.showInformation(context, showFull: showFull),
-
-            if (isConnected)
-              if (isUnlocked && lastUnlockDate != null)
-                Warning(
-                  important: false,
-                  children: [
-                    Row(
-                      spacing: 8,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          padding: const EdgeInsets.all(4),
-                          child: Icon(Icons.lock_open_rounded, color: Colors.white),
-                        ),
-                        Flexible(
-                          child: Text(
-                            AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
-                              DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1))),
-                            ),
-                          ).xSmall,
-                        ),
-                        Tooltip(
-                          tooltip: (c) => Text('Unlock again'),
-                          child: IconButton.ghost(
-                            icon: Icon(Icons.lock_reset_rounded),
-
-                            onPressed: () {
-                              openDrawer(
-                                context: context,
-                                position: OverlayPosition.bottom,
-                                builder: (_) => UnlockPage(device: this),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (kDebugMode && showFull)
-                      Button(
-                        onPressed: () {
-                          test();
-                        },
-                        leading: const Icon(Icons.translate_sharp),
-                        style: ButtonStyle.primary(size: ButtonSize.small),
-                        child: Text('Reset'),
-                      ),
-                  ],
-                )
-              else
-                Warning(
-                  important: false,
-                  children: [
-                    Row(
-                      spacing: 8,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          padding: const EdgeInsets.all(4),
-                          child: Icon(Icons.lock_rounded, color: Colors.white),
-                        ),
-                        Flexible(child: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall),
-                        Button(
-                          onPressed: () {
-                            openDrawer(
-                              context: context,
-                              position: OverlayPosition.bottom,
-                              builder: (_) => UnlockPage(device: this),
-                            );
-                          },
-                          leading: const Icon(Icons.lock_open_rounded),
-                          style: ButtonStyle.outline(size: ButtonSize.small),
-                          child: Text(AppLocalizations.of(context).unlock_unlockNow),
-                        ),
-                      ],
-                    ),
-                    if (kDebugMode && !isUnlocked && showFull)
-                      Button(
-                        onPressed: () {
-                          super.setupHandshake();
-                        },
-                        leading: const Icon(Icons.handshake),
-                        style: ButtonStyle.primary(size: ButtonSize.small),
-                        child: Text('Handshake'),
-                      ),
-                    if (kDebugMode && showFull)
-                      Button(
-                        onPressed: () {
-                          test();
-                        },
-                        leading: const Icon(Icons.translate_sharp),
-                        style: ButtonStyle.primary(size: ButtonSize.small),
-                        child: Text('Reset'),
-                      ),
-                  ],
+            Row(
+              spacing: 8,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(Icons.lock_open_rounded, color: Colors.white),
                 ),
-            /*else
-              Warning(
-                important: false,
-                children: [
-                  Text(
-                    AppLocalizations.of(context).clickV2EventInfo,
+                Flexible(
+                  child: Text(
+                    AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
+                      DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1))),
+                    ),
                   ).xSmall,
-                  LinkButton(
-                    child: Text(context.i18n.troubleshootingGuide),
+                ),
+                Tooltip(
+                  tooltip: (c) => Text('Unlock again'),
+                  child: IconButton.ghost(
+                    icon: Icon(Icons.lock_reset_rounded),
                     onPressed: () {
                       openDrawer(
                         context: context,
                         position: OverlayPosition.bottom,
-                        builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+                        builder: (_) => UnlockPage(device: this),
                       );
                     },
                   ),
-                ],
-              ),*/
+                ),
+              ],
+            ),
+            if (kDebugMode)
+              Button(
+                onPressed: () {
+                  test();
+                },
+                leading: const Icon(Icons.translate_sharp),
+                style: ButtonStyle.primary(size: ButtonSize.small),
+                child: Text('Reset'),
+              ),
           ],
-        );
-      },
-    );
+        ),
+      ];
+    }
+    return [
+      Warning(
+        important: false,
+        children: [
+          Row(
+            spacing: 8,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.lock_rounded, color: Colors.white),
+              ),
+              Flexible(child: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall),
+              Button(
+                onPressed: () {
+                  openDrawer(
+                    context: context,
+                    position: OverlayPosition.bottom,
+                    builder: (_) => UnlockPage(device: this),
+                  );
+                },
+                leading: const Icon(Icons.lock_open_rounded),
+                style: ButtonStyle.outline(size: ButtonSize.small),
+                child: Text(AppLocalizations.of(context).unlock_unlockNow),
+              ),
+            ],
+          ),
+          if (kDebugMode)
+            Button(
+              onPressed: () {
+                super.setupHandshake();
+              },
+              leading: const Icon(Icons.handshake),
+              style: ButtonStyle.primary(size: ButtonSize.small),
+              child: Text('Handshake'),
+            ),
+          if (kDebugMode)
+            Button(
+              onPressed: () {
+                test();
+              },
+              leading: const Icon(Icons.translate_sharp),
+              style: ButtonStyle.primary(size: ButtonSize.small),
+              child: Text('Reset'),
+            ),
+        ],
+      ),
+    ];
   }
 
   Future<void> test() async {

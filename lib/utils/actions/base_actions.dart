@@ -44,6 +44,7 @@ enum ErrorType {
   noConnectionMethod,
   trainerNotConnected,
   proRequired,
+  deviceRegistrationNeeded,
   headwindNotConnected,
   other,
 }
@@ -205,8 +206,14 @@ abstract class BaseActions {
     required ButtonTrigger trigger,
     required KeyPair keyPair,
   }) {
-    if (keyPair.isProAction && !IAPManager.instance.hasActiveSubscription) {
-      return Error('Pro subscription required for action: $keyPair', type: ErrorType.proRequired);
+    if (keyPair.isProAction && !IAPManager.instance.isProEnabledForCurrentDevice) {
+      if (keyPair.isSpecialKey && IAPManager.instance.hasPurchasedBefore50RVC) {
+        // it's okay to allow special keys for users who purchased before the subscription model, even without an active subscription, since they already paid for the pro features
+      } else if (IAPManager.instance.isProEnabled) {
+        return Error('Current device not registered', type: ErrorType.deviceRegistrationNeeded);
+      } else {
+        return Error('Pro subscription required for action: $keyPair', type: ErrorType.proRequired);
+      }
     }
 
     if (!IAPManager.instance.hasActiveSubscription && supportedApp != null) {

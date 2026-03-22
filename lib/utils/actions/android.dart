@@ -80,9 +80,6 @@ class AndroidActions extends BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger)!;
 
     if (keyPair.isSpecialKey) {
-      if (!IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld) {
-        return Error('Pro subscription required for media control');
-      }
       await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
         PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,
         PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,
@@ -96,9 +93,6 @@ class AndroidActions extends BaseActions {
     }
 
     if (keyPair.androidAction == AndroidSystemAction.assistant) {
-      if (!IAPManager.instance.hasActiveSubscription) {
-        return Error('Pro subscription required for Assistant');
-      }
       try {
         await _launchAssistant();
       } on PlatformException {
@@ -107,9 +101,6 @@ class AndroidActions extends BaseActions {
     }
 
     if (keyPair.androidAction != null && keyPair.androidAction != AndroidSystemAction.assistant) {
-      if (!IAPManager.instance.hasActiveSubscription) {
-        return Error('Pro subscription required for Android system actions');
-      }
       if (!core.settings.getLocalEnabled() || !core.logic.showLocalControl || !isKeyDown) {
         return Ignored('Global action ignored');
       }
