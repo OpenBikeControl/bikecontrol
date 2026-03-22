@@ -69,7 +69,9 @@ class IAPManager {
 
   bool get isProEnabledForCurrentDeviceOrDidPurchaseOld => isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
 
-  bool get hasPurchasedBefore50RVC => isPurchased.value && (_revenueCatService?.hasPurchasedBefore50 ?? false);
+  bool get hasPurchasedBefore50RVC =>
+      isPurchased.value &&
+      ((_revenueCatService?.hasPurchasedBefore50 ?? false) || (_windowsIapService?.hasPurchasedBefore50 ?? false));
 
   DateTime? get premiumActiveUntil =>
       entitlements.activeUntil(premiumMonthlyProductKey) ?? entitlements.activeUntil(premiumYearlyProductKey);
@@ -434,5 +436,9 @@ class IAPManager {
       await showGoProDialog(context);
     }
     return IAPManager.instance.hasActiveSubscription;
+  }
+
+  void setWinBoughtBefore50() {
+    _windowsIapService?.setBoughtBefore50();
   }
 }
