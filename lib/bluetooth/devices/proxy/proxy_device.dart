@@ -36,23 +36,34 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Widget showInformation(BuildContext context, {required bool showFull}) {
-    return Row(
-      spacing: 16,
+    return Column(
       children: [
-        Expanded(child: super.showInformation(context, showFull: showFull)),
-        if (!isConnected)
-          Button.primary(
-            style: ButtonStyle.primary(size: ButtonSize.small),
-            onPressed: () {
-              super.connect();
+        Row(
+          spacing: 16,
+          children: [
+            Expanded(child: super.showInformation(context, showFull: showFull)),
+            if (!isConnected)
+              Button.primary(
+                style: ButtonStyle.primary(size: ButtonSize.small),
+                onPressed: () {
+                  super.connect();
+                },
+                child: Text('Proxy'),
+              )
+            else
+              StatusIcon(
+                status: emulator.isConnected.value,
+                icon: Icons.wifi,
+                started: emulator.isStarted.value,
+              ),
+          ],
+        ),
+        if (isConnected)
+          ValueListenableBuilder(
+            valueListenable: emulator.data,
+            builder: (context, value, child) {
+              return value.isNotEmpty ? Text('Data: $value') : const SizedBox.shrink();
             },
-            child: Text('Proxy'),
-          )
-        else
-          StatusIcon(
-            status: emulator.isConnected.value,
-            icon: Icons.wifi,
-            started: emulator.isStarted.value,
           ),
       ],
     );
