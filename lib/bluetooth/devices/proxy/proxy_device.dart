@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:prop/emulators/ftms_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -35,12 +36,10 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Widget showInformation(BuildContext context, {required bool showFull}) {
-    return Column(
+    return Row(
       spacing: 16,
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        super.showInformation(context, showFull: showFull),
+        Expanded(child: super.showInformation(context, showFull: showFull)),
         if (!isConnected)
           Button.primary(
             style: ButtonStyle.primary(size: ButtonSize.small),
@@ -48,6 +47,12 @@ class ProxyDevice extends BluetoothDevice {
               super.connect();
             },
             child: Text('Proxy'),
+          )
+        else
+          StatusIcon(
+            status: emulator.isConnected.value,
+            icon: Icons.wifi,
+            started: emulator.isStarted.value,
           ),
       ],
     );
