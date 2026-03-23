@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/proxy.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -522,6 +523,31 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           key: _trainerKey,
           child: _buildTrainerCard(trainerApp, enabledTrainers),
         ),
+
+        if (kDebugMode) ...[
+          const Gap(22),
+          Card(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0, left: 12, right: 12),
+                  child: _buildSectionHeader(
+                    icon: Icons.connect_without_contact,
+                    title: 'Proxy',
+                  ),
+                ),
+                Gap(12),
+                ProxyPage(
+                  onUpdate: () {
+                    setState(() {});
+                  },
+                  isMobile: widget.isMobile,
+                ),
+              ],
+            ),
+          ),
+        ],
         if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
       ],
     );
