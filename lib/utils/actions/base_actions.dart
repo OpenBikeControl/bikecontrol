@@ -147,6 +147,10 @@ abstract class BaseActions {
 
     // Handle Headwind actions
     if (keyPair.inGameAction == InGameAction.headwindSpeed ||
+        keyPair.inGameAction == InGameAction.headwindSpeedInc ||
+        keyPair.inGameAction == InGameAction.headwindSpeedDec ||
+        keyPair.inGameAction == InGameAction.headwindSpeedCyclicInc ||
+        keyPair.inGameAction == InGameAction.headwindSpeedCyclicDec ||
         keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
       final headwind = core.connection.accessories.where((h) => h.isConnected).firstOrNull;
       if (headwind == null) {
