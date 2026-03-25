@@ -33,8 +33,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         supportedActions: InGameAction.values,
       );
 
-  bool get _useDirCon =>
-      core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpDirCon) ?? false;
+  bool get _useDirCon => core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpDirCon) ?? false;
 
   Future<void> startServer() async {
     print('Starting mDNS server...');

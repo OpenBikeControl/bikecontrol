@@ -173,14 +173,12 @@ class CoreLogic {
 
   bool get showZwiftMsdnEmulator {
     final app = core.settings.getTrainerApp();
-    return app != null &&
-        app.supports(AppConnectionMethod.zwiftMdns);
+    return app != null && app.supports(AppConnectionMethod.zwiftMdns);
   }
 
   bool get showObpMdnsEmulator {
     final app = core.settings.getTrainerApp();
-    return app != null &&
-        (app.supports(AppConnectionMethod.obpMdns) || app.supports(AppConnectionMethod.obpDirCon));
+    return app != null && (app.supports(AppConnectionMethod.obpMdns) || app.supports(AppConnectionMethod.obpDirCon));
   }
 
   bool get showObpBluetoothEmulator {

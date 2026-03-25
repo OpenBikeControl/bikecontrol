@@ -62,7 +62,9 @@ class _CustomizeState extends State<CustomizePage> {
                                 Expanded(child: Text(a.name)),
                                 if (a is CustomApp)
                                   BetaPill(text: 'CUSTOM')
-                                else if (a.supports(AppConnectionMethod.obpBle) || a.supports(AppConnectionMethod.obpMdns) || a.supports(AppConnectionMethod.obpDirCon))
+                                else if (a.supports(AppConnectionMethod.obpBle) ||
+                                    a.supports(AppConnectionMethod.obpMdns) ||
+                                    a.supports(AppConnectionMethod.obpDirCon))
                                   Icon(Icons.star, size: 16),
                               ],
                             ),
