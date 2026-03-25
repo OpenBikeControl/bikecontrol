@@ -1,6 +1,8 @@
 ### 5.0.0 (10-03-2026)
 
-****BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to additional features such as:
+****BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to newly added features. *Everyone who has already purchased will keep all their functions*.
+
+Pro Features:
 - Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android and iOS) without additional charge
 - Synchronize and backup your keymap settings across devices
 - Individual actions for single, long and double clicks, e.g. hold a button to steer, double click to perform a specific action. This means your two button devices can now have up to 6 different actions!
