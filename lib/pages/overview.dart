@@ -414,6 +414,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
     _horizontalScrollController.dispose();
 
