@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
           builder: (context, isStarted, _) {
             return StatefulBuilder(
               builder: (context, setState) {
+                final isRouvy = core.settings.getTrainerApp() is Rouvy;
                 return ConnectionMethod(
                   trainerConnection: core.zwiftEmulator,
                   isRecommended: true,
@@ -53,6 +55,10 @@ class _ZwiftTileState extends State<ZwiftTile> {
                       ? context.i18n.zwiftControllerDescription
                       : isConnected
                       ? context.i18n.connected
+                      : isRouvy
+                      ? context.i18n
+                            .waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? '')
+                            .replaceAll('KICKR BIKE PRO', 'BikeControl')
                       : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
                   requirements: core.permissions.getRemoteControlRequirements(),
                 );
