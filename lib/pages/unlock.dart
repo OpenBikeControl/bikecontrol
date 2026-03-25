@@ -134,16 +134,10 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
               children: [
                 Text(
                   'Important Setup Information',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.destructive,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ).small,
                 Text(
                   AppLocalizations.of(context).clickV2Instructions,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.destructive,
-                  ),
                 ).xSmall,
                 if (kDebugMode)
                   GhostButton(
