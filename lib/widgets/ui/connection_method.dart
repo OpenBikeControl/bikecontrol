@@ -18,10 +18,10 @@ import 'package:url_launcher/url_launcher_string.dart';
 enum ConnectionMethodType {
   bluetooth(icon: Icons.bluetooth),
   network(icon: Icons.wifi),
-  openBikeControl(icon: Icons.directions_bike),
+  openBikeControl(icon: null),
   local(icon: Icons.keyboard);
 
-  final IconData icon;
+  final IconData? icon;
   const ConnectionMethodType({required this.icon});
 }
 

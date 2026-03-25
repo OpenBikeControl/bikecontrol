@@ -11,9 +11,11 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ConfigurationPage extends StatefulWidget {
   final bool onboardingMode;
@@ -47,20 +49,31 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     itemBuilder: (c, app) => Row(
                       spacing: 4,
                       children: [
-                        Text(screenshotMode ? 'Trainer app' : app.name),
-                        if (app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.obpMdns)) Icon(Icons.star),
+                        Expanded(child: Text(screenshotMode ? 'Trainer app' : app.name)),
+                        if (app.supports(AppConnectionMethod.obpBle) ||
+                            app.supports(AppConnectionMethod.obpMdns) ||
+                            app.supports(AppConnectionMethod.obpDirCon))
+                          OpenBikeControlLogo(),
                       ],
                     ),
                     popup: SelectPopup(
                       items: SelectItemList(
                         children: SupportedApp.supportedApps.map((app) {
+                          final supportsObp =
+                              app.supports(AppConnectionMethod.obpBle) ||
+                              app.supports(AppConnectionMethod.obpMdns) ||
+                              app.supports(AppConnectionMethod.obpDirCon);
                           return SelectItemButton(
                             value: app,
                             child: Row(
                               spacing: 4,
                               children: [
-                                Text(app.name),
-                                if (app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.obpMdns)) Icon(Icons.star),
+                                Expanded(
+                                  child: app == core.settings.getTrainerApp()
+                                      ? Text(app.name).semiBold
+                                      : Text(app.name),
+                                ),
+                                if (supportsObp) OpenBikeControlLogo(),
                               ],
                             ),
                           );
@@ -114,9 +127,23 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                             core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpMdns)) &&
                         !screenshotMode &&
                         !widget.onboardingMode)
-                      Text(
-                        AppLocalizations.of(context).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
-                      ).xSmall,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Button.ghost(
+                          onPressed: () {
+                            launchUrlString('https://openbikecontrol.org', mode: LaunchMode.externalApplication);
+                          },
+                          child: Basic(
+                            leading: OpenBikeControlLogo(),
+                            title: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
+                            ).muted.xSmall.normal,
+                            trailing: Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+                          ),
+                        ),
+                      ),
                     SizedBox(height: 0),
                     Text(
                       context.i18n.selectTargetWhereAppRuns(

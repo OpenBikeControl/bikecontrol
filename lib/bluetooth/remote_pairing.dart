@@ -8,12 +8,15 @@ import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:prop/prop.dart';
 
 import '../utils/keymap/keymap.dart';
+import '../widgets/mouse_pair_widget.dart';
 
 class RemotePairing extends TrainerConnection {
   bool get isLoading => _isLoading;
@@ -26,11 +29,9 @@ class RemotePairing extends TrainerConnection {
   Central? _central;
   GATTCharacteristic? _inputReport;
 
-  static const String connectionTitle = 'Remote Control';
-
   RemotePairing()
     : super(
-        title: connectionTitle,
+        title: AppLocalizations.current.enablePairingProcess,
         type: ConnectionMethodType.bluetooth,
         supportedActions: InGameAction.values,
       );
@@ -289,4 +290,7 @@ class RemotePairing extends TrainerConnection {
     // we don't want to overwhelm the target device
     await Future.delayed(Duration(milliseconds: 10));
   }
+
+  @override
+  Widget getTile() => RemoteMousePairingWidget();
 }

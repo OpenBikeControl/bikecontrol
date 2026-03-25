@@ -11,16 +11,17 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
 
 class ZwiftEmulator extends TrainerConnection {
   bool get isLoading => _isLoading;
-
-  static const String connectionTitle = 'Zwift BLE Emulator';
 
   late final _peripheralManager = PeripheralManager();
   bool _isLoading = false;
@@ -32,7 +33,7 @@ class ZwiftEmulator extends TrainerConnection {
 
   ZwiftEmulator()
     : super(
-        title: connectionTitle,
+        title: AppLocalizations.current.connectUsingBluetooth,
         type: ConnectionMethodType.bluetooth,
         supportedActions: [
           InGameAction.shiftUp,
@@ -373,4 +374,7 @@ class ZwiftEmulator extends TrainerConnection {
     isStarted.value = false;
     _isLoading = false;
   }
+
+  @override
+  Widget getTile() => ZwiftTile(onUpdate: () {});
 }
