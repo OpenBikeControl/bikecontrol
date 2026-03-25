@@ -12,13 +12,17 @@ import 'package:flutter/services.dart';
 import '../keymap.dart';
 
 class TrainingPeaks extends SupportedApp {
+  @override
+  List<(AppConnectionMethod, ConnectionSupport)> get connections => [
+    (AppConnectionMethod.obpBle, ConnectionSupport.supported),
+    (AppConnectionMethod.obpDirCon, ConnectionSupport.experimental),
+  ];
+
   TrainingPeaks()
     : super(
         name: 'TrainingPeaks Virtual',
         packageName: "TPVirtual",
         compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.otherDevice] : Target.values,
-        supportsZwiftEmulation: false,
-        supportsOpenBikeProtocol: [OpenBikeProtocolSupport.ble, OpenBikeProtocolSupport.dircon],
         star: true,
         keymap: Keymap(
           keyPairs: [

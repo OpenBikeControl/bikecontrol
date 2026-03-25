@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:flutter/material.dart';
 import 'package:prop/prop.dart';
@@ -29,6 +30,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
                 return ConnectionMethod(
                   trainerConnection: core.zwiftEmulator,
                   isRecommended: true,
+                  supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.zwiftBle),
                   isEnabled: core.settings.getZwiftBleEmulatorEnabled(),
                   instructionLink: 'INSTRUCTIONS_ZWIFT.md',
                   onChange: (value) {

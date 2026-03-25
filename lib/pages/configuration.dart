@@ -48,7 +48,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       spacing: 4,
                       children: [
                         Text(screenshotMode ? 'Trainer app' : app.name),
-                        if (app.supportsOpenBikeProtocol.isNotEmpty) Icon(Icons.star),
+                        if (app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.obpMdns)) Icon(Icons.star),
                       ],
                     ),
                     popup: SelectPopup(
@@ -60,7 +60,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                               spacing: 4,
                               children: [
                                 Text(app.name),
-                                if (app.supportsOpenBikeProtocol.isNotEmpty) Icon(Icons.star),
+                                if (app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.obpMdns)) Icon(Icons.star),
                               ],
                             ),
                           );
@@ -75,7 +75,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                           core.whooshLink.stopServer();
                         }
                       }
-                      if (!selectedApp!.supportsZwiftEmulation) {
+                      if (!selectedApp!.supports(AppConnectionMethod.zwiftMdns) &&
+                          !selectedApp.supports(AppConnectionMethod.zwiftBle)) {
                         if (core.zwiftMdnsEmulator.isStarted.value) {
                           core.zwiftMdnsEmulator.stop();
                         }
@@ -83,7 +84,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                           core.zwiftEmulator.stopAdvertising();
                         }
                       }
-                      if (selectedApp.supportsOpenBikeProtocol.isEmpty) {
+                      if (!selectedApp.supports(AppConnectionMethod.obpBle) &&
+                          !selectedApp.supports(AppConnectionMethod.obpMdns)) {
                         if (core.obpMdnsEmulator.isStarted.value) {
                           core.obpMdnsEmulator.stopServer();
                         }
@@ -108,7 +110,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     },
                   ),
                   if (core.settings.getTrainerApp() != null) ...[
-                    if (core.settings.getTrainerApp()!.supportsOpenBikeProtocol.isNotEmpty &&
+                    if ((core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpBle) ||
+                            core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpMdns)) &&
                         !screenshotMode &&
                         !widget.onboardingMode)
                       Text(
@@ -188,13 +191,16 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
   Future<void> _setTarget(BuildContext context, Target target) async {
     await core.settings.setLastTarget(target);
 
-    if ((core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isNotEmpty ?? false) && !core.logic.emulatorEnabled) {
+    if ((core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpBle) == true ||
+            core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpMdns) == true) &&
+        !core.logic.emulatorEnabled) {
       core.settings.setObpMdnsEnabled(true);
     }
 
     // enable local connection on Windows if the app doesn't support OBP
     if (target == Target.thisDevice &&
-        core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isEmpty == true &&
+        !core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpBle) &&
+        !core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpMdns) &&
         !kIsWeb &&
         Platform.isWindows) {
       core.settings.setLocalEnabled(true);
