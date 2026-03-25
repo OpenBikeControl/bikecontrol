@@ -761,7 +761,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 8, bottom: 14),
+              padding: const EdgeInsets.only(right: 8, bottom: 12),
               child: KeyedSubtree(
                 key: _trainerLabelKey,
                 child: TrainerLabel(name: appName),

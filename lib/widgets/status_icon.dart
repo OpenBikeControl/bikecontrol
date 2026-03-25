@@ -1,10 +1,11 @@
+import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class StatusIcon extends StatelessWidget {
   final bool status;
   final bool started;
-  final IconData icon;
+  final IconData? icon;
   final VoidCallback? onPressed;
 
   const StatusIcon({super.key, required this.status, required this.icon, required this.started, this.onPressed});
@@ -22,11 +23,19 @@ class StatusIcon extends StatelessWidget {
               color: Theme.of(context).colorScheme.muted,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: status ? null : Theme.of(context).colorScheme.mutedForeground,
-            ),
+            child: icon != null
+                ? Icon(
+                    icon,
+                    size: 20,
+                    color: status ? null : Theme.of(context).colorScheme.mutedForeground,
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: OpenBikeControlLogo(
+                      size: 20,
+                      color: status ? null : Theme.of(context).colorScheme.mutedForeground,
+                    ),
+                  ),
           )
         else
           Button(

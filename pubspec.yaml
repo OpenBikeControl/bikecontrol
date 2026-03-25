@@ -118,6 +118,7 @@ flutter:
     - assets/silence.mp3
     - assets/bicycle.json
     - icon.png
+    - openbikecontrol.png
 
 flutter_intl:
   enabled: true

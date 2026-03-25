@@ -7,18 +7,19 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
 
 class FtmsMdnsEmulator extends TrainerConnection {
-  static const String connectionTitle = 'Zwift Network Emulator';
-
   late final ClickEmulator clickEmulator = ClickEmulator();
   var lastMessageId = 0;
 
   FtmsMdnsEmulator()
     : super(
-        title: connectionTitle,
+        title: AppLocalizations.current.connectDirectlyOverNetwork,
         type: ConnectionMethodType.network,
         supportedActions: [
           InGameAction.shiftUp,
@@ -99,6 +100,11 @@ class FtmsMdnsEmulator extends TrainerConnection {
     }
     return Success('Sent action ${isKeyDown ? 'down' : ''} ${isKeyUp ? 'up' : ''}: ${keyPair.inGameAction!.title}');
   }
+
+  @override
+  Widget getTile() => ZwiftMdnsTile(
+    onUpdate: () {},
+  );
 }
 
 class FtmsMdnsConstants {
