@@ -164,13 +164,20 @@ enum Target {
 
     return switch (this) {
       Target.thisDevice => false,
-      _ => supportedApp == null || (!supportedApp.supports(AppConnectionMethod.obpBle) && !supportedApp.supports(AppConnectionMethod.obpMdns) && !supportedApp.supports(AppConnectionMethod.obpDirCon)),
+      _ =>
+        supportedApp == null ||
+            (!supportedApp.supports(AppConnectionMethod.obpBle) &&
+                !supportedApp.supports(AppConnectionMethod.obpMdns) &&
+                !supportedApp.supports(AppConnectionMethod.obpDirCon)),
     };
   }
 
   String getDescription(SupportedApp? app) {
     final appName = app?.name ?? 'the Trainer app';
-    final preferredConnectionMethod = (app?.supports(AppConnectionMethod.obpBle) == true || app?.supports(AppConnectionMethod.obpMdns) == true || app?.supports(AppConnectionMethod.obpDirCon) == true)
+    final preferredConnectionMethod =
+        (app?.supports(AppConnectionMethod.obpBle) == true ||
+            app?.supports(AppConnectionMethod.obpMdns) == true ||
+            app?.supports(AppConnectionMethod.obpDirCon) == true)
         ? AppLocalizations.current.openBikeControlConnection
         : app is MyWhoosh
         ? AppLocalizations.current.myWhooshDirectConnection
