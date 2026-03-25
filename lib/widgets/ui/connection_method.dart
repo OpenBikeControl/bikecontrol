@@ -135,7 +135,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
               else if (widget.supportLevel == ConnectionSupport.experimental)
                 Padding(
                   padding: const EdgeInsets.only(top: 1.0),
-                  child: BetaPill(text: 'EXPERIMENTAL'),
+                  child: BetaPill(text: 'EXPER.'),
                 )
               else if (widget.isRecommended && !screenshotMode)
                 SecondaryBadge(child: Text('Recommended')),
