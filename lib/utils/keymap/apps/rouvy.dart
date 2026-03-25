@@ -11,12 +11,17 @@ import 'package:flutter/services.dart';
 import '../keymap.dart';
 
 class Rouvy extends SupportedApp {
+  @override
+  List<(AppConnectionMethod, ConnectionSupport)> get connections => [
+    (AppConnectionMethod.zwiftMdns, ConnectionSupport.experimental),
+    (AppConnectionMethod.zwiftBle, ConnectionSupport.experimental),
+  ];
+
   Rouvy()
     : super(
         name: 'Rouvy',
         packageName: "Rouvy",
         compatibleTargets: !kIsWeb && Platform.isIOS ? [Target.otherDevice] : Target.values,
-        supportsZwiftEmulation: !kIsWeb && Platform.isAndroid,
         star: true,
         keymap: Keymap(
           keyPairs: [

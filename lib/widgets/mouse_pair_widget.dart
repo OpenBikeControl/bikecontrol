@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -30,6 +31,7 @@ class _PairWidgetState extends State<RemoteMousePairingWidget> {
               isEnabled: core.logic.isRemoteControlEnabled,
               showTroubleshooting: true,
               isRecommended: false,
+              supportLevel: ConnectionSupport.beta,
               instructionLink: 'INSTRUCTIONS_REMOTE_CONTROL.md',
               title: context.i18n.enablePairingProcess,
               description: context.i18n.pairingDescription,

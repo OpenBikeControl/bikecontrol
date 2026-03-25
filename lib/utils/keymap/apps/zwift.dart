@@ -7,11 +7,16 @@ import 'package:flutter/services.dart';
 import '../keymap.dart';
 
 class Zwift extends SupportedApp {
+  @override
+  List<(AppConnectionMethod, ConnectionSupport)> get connections => [
+    (AppConnectionMethod.zwiftMdns, ConnectionSupport.supported),
+    (AppConnectionMethod.zwiftBle, ConnectionSupport.beta),
+  ];
+
   Zwift()
     : super(
         name: 'Zwift',
         packageName: "Zwift",
-        supportsZwiftEmulation: true,
         compatibleTargets: [
           Target.thisDevice,
           Target.otherDevice,

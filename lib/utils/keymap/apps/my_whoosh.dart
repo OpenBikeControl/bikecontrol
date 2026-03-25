@@ -7,12 +7,16 @@ import '../buttons.dart';
 import '../keymap.dart';
 
 class MyWhoosh extends SupportedApp {
+  @override
+  List<(AppConnectionMethod, ConnectionSupport)> get connections => [
+    (AppConnectionMethod.myWhooshLink, ConnectionSupport.supported),
+  ];
+
   MyWhoosh()
     : super(
         name: 'MyWhoosh',
         packageName: "MyWhoosh",
         compatibleTargets: Target.values,
-        supportsZwiftEmulation: false,
         star: true,
         additionalKeyPairs: [
           KeyPair(
