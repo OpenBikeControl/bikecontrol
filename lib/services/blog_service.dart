@@ -12,6 +12,9 @@ class BlogPost {
 
   String get url => 'https://bikecontrol.app/blog/$slug';
 
+  /// A post is "new" if it was published within the last 14 days.
+  bool get isNew => DateTime.now().difference(date).inDays < 3;
+
   /// Parse a filename like "2026-02-27 BikeControl 5.md"
   /// Returns null if the filename doesn't start with a valid date.
   static BlogPost? fromFilename(String filename) {
@@ -22,11 +25,7 @@ class BlogPost {
     if (date == null) return null;
 
     final title = match.group(2)!;
-    final slug = title
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9\s-]'), '')
-        .trim()
-        .replaceAll(RegExp(r'\s+'), '-');
+    final slug = title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9\s-]'), '').trim().replaceAll(RegExp(r'\s+'), '-');
 
     return BlogPost(date: date, title: title, slug: slug);
   }
@@ -56,10 +55,7 @@ class BlogService {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final filenames = (json['posts'] as List).cast<String>();
 
-      final posts = filenames
-          .map(BlogPost.fromFilename)
-          .whereType<BlogPost>()
-          .toList()
+      final posts = filenames.map(BlogPost.fromFilename).whereType<BlogPost>().toList()
         ..sort((a, b) => b.date.compareTo(a.date));
 
       _cachedPosts = posts;

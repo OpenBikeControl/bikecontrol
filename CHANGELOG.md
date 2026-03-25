@@ -1,3 +1,11 @@
+### 5.1.0 (25-03-2026)
+**Features**:
+- show latest blog posts from bikecontrol.app
+- Add two extra Wahoo KICKR headwind actions for cyclic speed increase/decrease (thanks @Tumlinh)
+
+**Fixes*:
+- offer "Mark as unlocked" to mark your Click V2 as unlocked when having unlocked manually
+
 ### 5.0.0 (10-03-2026)
 
 ****BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to newly added features. *Everyone who has already purchased will keep all their functions*.
