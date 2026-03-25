@@ -114,7 +114,7 @@ class _TrainerPageState extends State<TrainerPage> {
                 if (core.settings.getTrainerApp() != null) ...[
                   if (recommendedTiles.isNotEmpty) ...[
                     Gap(32),
-                    ColoredTitle(text: context.i18n.recommendedConnectionMethods, icon: Icons.star_border_outlined),
+                    ColoredTitle(text: context.i18n.recommendedConnectionMethods),
                     Gap(12),
                   ],
 
@@ -129,7 +129,7 @@ class _TrainerPageState extends State<TrainerPage> {
                   Gap(12),
                   if (otherTiles.isNotEmpty) ...[
                     SizedBox(height: 8),
-                    ColoredTitle(text: context.i18n.otherConnectionMethods, icon: Icons.alt_route),
+                    ColoredTitle(text: context.i18n.otherConnectionMethods),
                     SizedBox(height: 8),
                     for (final tile in otherTiles)
                       Padding(

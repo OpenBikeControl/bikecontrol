@@ -14,6 +14,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/blog_posts_widget.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
@@ -570,6 +571,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               controller: _horizontalScrollController,
               leftWidth: _screenWidth - 50,
               hasErrors: _activityLog.any((e) => e.isError),
+              pageCount: 3,
             ),
           ),
           Divider(),
@@ -604,6 +606,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     child: activityColumn,
                   ),
                 ),
+                SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    top: 20,
+                    bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
+                  ),
+                  child: BlogPostsWidget(showHeader: false),
+                ),
               ],
             ),
           ),
@@ -633,9 +642,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           ),
           padding: EdgeInsets.symmetric(vertical: 20),
           constraints: BoxConstraints(maxWidth: min(500, MediaQuery.sizeOf(context).width * 0.4)),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(right: 20),
-            child: activityColumn,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: activityColumn,
+                ),
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.only(right: 20, top: 8),
+                child: BlogPostsWidget(maxPosts: 5),
+              ),
+            ],
           ),
         ),
       ],
@@ -1270,16 +1290,23 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   Widget _buildSectionHeader({required IconData icon, required String title}) {
-    return ColoredTitle(text: title, icon: icon);
+    return ColoredTitle(text: title);
   }
 }
 
 class _Tabs extends StatefulWidget {
-  final ScrollController controller;
+  final PageController controller;
   final double leftWidth;
   final bool hasErrors;
+  final int pageCount;
 
-  const _Tabs({super.key, required this.controller, required this.leftWidth, required this.hasErrors});
+  const _Tabs({
+    super.key,
+    required this.controller,
+    required this.leftWidth,
+    required this.hasErrors,
+    this.pageCount = 2,
+  });
 
   @override
   State<_Tabs> createState() => _TabsState();
@@ -1306,27 +1333,25 @@ class _TabsState extends State<_Tabs> {
     }
   }
 
+  int get _currentIndex {
+    if (!widget.controller.hasClients) return 0;
+    final page = widget.controller.page ?? 0;
+    return page.round().clamp(0, widget.pageCount - 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Tabs(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       expand: true,
       onChanged: (index) {
-        if (index == 1) {
-          widget.controller.animateTo(
-            widget.leftWidth,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        } else {
-          widget.controller.animateTo(
-            0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        }
+        widget.controller.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
       },
-      index: widget.controller.hasClients && widget.controller.offset > widget.leftWidth / 2 ? 1 : 0,
+      index: _currentIndex,
       children: [
         TabItem(
           child: Text(AppLocalizations.of(context).main),
@@ -1350,6 +1375,10 @@ class _TabsState extends State<_Tabs> {
             ],
           ),
         ),
+        if (widget.pageCount >= 3)
+          TabItem(
+            child: Text('Blog'),
+          ),
       ],
     );
   }

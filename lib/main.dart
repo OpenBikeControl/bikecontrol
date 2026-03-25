@@ -233,7 +233,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
         radius: 0.7,
       ),
       materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
-      themeMode: ThemeMode.dark,
+      //themeMode: ThemeMode.dark,
       home: widget.error != null
           ? Center(
               child: Text(
