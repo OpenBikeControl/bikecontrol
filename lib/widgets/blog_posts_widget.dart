@@ -83,13 +83,14 @@ class _BlogPostRow extends StatelessWidget {
           leading: post.isNew ? _newBadge(context) : null,
           title: Text(
             post.title,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: Theme.of(context).colorScheme.mutedForeground),
           ).normal,
           trailing: Row(
             spacing: 8,
             children: [
-              Text(dateFormat.format(post.date)).xSmall.muted,
+              Text(dateFormat.format(post.date)).xSmall.normal.muted,
               Icon(Icons.chevron_right_outlined, size: 18),
             ],
           ),

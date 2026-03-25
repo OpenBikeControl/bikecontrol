@@ -658,19 +658,18 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
             ),
           ),
-          padding: EdgeInsets.symmetric(vertical: 20),
           constraints: BoxConstraints(maxWidth: min(500, MediaQuery.sizeOf(context).width * 0.4)),
           child: Column(
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(right: 20),
+                  padding: const EdgeInsets.only(right: 20, top: 20, bottom: 20),
                   child: activityColumn,
                 ),
               ),
               Divider(),
               Padding(
-                padding: const EdgeInsets.only(right: 20, top: 8),
+                padding: const EdgeInsets.only(right: 20, top: 8, bottom: 20),
                 child: BlogPostsWidget(maxPosts: 5),
               ),
             ],
