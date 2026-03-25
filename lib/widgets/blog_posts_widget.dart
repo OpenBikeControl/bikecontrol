@@ -1,5 +1,6 @@
 import 'package:bike_control/services/blog_service.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -7,8 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 class BlogPostsWidget extends StatefulWidget {
   final int maxPosts;
   final bool showHeader;
+  final ValueChanged<bool>? onHasNewPosts;
 
-  const BlogPostsWidget({super.key, this.maxPosts = 5, this.showHeader = true});
+  const BlogPostsWidget({super.key, this.maxPosts = 5, this.showHeader = true, this.onHasNewPosts});
 
   @override
   State<BlogPostsWidget> createState() => _BlogPostsWidgetState();
@@ -37,6 +39,14 @@ class _BlogPostsWidgetState extends State<BlogPostsWidget> {
 
         final displayPosts = posts.take(widget.maxPosts).toList();
         final dateFormat = DateFormat.yMMMd();
+        final hasNew = displayPosts.any((p) => p.isNew);
+
+        // Notify parent about new-post status (used for tab badge).
+        if (widget.onHasNewPosts != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onHasNewPosts!(hasNew);
+          });
+        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,11 +80,12 @@ class _BlogPostRow extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: Basic(
+          leading: post.isNew ? _newBadge(context) : null,
           title: Text(
             post.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
+          ).normal,
           trailing: Row(
             spacing: 8,
             children: [
@@ -82,6 +93,25 @@ class _BlogPostRow extends StatelessWidget {
               Icon(Icons.chevron_right_outlined, size: 18),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _newBadge(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: BKColor.main,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        'NEW',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
         ),
       ),
     );

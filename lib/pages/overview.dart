@@ -9,6 +9,7 @@ import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/proxy.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
+import 'package:bike_control/services/blog_service.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -123,6 +124,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   final GlobalKey<AnimatedListState> _activityListKey = GlobalKey<AnimatedListState>();
   static const _maxLogEntries = 30;
 
+  // Blog
+  bool _hasNewBlogPosts = false;
+
   // Error banner
   _ActivityEntry? _latestError;
   late final AnimationController _errorBannerController = AnimationController(
@@ -164,6 +168,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     });
 
     WidgetsBinding.instance.addObserver(this);
+
+    // Eagerly fetch blog posts so the "new" indicator shows on the tab immediately.
+    BlogService().fetchPosts().then((posts) {
+      if (mounted && posts.any((p) => p.isNew)) {
+        setState(() => _hasNewBlogPosts = true);
+      }
+    });
 
     if (!kIsWeb) {
       if (core.logic.showForegroundMessage) {
@@ -572,6 +583,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               controller: _horizontalScrollController,
               leftWidth: _screenWidth - 50,
               hasErrors: _activityLog.any((e) => e.isError),
+              hasNewBlogPosts: _hasNewBlogPosts,
               pageCount: 3,
             ),
           ),
@@ -612,7 +624,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     top: 20,
                     bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
                   ),
-                  child: BlogPostsWidget(showHeader: false),
+                  child: BlogPostsWidget(
+                    showHeader: false,
+                    onHasNewPosts: (hasNew) {
+                      if (hasNew != _hasNewBlogPosts) setState(() => _hasNewBlogPosts = hasNew);
+                    },
+                  ),
                 ),
               ],
             ),
@@ -1299,6 +1316,7 @@ class _Tabs extends StatefulWidget {
   final PageController controller;
   final double leftWidth;
   final bool hasErrors;
+  final bool hasNewBlogPosts;
   final int pageCount;
 
   const _Tabs({
@@ -1306,6 +1324,7 @@ class _Tabs extends StatefulWidget {
     required this.controller,
     required this.leftWidth,
     required this.hasErrors,
+    this.hasNewBlogPosts = false,
     this.pageCount = 2,
   });
 
@@ -1329,7 +1348,7 @@ class _TabsState extends State<_Tabs> {
   @override
   void didUpdateWidget(covariant _Tabs oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.hasErrors != widget.hasErrors) {
+    if (oldWidget.hasErrors != widget.hasErrors || oldWidget.hasNewBlogPosts != widget.hasNewBlogPosts) {
       setState(() {});
     }
   }
@@ -1378,7 +1397,23 @@ class _TabsState extends State<_Tabs> {
         ),
         if (widget.pageCount >= 3)
           TabItem(
-            child: Text('Blog'),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Blog'),
+                if (widget.hasNewBlogPosts) ...[
+                  Gap(6),
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0E74B7),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
       ],
     );
