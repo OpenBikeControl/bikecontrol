@@ -407,7 +407,12 @@ class IAPManager {
       case AuthChangeEvent.userDeleted:
         await _revenueCatService?.logOut();
         await entitlements.clearCache();
-        isPurchased.value = false;
+        // reset isPurchased value
+        if (Platform.isWindows) {
+          await _windowsIapService?.initialize();
+        } else if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
+          await _revenueCatService?.initialize();
+        }
         return;
       case AuthChangeEvent.passwordRecovery:
         return;
