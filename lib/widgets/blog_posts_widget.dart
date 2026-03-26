@@ -30,14 +30,22 @@ class _BlogPostsWidgetState extends State<BlogPostsWidget> {
     return FutureBuilder<List<BlogPost>>(
       future: _postsFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink();
-        }
-
         final posts = snapshot.data;
-        if (posts == null || posts.isEmpty) return const SizedBox.shrink();
 
-        final displayPosts = posts.take(widget.maxPosts).toList();
+        final didLoad = posts != null;
+
+        final displayPosts =
+            (posts ??
+                    List.filled(
+                      5,
+                      BlogPost(
+                        date: DateTime.now().add(Duration(days: -5)),
+                        title: 'title title title ',
+                        slug: '',
+                      ),
+                    ))
+                .take(widget.maxPosts)
+                .toList();
         final dateFormat = DateFormat.yMMMd();
         final hasNew = displayPosts.any((p) => p.isNew);
 
@@ -58,7 +66,7 @@ class _BlogPostsWidgetState extends State<BlogPostsWidget> {
               ),
             if (widget.showHeader) const Gap(8),
             ...displayPosts.map(
-              (post) => _BlogPostRow(post: post, dateFormat: dateFormat),
+              (post) => _BlogPostRow(post: post, dateFormat: dateFormat).asSkeleton(enabled: !didLoad),
             ),
           ],
         );
