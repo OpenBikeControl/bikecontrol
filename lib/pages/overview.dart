@@ -578,7 +578,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         children: [
           Container(
             color: Theme.of(context).colorScheme.muted,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            width: double.infinity,
+            alignment: Alignment.center,
             child: _Tabs(
               controller: _horizontalScrollController,
               leftWidth: _screenWidth - 50,
@@ -1362,7 +1363,6 @@ class _TabsState extends State<_Tabs> {
   Widget build(BuildContext context) {
     return Tabs(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      expand: true,
       onChanged: (index) {
         widget.controller.animateToPage(
           index,
