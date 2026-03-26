@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/ble.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
@@ -8,19 +9,21 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
 
 class ZwiftEmulator extends TrainerConnection {
   bool get isLoading => _isLoading;
-
-  static const String connectionTitle = 'Zwift BLE Emulator';
 
   late final _peripheralManager = PeripheralManager();
   bool _isLoading = false;
@@ -32,7 +35,7 @@ class ZwiftEmulator extends TrainerConnection {
 
   ZwiftEmulator()
     : super(
-        title: connectionTitle,
+        title: AppLocalizations.current.connectUsingBluetooth,
         type: ConnectionMethodType.bluetooth,
         supportedActions: [
           InGameAction.shiftUp,
@@ -59,6 +62,8 @@ class ZwiftEmulator extends TrainerConnection {
     _isLoading = true;
     isStarted.value = true;
     onUpdate();
+
+    final isRouvy = core.settings.getTrainerApp() is Rouvy;
 
     _peripheralManager.stateChanged.forEach((state) {
       print('Peripheral manager state: ${state.state}');
@@ -275,12 +280,26 @@ class ZwiftEmulator extends TrainerConnection {
           includedServices: [],
         ),
       );
+
+      if (isRouvy) {
+        await _peripheralManager.addService(
+          GATTService(
+            uuid: UUID.fromString(OpenBikeControlConstants.SERVICE_UUID),
+            isPrimary: true,
+            characteristics: [],
+            includedServices: [],
+          ),
+        );
+      }
       _isServiceAdded = true;
     }
 
     final advertisement = Advertisement(
-      name: 'KICKR BIKE PRO 1337',
-      serviceUUIDs: [UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT)],
+      name: isRouvy ? 'BikeControl' : 'KICKR BIKE PRO 1337',
+      serviceUUIDs: [
+        UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT),
+        if (isRouvy) UUID.fromString(OpenBikeControlConstants.SERVICE_UUID),
+      ],
       /*serviceData: {
         UUID.fromString(ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT): Uint8List.fromList([0x02]),
       },
@@ -373,4 +392,7 @@ class ZwiftEmulator extends TrainerConnection {
     isStarted.value = false;
     _isLoading = false;
   }
+
+  @override
+  Widget getTile() => ZwiftTile(onUpdate: () {});
 }

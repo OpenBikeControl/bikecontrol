@@ -199,7 +199,7 @@ abstract class BaseActions {
         actions.add(result);
       }
       if (actions.isNotEmpty) {
-        return actions.first;
+        return actions.firstOrNullWhere((e) => e is! NotHandled) ?? actions.first;
       }
     }
     return NotHandled('');

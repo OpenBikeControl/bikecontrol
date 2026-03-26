@@ -319,7 +319,7 @@ abstract class BluetoothDevice extends BaseDevice {
             stream: core.connection.rssiConnectionStream.where((device) => device == this).map((event) => event.rssi),
             builder: (context, rssiValue) {
               final currentRssi = rssiValue.data ?? rssi!;
-              if (showFull || currentRssi > -85) {
+              if (showFull || currentRssi < -70) {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

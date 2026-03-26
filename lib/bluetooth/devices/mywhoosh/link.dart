@@ -9,18 +9,19 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart';
 
 class WhooshLink extends TrainerConnection {
   Socket? _socket;
   ServerSocket? _server;
 
-  static const String connectionTitle = 'MyWhoosh Link';
-
   WhooshLink()
     : super(
-        title: connectionTitle,
+        title: AppLocalizations.current.connectUsingMyWhooshLink,
         type: ConnectionMethodType.network,
         supportedActions: [
           InGameAction.shiftUp,
@@ -186,4 +187,7 @@ class WhooshLink extends TrainerConnection {
             _ => true,
           };
   }
+
+  @override
+  Widget getTile() => MyWhooshLinkTile();
 }

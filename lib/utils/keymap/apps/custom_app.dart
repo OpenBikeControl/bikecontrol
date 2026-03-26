@@ -1,16 +1,22 @@
 import 'dart:io';
 
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:bike_control/utils/keymap/apps/supported_app.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
 
 class CustomApp extends SupportedApp {
   final String profileName;
+
+  @override
+  List<(AppConnectionMethod, ConnectionSupport)> get connections => [
+    if (!kIsWeb) (AppConnectionMethod.zwiftMdns, ConnectionSupport.supported),
+    if (!kIsWeb) (AppConnectionMethod.zwiftBle, ConnectionSupport.beta),
+  ];
 
   CustomApp({this.profileName = 'Other'})
     : super(
@@ -22,7 +28,6 @@ class CustomApp extends SupportedApp {
                 Target.otherDevice,
               ],
         packageName: "custom_$profileName",
-        supportsZwiftEmulation: !kIsWeb,
         keymap: Keymap(keyPairs: []),
       );
 

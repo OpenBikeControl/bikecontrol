@@ -2,7 +2,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/markdown.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/status_icon.dart';
@@ -18,10 +18,10 @@ import 'package:url_launcher/url_launcher_string.dart';
 enum ConnectionMethodType {
   bluetooth(icon: Icons.bluetooth),
   network(icon: Icons.wifi),
-  openBikeControl(icon: Icons.directions_bike),
+  openBikeControl(icon: null),
   local(icon: Icons.keyboard);
 
-  final IconData icon;
+  final IconData? icon;
   const ConnectionMethodType({required this.icon});
 }
 
@@ -34,6 +34,7 @@ class ConnectionMethod extends StatefulWidget {
   final bool isRecommended;
   final bool isEnabled;
   final bool showTroubleshooting;
+  final ConnectionSupport? supportLevel;
   final List<PlatformRequirement> requirements;
   final List<InGameAction>? supportedActions;
   final Function(bool) onChange;
@@ -48,6 +49,7 @@ class ConnectionMethod extends StatefulWidget {
     required this.description,
     this.instructionLink,
     this.showTroubleshooting = false,
+    this.supportLevel,
     required this.onChange,
     this.supportedActions,
     required this.requirements,
@@ -125,11 +127,15 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             spacing: 8,
             children: [
               Expanded(child: Text(widget.title)),
-              if (widget.title == context.i18n.enablePairingProcess ||
-                  widget.title == context.i18n.enableZwiftControllerBluetooth)
+              if (widget.supportLevel == ConnectionSupport.beta)
                 Padding(
                   padding: const EdgeInsets.only(top: 1.0),
                   child: BetaPill(),
+                )
+              else if (widget.supportLevel == ConnectionSupport.experimental)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: BetaPill(text: 'EXPER.'),
                 )
               else if (widget.isRecommended && !screenshotMode)
                 SecondaryBadge(child: Text('Recommended')),

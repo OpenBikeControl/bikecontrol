@@ -10,6 +10,7 @@ import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -62,8 +63,10 @@ class _CustomizeState extends State<CustomizePage> {
                                 Expanded(child: Text(a.name)),
                                 if (a is CustomApp)
                                   BetaPill(text: 'CUSTOM')
-                                else if (a.supportsOpenBikeProtocol.isNotEmpty)
-                                  Icon(Icons.star, size: 16),
+                                else if (a.supports(AppConnectionMethod.obpBle) ||
+                                    a.supports(AppConnectionMethod.obpMdns) ||
+                                    a.supports(AppConnectionMethod.obpDirCon))
+                                  OpenBikeControlLogo(),
                               ],
                             ),
                           ),

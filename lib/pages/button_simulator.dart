@@ -1,13 +1,6 @@
 import 'dart:math';
 
-import 'package:bike_control/bluetooth/devices/mywhoosh/link.dart';
-import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
-import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart' show OpenBikeControlMdnsEmulator;
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
-import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
-import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
-import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -16,13 +9,6 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
-import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
-import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
-import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
-import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
-import 'package:bike_control/widgets/apps/zwift_tile.dart';
-import 'package:bike_control/widgets/keyboard_pair_widget.dart';
-import 'package:bike_control/widgets/mouse_pair_widget.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -289,25 +275,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                         ],
                       ),
                     for (final connectedTrainer in connectedTrainers)
-                      if (!screenshotMode)
-                        switch (connectedTrainer.title) {
-                          WhooshLink.connectionTitle => MyWhooshLinkTile(),
-                          ZwiftEmulator.connectionTitle => ZwiftTile(
-                            onUpdate: () {
-                              if (mounted) setState(() {});
-                            },
-                          ),
-                          FtmsMdnsEmulator.connectionTitle => ZwiftMdnsTile(
-                            onUpdate: () {
-                              setState(() {});
-                            },
-                          ),
-                          OpenBikeControlMdnsEmulator.connectionTitle => OpenBikeControlMdnsTile(),
-                          OpenBikeControlBluetoothEmulator.connectionTitle => OpenBikeControlBluetoothTile(),
-                          RemotePairing.connectionTitle => RemoteMousePairingWidget(),
-                          RemoteKeyboardPairing.connectionTitle => RemoteKeyboardPairingWidget(),
-                          _ => SizedBox.shrink(),
-                        },
+                      if (!screenshotMode) connectedTrainer.getTile(),
                     ...connectedTrainers.map(
                       (connection) {
                         final supportedActions = connection.supportedActions == InGameAction.values
