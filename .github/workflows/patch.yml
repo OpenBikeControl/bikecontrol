@@ -135,7 +135,7 @@ jobs:
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: ios
-          release-version: latest
+          release-version: 5.0.0+112
           args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
   windows:
