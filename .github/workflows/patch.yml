@@ -128,7 +128,7 @@ jobs:
         with:
           platform: android
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}' --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch iOS
         if: inputs.build_ios
@@ -136,7 +136,7 @@ jobs:
         with:
           platform: ios
           release-version: latest
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }}' --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
   windows:
     name: Patch Windows
