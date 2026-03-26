@@ -37,7 +37,7 @@ class _BlogPostsWidgetState extends State<BlogPostsWidget> {
         final displayPosts =
             (posts ??
                     List.filled(
-                      5,
+                      widget.maxPosts,
                       BlogPost(
                         date: DateTime.now().add(Duration(days: -5)),
                         title: 'title title title ',
