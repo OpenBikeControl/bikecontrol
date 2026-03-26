@@ -7,12 +7,16 @@ import '../buttons.dart';
 import '../keymap.dart';
 
 class Biketerra extends SupportedApp {
+  @override
+  List<(AppConnectionMethod, ConnectionSupport)> get connections => [
+    (AppConnectionMethod.zwiftMdns, ConnectionSupport.supported),
+  ];
+
   Biketerra()
     : super(
         name: 'Biketerra',
         packageName: "Biketerra",
         compatibleTargets: Target.values,
-        supportsZwiftEmulation: true,
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values

@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -24,6 +25,7 @@ class _PairWidgetState extends State<RemoteKeyboardPairingWidget> {
             return ConnectionMethod(
               trainerConnection: core.remoteKeyboardPairing,
               isRecommended: false,
+              supportLevel: ConnectionSupport.beta,
               isEnabled: core.logic.isRemoteKeyboardControlEnabled,
               showTroubleshooting: true,
               instructionLink: 'https://youtube.com/shorts/qalBSiAz7wg',

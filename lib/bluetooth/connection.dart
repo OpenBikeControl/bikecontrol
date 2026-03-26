@@ -28,6 +28,7 @@ class Connection {
   final devices = <BaseDevice>[];
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
+  List<BluetoothDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
   List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();

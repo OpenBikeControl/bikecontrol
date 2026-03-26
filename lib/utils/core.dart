@@ -19,9 +19,12 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/settings/settings.dart';
+import 'package:bike_control/widgets/apps/local_tile.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,7 +32,6 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
 import '../bluetooth/devices/mywhoosh/link.dart';
-import 'keymap/apps/rouvy.dart';
 import 'media_key_handler.dart';
 import 'requirements/multi.dart';
 import 'requirements/platform.dart';
@@ -166,32 +168,26 @@ class CoreLogic {
   }
 
   bool get showZwiftBleEmulator {
-    return core.settings.getTrainerApp()?.supportsZwiftEmulation == true &&
+    final app = core.settings.getTrainerApp();
+    return app != null &&
+        app.supports(AppConnectionMethod.zwiftBle) &&
         core.settings.getLastTarget() != Target.thisDevice;
   }
 
   bool get showZwiftMsdnEmulator {
-    if (core.settings.getShowExperimental()) {
-      return core.settings.getTrainerApp()?.supportsZwiftEmulation == true || core.settings.getTrainerApp() is Rouvy;
-    } else {
-      return core.settings.getTrainerApp()?.supportsZwiftEmulation == true && core.settings.getTrainerApp() is! Rouvy;
-    }
+    final app = core.settings.getTrainerApp();
+    return app != null && app.supports(AppConnectionMethod.zwiftMdns);
   }
 
   bool get showObpMdnsEmulator {
-    if (core.settings.getShowExperimental()) {
-      return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.containsAny([
-            OpenBikeProtocolSupport.network,
-            OpenBikeProtocolSupport.dircon,
-          ]) ==
-          true;
-    } else {
-      return core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(OpenBikeProtocolSupport.network) == true;
-    }
+    final app = core.settings.getTrainerApp();
+    return app != null && (app.supports(AppConnectionMethod.obpMdns) || app.supports(AppConnectionMethod.obpDirCon));
   }
 
   bool get showObpBluetoothEmulator {
-    return (core.settings.getTrainerApp()?.supportsOpenBikeProtocol.contains(OpenBikeProtocolSupport.ble) == true) &&
+    final app = core.settings.getTrainerApp();
+    return app != null &&
+        app.supports(AppConnectionMethod.obpBle) &&
         core.settings.getLastTarget() != Target.thisDevice;
   }
 
@@ -228,9 +224,7 @@ class CoreLogic {
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
       (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
 
-  bool get ignoreWarnings =>
-      core.settings.getTrainerApp()?.supportsZwiftEmulation == true ||
-      core.settings.getTrainerApp()?.supportsOpenBikeProtocol.isNotEmpty == true;
+  bool get ignoreWarnings => core.settings.getTrainerApp()?.connections.isNotEmpty == true;
 
   bool get showLocalRemoteOptions =>
       core.actionHandler.supportedModes.isNotEmpty &&
@@ -400,4 +394,7 @@ class Local extends TrainerConnection {
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
     return NotHandled('');
   }
+
+  @override
+  Widget getTile() => LocalTile();
 }

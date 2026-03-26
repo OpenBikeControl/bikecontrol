@@ -1,6 +1,7 @@
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -26,6 +27,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
             return ConnectionMethod(
               trainerConnection: core.obpBluetoothEmulator,
               isRecommended: true,
+              supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.obpBle),
               supportedActions: isConnected?.supportedActions,
               isEnabled: core.settings.getObpBleEnabled(),
               title: context.i18n.connectUsingBluetooth,

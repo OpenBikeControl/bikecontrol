@@ -5,6 +5,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart';
@@ -29,6 +30,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
             return ConnectionMethod(
               trainerConnection: core.whooshLink,
               isRecommended: Platform.isIOS,
+              supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.myWhooshLink),
               isEnabled: core.settings.getMyWhooshLinkEnabled(),
               title: context.i18n.connectUsingMyWhooshLink,
               instructionLink: 'INSTRUCTIONS_MYWHOOSH_LINK.md',

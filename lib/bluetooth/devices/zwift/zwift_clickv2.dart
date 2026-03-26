@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
@@ -148,30 +149,49 @@ class ZwiftClickV2 extends ZwiftRide {
                 padding: const EdgeInsets.all(4),
                 child: Icon(Icons.lock_rounded, color: Colors.white),
               ),
-              Flexible(child: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall),
-              Button(
-                onPressed: () {
-                  openDrawer(
-                    context: context,
-                    position: OverlayPosition.bottom,
-                    builder: (_) => UnlockPage(device: this),
+              Flexible(
+                child: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall,
+              ),
+              Builder(
+                builder: (context) {
+                  return Button(
+                    onPressed: () {
+                      showDropdown(
+                        context: context,
+                        builder: (c) => DropdownMenu(
+                          children: [
+                            MenuButton(
+                              leading: const Icon(Icons.check),
+                              onPressed: (c) {
+                                propPrefs.setZwiftClickV2LastUnlock(scanResult.deviceId, DateTime.now());
+                                super.setupHandshake();
+                              },
+                              child: Text(context.i18n.unlock_markAsUnlocked),
+                            ),
+                            MenuDivider(),
+                            MenuButton(
+                              onPressed: (c) {
+                                openDrawer(
+                                  context: context,
+                                  position: OverlayPosition.bottom,
+                                  builder: (_) => UnlockPage(device: this),
+                                );
+                              },
+                              leading: const Icon(Icons.lock_open_rounded),
+                              child: Text(AppLocalizations.of(context).unlock_unlockNow),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    leading: const Icon(Icons.lock_open_rounded),
+                    style: ButtonStyle.outline(size: ButtonSize.small),
+                    child: Text(AppLocalizations.of(context).unlock_unlockNow),
                   );
                 },
-                leading: const Icon(Icons.lock_open_rounded),
-                style: ButtonStyle.outline(size: ButtonSize.small),
-                child: Text(AppLocalizations.of(context).unlock_unlockNow),
               ),
             ],
           ),
-          if (kDebugMode)
-            Button(
-              onPressed: () {
-                super.setupHandshake();
-              },
-              leading: const Icon(Icons.handshake),
-              style: ButtonStyle.primary(size: ButtonSize.small),
-              child: Text('Handshake'),
-            ),
           if (kDebugMode)
             Button(
               onPressed: () {

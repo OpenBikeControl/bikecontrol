@@ -5,14 +5,18 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_d
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNotification, LogNotification;
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart';
 
 class OpenBikeControlBluetoothEmulator extends TrainerConnection {
@@ -24,11 +28,9 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
 
   late GATTCharacteristic _buttonCharacteristic;
 
-  static const String connectionTitle = 'OpenBikeControl BLE Emulator';
-
   OpenBikeControlBluetoothEmulator()
     : super(
-        title: connectionTitle,
+        title: AppLocalizations.current.connectUsingBluetooth,
         type: ConnectionMethodType.openBikeControl,
         supportedActions: InGameAction.values,
       );
@@ -285,4 +287,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
 
     return Success('Buttons ${inGameAction.title} sent');
   }
+
+  @override
+  Widget getTile() => OpenBikeControlBluetoothTile();
 }
