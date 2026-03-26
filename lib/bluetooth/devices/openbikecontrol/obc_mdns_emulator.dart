@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_dircon.dart';
@@ -27,6 +28,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
   Socket? _socket;
   ObcDircon? _dirCon;
+
+  StreamSubscription<Socket>? _streamSubscription;
 
   OpenBikeControlMdnsEmulator()
     : super(
@@ -109,9 +112,12 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     }
     isStarted.value = false;
     isConnected.value = false;
-    connectedApp.value = null;
+    await _streamSubscription?.cancel();
     _socket?.destroy();
     _socket = null;
+    await _server?.close();
+    _server = null;
+    connectedApp.value = null;
   }
 
   Future<void> _createTcpServer() async {
@@ -131,7 +137,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     }
 
     // Accept connection
-    _server!.listen(
+    _streamSubscription = _server!.listen(
       (Socket socket) async {
         SharedLogic.keepAlive();
         _socket = socket;
