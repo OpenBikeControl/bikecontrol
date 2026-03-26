@@ -249,11 +249,7 @@ jobs:
         uses: microsoft/microsoft-store-apppublisher@v1.1
 
       - name: Reconfigure store credentials
-        run: msstore reconfigure `
-          --tenantId ${{ secrets.AZURE_AD_TENANT_ID }} `
-          --sellerId ${{ secrets.SELLER_ID }} `
-          --clientId ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }} `
-          --clientSecret ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+        run: msstore reconfigure --tenantId ${{ secrets.AZURE_AD_TENANT_ID }} --sellerId ${{ secrets.SELLER_ID }} --clientId ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }} --clientSecret ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
 
       - name: rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
         shell: pwsh
