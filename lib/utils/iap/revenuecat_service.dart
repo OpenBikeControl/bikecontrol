@@ -346,11 +346,14 @@ class RevenueCatService {
     }
   }
 
-  Future<void> logInWithSupabaseUserId(String supabaseUserId) async {
+  Future<void> logInWithSupabaseUserId(String supabaseUserId, {required bool performSync}) async {
     if (!_isConfigured) {
       return;
     }
     await Purchases.logIn(supabaseUserId);
+    if (performSync) {
+      await core.supabase.functions.invoke('sync-subscriptions');
+    }
   }
 
   Future<void> logOut() async {
@@ -533,7 +536,7 @@ class RevenueCatService {
       await logOut();
       return;
     }
-    await logInWithSupabaseUserId(session.user.id);
+    await logInWithSupabaseUserId(session.user.id, performSync: false);
   }
 
   Future<bool> openBillingPortal(BuildContext context) async {

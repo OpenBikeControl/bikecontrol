@@ -396,7 +396,10 @@ class IAPManager {
       case AuthChangeEvent.mfaChallengeVerified:
         final userId = session?.user.id;
         if (userId != null) {
-          await _revenueCatService?.logInWithSupabaseUserId(userId);
+          await _revenueCatService?.logInWithSupabaseUserId(
+            userId,
+            performSync: [AuthChangeEvent.initialSession, AuthChangeEvent.signedIn].contains(event),
+          );
         }
         await _revenueCatService?.setAttributes();
         await entitlements.refresh(force: true);
