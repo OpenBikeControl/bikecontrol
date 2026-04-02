@@ -247,10 +247,10 @@ class CoreLogic {
       showMyWhooshLink;
 
   List<TrainerConnection> get connectedTrainerConnections => [
-    if (core.settings.getLocalEnabled()) core.local,
-    if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (core.settings.getLocalEnabled()) core.local,
+    if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
     if (isRemoteControlEnabled) core.remotePairing,
@@ -258,10 +258,10 @@ class CoreLogic {
   ].filter((e) => e.isConnected.value).toList();
 
   List<TrainerConnection> get enabledTrainerConnections => [
+    if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (core.settings.getLocalEnabled() && showLocalControl) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
-    if (isObpMdnsEnabled) core.obpMdnsEmulator,
-    if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
     if (isRemoteControlEnabled) core.remotePairing,
@@ -269,9 +269,9 @@ class CoreLogic {
   ];
 
   List<TrainerConnection> get trainerConnections => [
-    if (showMyWhooshLink) core.whooshLink,
     if (showObpMdnsEmulator) core.obpMdnsEmulator,
     if (showObpBluetoothEmulator) core.obpBluetoothEmulator,
+    if (showMyWhooshLink) core.whooshLink,
     if (showZwiftBleEmulator) core.zwiftEmulator,
     if (showZwiftMsdnEmulator) core.zwiftMdnsEmulator,
     if (showRemote) core.remotePairing,

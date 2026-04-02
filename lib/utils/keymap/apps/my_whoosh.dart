@@ -10,6 +10,7 @@ class MyWhoosh extends SupportedApp {
   @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.myWhooshLink, ConnectionSupport.supported),
+    (AppConnectionMethod.obpMdns, ConnectionSupport.supported),
   ];
 
   MyWhoosh()
@@ -17,7 +18,7 @@ class MyWhoosh extends SupportedApp {
         name: 'MyWhoosh',
         packageName: "MyWhoosh",
         compatibleTargets: Target.values,
-        star: true,
+        star: false,
         additionalKeyPairs: [
           KeyPair(
             buttons: [ControllerButton('Peace', action: InGameAction.emote)],
