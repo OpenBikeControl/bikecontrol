@@ -1,3 +1,14 @@
+### 5.2.0 (02-04-2026)
+Great news for MyWhoosh users: MyWhoosh has partnered with BikeControl to provide official support for controller hardware.
+
+- A new network-based connection method is now available on all platforms, replacing the previous “Link” connection method
+- To use it, open the connection screen in MyWhoosh and tap the OpenBikeControl icon in the top right
+
+This integration enables seamless and reliable controller support directly within MyWhoosh.
+
+Read the full announcement for more details:
+https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership
+
 ### 5.1.0 (25-03-2026)
 **Features**:
 - show latest blog posts from bikecontrol.app
