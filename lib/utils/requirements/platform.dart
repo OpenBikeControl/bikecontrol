@@ -4,7 +4,7 @@ abstract class PlatformRequirement {
   String name;
   String? description;
   final IconData icon;
-  late bool status;
+  bool status = false;
 
   PlatformRequirement(this.name, {this.description, required this.icon});
 
