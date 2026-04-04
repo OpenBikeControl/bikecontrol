@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -499,6 +500,30 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                           setState(() {});
                         },
                         child: Text(context.i18n.manageIgnoredDevices).small,
+                      ),
+                    if (devices.isNotEmpty)
+                      Builder(
+                        builder: (context) => IconButton.ghost(
+                          icon: Icon(Icons.more_vert, size: 16),
+                          onPressed: () {
+                            showDropdown(
+                              context: context,
+                              builder: (c) => DropdownMenu(
+                                children: [
+                                  MenuButton(
+                                    leading: const Icon(Icons.power_settings_new_rounded),
+                                    onPressed: (c) {
+                                      core.connection.disconnectAll();
+                                      core.connection.stop();
+                                      exit(0);
+                                    },
+                                    child: Text('Close BikeControl'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
                   ],
                 ),
