@@ -88,9 +88,9 @@ class _TrainerPageState extends State<TrainerPage> {
     ];
 
     final otherTiles = [
+      if (showWhooshLinkAsOther) MyWhooshLinkTile(),
       if (core.logic.showRemote) RemoteMousePairingWidget(),
       if (core.logic.showLocalControl && showLocalAsOther) LocalTile(),
-      if (showWhooshLinkAsOther) MyWhooshLinkTile(),
     ];
 
     return Scrollbar(

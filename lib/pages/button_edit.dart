@@ -164,6 +164,40 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ],
                     ),
                   ),
+                if (widget.trigger == ButtonTrigger.longPress) ...[
+                  Builder(
+                    builder: (context) {
+                      final singleClickPair = widget.keymap.getKeyPair(
+                        _keyPair.buttons.first,
+                        trigger: ButtonTrigger.singleClick,
+                      );
+                      final singleClickLabel = singleClickPair != null && !singleClickPair.hasNoAction
+                          ? singleClickPair.toString()
+                          : null;
+                      return SelectableCard(
+                        icon: Icons.repeat,
+                        title: Text('Repeat single click action'),
+                        isActive: _keyPair.hasNoAction,
+                        value: _keyPair.hasNoAction ? singleClickLabel : null,
+                        onPressed: () {
+                          if (!_keyPair.hasNoAction) {
+                            _keyPair.physicalKey = null;
+                            _keyPair.logicalKey = null;
+                            _keyPair.modifiers = [];
+                            _keyPair.touchPosition = Offset.zero;
+                            _keyPair.inGameAction = null;
+                            _keyPair.inGameActionValue = null;
+                            _keyPair.androidAction = null;
+                            _keyPair.command = null;
+                            _keyPair.screenshotPath = null;
+                            setState(() {});
+                            widget.onUpdate();
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ],
                 if (core.logic.showObpActions) ...[
                   ColoredTitle(text: context.i18n.openBikeControlActions),
                   if (core.logic.obpConnectedApp == null)
