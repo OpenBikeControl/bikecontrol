@@ -1,8 +1,4 @@
-### 5.3.0 (Unreleased)
-**Features**:
-- Long press now repeats the single click action by default, useful for continuous gear shifting or volume adjustments
-
-### 5.2.0 (02-04-2026)
+### 5.2.0 (06-04-2026)
 Great news for MyWhoosh users: MyWhoosh has partnered with BikeControl to provide official support for controller hardware.
 
 - A new network-based connection method is now available on all platforms, replacing the previous “Link” connection method
