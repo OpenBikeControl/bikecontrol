@@ -84,6 +84,7 @@ class _DevicePageState extends State<DevicePage> {
                       children: [
                         Row(
                           spacing: 12,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Flexible(
                               child: device.showInformation(context, showFull: false),

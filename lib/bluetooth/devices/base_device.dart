@@ -52,9 +52,11 @@ abstract class BaseDevice {
 
   static const Duration _longPressTriggerDelay = Duration(milliseconds: 550);
   static const Duration _doubleClickDelay = Duration(milliseconds: 320);
+  static const Duration _repeatInterval = Duration(milliseconds: 150);
 
   Timer? _longPressTimer;
   Timer? _singleClickTimer;
+  Timer? _repeatTimer;
   Set<ControllerButton> _previouslyPressedButtons = <ControllerButton>{};
   Set<ControllerButton> _activeLongPressButtons = <ControllerButton>{};
   ControllerButton? _pendingSingleClickButton;
@@ -149,6 +151,7 @@ abstract class BaseDevice {
     actionStreamInternal.add(LogNotification('Buttons released'));
 
     _longPressTimer?.cancel();
+    _stopRepeatingSingleClick();
     final releasedButtons = _previouslyPressedButtons.toList();
     _previouslyPressedButtons.clear();
 
@@ -264,7 +267,35 @@ abstract class BaseDevice {
     if (keyPair == null && core.actionHandler.supportedApp == null) {
       return trigger == ButtonTrigger.singleClick;
     }
-    return keyPair != null && !keyPair.hasNoAction;
+    if (keyPair != null && !keyPair.hasNoAction) {
+      return true;
+    }
+    // Implicit repeat: long press repeats single click for Pro users by default.
+    if (trigger == ButtonTrigger.longPress) {
+      return _shouldRepeatSingleClick(button);
+    }
+    return false;
+  }
+
+  /// Whether a long press should implicitly repeat the single click action.
+  /// Active by default for Pro users when no explicit long press action is set.
+  bool _shouldRepeatSingleClick(ControllerButton button) {
+    if (!supportsLongPress) return false;
+    try {
+      if (!IAPManager.instance.isProEnabledForCurrentDevice) return false;
+    } catch (_) {
+      return false;
+    }
+    final longPressPair = core.actionHandler.supportedApp?.keymap.getKeyPair(
+      button,
+      trigger: ButtonTrigger.longPress,
+    );
+    if (longPressPair != null && !longPressPair.hasNoAction) return false;
+    final singleClickPair = core.actionHandler.supportedApp?.keymap.getKeyPair(
+      button,
+      trigger: ButtonTrigger.singleClick,
+    );
+    return singleClickPair != null && !singleClickPair.hasNoAction;
   }
 
   void _cancelPendingClickTimers() {
@@ -309,6 +340,12 @@ abstract class BaseDevice {
         continue;
       }
 
+      // Check for implicit repeat single click mode
+      if (_shouldRepeatSingleClick(action)) {
+        _startRepeatingSingleClick(action);
+        continue;
+      }
+
       // For repeated actions, don't trigger key down/up events (useful for long press)
       final result = await core.actionHandler.performAction(
         action,
@@ -321,6 +358,20 @@ abstract class BaseDevice {
         ActionNotification(result, button: action.copyWith(sourceDeviceId: action.sourceDeviceId ?? uniqueId)),
       );
     }
+  }
+
+  void _startRepeatingSingleClick(ControllerButton button) {
+    _repeatTimer?.cancel();
+    // Fire immediately, then repeat periodically
+    unawaited(performClick([button], trigger: ButtonTrigger.singleClick));
+    _repeatTimer = Timer.periodic(_repeatInterval, (_) {
+      unawaited(performClick([button], trigger: ButtonTrigger.singleClick));
+    });
+  }
+
+  void _stopRepeatingSingleClick() {
+    _repeatTimer?.cancel();
+    _repeatTimer = null;
   }
 
   Future<void> performClick(
@@ -350,7 +401,13 @@ abstract class BaseDevice {
     List<ControllerButton> buttonsReleased, {
     ButtonTrigger trigger = ButtonTrigger.longPress,
   }) async {
+    _stopRepeatingSingleClick();
     for (final action in buttonsReleased) {
+      // Skip normal release handling for repeat-on-long-press buttons
+      if (_shouldRepeatSingleClick(action)) {
+        continue;
+      }
+
       // Check IAP status before executing command
       if (!_canExecuteCommand()) {
         _showCommandLimitAlert();
@@ -371,6 +428,8 @@ abstract class BaseDevice {
     _longPressTimer?.cancel();
     _singleClickTimer?.cancel();
     _singleClickTimer = null;
+    _repeatTimer?.cancel();
+    _repeatTimer = null;
     _pendingSingleClickButton = null;
     // Release any held keys in long press mode
     if (core.actionHandler is DesktopActions) {
