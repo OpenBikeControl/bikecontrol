@@ -1,7 +1,6 @@
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/apps/rouvy.dart';
-import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class TrainerConnectionSettingsPage extends StatefulWidget {
@@ -29,7 +28,7 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           trailing: [
-            if (core.settings.getTrainerApp() is Rouvy || core.settings.getTrainerApp() is TrainingPeaks)
+            if (core.settings.getTrainerApp()?.connections.any((e) => e.$2 == ConnectionSupport.experimental) ?? false)
               Builder(
                 builder: (context) {
                   return IconButton.ghost(

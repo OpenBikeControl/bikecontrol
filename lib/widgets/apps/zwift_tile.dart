@@ -50,7 +50,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
                     }
                     setState(() {});
                   },
-                  title: context.i18n.enableZwiftControllerBluetooth,
+                  title: context.i18n.connectUsingBluetooth,
                   description: !isStarted
                       ? context.i18n.zwiftControllerDescription
                       : isConnected

@@ -84,13 +84,13 @@ class _TrainerPageState extends State<TrainerPage> {
         ),
       if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
       if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
-      if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(),
     ];
 
     final otherTiles = [
       if (showWhooshLinkAsOther) MyWhooshLinkTile(),
       if (core.logic.showRemote) RemoteMousePairingWidget(),
       if (core.logic.showLocalControl && showLocalAsOther) LocalTile(),
+      if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(),
     ];
 
     return Scrollbar(
