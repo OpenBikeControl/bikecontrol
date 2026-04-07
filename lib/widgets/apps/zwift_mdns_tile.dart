@@ -34,7 +34,7 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
                   isRecommended: true,
                   supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.zwiftMdns),
                   isEnabled: core.settings.getZwiftMdnsEmulatorEnabled(),
-                  title: context.i18n.enableZwiftControllerNetwork,
+                  title: context.i18n.connectDirectlyOverNetwork,
                   description: !isStarted
                       ? context.i18n.zwiftControllerDescription
                       : isConnected

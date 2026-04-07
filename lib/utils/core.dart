@@ -318,6 +318,12 @@ class CoreLogic {
         );
       });
     }
+
+    if (isObpMdnsEnabled && isMyWhooshLinkEnabled) {
+      // this doesn't make much sense to have both running at the same time, so disable Whoosh Link if OBP mDNS is enabled
+      core.settings.setMyWhooshLinkEnabled(false);
+    }
+
     if (isObpMdnsEnabled && !core.obpMdnsEmulator.isStarted.value) {
       core.obpMdnsEmulator.startServer().catchError((e, s) {
         recordError(e, s, context: 'OBP mDNS Emulator');
