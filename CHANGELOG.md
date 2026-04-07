@@ -1,3 +1,13 @@
+### 5.3.0 (08-04-2026)
+Next up in the list of officially supported trainer apps: Rouvy!
+
+Connect to the "BikeControl" controller within Rouvy via Network or Bluetooth connection method
+
+**Features**:
+- Re-add support for repeated button presses on long press
+- Auto-disconnect devices after 45 minutes of inactivity (no button clicks) to save battery
+- Allow closing the app and all its connections via the new button next to the "Connections" title
+
 ### 5.2.0 (06-04-2026)
 Great news for MyWhoosh users: MyWhoosh has partnered with BikeControl to provide official support for controller hardware.
 
