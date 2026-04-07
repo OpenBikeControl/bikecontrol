@@ -408,7 +408,9 @@ class Connection {
         // Reset the inactivity timer whenever a button is pressed on this
         // device – we deliberately only react to ButtonNotification so that
         // internal log / action messages don't keep the timer alive.
-        if (data is ButtonNotification) {
+        // Only BLE devices benefit from inactivity disconnect (battery-powered
+        // controllers); gamepads, HID, and gyroscope devices are excluded.
+        if (data is ButtonNotification && device is BluetoothDevice) {
           _resetInactivityTimer(device);
         }
       });
@@ -451,8 +453,10 @@ class Connection {
 
       _streamSubscriptions[device] = actionSubscription;
 
-      // Start the inactivity timer for this device.
-      _resetInactivityTimer(device);
+      // Start the inactivity timer for BLE devices to save their battery.
+      if (device is BluetoothDevice) {
+        _resetInactivityTimer(device);
+      }
 
       if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
         _androidNotificationsSetup = true;
@@ -558,6 +562,8 @@ class Connection {
     _inactivityTimers[device]?.cancel();
 
     _inactivityTimers[device] = Timer(_inactivityTimeout, () {
+      // Always clean up the map entry – the timer has already fired.
+      _inactivityTimers.remove(device);
       if (!device.isConnected) return;
       _actionStreams.add(
         AlertNotification(
@@ -565,7 +571,13 @@ class Connection {
           '${device.toString()} disconnected after ${_inactivityTimeout.inMinutes} minutes of inactivity',
         ),
       );
-      disconnect(device, forget: false, persistForget: false);
+      unawaited(
+        disconnect(device, forget: false, persistForget: false).catchError((Object error, StackTrace stackTrace) {
+          _actionStreams.add(
+            LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error'),
+          );
+        }),
+      );
     });
   }
 
