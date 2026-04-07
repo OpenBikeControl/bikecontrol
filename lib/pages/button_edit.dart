@@ -177,6 +177,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       return SelectableCard(
                         icon: Icons.repeat,
                         title: Text('Repeat single click action'),
+                        isProOnly: true,
                         isActive: _keyPair.hasNoAction,
                         value: _keyPair.hasNoAction ? singleClickLabel : null,
                         onPressed: () {
@@ -1120,6 +1121,7 @@ class SelectableCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 2.0),
             child: Basic(
+              leadingAlignment: Alignment.centerLeft,
               leading: icon != null
                   ? Padding(
                       padding: const EdgeInsets.only(top: 3.0),
