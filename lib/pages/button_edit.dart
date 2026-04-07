@@ -177,6 +177,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       return SelectableCard(
                         icon: Icons.repeat,
                         title: Text('Repeat single click action'),
+                        isProOnly: true,
                         isActive: _keyPair.hasNoAction,
                         value: _keyPair.hasNoAction ? singleClickLabel : null,
                         onPressed: () {
