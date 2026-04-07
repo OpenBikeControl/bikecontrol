@@ -52,11 +52,12 @@ abstract class BaseDevice {
 
   static const Duration _longPressTriggerDelay = Duration(milliseconds: 550);
   static const Duration _doubleClickDelay = Duration(milliseconds: 320);
-  static const Duration _repeatInterval = Duration(milliseconds: 150);
+  static const Duration _repeatInterval = Duration(milliseconds: 250);
 
   Timer? _longPressTimer;
   Timer? _singleClickTimer;
   Timer? _repeatTimer;
+  bool _repeatInFlight = false;
   Set<ControllerButton> _previouslyPressedButtons = <ControllerButton>{};
   Set<ControllerButton> _activeLongPressButtons = <ControllerButton>{};
   ControllerButton? _pendingSingleClickButton;
@@ -277,15 +278,22 @@ abstract class BaseDevice {
     return false;
   }
 
+  /// Whether the current device has Pro features enabled.
+  /// Extracted for testability — can be overridden in test subclasses.
+  @visibleForTesting
+  bool get isProEnabledForRepeat {
+    try {
+      return IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Whether a long press should implicitly repeat the single click action.
   /// Active by default for Pro users when no explicit long press action is set.
   bool _shouldRepeatSingleClick(ControllerButton button) {
     if (!supportsLongPress) return false;
-    try {
-      if (!IAPManager.instance.isProEnabledForCurrentDevice) return false;
-    } catch (_) {
-      return false;
-    }
+    if (!isProEnabledForRepeat) return false;
     final longPressPair = core.actionHandler.supportedApp?.keymap.getKeyPair(
       button,
       trigger: ButtonTrigger.longPress,
@@ -340,8 +348,8 @@ abstract class BaseDevice {
         continue;
       }
 
-      // Check for implicit repeat single click mode
-      if (_shouldRepeatSingleClick(action)) {
+      // Check for implicit repeat single click mode (single-button only)
+      if (buttonsClicked.length == 1 && _shouldRepeatSingleClick(action)) {
         _startRepeatingSingleClick(action);
         continue;
       }
@@ -362,16 +370,33 @@ abstract class BaseDevice {
 
   void _startRepeatingSingleClick(ControllerButton button) {
     _repeatTimer?.cancel();
-    // Fire immediately, then repeat periodically
-    unawaited(performClick([button], trigger: ButtonTrigger.singleClick));
+    _repeatInFlight = false;
+    // Fire immediately, then repeat periodically with in-flight guard
+    unawaited(_fireRepeatClick(button));
     _repeatTimer = Timer.periodic(_repeatInterval, (_) {
-      unawaited(performClick([button], trigger: ButtonTrigger.singleClick));
+      if (_repeatInFlight) return;
+      unawaited(_fireRepeatClick(button));
     });
+  }
+
+  Future<void> _fireRepeatClick(ControllerButton button) async {
+    if (!_canExecuteCommand()) {
+      _stopRepeatingSingleClick();
+      _showCommandLimitAlert();
+      return;
+    }
+    _repeatInFlight = true;
+    try {
+      await performClick([button], trigger: ButtonTrigger.singleClick);
+    } finally {
+      _repeatInFlight = false;
+    }
   }
 
   void _stopRepeatingSingleClick() {
     _repeatTimer?.cancel();
     _repeatTimer = null;
+    _repeatInFlight = false;
   }
 
   Future<void> performClick(

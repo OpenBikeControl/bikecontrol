@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -30,6 +29,7 @@ import 'package:bike_control/widgets/ui/horizontal_flow_painter.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/trainer_label.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:prop/emulators/shared.dart';
 import 'package:prop/prop.dart' show LogLevel;
@@ -512,12 +512,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                                 children: [
                                   MenuButton(
                                     leading: const Icon(Icons.power_settings_new_rounded),
-                                    onPressed: (c) {
-                                      core.connection.disconnectAll();
-                                      core.connection.stop();
-                                      exit(0);
+                                    onPressed: (c) async {
+                                      await core.connection.disconnectAll();
+                                      await core.connection.stop();
+                                      SystemNavigator.pop();
                                     },
-                                    child: Text('Close BikeControl'),
+                                    child: Text(context.i18n.close),
                                   ),
                                 ],
                               ),
