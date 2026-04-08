@@ -23,7 +23,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   BleService? customService;
 
-  String get latestFirmwareVersion;
+  String? get latestFirmwareVersion;
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK;
   bool get canVibrate => false;
 

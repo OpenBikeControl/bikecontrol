@@ -307,9 +307,11 @@ abstract class BluetoothDevice extends BaseDevice {
               color: foregroundColor,
             ),
           ),
-          if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+          if (this is ZwiftDevice &&
+              firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion &&
+              (this as ZwiftDevice).latestFirmwareVersion != null)
             Text(
-              ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion)})',
+              ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion!)})',
               style: TextStyle(color: foregroundColor, fontSize: fontSize),
             ),
           if (rssi != null) const Gap(16),
