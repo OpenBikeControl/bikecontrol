@@ -41,7 +41,7 @@ class ZwiftRide extends ZwiftDevice {
       );
 
   @override
-  String get latestFirmwareVersion => '1.2.0';
+  String? get latestFirmwareVersion => '1.2.0';
 
   @override
   bool get canVibrate => true;
