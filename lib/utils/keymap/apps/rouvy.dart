@@ -57,8 +57,8 @@ class Rouvy extends SupportedApp {
             ),
             KeyPair(
               buttons: [ZwiftButtons.a],
-              physicalKey: PhysicalKeyboardKey.keyY,
-              logicalKey: LogicalKeyboardKey.keyY,
+              physicalKey: PhysicalKeyboardKey.keyK,
+              logicalKey: LogicalKeyboardKey.keyK,
               inGameAction: InGameAction.kudos,
             ),
             KeyPair(
