@@ -1,7 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:flutter/services.dart';
 
 import '../keymap.dart';
@@ -17,10 +16,6 @@ class Zwift extends SupportedApp {
     : super(
         name: 'Zwift',
         packageName: "Zwift",
-        compatibleTargets: [
-          Target.thisDevice,
-          Target.otherDevice,
-        ],
         keymap: Keymap(
           keyPairs: [
             KeyPair(

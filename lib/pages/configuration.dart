@@ -97,27 +97,20 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                           core.zwiftEmulator.stopAdvertising();
                         }
                       }
-                      if (!selectedApp.supports(AppConnectionMethod.obpBle) &&
-                          !selectedApp.supports(AppConnectionMethod.obpMdns)) {
-                        if (core.obpMdnsEmulator.isStarted.value) {
-                          core.obpMdnsEmulator.stopServer();
-                        }
-                        if (core.obpBluetoothEmulator.isStarted.value) {
-                          core.obpBluetoothEmulator.stopServer();
-                        }
+                      if (core.obpMdnsEmulator.isStarted.value) {
+                        core.obpMdnsEmulator.stopServer();
+                      }
+                      if (core.obpBluetoothEmulator.isStarted.value) {
+                        core.obpBluetoothEmulator.stopServer();
                       }
 
                       core.settings.setTrainerApp(selectedApp);
-                      if (core.settings.getLastTarget() == null && Target.thisDevice.isCompatible) {
-                        await _setTarget(context, Target.thisDevice);
-                      } else if (core.settings.getLastTarget() == null && Target.otherDevice.isCompatible) {
-                        await _setTarget(context, Target.otherDevice);
-                      }
                       if (core.actionHandler.supportedApp == null ||
                           (core.actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
                         core.actionHandler.init(selectedApp);
                         core.settings.setKeyMap(selectedApp);
                       }
+                      core.logic.startEnabledConnectionMethod();
                       widget.onUpdate();
                       setState(() {});
                     },
@@ -159,20 +152,13 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                                 title: Center(child: Icon(target.icon)),
                                 isActive: target == core.settings.getLastTarget(),
                                 subtitle: Center(
-                                  child: Column(
-                                    children: [
-                                      Text(target.getTitle(context)),
-                                      if (!target.isCompatible) Text(context.i18n.platformRestrictionNotSupported),
-                                    ],
-                                  ),
+                                  child: Text(target.getTitle(context)),
                                 ),
-                                onPressed: !target.isCompatible
-                                    ? null
-                                    : () async {
-                                        await _setTarget(context, target);
-                                        setState(() {});
-                                        widget.onUpdate();
-                                      },
+                                onPressed: () async {
+                                  await _setTarget(context, target);
+                                  setState(() {});
+                                  widget.onUpdate();
+                                },
                               ),
                             ),
                           )

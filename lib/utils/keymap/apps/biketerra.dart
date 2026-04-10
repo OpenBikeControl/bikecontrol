@@ -1,5 +1,4 @@
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 
@@ -16,7 +15,6 @@ class Biketerra extends SupportedApp {
     : super(
         name: 'Biketerra',
         packageName: "Biketerra",
-        compatibleTargets: Target.values,
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values

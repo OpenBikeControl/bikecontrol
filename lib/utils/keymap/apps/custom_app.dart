@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -21,12 +18,6 @@ class CustomApp extends SupportedApp {
   CustomApp({this.profileName = 'Other'})
     : super(
         name: profileName,
-        compatibleTargets: kIsWeb
-            ? [Target.thisDevice]
-            : [
-                if (!Platform.isIOS) Target.thisDevice,
-                Target.otherDevice,
-              ],
         packageName: "custom_$profileName",
         keymap: Keymap(keyPairs: []),
       );

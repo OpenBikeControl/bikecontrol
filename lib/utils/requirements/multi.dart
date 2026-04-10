@@ -150,10 +150,6 @@ enum Target {
     };
   }
 
-  bool get isCompatible {
-    return core.settings.getTrainerApp()?.compatibleTargets.contains(this) == true;
-  }
-
   bool get isBeta {
     final supportedApp = core.settings.getTrainerApp();
 
@@ -184,8 +180,6 @@ enum Target {
         : '';
 
     return switch (this) {
-      Target.thisDevice when !isCompatible => AppLocalizations.current.platformRestrictionOtherDevicesOnly(appName),
-      Target.otherDevice when !isCompatible => AppLocalizations.current.platformRestrictionNotSupported,
       Target.thisDevice => AppLocalizations.current.runAppOnThisDevice(appName),
       Target.otherDevice => AppLocalizations.current.runAppOnPlatformRemotely(
         appName,
