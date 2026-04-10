@@ -4,7 +4,6 @@ import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 
 import '../keymap.dart';
 import 'custom_app.dart';
@@ -29,7 +28,6 @@ enum ConnectionSupport {
 }
 
 abstract class SupportedApp {
-  final List<Target> compatibleTargets;
   final String packageName;
   final String name;
   final Keymap keymap;
@@ -40,7 +38,6 @@ abstract class SupportedApp {
     required this.name,
     required this.packageName,
     required this.keymap,
-    required this.compatibleTargets,
     this.additionalKeyPairs = const [],
     this.star = false,
   });

@@ -1,5 +1,4 @@
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 
@@ -17,7 +16,6 @@ class MyWhoosh extends SupportedApp {
     : super(
         name: 'MyWhoosh',
         packageName: "MyWhoosh",
-        compatibleTargets: Target.values,
         star: false,
         additionalKeyPairs: [
           KeyPair(
