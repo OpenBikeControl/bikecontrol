@@ -14,7 +14,7 @@ import '../keymap.dart';
 class TrainingPeaks extends SupportedApp {
   @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
-    (AppConnectionMethod.obpBle, ConnectionSupport.experimental),
+    (AppConnectionMethod.obpBle, ConnectionSupport.supported),
     (AppConnectionMethod.obpDirCon, ConnectionSupport.experimental),
   ];
 
