@@ -123,7 +123,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   Future<void> _createTcpServer() async {
     try {
       _server = await ServerSocket.bind(
-        InternetAddress.anyIPv4,
+        InternetAddress.anyIPv6,
         36867,
         shared: true,
         v6Only: false,
@@ -222,6 +222,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       return;
     } else {
       socket.add(responseData);
+      //socket.flush();
     }
   }
 
