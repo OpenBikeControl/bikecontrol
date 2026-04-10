@@ -2,15 +2,16 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/widgets/status_icon.dart';
+import 'package:prop/emulators/dircon/fitness_dircon.dart';
 import 'package:prop/emulators/ftms_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class ProxyDevice extends BluetoothDevice {
   static final List<String> proxyServiceUUIDs = [
-    '0000180d-0000-1000-8000-00805f9b34fb', // Heart Rate
-    '00001818-0000-1000-8000-00805f9b34fb', // Cycling Power
-    '00001826-0000-1000-8000-00805f9b34fb', // Fitness Machine
+    FitnessDircon.HEART_RATE_SERVICE_UUID, // Heart Rate
+    FitnessDircon.CYCLING_POWER_SERVICE_UUID, // Heart Rate
+    FitnessDircon.FITNESS_MACHINE_SERVICE_UUID, // Fitness Machine
   ];
 
   final FtmsEmulator emulator = FtmsEmulator();
@@ -42,15 +43,24 @@ class ProxyDevice extends BluetoothDevice {
           spacing: 16,
           children: [
             Expanded(child: super.showInformation(context, showFull: showFull)),
-            if (!isConnected)
+            if (!isConnected) ...[
               Button.primary(
                 style: ButtonStyle.primary(size: ButtonSize.small),
                 onPressed: () {
                   super.connect();
                 },
                 child: Text('Proxy'),
-              )
-            else
+              ),
+              if (scanResult.services.any((service) => service == FitnessDircon.CYCLING_POWER_SERVICE_UUID))
+                Button.primary(
+                  style: ButtonStyle.primary(size: ButtonSize.small),
+                  onPressed: () {
+                    emulator.setRetrofit(true);
+                    super.connect();
+                  },
+                  child: Text('Retrofit'),
+                ),
+            ] else
               StatusIcon(
                 status: emulator.isConnected.value,
                 icon: Icons.wifi,
