@@ -20,7 +20,7 @@ class ObcDircon extends DirCon {
         ),
         BleCharacteristic(
           OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
-          [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
+          [CharacteristicProperty.writeWithoutResponse],
         ),
       ];
     }
