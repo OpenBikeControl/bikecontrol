@@ -172,7 +172,7 @@ class ZwiftClickV2 extends ZwiftRide {
                             MenuButton(
                               onPressed: (c) {
                                 openDrawer(
-                                  context: context,
+                                  context: c,
                                   position: OverlayPosition.bottom,
                                   builder: (_) => UnlockPage(device: this),
                                 );
