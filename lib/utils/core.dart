@@ -267,6 +267,9 @@ class CoreLogic {
       showZwiftMsdnEmulator ||
       showMyWhooshLink;
 
+  bool get hasOfficialConnectionMethods =>
+      showObpBluetoothEmulator || showObpMdnsEmulator || showZwiftBleEmulator || showZwiftMsdnEmulator;
+
   List<TrainerConnection> get connectedTrainerConnections => [
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
@@ -282,6 +285,16 @@ class CoreLogic {
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (core.settings.getLocalEnabled() && showLocalControl) core.local,
+    if (isMyWhooshLinkEnabled) core.whooshLink,
+    if (isZwiftBleEnabled) core.zwiftEmulator,
+    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isRemoteControlEnabled) core.remotePairing,
+    if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
+  ];
+
+  List<TrainerConnection> get enabledNonLocalTrainerConnections => [
+    if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,

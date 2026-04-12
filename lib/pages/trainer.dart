@@ -147,6 +147,9 @@ class _TrainerPageState extends State<TrainerPage> {
                         ),
                       ],
                     ),
+                  ] else ...[
+                    Gap(8),
+                    Divider(),
                   ],
                   const Gap(24),
                   TrainerFeatures(),

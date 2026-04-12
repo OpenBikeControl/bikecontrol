@@ -195,7 +195,7 @@ class _LocalTileState extends State<LocalTile> {
     return ConnectionMethod(
       trainerConnection: core.local,
       isEnabled: core.settings.getLocalEnabled(),
-      isRecommended: true,
+      isRecommended: !core.logic.hasOfficialConnectionMethods,
       showTroubleshooting: true,
       instructionLink: 'INSTRUCTIONS_LOCAL.md',
       title: context.i18n.controlAppUsingModes(
