@@ -16,6 +16,7 @@ class Zwift extends SupportedApp {
     : super(
         name: 'Zwift',
         packageName: "Zwift",
+        officialIntegration: false,
         keymap: Keymap(
           keyPairs: [
             KeyPair(

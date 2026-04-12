@@ -34,11 +34,13 @@ abstract class SupportedApp {
   final Keymap keymap;
   final List<KeyPair> additionalKeyPairs;
   final bool star;
+  final bool officialIntegration;
 
   const SupportedApp({
     required this.name,
     required this.packageName,
     required this.keymap,
+    required this.officialIntegration,
     this.additionalKeyPairs = const [],
     this.star = false,
   });

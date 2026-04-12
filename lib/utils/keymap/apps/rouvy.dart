@@ -25,6 +25,7 @@ class Rouvy extends SupportedApp {
     : super(
         name: 'Rouvy',
         packageName: "Rouvy",
+        officialIntegration: true,
         keymap: Keymap(
           keyPairs: [
             // https://support.rouvy.com/hc/de/articles/32452137189393-Virtuelles-Schalten#h_01K5GMVG4KVYZ0Y6W7RBRZC9MA

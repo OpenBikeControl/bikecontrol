@@ -15,6 +15,7 @@ class Biketerra extends SupportedApp {
     : super(
         name: 'Biketerra',
         packageName: "Biketerra",
+        officialIntegration: false,
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values

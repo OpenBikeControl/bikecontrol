@@ -16,7 +16,7 @@ class MyWhoosh extends SupportedApp {
     : super(
         name: 'MyWhoosh',
         packageName: "MyWhoosh",
-        star: false,
+        officialIntegration: true,
         additionalKeyPairs: [
           KeyPair(
             buttons: [ControllerButton('Peace', action: InGameAction.emote)],
