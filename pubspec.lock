@@ -1899,7 +1899,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "22b713600511ef5adff60aa70b941ada99ba2890"
+      resolved-ref: "3cdb5cb112ad1241f2e9a4f590e0d5edb7a1c169"
       url: "https://github.com/jonasbark/universal_ble.git"
     source: git
     version: "0.21.1"

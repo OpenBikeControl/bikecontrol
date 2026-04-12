@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -50,8 +51,8 @@ class HidDevice extends BaseDevice {
           Warning(
             children: [
               Text(
-                'For it to work properly, even when BikeControl is in the background, you need to enable the local connection method in the trainer settings.',
-              ).small,
+                AppLocalizations.of(context).androidAccessibilityHint,
+              ).xSmall,
             ],
           ),
       ],
