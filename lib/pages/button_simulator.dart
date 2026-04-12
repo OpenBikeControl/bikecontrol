@@ -97,10 +97,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     // If no saved hotkeys, initialize with defaults
     if (savedHotkeys.isEmpty) {
       final connectedTrainers = core.logic.enabledTrainerConnections;
+      final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
       final allActions = <InGameAction>[];
 
       for (final connection in connectedTrainers) {
-        allActions.addAll(connection.supportedActions);
+        allActions.addAll(connection.supportedActions.map((a) => mapping[a] ?? a));
       }
 
       // Assign default hotkeys to actions
@@ -198,9 +199,12 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     _pressedAction = action;
     setState(() {});
 
-    // Find the connection that supports this action
+    // Find the connection that supports this action (check both original and mapped actions)
     final connectedTrainers = core.logic.connectedTrainerConnections;
-    final connection = connectedTrainers.firstOrNullWhere((c) => c.supportedActions.contains(action));
+    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
+    final connection = connectedTrainers.firstOrNullWhere(
+      (c) => c.supportedActions.map((a) => mapping[a] ?? a).contains(action),
+    );
 
     if (connection != null) {
       _sendKey(context, down: true, action: action, connection: connection);
@@ -278,7 +282,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                       if (!screenshotMode) connectedTrainer.getTile(),
                     ...connectedTrainers.map(
                       (connection) {
-                        final supportedActions = connection.supportedActions == InGameAction.values
+                        final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
+                        final supportedActions = (connection.supportedActions == InGameAction.values
                             ? core.settings
                                   .getTrainerApp()!
                                   .keymap
@@ -286,7 +291,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                                   .mapNotNull((k) => k.inGameAction)
                                   .distinct()
                                   .toList()
-                            : connection.supportedActions;
+                            : connection.supportedActions)
+                            .map((a) => mapping[a] ?? a)
+                            .toList();
 
                         final actionGroups = {
                           if (supportedActions.contains(InGameAction.shiftUp) &&
@@ -372,12 +379,13 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   }
 
   Widget _buildHotkeySection(List<TrainerConnection> connections) {
+    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
     final allActions = <InGameAction>[];
     for (final connection in connections) {
       final actions = connection.supportedActions == InGameAction.values
           ? core.settings.getTrainerApp()!.keymap.keyPairs.mapNotNull((k) => k.inGameAction).toList()
           : connection.supportedActions;
-      allActions.addAll(actions);
+      allActions.addAll(actions.map((a) => mapping[a] ?? a));
     }
     final uniqueActions = allActions.distinct().toList();
     if (uniqueActions.isEmpty) return const SizedBox.shrink();

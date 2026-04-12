@@ -230,7 +230,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ],
                 if (core.logic.showZwiftBleEmulator || core.logic.showZwiftMsdnEmulator) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.zwiftControllerAction),
+                  ColoredTitle(text: '${core.settings.getTrainerApp()?.name ?? 'Zwift'} Action'),
                   if (!core.settings.getZwiftBleEmulatorEnabled() && !core.settings.getZwiftMdnsEmulatorEnabled())
                     Warning(
                       important: false,
@@ -239,7 +239,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ],
                     )
                   else
-                    ..._buildTrainerConnectionActions(core.zwiftEmulator.supportedActions),
+                    ..._buildTrainerConnectionActions(_mapActions(core.zwiftEmulator.supportedActions)),
                 ],
 
                 if (core.logic.showLocalRemoteOptions) ...[
@@ -703,6 +703,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ),
       ),
     );
+  }
+
+  List<InGameAction> _mapActions(List<InGameAction> actions) {
+    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
+    return actions.map((a) => mapping[a] ?? a).toList();
   }
 
   List<Widget> _buildTrainerConnectionActions(List<InGameAction> supportedActions) {

@@ -17,6 +17,7 @@ import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -337,7 +338,11 @@ class ZwiftEmulator extends TrainerConnection {
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
-    final button = switch (keyPair.inGameAction) {
+    // Resolve mapped app-specific actions (e.g. Rouvy's kudos) back to Zwift Click V2 actions
+    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
+    var action = mapping?.entries.firstOrNullWhere((e) => e.value == keyPair.inGameAction) ?? keyPair.inGameAction;
+
+    final button = switch (action) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
       InGameAction.uturn => RideButtonMask.DOWN_BTN,

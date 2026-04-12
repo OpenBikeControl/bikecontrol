@@ -13,6 +13,14 @@ class Rouvy extends SupportedApp {
     (AppConnectionMethod.zwiftBle, ConnectionSupport.supported),
   ];
 
+  /// Maps Zwift Click V2 button actions to Rouvy-specific actions.
+  /// See: https://support.rouvy.com/hc/de/articles/32452137189393-Virtuelles-Schalten
+  @override
+  Map<InGameAction, InGameAction> get inGameActionsMapping => const {
+    InGameAction.usePowerUp: InGameAction.kudos, // Y button → Kudos
+    InGameAction.rideOnBomb: InGameAction.pause, // Z button → Pause/Resume
+  };
+
   Rouvy()
     : super(
         name: 'Rouvy',
@@ -51,13 +59,13 @@ class Rouvy extends SupportedApp {
               inGameAction: InGameAction.back,
             ),
             KeyPair(
-              buttons: [ZwiftButtons.a],
+              buttons: [ZwiftButtons.y],
               physicalKey: PhysicalKeyboardKey.keyK,
               logicalKey: LogicalKeyboardKey.keyK,
               inGameAction: InGameAction.kudos,
             ),
             KeyPair(
-              buttons: [ZwiftButtons.y],
+              buttons: [ZwiftButtons.z],
               physicalKey: PhysicalKeyboardKey.keyZ,
               logicalKey: LogicalKeyboardKey.keyZ,
               inGameAction: InGameAction.pause,

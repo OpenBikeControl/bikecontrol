@@ -5,6 +5,7 @@ import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 
+import '../buttons.dart';
 import '../keymap.dart';
 import 'custom_app.dart';
 import 'my_whoosh.dart';
@@ -43,6 +44,10 @@ abstract class SupportedApp {
   });
 
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [];
+
+  /// Maps Zwift Click V2 actions to this app's corresponding actions.
+  /// E.g. for Rouvy: {InGameAction.usePowerUp: InGameAction.pause, InGameAction.select: InGameAction.kudos}
+  Map<InGameAction, InGameAction> get inGameActionsMapping => const {};
 
   /// Whether this app supports the given connection method.
   /// Experimental methods are excluded unless the experimental setting is enabled.
