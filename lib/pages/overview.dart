@@ -979,7 +979,14 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(appName).small.semiBold,
+                            if (trainerApp?.logoAsset != null) ...[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.asset(trainerApp!.logoAsset!, width: 18, height: 18),
+                              ),
+                              const Gap(8),
+                            ],
+                            Expanded(child: Text(appName).small.semiBold),
                             Icon(
                               Icons.keyboard_arrow_down,
                               size: 14,

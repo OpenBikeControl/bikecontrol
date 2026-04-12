@@ -13,6 +13,9 @@ class Rouvy extends SupportedApp {
     (AppConnectionMethod.zwiftBle, ConnectionSupport.supported),
   ];
 
+  @override
+  String? get logoAsset => 'assets/rouvy.png';
+
   /// Maps Zwift Click V2 button actions to Rouvy-specific actions.
   /// See: https://support.rouvy.com/hc/de/articles/32452137189393-Virtuelles-Schalten
   @override

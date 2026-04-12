@@ -50,9 +50,15 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                 children: [
                   Select<SupportedApp>(
                     constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
+                    popupConstraints: BoxConstraints(maxWidth: 400, minWidth: 400, minHeight: 300),
                     itemBuilder: (c, app) => Row(
-                      spacing: 4,
+                      spacing: 8,
                       children: [
+                        if (app.logoAsset != null)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.asset(app.logoAsset!, width: 22, height: 22),
+                          ),
                         Expanded(child: Text(screenshotMode ? 'Trainer app' : app.name)),
                         if (app.supports(AppConnectionMethod.obpBle) ||
                             app.supports(AppConnectionMethod.obpMdns) ||
@@ -67,7 +73,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                             Container(
                               color: Theme.of(context).colorScheme.accent,
                               padding: const EdgeInsets.all(8.0),
-                              child: GradientText(AppLocalizations.of(context).officiallySupported).small,
+                              child: GradientText(AppLocalizations.of(context).officiallySupported).xSmall,
                             ),
                           ...groupedByOfficial.get(true)?.map((app) {
                             final supportsObp =
@@ -77,8 +83,13 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                             return SelectItemButton(
                               value: app,
                               child: Row(
-                                spacing: 4,
+                                spacing: 8,
                                 children: [
+                                  if (app.logoAsset != null)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Image.asset(app.logoAsset!, width: 22, height: 22),
+                                    ),
                                   Expanded(
                                     child: app == core.settings.getTrainerApp()
                                         ? Text(app.name).semiBold
@@ -93,7 +104,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                             Container(
                               color: Theme.of(context).colorScheme.accent,
                               padding: const EdgeInsets.all(8.0),
-                              child: GradientText(AppLocalizations.of(context).otherTrainerApps).small,
+                              child: GradientText(AppLocalizations.of(context).otherTrainerApps).xSmall,
                             ),
                           ...groupedByOfficial.get(false)?.map((app) {
                             return SelectItemButton(

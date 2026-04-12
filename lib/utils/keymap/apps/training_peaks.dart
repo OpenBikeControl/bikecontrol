@@ -14,6 +14,9 @@ class TrainingPeaks extends SupportedApp {
     (AppConnectionMethod.obpDirCon, ConnectionSupport.experimental),
   ];
 
+  @override
+  String? get logoAsset => 'assets/trainingpeaks.png';
+
   TrainingPeaks()
     : super(
         name: 'TrainingPeaks Virtual',
