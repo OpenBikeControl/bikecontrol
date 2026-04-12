@@ -4,6 +4,7 @@ Rouvy is now officially supported by BikeControl! Read more about it [in our blo
 
 **Features**:
 - Long press now repeats the single click action by default, useful for continuous gear shifting or volume adjustments
+- Improved Gamepad support
 
 **Fixes**:
 - Bluetooth Media Remotes now trigger actions correctly

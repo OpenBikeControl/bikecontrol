@@ -7,6 +7,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:gamepads/gamepads.dart';
+import 'package:prop/emulators/shared.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class GamepadDevice extends BaseDevice {
@@ -18,41 +19,45 @@ class GamepadDevice extends BaseDevice {
 
   @override
   Future<void> connect() async {
-    Gamepads.eventsByGamepad(id).listen((event) async {
-      actionStreamInternal.add(LogNotification('Gamepad event: ${event.key} value ${event.value} type ${event.type}'));
+    isConnected = true;
 
-      final int normalizedValue = switch (event.value) {
-        > 1.0 => 1,
-        < -1.0 => -1,
-        _ => event.value.toInt(),
-      };
+    Gamepads.normalizedEvents.where((pad) => pad.gamepadId == id).listen((event) async {
+      if (event.axis != null && event.value.abs().round() != 1 && event.value.abs().round() != 0) {
+        // ignore axis events that are not fully pressed to avoid accidental triggers from analog drift or light touches
+        return;
+      }
+      final buttonKey = event.button?.name ?? '${event.axis!.name}_${event.value.round()}';
 
-      final buttonKey = event.type == KeyType.analog ? '${event.key}_$normalizedValue' : event.key;
-      ControllerButton button = getOrAddButton(
-        buttonKey,
-        () => ControllerButton(buttonKey, sourceDeviceId: id),
+      actionStreamInternal.add(
+        LogNotification('Gamepad event: ${event.button?.name ?? event.axis!.name} value ${event.value}'),
       );
 
-      switch (event.type) {
-        case KeyType.analog:
-          final releasedValue = Platform.isWindows ? 1 : 0;
-
-          if (event.value.round().abs() != releasedValue) {
-            final buttonsClicked = [button];
-            if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
-              handleButtonsClicked(buttonsClicked);
-            }
-            _lastButtonsClicked = buttonsClicked;
-          } else {
-            _lastButtonsClicked = [];
-            handleButtonsClicked([]);
-          }
-        case KeyType.button:
-          final buttonsClicked = event.value.toInt() != 1 ? [button] : <ControllerButton>[];
+      if (event.axis != null) {
+        if (event.value.round().abs() != 0) {
+          ControllerButton button = getOrAddButton(
+            buttonKey,
+            () => ControllerButton(buttonKey, sourceDeviceId: id),
+          );
+          final buttonsClicked = [button];
           if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
             handleButtonsClicked(buttonsClicked);
           }
           _lastButtonsClicked = buttonsClicked;
+        } else {
+          _lastButtonsClicked = [];
+          handleButtonsClicked([]);
+        }
+      } else {
+        ControllerButton button = getOrAddButton(
+          buttonKey,
+          () => ControllerButton(buttonKey, sourceDeviceId: id),
+        );
+        final buttonsClicked = event.value.toInt() == 1 ? [button] : <ControllerButton>[];
+        if (_lastButtonsClicked.contentEquals(buttonsClicked) == false) {
+          Logger.info("Buttons clicked: ${buttonsClicked.map((b) => b.name).join(', ')}");
+          handleButtonsClicked(buttonsClicked);
+        }
+        _lastButtonsClicked = buttonsClicked;
       }
     });
   }
