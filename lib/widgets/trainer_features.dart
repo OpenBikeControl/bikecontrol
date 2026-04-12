@@ -202,6 +202,7 @@ class SwitchFeature extends StatelessWidget {
               padding: EdgeInsets.only(right: isProOnly && !IAPManager.instance.isProEnabled ? 32 : 0),
               title: isMobile && false ? Text(title).xSmall.normal : Text(title),
               subtitle: subtitle != null ? Text(subtitle!).xSmall.normal.muted : null,
+              trailingAlignment: Alignment.centerRight,
               trailing: Switch(
                 value: value,
                 onChanged: (val) {
