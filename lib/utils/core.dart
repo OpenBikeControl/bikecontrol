@@ -57,6 +57,27 @@ class Core {
   late final mediaKeyHandler = MediaKeyHandler();
   late final logic = CoreLogic();
   late final permissions = Permissions();
+
+  /// Stops all active BLE connection methods and disables their settings.
+  /// Call this before enabling a new BLE connection to ensure mutual exclusivity.
+  Future<void> stopAllBleConnections() async {
+    if (settings.getZwiftBleEmulatorEnabled()) {
+      settings.setZwiftBleEmulatorEnabled(false);
+      await zwiftEmulator.stopAdvertising();
+    }
+    if (settings.getObpBleEnabled()) {
+      settings.setObpBleEnabled(false);
+      await obpBluetoothEmulator.stopServer();
+    }
+    if (settings.getRemoteControlEnabled()) {
+      settings.setRemoteControlEnabled(false);
+      await remotePairing.stopAdvertising();
+    }
+    if (settings.getRemoteKeyboardControlEnabled()) {
+      settings.setRemoteKeyboardControlEnabled(false);
+      await remoteKeyboardPairing.stopAdvertising();
+    }
+  }
 }
 
 class Permissions {

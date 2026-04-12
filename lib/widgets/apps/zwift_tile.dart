@@ -35,7 +35,10 @@ class _ZwiftTileState extends State<ZwiftTile> {
                   supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.zwiftBle),
                   isEnabled: core.settings.getZwiftBleEmulatorEnabled(),
                   instructionLink: 'INSTRUCTIONS_ZWIFT.md',
-                  onChange: (value) {
+                  onChange: (value) async {
+                    if (value) {
+                      await core.stopAllBleConnections();
+                    }
                     core.settings.setZwiftBleEmulatorEnabled(value);
                     if (!value) {
                       core.zwiftEmulator.stopAdvertising();
