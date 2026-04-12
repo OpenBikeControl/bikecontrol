@@ -9,6 +9,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
@@ -62,7 +63,11 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
-    final button = switch (keyPair.inGameAction) {
+    // Resolve mapped app-specific actions (e.g. Rouvy's kudos) back to Zwift Click V2 actions
+    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
+    final action = mapping?.entries.firstOrNullWhere((e) => e.value == keyPair.inGameAction) ?? keyPair.inGameAction;
+
+    final button = switch (action) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
       InGameAction.uturn => RideButtonMask.DOWN_BTN,
