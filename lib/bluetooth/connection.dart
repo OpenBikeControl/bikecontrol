@@ -548,6 +548,7 @@ class Connection {
       UniversalBle.stopScan();
     }
     isScanning.value = false;
+    _lastScanResult.clear();
     _androidNotificationsSetup = false;
   }
 
