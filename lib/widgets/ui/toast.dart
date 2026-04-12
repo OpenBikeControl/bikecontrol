@@ -14,7 +14,6 @@ void buildToast({
   Duration? duration,
 }) {
   if (navigatorKey.currentContext?.mounted ?? false) {
-    final isMobile = MediaQuery.sizeOf(navigatorKey.currentContext!).width < 600;
     showToast(
       context: navigatorKey.currentContext!,
       location: location,
