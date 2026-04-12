@@ -281,6 +281,16 @@ class CoreLogic {
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
 
+  List<TrainerConnection> get connectedNonLocalTrainerConnections => [
+    if (isObpMdnsEnabled) core.obpMdnsEmulator,
+    if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isMyWhooshLinkEnabled) core.whooshLink,
+    if (isZwiftBleEnabled) core.zwiftEmulator,
+    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isRemoteControlEnabled) core.remotePairing,
+    if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
+  ].filter((e) => e.isConnected.value).toList();
+
   List<TrainerConnection> get enabledTrainerConnections => [
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,

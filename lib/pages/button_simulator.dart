@@ -141,7 +141,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   Future<void> _sendQuickValue(InGameAction action, int value, TrainerConnection connection) async {
     if (!connection.isConnected.value) {
-      buildToast(title: 'No connected trainer.');
+      buildToast(title: context.i18n.notConnected);
       return;
     }
     await connection.sendAction(
@@ -198,7 +198,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     setState(() {});
 
     // Find the connection that supports this action (check both original and mapped actions)
-    final connectedTrainers = core.logic.connectedTrainerConnections;
+    final connectedTrainers = core.logic.connectedNonLocalTrainerConnections;
     final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
     final connection = connectedTrainers.firstOrNullWhere(
       (c) => c.supportedActions.map((a) => mapping[a] ?? a).contains(action),
@@ -583,7 +583,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   }) async {
     if (!connection.isConnected.value) {
       if (down) {
-        buildToast(title: 'No connected trainer.');
+        buildToast(title: context.i18n.notConnected);
       }
 
       return;
