@@ -13,6 +13,7 @@ class OpenBikeControl extends SupportedApp {
     : super(
         name: 'OpenBikeControl Compatible',
         packageName: "org.openbikecontrol",
+        officialIntegration: false,
         keymap: Keymap(
           keyPairs: [],
         ),

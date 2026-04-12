@@ -19,6 +19,7 @@ class CustomApp extends SupportedApp {
     : super(
         name: profileName,
         packageName: "custom_$profileName",
+        officialIntegration: false,
         keymap: Keymap(keyPairs: []),
       );
 

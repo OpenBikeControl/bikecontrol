@@ -11,8 +11,11 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:d4rt/d4rt.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -38,6 +41,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         ColoredTitle(text: context.i18n.setupTrainer),
         Builder(
           builder: (context) {
+            final groupedByOfficial = SupportedApp.supportedApps.groupBy((e) => e.officialIntegration);
             return StatefulBuilder(
               builder: (c, setState) => Column(
                 spacing: 8,
@@ -58,26 +62,46 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     ),
                     popup: SelectPopup(
                       items: SelectItemList(
-                        children: SupportedApp.supportedApps.map((app) {
-                          final supportsObp =
-                              app.supports(AppConnectionMethod.obpBle) ||
-                              app.supports(AppConnectionMethod.obpMdns) ||
-                              app.supports(AppConnectionMethod.obpDirCon);
-                          return SelectItemButton(
-                            value: app,
-                            child: Row(
-                              spacing: 4,
-                              children: [
-                                Expanded(
-                                  child: app == core.settings.getTrainerApp()
-                                      ? Text(app.name).semiBold
-                                      : Text(app.name),
-                                ),
-                                if (supportsObp) OpenBikeControlLogo(),
-                              ],
+                        children: [
+                          if (groupedByOfficial.get(true)?.isNotEmpty == true)
+                            Container(
+                              color: Theme.of(context).colorScheme.accent,
+                              padding: const EdgeInsets.all(8.0),
+                              child: GradientText(AppLocalizations.of(context).officiallySupported).small,
                             ),
-                          );
-                        }).toList(),
+                          ...groupedByOfficial.get(true)?.map((app) {
+                            final supportsObp =
+                                app.supports(AppConnectionMethod.obpBle) ||
+                                app.supports(AppConnectionMethod.obpMdns) ||
+                                app.supports(AppConnectionMethod.obpDirCon);
+                            return SelectItemButton(
+                              value: app,
+                              child: Row(
+                                spacing: 4,
+                                children: [
+                                  Expanded(
+                                    child: app == core.settings.getTrainerApp()
+                                        ? Text(app.name).semiBold
+                                        : Text(app.name),
+                                  ),
+                                  if (supportsObp) OpenBikeControlLogo(),
+                                ],
+                              ),
+                            );
+                          }),
+                          if (groupedByOfficial.get(true)?.isNotEmpty == true)
+                            Container(
+                              color: Theme.of(context).colorScheme.accent,
+                              padding: const EdgeInsets.all(8.0),
+                              child: GradientText(AppLocalizations.of(context).otherTrainerApps).small,
+                            ),
+                          ...groupedByOfficial.get(false)?.map((app) {
+                            return SelectItemButton(
+                              value: app,
+                              child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
+                            );
+                          }),
+                        ],
                       ),
                     ).call,
                     placeholder: Text(context.i18n.selectTrainerAppPlaceholder),

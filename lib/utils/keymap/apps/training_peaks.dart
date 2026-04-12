@@ -18,6 +18,7 @@ class TrainingPeaks extends SupportedApp {
     : super(
         name: 'TrainingPeaks Virtual',
         packageName: "TPVirtual",
+        officialIntegration: true,
         keymap: Keymap(
           keyPairs: [
             // Explicit controller-button mappings with updated touch coordinates
