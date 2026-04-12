@@ -167,8 +167,6 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     });
   }
 
-  static final _validHotkeyPattern = RegExp(r'[0-9a-z]');
-
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
@@ -180,7 +178,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         setState(() => _editingHotkeyAction = null);
         return KeyEventResult.handled;
       }
-      if (key.length == 1 && _validHotkeyPattern.hasMatch(key)) {
+      if (key.length == 1) {
         setState(() {
           _hotkeys[_editingHotkeyAction!] = key;
           _editingHotkeyAction = null;
