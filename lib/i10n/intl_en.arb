@@ -27,6 +27,7 @@
   "allowsRunningInBackground": "Allows BikeControl to keep running in background",
   "alreadyBoughtTheApp": "Already bought the app? You don't need to pay for BikeControl, again. Due to technical difficulties, it's not possible to determine if the app was bought already.\n\nEnter your Play Store purchase ID (e.g. GPA.3356-1337-1338-1339) to unlock the full/base version. If you can't find it, please get in touch with me directly.",
   "alreadyBoughtTheAppPreviously": "Already bought the app previously?",
+  "androidAccessibilityHint": "For it to work properly, even when BikeControl is in the background, please enable the \"Accessibility Permission\" for BikeControl. You can do so by enabling the Local Connection Method.",
   "androidSystemAction": "Android System Action",
   "anotherTriggerIsAlreadyAssignedForThisButton": "Another trigger is already assigned for this button. Go Pro to keep multiple trigger types, or replace the existing trigger assignment and continue with {triggerTitle}.",
   "appIdActions": "{appId} actions",
@@ -318,12 +319,14 @@
   "notAssignedOrNoConnectionMethodActive": "Not assigned",
   "notConnected": "Not connected",
   "notificationDescription": "This keeps the app alive in background and updates you when the connection to your devices changes.",
+  "officiallySupported": "Officially supported",
   "ok": "OK",
   "only": "Only",
   "openBikeControlActions": "OpenBikeControl actions",
   "openBikeControlAnnouncement": "Great news - {trainerApp} supports the OpenBikeControl Protocol, so you'll have the best possible experience!",
   "openBikeControlConnection": " e.g. by using OpenBikeControl connection",
   "otherConnectionMethods": "Other Connection Methods",
+  "otherTrainerApps": "Other Trainer apps",
   "pairingDescription": "This will allow you to use your phone as a Bluetooth mouse to control apps. Once paired, you can use the buttons on your bike controller to send mouse inputs to the app.",
   "pairingInstructions": "On your {targetName} go into Bluetooth settings and look for BikeControl or your machines name. Pairing is required if you want to use the remote control feature.",
   "@pairingInstructions": {
@@ -544,7 +547,5 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
-  "officiallySupported": "Officially supported",
-  "otherTrainerApps": "Other Trainer apps"
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
 }

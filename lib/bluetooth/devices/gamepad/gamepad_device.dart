@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
@@ -68,9 +69,7 @@ class GamepadDevice extends BaseDevice {
       if (Platform.isAndroid && !core.settings.getLocalEnabled())
         Warning(
           children: [
-            Text(
-              'For it to work properly, even when BikeControl is in the background, you need to enable the local connection method in the next tab.',
-            ).small,
+            Text(context.i18n.androidAccessibilityHint).xSmall,
           ],
         ),
     ];
