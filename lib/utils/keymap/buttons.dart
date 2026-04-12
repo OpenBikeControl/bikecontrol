@@ -49,7 +49,19 @@ enum InGameAction {
   up('Up', icon: RadixIcons.arrowUp),
   down('Down', icon: RadixIcons.arrowDown),
   home('Home', icon: RadixIcons.home),
-  menu('Menu', icon: RadixIcons.dropdownMenu);
+  menu('Menu', icon: RadixIcons.dropdownMenu),
+  gearSet('Gear Set', icon: LucideIcons.gauge),
+  pushToTalk('Push to Talk', icon: LucideIcons.mic),
+  skipInterval('Skip Interval', icon: LucideIcons.skipForward),
+  previousInterval('Previous Interval', icon: LucideIcons.skipBack),
+  lap('Lap', icon: LucideIcons.timer),
+  resume('Resume', icon: LucideIcons.play),
+  changeMode('Change Mode', icon: LucideIcons.repeat),
+  takeBreak('Take a Break', icon: LucideIcons.coffee),
+  joinRider('Join Rider', icon: LucideIcons.userPlus),
+  changeRoute('Change Route', icon: LucideIcons.signpost),
+  mapToggle('Map Toggle', icon: LucideIcons.map),
+  spectateRider('Spectate Rider', icon: LucideIcons.eye);
 
   final String title;
   final bool isLongPress;
