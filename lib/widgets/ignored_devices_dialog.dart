@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:flutter/material.dart';
 
 class IgnoredDevicesDialog extends StatefulWidget {
   const IgnoredDevicesDialog({super.key});
@@ -26,6 +26,8 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
 
   Future<void> _removeDevice(String deviceId) async {
     await core.settings.removeIgnoredDevice(deviceId);
+    await core.connection.stop();
+    await core.connection.performScanning();
     _loadIgnoredDevices();
   }
 
