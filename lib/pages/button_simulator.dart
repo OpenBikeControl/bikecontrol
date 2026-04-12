@@ -223,7 +223,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     } else {
       _pressedAction = null;
       setState(() {});
-      buildToast(title: 'No connected trainer.');
+      buildToast(title: context.i18n.notConnected);
     }
 
     return KeyEventResult.ignored;
@@ -231,7 +231,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   @override
   Widget build(BuildContext context) {
-    final connectedTrainers = core.logic.enabledTrainerConnections;
+    final connectedTrainers = core.logic.enabledNonLocalTrainerConnections;
 
     final isMobile = MediaQuery.sizeOf(context).width < 600;
 
@@ -283,17 +283,18 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                     ...connectedTrainers.map(
                       (connection) {
                         final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
-                        final supportedActions = (connection.supportedActions == InGameAction.values
-                            ? core.settings
-                                  .getTrainerApp()!
-                                  .keymap
-                                  .keyPairs
-                                  .mapNotNull((k) => k.inGameAction)
-                                  .distinct()
-                                  .toList()
-                            : connection.supportedActions)
-                            .map((a) => mapping[a] ?? a)
-                            .toList();
+                        final supportedActions =
+                            (connection.supportedActions == InGameAction.values
+                                    ? core.settings
+                                          .getTrainerApp()!
+                                          .keymap
+                                          .keyPairs
+                                          .mapNotNull((k) => k.inGameAction)
+                                          .distinct()
+                                          .toList()
+                                    : connection.supportedActions)
+                                .map((a) => mapping[a] ?? a)
+                                .toList();
 
                         final actionGroups = {
                           if (supportedActions.contains(InGameAction.shiftUp) &&
