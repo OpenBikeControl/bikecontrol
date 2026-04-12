@@ -105,7 +105,11 @@ class MediaKeyHandler {
       () => ControllerButton(keyPressed),
     );
 
+    // Send press followed by release. HidDevice has supportsLongPress: false,
+    // so the action is only executed via the release path
+    // (_handleButtonsReleased → _handleSingleButtonTap → performClick).
     availableDevice.handleButtonsClicked([button]);
+    availableDevice.handleButtonsClicked([]);
 
     return core.actionHandler.supportedApp?.keymap.hasAnyMappedAction(button) == true;
   }
