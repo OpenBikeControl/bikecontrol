@@ -39,7 +39,10 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
                   ? context.i18n.chooseBikeControlInConnectionScreen
                   : context.i18n.letsAppConnectOverBluetooth(core.settings.getTrainerApp()?.name ?? ''),
               requirements: core.permissions.getRemoteControlRequirements(),
-              onChange: (value) {
+              onChange: (value) async {
+                if (value) {
+                  await core.stopAllBleConnections();
+                }
                 core.settings.setObpBleEnabled(value);
                 if (!value) {
                   core.obpBluetoothEmulator.stopServer();

@@ -33,6 +33,9 @@ class _PairWidgetState extends State<RemoteKeyboardPairingWidget> {
               description: AppLocalizations.of(context).bluetoothKeyboardExplanation,
               requirements: core.permissions.getRemoteControlRequirements(),
               onChange: (value) async {
+                if (value) {
+                  await core.stopAllBleConnections();
+                }
                 core.settings.setRemoteKeyboardControlEnabled(value);
                 if (!value) {
                   core.remoteKeyboardPairing.stopAdvertising();

@@ -129,17 +129,25 @@ class _TrainerPageState extends State<TrainerPage> {
                   Gap(12),
                   if (otherTiles.isNotEmpty) ...[
                     SizedBox(height: 8),
-                    ColoredTitle(text: context.i18n.otherConnectionMethods),
-                    SizedBox(height: 8),
-                    for (final tile in otherTiles)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: IntrinsicHeight(child: tile),
-                      ),
+                    Accordion(
+                      items: [
+                        AccordionItem(
+                          trigger: AccordionTrigger(
+                            child: ColoredTitle(text: context.i18n.otherConnectionMethods),
+                          ),
+                          content: Column(
+                            children: [
+                              for (final tile in otherTiles)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: IntrinsicHeight(child: tile),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                  Gap(12),
-
-                  Divider(),
                   const Gap(24),
                   TrainerFeatures(),
                 ],

@@ -37,6 +37,9 @@ class _PairWidgetState extends State<RemoteMousePairingWidget> {
               description: context.i18n.pairingDescription,
               requirements: core.permissions.getRemoteControlRequirements(),
               onChange: (value) async {
+                if (value) {
+                  await core.stopAllBleConnections();
+                }
                 core.settings.setRemoteControlEnabled(value);
                 if (!value) {
                   core.remotePairing.stopAdvertising();
