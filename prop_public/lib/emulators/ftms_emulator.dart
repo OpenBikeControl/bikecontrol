@@ -10,6 +10,8 @@ class FtmsEmulator {
   final ValueNotifier<bool> alreadyUnlocked = ValueNotifier(false);
   final ValueNotifier<bool> waiting = ValueNotifier(false);
 
+  ValueListenable<String> data = ValueNotifier('');
+
   DateTime get connectionDate => DateTime.now();
 
   bool processCharacteristic(String characteristic, Uint8List bytes) {
@@ -23,4 +25,6 @@ class FtmsEmulator {
   void stop() {}
 
   void handleServices(List<BleService> services) {}
+
+  void setRetrofit(bool value) {}
 }
