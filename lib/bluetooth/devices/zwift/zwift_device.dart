@@ -45,7 +45,7 @@ abstract class ZwiftDevice extends BluetoothDevice {
         ),
       );
       throw Exception(
-        'Custom service ${[ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID, ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID]} not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
+        'Custom service ${[ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID, ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID]} not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
       );
     }
 
