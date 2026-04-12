@@ -117,6 +117,9 @@ flutter:
     - shorebird.yaml
     - assets/silence.mp3
     - assets/bicycle.json
+    - assets/mywhoosh.png
+    - assets/rouvy.png
+    - assets/trainingpeaks.png
     - icon.png
     - openbikecontrol.png
 

@@ -47,6 +47,9 @@ abstract class SupportedApp {
 
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [];
 
+  /// Optional asset path for the trainer app logo (only for officially supported apps).
+  String? get logoAsset => null;
+
   /// Maps Zwift Click V2 actions to this app's corresponding actions.
   /// E.g. for Rouvy: {InGameAction.usePowerUp: InGameAction.pause, InGameAction.select: InGameAction.kudos}
   Map<InGameAction, InGameAction> get inGameActionsMapping => const {};

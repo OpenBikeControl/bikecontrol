@@ -12,6 +12,9 @@ class MyWhoosh extends SupportedApp {
     (AppConnectionMethod.obpMdns, ConnectionSupport.supported),
   ];
 
+  @override
+  String? get logoAsset => 'assets/mywhoosh.png';
+
   MyWhoosh()
     : super(
         name: 'MyWhoosh',
