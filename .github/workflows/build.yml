@@ -11,7 +11,7 @@ on:
       build_github:
         description: 'Build for GitHub'
         required: false
-        default: true
+        default: false
         type: boolean
       build_windows:
         description: 'Build for Windows'
@@ -213,12 +213,15 @@ jobs:
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
           echo "VERSION=$version" >> $GITHUB_ENV
 
+      - name: Zip Symbols
+        run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols.zip symbols/
+
       - name: Upload Symbols
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: Symbols
-          path: symbols/
+          path: symbols.zip
 
         #13 Create Release
       - name: Create Release
@@ -334,19 +337,29 @@ jobs:
         if: false
         run: msstore publish 'build/windows/x64/runner/Release/bike_control.store.msix' -id 9NP42GS03Z26
 
+      - name: Zip Windows Release
+        shell: pwsh
+        run: |
+          7z a -p"${{ secrets.ZIP_PASSWORD }}" build/windows/bike_control.windows.protected.zip build/windows/bike_control.windows.zip
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: Windows Release
-          path: build/windows/bike_control.windows.zip
+          path: build/windows/bike_control.windows.protected.zip
+
+      - name: Zip Windows Symbols
+        shell: pwsh
+        run: |
+          7z a -p"${{ secrets.ZIP_PASSWORD }}" symbols-win.zip symbols-win/
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: Windows Symbols
-          path: symbols-win/
+          path: symbols-win.zip
 
       - name: Create Release (Windows zip)
         if: inputs.build_github
