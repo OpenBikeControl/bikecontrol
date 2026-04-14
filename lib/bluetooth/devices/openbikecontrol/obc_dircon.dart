@@ -28,7 +28,7 @@ class ObcDircon extends DirCon {
   }
 
   @override
-  void processWriteCallback(String characteristicUUID, List<int> characteristicData) {
+  void onWriteRequest(String characteristicUUID, List<int> characteristicData) {
     if (characteristicUUID.toLowerCase() == OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID) {
       onMessageCallback.onMessage(characteristicData);
     }
