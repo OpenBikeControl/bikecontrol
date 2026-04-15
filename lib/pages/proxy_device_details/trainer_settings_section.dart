@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/proxy_device_details/gear_ratios_card.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -34,6 +35,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
         _bikeWeightCard(),
         _riderWeightCard(),
         _gradeSmoothingCard(),
+        GearRatiosCard(definition: def),
       ],
     );
   }
