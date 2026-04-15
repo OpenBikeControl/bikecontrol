@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:prop/emulators/ble_definition.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -36,4 +38,9 @@ class ObcBikeDefinition extends BleDefinition {
 
   @override
   List<String> get serviceUUIDs => [OpenBikeControlConstants.SERVICE_UUID];
+
+  @override
+  void onNotification(String characteristic, Uint8List bytes) {
+    onMessageCallback.onMessage(bytes);
+  }
 }
