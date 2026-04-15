@@ -14,6 +14,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/prop.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
@@ -482,5 +483,57 @@ class Settings {
 
   bool getShowExperimental() {
     return prefs.getBool('show_experimental') ?? false;
+  }
+
+  // Proxy / retrofit bike settings
+  static const double _proxyBikeWeightDefaultKg = 10.0;
+  static const double _proxyBikeWeightMinKg = 1.0;
+  static const double _proxyBikeWeightMaxKg = 50.0;
+  static const double _proxyRiderWeightDefaultKg = 75.0;
+  static const double _proxyRiderWeightMinKg = 20.0;
+  static const double _proxyRiderWeightMaxKg = 200.0;
+  static const VirtualShiftingMode _proxyVsModeDefault =
+      VirtualShiftingMode.targetPower;
+
+  // Proxy settings are device-local — not synced to the server today because
+  // no UserSettingsRepository keys reference them. Revisit if that changes.
+
+  double getProxyBikeWeightKg() =>
+      (prefs.getDouble('proxy_bike_weight_kg') ?? _proxyBikeWeightDefaultKg)
+          .clamp(_proxyBikeWeightMinKg, _proxyBikeWeightMaxKg);
+
+  Future<void> setProxyBikeWeightKg(double kg) async {
+    await prefs.setDouble(
+      'proxy_bike_weight_kg',
+      kg.clamp(_proxyBikeWeightMinKg, _proxyBikeWeightMaxKg),
+    );
+  }
+
+  double getProxyRiderWeightKg() =>
+      (prefs.getDouble('proxy_rider_weight_kg') ?? _proxyRiderWeightDefaultKg)
+          .clamp(_proxyRiderWeightMinKg, _proxyRiderWeightMaxKg);
+
+  Future<void> setProxyRiderWeightKg(double kg) async {
+    await prefs.setDouble(
+      'proxy_rider_weight_kg',
+      kg.clamp(_proxyRiderWeightMinKg, _proxyRiderWeightMaxKg),
+    );
+  }
+
+  bool getProxyGradeSmoothing() =>
+      prefs.getBool('proxy_grade_smoothing') ?? true;
+
+  Future<void> setProxyGradeSmoothing(bool enabled) async {
+    await prefs.setBool('proxy_grade_smoothing', enabled);
+  }
+
+  VirtualShiftingMode getProxyVirtualShiftingMode() {
+    final s = prefs.getString('proxy_vs_mode');
+    return VirtualShiftingMode.values.firstOrNullWhere((e) => e.name == s) ??
+        _proxyVsModeDefault;
+  }
+
+  Future<void> setProxyVirtualShiftingMode(VirtualShiftingMode mode) async {
+    await prefs.setString('proxy_vs_mode', mode.name);
   }
 }
