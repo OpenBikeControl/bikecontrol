@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:dartx/dartx.dart';
@@ -51,7 +53,11 @@ class _DevicePageState extends State<ProxyPage> {
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Button.ghost(
                     onPressed: () async {
-                      await context.push(ControllerSettingsPage(device: device));
+                      if (device is ProxyDevice) {
+                        await context.push(ProxyDeviceDetailsPage(device: device));
+                      } else {
+                        await context.push(ControllerSettingsPage(device: device));
+                      }
                       widget.onUpdate();
                     },
                     trailing: Icon(
