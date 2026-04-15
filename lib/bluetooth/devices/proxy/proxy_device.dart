@@ -2,7 +2,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/dircon/fitness_dircon.dart';
-import 'package:prop/emulators/ftms_emulator.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -13,7 +13,7 @@ class ProxyDevice extends BluetoothDevice {
     FitnessDircon.FITNESS_MACHINE_SERVICE_UUID, // Fitness Machine
   ];
 
-  final FtmsEmulator emulator = FtmsEmulator();
+  final DirconEmulator emulator = DirconEmulator();
 
   ProxyDevice(super.scanResult)
     : super(

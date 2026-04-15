@@ -8,12 +8,11 @@ import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-import 'package:prop/emulators/ftms_emulator.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-final FtmsEmulator ftmsEmulator = FtmsEmulator();
+final DirconEmulator ftmsEmulator = DirconEmulator();
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickV2(super.scanResult)
