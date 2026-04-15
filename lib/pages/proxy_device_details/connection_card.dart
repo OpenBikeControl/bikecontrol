@@ -17,7 +17,8 @@ class _ConnectionCardState extends State<ConnectionCard> {
   @override
   void initState() {
     super.initState();
-    _pendingMode = widget.device.emulator.retrofitMode.value;
+    final saved = widget.device.emulator.retrofitMode.value;
+    _pendingMode = _allowedModes.contains(saved) ? saved : RetrofitMode.proxy;
   }
 
   List<RetrofitMode> get _allowedModes => [

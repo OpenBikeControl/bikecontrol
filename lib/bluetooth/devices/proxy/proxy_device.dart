@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -26,7 +27,22 @@ class ProxyDevice extends BluetoothDevice {
     emulator.setScanResult(scanResult);
     emulator.handleServices(services);
 
-    emulator.startServer();
+    await emulator.startServer();
+    applyTrainerSettings();
+  }
+
+  /// Push persisted user settings (bike/rider weight, grade smoothing, VS mode)
+  /// onto the active FitnessBikeDefinition so the physics calc uses them even
+  /// when the user never opens the details page. No-op for ProxyBikeDefinition
+  /// (those settings don't apply) and for WiFi modes whose definition is
+  /// created lazily per TCP client — the details page rehydrates on mount.
+  void applyTrainerSettings() {
+    final def = emulator.activeDefinition;
+    if (def is! FitnessBikeDefinition) return;
+    def.setBicycleWeightKg(core.settings.getProxyBikeWeightKg());
+    def.setRiderWeightKg(core.settings.getProxyRiderWeightKg());
+    def.setGradeSmoothingEnabled(core.settings.getProxyGradeSmoothing());
+    def.setVirtualShiftingMode(core.settings.getProxyVirtualShiftingMode());
   }
 
   @override
