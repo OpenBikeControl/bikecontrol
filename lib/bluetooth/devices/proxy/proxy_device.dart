@@ -43,6 +43,10 @@ class ProxyDevice extends BluetoothDevice {
     def.setRiderWeightKg(core.settings.getProxyRiderWeightKg());
     def.setGradeSmoothingEnabled(core.settings.getProxyGradeSmoothing());
     def.setVirtualShiftingMode(core.settings.getProxyVirtualShiftingMode());
+    final persistedRatios = core.settings.getProxyGearRatios();
+    if (persistedRatios != null) {
+      def.setGearRatios(persistedRatios);
+    }
   }
 
   @override
