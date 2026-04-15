@@ -1,8 +1,10 @@
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/retrofit_mode.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/dircon/fitness_dircon.dart';
-import 'package:prop/prop.dart';
+import 'package:prop/prop.dart' hide RetrofitMode;
+import 'package:prop/prop.dart' as prop;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -14,6 +16,7 @@ class ProxyDevice extends BluetoothDevice {
   ];
 
   final DirconEmulator emulator = DirconEmulator();
+  RetrofitMode _pendingMode = RetrofitMode.proxy;
 
   ProxyDevice(super.scanResult)
     : super(
@@ -43,22 +46,51 @@ class ProxyDevice extends BluetoothDevice {
           children: [
             Expanded(child: super.showInformation(context, showFull: showFull)),
             if (!isConnected) ...[
-              Button.primary(
-                style: ButtonStyle.primary(size: ButtonSize.small),
-                onPressed: () {
-                  super.connect();
+              StatefulBuilder(
+                builder: (context, setLocalState) {
+                  var pending = _pendingMode;
+                  final allowedModes = [
+                    RetrofitMode.proxy,
+                    if (scanResult.services.any((s) => s == FitnessDircon.CYCLING_POWER_SERVICE_UUID))
+                      RetrofitMode.wifi,
+                    RetrofitMode.bluetooth,
+                  ];
+                  return Row(
+                    spacing: 8,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Select<RetrofitMode>(
+                        value: pending,
+                        itemBuilder: (context, value) => Text(value?.label ?? ''),
+                        popup: SelectPopup(
+                          items: SelectItemList(
+                            children: [
+                              for (final m in allowedModes)
+                                SelectItemButton(value: m, child: Text(m.label)),
+                            ],
+                          ),
+                        ).call,
+                        onChanged: (m) {
+                          if (m == null) return;
+                          setLocalState(() {
+                            _pendingMode = m;
+                          });
+                        },
+                      ),
+                      Button.primary(
+                        style: ButtonStyle.primary(size: ButtonSize.small),
+                        onPressed: () {
+                          emulator.setRetrofitMode(
+                            prop.RetrofitMode.values.firstWhere((e) => e.name == _pendingMode.name),
+                          );
+                          super.connect();
+                        },
+                        child: const Text('Connect'),
+                      ),
+                    ],
+                  );
                 },
-                child: Text('Proxy'),
               ),
-              if (scanResult.services.any((service) => service == FitnessDircon.CYCLING_POWER_SERVICE_UUID))
-                Button.primary(
-                  style: ButtonStyle.primary(size: ButtonSize.small),
-                  onPressed: () {
-                    emulator.setRetrofit(true);
-                    super.connect();
-                  },
-                  child: Text('Retrofit'),
-                ),
             ] else ...[
               if (kDebugMode)
                 Button.primary(
