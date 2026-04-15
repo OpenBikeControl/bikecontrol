@@ -536,4 +536,34 @@ class Settings {
   Future<void> setProxyVirtualShiftingMode(VirtualShiftingMode mode) async {
     await prefs.setString('proxy_vs_mode', mode.name);
   }
+
+  /// Custom 24-step gear ratio table. Returns null when the user hasn't
+  /// customised it; callers should fall back to [FitnessBikeDefinition.defaultGearRatios].
+  List<double>? getProxyGearRatios() {
+    final raw = prefs.getStringList('proxy_gear_ratios');
+    if (raw == null || raw.length != FitnessBikeDefinition.maxGear) return null;
+    final parsed = <double>[];
+    for (final s in raw) {
+      final v = double.tryParse(s);
+      if (v == null) return null;
+      parsed.add(v);
+    }
+    return parsed;
+  }
+
+  Future<void> setProxyGearRatios(List<double> ratios) async {
+    if (ratios.length != FitnessBikeDefinition.maxGear) {
+      throw ArgumentError(
+        'proxy gear ratios must have ${FitnessBikeDefinition.maxGear} entries',
+      );
+    }
+    await prefs.setStringList(
+      'proxy_gear_ratios',
+      ratios.map((r) => r.toString()).toList(),
+    );
+  }
+
+  Future<void> clearProxyGearRatios() async {
+    await prefs.remove('proxy_gear_ratios');
+  }
 }

@@ -63,4 +63,43 @@ void main() {
     s.prefs = await SharedPreferences.getInstance();
     expect(s.getProxyVirtualShiftingMode(), VirtualShiftingMode.targetPower);
   });
+
+  test('gear ratios default to null (signals "use factory table")', () {
+    expect(settings.getProxyGearRatios(), isNull);
+  });
+
+  test('gear ratios roundtrip persists 24 entries', () async {
+    final custom = List<double>.generate(
+      FitnessBikeDefinition.maxGear,
+      (i) => (i + 1) * 0.25,
+    );
+    await settings.setProxyGearRatios(custom);
+    final loaded = settings.getProxyGearRatios();
+    expect(loaded, isNotNull);
+    expect(loaded!.length, FitnessBikeDefinition.maxGear);
+    for (int i = 0; i < custom.length; i++) {
+      expect(loaded[i], closeTo(custom[i], 0.0001));
+    }
+  });
+
+  test('gear ratios rejects wrong-length list', () {
+    expect(() => settings.setProxyGearRatios([1.0, 2.0]), throwsArgumentError);
+  });
+
+  test('gear ratios returns null when stored list is wrong length', () async {
+    SharedPreferences.setMockInitialValues({
+      'proxy_gear_ratios': ['1.0', '2.0', '3.0'],
+    });
+    final s = Settings();
+    s.prefs = await SharedPreferences.getInstance();
+    expect(s.getProxyGearRatios(), isNull);
+  });
+
+  test('clearProxyGearRatios removes the entry', () async {
+    final custom = List<double>.filled(FitnessBikeDefinition.maxGear, 2.0);
+    await settings.setProxyGearRatios(custom);
+    expect(settings.getProxyGearRatios(), isNotNull);
+    await settings.clearProxyGearRatios();
+    expect(settings.getProxyGearRatios(), isNull);
+  });
 }
