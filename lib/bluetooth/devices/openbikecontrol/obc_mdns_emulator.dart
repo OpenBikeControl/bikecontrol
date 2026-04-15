@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_bike_definition.dart';
-import 'package:prop/emulators/network_transporter.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -17,9 +16,10 @@ import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:nsd/nsd.dart';
+import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:prop/prop.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
   ServerSocket? _server;
