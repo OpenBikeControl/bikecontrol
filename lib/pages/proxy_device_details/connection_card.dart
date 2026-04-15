@@ -44,6 +44,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   Widget _card({required Color bg, required Color border, required Widget child}) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: bg,
@@ -95,7 +96,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           Button.primary(
             onPressed: () {
               emulator.setRetrofitMode(_pendingMode);
-              widget.device.connect();
+              widget.device.startProxy();
             },
             child: const Text('Connect'),
           ),
