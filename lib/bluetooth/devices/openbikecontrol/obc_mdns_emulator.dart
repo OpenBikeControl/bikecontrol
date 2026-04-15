@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_dircon.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_bike_definition.dart';
+import 'package:prop/emulators/network_transporter.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -27,7 +28,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(null);
 
   Socket? _socket;
-  ObcDircon? _dirCon;
+  NetworkTransporter? _dirCon;
 
   StreamSubscription<Socket>? _streamSubscription;
 
@@ -147,7 +148,10 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         }
 
         if (_useDirCon) {
-          _dirCon = ObcDircon(socket: socket, onMessageCallback: this);
+          _dirCon = NetworkTransporter(
+            socket: socket,
+            definition: ObcBikeDefinition(onMessageCallback: this),
+          );
         }
 
         // Listen for data from the client

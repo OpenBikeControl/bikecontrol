@@ -1,14 +1,14 @@
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
-import 'package:prop/emulators/dircon/dircon.dart';
+import 'package:prop/emulators/ble_definition.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 abstract class OnMessage {
   void onMessage(List<int> message);
 }
 
-class ObcDircon extends DirCon {
+class ObcBikeDefinition extends BleDefinition {
   final OnMessage onMessageCallback;
-  ObcDircon({required super.socket, required this.onMessageCallback});
+  ObcBikeDefinition({required this.onMessageCallback});
 
   @override
   List<BleCharacteristic> getCharacteristics(String serviceUUID) {
