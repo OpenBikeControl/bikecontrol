@@ -52,7 +52,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           child: Container(
             constraints: const BoxConstraints(maxWidth: 800),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: 20,
               children: [
                 _deviceCard(),
@@ -71,6 +70,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
   Widget _deviceCard() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.card,
