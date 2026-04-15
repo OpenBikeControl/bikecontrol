@@ -1,6 +1,6 @@
+import 'dart:typed_data';
+
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
-import 'package:bike_control/widgets/status_icon.dart';
-import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -14,7 +14,6 @@ class ProxyDevice extends BluetoothDevice {
   ];
 
   final DirconEmulator emulator = DirconEmulator();
-  RetrofitMode _pendingMode = RetrofitMode.proxy;
 
   ProxyDevice(super.scanResult)
     : super(
@@ -36,83 +35,33 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull}) {
-    return Column(
-      children: [
-        Row(
-          spacing: 16,
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
+    if (!isConnected) return const [];
+    return [
+      ValueListenableBuilder<bool>(
+        valueListenable: emulator.isConnected,
+        builder: (context, connected, _) => Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4,
           children: [
-            Expanded(child: super.showInformation(context, showFull: showFull)),
-            if (!isConnected) ...[
-              StatefulBuilder(
-                builder: (context, setLocalState) {
-                  var pending = _pendingMode;
-                  final allowedModes = [
-                    RetrofitMode.proxy,
-                    if (scanResult.services.any((s) => s == FitnessBikeDefinition.CYCLING_POWER_SERVICE_UUID))
-                      RetrofitMode.wifi,
-                    RetrofitMode.bluetooth,
-                  ];
-                  return Row(
-                    spacing: 8,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Select<RetrofitMode>(
-                        value: pending,
-                        itemBuilder: (context, value) => Text(value.label ?? ''),
-                        constraints: BoxConstraints(minWidth: 200),
-                        popup: SelectPopup(
-                          items: SelectItemList(
-                            children: [
-                              for (final m in allowedModes) SelectItemButton(value: m, child: Text(m.label)),
-                            ],
-                          ),
-                        ).call,
-                        onChanged: (m) {
-                          if (m == null) return;
-                          setLocalState(() {
-                            _pendingMode = m;
-                          });
-                        },
-                      ),
-                      Button.primary(
-                        style: ButtonStyle.primary(size: ButtonSize.small),
-                        onPressed: () {
-                          emulator.setRetrofitMode(_pendingMode);
-                          super.connect();
-                        },
-                        child: const Text('Connect'),
-                      ),
-                    ],
-                  );
-                },
+            Icon(
+              Icons.wifi,
+              size: 12,
+              color: connected
+                  ? const Color(0xFF22C55E)
+                  : Theme.of(context).colorScheme.mutedForeground,
+            ),
+            Text(
+              connected ? 'Bridge live' : 'Bridge idle',
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.mutedForeground,
               ),
-            ] else ...[
-              if (kDebugMode)
-                Button.primary(
-                  style: ButtonStyle.primary(size: ButtonSize.small),
-                  onPressed: () async {
-                    await emulator.debug();
-                  },
-                  child: Text('Debug'),
-                ),
-              StatusIcon(
-                status: emulator.isConnected.value,
-                icon: Icons.wifi,
-                started: emulator.isStarted.value,
-              ),
-            ],
+            ),
           ],
         ),
-        if (isConnected)
-          ValueListenableBuilder(
-            valueListenable: emulator.data,
-            builder: (context, value, child) {
-              return value.isNotEmpty ? Text('Data: $value') : const SizedBox.shrink();
-            },
-          ),
-      ],
-    );
+      ),
+    ];
   }
 
   @override
