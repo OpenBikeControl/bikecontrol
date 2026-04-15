@@ -63,9 +63,7 @@ class ProxyDevice extends BluetoothDevice {
             Icon(
               Icons.wifi,
               size: 12,
-              color: connected
-                  ? const Color(0xFF22C55E)
-                  : Theme.of(context).colorScheme.mutedForeground,
+              color: connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
             ),
             Text(
               connected ? 'Bridge live' : 'Bridge idle',
@@ -82,6 +80,8 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Future<void> connect() async {}
+
+  Future<void> startProxy() => super.connect();
 
   @override
   Future<void> disconnect() {

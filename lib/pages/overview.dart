@@ -780,7 +780,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     child: KeyedSubtree(
                       key: _logoKey,
                       child: Lottie.asset(
-                        'assets/openbikecontrol_logo.json',
+                        Theme.of(context).brightness == Brightness.dark
+                            ? 'assets/openbikecontrol_logo_inverted.json'
+                            : 'assets/openbikecontrol_logo.json',
                         height: 42,
                         controller: _logoController,
                         onLoaded: (composition) {
