@@ -49,9 +49,10 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Center(
-          child: Container(
+          child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: 20,
               children: [
                 _deviceCard(),
