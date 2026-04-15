@@ -8,7 +8,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:gamepads/gamepads.dart';
-import 'package:prop/emulators/shared.dart';
+import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class GamepadDevice extends BaseDevice {
