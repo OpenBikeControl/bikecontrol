@@ -1,4 +1,6 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -93,12 +95,15 @@ class _ConnectionCardState extends State<ConnectionCard> {
             _modeHint(_pendingMode),
             style: TextStyle(fontSize: 12, color: cs.mutedForeground),
           ),
-          Button.primary(
-            onPressed: () {
+          LoadingWidget(
+            futureCallback: () async {
               emulator.setRetrofitMode(_pendingMode);
-              widget.device.startProxy();
+              await widget.device.startProxy();
             },
-            child: const Text('Connect'),
+            renderChild: (isLoading, tap) => Button.primary(
+              onPressed: tap,
+              child: isLoading ? SmallProgressIndicator() : const Text('Connect'),
+            ),
           ),
         ],
       ),
@@ -187,22 +192,22 @@ class _ConnectionCardState extends State<ConnectionCard> {
             spacing: 10,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 spacing: 6,
                 children: [
                   Icon(LucideIcons.bluetooth, size: 16, color: accent),
-                  Flexible(
-                    child: Text(
-                      deviceName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                    ),
+                  Text(
+                    deviceName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   spacing: 4,
                   children: [
                     _dot(accent),
@@ -216,6 +221,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                 ),
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 spacing: 6,
                 children: [
                   Icon(LucideIcons.wifi, size: 16, color: accent),
