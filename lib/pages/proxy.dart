@@ -70,7 +70,7 @@ class _DevicePageState extends State<ProxyPage> {
                     ),
                   ),
                 ),
-                if (index != core.connection.controllerDevices.length - 1)
+                if (index != core.connection.proxyDevices.length - 1)
                   Divider(
                     thickness: 0.5,
                     indent: 20,

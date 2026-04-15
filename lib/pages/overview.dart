@@ -137,6 +137,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     vsync: this,
     duration: const Duration(milliseconds: 300),
   );
+  late final AnimationController _logoController = AnimationController(vsync: this);
 
   void _onErrorBannerTick() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -322,6 +323,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     setState(() {
       _pressedButton[id] = button;
     });
+    if (_logoController.duration != null) {
+      _logoController.forward(from: 0);
+    }
   }
 
   void _insertActivityEntry(_ActivityEntry entry) {
@@ -434,6 +438,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
     _errorBannerController.dispose();
     _errorShakeController.dispose();
+    _logoController.dispose();
     _timeRefreshTimer.cancel();
     _actionListener.cancel();
     super.dispose();
@@ -774,9 +779,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     },
                     child: KeyedSubtree(
                       key: _logoKey,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset('icon.png', width: 40, height: 40),
+                      child: Lottie.asset(
+                        'assets/openbikecontrol_logo.json',
+                        height: 42,
+                        controller: _logoController,
+                        onLoaded: (composition) {
+                          _logoController.duration = composition.duration;
+                        },
                       ),
                     ),
                   ),

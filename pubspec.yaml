@@ -120,6 +120,7 @@ flutter:
     - assets/mywhoosh.png
     - assets/rouvy.png
     - assets/trainingpeaks.png
+    - assets/openbikecontrol_logo.json
     - icon.png
     - openbikecontrol.png
 
