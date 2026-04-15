@@ -8,7 +8,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 class ProxyDevice extends BluetoothDevice {
   static final List<String> proxyServiceUUIDs = [
-    FitnessDircon.HEART_RATE_SERVICE_UUID, // Heart Rate
+    //FitnessDircon.HEART_RATE_SERVICE_UUID, // Heart Rate
     FitnessDircon.CYCLING_POWER_SERVICE_UUID, // Heart Rate
     FitnessDircon.FITNESS_MACHINE_SERVICE_UUID, // Fitness Machine
   ];
