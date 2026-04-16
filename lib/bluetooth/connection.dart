@@ -454,7 +454,7 @@ class Connection {
       _streamSubscriptions[device] = actionSubscription;
 
       // Start the inactivity timer for BLE devices to save their battery.
-      if (device is BluetoothDevice) {
+      if (device is BluetoothDevice && device is! ProxyDevice) {
         _resetInactivityTimer(device);
       }
 
