@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -58,28 +59,96 @@ class ProxyDevice extends BluetoothDevice {
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     if (!isConnected) return const [];
     return [
-      ValueListenableBuilder<bool>(
-        valueListenable: emulator.isConnected,
-        builder: (context, connected, _) => Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 4,
-          children: [
-            Icon(
-              Icons.wifi,
-              size: 12,
-              color: connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
+      ValueListenableBuilder<RetrofitMode>(
+        valueListenable: emulator.retrofitMode,
+        builder: (context, mode, _) {
+          final icon = switch (mode) {
+            RetrofitMode.proxy => LucideIcons.wifi,
+            RetrofitMode.wifi => LucideIcons.cog,
+            RetrofitMode.bluetooth => LucideIcons.bluetooth,
+          };
+          return ValueListenableBuilder<bool>(
+            valueListenable: emulator.isConnected,
+            builder: (context, connected, _) => Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                Icon(
+                  icon,
+                  size: 12,
+                  color: connected
+                      ? const Color(0xFF22C55E)
+                      : Theme.of(context).colorScheme.mutedForeground,
+                ),
+                Text(
+                  connected ? 'Bridge live' : 'Bridge idle',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Theme.of(context).colorScheme.mutedForeground,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              connected ? 'Bridge live' : 'Bridge idle',
-              style: TextStyle(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.mutedForeground,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     ];
+  }
+
+  @override
+  List<Widget> showAdditionalInformation(BuildContext context) {
+    if (!isConnected) return const [];
+    return [
+      ValueListenableBuilder<String>(
+        valueListenable: emulator.data,
+        builder: (context, value, _) {
+          if (value.isEmpty) return const SizedBox.shrink();
+          final def = emulator.activeDefinition;
+          final parts = <Widget>[];
+          if (def is ProxyBikeDefinition) {
+            _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
+            _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
+            _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
+            final speed = def.speedKph.value;
+            if (speed != null) {
+              _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+            }
+          } else if (def is FitnessBikeDefinition) {
+            _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
+            _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
+            _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
+            final speed = def.speedKph.value;
+            if (speed != null) {
+              _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+            }
+          }
+          if (parts.isEmpty) return const SizedBox.shrink();
+          return Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            children: parts,
+          );
+        },
+      ),
+    ];
+  }
+
+  void _addMetric(List<Widget> parts, BuildContext context, int? value, String unit, IconData icon) {
+    if (value == null || value == 0) return;
+    parts.add(Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        Icon(icon, size: 12, color: Theme.of(context).colorScheme.mutedForeground),
+        Text(
+          '$value $unit',
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.mutedForeground,
+          ),
+        ),
+      ],
+    ));
   }
 
   @override
