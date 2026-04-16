@@ -84,17 +84,25 @@ class _ConnectionCardState extends State<ConnectionCard> {
                 for (final m in _allowedModes)
                   RadioCard<RetrofitMode>(
                     value: m,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 2,
+                    child: Row(
+                      spacing: 12,
                       children: [
-                        Text(
-                          m.label,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          _modeHint(m),
-                          style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                        Icon(_modeIcon(m), size: 20, color: cs.mutedForeground),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 2,
+                            children: [
+                              Text(
+                                m.label,
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                _modeHint(m),
+                                style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -253,6 +261,12 @@ class _ConnectionCardState extends State<ConnectionCard> {
       shape: BoxShape.circle,
     ),
   );
+
+  IconData _modeIcon(RetrofitMode mode) => switch (mode) {
+    RetrofitMode.proxy => LucideIcons.wifi,
+    RetrofitMode.wifi => LucideIcons.cog,
+    RetrofitMode.bluetooth => LucideIcons.bluetooth,
+  };
 
   String _modeHint(RetrofitMode mode) => switch (mode) {
     RetrofitMode.proxy => 'Mirrors your trainer over WiFi without touching gear logic.',
