@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
@@ -18,6 +21,8 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
 }
 
 class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
+  late StreamSubscription<BaseDevice> _connectionSub;
+
   void _onEmulatorStateChanged() => setState(() {});
 
   @override
@@ -25,10 +30,14 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     super.initState();
     widget.device.emulator.isStarted.addListener(_onEmulatorStateChanged);
     widget.device.emulator.isConnected.addListener(_onEmulatorStateChanged);
+    _connectionSub = core.connection.connectionStream.listen((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _connectionSub.cancel();
     widget.device.emulator.isStarted.removeListener(_onEmulatorStateChanged);
     widget.device.emulator.isConnected.removeListener(_onEmulatorStateChanged);
     super.dispose();
