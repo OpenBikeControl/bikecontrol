@@ -78,25 +78,29 @@ class _ConnectionCardState extends State<ConnectionCard> {
           RadioGroup<RetrofitMode>(
             value: _pendingMode,
             onChanged: (m) => setState(() => _pendingMode = m),
-            child: Column(
+            child: Row(
               spacing: 8,
               children: [
                 for (final m in _allowedModes)
-                  RadioCard<RetrofitMode>(
-                    value: m,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 2,
-                      children: [
-                        Text(
-                          m.label,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          _modeHint(m),
-                          style: TextStyle(fontSize: 11, color: cs.mutedForeground),
-                        ),
-                      ],
+                  Expanded(
+                    child: RadioCard<RetrofitMode>(
+                      value: m,
+                      child: Column(
+                        spacing: 6,
+                        children: [
+                          Icon(_modeIcon(m), size: 20, color: cs.mutedForeground),
+                          Text(
+                            m.label,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            _modeHint(m),
+                            style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
               ],
@@ -253,6 +257,12 @@ class _ConnectionCardState extends State<ConnectionCard> {
       shape: BoxShape.circle,
     ),
   );
+
+  IconData _modeIcon(RetrofitMode mode) => switch (mode) {
+    RetrofitMode.proxy => LucideIcons.wifi,
+    RetrofitMode.wifi => LucideIcons.cog,
+    RetrofitMode.bluetooth => LucideIcons.bluetooth,
+  };
 
   String _modeHint(RetrofitMode mode) => switch (mode) {
     RetrofitMode.proxy => 'Mirrors your trainer over WiFi without touching gear logic.',
