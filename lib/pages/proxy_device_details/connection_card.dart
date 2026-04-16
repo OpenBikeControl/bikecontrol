@@ -270,7 +270,8 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   String _modeHint(RetrofitMode mode) => switch (mode) {
     RetrofitMode.proxy => 'Mirrors your trainer over WiFi without touching gear logic.',
-    RetrofitMode.wifi => 'Adds virtual shifting to a WiFi-advertised trainer.',
-    RetrofitMode.bluetooth => 'Advertises a virtual FTMS device with a 24-step gear table.',
+    RetrofitMode.wifi => 'Adds or adjusts virtual shifting and creates a WiFi-advertised trainer.',
+    RetrofitMode.bluetooth =>
+      'Adds or adjusts virtual shifting and creates a Bluetooth-advertised trainer (recommended on iOS).',
   };
 }

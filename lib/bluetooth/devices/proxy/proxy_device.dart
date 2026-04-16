@@ -76,9 +76,7 @@ class ProxyDevice extends BluetoothDevice {
                 Icon(
                   icon,
                   size: 12,
-                  color: connected
-                      ? const Color(0xFF22C55E)
-                      : Theme.of(context).colorScheme.mutedForeground,
+                  color: connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
                 ),
                 Text(
                   connected ? 'Bridge live' : 'Bridge idle',
@@ -123,10 +121,13 @@ class ProxyDevice extends BluetoothDevice {
             }
           }
           if (parts.isEmpty) return const SizedBox.shrink();
-          return Wrap(
-            spacing: 12,
-            runSpacing: 4,
-            children: parts,
+          return Padding(
+            padding: const EdgeInsets.only(left: 60.0),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: parts,
+            ),
           );
         },
       ),
@@ -134,21 +135,26 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   void _addMetric(List<Widget> parts, BuildContext context, int? value, String unit, IconData icon) {
-    if (value == null || value == 0) return;
-    parts.add(Row(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 4,
-      children: [
-        Icon(icon, size: 12, color: Theme.of(context).colorScheme.mutedForeground),
-        Text(
-          '$value $unit',
-          style: TextStyle(
-            fontSize: 11,
-            color: Theme.of(context).colorScheme.mutedForeground,
-          ),
+    if (value == null) return;
+    parts.add(
+      Container(
+        constraints: BoxConstraints(minWidth: 52),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4,
+          children: [
+            Icon(icon, size: 12, color: Theme.of(context).colorScheme.mutedForeground),
+            Text(
+              '$value $unit',
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.mutedForeground,
+              ),
+            ),
+          ],
         ),
-      ],
-    ));
+      ),
+    );
   }
 
   @override

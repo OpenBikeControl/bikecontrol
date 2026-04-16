@@ -576,7 +576,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   padding: const EdgeInsets.only(top: 12.0, left: 12, right: 12),
                   child: _buildSectionHeader(
                     icon: Icons.connect_without_contact,
-                    title: 'Proxy',
+                    title: 'Trainer & Accessories',
                   ),
                 ),
                 Gap(12),
