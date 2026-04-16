@@ -34,33 +34,14 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           trailing: [
-            GestureDetector(
-              onTap: () async {
+            Button(
+              style: ButtonStyle.destructive(size: ButtonSize.small),
+              onPressed: () async {
                 def.resetGearRatios();
                 await core.settings.clearProxyGearRatios();
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 4,
-                  children: const [
-                    Icon(LucideIcons.rotateCcw, size: 12, color: Color(0xFFB91C1C)),
-                    Text(
-                      'Reset',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFB91C1C),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              leading: const Icon(LucideIcons.rotateCcw, size: 12),
+              child: const Text('Reset', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ),
           ],
           backgroundColor: cs.background,
@@ -320,45 +301,40 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   Widget _presetButton(BuildContext context, _Preset preset, List<double> current) {
     final cs = Theme.of(context).colorScheme;
     final active = _ratiosMatch(preset.values, current);
-    return GestureDetector(
-      onTap: () async {
+    return Button(
+      style: active
+          ? ButtonStyle.primary(size: ButtonSize.small)
+          : ButtonStyle.outline(size: ButtonSize.small),
+      onPressed: () async {
         def.setGearRatios(preset.values);
         await core.settings.setProxyGearRatios(preset.values);
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        decoration: BoxDecoration(
-          color: active ? const Color(0xFF09090B) : cs.card,
-          borderRadius: BorderRadius.circular(8),
-          border: active ? null : Border.all(color: cs.border),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              preset.label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
-                color: active ? Colors.white : cs.foreground,
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            preset.label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w600,
             ),
-            Text(
-              preset.range,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-                color: active ? const Color(0xFFA1A1AA) : cs.mutedForeground,
-              ),
+          ),
+          Text(
+            preset.range,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: active ? const Color(0xFFA1A1AA) : cs.mutedForeground,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   // ---------- Per-gear list ----------
+
+
 
   Widget _perGearList(BuildContext context) {
     final cs = Theme.of(context).colorScheme;

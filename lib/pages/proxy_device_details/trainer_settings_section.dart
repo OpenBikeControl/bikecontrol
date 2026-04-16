@@ -80,8 +80,8 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   Widget _seg(String label, VirtualShiftingMode value, VirtualShiftingMode current) {
     final active = value == current;
     return Expanded(
-      child: GestureDetector(
-        onTap: () async {
+      child: Button.ghost(
+        onPressed: () async {
           def.setVirtualShiftingMode(value);
           await core.settings.setProxyVirtualShiftingMode(value);
         },

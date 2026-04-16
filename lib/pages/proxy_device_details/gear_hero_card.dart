@@ -113,8 +113,8 @@ class GearHeroCard extends StatelessWidget {
     required bool filled,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
+    return Button.ghost(
+      onPressed: onTap,
       child: Container(
         width: 52,
         height: 52,

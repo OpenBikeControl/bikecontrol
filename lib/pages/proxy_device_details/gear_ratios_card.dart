@@ -49,30 +49,10 @@ class GearRatiosCard extends StatelessWidget {
             ),
           ],
         ),
-        GestureDetector(
-          onTap: () => context.push(GearRatiosEditorPage(definition: definition)),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: cs.muted,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 4,
-              children: [
-                const Text(
-                  'Customize',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-                Icon(
-                  LucideIcons.chevronRight,
-                  size: 12,
-                  color: cs.mutedForeground,
-                ),
-              ],
-            ),
-          ),
+        Button.ghost(
+          onPressed: () => context.push(GearRatiosEditorPage(definition: definition)),
+          trailing: Icon(LucideIcons.chevronRight, size: 12),
+          child: const Text('Customize', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
         ),
       ],
     );

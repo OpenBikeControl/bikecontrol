@@ -18,6 +18,22 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
 }
 
 class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
+  void _onEmulatorStateChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    widget.device.emulator.isStarted.addListener(_onEmulatorStateChanged);
+    widget.device.emulator.isConnected.addListener(_onEmulatorStateChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.device.emulator.isStarted.removeListener(_onEmulatorStateChanged);
+    widget.device.emulator.isConnected.removeListener(_onEmulatorStateChanged);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final device = widget.device;
