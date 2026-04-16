@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
@@ -160,6 +161,25 @@ abstract class BaseActions {
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
       return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
+    }
+
+    // Handle trainer-control actions
+    if (keyPair.inGameAction == InGameAction.trainerShiftUp ||
+        keyPair.inGameAction == InGameAction.trainerShiftDown ||
+        keyPair.inGameAction == InGameAction.trainerErgIncrease ||
+        keyPair.inGameAction == InGameAction.trainerErgDecrease ||
+        keyPair.inGameAction == InGameAction.trainerIntensityUp ||
+        keyPair.inGameAction == InGameAction.trainerIntensityDown) {
+      if (!isKeyDown) return Ignored('');
+      final proxy = core.connection.proxyDevices
+          .whereType<ProxyDevice>()
+          .where((d) => d.isConnected)
+          .firstOrNull;
+      if (proxy == null) {
+        return Error('No proxy trainer connected');
+      }
+      await IAPManager.instance.incrementCommandCount();
+      return proxy.handleTrainerAction(keyPair.inGameAction!);
     }
 
     if (core.logic.hasNoConnectionMethod) {
