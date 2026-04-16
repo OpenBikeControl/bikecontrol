@@ -64,36 +64,43 @@ class _ConnectionCardState extends State<ConnectionCard> {
       border: cs.border,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 10,
+        spacing: 14,
         children: [
           Text(
-            'Retrofit mode',
+            'CONNECT MODE',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
+              letterSpacing: 1,
               color: cs.mutedForeground,
             ),
           ),
-          Select<RetrofitMode>(
+          RadioGroup<RetrofitMode>(
             value: _pendingMode,
-            itemBuilder: (context, value) => Text(value.label),
-            constraints: const BoxConstraints(minWidth: 220),
-            popup: SelectPopup(
-              items: SelectItemList(
-                children: [
-                  for (final m in _allowedModes) SelectItemButton(value: m, child: Text(m.label)),
-                ],
-              ),
-            ).call,
-            onChanged: (m) {
-              if (m == null) return;
-              setState(() => _pendingMode = m);
-            },
-          ),
-          Text(
-            _modeHint(_pendingMode),
-            style: TextStyle(fontSize: 12, color: cs.mutedForeground),
+            onChanged: (m) => setState(() => _pendingMode = m),
+            child: Column(
+              spacing: 8,
+              children: [
+                for (final m in _allowedModes)
+                  RadioCard<RetrofitMode>(
+                    value: m,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 2,
+                      children: [
+                        Text(
+                          m.label,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          _modeHint(m),
+                          style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
           LoadingWidget(
             futureCallback: () async {
@@ -127,14 +134,14 @@ class _ConnectionCardState extends State<ConnectionCard> {
             const Color(0xFFBFDBFE),
             const Color(0xFFDBEAFE),
             const Color(0xFF1D4ED8),
-            'Retrofit (WiFi) — virtual shifting enabled',
+            'Virtual Shifting (WiFi) — active',
           ),
           RetrofitMode.bluetooth => (
             const Color(0xFFFDF4FF),
             const Color(0xFFF5D0FE),
             const Color(0xFFFAE8FF),
             const Color(0xFFA21CAF),
-            'Retrofit (Bluetooth) — virtual shifting enabled',
+            'Virtual Shifting (Bluetooth) — active',
           ),
         };
         final usesWifi = mode != RetrofitMode.bluetooth;
