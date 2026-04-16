@@ -1,5 +1,7 @@
-import 'package:bike_control/pages/proxy_device_details/gear_ratios_card.dart';
+import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
+import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -35,7 +37,10 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
         _bikeWeightCard(),
         _riderWeightCard(),
         _gradeSmoothingCard(),
-        GearRatiosCard(definition: def),
+        Button.ghost(
+          onPressed: () => context.push(GearRatiosEditorPage(definition: def)),
+          child: GearRatioCurve(definition: def),
+        ),
       ],
     );
   }
