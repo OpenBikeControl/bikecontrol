@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/proxy_device_details/erg_mode_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/utils/core.dart';
@@ -33,6 +34,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10,
       children: [
+        ErgModeCard(definition: def),
         _vsModeCard(),
         _bikeWeightCard(),
         _riderWeightCard(),
