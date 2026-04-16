@@ -68,13 +68,20 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
               title: 'Virtual Shifting Mode',
               subtitle: 'How resistance is computed per gear',
             ),
-            Row(
-              spacing: 2,
-              children: [
-                _seg('Target Power', VirtualShiftingMode.targetPower, mode),
-                _seg('Track Resist.', VirtualShiftingMode.trackResistance, mode),
-                _seg('Basic', VirtualShiftingMode.basicResistance, mode),
-              ],
+            RadioGroup<VirtualShiftingMode>(
+              value: mode,
+              onChanged: (v) async {
+                def.setVirtualShiftingMode(v);
+                await core.settings.setProxyVirtualShiftingMode(v);
+              },
+              child: Row(
+                spacing: 6,
+                children: [
+                  _vsRadioCard('Target Power', VirtualShiftingMode.targetPower),
+                  _vsRadioCard('Track Resist.', VirtualShiftingMode.trackResistance),
+                  _vsRadioCard('Basic', VirtualShiftingMode.basicResistance),
+                ],
+              ),
             ),
           ],
         ),
@@ -82,36 +89,14 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
     );
   }
 
-  Widget _seg(String label, VirtualShiftingMode value, VirtualShiftingMode current) {
-    final active = value == current;
+  Widget _vsRadioCard(String label, VirtualShiftingMode value) {
     return Expanded(
-      child: Button.ghost(
-        onPressed: () async {
-          def.setVirtualShiftingMode(value);
-          await core.settings.setProxyVirtualShiftingMode(value);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-          decoration: BoxDecoration(
-            color: active
-                ? Theme.of(context).colorScheme.card
-                : Theme.of(context).colorScheme.muted,
-            borderRadius: BorderRadius.circular(6),
-            border: active
-                ? Border.all(color: Theme.of(context).colorScheme.border)
-                : null,
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                color: active
-                    ? Theme.of(context).colorScheme.foreground
-                    : Theme.of(context).colorScheme.mutedForeground,
-              ),
-            ),
+      child: RadioCard<VirtualShiftingMode>(
+        value: value,
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ),
       ),
