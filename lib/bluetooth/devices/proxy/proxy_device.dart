@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
 import 'package:prop/prop.dart';
@@ -155,6 +157,37 @@ class ProxyDevice extends BluetoothDevice {
         ),
       ),
     );
+  }
+
+  ActionResult handleTrainerAction(InGameAction action) {
+    final def = emulator.activeDefinition;
+    if (def is! FitnessBikeDefinition) {
+      return NotHandled('No active FitnessBikeDefinition');
+    }
+    switch (action) {
+      case InGameAction.trainerShiftUp:
+        def.shiftUp();
+        return Success('Shifted up to gear ${def.currentGear.value}');
+      case InGameAction.trainerShiftDown:
+        def.shiftDown();
+        return Success('Shifted down to gear ${def.currentGear.value}');
+      case InGameAction.trainerErgIncrease:
+        final current = def.ergTargetPower.value ?? 150;
+        def.setManualErgPower(current + 10);
+        return Success('ERG target: ${def.ergTargetPower.value} W');
+      case InGameAction.trainerErgDecrease:
+        final current = def.ergTargetPower.value ?? 150;
+        def.setManualErgPower(current - 10);
+        return Success('ERG target: ${def.ergTargetPower.value} W');
+      case InGameAction.trainerIntensityUp:
+        def.adjustIntensity(0.05);
+        return Success('Intensity +5%');
+      case InGameAction.trainerIntensityDown:
+        def.adjustIntensity(-0.05);
+        return Success('Intensity -5%');
+      default:
+        return NotHandled('');
+    }
   }
 
   @override
