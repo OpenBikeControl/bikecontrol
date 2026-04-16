@@ -28,6 +28,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../bluetooth/devices/proxy/proxy_device.dart';
 
 class ButtonEditPage extends StatefulWidget {
   final Keymap keymap;
@@ -155,6 +156,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ).small,
                     ],
                   ),
+
+                ..._trainerDirectControlSection(),
+
                 if (core.logic.hasNoConnectionMethod)
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 300),
@@ -703,6 +707,43 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ),
       ),
     );
+  }
+
+  static const _trainerActions = [
+    InGameAction.trainerShiftUp,
+    InGameAction.trainerShiftDown,
+    InGameAction.trainerErgIncrease,
+    InGameAction.trainerErgDecrease,
+    InGameAction.trainerIntensityUp,
+    InGameAction.trainerIntensityDown,
+  ];
+
+  List<Widget> _trainerDirectControlSection() {
+    final proxy = core.connection.proxyDevices.whereType<ProxyDevice>().where((d) => d.isConnected).firstOrNull;
+    if (proxy == null) return const [];
+    return [
+      SizedBox(height: 8),
+      ColoredTitle(text: '${proxy.name} Direct Control'),
+      for (final action in _trainerActions)
+        SelectableCard(
+          icon: action.icon,
+          title: Text(action.title),
+          isActive: _keyPair.inGameAction == action,
+          onPressed: () {
+            _keyPair.touchPosition = Offset.zero;
+            _keyPair.physicalKey = null;
+            _keyPair.logicalKey = null;
+            _keyPair.androidAction = null;
+            _keyPair.command = null;
+            _keyPair.screenshotPath = null;
+            _keyPair.inGameAction = action;
+            _keyPair.inGameActionValue = null;
+            widget.onUpdate();
+            setState(() {});
+          },
+        ),
+      SizedBox(height: 8),
+    ];
   }
 
   List<InGameAction> _mapActions(List<InGameAction> actions) {
