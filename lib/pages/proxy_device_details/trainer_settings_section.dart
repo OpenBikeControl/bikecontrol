@@ -37,10 +37,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
         _bikeWeightCard(),
         _riderWeightCard(),
         _gradeSmoothingCard(),
-        Button.ghost(
-          onPressed: () => context.push(GearRatiosEditorPage(definition: def)),
-          child: GearRatioCurve(definition: def),
-        ),
+        _gearRatiosCard(),
       ],
     );
   }
@@ -188,6 +185,35 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _gearRatiosCard() {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.cog, size: 18),
+              const Gap(12),
+              Expanded(
+                child: _labelBlock(
+                  title: 'Gear Ratios',
+                  subtitle: '24-step virtual shifter table',
+                ),
+              ),
+              Button.ghost(
+                onPressed: () => context.push(GearRatiosEditorPage(definition: def)),
+                trailing: const Icon(LucideIcons.chevronRight, size: 14),
+                child: const Text('Customize'),
+              ),
+            ],
+          ),
+          GearRatioCurve(definition: def),
+        ],
       ),
     );
   }
