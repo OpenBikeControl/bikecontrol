@@ -61,7 +61,15 @@ enum InGameAction {
   joinRider('Join Rider', icon: LucideIcons.userPlus),
   changeRoute('Change Route', icon: LucideIcons.signpost),
   mapToggle('Map Toggle', icon: LucideIcons.map),
-  spectateRider('Spectate Rider', icon: LucideIcons.eye);
+  spectateRider('Spectate Rider', icon: LucideIcons.eye),
+
+  // trainer control
+  trainerShiftUp('Trainer: Shift Up', icon: LucideIcons.chevronUp),
+  trainerShiftDown('Trainer: Shift Down', icon: LucideIcons.chevronDown),
+  trainerErgIncrease('Trainer: ERG +10W', icon: LucideIcons.plus),
+  trainerErgDecrease('Trainer: ERG -10W', icon: LucideIcons.minus),
+  trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp),
+  trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown);
 
   final String title;
   final bool isLongPress;
