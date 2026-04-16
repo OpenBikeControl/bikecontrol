@@ -7,16 +7,14 @@ class GearHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-        ),
+        color: cs.card,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.border),
       ),
       child: Column(
         spacing: 12,
@@ -27,14 +25,14 @@ class GearHeroCard extends StatelessWidget {
               Row(
                 spacing: 6,
                 children: [
-                  Icon(LucideIcons.cog, size: 14, color: const Color(0xFF94A3B8)),
+                  Icon(LucideIcons.cog, size: 14, color: cs.mutedForeground),
                   Text(
                     'CURRENT GEAR',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1,
-                      color: Color(0xFF94A3B8),
+                      color: cs.mutedForeground,
                     ),
                   ),
                 ],
@@ -44,15 +42,15 @@ class GearHeroCard extends StatelessWidget {
                 builder: (_, mode, _) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E40AF),
+                    color: cs.primary,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     _modeLabel(mode),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFFDBEAFE),
+                      color: cs.primaryForeground,
                     ),
                   ),
                 ),
@@ -64,6 +62,7 @@ class GearHeroCard extends StatelessWidget {
             spacing: 28,
             children: [
               _shiftButton(
+                context: context,
                 icon: LucideIcons.minus,
                 filled: false,
                 onTap: () => definition.shiftDown(),
@@ -75,21 +74,21 @@ class GearHeroCard extends StatelessWidget {
                   children: [
                     Text(
                       '$gear',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 72,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -2,
-                        color: Colors.white,
+                        color: cs.foreground,
                       ),
                     ),
                     ValueListenableBuilder<double>(
                       valueListenable: definition.gearRatio,
                       builder: (_, ratio, _) => Text(
                         'of 24  ·  ratio ${ratio.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
+                          color: cs.mutedForeground,
                         ),
                       ),
                     ),
@@ -97,6 +96,7 @@ class GearHeroCard extends StatelessWidget {
                 ),
               ),
               _shiftButton(
+                context: context,
                 icon: LucideIcons.plus,
                 filled: true,
                 onTap: () => definition.shiftUp(),
@@ -109,23 +109,23 @@ class GearHeroCard extends StatelessWidget {
   }
 
   Widget _shiftButton({
+    required BuildContext context,
     required IconData icon,
     required bool filled,
     required VoidCallback onTap,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Button.ghost(
       onPressed: onTap,
       child: Container(
         width: 52,
         height: 52,
         decoration: BoxDecoration(
-          color: filled ? const Color(0xFF2563EB) : const Color(0xFF1E293B),
+          color: filled ? cs.primary : cs.muted,
           shape: BoxShape.circle,
-          border: filled
-              ? null
-              : Border.all(color: const Color(0xFF334155), width: 1),
+          border: filled ? null : Border.all(color: cs.border, width: 1),
         ),
-        child: Icon(icon, size: 22, color: filled ? Colors.white : const Color(0xFFE2E8F0)),
+        child: Icon(icon, size: 22, color: filled ? cs.primaryForeground : cs.mutedForeground),
       ),
     );
   }

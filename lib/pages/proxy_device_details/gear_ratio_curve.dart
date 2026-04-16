@@ -7,6 +7,7 @@ class GearRatioCurve extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return AnimatedBuilder(
       animation: Listenable.merge([definition.gearRatios, definition.currentGear]),
       builder: (context, _) {
@@ -20,12 +21,9 @@ class GearRatioCurve extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-            ),
+            color: cs.muted,
             borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: cs.border),
           ),
           child: Column(
             spacing: 10,
@@ -33,13 +31,13 @@ class GearRatioCurve extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'RATIO CURVE',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1,
-                      color: Color(0xFF94A3B8),
+                      color: cs.mutedForeground,
                     ),
                   ),
                   Row(
@@ -48,12 +46,12 @@ class GearRatioCurve extends StatelessWidget {
                     children: [
                       Text(
                         ratios.first.toStringAsFixed(2),
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground),
                       ),
-                      const Icon(LucideIcons.arrowRight, size: 10, color: Color(0xFF475569)),
+                      Icon(LucideIcons.arrowRight, size: 10, color: cs.mutedForeground),
                       Text(
                         ratios.last.toStringAsFixed(2),
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground),
                       ),
                     ],
                   ),
@@ -71,15 +69,10 @@ class GearRatioCurve extends StatelessWidget {
                       final r = ratios[i];
                       final isCurrent = (i + 1) == current;
                       final h = (12 + (r - minR) / span * 68).clamp(4.0, 80.0);
+                      final t = i / (ratios.length - 1);
                       final color = isCurrent
-                          ? const Color(0xFF2563EB)
-                          : (i + 1 == 24
-                              ? const Color(0xFFFFFFFF)
-                              : (i < 8
-                                  ? const Color(0xFF334155)
-                                  : (i < 16
-                                      ? const Color(0xFF475569)
-                                      : (i < 20 ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)))));
+                          ? cs.primary
+                          : Color.lerp(cs.border, cs.foreground, t)!;
                       return Expanded(
                         child: Container(
                           height: h,
@@ -93,28 +86,28 @@ class GearRatioCurve extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     spacing: 4,
                     children: [
-                      Icon(LucideIcons.circleChevronLeft, size: 12, color: Color(0xFF94A3B8)),
-                      Text('Easier', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF94A3B8))),
+                      Icon(LucideIcons.circleChevronLeft, size: 12, color: cs.mutedForeground),
+                      Text('Easier', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground)),
                     ],
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(color: const Color(0xFF1E40AF), borderRadius: BorderRadius.circular(999)),
+                    decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(999)),
                     child: Text(
                       'Gear $current \u00B7 ${currentRatio.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFDBEAFE)),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cs.primaryForeground),
                     ),
                   ),
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     spacing: 4,
                     children: [
-                      Text('Harder', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF94A3B8))),
-                      Icon(LucideIcons.circleChevronRight, size: 12, color: Color(0xFF94A3B8)),
+                      Text('Harder', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground)),
+                      Icon(LucideIcons.circleChevronRight, size: 12, color: cs.mutedForeground),
                     ],
                   ),
                 ],
