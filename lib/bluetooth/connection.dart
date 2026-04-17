@@ -373,31 +373,44 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
-      _connect(device)
-          .then((_) {
-            _handlingConnectionQueue = false;
-            _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'));
-            if (_connectionQueue.isNotEmpty) {
-              _handleConnectionQueue();
-            }
-          })
-          .catchError((e) {
-            device.isConnected = false;
-            _handlingConnectionQueue = false;
-            if (e is TimeoutException) {
+
+      if (device is! ProxyDevice) {
+        _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
+        _connect(device)
+            .then((_) {
+              _handlingConnectionQueue = false;
               _actionStreams.add(
-                AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.toString()}: Timeout'),
+                AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
               );
-            } else {
-              _actionStreams.add(
-                AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.toString()} - $e'),
-              );
-            }
-            if (_connectionQueue.isNotEmpty) {
-              _handleConnectionQueue();
-            }
-          });
+              if (_connectionQueue.isNotEmpty) {
+                _handleConnectionQueue();
+              }
+            })
+            .catchError((e) {
+              device.isConnected = false;
+              _handlingConnectionQueue = false;
+              if (e is TimeoutException) {
+                _actionStreams.add(
+                  AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.toString()}: Timeout'),
+                );
+              } else {
+                _actionStreams.add(
+                  AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.toString()} - $e'),
+                );
+              }
+              if (_connectionQueue.isNotEmpty) {
+                _handleConnectionQueue();
+              }
+            });
+      } else {
+        // For proxy devices, we want to skip actual connection
+        _connect(device).then((_) {
+          _handlingConnectionQueue = false;
+          if (_connectionQueue.isNotEmpty) {
+            _handleConnectionQueue();
+          }
+        });
+      }
     }
   }
 
