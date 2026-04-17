@@ -137,7 +137,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       children: [
         LoadingWidget(
           futureCallback: () async {
-            await core.connection.disconnect(device, forget: true, persistForget: false);
+            await core.connection.disconnect(device, forget: false, persistForget: false);
             if (mounted) Navigator.of(context).pop();
           },
           renderChild: (isLoading, tap) => Button(
