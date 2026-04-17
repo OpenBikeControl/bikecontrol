@@ -566,7 +566,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           child: _buildTrainerCard(trainerApp, enabledTrainers),
         ),
 
-        if (kDebugMode) ...[
+        if (core.connection.proxyDevices.isNotEmpty) ...[
           const Gap(22),
           Card(
             padding: EdgeInsets.zero,
