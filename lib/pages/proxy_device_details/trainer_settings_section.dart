@@ -59,7 +59,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
             spacing: 6,
             children: [
               _vsRadioCard('Target Power', VirtualShiftingMode.targetPower),
-              _vsRadioCard('Track Resist.', VirtualShiftingMode.trackResistance),
+              _vsRadioCard('Track Resistance', VirtualShiftingMode.trackResistance),
               _vsRadioCard('Basic', VirtualShiftingMode.basicResistance),
             ],
           ),
