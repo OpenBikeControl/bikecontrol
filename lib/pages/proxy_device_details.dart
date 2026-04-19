@@ -6,6 +6,7 @@ import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/trainer_feedback.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -135,6 +136,16 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
+        Button(
+          style: ButtonStyle.outline(),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
+            );
+          },
+          leading: const Icon(LucideIcons.messageSquare, size: 18),
+          child: const Text('Send feedback'),
+        ),
         LoadingWidget(
           futureCallback: () async {
             await core.connection.disconnect(device, forget: false, persistForget: false);
