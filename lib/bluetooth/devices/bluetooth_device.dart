@@ -56,6 +56,9 @@ abstract class BluetoothDevice extends BaseDevice {
 
   int? batteryLevel;
   String? firmwareVersion;
+  String? hardwareRevision;
+  String? manufacturerName;
+  String? deviceName;
   int? rssi;
 
   static List<String> servicesToScan = [
@@ -209,17 +212,49 @@ abstract class BluetoothDevice extends BaseDevice {
     final deviceInformationService = services!.firstOrNullWhere(
       (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID.toLowerCase(),
     );
-    final firmwareCharacteristic = deviceInformationService?.characteristics.firstOrNullWhere(
-      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION.toLowerCase(),
-    );
-    if (firmwareCharacteristic != null) {
-      final firmwareData = await UniversalBle.read(
-        device.deviceId,
-        deviceInformationService!.uuid,
-        firmwareCharacteristic.uuid,
+    Future<String?> readStringChar(BleService? service, String charUuid) async {
+      final characteristic = service?.characteristics.firstOrNullWhere(
+        (c) => c.uuid == charUuid.toLowerCase(),
       );
-      firmwareVersion = String.fromCharCodes(firmwareData);
+      if (characteristic == null) return null;
+      try {
+        final data = await UniversalBle.read(
+          device.deviceId,
+          service!.uuid,
+          characteristic.uuid,
+        );
+        final decoded = String.fromCharCodes(data).trim();
+        return decoded.isEmpty ? null : decoded;
+      } catch (_) {
+        return null;
+      }
+    }
 
+    firmwareVersion = await readStringChar(
+      deviceInformationService,
+      BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION,
+    );
+    hardwareRevision = await readStringChar(
+      deviceInformationService,
+      BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_HARDWARE_REVISION,
+    );
+    manufacturerName = await readStringChar(
+      deviceInformationService,
+      BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_MANUFACTURER_NAME,
+    );
+
+    final genericAccessService = services!.firstOrNullWhere(
+      (service) => service.uuid == BleUuid.GENERIC_ACCESS_SERVICE_UUID.toLowerCase(),
+    );
+    deviceName = await readStringChar(
+      genericAccessService,
+      BleUuid.GENERIC_ACCESS_CHARACTERISTIC_DEVICE_NAME,
+    );
+
+    if (firmwareVersion != null ||
+        hardwareRevision != null ||
+        manufacturerName != null ||
+        deviceName != null) {
       core.connection.signalChange(this);
     }
 
