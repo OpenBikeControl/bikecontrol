@@ -1,5 +1,10 @@
+import 'dart:async';
+
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/pages/configuration.dart';
+import 'package:bike_control/pages/trainer_feedback.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
@@ -12,6 +17,7 @@ import 'package:bike_control/widgets/keyboard_pair_widget.dart';
 import 'package:bike_control/widgets/mouse_pair_widget.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -29,6 +35,7 @@ class TrainerPage extends StatefulWidget {
 
 class _TrainerPageState extends State<TrainerPage> {
   late final ScrollController _scrollController = ScrollController();
+  StreamSubscription<BaseDevice>? _connectionSub;
 
   @override
   void initState() {
@@ -43,10 +50,15 @@ class _TrainerPageState extends State<TrainerPage> {
         if (mounted) setState(() {});
       });
     }
+
+    _connectionSub = core.connection.connectionStream.listen((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _connectionSub?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -153,6 +165,26 @@ class _TrainerPageState extends State<TrainerPage> {
                   ],
                   const Gap(24),
                   TrainerFeatures(),
+                  if (core.connection.proxyDevices.isNotEmpty) ...[
+                    const Gap(12),
+                    FeatureWidget(
+                      icon: LucideIcons.messageSquare,
+                      iconColor: BKColor.main,
+                      bgColor: BKColor.main.withValues(alpha: 0.03),
+                      iconBgColor: BKColor.main.withValues(alpha: 0.08),
+                      title: 'Send Trainer Feedback',
+                      description: 'Report how your trainer works with BikeControl',
+                      onTap: () {
+                        final device = core.connection.proxyDevices.whereType<ProxyDevice>().firstOrNull;
+                        if (device == null) return;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => TrainerFeedbackPage(device: device),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ],
             ),
