@@ -39,10 +39,11 @@ abstract class BluetoothDevice extends BaseDevice {
     bool allowMultiple = false,
     bool isBeta = false,
     bool supportsLongPress = true,
+    IconData icon = LucideIcons.gamepad,
     String? buttonPrefix,
   }) : super(
          scanResult.name,
-         icon: LucideIcons.gamepad,
+         icon: icon,
          uniqueId: scanResult.deviceId,
          availableButtons: allowMultiple
              ? availableButtons.toList().map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()

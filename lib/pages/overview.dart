@@ -21,6 +21,7 @@ import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
+import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/bubble_pointer_painter.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
@@ -579,9 +580,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 12.0, left: 12, right: 12),
-                  child: _buildSectionHeader(
-                    icon: Icons.connect_without_contact,
-                    title: 'Trainer & Accessories',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader(
+                        icon: Icons.connect_without_contact,
+                        title: 'Trainer & Accessories',
+                      ),
+                      BetaPill(),
+                    ],
                   ),
                 ),
                 Gap(12),
