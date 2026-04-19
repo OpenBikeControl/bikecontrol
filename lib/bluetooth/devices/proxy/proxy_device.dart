@@ -18,6 +18,7 @@ class ProxyDevice extends BluetoothDevice {
   ];
 
   final DirconEmulator emulator = DirconEmulator();
+  final ValueChangeNotifier<String> onChange = ValueChangeNotifier('');
 
   ProxyDevice(super.scanResult)
     : super(
@@ -32,6 +33,7 @@ class ProxyDevice extends BluetoothDevice {
 
     await emulator.startServer();
     applyTrainerSettings();
+    onChange.value = 'Connected to ${scanResult.name}';
   }
 
   /// Push persisted user settings (bike/rider weight, grade smoothing, VS mode)
