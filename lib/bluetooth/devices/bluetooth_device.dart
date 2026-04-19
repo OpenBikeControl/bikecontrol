@@ -246,15 +246,14 @@ abstract class BluetoothDevice extends BaseDevice {
     final genericAccessService = services!.firstOrNullWhere(
       (service) => service.uuid == BleUuid.GENERIC_ACCESS_SERVICE_UUID.toLowerCase(),
     );
-    deviceName = await readStringChar(
-      genericAccessService,
-      BleUuid.GENERIC_ACCESS_CHARACTERISTIC_DEVICE_NAME,
-    );
+    deviceName =
+        await readStringChar(
+          genericAccessService,
+          BleUuid.GENERIC_ACCESS_CHARACTERISTIC_DEVICE_NAME,
+        ) ??
+        device.name;
 
-    if (firmwareVersion != null ||
-        hardwareRevision != null ||
-        manufacturerName != null ||
-        deviceName != null) {
+    if (firmwareVersion != null || hardwareRevision != null || manufacturerName != null || deviceName != null) {
       core.connection.signalChange(this);
     }
 

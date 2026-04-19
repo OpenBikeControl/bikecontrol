@@ -30,6 +30,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   void initState() {
     super.initState();
     widget.device.emulator.isStarted.addListener(_onEmulatorStateChanged);
+    widget.device.onChange.addListener(_onEmulatorStateChanged);
     widget.device.emulator.isConnected.addListener(_onEmulatorStateChanged);
     _connectionSub = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
@@ -40,6 +41,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   void dispose() {
     _connectionSub.cancel();
     widget.device.emulator.isStarted.removeListener(_onEmulatorStateChanged);
+    widget.device.onChange.removeListener(_onEmulatorStateChanged);
     widget.device.emulator.isConnected.removeListener(_onEmulatorStateChanged);
     super.dispose();
   }
@@ -136,16 +138,17 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        Button(
-          style: ButtonStyle.outline(),
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
-            );
-          },
-          leading: const Icon(LucideIcons.messageSquare, size: 18),
-          child: const Text('Send feedback'),
-        ),
+        if (widget.device.isConnected)
+          Button(
+            style: ButtonStyle.outline(),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
+              );
+            },
+            leading: const Icon(LucideIcons.messageSquare, size: 18),
+            child: const Text('Send feedback'),
+          ),
         LoadingWidget(
           futureCallback: () async {
             await core.connection.disconnect(device, forget: false, persistForget: false);
