@@ -8,6 +8,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show BackButton;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/prop.dart' hide TrainerMode;
@@ -134,7 +135,16 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
           Button.primary(
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const LoginPage(pushed: true)),
+                MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    headers: [
+                      AppBar(
+                        leading: [BackButton()],
+                      ),
+                    ],
+                    child: const LoginPage(pushed: true),
+                  ),
+                ),
               );
             },
             child: const Text('Sign in'),
@@ -162,7 +172,7 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   Widget _ratingSection() {
     return _sectionCard(
       title: 'Your rating',
-      subtitle: 'Optional',
+      subtitle: 'Required',
       child: RadioGroup<TrainerFeedbackRating>(
         value: _rating,
         onChanged: (v) => setState(() => _rating = v),
@@ -224,7 +234,7 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   }
 
   Widget _submitButton() {
-    final enabled = _feedbackController.text.trim().isNotEmpty && !_submitting;
+    final enabled = _feedbackController.text.trim().isNotEmpty && _rating != null && !_submitting;
     return Button.primary(
       onPressed: enabled ? _submit : null,
       leading: _submitting ? const SmallProgressIndicator() : const Icon(LucideIcons.send, size: 16),
