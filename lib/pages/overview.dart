@@ -81,6 +81,7 @@ class OverviewPage extends StatefulWidget {
 
 class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMixin, WidgetsBindingObserver {
   late StreamSubscription<BaseNotification> _actionListener;
+  late StreamSubscription<BaseDevice> _connectionListener;
   late Timer _timeRefreshTimer;
 
   late double _screenWidth;
@@ -166,6 +167,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       } else if (notification is AlertNotification) {
         _onAlert(notification);
       }
+    });
+    _connectionListener = core.connection.connectionStream.listen((_) {
+      if (mounted) setState(() {});
     });
 
     WidgetsBinding.instance.addObserver(this);
@@ -441,6 +445,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _logoController.dispose();
     _timeRefreshTimer.cancel();
     _actionListener.cancel();
+    _connectionListener.cancel();
     super.dispose();
   }
 
