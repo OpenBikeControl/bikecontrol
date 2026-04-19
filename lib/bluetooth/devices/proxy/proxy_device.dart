@@ -23,17 +23,16 @@ class ProxyDevice extends BluetoothDevice {
   ProxyDevice(super.scanResult)
     : super(
         availableButtons: const [],
-        isBeta: true,
         icon: _iconFor(scanResult),
       );
 
   static IconData _iconFor(BleDevice scanResult) {
     final services = scanResult.services.map((s) => s.toLowerCase()).toSet();
-    if (services.contains(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase())) {
-      return LucideIcons.bike;
-    }
     if (services.contains(FitnessBikeDefinition.CYCLING_POWER_SERVICE_UUID.toLowerCase())) {
       return LucideIcons.zap;
+    }
+    if (services.contains(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase())) {
+      return LucideIcons.bike;
     }
     if (services.contains(FitnessBikeDefinition.HEART_RATE_MEASUREMENT_UUID.toLowerCase())) {
       return LucideIcons.heart;
