@@ -9,6 +9,9 @@ class ShiftingConfig {
   static const double riderWeightMinKg = 20.0;
   static const double riderWeightMaxKg = 200.0;
   static const VirtualShiftingMode modeDefault = VirtualShiftingMode.targetPower;
+  static const int maxGearMin = 1;
+  static const int maxGearMax = 30;
+  static const int maxGearDefault = 24;
   static const int _gearRatiosMaxLength = 30;
 
   final String name;
@@ -18,6 +21,7 @@ class ShiftingConfig {
   final double bikeWeightKg;
   final double riderWeightKg;
   final bool gradeSmoothing;
+  final int maxGear;
   final List<double>? gearRatios;
 
   const ShiftingConfig({
@@ -28,10 +32,16 @@ class ShiftingConfig {
     required this.bikeWeightKg,
     required this.riderWeightKg,
     required this.gradeSmoothing,
+    this.maxGear = maxGearDefault,
     this.gearRatios,
   });
 
-  factory ShiftingConfig.defaults({required String trainerKey, String name = 'Default', bool isActive = true}) {
+  factory ShiftingConfig.defaults({
+    required String trainerKey,
+    String name = 'Default',
+    bool isActive = true,
+    int maxGear = maxGearDefault,
+  }) {
     return ShiftingConfig(
       name: name,
       trainerKey: trainerKey,
@@ -40,6 +50,7 @@ class ShiftingConfig {
       bikeWeightKg: bikeWeightDefaultKg,
       riderWeightKg: riderWeightDefaultKg,
       gradeSmoothing: true,
+      maxGear: maxGear.clamp(maxGearMin, maxGearMax),
     );
   }
 
@@ -51,6 +62,7 @@ class ShiftingConfig {
     );
     final bike = (json['bikeWeightKg'] as num?)?.toDouble() ?? bikeWeightDefaultKg;
     final rider = (json['riderWeightKg'] as num?)?.toDouble() ?? riderWeightDefaultKg;
+    final rawMaxGear = (json['maxGear'] as num?)?.toInt() ?? maxGearDefault;
     final rawRatios = json['gearRatios'] as List?;
     final parsedRatios = rawRatios?.whereType<num>().map((e) => e.toDouble()).toList();
     return ShiftingConfig(
@@ -61,6 +73,7 @@ class ShiftingConfig {
       bikeWeightKg: bike.clamp(bikeWeightMinKg, bikeWeightMaxKg),
       riderWeightKg: rider.clamp(riderWeightMinKg, riderWeightMaxKg),
       gradeSmoothing: (json['gradeSmoothing'] as bool?) ?? true,
+      maxGear: rawMaxGear.clamp(maxGearMin, maxGearMax),
       gearRatios: (parsedRatios != null &&
               parsedRatios.isNotEmpty &&
               parsedRatios.length <= _gearRatiosMaxLength)
@@ -77,6 +90,7 @@ class ShiftingConfig {
         'bikeWeightKg': bikeWeightKg,
         'riderWeightKg': riderWeightKg,
         'gradeSmoothing': gradeSmoothing,
+        'maxGear': maxGear,
         if (gearRatios != null) 'gearRatios': gearRatios,
       };
 
@@ -88,6 +102,7 @@ class ShiftingConfig {
     double? bikeWeightKg,
     double? riderWeightKg,
     bool? gradeSmoothing,
+    int? maxGear,
     List<double>? gearRatios,
     bool clearGearRatios = false,
   }) {
@@ -99,6 +114,7 @@ class ShiftingConfig {
       bikeWeightKg: bikeWeightKg ?? this.bikeWeightKg,
       riderWeightKg: riderWeightKg ?? this.riderWeightKg,
       gradeSmoothing: gradeSmoothing ?? this.gradeSmoothing,
+      maxGear: maxGear ?? this.maxGear,
       gearRatios: clearGearRatios ? null : (gearRatios ?? this.gearRatios),
     );
   }
@@ -114,6 +130,7 @@ class ShiftingConfig {
           bikeWeightKg == other.bikeWeightKg &&
           riderWeightKg == other.riderWeightKg &&
           gradeSmoothing == other.gradeSmoothing &&
+          maxGear == other.maxGear &&
           listEquals(gearRatios, other.gearRatios));
 
   @override
@@ -125,7 +142,7 @@ class ShiftingConfig {
         bikeWeightKg,
         riderWeightKg,
         gradeSmoothing,
+        maxGear,
         gearRatios == null ? null : Object.hashAll(gearRatios!),
       );
-
 }
