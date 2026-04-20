@@ -18,6 +18,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
+import 'package:bike_control/services/shifting_configs_controller.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
@@ -42,6 +43,7 @@ class Core {
   late BaseActions actionHandler;
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   final settings = Settings();
+  late final shiftingConfigs = ShiftingConfigsController(settings.prefs);
   final connection = Connection();
 
   late final supabase = Supabase.instance.client;
