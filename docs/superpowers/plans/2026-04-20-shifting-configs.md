@@ -4,7 +4,9 @@
 
 **Goal:** Replace the single global `proxy_*` virtual-shifting settings with a `ShiftingConfig` model. Each trainer device gets its own list of named configs with one active. The active config feeds the `FitnessBikeDefinition`, persists locally, and syncs via `UserSettings`.
 
-**Architecture:** Introduce a plain Dart `ShiftingConfig` data class (name + trainer key + VS mode + weights + grade smoothing + optional 24-step gear ratios). All configs live in a single flat `List<ShiftingConfig>` owned by a new `ShiftingConfigsController` on `core`. Persistence: the full list is stored as one SharedPreferences JSON string; the same list is embedded in `UserSettings` under a nested field inside the existing `keymaps` jsonb (no new Supabase column required). The ProxyDevice reads its active config from the controller via its `deviceName` key; the TrainerSettingsSection writes into the active config through the controller. UI adds a config picker to `ProxyDeviceDetailsPage` modelled after the keymap picker.
+**Architecture:** Introduce a plain Dart `ShiftingConfig` data class (name + trainer key + VS mode + weights + grade smoothing + optional 24-step gear ratios). All configs live in a single flat `List<ShiftingConfig>` owned by a new `ShiftingConfigsController` on `core`. Persistence: the full list is stored as one SharedPreferences JSON string and synced to Supabase via a new top-level `shifting_configs` jsonb column on the `user_settings` table. The ProxyDevice reads its active config from the controller via its `deviceName` key; the TrainerSettingsSection writes into the active config through the controller. UI adds a config picker to `ProxyDeviceDetailsPage` modelled after the keymap picker.
+
+**External dependency:** Requires adding a `shifting_configs jsonb` column to the `user_settings` Supabase table before Task 10 lands in production.
 
 **Tech Stack:** Flutter, `shadcn_flutter` (`Select`, `Dialog`), `shared_preferences`, `supabase_flutter` (existing sync infrastructure).
 
@@ -17,8 +19,8 @@
 | One config or multiple per trainer? | **Multiple.** A flat `List<ShiftingConfig>`; each entry carries `trainerKey` and an `isActive` flag. Invariant: at most one `isActive == true` per `trainerKey`. |
 | Trainer identity | **`device.name`** (e.g. `"KICKR BIKE 1234"`). Names are more portable across platforms than BLE device IDs, which iOS randomises. If a device has no name, fall back to `device.uniqueId`. |
 | Storage surface | **Single SharedPreferences key `shifting_configs`** holding the JSON-encoded full list. Simpler than one key per trainer, round-trips easily to `UserSettings`. |
-| Sync payload | **Nested under `keymaps['_shifting_configs']`** (single string-encoded JSON list). Uses existing `keymaps jsonb` column — no Supabase schema change needed. |
-| Migration | On first `ShiftingConfigsController.init()`, if `shifting_configs` is absent *and* any legacy `proxy_*` key exists, seed a single `ShiftingConfig { name: "Default", trainerKey: "__legacy__", isActive: true, … }` from the old values. On the next proxy-device connect, re-key the legacy config to the real `device.name`. Delete the `proxy_*` keys after successful seeding. |
+| Sync payload | **New top-level `shifting_configs` jsonb column** on `user_settings`. Schema migration owned outside this plan; Dart side reads/writes the column as a JSON array. |
+| Migration | **None.** Legacy `proxy_*` SharedPreferences keys are dropped without porting their values — users start with an empty `ShiftingConfig` list and a synthesised default. |
 | Active-config selection UI | Dropdown `Select<ShiftingConfig>` on `ProxyDeviceDetailsPage` above the gear card with "+ New" and "Manage" buttons, mirroring `customize.dart`'s app picker. |
 | Removing legacy `getProxy*`/`setProxy*` | Yes, once all call sites migrate. |
 
@@ -375,39 +377,6 @@ void main() {
       expect(remaining.single.name, 'B');
       expect(remaining.single.isActive, true);
     });
-
-    test('rebindLegacyTrainerKey moves __legacy__ configs onto a real trainer', () async {
-      final prefs = await SharedPreferences.getInstance();
-      SharedPreferences.setMockInitialValues({
-        'proxy_bike_weight_kg': 8.2,
-        'proxy_rider_weight_kg': 68.5,
-        'proxy_grade_smoothing': false,
-        'proxy_vs_mode': 'trackResistance',
-      });
-      final prefs2 = await SharedPreferences.getInstance();
-      final c = ShiftingConfigsController(prefs2);
-      await c.init();
-      expect(c.configsFor('__legacy__').length, 1);
-      await c.rebindLegacyTrainerKey('KICKR BIKE 1234');
-      expect(c.configsFor('__legacy__'), isEmpty);
-      expect(c.configsFor('KICKR BIKE 1234').length, 1);
-      final active = c.activeFor('KICKR BIKE 1234');
-      expect(active.bikeWeightKg, 8.2);
-      expect(active.riderWeightKg, 68.5);
-      expect(active.gradeSmoothing, false);
-      expect(active.mode, VirtualShiftingMode.trackResistance);
-    });
-
-    test('legacy migration only runs once and deletes old keys', () async {
-      SharedPreferences.setMockInitialValues({
-        'proxy_bike_weight_kg': 9.0,
-      });
-      final prefs = await SharedPreferences.getInstance();
-      final c = ShiftingConfigsController(prefs);
-      await c.init();
-      expect(prefs.getDouble('proxy_bike_weight_kg'), isNull);
-      expect(c.configsFor('__legacy__').length, 1);
-    });
   });
 }
 ```
@@ -416,6 +385,8 @@ void main() {
 
 Run: `flutter test test/services/shifting_configs_controller_test.dart`
 Expected: FAIL with "Target of URI doesn't exist" for `shifting_configs_controller.dart`.
+
+*(Expected final count after step 4: 6 tests.)*
 
 - [ ] **Step 3: Implement the controller**
 
@@ -427,12 +398,10 @@ import 'dart:convert';
 
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:flutter/foundation.dart';
-import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ShiftingConfigsController extends ChangeNotifier {
   static const String storageKey = 'shifting_configs';
-  static const String legacyTrainerKey = '__legacy__';
 
   final SharedPreferences _prefs;
   final List<ShiftingConfig> _configs = [];
@@ -456,14 +425,6 @@ class ShiftingConfigsController extends ChangeNotifier {
     _configs
       ..clear()
       ..addAll(_readStored());
-    if (_configs.isEmpty) {
-      final migrated = _migrateLegacyPrefs();
-      if (migrated != null) {
-        _configs.add(migrated);
-        await _deleteLegacyPrefs();
-        await _persist();
-      }
-    }
   }
 
   Future<void> upsert(ShiftingConfig config) async {
@@ -526,21 +487,6 @@ class ShiftingConfigsController extends ChangeNotifier {
     await upsert(source.copyWith(name: newName, isActive: false));
   }
 
-  Future<void> rebindLegacyTrainerKey(String newTrainerKey) async {
-    var changed = false;
-    for (var i = 0; i < _configs.length; i++) {
-      final c = _configs[i];
-      if (c.trainerKey != legacyTrainerKey) continue;
-      _configs[i] = c.copyWith(trainerKey: newTrainerKey);
-      changed = true;
-    }
-    if (changed) {
-      _enforceSingleActive(newTrainerKey, _configs.firstWhere((c) => c.trainerKey == newTrainerKey && c.isActive).name);
-      await _persist();
-      notifyListeners();
-    }
-  }
-
   /// Replace the in-memory list from a synced payload and persist locally.
   Future<void> hydrateFromSync(List<ShiftingConfig> configs) async {
     _configs
@@ -584,46 +530,6 @@ class ShiftingConfigsController extends ChangeNotifier {
     }
   }
 
-  ShiftingConfig? _migrateLegacyPrefs() {
-    final hasLegacy =
-        _prefs.containsKey('proxy_bike_weight_kg') ||
-        _prefs.containsKey('proxy_rider_weight_kg') ||
-        _prefs.containsKey('proxy_grade_smoothing') ||
-        _prefs.containsKey('proxy_vs_mode') ||
-        _prefs.containsKey('proxy_gear_ratios');
-    if (!hasLegacy) return null;
-
-    final modeName = _prefs.getString('proxy_vs_mode');
-    final parsedMode = VirtualShiftingMode.values.firstWhere(
-      (e) => e.name == modeName,
-      orElse: () => ShiftingConfig.modeDefault,
-    );
-    final rawRatios = _prefs.getStringList('proxy_gear_ratios');
-    List<double>? parsedRatios;
-    if (rawRatios != null && rawRatios.length == FitnessBikeDefinition.maxGear) {
-      parsedRatios = rawRatios.map((s) => double.tryParse(s) ?? 0.0).toList();
-      if (parsedRatios.any((r) => r <= 0.0)) parsedRatios = null;
-    }
-    return ShiftingConfig(
-      name: 'Default',
-      trainerKey: legacyTrainerKey,
-      isActive: true,
-      mode: parsedMode,
-      bikeWeightKg: _prefs.getDouble('proxy_bike_weight_kg') ?? ShiftingConfig.bikeWeightDefaultKg,
-      riderWeightKg: _prefs.getDouble('proxy_rider_weight_kg') ?? ShiftingConfig.riderWeightDefaultKg,
-      gradeSmoothing: _prefs.getBool('proxy_grade_smoothing') ?? true,
-      gearRatios: parsedRatios,
-    );
-  }
-
-  Future<void> _deleteLegacyPrefs() async {
-    await _prefs.remove('proxy_bike_weight_kg');
-    await _prefs.remove('proxy_rider_weight_kg');
-    await _prefs.remove('proxy_grade_smoothing');
-    await _prefs.remove('proxy_vs_mode');
-    await _prefs.remove('proxy_gear_ratios');
-  }
-
   Future<void> _persist() async {
     await _prefs.setString(storageKey, toStoredJson());
   }
@@ -633,13 +539,13 @@ class ShiftingConfigsController extends ChangeNotifier {
 - [ ] **Step 4: Run tests and verify they pass**
 
 Run: `flutter test test/services/shifting_configs_controller_test.dart`
-Expected: All 8 tests pass.
+Expected: All 6 tests pass.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add lib/services/shifting_configs_controller.dart test/services/shifting_configs_controller_test.dart
-git commit -m "feat(shifting): add ShiftingConfigsController with active invariant and legacy migration"
+git commit -m "feat(shifting): add ShiftingConfigsController with active invariant"
 ```
 
 ---
@@ -728,16 +634,6 @@ Replace with:
   void applyTrainerSettings() {
     final def = emulator.activeDefinition;
     if (def is! FitnessBikeDefinition) return;
-
-    // If we previously migrated global proxy_* settings to the __legacy__
-    // trainer, rebind them to this concrete trainer on first connect.
-    final hasLegacy = core.shiftingConfigs.configsFor(ShiftingConfigsController.legacyTrainerKey).isNotEmpty;
-    final hasOwn = core.shiftingConfigs.configsFor(trainerKey).isNotEmpty;
-    if (hasLegacy && !hasOwn) {
-      // Best-effort; non-blocking.
-      unawaited(core.shiftingConfigs.rebindLegacyTrainerKey(trainerKey));
-    }
-
     final cfg = core.shiftingConfigs.activeFor(trainerKey);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
@@ -749,13 +645,7 @@ Replace with:
   }
 ```
 
-Add the required imports at the top of the file:
-
-```dart
-import 'dart:async';
-
-import 'package:bike_control/services/shifting_configs_controller.dart';
-```
+(No new imports needed beyond the existing ones — `core.shiftingConfigs` is reached through the already-imported `utils/core.dart`.)
 
 - [ ] **Step 3: Verify analyzer is clean**
 
@@ -1309,12 +1199,10 @@ Pass the field through the constructor, `fromJson`, `toJson`, and `copyWith`. Th
   });
 ```
 
-In `fromJson`, parse `shiftingConfigs` out of `keymaps['_shifting_configs']` (a nested JSON string list) to avoid a Supabase schema change:
+In `fromJson`, parse `shiftingConfigs` from the new top-level `shifting_configs` column:
 
 ```dart
-    List<ShiftingConfig>? parseShifting(Map<String, dynamic>? keymaps) {
-      if (keymaps == null) return null;
-      final raw = keymaps['_shifting_configs'];
+    List<ShiftingConfig>? parseShifting(dynamic raw) {
       if (raw is! List) return null;
       return raw
           .whereType<Map<String, dynamic>>()
@@ -1322,30 +1210,25 @@ In `fromJson`, parse `shiftingConfigs` out of `keymaps['_shifting_configs']` (a 
           .toList(growable: false);
     }
 
-    final keymaps = json['keymaps'] as Map<String, dynamic>?;
     return UserSettings(
       userId: json['user_id'] as String?,
       deviceId: json['device_id'] as String?,
-      keymaps: keymaps,
-      shiftingConfigs: parseShifting(keymaps),
+      keymaps: json['keymaps'] as Map<String, dynamic>?,
+      shiftingConfigs: parseShifting(json['shifting_configs']),
       // …existing fields…
     );
 ```
 
-In `toJson`, when `shiftingConfigs` is non-null, inject it into the `keymaps` map under `_shifting_configs`:
+In `toJson`, emit `shifting_configs` as a top-level JSON array (or omit when null):
 
 ```dart
   Map<String, dynamic> toJson() {
-    final keymapPayload = keymaps == null ? <String, dynamic>{} : Map<String, dynamic>.from(keymaps!);
-    if (shiftingConfigs != null) {
-      keymapPayload['_shifting_configs'] = shiftingConfigs!.map((e) => e.toJson()).toList();
-    } else {
-      keymapPayload.remove('_shifting_configs');
-    }
     return {
       'user_id': userId,
       'device_id': deviceId,
-      'keymaps': keymapPayload.isEmpty ? null : keymapPayload,
+      'keymaps': keymaps,
+      if (shiftingConfigs != null)
+        'shifting_configs': shiftingConfigs!.map((e) => e.toJson()).toList(),
       'ignored_device_ids': _stringifyList(ignoredDeviceIds),
       'ignored_device_names': _stringifyList(ignoredDeviceNames),
       'version': version,
@@ -1354,6 +1237,8 @@ In `toJson`, when `shiftingConfigs` is non-null, inject it into the `keymaps` ma
 ```
 
 Update `copyWith` to include the new field.
+
+**Schema note:** The `user_settings` Supabase table needs a `shifting_configs jsonb` column added (nullable, no default). That migration is owned outside this plan — deploy it before the client-side changes reach production, otherwise the upsert in `saveSettings()` will fail with an unknown-column error.
 
 - [ ] **Step 2: Wire the repository to read/write shifting configs**
 
@@ -1399,7 +1284,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
 void main() {
-  test('UserSettings round-trips shiftingConfigs inside keymaps jsonb', () {
+  test('UserSettings round-trips shiftingConfigs via the top-level column', () {
     final settings = UserSettings(
       userId: 'u1',
       deviceId: 'd1',
@@ -1418,7 +1303,8 @@ void main() {
     );
 
     final json = settings.toJson();
-    expect(json['keymaps'], containsPair('_shifting_configs', isA<List>()));
+    expect(json['shifting_configs'], isA<List>());
+    expect(json['keymaps'], isNot(contains('_shifting_configs')));
 
     final restored = UserSettings.fromJson(json);
     expect(restored.shiftingConfigs, isNotNull);
@@ -1444,11 +1330,11 @@ git commit -m "feat(shifting): round-trip ShiftingConfigs through UserSettings s
 
 - **Spec coverage**
   - "new ShiftingConfig that holds the settings" → Task 1.
-  - "part of the UserSettings class" → Task 10.
+  - "part of the UserSettings class" → Task 10, top-level `shifting_configs` column.
   - "User should be able to change their active ShiftingConfig" → Task 9 picker.
   - "Each Trainer device gets its own ShiftingConfigs" → flat list with `trainerKey`, controller scopes by that key (Tasks 1–2).
-  - Existing call sites migrated → Tasks 4–7.
-  - Legacy keys removed → Task 8.
+  - Existing call sites rewired → Tasks 4–7.
+  - Legacy `proxy_*` accessors removed (no data migration) → Task 8.
 
 - **Placeholder scan:** every step has concrete code, exact file paths, and exact commands. No TBD / TODO / "add appropriate error handling".
 
