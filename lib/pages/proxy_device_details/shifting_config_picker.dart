@@ -57,8 +57,13 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
     final name = await _promptName(title: 'New shifting config');
     if (name == null || name.isEmpty) return;
     if (!mounted) return;
+    final app = core.settings.getTrainerApp();
     await core.shiftingConfigs.upsert(
-      ShiftingConfig.defaults(trainerKey: widget.trainerKey, name: name),
+      ShiftingConfig.defaults(
+        trainerKey: widget.trainerKey,
+        name: name,
+        maxGear: app?.virtualGearAmount ?? ShiftingConfig.maxGearDefault,
+      ),
     );
   }
 

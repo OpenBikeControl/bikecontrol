@@ -41,9 +41,8 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   }
 
   void _applyActiveConfigToDefinition() {
-    final app = core.settings.getTrainerApp();
-    def.setMaxGear(app?.virtualGearAmount ?? FitnessBikeDefinition.defaultMaxGear);
     final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    def.setMaxGear(cfg.maxGear);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
@@ -68,11 +67,67 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       spacing: 10,
       children: [
         _vsModeCard(),
+        _gearCountCard(),
         _bikeWeightCard(),
         _riderWeightCard(),
         _gradeSmoothingCard(),
         _gearRatiosCard(),
       ],
+    );
+  }
+
+  Widget _gearCountCard() {
+    final cs = Theme.of(context).colorScheme;
+    final count = def.maxGear;
+    final app = core.settings.getTrainerApp();
+    final expected = app?.virtualGearAmount;
+    final mismatch = app != null && expected != null && expected != count;
+    return SettingTile(
+      icon: LucideIcons.hash,
+      title: 'Gear Count',
+      subtitle: 'Size of the virtual shifter',
+      trailing: StepperControl(
+        value: count.toDouble(),
+        step: 1.0,
+        min: ShiftingConfig.maxGearMin.toDouble(),
+        max: ShiftingConfig.maxGearMax.toDouble(),
+        format: (v) => v.toStringAsFixed(0),
+        onChanged: (v) async {
+          final next = v.toInt();
+          def.setMaxGear(next);
+          await _updateActive((c) => c.copyWith(maxGear: next));
+        },
+      ),
+      child: mismatch
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                spacing: 8,
+                children: [
+                  Icon(LucideIcons.triangleAlert, size: 14, color: Colors.amber.shade700),
+                  Expanded(
+                    child: Text(
+                      '${app.name} expects $expected gears, this config uses $count. '
+                      'Shifting may feel off until they match.',
+                      style: TextStyle(fontSize: 12, color: cs.foreground),
+                    ),
+                  ),
+                  Button.ghost(
+                    onPressed: () async {
+                      def.setMaxGear(expected);
+                      await _updateActive((c) => c.copyWith(maxGear: expected));
+                    },
+                    child: Text('Use $expected', style: const TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            )
+          : null,
     );
   }
 
