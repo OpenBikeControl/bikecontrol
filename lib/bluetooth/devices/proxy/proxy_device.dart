@@ -55,16 +55,18 @@ class ProxyDevice extends BluetoothDevice {
   /// when the user never opens the details page. No-op for ProxyBikeDefinition
   /// (those settings don't apply) and for WiFi modes whose definition is
   /// created lazily per TCP client — the details page rehydrates on mount.
+  String get trainerKey => scanResult.name ?? scanResult.deviceId;
+
   void applyTrainerSettings() {
     final def = emulator.activeDefinition;
     if (def is! FitnessBikeDefinition) return;
-    def.setBicycleWeightKg(core.settings.getProxyBikeWeightKg());
-    def.setRiderWeightKg(core.settings.getProxyRiderWeightKg());
-    def.setGradeSmoothingEnabled(core.settings.getProxyGradeSmoothing());
-    def.setVirtualShiftingMode(core.settings.getProxyVirtualShiftingMode());
-    final persistedRatios = core.settings.getProxyGearRatios();
-    if (persistedRatios != null) {
-      def.setGearRatios(persistedRatios);
+    final cfg = core.shiftingConfigs.activeFor(trainerKey);
+    def.setBicycleWeightKg(cfg.bikeWeightKg);
+    def.setRiderWeightKg(cfg.riderWeightKg);
+    def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
+    def.setVirtualShiftingMode(cfg.mode);
+    if (cfg.gearRatios != null) {
+      def.setGearRatios(cfg.gearRatios!);
     }
   }
 
