@@ -60,6 +60,8 @@ void main() async {
 
       if (error != null) {
         recordError(error, null, context: 'SettingsInit');
+      } else {
+        await core.shiftingConfigs.init();
       }
 
       runApp(BikeControlApp(error: error));
