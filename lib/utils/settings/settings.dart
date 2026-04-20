@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -130,6 +131,9 @@ class Settings {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
     }
     await prefs.setString('app', app.name);
+    for (final device in core.connection.devices.whereType<ProxyDevice>()) {
+      device.applyTrainerSettings();
+    }
     _triggerAutoSync();
   }
 
