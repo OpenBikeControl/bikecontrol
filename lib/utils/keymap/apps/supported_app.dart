@@ -54,6 +54,12 @@ abstract class SupportedApp {
   /// E.g. for Rouvy: {InGameAction.usePowerUp: InGameAction.pause, InGameAction.select: InGameAction.kudos}
   Map<InGameAction, InGameAction> get inGameActionsMapping => const {};
 
+  /// How many virtual gears this trainer app exposes in its shifter. Drives
+  /// [FitnessBikeDefinition.maxGear] when this app is active. Default 24
+  /// (Zwift's virtual shifting). Override on apps that use a different count
+  /// (e.g. MyWhoosh → 30).
+  int get virtualGearAmount => 24;
+
   /// Whether this app supports the given connection method.
   /// Experimental methods are excluded unless the experimental setting is enabled.
   bool supports(AppConnectionMethod method) {
