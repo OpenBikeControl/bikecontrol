@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:bike_control/models/shifting_config.dart';
@@ -49,6 +48,8 @@ class ShiftingConfigsController extends ChangeNotifier {
   }
 
   Future<void> setActive({required String trainerKey, required String name}) async {
+    final hasTarget = _configs.any((c) => c.trainerKey == trainerKey && c.name == name);
+    if (!hasTarget) return;
     for (var i = 0; i < _configs.length; i++) {
       final c = _configs[i];
       if (c.trainerKey != trainerKey) continue;
@@ -63,7 +64,11 @@ class ShiftingConfigsController extends ChangeNotifier {
     if (forTrainer.length <= 1) {
       throw StateError('Cannot remove the last ShiftingConfig for trainer "$trainerKey"');
     }
-    final removedWasActive = forTrainer.firstWhere((c) => c.name == name).isActive;
+    final target = forTrainer.where((c) => c.name == name).firstOrNull;
+    if (target == null) {
+      throw StateError('ShiftingConfig "$name" not found for trainer "$trainerKey"');
+    }
+    final removedWasActive = target.isActive;
     _configs.removeWhere((c) => c.trainerKey == trainerKey && c.name == name);
     if (removedWasActive) {
       final survivors = configsFor(trainerKey);
@@ -93,10 +98,20 @@ class ShiftingConfigsController extends ChangeNotifier {
   }
 
   /// Replace the in-memory list from a synced payload and persist locally.
+  /// Re-applies the single-active invariant per trainerKey in case the
+  /// synced payload contains two active entries for the same trainer.
   Future<void> hydrateFromSync(List<ShiftingConfig> configs) async {
     _configs
       ..clear()
       ..addAll(configs);
+    final trainerKeys = _configs.map((c) => c.trainerKey).toSet();
+    for (final key in trainerKeys) {
+      final forTrainer = _configs.where((c) => c.trainerKey == key).toList();
+      final actives = forTrainer.where((c) => c.isActive).toList();
+      if (actives.length > 1) {
+        _enforceSingleActive(key, actives.first.name);
+      }
+    }
     await _persist();
     notifyListeners();
   }
