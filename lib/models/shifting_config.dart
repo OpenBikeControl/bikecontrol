@@ -9,6 +9,7 @@ class ShiftingConfig {
   static const double riderWeightMinKg = 20.0;
   static const double riderWeightMaxKg = 200.0;
   static const VirtualShiftingMode modeDefault = VirtualShiftingMode.targetPower;
+  static const int _gearRatiosMaxLength = 30;
 
   final String name;
   final String trainerKey;
@@ -60,7 +61,11 @@ class ShiftingConfig {
       bikeWeightKg: bike.clamp(bikeWeightMinKg, bikeWeightMaxKg),
       riderWeightKg: rider.clamp(riderWeightMinKg, riderWeightMaxKg),
       gradeSmoothing: (json['gradeSmoothing'] as bool?) ?? true,
-      gearRatios: (parsedRatios != null && parsedRatios.length == FitnessBikeDefinition.maxGear) ? parsedRatios : null,
+      gearRatios: (parsedRatios != null &&
+              parsedRatios.isNotEmpty &&
+              parsedRatios.length <= _gearRatiosMaxLength)
+          ? parsedRatios
+          : null,
     );
   }
 
