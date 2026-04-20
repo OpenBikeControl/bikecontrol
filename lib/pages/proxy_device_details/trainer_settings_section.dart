@@ -175,7 +175,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       title: 'Gear Ratios',
       subtitle: '24-step virtual shifter table',
       trailing: Button.ghost(
-        onPressed: () => context.push(GearRatiosEditorPage(definition: def)),
+        onPressed: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
         trailing: const Icon(LucideIcons.chevronRight, size: 14),
         child: const Text('Customize'),
       ),

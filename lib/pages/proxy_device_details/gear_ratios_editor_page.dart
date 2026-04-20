@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
@@ -8,7 +9,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class GearRatiosEditorPage extends StatefulWidget {
   final FitnessBikeDefinition definition;
-  const GearRatiosEditorPage({super.key, required this.definition});
+  final ProxyDevice device;
+  const GearRatiosEditorPage({super.key, required this.definition, required this.device});
 
   @override
   State<GearRatiosEditorPage> createState() => _GearRatiosEditorPageState();
@@ -16,6 +18,15 @@ class GearRatiosEditorPage extends StatefulWidget {
 
 class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   FitnessBikeDefinition get def => widget.definition;
+
+  Future<void> _saveActiveGearRatios(List<double>? ratios) async {
+    final current = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    if (ratios == null) {
+      await core.shiftingConfigs.upsert(current.copyWith(clearGearRatios: true));
+    } else {
+      await core.shiftingConfigs.upsert(current.copyWith(gearRatios: ratios));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +50,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               style: ButtonStyle.destructive(size: ButtonSize.small),
               onPressed: () async {
                 def.resetGearRatios();
-                await core.settings.clearProxyGearRatios();
+                await _saveActiveGearRatios(null);
               },
               leading: const Icon(LucideIcons.rotateCcw, size: 12),
               child: const Text('Reset', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
@@ -156,7 +167,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           : ButtonStyle.outline(size: ButtonSize.small),
       onPressed: () async {
         def.setGearRatios(preset.values);
-        await core.settings.setProxyGearRatios(preset.values);
+        await _saveActiveGearRatios(preset.values);
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -326,7 +337,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             format: (v) => v.toStringAsFixed(2),
             onChanged: (v) async {
               def.setGearRatio(gear, v);
-              await core.settings.setProxyGearRatios(def.gearRatios.value);
+              await _saveActiveGearRatios(def.gearRatios.value);
             },
           ),
         ],
