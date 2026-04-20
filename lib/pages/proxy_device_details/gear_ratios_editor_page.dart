@@ -252,7 +252,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   ) {
     final cs = Theme.of(context).colorScheme;
     final isCurrent = gear == current;
-    final isNeutral = gear == FitnessBikeDefinition.neutralGear;
+    final isNeutral = gear == def.neutralGear;
 
     Color bgColor = cs.card;
     Color borderColor = cs.border;
@@ -323,7 +323,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   ],
                 ),
                 Text(
-                  _hintFor(gear, ratio, ratios),
+                  _hintFor(gear, ratio, ratios, def.neutralGear),
                   style: TextStyle(fontSize: 10, color: cs.mutedForeground),
                 ),
               ],
@@ -360,11 +360,11 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   }
 }
 
-String _hintFor(int gear, double ratio, List<double> ratios) {
-  if (gear == FitnessBikeDefinition.neutralGear) {
+String _hintFor(int gear, double ratio, List<double> ratios, int neutralGear) {
+  if (gear == neutralGear) {
     return 'Reference \u2014 base ratio';
   }
-  final neutral = ratios[FitnessBikeDefinition.neutralGear - 1];
+  final neutral = ratios[neutralGear - 1];
   final delta = ratio - neutral;
   if (delta.abs() < 0.05) return 'close to neutral';
   final mag = delta.abs().toStringAsFixed(2);
