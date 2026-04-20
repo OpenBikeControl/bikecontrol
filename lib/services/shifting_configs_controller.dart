@@ -82,8 +82,13 @@ class ShiftingConfigsController extends ChangeNotifier {
   }
 
   Future<void> rename({required String trainerKey, required String from, required String to}) async {
+    if (from == to) return;
     final idx = _configs.indexWhere((c) => c.trainerKey == trainerKey && c.name == from);
     if (idx < 0) return;
+    final collides = _configs.any((c) => c.trainerKey == trainerKey && c.name == to);
+    if (collides) {
+      throw StateError('A ShiftingConfig named "$to" already exists for trainer "$trainerKey"');
+    }
     _configs[idx] = _configs[idx].copyWith(name: to);
     await _persist();
     notifyListeners();
@@ -110,6 +115,8 @@ class ShiftingConfigsController extends ChangeNotifier {
       final actives = forTrainer.where((c) => c.isActive).toList();
       if (actives.length > 1) {
         _enforceSingleActive(key, actives.first.name);
+      } else if (actives.isEmpty) {
+        _enforceSingleActive(key, forTrainer.first.name);
       }
     }
     await _persist();
