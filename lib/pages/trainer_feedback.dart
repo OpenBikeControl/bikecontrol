@@ -264,6 +264,7 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   TrainerFeedbackPayload _buildPayload() {
     final def = widget.device.emulator.activeDefinition;
     final fitnessDef = def is FitnessBikeDefinition ? def : null;
+    final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
 
     return TrainerFeedbackPayload(
       userFeedback: _feedbackController.text.trim(),
@@ -273,9 +274,9 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
       firmwareVersion: widget.device.firmwareVersion,
       trainerSupportsVirtualShifting: fitnessDef != null ? true : null,
       trainerControlMode: _controlMode(fitnessDef),
-      virtualShiftingMode: _vsMode(),
-      gradeSmoothing: core.settings.getProxyGradeSmoothing(),
-      gearRatios: core.settings.getProxyGearRatios() ?? FitnessBikeDefinition.defaultGearRatios,
+      virtualShiftingMode: _vsMode(cfg.mode),
+      gradeSmoothing: cfg.gradeSmoothing,
+      gearRatios: cfg.gearRatios ?? FitnessBikeDefinition.defaultGearRatios,
       appVersion: _appVersion(),
       appPlatform: _appPlatform(),
       trainerApp: core.settings.getTrainerApp()?.name,
@@ -296,8 +297,8 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
     return def.trainerMode.value == TrainerMode.ergMode ? 'ERG' : 'SIM';
   }
 
-  String? _vsMode() {
-    switch (core.settings.getProxyVirtualShiftingMode()) {
+  String _vsMode(VirtualShiftingMode mode) {
+    switch (mode) {
       case VirtualShiftingMode.targetPower:
         return 'target_power';
       case VirtualShiftingMode.trackResistance:
