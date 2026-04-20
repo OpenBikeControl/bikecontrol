@@ -60,9 +60,8 @@ class ProxyDevice extends BluetoothDevice {
   void applyTrainerSettings() {
     final def = emulator.activeDefinition;
     if (def is! FitnessBikeDefinition) return;
-    final app = core.settings.getTrainerApp();
-    def.setMaxGear(app?.virtualGearAmount ?? FitnessBikeDefinition.defaultMaxGear);
     final cfg = core.shiftingConfigs.activeFor(trainerKey);
+    def.setMaxGear(cfg.maxGear);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
