@@ -24,11 +24,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   @override
   void initState() {
     super.initState();
-    final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
-    def.setBicycleWeightKg(cfg.bikeWeightKg);
-    def.setRiderWeightKg(cfg.riderWeightKg);
-    def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
-    def.setVirtualShiftingMode(cfg.mode);
+    _applyActiveConfigToDefinition();
     core.shiftingConfigs.addListener(_onConfigsChanged);
   }
 
@@ -40,12 +36,17 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
 
   void _onConfigsChanged() {
     if (!mounted) return;
+    _applyActiveConfigToDefinition();
+    setState(() {});
+  }
+
+  void _applyActiveConfigToDefinition() {
     final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setVirtualShiftingMode(cfg.mode);
-    setState(() {});
+    def.setGearRatios(cfg.gearRatios ?? FitnessBikeDefinition.defaultGearRatios);
   }
 
   Future<void> _updateActive(ShiftingConfig Function(ShiftingConfig) mutate) async {

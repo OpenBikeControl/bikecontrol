@@ -57,8 +57,9 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
     final name = await _promptName(title: 'New shifting config');
     if (name == null || name.isEmpty) return;
     if (!mounted) return;
-    final source = core.shiftingConfigs.activeFor(widget.trainerKey);
-    await core.shiftingConfigs.upsert(source.copyWith(name: name, isActive: true));
+    await core.shiftingConfigs.upsert(
+      ShiftingConfig.defaults(trainerKey: widget.trainerKey, name: name),
+    );
   }
 
   Future<void> _manage() async {
