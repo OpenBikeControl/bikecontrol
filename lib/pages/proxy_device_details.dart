@@ -127,7 +127,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           'Trainer Settings',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
-        TrainerSettingsSection(definition: def),
+        TrainerSettingsSection(definition: def, device: widget.device),
       ],
     );
   }
