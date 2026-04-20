@@ -94,29 +94,29 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
 
   // ---------- Presets ----------
 
-  static List<double> _evenSteps(double lo, double hi) =>
-      List<double>.generate(24, (i) => lerpDouble(lo, hi, i / 23)!);
+  static List<double> _evenSteps(double lo, double hi, int count) =>
+      List<double>.generate(count, (i) => lerpDouble(lo, hi, count == 1 ? 0.0 : i / (count - 1))!);
 
-  static final List<_Preset> _presetList = [
+  List<_Preset> _presetsForCount(int count) => [
     _Preset(
       label: 'Default',
       range: '0.75–5.49',
-      values: List<double>.unmodifiable(FitnessBikeDefinition.defaultGearRatios),
+      values: List<double>.unmodifiable(FitnessBikeDefinition.defaultGearRatiosFor(count)),
     ),
     _Preset(
       label: 'Compact',
       range: '1.00–4.00',
-      values: List<double>.unmodifiable(_evenSteps(1.00, 4.00)),
+      values: List<double>.unmodifiable(_evenSteps(1.00, 4.00, count)),
     ),
     _Preset(
       label: 'Wide',
       range: '0.50–6.50',
-      values: List<double>.unmodifiable(_evenSteps(0.50, 6.50)),
+      values: List<double>.unmodifiable(_evenSteps(0.50, 6.50, count)),
     ),
     _Preset(
       label: '1\u00D7',
       range: '2.20–4.20',
-      values: List<double>.unmodifiable(_evenSteps(2.20, 4.20)),
+      values: List<double>.unmodifiable(_evenSteps(2.20, 4.20, count)),
     ),
   ];
 
@@ -148,7 +148,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           builder: (context, current, _) {
             return Row(
               spacing: 8,
-              children: _presetList
+              children: _presetsForCount(def.maxGear)
                   .map((p) => Expanded(child: _presetButton(context, p, current)))
                   .toList(),
             );
