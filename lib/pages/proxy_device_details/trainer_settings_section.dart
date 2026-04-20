@@ -178,16 +178,19 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   }
 
   Widget _gearRatiosCard() {
-    return SettingTile(
-      icon: LucideIcons.cog,
-      title: 'Gear Ratios',
-      subtitle: '24-step virtual shifter table',
-      trailing: Button.ghost(
-        onPressed: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
-        trailing: const Icon(LucideIcons.chevronRight, size: 14),
-        child: const Text('Customize'),
+    return ValueListenableBuilder<List<double>>(
+      valueListenable: def.gearRatios,
+      builder: (context, ratios, _) => SettingTile(
+        icon: LucideIcons.cog,
+        title: 'Gear Ratios',
+        subtitle: '${ratios.length}-step virtual shifter table',
+        trailing: Button.ghost(
+          onPressed: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
+          trailing: const Icon(LucideIcons.chevronRight, size: 14),
+          child: const Text('Customize'),
+        ),
+        child: GearRatioCurve(definition: def),
       ),
-      child: GearRatioCurve(definition: def),
     );
   }
 }
