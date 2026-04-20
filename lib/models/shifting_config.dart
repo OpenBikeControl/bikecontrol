@@ -59,7 +59,7 @@ class ShiftingConfig {
       bikeWeightKg: bike.clamp(bikeWeightMinKg, bikeWeightMaxKg),
       riderWeightKg: rider.clamp(riderWeightMinKg, riderWeightMaxKg),
       gradeSmoothing: (json['gradeSmoothing'] as bool?) ?? true,
-      gearRatios: parsedRatios,
+      gearRatios: (parsedRatios != null && parsedRatios.length == FitnessBikeDefinition.maxGear) ? parsedRatios : null,
     );
   }
 
