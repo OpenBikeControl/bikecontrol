@@ -49,9 +49,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
     def.setVirtualShiftingMode(cfg.mode);
     final ratios = cfg.gearRatios;
     def.setGearRatios(
-      ratios != null && ratios.length == def.maxGear
-          ? ratios
-          : FitnessBikeDefinition.defaultGearRatiosFor(def.maxGear),
+      ratios != null && ratios.length == def.maxGear ? ratios : FitnessBikeDefinition.defaultGearRatiosFor(def.maxGear),
     );
   }
 
@@ -112,8 +110,8 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
                   Icon(LucideIcons.triangleAlert, size: 14, color: Colors.amber.shade700),
                   Expanded(
                     child: Text(
-                      '${app.name} expects $expected gears, this config uses $count. '
-                      'Shifting may feel off until they match.',
+                      '${app.name} uses $expected gears, this config uses $count. '
+                      'The gear displayed in ${app.name} may not match.',
                       style: TextStyle(fontSize: 12, color: cs.foreground),
                     ),
                   ),

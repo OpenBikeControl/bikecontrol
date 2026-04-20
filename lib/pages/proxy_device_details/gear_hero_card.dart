@@ -85,7 +85,7 @@ class GearHeroCard extends StatelessWidget {
               ),
             ),
             Text(
-              'of 24  ·  ratio ${ratio.toStringAsFixed(2)}',
+              'of ${definition.maxGear}  ·  ratio ${ratio.toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
