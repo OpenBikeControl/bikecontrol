@@ -1,3 +1,5 @@
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/utils/core.dart';
@@ -9,7 +11,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class TrainerSettingsSection extends StatefulWidget {
   final FitnessBikeDefinition definition;
-  const TrainerSettingsSection({super.key, required this.definition});
+  final ProxyDevice device;
+  const TrainerSettingsSection({super.key, required this.definition, required this.device});
 
   @override
   State<TrainerSettingsSection> createState() => _TrainerSettingsSectionState();
@@ -21,11 +24,33 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   @override
   void initState() {
     super.initState();
-    // Hydrate definition defaults from persisted settings.
-    def.setBicycleWeightKg(core.settings.getProxyBikeWeightKg());
-    def.setRiderWeightKg(core.settings.getProxyRiderWeightKg());
-    def.setGradeSmoothingEnabled(core.settings.getProxyGradeSmoothing());
-    def.setVirtualShiftingMode(core.settings.getProxyVirtualShiftingMode());
+    final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    def.setBicycleWeightKg(cfg.bikeWeightKg);
+    def.setRiderWeightKg(cfg.riderWeightKg);
+    def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
+    def.setVirtualShiftingMode(cfg.mode);
+    core.shiftingConfigs.addListener(_onConfigsChanged);
+  }
+
+  @override
+  void dispose() {
+    core.shiftingConfigs.removeListener(_onConfigsChanged);
+    super.dispose();
+  }
+
+  void _onConfigsChanged() {
+    if (!mounted) return;
+    final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    def.setBicycleWeightKg(cfg.bikeWeightKg);
+    def.setRiderWeightKg(cfg.riderWeightKg);
+    def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
+    def.setVirtualShiftingMode(cfg.mode);
+    setState(() {});
+  }
+
+  Future<void> _updateActive(ShiftingConfig Function(ShiftingConfig) mutate) async {
+    final current = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    await core.shiftingConfigs.upsert(mutate(current));
   }
 
   @override
@@ -53,7 +78,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
           value: mode,
           onChanged: (v) async {
             def.setVirtualShiftingMode(v);
-            await core.settings.setProxyVirtualShiftingMode(v);
+            await _updateActive((c) => c.copyWith(mode: v));
           },
           child: Row(
             spacing: 6,
@@ -97,7 +122,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
           format: (v) => '${v.toStringAsFixed(1)} kg',
           onChanged: (v) async {
             def.setBicycleWeightKg(v);
-            await core.settings.setProxyBikeWeightKg(v);
+            await _updateActive((c) => c.copyWith(bikeWeightKg: v));
           },
         ),
       ),
@@ -119,7 +144,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
           format: (v) => '${v.toStringAsFixed(0)} kg',
           onChanged: (v) async {
             def.setRiderWeightKg(v);
-            await core.settings.setProxyRiderWeightKg(v);
+            await _updateActive((c) => c.copyWith(riderWeightKg: v));
           },
         ),
       ),
@@ -137,7 +162,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
           value: enabled,
           onChanged: (v) async {
             def.setGradeSmoothingEnabled(v);
-            await core.settings.setProxyGradeSmoothing(v);
+            await _updateActive((c) => c.copyWith(gradeSmoothing: v));
           },
         ),
       ),
