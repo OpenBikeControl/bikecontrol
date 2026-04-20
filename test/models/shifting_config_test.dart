@@ -13,7 +13,48 @@ void main() {
       expect(cfg.bikeWeightKg, 10.0);
       expect(cfg.riderWeightKg, 75.0);
       expect(cfg.gradeSmoothing, true);
+      expect(cfg.maxGear, ShiftingConfig.maxGearDefault);
       expect(cfg.gearRatios, isNull);
+    });
+
+    test('default() honours an explicit maxGear override', () {
+      final cfg = ShiftingConfig.defaults(trainerKey: 'KICKR', maxGear: 30);
+      expect(cfg.maxGear, 30);
+    });
+
+    test('default() clamps an out-of-range maxGear', () {
+      expect(ShiftingConfig.defaults(trainerKey: 'KICKR', maxGear: 99).maxGear, 30);
+      expect(ShiftingConfig.defaults(trainerKey: 'KICKR', maxGear: 0).maxGear, 1);
+    });
+
+    test('fromJson round-trips maxGear + clamps out-of-range stored values', () {
+      final stored = {
+        'name': 'x',
+        'trainerKey': 'KICKR',
+        'isActive': true,
+        'mode': 'targetPower',
+        'bikeWeightKg': 10.0,
+        'riderWeightKg': 75.0,
+        'gradeSmoothing': true,
+        'maxGear': 99,
+      };
+      expect(ShiftingConfig.fromJson(stored).maxGear, 30);
+
+      final ok = {...stored, 'maxGear': 28};
+      expect(ShiftingConfig.fromJson(ok).maxGear, 28);
+    });
+
+    test('fromJson defaults maxGear to 24 when missing', () {
+      final restored = ShiftingConfig.fromJson({
+        'name': 'Minimal',
+        'trainerKey': 'KICKR',
+        'isActive': false,
+        'mode': 'targetPower',
+        'bikeWeightKg': 10.0,
+        'riderWeightKg': 75.0,
+        'gradeSmoothing': true,
+      });
+      expect(restored.maxGear, 24);
     });
 
     test('toJson/fromJson round-trips', () {
