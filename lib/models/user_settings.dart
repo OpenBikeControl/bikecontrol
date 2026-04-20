@@ -1,9 +1,12 @@
+import 'package:bike_control/models/shifting_config.dart';
+
 /// Model representing user settings synced across devices.
 /// Corresponds to the user_settings table in Supabase.
 class UserSettings {
   final String? userId;
   final String? deviceId;
   final Map<String, dynamic>? keymaps;
+  final List<ShiftingConfig>? shiftingConfigs;
   final List<String>? ignoredDeviceIds;
   final List<String>? ignoredDeviceNames;
   final int version;
@@ -14,6 +17,7 @@ class UserSettings {
     this.userId,
     this.deviceId,
     this.keymaps,
+    this.shiftingConfigs,
     this.ignoredDeviceIds,
     this.ignoredDeviceNames,
     this.version = 0,
@@ -22,10 +26,19 @@ class UserSettings {
   });
 
   factory UserSettings.fromJson(Map<String, dynamic> json) {
+    List<ShiftingConfig>? parseShifting(dynamic raw) {
+      if (raw is! List) return null;
+      return raw
+          .whereType<Map<String, dynamic>>()
+          .map(ShiftingConfig.fromJson)
+          .toList(growable: false);
+    }
+
     return UserSettings(
       userId: json['user_id'] as String?,
       deviceId: json['device_id'] as String?,
       keymaps: json['keymaps'] as Map<String, dynamic>?,
+      shiftingConfigs: parseShifting(json['shifting_configs']),
       ignoredDeviceIds: _parseStringList(json['ignored_device_ids']),
       ignoredDeviceNames: _parseStringList(json['ignored_device_names']),
       version: json['version'] as int? ?? 0,
@@ -43,6 +56,8 @@ class UserSettings {
       'user_id': userId,
       'device_id': deviceId,
       'keymaps': keymaps,
+      if (shiftingConfigs != null)
+        'shifting_configs': shiftingConfigs!.map((e) => e.toJson()).toList(),
       'ignored_device_ids': _stringifyList(ignoredDeviceIds),
       'ignored_device_names': _stringifyList(ignoredDeviceNames),
       'version': version,
@@ -53,6 +68,7 @@ class UserSettings {
     String? userId,
     String? deviceId,
     Map<String, dynamic>? keymaps,
+    List<ShiftingConfig>? shiftingConfigs,
     List<String>? ignoredDeviceIds,
     List<String>? ignoredDeviceNames,
     int? version,
@@ -63,6 +79,7 @@ class UserSettings {
       userId: userId ?? this.userId,
       deviceId: deviceId ?? this.deviceId,
       keymaps: keymaps ?? this.keymaps,
+      shiftingConfigs: shiftingConfigs ?? this.shiftingConfigs,
       ignoredDeviceIds: ignoredDeviceIds ?? this.ignoredDeviceIds,
       ignoredDeviceNames: ignoredDeviceNames ?? this.ignoredDeviceNames,
       version: version ?? this.version,
