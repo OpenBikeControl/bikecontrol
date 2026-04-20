@@ -4,7 +4,7 @@
 
 **Goal:** Make the virtual-shifting gear count follow the active trainer app (24 for Zwift and everyone else, 30 for MyWhoosh) by exposing a `virtualGearAmount` on `SupportedApp` and plumbing it into `FitnessBikeDefinition`.
 
-**Architecture:** `SupportedApp` gains a `virtualGearAmount` getter (default 24, MyWhoosh overrides to 30). `FitnessBikeDefinition` promotes `maxGear` from `static const 24` to a mutable instance field with a `setMaxGear(int)` method that regenerates default ratios (by interpolating the 24-entry Zwift baseline), recomputes `neutralGear`, clamps `currentGear`, and re-seeds `gearRatios`. `ProxyDevice.applyTrainerSettings` and `TrainerSettingsSection._applyActiveConfigToDefinition` call `setMaxGear(core.settings.getTrainerApp()?.virtualGearAmount ?? 24)` on every apply, so switching the trainer app live re-sizes the shifter. `ShiftingConfig.fromJson` drops its hard 24-entry guard in favour of accepting any 1–50 entry list; downstream consumers that actually need the right length keep validating.
+**Architecture:** `SupportedApp` gains a `virtualGearAmount` getter (default 24, MyWhoosh overrides to 30). `FitnessBikeDefinition` promotes `maxGear` from `static const 24` to a mutable instance field with a `setMaxGear(int)` method that regenerates default ratios (by interpolating the 24-entry Zwift baseline), recomputes `neutralGear`, clamps `currentGear`, and re-seeds `gearRatios`. `ProxyDevice.applyTrainerSettings` and `TrainerSettingsSection._applyActiveConfigToDefinition` call `setMaxGear(core.settings.getTrainerApp()?.virtualGearAmount ?? 24)` on every apply, so switching the trainer app live re-sizes the shifter. `ShiftingConfig.fromJson` drops its hard 24-entry guard in favour of accepting any 1–30 entry list; downstream consumers that actually need the right length keep validating.
 
 **Tech Stack:** Flutter, Dart; `prop` submodule (`FitnessBikeDefinition`).
 
@@ -16,8 +16,8 @@ Modified:
 - `lib/utils/keymap/apps/supported_app.dart` — add `int get virtualGearAmount => 24;` on the abstract class.
 - `lib/utils/keymap/apps/my_whoosh.dart` — override the getter to return 30.
 - `prop/lib/emulators/definitions/fitness_bike_definition.dart` — make `maxGear`/`neutralGear` instance fields; add `setMaxGear`; generalise `defaultGearRatios` into a `static List<double> defaultGearRatiosFor(int count)` helper with a 24-entry baseline; update `mapMyWhooshGradeToGear` to accept `maxGear`.
-- `lib/models/shifting_config.dart` — relax the 24-entry `gearRatios` guard in `fromJson` to accept any 1–50 entry list.
-- `test/models/shifting_config_test.dart` — replace the "wrong-length drop" test with a bounds test (0 and 51 entries drop; 24 and 30 are both accepted).
+- `lib/models/shifting_config.dart` — relax the 24-entry `gearRatios` guard in `fromJson` to accept any 1–30 entry list.
+- `test/models/shifting_config_test.dart` — replace the "wrong-length drop" test with a bounds test (0 and 31 entries drop; 24 and 30 are both accepted).
 - `prop/test/emulators/fitness_bike_definition_test.dart` — update `mapMyWhooshGradeToGear` tests to pass an explicit `maxGear`; add a `setMaxGear` test group.
 - `lib/bluetooth/devices/proxy/proxy_device.dart` — in `applyTrainerSettings`, call `def.setMaxGear(app.virtualGearAmount)` before reading `gearRatios`.
 - `lib/pages/proxy_device_details/trainer_settings_section.dart` — in `_applyActiveConfigToDefinition`, do the same; re-apply when the trainer app changes.
@@ -202,10 +202,10 @@ In `prop/test/emulators/fitness_bike_definition_test.dart`, append a new group i
       expect(identical(def.gearRatios.value, before), isTrue);
     });
 
-    test('rejects counts outside [1, 50]', () {
+    test('rejects counts outside [1, 30]', () {
       final def = make();
       expect(() => def.setMaxGear(0), throwsArgumentError);
-      expect(() => def.setMaxGear(51), throwsArgumentError);
+      expect(() => def.setMaxGear(31), throwsArgumentError);
     });
   });
 ```
@@ -283,8 +283,10 @@ Replace with:
   static const int defaultNeutralGear = 12;
 
   /// Inclusive upper bound for [maxGear]. Guards against obviously wrong
-  /// values from configs or app definitions.
-  static const int _absoluteMaxGear = 50;
+  /// values from configs or app definitions. MyWhoosh uses 30 (our highest
+  /// supported app); the cap matches so unknown apps that report more gears
+  /// than we know how to handle are rejected loudly rather than silently.
+  static const int _absoluteMaxGear = 30;
 
   int _maxGear = defaultMaxGear;
   int _neutralGear = defaultNeutralGear;
@@ -504,7 +506,7 @@ In `test/models/shifting_config_test.dart`, replace the test:
 with:
 
 ```dart
-    test('fromJson accepts any 1..50 entry gearRatios list', () {
+    test('fromJson accepts any 1..30 entry gearRatios list', () {
       final restored24 = ShiftingConfig.fromJson({
         'name': '24g',
         'trainerKey': 'KICKR',
@@ -554,7 +556,7 @@ with:
         'gearRatios': raw,
       });
       expect(call([]).gearRatios, isNull);
-      expect(call(List<double>.filled(51, 1.0)).gearRatios, isNull);
+      expect(call(List<double>.filled(31, 1.0)).gearRatios, isNull);
     });
 ```
 
@@ -580,7 +582,7 @@ Replace with:
 Near the top of the `ShiftingConfig` class (alongside the other `static const` limits), add:
 
 ```dart
-  static const int _gearRatiosMaxLength = 50;
+  static const int _gearRatiosMaxLength = 30;
 ```
 
 Because `FitnessBikeDefinition.maxGear` is no longer a compile-time constant, also drop the now-unused reference if no other line in the file uses it. Verify with `grep -n "FitnessBikeDefinition" lib/models/shifting_config.dart` — the import on line 1 can stay (we still need `VirtualShiftingMode`), but the `FitnessBikeDefinition.maxGear` expression should be gone.
@@ -599,7 +601,7 @@ Expected: No new issues.
 
 ```bash
 git add lib/models/shifting_config.dart test/models/shifting_config_test.dart
-git commit -m "refactor(shifting): accept any 1..50 gear-ratios list per config"
+git commit -m "refactor(shifting): accept any 1..30 gear-ratios list per config"
 ```
 
 ---
@@ -954,4 +956,4 @@ No TBDs, no "add appropriate error handling", no "Similar to Task N". Every code
 - `FitnessBikeDefinition.setMaxGear(int)` consistent in Task 2 (definition), Task 4 (ProxyDevice), Task 5 (TrainerSettingsSection), Task 7 (via `applyTrainerSettings`).
 - `FitnessBikeDefinition.defaultGearRatiosFor(int)` consistent in Task 2 (definition), Task 5 (fallback), Task 6 (editor preset "Default").
 - `mapMyWhooshGradeToGear(int grade, int maxGear)` consistent in Task 2 (definition + tests) and the in-file call site.
-- `ShiftingConfig.fromJson` bound is `[1, 50]` in both model (Task 3) and `FitnessBikeDefinition._absoluteMaxGear` (Task 2).
+- `ShiftingConfig.fromJson` bound is `[1, 30]` in both model (Task 3) and `FitnessBikeDefinition._absoluteMaxGear` (Task 2).
