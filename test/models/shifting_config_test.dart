@@ -66,6 +66,14 @@ void main() {
       expect(renamed.mode, base.mode);
     });
 
+    test('copyWith clearGearRatios drops the gear list', () {
+      final withRatios = ShiftingConfig.defaults(
+        trainerKey: 'KICKR',
+      ).copyWith(gearRatios: List.generate(FitnessBikeDefinition.maxGear, (_) => 1.0));
+      expect(withRatios.gearRatios, isNotNull);
+      expect(withRatios.copyWith(clearGearRatios: true).gearRatios, isNull);
+    });
+
     test('values are clamped into legal ranges via fromJson', () {
       final cfg = ShiftingConfig.fromJson({
         'name': 'OutOfRange',

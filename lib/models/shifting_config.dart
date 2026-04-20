@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
 class ShiftingConfig {
@@ -108,7 +109,7 @@ class ShiftingConfig {
           bikeWeightKg == other.bikeWeightKg &&
           riderWeightKg == other.riderWeightKg &&
           gradeSmoothing == other.gradeSmoothing &&
-          _listEquals(gearRatios, other.gearRatios));
+          listEquals(gearRatios, other.gearRatios));
 
   @override
   int get hashCode => Object.hash(
@@ -122,13 +123,4 @@ class ShiftingConfig {
         gearRatios == null ? null : Object.hashAll(gearRatios!),
       );
 
-  static bool _listEquals(List<double>? a, List<double>? b) {
-    if (identical(a, b)) return true;
-    if (a == null || b == null) return false;
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
 }
