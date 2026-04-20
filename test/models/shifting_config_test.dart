@@ -25,10 +25,24 @@ void main() {
         bikeWeightKg: 8.2,
         riderWeightKg: 68.5,
         gradeSmoothing: false,
-        gearRatios: [0.75, 1.0, 1.5],
+        gearRatios: List.generate(FitnessBikeDefinition.maxGear, (i) => 0.75 + i * 0.2),
       );
       final restored = ShiftingConfig.fromJson(cfg.toJson());
       expect(restored, cfg);
+    });
+
+    test('fromJson drops wrong-length gearRatios lists', () {
+      final restored = ShiftingConfig.fromJson({
+        'name': 'Partial',
+        'trainerKey': 'KICKR',
+        'isActive': true,
+        'mode': 'targetPower',
+        'bikeWeightKg': 10.0,
+        'riderWeightKg': 75.0,
+        'gradeSmoothing': true,
+        'gearRatios': [0.75, 1.0, 1.5],
+      });
+      expect(restored.gearRatios, isNull);
     });
 
     test('fromJson tolerates missing optional fields', () {
