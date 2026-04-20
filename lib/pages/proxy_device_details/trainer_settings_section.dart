@@ -41,12 +41,19 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   }
 
   void _applyActiveConfigToDefinition() {
+    final app = core.settings.getTrainerApp();
+    def.setMaxGear(app?.virtualGearAmount ?? FitnessBikeDefinition.defaultMaxGear);
     final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setVirtualShiftingMode(cfg.mode);
-    def.setGearRatios(cfg.gearRatios ?? FitnessBikeDefinition.defaultGearRatios);
+    final ratios = cfg.gearRatios;
+    def.setGearRatios(
+      ratios != null && ratios.length == def.maxGear
+          ? ratios
+          : FitnessBikeDefinition.defaultGearRatiosFor(def.maxGear),
+    );
   }
 
   Future<void> _updateActive(ShiftingConfig Function(ShiftingConfig) mutate) async {
