@@ -25,15 +25,39 @@ void main() {
         bikeWeightKg: 8.2,
         riderWeightKg: 68.5,
         gradeSmoothing: false,
-        gearRatios: List.generate(FitnessBikeDefinition.maxGear, (i) => 0.75 + i * 0.2),
+        gearRatios: List.generate(24, (i) => 0.75 + i * 0.2),
       );
       final restored = ShiftingConfig.fromJson(cfg.toJson());
       expect(restored, cfg);
     });
 
-    test('fromJson drops wrong-length gearRatios lists', () {
-      final restored = ShiftingConfig.fromJson({
-        'name': 'Partial',
+    test('fromJson accepts any 1..30 entry gearRatios list', () {
+      final restored24 = ShiftingConfig.fromJson({
+        'name': '24g',
+        'trainerKey': 'KICKR',
+        'isActive': true,
+        'mode': 'targetPower',
+        'bikeWeightKg': 10.0,
+        'riderWeightKg': 75.0,
+        'gradeSmoothing': true,
+        'gearRatios': List<double>.filled(24, 1.0),
+      });
+      expect(restored24.gearRatios?.length, 24);
+
+      final restored30 = ShiftingConfig.fromJson({
+        'name': '30g',
+        'trainerKey': 'KICKR',
+        'isActive': true,
+        'mode': 'targetPower',
+        'bikeWeightKg': 10.0,
+        'riderWeightKg': 75.0,
+        'gradeSmoothing': true,
+        'gearRatios': List<double>.filled(30, 1.0),
+      });
+      expect(restored30.gearRatios?.length, 30);
+
+      final restored3 = ShiftingConfig.fromJson({
+        'name': '3g',
         'trainerKey': 'KICKR',
         'isActive': true,
         'mode': 'targetPower',
@@ -42,7 +66,22 @@ void main() {
         'gradeSmoothing': true,
         'gearRatios': [0.75, 1.0, 1.5],
       });
-      expect(restored.gearRatios, isNull);
+      expect(restored3.gearRatios?.length, 3);
+    });
+
+    test('fromJson drops empty and out-of-bounds gearRatios lists', () {
+      ShiftingConfig call(List raw) => ShiftingConfig.fromJson({
+        'name': 'x',
+        'trainerKey': 'KICKR',
+        'isActive': true,
+        'mode': 'targetPower',
+        'bikeWeightKg': 10.0,
+        'riderWeightKg': 75.0,
+        'gradeSmoothing': true,
+        'gearRatios': raw,
+      });
+      expect(call([]).gearRatios, isNull);
+      expect(call(List<double>.filled(31, 1.0)).gearRatios, isNull);
     });
 
     test('fromJson tolerates missing optional fields', () {
@@ -69,7 +108,7 @@ void main() {
     test('copyWith clearGearRatios drops the gear list', () {
       final withRatios = ShiftingConfig.defaults(
         trainerKey: 'KICKR',
-      ).copyWith(gearRatios: List.generate(FitnessBikeDefinition.maxGear, (_) => 1.0));
+      ).copyWith(gearRatios: List.generate(24, (_) => 1.0));
       expect(withRatios.gearRatios, isNotNull);
       expect(withRatios.copyWith(clearGearRatios: true).gearRatios, isNull);
     });
