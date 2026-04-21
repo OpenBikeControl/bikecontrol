@@ -158,16 +158,27 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   Widget _gearSettingsCard() {
     return ValueListenableBuilder<List<double>>(
       valueListenable: def.gearRatios,
-      builder: (context, ratios, _) => SettingTile(
-        icon: LucideIcons.cog,
-        title: 'Gear Settings',
-        subtitle: 'Gear Count, Ratio & Smoothing',
-        trailing: Button.ghost(
-          onPressed: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
-          trailing: const Icon(LucideIcons.chevronRight, size: 14),
-          child: const Text('Customize'),
-        ),
-        child: GearRatioCurve(definition: def),
+      builder: (context, ratios, _) => ValueListenableBuilder<bool>(
+        valueListenable: def.gradeSmoothingEnabled,
+        builder: (context, smoothing, _) {
+          final hasCustomRatios = core.shiftingConfigs.activeFor(widget.device.trainerKey).gearRatios != null;
+          final parts = [
+            '${ratios.length} gears',
+            'Smoothing ${smoothing ? 'on' : 'off'}',
+            if (hasCustomRatios) 'Custom ratios',
+          ];
+          return SettingTile(
+            icon: LucideIcons.cog,
+            title: 'Gear Settings',
+            subtitle: parts.join(' · '),
+            trailing: Button.ghost(
+              onPressed: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
+              trailing: const Icon(LucideIcons.chevronRight, size: 14),
+              child: const Text('Customize'),
+            ),
+            child: GearRatioCurve(definition: def),
+          );
+        },
       ),
     );
   }
