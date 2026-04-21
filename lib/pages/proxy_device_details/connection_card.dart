@@ -162,7 +162,35 @@ class _ConnectionCardState extends State<ConnectionCard> {
   Widget _connectedCard(DirconEmulator emulator) {
     return ValueListenableBuilder<RetrofitMode>(
       valueListenable: emulator.retrofitMode,
-      builder: (context, mode, _) => _modePickerCompact(mode),
+      builder: (context, mode, _) {
+        if (mode == RetrofitMode.proxy) {
+          return _modePickerCompact(mode);
+        }
+        return _modePickerAccordion(mode);
+      },
+    );
+  }
+
+  Widget _modePickerAccordion(RetrofitMode mode) {
+    final cs = Theme.of(context).colorScheme;
+    return Accordion(
+      items: [
+        AccordionItem(
+          trigger: AccordionTrigger(
+            child: Row(
+              spacing: 10,
+              children: [
+                Icon(_modeIcon(mode), size: 16, color: cs.mutedForeground),
+                Text(
+                  'Connect mode: ${mode.label}',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          content: _modePickerCompact(mode),
+        ),
+      ],
     );
   }
 
