@@ -562,6 +562,11 @@ class Connection {
   void _resetInactivityTimer(BaseDevice device) {
     _inactivityTimers[device]?.cancel();
 
+    if (true) {
+      // not stable - reactivate some other time
+      return;
+    }
+
     _inactivityTimers[device] = Timer(_inactivityTimeout, () {
       // Always clean up the map entry – the timer has already fired.
       _inactivityTimers.remove(device);
