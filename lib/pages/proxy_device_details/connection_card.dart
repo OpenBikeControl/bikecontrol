@@ -18,11 +18,18 @@ class ConnectionCard extends StatefulWidget {
 class _ConnectionCardState extends State<ConnectionCard> {
   late RetrofitMode _pendingMode;
 
+  /// Decided once at mount based on the starting retrofit mode: Proxy stays
+  /// expanded (it's the diagnostic-friendly default), anything else mounts
+  /// collapsed. Live mode switches never flip this — the picker shouldn't
+  /// suddenly collapse out from under the user while they're using it.
+  late final bool _useAccordion;
+
   @override
   void initState() {
     super.initState();
     final saved = widget.device.emulator.retrofitMode.value;
     _pendingMode = _allowedModes.contains(saved) ? saved : RetrofitMode.proxy;
+    _useAccordion = saved != RetrofitMode.proxy;
   }
 
   List<RetrofitMode> get _allowedModes => [
@@ -163,10 +170,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
     return ValueListenableBuilder<RetrofitMode>(
       valueListenable: emulator.retrofitMode,
       builder: (context, mode, _) {
-        if (mode == RetrofitMode.proxy) {
-          return _modePickerCompact(mode);
+        if (_useAccordion) {
+          return _modePickerAccordion(mode);
         }
-        return _modePickerAccordion(mode);
+        return _modePickerCompact(mode);
       },
     );
   }
