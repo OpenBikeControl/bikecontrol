@@ -65,9 +65,9 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       spacing: 10,
       children: [
         _vsModeCard(),
+        _gearSettingsCard(),
         _bikeWeightCard(),
         _riderWeightCard(),
-        _gearSettingsCard(),
       ],
     );
   }
@@ -161,22 +161,23 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       builder: (context, ratios, _) => ValueListenableBuilder<bool>(
         valueListenable: def.gradeSmoothingEnabled,
         builder: (context, smoothing, _) {
+          final cs = Theme.of(context).colorScheme;
           final hasCustomRatios = core.shiftingConfigs.activeFor(widget.device.trainerKey).gearRatios != null;
           final parts = [
             '${ratios.length} gears',
             'Smoothing ${smoothing ? 'on' : 'off'}',
             if (hasCustomRatios) 'Custom ratios',
           ];
-          return SettingTile(
-            icon: LucideIcons.cog,
-            title: 'Gear Settings',
-            subtitle: parts.join(' · '),
-            trailing: Button.ghost(
-              onPressed: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
-              trailing: const Icon(LucideIcons.chevronRight, size: 14),
-              child: const Text('Customize'),
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
+            child: SettingTile(
+              icon: LucideIcons.cog,
+              title: 'Gear Settings',
+              subtitle: parts.join(' · '),
+              trailing: Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
+              child: GearRatioCurve(definition: def),
             ),
-            child: GearRatioCurve(definition: def),
           );
         },
       ),
