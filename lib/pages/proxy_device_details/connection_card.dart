@@ -187,6 +187,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
               setState(() => _pendingMode = m);
               try {
                 await widget.device.emulator.switchRetrofitMode(m);
+                // A new FitnessBikeDefinition is created during the swap; seed
+                // it from the active ShiftingConfig so the user's tuning
+                // persists across mode changes.
+                widget.device.applyTrainerSettings();
               } catch (e) {
                 if (kDebugMode) print('switchRetrofitMode failed: $e');
               }
