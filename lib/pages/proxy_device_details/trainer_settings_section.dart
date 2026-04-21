@@ -168,16 +168,13 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
             'Smoothing ${smoothing ? 'on' : 'off'}',
             if (hasCustomRatios) 'Custom ratios',
           ];
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          return SettingTile(
+            icon: LucideIcons.cog,
+            title: 'Gear Settings',
+            subtitle: parts.join(' · '),
+            trailing: Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
             onTap: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
-            child: SettingTile(
-              icon: LucideIcons.cog,
-              title: 'Gear Settings',
-              subtitle: parts.join(' · '),
-              trailing: Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
-              child: GearRatioCurve(definition: def),
-            ),
+            child: GearRatioCurve(definition: def),
           );
         },
       ),
