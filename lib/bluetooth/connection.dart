@@ -583,10 +583,18 @@ class Connection {
         AlertNotification(
           LogLevel.LOGLEVEL_WARNING,
           '${device.toString()} disconnected after ${_inactivityTimeout.inMinutes} minutes of inactivity',
+          buttonTitle: 'Reconnect',
+          onTap: () {
+            _connect(device).catchError((Object error, StackTrace stackTrace) {
+              _actionStreams.add(
+                LogNotification('Failed to reconnect ${device.toString()} after inactivity timeout: $error'),
+              );
+            });
+          },
         ),
       );
       unawaited(
-        disconnect(device, forget: false, persistForget: false).catchError((Object error, StackTrace stackTrace) {
+        disconnect(device, forget: true, persistForget: false).catchError((Object error, StackTrace stackTrace) {
           _actionStreams.add(
             LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error'),
           );
