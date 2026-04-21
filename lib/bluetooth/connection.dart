@@ -28,7 +28,7 @@ class Connection {
   final devices = <BaseDevice>[];
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
-  List<BluetoothDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
+  List<ProxyDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
   List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
@@ -374,45 +374,39 @@ class Connection {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
 
-      if (device is! ProxyDevice) {
+      final willConnect = device is! ProxyDevice || core.settings.getAutoConnect(device.trainerKey);
+      if (willConnect) {
         _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
-        _connect(device)
-            .then((_) {
-              _handlingConnectionQueue = false;
+      }
+      _connect(device)
+          .then((_) {
+            _handlingConnectionQueue = false;
+
+            if (willConnect) {
               _actionStreams.add(
                 AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
               );
-              if (_connectionQueue.isNotEmpty) {
-                _handleConnectionQueue();
-              }
-            })
-            .catchError((e) {
-              device.isConnected = false;
-              _handlingConnectionQueue = false;
-              if (e is TimeoutException) {
-                _actionStreams.add(
-                  AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.toString()}: Timeout'),
-                );
-              } else {
-                _actionStreams.add(
-                  AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.toString()} - $e'),
-                );
-              }
-              if (_connectionQueue.isNotEmpty) {
-                _handleConnectionQueue();
-              }
-            });
-      } else {
-        // For proxy devices, we want to skip actual connection. ProxyDevice.connect()
-        // itself honours the persisted auto-connect flag and kicks off startProxy()
-        // when appropriate.
-        _connect(device).then((_) {
-          _handlingConnectionQueue = false;
-          if (_connectionQueue.isNotEmpty) {
-            _handleConnectionQueue();
-          }
-        });
-      }
+            }
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          })
+          .catchError((e) {
+            device.isConnected = false;
+            _handlingConnectionQueue = false;
+            if (e is TimeoutException) {
+              _actionStreams.add(
+                AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.toString()}: Timeout'),
+              );
+            } else {
+              _actionStreams.add(
+                AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.toString()} - $e'),
+              );
+            }
+            if (_connectionQueue.isNotEmpty) {
+              _handleConnectionQueue();
+            }
+          });
     }
   }
 

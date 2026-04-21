@@ -51,15 +51,13 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                     core.connection.signalNotification(
                       AlertNotification(
                         LogLevel.LOGLEVEL_ERROR,
-                        context.i18n.errorStartingOpenBikeControlServer,
+                        "${context.i18n.errorStartingOpenBikeControlServer}:\n$e",
                       ),
                     );
                   });
                 }
                 setState(() {});
               },
-
-
             );
           },
         );
