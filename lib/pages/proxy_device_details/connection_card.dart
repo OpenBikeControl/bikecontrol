@@ -36,13 +36,41 @@ class _ConnectionCardState extends State<ConnectionCard> {
   Widget build(BuildContext context) {
     final emulator = widget.device.emulator;
     return ValueListenableBuilder<bool>(
-      valueListenable: emulator.isStarted,
-      builder: (context, started, _) {
-        if (!widget.device.isConnected && !started) {
-          return _disconnectedCard(emulator);
-        }
-        return _connectedCard(emulator);
+      valueListenable: widget.device.isStarting,
+      builder: (context, starting, _) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: emulator.isStarted,
+          builder: (context, started, _) {
+            if (starting && !started) {
+              return _connectingCard(emulator);
+            }
+            if (!widget.device.isConnected && !started) {
+              return _disconnectedCard(emulator);
+            }
+            return _connectedCard(emulator);
+          },
+        );
       },
+    );
+  }
+
+  Widget _connectingCard(DirconEmulator emulator) {
+    final cs = Theme.of(context).colorScheme;
+    return _card(
+      bg: cs.card,
+      border: cs.border,
+      child: Row(
+        spacing: 12,
+        children: [
+          const SmallProgressIndicator(),
+          Expanded(
+            child: Text(
+              'Connecting in ${emulator.retrofitMode.value.label} mode…',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: cs.foreground),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -210,43 +238,53 @@ class _ConnectionCardState extends State<ConnectionCard> {
     return _card(
       bg: cs.card,
       border: cs.border,
-      child: RadioGroup<RetrofitMode>(
-        value: active,
-        onChanged: (m) async {
-          if (m == active) return;
-          await core.settings.setRetrofitMode(widget.device.trainerKey, m);
-          setState(() => _pendingMode = m);
-          try {
-            await widget.device.emulator.switchRetrofitMode(m);
-          } catch (e) {
-            if (kDebugMode) print('switchRetrofitMode failed: $e');
-          }
-        },
-        child: Row(
-          spacing: 6,
-          children: [
-            for (final m in _allowedModes)
-              Expanded(
-                child: RadioCard<RetrofitMode>(
-                  value: m,
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      Icon(_modeIcon(m), size: 16, color: cs.mutedForeground),
-                      Expanded(
-                        child: Text(
-                          m.label,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 10,
+        children: [
+          Text(
+            'CONNECT MODE',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1, color: cs.mutedForeground),
+          ),
+          RadioGroup<RetrofitMode>(
+            value: active,
+            onChanged: (m) async {
+              if (m == active) return;
+              await core.settings.setRetrofitMode(widget.device.trainerKey, m);
+              setState(() => _pendingMode = m);
+              try {
+                await widget.device.emulator.switchRetrofitMode(m);
+              } catch (e) {
+                if (kDebugMode) print('switchRetrofitMode failed: $e');
+              }
+            },
+            child: Column(
+              spacing: 8,
+              children: [
+                for (final m in _allowedModes)
+                  RadioCard<RetrofitMode>(
+                    value: m,
+                    child: Row(
+                      spacing: 12,
+                      children: [
+                        Icon(_modeIcon(m), size: 20, color: cs.mutedForeground),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 2,
+                            children: [
+                              Text(m.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                              Text(_modeHint(m), style: TextStyle(fontSize: 11, color: cs.mutedForeground)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -53,18 +53,14 @@ class _DevicePageState extends State<ProxyPage> {
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Button.ghost(
                     onPressed: () async {
-                      if (device is ProxyDevice && !device.emulator.isStarted.value) {
-                        final savedMode = core.settings.getRetrofitMode(device.trainerKey);
-                        device.emulator.setRetrofitMode(savedMode);
-                        try {
-                          await device.startProxy();
-                        } catch (_) {
-                          // Surface nothing special here — the details page will
-                          // show the disconnected picker so the user can retry.
-                        }
-                        if (!mounted) return;
-                      }
                       if (device is ProxyDevice) {
+                        if (!device.emulator.isStarted.value && !device.isStarting.value) {
+                          final savedMode = core.settings.getRetrofitMode(device.trainerKey);
+                          device.emulator.setRetrofitMode(savedMode);
+                          // Fire-and-forget — details page opens immediately and
+                          // renders a "Connecting…" state via device.isStarting.
+                          unawaited(device.startProxy().catchError((_) {}));
+                        }
                         await context.push(ProxyDeviceDetailsPage(device: device));
                       } else {
                         await context.push(ControllerSettingsPage(device: device));
