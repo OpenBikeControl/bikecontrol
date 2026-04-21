@@ -65,67 +65,10 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       spacing: 10,
       children: [
         _vsModeCard(),
-        _gearCountCard(),
         _bikeWeightCard(),
         _riderWeightCard(),
-        _gradeSmoothingCard(),
-        _gearRatiosCard(),
+        _gearSettingsCard(),
       ],
-    );
-  }
-
-  Widget _gearCountCard() {
-    final cs = Theme.of(context).colorScheme;
-    final count = def.maxGear;
-    final app = core.settings.getTrainerApp();
-    final expected = app?.virtualGearAmount;
-    final mismatch = app != null && expected != null && expected != count;
-    return SettingTile(
-      icon: LucideIcons.hash,
-      title: 'Gear Count',
-      subtitle: 'Size of the virtual shifter',
-      trailing: StepperControl(
-        value: count.toDouble(),
-        step: 1.0,
-        min: ShiftingConfig.maxGearMin.toDouble(),
-        max: ShiftingConfig.maxGearMax.toDouble(),
-        format: (v) => v.toStringAsFixed(0),
-        onChanged: (v) async {
-          final next = v.toInt();
-          def.setMaxGear(next);
-          await _updateActive((c) => c.copyWith(maxGear: next));
-        },
-      ),
-      child: mismatch
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
-              ),
-              child: Row(
-                spacing: 8,
-                children: [
-                  Icon(LucideIcons.triangleAlert, size: 14, color: Colors.amber.shade700),
-                  Expanded(
-                    child: Text(
-                      '${app.name} uses $expected gears, this config uses $count. '
-                      'The gear displayed in ${app.name} may not match.',
-                      style: TextStyle(fontSize: 12, color: cs.foreground),
-                    ),
-                  ),
-                  Button.ghost(
-                    onPressed: () async {
-                      def.setMaxGear(expected);
-                      await _updateActive((c) => c.copyWith(maxGear: expected));
-                    },
-                    child: Text('Use $expected', style: const TextStyle(fontSize: 12)),
-                  ),
-                ],
-              ),
-            )
-          : null,
     );
   }
 
@@ -212,31 +155,13 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
     );
   }
 
-  Widget _gradeSmoothingCard() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: def.gradeSmoothingEnabled,
-      builder: (context, enabled, _) => SettingTile(
-        icon: LucideIcons.waves,
-        title: 'Grade Smoothing',
-        subtitle: 'Averages sudden slope changes',
-        trailing: Switch(
-          value: enabled,
-          onChanged: (v) async {
-            def.setGradeSmoothingEnabled(v);
-            await _updateActive((c) => c.copyWith(gradeSmoothing: v));
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _gearRatiosCard() {
+  Widget _gearSettingsCard() {
     return ValueListenableBuilder<List<double>>(
       valueListenable: def.gearRatios,
       builder: (context, ratios, _) => SettingTile(
         icon: LucideIcons.cog,
-        title: 'Gear Ratios',
-        subtitle: '${ratios.length}-step virtual shifter table',
+        title: 'Gear Settings',
+        subtitle: 'Gear Count, Ratio & Smoothing',
         trailing: Button.ghost(
           onPressed: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
           trailing: const Icon(LucideIcons.chevronRight, size: 14),
