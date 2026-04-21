@@ -406,6 +406,15 @@ class Connection {
         // For proxy devices, we want to skip actual connection
         _connect(device).then((_) {
           _handlingConnectionQueue = false;
+          // Auto-start the emulator if the user previously connected to this
+          // trainer and hasn't since tapped Disconnect.
+          if (!device.emulator.isStarted.value &&
+              !device.isStarting.value &&
+              core.settings.getAutoConnect(device.trainerKey)) {
+            final savedMode = core.settings.getRetrofitMode(device.trainerKey);
+            device.emulator.setRetrofitMode(savedMode);
+            unawaited(device.startProxy().catchError((_) {}));
+          }
           if (_connectionQueue.isNotEmpty) {
             _handleConnectionQueue();
           }

@@ -57,6 +57,7 @@ class _DevicePageState extends State<ProxyPage> {
                         if (!device.emulator.isStarted.value && !device.isStarting.value) {
                           final savedMode = core.settings.getRetrofitMode(device.trainerKey);
                           device.emulator.setRetrofitMode(savedMode);
+                          await core.settings.setAutoConnect(device.trainerKey, true);
                           // Fire-and-forget — details page opens immediately and
                           // renders a "Connecting…" state via device.isStarting.
                           unawaited(device.startProxy().catchError((_) {}));

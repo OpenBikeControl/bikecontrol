@@ -83,13 +83,16 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
             constraints: const BoxConstraints(maxWidth: 800),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 20,
               children: [
                 _deviceCard(),
+                SizedBox(height: 12),
                 ConnectionCard(device: device),
                 _gearSection(),
+                SizedBox(height: 20),
                 LiveMetricsSection(device: device),
+                SizedBox(height: 32),
                 _settingsSection(),
+                SizedBox(height: 32),
                 _actions(),
               ],
             ),
@@ -126,7 +129,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       spacing: 10,
       children: [
         const Text(
-          'Trainer Settings',
+          'Virtual Shifting Settings',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         TrainerSettingsSection(definition: def, device: widget.device),
@@ -153,6 +156,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           ),
         LoadingWidget(
           futureCallback: () async {
+            await core.settings.setAutoConnect(device.trainerKey, false);
             await core.connection.disconnect(device, forget: false, persistForget: false);
             if (mounted) Navigator.of(context).pop();
           },
@@ -165,6 +169,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
         ),
         LoadingWidget(
           futureCallback: () async {
+            await core.settings.setAutoConnect(device.trainerKey, false);
             await core.connection.disconnect(device, forget: true, persistForget: true);
             if (mounted) Navigator.of(context).pop();
           },
