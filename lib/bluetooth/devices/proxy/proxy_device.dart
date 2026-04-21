@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
@@ -222,7 +223,19 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   @override
-  Future<void> connect() async {}
+  Future<void> connect() async {
+    // ProxyDevice intentionally skips the upstream auto-connect — BLE is only
+    // opened once the user explicitly starts the emulator via startProxy().
+    // If they connected previously and haven't since tapped Disconnect,
+    // honour that intent by kicking off startProxy() here (fire-and-forget).
+    if (!isStarting.value &&
+        !emulator.isStarted.value &&
+        core.settings.getAutoConnect(trainerKey)) {
+      final savedMode = core.settings.getRetrofitMode(trainerKey);
+      emulator.setRetrofitMode(savedMode);
+      unawaited(startProxy().catchError((_) {}));
+    }
+  }
 
   Future<void> startProxy() async {
     isStarting.value = true;
