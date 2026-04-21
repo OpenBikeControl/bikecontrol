@@ -282,7 +282,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final logoBox = _logoKey.currentContext?.findRenderObject() as RenderBox?;
     if (logoBox != null && logoBox.hasSize) {
       final offset = logoBox.localToGlobal(Offset.zero, ancestor: flowRowBox);
-      final newCenterY = offset.dy + logoBox.size.height / 2;
+      final newCenterY = offset.dy + 33;
       final newLeftX = offset.dx;
       final newRightX = offset.dx + logoBox.size.width;
       if (newCenterY != _logoCenterY) {
@@ -789,17 +789,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                         child: child,
                       );
                     },
-                    child: KeyedSubtree(
-                      key: _logoKey,
-                      child: Lottie.asset(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? 'assets/openbikecontrol_logo_inverted.json'
-                            : 'assets/openbikecontrol_logo.json',
-                        height: 42,
-                        controller: _logoController,
-                        onLoaded: (composition) {
-                          _logoController.duration = composition.duration;
-                        },
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6.0),
+                      child: KeyedSubtree(
+                        key: _logoKey,
+                        child: Lottie.asset(
+                          Theme.of(context).brightness == Brightness.dark
+                              ? 'assets/openbikecontrol_logo_inverted.json'
+                              : 'assets/openbikecontrol_logo.json',
+                          height: 52,
+                          controller: _logoController,
+                          onLoaded: (composition) {
+                            _logoController.duration = composition.duration;
+                          },
+                        ),
                       ),
                     ),
                   ),

@@ -105,8 +105,8 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               spacing: 18,
               children: [
                 _intro(context),
-                _gearCountCard(context),
                 _gradeSmoothingCard(context),
+                _gearCountCard(context),
                 _heroCurve(context),
                 _presets(context),
                 _perGearList(context),
@@ -258,9 +258,9 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           builder: (context, current, _) {
             return Row(
               spacing: 8,
-              children: _presetsForCount(def.maxGear)
-                  .map((p) => Expanded(child: _presetButton(context, p, current)))
-                  .toList(),
+              children: _presetsForCount(
+                def.maxGear,
+              ).map((p) => Expanded(child: _presetButton(context, p, current))).toList(),
             );
           },
         ),
@@ -272,9 +272,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final cs = Theme.of(context).colorScheme;
     final active = _ratiosMatch(preset.values, current);
     return Button(
-      style: active
-          ? ButtonStyle.primary(size: ButtonSize.small)
-          : ButtonStyle.outline(size: ButtonSize.small),
+      style: active ? ButtonStyle.primary(size: ButtonSize.small) : ButtonStyle.outline(size: ButtonSize.small),
       onPressed: () async {
         def.setGearRatios(preset.values);
         await _saveActiveGearRatios(preset.values);
@@ -303,8 +301,6 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   }
 
   // ---------- Per-gear list ----------
-
-
 
   Widget _perGearList(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -428,8 +424,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                     if (isCurrent) _badge('CURRENT', const Color(0xFF2563EB), Colors.white),
-                    if (isNeutral && !isCurrent)
-                      _badge('NEUTRAL', const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
+                    if (isNeutral && !isCurrent) _badge('NEUTRAL', const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
                   ],
                 ),
                 Text(

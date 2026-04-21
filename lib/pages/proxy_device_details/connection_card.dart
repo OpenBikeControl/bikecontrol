@@ -185,24 +185,27 @@ class _ConnectionCardState extends State<ConnectionCard> {
       data: DividerTheme(
         color: Colors.transparent,
       ),
-      child: Accordion(
-        items: [
-          AccordionItem(
-            trigger: AccordionTrigger(
-              child: Row(
-                spacing: 10,
-                children: [
-                  Icon(_modeIcon(mode), size: 16, color: cs.mutedForeground),
-                  Text(
-                    'Connect mode: ${mode.label}',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                  ),
-                ],
+      child: Padding(
+        padding: const EdgeInsets.only(left: 15.0),
+        child: Accordion(
+          items: [
+            AccordionItem(
+              trigger: AccordionTrigger(
+                child: Row(
+                  spacing: 10,
+                  children: [
+                    Icon(_modeIcon(mode), size: 16, color: cs.mutedForeground),
+                    Text(
+                      'Connect mode: ${mode.label}',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
               ),
+              content: _modePickerCompact(mode),
             ),
-            content: _modePickerCompact(mode),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -268,8 +271,8 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   IconData _modeIcon(RetrofitMode mode) => switch (mode) {
-    RetrofitMode.proxy => LucideIcons.wifi,
-    RetrofitMode.wifi => LucideIcons.cog,
+    RetrofitMode.proxy => LucideIcons.radioTower,
+    RetrofitMode.wifi => LucideIcons.wifi,
     RetrofitMode.bluetooth => LucideIcons.bluetooth,
   };
 

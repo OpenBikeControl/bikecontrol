@@ -228,12 +228,10 @@ class ProxyDevice extends BluetoothDevice {
     // opened once the user explicitly starts the emulator via startProxy().
     // If they connected previously and haven't since tapped Disconnect,
     // honour that intent by kicking off startProxy() here (fire-and-forget).
-    if (!isStarting.value &&
-        !emulator.isStarted.value &&
-        core.settings.getAutoConnect(trainerKey)) {
+    if (!isStarting.value && !emulator.isStarted.value && core.settings.getAutoConnect(trainerKey)) {
       final savedMode = core.settings.getRetrofitMode(trainerKey);
       emulator.setRetrofitMode(savedMode);
-      unawaited(startProxy().catchError((_) {}));
+      await startProxy();
     }
   }
 
