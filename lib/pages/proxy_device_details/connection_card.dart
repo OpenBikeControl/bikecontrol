@@ -154,6 +154,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
             futureCallback: () async {
               emulator.setRetrofitMode(_pendingMode);
               await core.settings.setRetrofitMode(widget.device.trainerKey, _pendingMode);
+              await core.settings.setAutoConnect(widget.device.trainerKey, true);
               await widget.device.startProxy();
             },
             renderChild: (isLoading, tap) => Button.primary(
@@ -180,24 +181,29 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   Widget _modePickerAccordion(RetrofitMode mode) {
     final cs = Theme.of(context).colorScheme;
-    return Accordion(
-      items: [
-        AccordionItem(
-          trigger: AccordionTrigger(
-            child: Row(
-              spacing: 10,
-              children: [
-                Icon(_modeIcon(mode), size: 16, color: cs.mutedForeground),
-                Text(
-                  'Connect mode: ${mode.label}',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-              ],
+    return ComponentTheme<DividerTheme>(
+      data: DividerTheme(
+        color: Colors.transparent,
+      ),
+      child: Accordion(
+        items: [
+          AccordionItem(
+            trigger: AccordionTrigger(
+              child: Row(
+                spacing: 10,
+                children: [
+                  Icon(_modeIcon(mode), size: 16, color: cs.mutedForeground),
+                  Text(
+                    'Connect mode: ${mode.label}',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
             ),
+            content: _modePickerCompact(mode),
           ),
-          content: _modePickerCompact(mode),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

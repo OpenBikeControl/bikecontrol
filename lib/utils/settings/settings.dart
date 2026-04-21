@@ -141,6 +141,19 @@ class Settings {
     await prefs.setString(_retrofitModeKey(trainerKey), mode.name);
   }
 
+  static String _autoConnectKey(String trainerKey) => 'auto_connect_$trainerKey';
+
+  /// Whether the user wants this trainer to auto-start on scan. Set to true
+  /// when they explicitly connect (tap-to-connect or Connect button) and
+  /// cleared when they tap Disconnect.
+  bool getAutoConnect(String trainerKey) {
+    return prefs.getBool(_autoConnectKey(trainerKey)) ?? false;
+  }
+
+  Future<void> setAutoConnect(String trainerKey, bool autoConnect) async {
+    await prefs.setBool(_autoConnectKey(trainerKey), autoConnect);
+  }
+
   Future<void> setKeyMap(SupportedApp app) async {
     if (app is CustomApp) {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
