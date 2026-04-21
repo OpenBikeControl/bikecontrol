@@ -20,6 +20,12 @@ class ProxyDevice extends BluetoothDevice {
   final DirconEmulator emulator = DirconEmulator();
   final ValueChangeNotifier<String> onChange = ValueChangeNotifier('');
 
+  /// True while the initial BLE connect + service discovery for this proxy is
+  /// in flight. The emulator's `isStarted` only flips once startServer runs
+  /// (after services are discovered); UI that needs to render a "Connecting…"
+  /// state between tap and first successful start should watch this instead.
+  final ValueNotifier<bool> isStarting = ValueNotifier(false);
+
   ProxyDevice(super.scanResult)
     : super(
         availableButtons: const [],
@@ -212,7 +218,14 @@ class ProxyDevice extends BluetoothDevice {
   @override
   Future<void> connect() async {}
 
-  Future<void> startProxy() => super.connect();
+  Future<void> startProxy() async {
+    isStarting.value = true;
+    try {
+      await super.connect();
+    } finally {
+      isStarting.value = false;
+    }
+  }
 
   @override
   Future<void> disconnect() {
