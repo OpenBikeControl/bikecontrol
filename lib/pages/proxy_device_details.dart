@@ -32,6 +32,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     widget.device.emulator.isStarted.addListener(_onEmulatorStateChanged);
     widget.device.onChange.addListener(_onEmulatorStateChanged);
     widget.device.emulator.isConnected.addListener(_onEmulatorStateChanged);
+    widget.device.emulator.retrofitMode.addListener(_onEmulatorStateChanged);
     _connectionSub = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
     });
@@ -43,6 +44,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     widget.device.emulator.isStarted.removeListener(_onEmulatorStateChanged);
     widget.device.onChange.removeListener(_onEmulatorStateChanged);
     widget.device.emulator.isConnected.removeListener(_onEmulatorStateChanged);
+    widget.device.emulator.retrofitMode.removeListener(_onEmulatorStateChanged);
     super.dispose();
   }
 
