@@ -1,6 +1,8 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -77,7 +79,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
           ),
           RadioGroup<RetrofitMode>(
             value: _pendingMode,
-            onChanged: (m) => setState(() => _pendingMode = m),
+            onChanged: (m) async {
+              setState(() => _pendingMode = m);
+              await core.settings.setRetrofitMode(widget.device.trainerKey, m);
+            },
             child: Column(
               spacing: 8,
               children: [
@@ -113,6 +118,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           LoadingWidget(
             futureCallback: () async {
               emulator.setRetrofitMode(_pendingMode);
+              await core.settings.setRetrofitMode(widget.device.trainerKey, _pendingMode);
               await widget.device.startProxy();
             },
             renderChild: (isLoading, tap) => Button.primary(
@@ -153,42 +159,95 @@ class _ConnectionCardState extends State<ConnectionCard> {
           ),
         };
         final usesWifi = mode != RetrofitMode.bluetooth;
-        return _card(
-          bg: bg,
-          border: border,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 12,
-            children: [
-              Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 10,
+          children: [
+            _modePickerCompact(mode),
+            _card(
+              bg: bg,
+              border: border,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 12,
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: iconBg,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(LucideIcons.radioTower, size: 18, color: iconColor),
-                  ),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: iconColor,
+                  Row(
+                    spacing: 12,
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: iconBg,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(LucideIcons.radioTower, size: 18, color: iconColor),
                       ),
-                    ),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: iconColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  if (usesWifi) _bridgeRow(emulator, iconColor),
                 ],
               ),
-              if (usesWifi) _bridgeRow(emulator, iconColor),
-            ],
-          ),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  Widget _modePickerCompact(RetrofitMode active) {
+    final cs = Theme.of(context).colorScheme;
+    return _card(
+      bg: cs.card,
+      border: cs.border,
+      child: RadioGroup<RetrofitMode>(
+        value: active,
+        onChanged: (m) async {
+          if (m == active) return;
+          await core.settings.setRetrofitMode(widget.device.trainerKey, m);
+          setState(() => _pendingMode = m);
+          try {
+            await widget.device.emulator.switchRetrofitMode(m);
+          } catch (e) {
+            if (kDebugMode) print('switchRetrofitMode failed: $e');
+          }
+        },
+        child: Row(
+          spacing: 6,
+          children: [
+            for (final m in _allowedModes)
+              Expanded(
+                child: RadioCard<RetrofitMode>(
+                  value: m,
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      Icon(_modeIcon(m), size: 16, color: cs.mutedForeground),
+                      Expanded(
+                        child: Text(
+                          m.label,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
