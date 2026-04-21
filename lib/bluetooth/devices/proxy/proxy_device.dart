@@ -30,7 +30,21 @@ class ProxyDevice extends BluetoothDevice {
     : super(
         availableButtons: const [],
         icon: _iconFor(scanResult),
-      );
+      ) {
+    emulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
+  }
+
+  void _seedFitnessBikeDefinition(FitnessBikeDefinition def) {
+    final cfg = core.shiftingConfigs.activeFor(trainerKey);
+    def.setMaxGear(cfg.maxGear);
+    def.setBicycleWeightKg(cfg.bikeWeightKg);
+    def.setRiderWeightKg(cfg.riderWeightKg);
+    def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
+    def.setVirtualShiftingMode(cfg.mode);
+    if (cfg.gearRatios != null && cfg.gearRatios!.length == def.maxGear) {
+      def.setGearRatios(cfg.gearRatios!);
+    }
+  }
 
   static IconData _iconFor(BleDevice scanResult) {
     final services = scanResult.services.map((s) => s.toLowerCase()).toSet();
@@ -66,15 +80,7 @@ class ProxyDevice extends BluetoothDevice {
   void applyTrainerSettings() {
     final def = emulator.activeDefinition;
     if (def is! FitnessBikeDefinition) return;
-    final cfg = core.shiftingConfigs.activeFor(trainerKey);
-    def.setMaxGear(cfg.maxGear);
-    def.setBicycleWeightKg(cfg.bikeWeightKg);
-    def.setRiderWeightKg(cfg.riderWeightKg);
-    def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
-    def.setVirtualShiftingMode(cfg.mode);
-    if (cfg.gearRatios != null && cfg.gearRatios!.length == def.maxGear) {
-      def.setGearRatios(cfg.gearRatios!);
-    }
+    _seedFitnessBikeDefinition(def);
   }
 
   @override
