@@ -126,6 +126,21 @@ class Settings {
     return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
   }
 
+  static String _retrofitModeKey(String trainerKey) => 'retrofit_mode_$trainerKey';
+
+  RetrofitMode getRetrofitMode(String trainerKey) {
+    final raw = prefs.getString(_retrofitModeKey(trainerKey));
+    if (raw == null) return RetrofitMode.proxy;
+    return RetrofitMode.values.firstWhere(
+      (m) => m.name == raw,
+      orElse: () => RetrofitMode.proxy,
+    );
+  }
+
+  Future<void> setRetrofitMode(String trainerKey, RetrofitMode mode) async {
+    await prefs.setString(_retrofitModeKey(trainerKey), mode.name);
+  }
+
   Future<void> setKeyMap(SupportedApp app) async {
     if (app is CustomApp) {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
