@@ -1,8 +1,10 @@
 import 'dart:ui';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -18,6 +20,27 @@ class GearRatiosEditorPage extends StatefulWidget {
 
 class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   FitnessBikeDefinition get def => widget.definition;
+
+  @override
+  void initState() {
+    super.initState();
+    core.shiftingConfigs.addListener(_onConfigsChanged);
+  }
+
+  @override
+  void dispose() {
+    core.shiftingConfigs.removeListener(_onConfigsChanged);
+    super.dispose();
+  }
+
+  void _onConfigsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _updateActive(ShiftingConfig Function(ShiftingConfig) mutate) async {
+    final current = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    await core.shiftingConfigs.upsert(mutate(current));
+  }
 
   Future<void> _saveActiveGearRatios(List<double>? ratios) async {
     final current = core.shiftingConfigs.activeFor(widget.device.trainerKey);
@@ -42,7 +65,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             ),
           ],
           title: const Text(
-            'Gear Ratios',
+            'Gear Settings',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           trailing: [
@@ -70,6 +93,8 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               spacing: 18,
               children: [
                 _intro(context),
+                _gearCountCard(context),
+                _gradeSmoothingCard(context),
                 _heroCurve(context),
                 _presets(context),
                 _perGearList(context),
@@ -91,6 +116,79 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   }
 
   Widget _heroCurve(BuildContext context) => GearRatioCurve(definition: def);
+
+  Widget _gearCountCard(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final count = def.maxGear;
+    final app = core.settings.getTrainerApp();
+    final expected = app?.virtualGearAmount;
+    final mismatch = app != null && expected != null && expected != count;
+    return SettingTile(
+      icon: LucideIcons.hash,
+      title: 'Gear Count',
+      subtitle: 'Size of the virtual shifter',
+      trailing: StepperControl(
+        value: count.toDouble(),
+        step: 1.0,
+        min: ShiftingConfig.maxGearMin.toDouble(),
+        max: ShiftingConfig.maxGearMax.toDouble(),
+        format: (v) => v.toStringAsFixed(0),
+        onChanged: (v) async {
+          final next = v.toInt();
+          def.setMaxGear(next);
+          await _updateActive((c) => c.copyWith(maxGear: next));
+        },
+      ),
+      child: mismatch
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                spacing: 8,
+                children: [
+                  Icon(LucideIcons.triangleAlert, size: 14, color: Colors.amber.shade700),
+                  Expanded(
+                    child: Text(
+                      '${app.name} uses $expected gears, this config uses $count. '
+                      'The gear displayed in ${app.name} may not match.',
+                      style: TextStyle(fontSize: 12, color: cs.foreground),
+                    ),
+                  ),
+                  Button.ghost(
+                    onPressed: () async {
+                      def.setMaxGear(expected);
+                      await _updateActive((c) => c.copyWith(maxGear: expected));
+                    },
+                    child: Text('Use $expected', style: const TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            )
+          : null,
+    );
+  }
+
+  Widget _gradeSmoothingCard(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: def.gradeSmoothingEnabled,
+      builder: (context, enabled, _) => SettingTile(
+        icon: LucideIcons.waves,
+        title: 'Grade Smoothing',
+        subtitle: 'Averages sudden slope changes',
+        trailing: Switch(
+          value: enabled,
+          onChanged: (v) async {
+            def.setGradeSmoothingEnabled(v);
+            await _updateActive((c) => c.copyWith(gradeSmoothing: v));
+          },
+        ),
+      ),
+    );
+  }
 
   // ---------- Presets ----------
 
