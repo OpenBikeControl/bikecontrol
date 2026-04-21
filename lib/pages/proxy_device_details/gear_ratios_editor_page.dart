@@ -51,6 +51,21 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     }
   }
 
+  Future<void> _resetGearSettings() async {
+    final app = core.settings.getTrainerApp();
+    final targetMaxGear = app?.virtualGearAmount ?? ShiftingConfig.maxGearDefault;
+    def.setMaxGear(targetMaxGear);
+    def.setGradeSmoothingEnabled(true);
+    def.resetGearRatios();
+    await _updateActive(
+      (c) => c.copyWith(
+        maxGear: targetMaxGear,
+        gradeSmoothing: true,
+        clearGearRatios: true,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -71,10 +86,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           trailing: [
             Button(
               style: ButtonStyle.destructive(size: ButtonSize.small),
-              onPressed: () async {
-                def.resetGearRatios();
-                await _saveActiveGearRatios(null);
-              },
+              onPressed: _resetGearSettings,
               leading: const Icon(LucideIcons.rotateCcw, size: 12),
               child: const Text('Reset', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ),
