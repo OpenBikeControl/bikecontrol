@@ -5,7 +5,6 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
-import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
 import 'package:bike_control/pages/trainer_feedback.dart';
 import 'package:bike_control/utils/core.dart';
@@ -86,7 +85,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 ConnectionCard(device: device),
-                ShiftingConfigPicker(trainerKey: device.trainerKey),
                 _gearSection(),
                 LiveMetricsSection(device: device),
                 _settingsSection(),

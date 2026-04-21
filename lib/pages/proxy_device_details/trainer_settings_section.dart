@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
+import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
@@ -64,6 +65,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10,
       children: [
+        ShiftingConfigPicker(trainerKey: widget.device.trainerKey),
         _vsModeCard(),
         _gearSettingsCard(),
         _bikeWeightCard(),
