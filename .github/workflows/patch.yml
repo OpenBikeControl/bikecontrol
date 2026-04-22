@@ -18,11 +18,15 @@ on:
         required: false
         default: true
         type: boolean
+      release_version:
+        description: 'Release version to patch'
+        required: false
+        default: latest
+        type: string
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
   FLUTTER_VERSION: 3.38.5
-  RELEASE_VERSION: 5.3.0+119
 
 jobs:
   build:
@@ -120,7 +124,7 @@ jobs:
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: macos
-          release-version: ${{ env.RELEASE_VERSION }}
+          release-version: ${{ inputs.release_version }}
           args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch Android
@@ -128,7 +132,7 @@ jobs:
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: android
-          release-version: ${{ env.RELEASE_VERSION }}
+          release-version: ${{ inputs.release_version }}
           args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch iOS
@@ -136,7 +140,7 @@ jobs:
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: ios
-          release-version: ${{ env.RELEASE_VERSION }}
+          release-version: ${{ inputs.release_version }}
           args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
   windows:
@@ -181,5 +185,5 @@ jobs:
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: windows
-          release-version: ${{ env.RELEASE_VERSION }}
+          release-version: ${{ inputs.release_version }}
           args: '--allow-asset-diffs --allow-native-diffs --  --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
