@@ -98,6 +98,7 @@ class Keymap {
           inGameAction: existing.inGameAction,
           inGameActionValue: existing.inGameActionValue,
           androidAction: existing.androidAction,
+          androidIntentAction: existing.androidIntentAction,
           command: existing.command,
           screenshotPath: existing.screenshotPath,
         );
@@ -147,6 +148,7 @@ class Keymap {
     keyPair.inGameAction = null;
     keyPair.inGameActionValue = null;
     keyPair.androidAction = null;
+    keyPair.androidIntentAction = null;
     keyPair.command = null;
     keyPair.screenshotPath = null;
   }
@@ -203,6 +205,7 @@ class Keymap {
               (button.action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
           inGameActionValue: buttonFromBase?.inGameActionValue,
           androidAction: buttonFromBase?.androidAction,
+          androidIntentAction: buttonFromBase?.androidIntentAction,
           command: buttonFromBase?.command,
           screenshotPath: buttonFromBase?.screenshotPath,
         ),
@@ -216,6 +219,8 @@ class Keymap {
 }
 
 class KeyPair {
+  static const String intentActionPrefix = 'app.bikecontrol.trigger.';
+
   final List<ControllerButton> buttons;
   PhysicalKeyboardKey? physicalKey;
   LogicalKeyboardKey? logicalKey;
@@ -225,6 +230,7 @@ class KeyPair {
   InGameAction? inGameAction;
   int? inGameActionValue;
   AndroidSystemAction? androidAction;
+  String? androidIntentAction;
   String? command;
   String? screenshotPath;
 
@@ -239,6 +245,7 @@ class KeyPair {
     this.inGameAction,
     this.inGameActionValue,
     this.androidAction,
+    this.androidIntentAction,
     this.command,
     this.screenshotPath,
   }) {
@@ -247,7 +254,15 @@ class KeyPair {
     }
   }
 
+  String? get fullAndroidIntentAction {
+    final suffix = androidIntentAction?.trim();
+    if (suffix == null || suffix.isEmpty) return null;
+    return '$intentActionPrefix$suffix';
+  }
+
   bool get isLongPress => trigger == ButtonTrigger.longPress;
+
+  bool get doesNotNeedTrainerConnection => inGameAction?.isOutsideTrainerApp == true || androidIntentAction != null;
 
   set isLongPress(bool value) {
     if (value) {
@@ -293,6 +308,11 @@ class KeyPair {
               core.settings.getLocalEnabled() &&
               core.actionHandler is AndroidActions =>
         androidAction!.icon,
+      _
+          when androidIntentAction != null &&
+              androidIntentAction!.trim().isNotEmpty &&
+              defaultTargetPlatform == TargetPlatform.android =>
+        Icons.broadcast_on_home_outlined,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         RadixIcons.keyboard,
       _
@@ -311,6 +331,7 @@ class KeyPair {
       touchPosition == Offset.zero &&
       inGameAction == null &&
       androidAction == null &&
+      (androidIntentAction == null || androidIntentAction!.trim().isEmpty) &&
       (screenshotPath == null || screenshotPath!.trim().isEmpty) &&
       (command == null || command!.trim().isEmpty);
 
@@ -327,6 +348,10 @@ class KeyPair {
           core.logic.showLocalControl &&
           core.settings.getLocalEnabled() &&
           core.actionHandler is AndroidActions) ||
+      (androidIntentAction != null &&
+          androidIntentAction!.trim().isNotEmpty &&
+          core.logic.showLocalControl &&
+          defaultTargetPlatform == TargetPlatform.android) ||
       (touchPosition != Offset.zero &&
           core.logic.showLocalRemoteOptions &&
           core.actionHandler.supportedModes.contains(SupportedMode.touch)) ||
@@ -353,16 +378,17 @@ class KeyPair {
 
   @override
   String toString() {
-    final text =
-        (inGameAction != null &&
-            (core.logic.emulatorEnabled ||
-                [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)))
+    final text = (inGameAction != null && (core.logic.emulatorEnabled || inGameAction!.isOutsideTrainerApp))
         ? [
             inGameAction!.title,
             if (inGameActionValue != null) '$inGameActionValue',
           ].joinToString(separator: ': ')
         : (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions)
         ? androidAction!.title
+        : (androidIntentAction != null &&
+              androidIntentAction!.trim().isNotEmpty &&
+              defaultTargetPlatform == TargetPlatform.android)
+        ? fullAndroidIntentAction!
         : (screenshotPath != null && screenshotPath!.trim().isNotEmpty)
         ? screenshotPath!
         : (command != null && command!.trim().isNotEmpty)
@@ -436,6 +462,7 @@ class KeyPair {
       'inGameAction': inGameAction?.name,
       'inGameActionValue': inGameActionValue,
       'androidAction': androidAction?.name,
+      'androidIntentAction': androidIntentAction,
       'command': command,
       'screenshotPath': screenshotPath,
     });
@@ -496,6 +523,7 @@ class KeyPair {
     final rawCommand = decoded['command']?.toString().trim();
     final rawScreenshotPath = decoded['screenshotPath']?.toString().trim();
     final rawLegacyShortcutName = decoded['shortcutName']?.toString().trim();
+    final rawAndroidIntentAction = decoded['androidIntentAction']?.toString().trim();
 
     final decodedTrigger = decoded.containsKey('trigger')
         ? ButtonTrigger.values.firstOrNullWhere((element) => element.name == decoded['trigger'])
@@ -520,6 +548,9 @@ class KeyPair {
       androidAction: decoded.containsKey('androidAction')
           ? AndroidSystemAction.values.firstOrNullWhere((element) => element.name == decoded['androidAction'])
           : null,
+      androidIntentAction: rawAndroidIntentAction != null && rawAndroidIntentAction.isNotEmpty
+          ? rawAndroidIntentAction
+          : null,
       command: rawCommand != null && rawCommand.isNotEmpty
           ? rawCommand
           : (rawLegacyShortcutName != null && rawLegacyShortcutName.isNotEmpty ? rawLegacyShortcutName : null),
@@ -540,6 +571,7 @@ class KeyPair {
           inGameAction == other.inGameAction &&
           inGameActionValue == other.inGameActionValue &&
           androidAction == other.androidAction &&
+          androidIntentAction == other.androidIntentAction &&
           command == other.command &&
           screenshotPath == other.screenshotPath;
 
@@ -553,6 +585,7 @@ class KeyPair {
     inGameAction,
     inGameActionValue,
     androidAction,
+    androidIntentAction,
     command,
     screenshotPath,
   );
@@ -561,7 +594,11 @@ class KeyPair {
       command != null && command!.trim().isNotEmpty ||
       screenshotPath != null && screenshotPath!.trim().isNotEmpty ||
       isSpecialKey ||
-      (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions);
+      (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions) ||
+      (androidIntentAction != null &&
+          androidIntentAction!.trim().isNotEmpty &&
+          core.logic.showLocalControl &&
+          core.actionHandler is AndroidActions);
 }
 
 enum ButtonTrigger {

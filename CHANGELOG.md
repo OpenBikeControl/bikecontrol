@@ -1,3 +1,8 @@
+### 5.4.0 (unreleased)
+
+**Features**:
+- Android: broadcast a custom Intent on button press - connect your controller to automation apps like MacroDroid or Tasker to turn your phone into a ringbell, trigger Shortcuts, toggle lights, and more (Pro)
+
 ### 5.3.0 (15-04-2026)
 
 Rouvy is now officially supported by BikeControl! Read more about it [in our blog](https://bikecontrol.app/blog/rouvy-bikecontrol-integration)

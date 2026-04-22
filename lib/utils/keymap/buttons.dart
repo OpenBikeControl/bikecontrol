@@ -38,12 +38,12 @@ enum InGameAction {
   pause('Pause/Resume', icon: BootstrapIcons.pause, isLongPress: true),
 
   // headwind
-  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100], icon: Icons.air),
-  headwindSpeedInc('Headwind Speed Increase', icon: Icons.air),
-  headwindSpeedDec('Headwind Speed Decrease', icon: Icons.air),
-  headwindSpeedCyclicInc('Headwind Speed Cyclic Increase', icon: Icons.air),
-  headwindSpeedCyclicDec('Headwind Speed Cyclic Decrease', icon: Icons.air),
-  headwindHeartRateMode('Headwind HR Mode', icon: Icons.favorite),
+  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100], icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedInc('Headwind Speed Increase', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedDec('Headwind Speed Decrease', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedCyclicInc('Headwind Speed Cyclic Increase', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedCyclicDec('Headwind Speed Cyclic Decrease', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindHeartRateMode('Headwind HR Mode', icon: Icons.favorite, isOutsideTrainerApp: true),
 
   // openbikecontrol
   up('Up', icon: RadixIcons.arrowUp),
@@ -64,20 +64,28 @@ enum InGameAction {
   spectateRider('Spectate Rider', icon: LucideIcons.eye),
 
   // trainer control
-  trainerShiftUp('Trainer: Shift Up', icon: LucideIcons.chevronUp),
-  trainerShiftDown('Trainer: Shift Down', icon: LucideIcons.chevronDown),
-  trainerErgIncrease('Trainer: ERG +10W', icon: LucideIcons.plus),
-  trainerErgDecrease('Trainer: ERG -10W', icon: LucideIcons.minus),
-  trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp),
-  trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown);
+  trainerShiftUp('Trainer: Shift Up', icon: LucideIcons.chevronUp, isOutsideTrainerApp: true),
+  trainerShiftDown('Trainer: Shift Down', icon: LucideIcons.chevronDown, isOutsideTrainerApp: true),
+  trainerErgIncrease('Trainer: ERG +10W', icon: LucideIcons.plus, isOutsideTrainerApp: true),
+  trainerErgDecrease('Trainer: ERG -10W', icon: LucideIcons.minus, isOutsideTrainerApp: true),
+  trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
+  trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true);
 
   final String title;
   final bool isLongPress;
+  final bool isOutsideTrainerApp;
   final IconData? icon;
   final String? alternativeTitle;
   final List<int>? possibleValues;
 
-  const InGameAction(this.title, {this.possibleValues, this.alternativeTitle, this.icon, this.isLongPress = false});
+  const InGameAction(
+    this.title, {
+    this.possibleValues,
+    this.isOutsideTrainerApp = false,
+    this.alternativeTitle,
+    this.icon,
+    this.isLongPress = false,
+  });
 
   @override
   String toString() {

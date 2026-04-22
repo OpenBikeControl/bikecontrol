@@ -138,7 +138,8 @@ class _CustomizeState extends State<CustomizePage> {
           ),
 
         if (!screenshotMode) Gap(12),
-        if (core.actionHandler.supportedApp != null && core.connection.controllerDevices.isNotEmpty)
+        if (core.actionHandler.supportedApp != null &&
+            (core.connection.controllerDevices.isNotEmpty || (core.connection.proxyDevices.any((e) => e.isConnected))))
           KeymapExplanation(
             key: Key(core.actionHandler.supportedApp!.keymap.runtimeType.toString()),
             keymap: core.actionHandler.supportedApp!.keymap,
@@ -146,6 +147,19 @@ class _CustomizeState extends State<CustomizePage> {
             onUpdate: () {
               setState(() {});
             },
+          )
+        else if (core.actionHandler.supportedApp == null)
+          Warning(
+            children: [
+              Text(context.i18n.noTrainerSelected).small,
+              Button.outline(
+                child: Text('Open connection settings'),
+                onPressed: () async {
+                  await context.push(const TrainerConnectionSettingsPage());
+                  setState(() {});
+                },
+              ),
+            ],
           )
         else
           Warning(

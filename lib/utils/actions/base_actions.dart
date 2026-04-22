@@ -171,10 +171,7 @@ abstract class BaseActions {
         keyPair.inGameAction == InGameAction.trainerIntensityUp ||
         keyPair.inGameAction == InGameAction.trainerIntensityDown) {
       if (!isKeyDown) return Ignored('');
-      final proxy = core.connection.proxyDevices
-          .whereType<ProxyDevice>()
-          .where((d) => d.isConnected)
-          .firstOrNull;
+      final proxy = core.connection.proxyDevices.whereType<ProxyDevice>().where((d) => d.isConnected).firstOrNull;
       if (proxy == null) {
         return Error('No proxy trainer connected');
       }
@@ -188,8 +185,11 @@ abstract class BaseActions {
       } else {
         return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst, type: ErrorType.noConnectionMethod);
       }
-    } else if (!(await core.logic.isTrainerConnected())) {
-      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive, type: ErrorType.trainerNotConnected);
+    } else if (!(await core.logic.isTrainerConnected()) && !keyPair.doesNotNeedTrainerConnection) {
+      return Error(
+        AppLocalizations.current.noConnectionMethodIsConnectedOrActive,
+        type: ErrorType.trainerNotConnected,
+      );
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
