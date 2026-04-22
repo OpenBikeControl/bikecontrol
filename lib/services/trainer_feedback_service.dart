@@ -25,6 +25,12 @@ class TrainerFeedbackPayload {
   final String? appPlatform;
   final String? trainerApp;
 
+  /// Parsed Machine Feature flags set in the trainer's FTMS Feature read.
+  final List<String>? trainerFtmsMachineFeatures;
+
+  /// Parsed Target Setting Feature flags set in the trainer's FTMS Feature read.
+  final List<String>? trainerFtmsTargetSettingFlags;
+
   const TrainerFeedbackPayload({
     required this.userFeedback,
     this.userRating,
@@ -39,6 +45,8 @@ class TrainerFeedbackPayload {
     this.appVersion,
     this.appPlatform,
     this.trainerApp,
+    this.trainerFtmsMachineFeatures,
+    this.trainerFtmsTargetSettingFlags,
   });
 
   static const int _trainerAppMaxLength = 100;
@@ -64,6 +72,14 @@ class TrainerFeedbackPayload {
       json['trainer_app'] = trainerApp!.length > _trainerAppMaxLength
           ? trainerApp!.substring(0, _trainerAppMaxLength)
           : trainerApp;
+    }
+    if (trainerFtmsMachineFeatures != null &&
+        trainerFtmsMachineFeatures!.isNotEmpty) {
+      json['trainer_ftms_machine_features'] = trainerFtmsMachineFeatures;
+    }
+    if (trainerFtmsTargetSettingFlags != null &&
+        trainerFtmsTargetSettingFlags!.isNotEmpty) {
+      json['trainer_ftms_target_setting_flags'] = trainerFtmsTargetSettingFlags;
     }
     return json;
   }

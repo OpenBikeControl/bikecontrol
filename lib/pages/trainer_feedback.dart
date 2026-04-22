@@ -280,6 +280,9 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
       appVersion: _appVersion(),
       appPlatform: _appPlatform(),
       trainerApp: core.settings.getTrainerApp()?.name,
+      trainerFtmsMachineFeatures: fitnessDef?.trainerFtmsMachineFeatureFlagNames,
+      trainerFtmsTargetSettingFlags:
+          fitnessDef?.trainerFtmsTargetSettingFlagNames,
     );
   }
 
@@ -344,6 +347,18 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
         ratios == null || ratios.isEmpty ? null : ratios.map((r) => r.toStringAsFixed(2)).join(', '),
       ),
       ('Trainer app', payload.trainerApp),
+      (
+        'FTMS machine features',
+        payload.trainerFtmsMachineFeatures == null || payload.trainerFtmsMachineFeatures!.isEmpty
+            ? null
+            : payload.trainerFtmsMachineFeatures!.join(', '),
+      ),
+      (
+        'FTMS target settings',
+        payload.trainerFtmsTargetSettingFlags == null || payload.trainerFtmsTargetSettingFlags!.isEmpty
+            ? null
+            : payload.trainerFtmsTargetSettingFlags!.join(', '),
+      ),
       ('App version', payload.appVersion),
       ('App platform', payload.appPlatform),
     ];

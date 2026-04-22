@@ -68,6 +68,11 @@ class ProxyDevice extends BluetoothDevice {
 
     await emulator.startServer();
     applyTrainerSettings();
+    // Read the trainer's FTMS Feature map proactively so the UI can gate
+    // virtual-shifting options and the feedback payload can report it. Runs
+    // off the critical path — failures just leave trainerFeature null.
+    final def = emulator.activeDefinition;
+    if (def is FitnessBikeDefinition) unawaited(def.probeTrainerFeatures());
     onChange.value = 'Connected to ${scanResult.name}';
   }
 
