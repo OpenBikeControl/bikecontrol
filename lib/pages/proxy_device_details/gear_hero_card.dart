@@ -4,7 +4,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class GearHeroCard extends StatelessWidget {
   final FitnessBikeDefinition definition;
-  const GearHeroCard({super.key, required this.definition});
+
+  /// When true, the card renders only in SIM mode and hides (returns an
+  /// empty widget) in ERG mode. The mode switch is also omitted since the
+  /// surface is dedicated to gear shifting.
+  final bool simOnly;
+  const GearHeroCard({super.key, required this.definition, this.simOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -13,35 +18,39 @@ class GearHeroCard extends StatelessWidget {
       animation: Listenable.merge([
         definition.trainerMode,
         definition.ergTargetPower,
+        definition.targetPowerW,
         definition.currentGear,
         definition.gearRatio,
       ]),
       builder: (context, _) {
         final isErg = definition.trainerMode.value == TrainerMode.ergMode;
+        if (simOnly && isErg) return const SizedBox.shrink();
         return SettingTile(
           icon: LucideIcons.cog,
           title: 'Trainer Control',
           subtitle: isErg ? 'Fixed target power mode' : 'Virtual gear shifting',
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 8,
-            children: [
-              _modePill(cs, TrainerMode.simMode, active: !isErg),
-              Switch(
-                value: isErg,
-                onChanged: (v) {
-                  if (v) {
-                    definition.setManualErgPower(
-                      definition.ergTargetPower.value ?? 150,
-                    );
-                  } else {
-                    definition.exitErgMode();
-                  }
-                },
-              ),
-              _modePill(cs, TrainerMode.ergMode, active: isErg),
-            ],
-          ),
+          trailing: simOnly
+              ? null
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8,
+                  children: [
+                    _modePill(cs, TrainerMode.simMode, active: !isErg),
+                    Switch(
+                      value: isErg,
+                      onChanged: (v) {
+                        if (v) {
+                          definition.setManualErgPower(
+                            definition.ergTargetPower.value ?? 150,
+                          );
+                        } else {
+                          definition.exitErgMode();
+                        }
+                      },
+                    ),
+                    _modePill(cs, TrainerMode.ergMode, active: isErg),
+                  ],
+                ),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
@@ -62,6 +71,9 @@ class GearHeroCard extends StatelessWidget {
   Widget _gearContent(BuildContext context, ColorScheme cs) {
     final gear = definition.currentGear.value;
     final ratio = definition.gearRatio.value;
+    final target = definition.targetPowerW.value;
+    final subtitle = StringBuffer('of ${definition.maxGear}  ·  ratio ${ratio.toStringAsFixed(2)}');
+    if (target != null) subtitle.write('  ·  target $target W');
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 28,
@@ -85,7 +97,7 @@ class GearHeroCard extends StatelessWidget {
               ),
             ),
             Text(
-              'of ${definition.maxGear}  ·  ratio ${ratio.toStringAsFixed(2)}',
+              subtitle.toString(),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
