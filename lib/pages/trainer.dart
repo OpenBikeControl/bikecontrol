@@ -111,7 +111,7 @@ class _TrainerPageState extends State<TrainerPage> {
                     widget.onUpdate();
                   },
                 ),
-                if (core.settings.getTrainerApp() != null) ...[
+                if (core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null) ...[
                   if (recommendedTiles.isNotEmpty) ...[
                     Gap(32),
                     ColoredTitle(text: context.i18n.recommendedConnectionMethods),
