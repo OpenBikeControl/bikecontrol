@@ -75,34 +75,39 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   }
 
   Widget _vsModeCard() {
-    return ValueListenableBuilder<VirtualShiftingMode>(
-      valueListenable: def.virtualShiftingMode,
-      builder: (context, mode, _) => SettingTile(
-        title: 'Virtual Shifting Mode',
-        subtitle: 'How resistance is computed per gear',
-        child: RadioGroup<VirtualShiftingMode>(
-          value: mode,
-          onChanged: (v) async {
-            def.setVirtualShiftingMode(v);
-            await _updateActive((c) => c.copyWith(mode: v));
-          },
-          child: Row(
-            spacing: 6,
-            children: [
-              _vsRadioCard('Target Power', VirtualShiftingMode.targetPower),
-              _vsRadioCard('Track Resistance', VirtualShiftingMode.trackResistance),
-              _vsRadioCard('Basic', VirtualShiftingMode.basicResistance),
-            ],
+    return AnimatedBuilder(
+      animation: Listenable.merge([def.virtualShiftingMode, def.trainerFeature]),
+      builder: (context, _) {
+        final mode = def.virtualShiftingMode.value;
+        return SettingTile(
+          title: 'Virtual Shifting Mode',
+          subtitle: 'How resistance is computed per gear',
+          child: RadioGroup<VirtualShiftingMode>(
+            value: mode,
+            onChanged: (v) async {
+              def.setVirtualShiftingMode(v);
+              await _updateActive((c) => c.copyWith(mode: v));
+            },
+            child: Row(
+              spacing: 6,
+              children: [
+                _vsRadioCard('Target Power', VirtualShiftingMode.targetPower),
+                _vsRadioCard('Track Resistance', VirtualShiftingMode.trackResistance),
+                _vsRadioCard('Basic', VirtualShiftingMode.basicResistance),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _vsRadioCard(String label, VirtualShiftingMode value) {
+    final supported = def.supportsVirtualShiftingMode(value);
     return Expanded(
       child: RadioCard<VirtualShiftingMode>(
         value: value,
+        enabled: supported,
         child: Center(
           child: Text(
             label,
