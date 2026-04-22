@@ -1,6 +1,5 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
-import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
@@ -14,10 +13,6 @@ class LogNotification extends BaseNotification {
 
   LogNotification(this.message) {
     Logger.debug('LogNotification: $message');
-
-    core.connection.lastLogEntries = (core.connection.lastLogEntries + [(date: DateTime.now(), entry: message)])
-        .takeLast(kIsWeb ? 1000 : 60)
-        .toList();
   }
 
   @override
