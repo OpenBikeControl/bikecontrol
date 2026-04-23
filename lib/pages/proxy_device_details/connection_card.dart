@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/requirements/platform.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
@@ -40,6 +46,29 @@ class _ConnectionCardState extends State<ConnectionCard> {
       RetrofitMode.wifi,
     RetrofitMode.bluetooth,
   ];
+
+  /// Permissions that must be granted before the Bluetooth retrofit mode can
+  /// start advertising. Empty list on platforms that don't gate BLE peripheral
+  /// advertising behind a runtime permission (e.g. iOS).
+  List<PlatformRequirement> get _bluetoothAdvertiseRequirements => [
+    if (!kIsWeb && Platform.isAndroid) BluetoothAdvertiseRequirement(),
+  ];
+
+  /// Verify the Bluetooth-advertise permission before switching into or
+  /// starting the Bluetooth retrofit mode. Returns true if all requirements
+  /// are satisfied (granted already, or granted after prompting the user via
+  /// the permission sheet). Returns false if the user declined.
+  Future<bool> _ensureBluetoothAdvertisePermissions() async {
+    final reqs = _bluetoothAdvertiseRequirements;
+    if (reqs.isEmpty) return true;
+    await Future.wait(reqs.map((r) => r.getStatus()));
+    final notDone = reqs.filter((r) => !r.status).toList();
+    if (notDone.isEmpty) return true;
+    if (!mounted) return false;
+    await openPermissionSheet(context, notDone);
+    await Future.wait(reqs.map((r) => r.getStatus()));
+    return reqs.every((r) => r.status);
+  }
 
   bool _isSupportedByTrainerApp(RetrofitMode mode) {
     final app = core.settings.getTrainerApp();
@@ -180,6 +209,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
           ),
           LoadingWidget(
             futureCallback: () async {
+              if (_pendingMode == RetrofitMode.bluetooth) {
+                final ok = await _ensureBluetoothAdvertisePermissions();
+                if (!ok) return;
+              }
               emulator.setRetrofitMode(_pendingMode);
               await core.settings.setRetrofitMode(widget.device.trainerKey, _pendingMode);
               await core.settings.setAutoConnect(widget.device.trainerKey, true);
@@ -256,6 +289,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
             onChanged: (m) async {
               if (!_isSupportedByTrainerApp(m)) return;
               if (m == active) return;
+              if (m == RetrofitMode.bluetooth) {
+                final ok = await _ensureBluetoothAdvertisePermissions();
+                if (!ok) return;
+              }
               await core.settings.setRetrofitMode(widget.device.trainerKey, m);
               setState(() => _pendingMode = m);
               try {
