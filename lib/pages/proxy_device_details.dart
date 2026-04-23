@@ -95,8 +95,16 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 SizedBox(height: 32),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
                     widget.device.emulator.activeDefinition is FitnessBikeDefinition) ...[
-                  VirtualShiftingProNotice(
-                    trainerAppName: core.settings.getTrainerApp()?.name ?? 'your trainer app',
+                  ValueListenableBuilder<Duration>(
+                    valueListenable: core.bridgeUsageTracker.usedTodayListenable,
+                    builder: (context, used, _) {
+                      final remaining = core.bridgeUsageTracker.dailyLimit - used;
+                      final clamped = remaining.isNegative ? Duration.zero : remaining;
+                      return VirtualShiftingProNotice(
+                        trainerAppName: core.settings.getTrainerApp()?.name ?? 'your trainer app',
+                        remainingToday: clamped,
+                      );
+                    },
                   ),
                   SizedBox(height: 12),
                 ],
