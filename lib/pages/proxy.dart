@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -51,22 +52,26 @@ class _DevicePageState extends State<ProxyPage> {
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Button.ghost(
                     onPressed: () async {
-                      if (!device.emulator.isStarted.value && !device.isStarting.value) {
-                        final savedMode = core.settings.getRetrofitMode(device.trainerKey);
-                        device.emulator.setRetrofitMode(savedMode);
-                        await core.settings.setAutoConnect(device.trainerKey, true);
-                        // Fire-and-forget — details page opens immediately and
-                        // renders a "Connecting…" state via device.isStarting.
-                        unawaited(device.startProxy().catchError((_) {}));
-                      }
                       await context.push(ProxyDeviceDetailsPage(device: device));
                       widget.onUpdate();
                     },
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.mutedForeground,
-                    ),
+                    trailing: device.emulator.isStarted.value
+                        ? Icon(
+                            Icons.chevron_right,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          )
+                        : Button.primary(
+                            onPressed: () async {
+                              if (!device.emulator.isStarted.value && !device.isStarting.value) {
+                                final savedMode = core.settings.getRetrofitMode(device.trainerKey);
+                                device.emulator.setRetrofitMode(savedMode);
+                                await core.settings.setAutoConnect(device.trainerKey, true);
+                                unawaited(device.startProxy().catchError((_) {}));
+                              }
+                            },
+                            child: Text(AppLocalizations.of(context).connect),
+                          ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,

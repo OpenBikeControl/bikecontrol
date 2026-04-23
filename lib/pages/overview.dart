@@ -21,7 +21,6 @@ import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
-import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:bike_control/widgets/ui/bubble_pointer_painter.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
@@ -560,6 +559,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   setState(() {});
                 },
               ),
+              if (core.connection.proxyDevices.isNotEmpty) ...[
+                Gap(4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, left: 12, right: 12),
+                  child: ColoredTitle(text: AppLocalizations.of(context).smartTrainerAndAccessories),
+                ),
+                Gap(8),
+                ProxyPage(
+                  onUpdate: () {
+                    setState(() {});
+                  },
+                  isMobile: widget.isMobile,
+                ),
+              ],
             ],
           ),
         ),
@@ -572,36 +585,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           child: _buildTrainerCard(trainerApp, enabledTrainers),
         ),
 
-        if (core.connection.proxyDevices.isNotEmpty) ...[
-          const Gap(22),
-          Card(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0, left: 12, right: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildSectionHeader(
-                        icon: Icons.connect_without_contact,
-                        title: 'Trainer & Accessories',
-                      ),
-                      BetaPill(),
-                    ],
-                  ),
-                ),
-                Gap(12),
-                ProxyPage(
-                  onUpdate: () {
-                    setState(() {});
-                  },
-                  isMobile: widget.isMobile,
-                ),
-              ],
-            ),
-          ),
-        ],
         if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
       ],
     );
