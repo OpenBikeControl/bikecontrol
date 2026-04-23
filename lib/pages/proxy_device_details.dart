@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
@@ -88,11 +89,15 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 SizedBox(height: 12),
+                if (_ftmsMissingWarning() case final w?) ...[
+                  w,
+                  SizedBox(height: 12),
+                ],
                 ConnectionCard(device: device),
                 _gearSection(),
                 SizedBox(height: 20),
                 LiveMetricsSection(device: device),
-                SizedBox(height: 32),
+                SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
                     widget.device.emulator.activeDefinition is FitnessBikeDefinition) ...[
                   ValueListenableBuilder<Duration>(
@@ -106,7 +111,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                       );
                     },
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: 26),
                 ],
                 _settingsSection(),
                 SizedBox(height: 32),
@@ -115,6 +120,35 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget? _ftmsMissingWarning() {
+    final services = widget.device.scanResult.services.map((s) => s.toLowerCase()).toSet();
+    final ftms = FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase();
+    if (services.contains(ftms)) return null;
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cs.muted,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: cs.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 10,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context).trainerMissingFtmsWarning(widget.device.name),
+              style: TextStyle(fontSize: 12, color: cs.foreground),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -160,17 +194,19 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        if (widget.device.isConnected)
+        if (widget.device.isConnected) ...[
           Button(
-            style: ButtonStyle.outline(),
+            style: ButtonStyle.primary(),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
               );
             },
             leading: const Icon(LucideIcons.messageSquare, size: 18),
-            child: const Text('Send feedback'),
+            child: const Text('Provide Feedback'),
           ),
+          SizedBox(),
+        ],
         LoadingWidget(
           futureCallback: () async {
             await core.settings.setAutoConnect(device.trainerKey, false);
