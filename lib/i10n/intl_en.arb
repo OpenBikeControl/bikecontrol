@@ -486,6 +486,14 @@
   "termsOfUse": "Terms of Use",
   "theFollowingPermissionsRequired": "The following permissions are required:",
   "thisFeatureIsOnlyAvailableWithPro": "This feature is only available with Pro. Upgrade to Pro to unlock all features.",
+  "trainerAppDoesNotSupportConnectionYet": "{trainerApp} does not support this, yet",
+  "@trainerAppDoesNotSupportConnectionYet": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
   "touchAreaInstructions": "1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation\n2. Load the screenshot with the button below\n3. The app is automatically set to landscape orientation for accurate mapping\n4. Press a button on your Click device to create a touch area\n5. Drag the touch areas to the desired position on the screenshot\n6. Save and close this screen",
   "touchSimulationForegroundMessage": "To simulate touches the app needs to stay in the foreground.",
   "trainer": "Trainer",
