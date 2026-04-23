@@ -54,20 +54,31 @@ class ProxyDevice extends BluetoothDevice {
     if (isBridgeSession && !isPro) {
       if (core.bridgeUsageTracker.isExhausted) {
         // Already at daily limit — stop the transporters but keep the upstream
-        // BLE connection. The user can reconnect tomorrow or after going Pro.
-        emulator.stop();
+        // BLE connection. Deferred via microtask so we don't dispose the
+        // transporter's ValueNotifiers while we're still inside one of their
+        // notifyListeners call chains (emulator.isConnected fired us).
+        scheduleMicrotask(emulator.stop);
         return;
       }
       core.bridgeUsageTracker.startSession();
       _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) {
         // Stop the Bridge (transporters + mDNS) but leave the upstream BLE
         // trainer connection intact so the user sees live data.
-        emulator.stop();
+        scheduleMicrotask(emulator.stop);
         _announceBridgeTrialOver();
       });
     } else {
       core.bridgeUsageTracker.stopSession();
     }
+  }
+
+  /// True when the current retrofit mode needs a Bridge transport (wifi /
+  /// bluetooth) but the non-Pro user has already burned today's 20-minute
+  /// budget. Proxy mode is unaffected.
+  bool get _isBridgeTrialOver {
+    if (emulator.retrofitMode.value == RetrofitMode.proxy) return false;
+    if (IAPManager.instance.isProEnabledForCurrentDevice) return false;
+    return core.bridgeUsageTracker.isExhausted;
   }
 
   void _announceBridgeTrialOver() {
@@ -118,6 +129,15 @@ class ProxyDevice extends BluetoothDevice {
   Future<void> handleServices(List<BleService> services) async {
     emulator.setScanResult(scanResult);
     emulator.handleServices(services);
+
+    // Skip transporter start when the non-Pro daily Bridge trial is already
+    // used up. The upstream BLE stays connected (the user still sees live
+    // data from the trainer); the Bridge advertisement just never starts.
+    if (_isBridgeTrialOver) {
+      onChange.value = 'Connected to ${scanResult.name} (Bridge trial over)';
+      _announceBridgeTrialOver();
+      return;
+    }
 
     await emulator.startServer();
     applyTrainerSettings();
@@ -171,24 +191,27 @@ class ProxyDevice extends BluetoothDevice {
           };
           return ValueListenableBuilder<bool>(
             valueListenable: emulator.isConnected,
-            builder: (context, connected, _) => Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 4,
-              children: [
-                Icon(
-                  icon,
-                  size: 12,
-                  color: connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
-                ),
-                Text(
-                  connected ? 'Bridge live' : 'Waiting for connection...',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Theme.of(context).colorScheme.mutedForeground,
+            builder: (context, connected, _) {
+              final trialOver = _isBridgeTrialOver;
+              final effectiveIcon = trialOver ? Icons.warning_amber_rounded : icon;
+              final label = trialOver
+                  ? AppLocalizations.of(context).bridgeTrialTimeOverTitle
+                  : (connected ? 'Bridge live' : 'Waiting for connection...');
+              final iconColor = trialOver
+                  ? Colors.orange
+                  : (connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground);
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 4,
+                children: [
+                  Icon(effectiveIcon, size: 12, color: iconColor),
+                  Text(
+                    label,
+                    style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            },
           );
         },
       ),
