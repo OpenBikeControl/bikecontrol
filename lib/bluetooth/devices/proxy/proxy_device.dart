@@ -36,6 +36,11 @@ class ProxyDevice extends BluetoothDevice {
         icon: _iconFor(scanResult),
       ) {
     emulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
+    emulator.advertisementNameOverride = () {
+      return IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld
+          ? null
+          : 'BikeControl - 20 min trial';
+    };
     emulator.isConnected.addListener(_syncBridgeTracking);
     emulator.retrofitMode.addListener(_syncBridgeTracking);
   }
