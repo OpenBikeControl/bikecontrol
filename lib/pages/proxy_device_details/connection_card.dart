@@ -57,7 +57,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
   Widget _radioCard(RetrofitMode m, ColorScheme cs) {
     final supported = _isSupportedByTrainerApp(m);
     final app = core.settings.getTrainerApp();
-    return RadioCard<RetrofitMode>(
+    final card = RadioCard<RetrofitMode>(
       value: m,
       enabled: supported,
       child: Row(
@@ -88,6 +88,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
         ],
       ),
     );
+    return supported ? card : Opacity(opacity: 0.5, child: card);
   }
 
   @override
