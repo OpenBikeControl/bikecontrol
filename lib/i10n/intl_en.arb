@@ -537,6 +537,14 @@
     }
   },
   "viewDetailedInstructions": "View Detailed Instructions",
+  "virtualShiftingProNote": "Virtual shifting is a Pro feature - but you can test all settings within BikeControl. Connecting it in {trainerApp} is limited to 20 min per day, so you're able to see how it works.",
+  "@virtualShiftingProNote": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
   "volumeDown": "Volume Down",
   "volumeUp": "Volume Up",
   "waiting": "Waiting...",
