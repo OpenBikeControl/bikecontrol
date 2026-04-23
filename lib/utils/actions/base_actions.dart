@@ -164,10 +164,9 @@ abstract class BaseActions {
     }
 
     // Handle trainer-control actions
-    if (keyPair.inGameAction == InGameAction.trainerShiftUp ||
-        keyPair.inGameAction == InGameAction.trainerShiftDown ||
-        keyPair.inGameAction == InGameAction.trainerErgIncrease ||
-        keyPair.inGameAction == InGameAction.trainerErgDecrease ||
+    if (keyPair.inGameAction == InGameAction.trainerUp ||
+        keyPair.inGameAction == InGameAction.trainerDown ||
+        keyPair.inGameAction == InGameAction.trainerSwitchMode ||
         keyPair.inGameAction == InGameAction.trainerIntensityUp ||
         keyPair.inGameAction == InGameAction.trainerIntensityDown) {
       if (!isKeyDown) return Ignored('');
