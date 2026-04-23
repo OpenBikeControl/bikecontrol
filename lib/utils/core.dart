@@ -28,6 +28,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart';
+import 'package:prop/services/bridge_usage_tracker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -48,6 +49,15 @@ class Core {
 
   late final supabase = Supabase.instance.client;
   late final whooshLink = WhooshLink();
+  BridgeUsageTracker? _bridgeUsageTracker;
+  BridgeUsageTracker get bridgeUsageTracker {
+    _bridgeUsageTracker ??= BridgeUsageTracker(
+      prefs: settings.prefs,
+      dailyLimit: const Duration(minutes: 20),
+    );
+    return _bridgeUsageTracker!;
+  }
+
   late final zwiftEmulator = ZwiftEmulator();
   late final zwiftMdnsEmulator = FtmsMdnsEmulator();
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
