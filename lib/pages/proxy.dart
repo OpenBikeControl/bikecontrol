@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
-import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -43,56 +42,50 @@ class _DevicePageState extends State<ProxyPage> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...core.connection.proxyDevices
-            .mapIndexed(
-              (index, device) => [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Button.ghost(
-                    onPressed: () async {
-                      await context.push(ProxyDeviceDetailsPage(device: device));
-                      widget.onUpdate();
-                    },
-                    trailing: device.emulator.isStarted.value
-                        ? Icon(
-                            Icons.chevron_right,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.mutedForeground,
-                          )
-                        : Button.primary(
-                            onPressed: () async {
-                              if (!device.emulator.isStarted.value && !device.isStarting.value) {
-                                final savedMode = core.settings.getRetrofitMode(device.trainerKey);
-                                device.emulator.setRetrofitMode(savedMode);
-                                await core.settings.setAutoConnect(device.trainerKey, true);
-                                unawaited(device.startProxy().catchError((_) {}));
-                              }
-                            },
-                            child: Text(AppLocalizations.of(context).connect),
-                          ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        device.showInformation(context, showFull: false),
-                        ...device.showAdditionalInformation(context),
-                      ],
-                    ),
+      children: core.connection.proxyDevices
+          .sortedBy((e) => e.isConnected ? 0 : 1)
+          .mapIndexed(
+            (index, device) => [
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.only(bottom: index == core.connection.proxyDevices.length - 1 ? 8 : 12.0),
+                child: Button.ghost(
+                  onPressed: () async {
+                    if (!device.emulator.isStarted.value && !device.isStarting.value) {
+                      final savedMode = core.settings.getRetrofitMode(device.trainerKey);
+                      device.emulator.setRetrofitMode(savedMode);
+                      await core.settings.setAutoConnect(device.trainerKey, true);
+                      // Fire-and-forget — details page opens immediately and
+                      // renders a "Connecting…" state via device.isStarting.
+                      unawaited(device.startProxy().catchError((_) {}));
+                    }
+                    await context.push(ProxyDeviceDetailsPage(device: device));
+                    widget.onUpdate();
+                  },
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.mutedForeground,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      device.showInformation(context, showFull: false),
+                      ...device.showAdditionalInformation(context),
+                    ],
                   ),
                 ),
-                if (index != core.connection.proxyDevices.length - 1)
-                  Divider(
-                    thickness: 0.5,
-                    indent: 20,
-                    endIndent: 20,
-                  ),
-              ],
-            )
-            .flatten(),
-      ],
+              ),
+              if (index != core.connection.proxyDevices.length - 1)
+                Divider(
+                  thickness: 0.5,
+                ),
+            ],
+          )
+          .flatten()
+          .toList(),
     );
   }
 }

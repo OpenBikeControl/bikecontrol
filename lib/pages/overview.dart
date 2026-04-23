@@ -559,12 +559,23 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   setState(() {});
                 },
               ),
-              if (core.connection.proxyDevices.isNotEmpty) ...[
-                Gap(4),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, left: 12, right: 12),
-                  child: ColoredTitle(text: AppLocalizations.of(context).smartTrainerAndAccessories),
-                ),
+            ],
+          ),
+        ),
+        if (core.connection.proxyDevices.isNotEmpty)
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.muted.withAlpha(60),
+              border: Border(
+                left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                right: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+              ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+            ),
+            child: Column(
+              children: [
                 Gap(8),
                 ProxyPage(
                   onUpdate: () {
@@ -573,9 +584,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   isMobile: widget.isMobile,
                 ),
               ],
-            ],
+            ),
           ),
-        ),
         const Gap(22),
         _buildFlowRow(trainerApp, enabledTrainers),
         const Gap(22),

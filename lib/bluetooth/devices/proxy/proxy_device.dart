@@ -37,9 +37,7 @@ class ProxyDevice extends BluetoothDevice {
       ) {
     emulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
     emulator.advertisementNameOverride = () {
-      return IAPManager.instance.isProEnabledForCurrentDevice
-          ? null
-          : 'BikeControl - 20 min trial';
+      return IAPManager.instance.isProEnabledForCurrentDevice ? null : 'BikeControl - 20 min trial';
     };
     emulator.isConnected.addListener(_syncBridgeTracking);
     emulator.retrofitMode.addListener(_syncBridgeTracking);
@@ -48,8 +46,7 @@ class ProxyDevice extends BluetoothDevice {
   void _syncBridgeTracking() {
     // Only count minutes when a trainer app is actually consuming the Bridge
     // (isConnected), not merely while we're advertising (isStarted).
-    final isBridgeSession =
-        emulator.isConnected.value && emulator.retrofitMode.value != RetrofitMode.proxy;
+    final isBridgeSession = emulator.isConnected.value && emulator.retrofitMode.value != RetrofitMode.proxy;
     final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
     if (isBridgeSession && !isPro) {
       core.bridgeUsageTracker.startSession();
@@ -75,11 +72,12 @@ class ProxyDevice extends BluetoothDevice {
 
   static IconData _iconFor(BleDevice scanResult) {
     final services = scanResult.services.map((s) => s.toLowerCase()).toSet();
-    if (services.contains(FitnessBikeDefinition.CYCLING_POWER_SERVICE_UUID.toLowerCase())) {
-      return LucideIcons.zap;
-    }
+
     if (services.contains(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase())) {
       return LucideIcons.bike;
+    }
+    if (services.contains(FitnessBikeDefinition.CYCLING_POWER_SERVICE_UUID.toLowerCase())) {
+      return LucideIcons.zap;
     }
     if (services.contains(FitnessBikeDefinition.HEART_RATE_MEASUREMENT_UUID.toLowerCase())) {
       return LucideIcons.heart;
@@ -122,7 +120,17 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
-    if (!isConnected) return const [];
+    if (!isConnected) {
+      return [
+        Text(
+          'Connect to enable / adjust Virtual Shifting, or to proxy the device via WiFi',
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.mutedForeground,
+          ),
+        ),
+      ];
+    }
     return [
       ValueListenableBuilder<RetrofitMode>(
         valueListenable: emulator.retrofitMode,
@@ -144,7 +152,7 @@ class ProxyDevice extends BluetoothDevice {
                   color: connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
                 ),
                 Text(
-                  connected ? 'Bridge live' : 'Bridge idle',
+                  connected ? 'Bridge live' : 'Waiting for connection...',
                   style: TextStyle(
                     fontSize: 11,
                     color: Theme.of(context).colorScheme.mutedForeground,
