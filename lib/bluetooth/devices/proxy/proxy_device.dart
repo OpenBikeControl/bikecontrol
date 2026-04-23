@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
@@ -27,12 +28,32 @@ class ProxyDevice extends BluetoothDevice {
   /// state between tap and first successful start should watch this instead.
   final ValueNotifier<bool> isStarting = ValueNotifier(false);
 
+  StreamSubscription<void>? _bridgeBudgetSub;
+
   ProxyDevice(super.scanResult)
     : super(
         availableButtons: const [],
         icon: _iconFor(scanResult),
       ) {
     emulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
+    emulator.isConnected.addListener(_syncBridgeTracking);
+    emulator.retrofitMode.addListener(_syncBridgeTracking);
+  }
+
+  void _syncBridgeTracking() {
+    // Only count minutes when a trainer app is actually consuming the Bridge
+    // (isConnected), not merely while we're advertising (isStarted).
+    final isBridgeSession =
+        emulator.isConnected.value && emulator.retrofitMode.value != RetrofitMode.proxy;
+    final isPro = IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld;
+    if (isBridgeSession && !isPro) {
+      core.bridgeUsageTracker.startSession();
+      _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) async {
+        await disconnect();
+      });
+    } else {
+      core.bridgeUsageTracker.stopSession();
+    }
   }
 
   void _seedFitnessBikeDefinition(FitnessBikeDefinition def) {
@@ -251,6 +272,11 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Future<void> disconnect() {
+    emulator.isConnected.removeListener(_syncBridgeTracking);
+    emulator.retrofitMode.removeListener(_syncBridgeTracking);
+    _bridgeBudgetSub?.cancel();
+    _bridgeBudgetSub = null;
+    core.bridgeUsageTracker.stopSession();
     emulator.stop();
     return super.disconnect();
   }
