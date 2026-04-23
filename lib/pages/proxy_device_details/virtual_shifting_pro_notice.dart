@@ -6,8 +6,19 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// user isn't Pro. Explains the daily limit and offers a Go Pro action.
 class VirtualShiftingProNotice extends StatelessWidget {
   final String trainerAppName;
+  final Duration remainingToday;
 
-  const VirtualShiftingProNotice({super.key, required this.trainerAppName});
+  const VirtualShiftingProNotice({
+    super.key,
+    required this.trainerAppName,
+    required this.remainingToday,
+  });
+
+  int get _remainingMinutesCeil {
+    final secs = remainingToday.inSeconds;
+    if (secs <= 0) return 0;
+    return (secs / 60).ceil();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +48,13 @@ class VirtualShiftingProNotice extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 28),
+            child: Text(
+              l10n.bridgeMinutesRemainingToday(_remainingMinutesCeil),
+              style: TextStyle(fontSize: 11, color: cs.mutedForeground, fontWeight: FontWeight.w500),
+            ),
           ),
           Align(
             alignment: Alignment.centerLeft,

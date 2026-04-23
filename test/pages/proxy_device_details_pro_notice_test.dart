@@ -12,7 +12,10 @@ Future<void> main() async {
         localizationsDelegates: const [AppLocalizations.delegate],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         home: const Scaffold(
-          child: VirtualShiftingProNotice(trainerAppName: 'Zwift'),
+          child: VirtualShiftingProNotice(
+            trainerAppName: 'Zwift',
+            remainingToday: Duration(minutes: 20),
+          ),
         ),
       ),
     );
@@ -21,5 +24,22 @@ Future<void> main() async {
     expect(find.textContaining('Virtual shifting is a Pro feature'), findsOneWidget);
     expect(find.textContaining('20 min per day'), findsOneWidget);
     expect(find.text('Go Pro'), findsOneWidget);
+  });
+
+  testWidgets('shows remaining minutes line', (tester) async {
+    await tester.pumpWidget(
+      ShadcnApp(
+        localizationsDelegates: const [AppLocalizations.delegate],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        home: const Scaffold(
+          child: VirtualShiftingProNotice(
+            trainerAppName: 'Zwift',
+            remainingToday: Duration(minutes: 12, seconds: 30),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('13 min remaining today'), findsOneWidget); // 12m30s ceils to 13
   });
 }
