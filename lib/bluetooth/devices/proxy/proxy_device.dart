@@ -42,29 +42,27 @@ class ProxyDevice extends BluetoothDevice {
     emulator.advertisementNameOverride = () {
       return IAPManager.instance.isProEnabledForCurrentDevice ? null : 'BikeControl - 20 min trial';
     };
+    emulator.shouldAdvertise = () => !_isBridgeTrialOver;
     emulator.isConnected.addListener(_syncBridgeTracking);
     emulator.retrofitMode.addListener(_syncBridgeTracking);
   }
 
   void _syncBridgeTracking() {
-    // Only count minutes when a trainer app is actually consuming the Bridge
-    // (isConnected), not merely while we're advertising (isStarted).
     final isBridgeSession = emulator.isConnected.value && emulator.retrofitMode.value != RetrofitMode.proxy;
     final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
     if (isBridgeSession && !isPro) {
       if (core.bridgeUsageTracker.isExhausted) {
-        // Already at daily limit — stop the transporters but keep the upstream
-        // BLE connection. Deferred via microtask so we don't dispose the
-        // transporter's ValueNotifiers while we're still inside one of their
-        // notifyListeners call chains (emulator.isConnected fired us).
-        scheduleMicrotask(emulator.stop);
+        // Already at the daily limit — pause advertising so no new clients can
+        // discover us, but keep the transport pipeline + upstream BLE alive.
+        // Deferred via microtask: we may be inside a notifyListeners chain of
+        // emulator.isConnected that led us here, so we must not call any
+        // synchronous dispose/teardown on the same call stack.
+        scheduleMicrotask(() => unawaited(emulator.pauseAdvertising()));
         return;
       }
       core.bridgeUsageTracker.startSession();
       _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) {
-        // Stop the Bridge (transporters + mDNS) but leave the upstream BLE
-        // trainer connection intact so the user sees live data.
-        scheduleMicrotask(emulator.stop);
+        scheduleMicrotask(() => unawaited(emulator.pauseAdvertising()));
         _announceBridgeTrialOver();
       });
     } else {
@@ -130,15 +128,6 @@ class ProxyDevice extends BluetoothDevice {
     emulator.setScanResult(scanResult);
     emulator.handleServices(services);
 
-    // Skip transporter start when the non-Pro daily Bridge trial is already
-    // used up. The upstream BLE stays connected (the user still sees live
-    // data from the trainer); the Bridge advertisement just never starts.
-    if (_isBridgeTrialOver) {
-      onChange.value = 'Connected to ${scanResult.name} (Bridge trial over)';
-      _announceBridgeTrialOver();
-      return;
-    }
-
     await emulator.startServer();
     applyTrainerSettings();
     // Read the trainer's FTMS Feature map proactively so the UI can gate
@@ -147,6 +136,10 @@ class ProxyDevice extends BluetoothDevice {
     final def = emulator.activeDefinition;
     if (def is FitnessBikeDefinition) unawaited(def.probeTrainerFeatures());
     onChange.value = 'Connected to ${scanResult.name}';
+
+    if (_isBridgeTrialOver) {
+      _announceBridgeTrialOver();
+    }
   }
 
   /// Push persisted user settings (bike/rider weight, grade smoothing, VS mode)
