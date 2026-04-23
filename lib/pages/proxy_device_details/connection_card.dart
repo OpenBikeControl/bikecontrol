@@ -1,5 +1,7 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
@@ -38,6 +40,55 @@ class _ConnectionCardState extends State<ConnectionCard> {
       RetrofitMode.wifi,
     RetrofitMode.bluetooth,
   ];
+
+  bool _isSupportedByTrainerApp(RetrofitMode mode) {
+    final app = core.settings.getTrainerApp();
+    if (app == null) return true;
+    switch (mode) {
+      case RetrofitMode.proxy:
+        return true;
+      case RetrofitMode.wifi:
+        return app.supportedTrainerConnectionTypes.contains(TrainerConnectionType.wifi);
+      case RetrofitMode.bluetooth:
+        return app.supportedTrainerConnectionTypes.contains(TrainerConnectionType.bluetooth);
+    }
+  }
+
+  Widget _radioCard(RetrofitMode m, ColorScheme cs) {
+    final supported = _isSupportedByTrainerApp(m);
+    final app = core.settings.getTrainerApp();
+    return RadioCard<RetrofitMode>(
+      value: m,
+      enabled: supported,
+      child: Row(
+        spacing: 12,
+        children: [
+          Icon(_modeIcon(m), size: 20, color: cs.mutedForeground),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 2,
+              children: [
+                Text(
+                  m.label,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  _modeHint(m),
+                  style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                ),
+                if (!supported && app != null)
+                  Text(
+                    AppLocalizations.of(context).trainerAppDoesNotSupportConnectionYet(app.name),
+                    style: TextStyle(fontSize: 11, color: cs.mutedForeground, fontStyle: FontStyle.italic),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,38 +166,14 @@ class _ConnectionCardState extends State<ConnectionCard> {
           RadioGroup<RetrofitMode>(
             value: _pendingMode,
             onChanged: (m) async {
+              if (!_isSupportedByTrainerApp(m)) return;
               setState(() => _pendingMode = m);
               await core.settings.setRetrofitMode(widget.device.trainerKey, m);
             },
             child: Column(
               spacing: 8,
               children: [
-                for (final m in _allowedModes)
-                  RadioCard<RetrofitMode>(
-                    value: m,
-                    child: Row(
-                      spacing: 12,
-                      children: [
-                        Icon(_modeIcon(m), size: 20, color: cs.mutedForeground),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 2,
-                            children: [
-                              Text(
-                                m.label,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                              ),
-                              Text(
-                                _modeHint(m),
-                                style: TextStyle(fontSize: 11, color: cs.mutedForeground),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                for (final m in _allowedModes) _radioCard(m, cs),
               ],
             ),
           ),
@@ -226,6 +253,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           RadioGroup<RetrofitMode>(
             value: active,
             onChanged: (m) async {
+              if (!_isSupportedByTrainerApp(m)) return;
               if (m == active) return;
               await core.settings.setRetrofitMode(widget.device.trainerKey, m);
               setState(() => _pendingMode = m);
@@ -242,26 +270,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
             child: Column(
               spacing: 8,
               children: [
-                for (final m in _allowedModes)
-                  RadioCard<RetrofitMode>(
-                    value: m,
-                    child: Row(
-                      spacing: 12,
-                      children: [
-                        Icon(_modeIcon(m), size: 20, color: cs.mutedForeground),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 2,
-                            children: [
-                              Text(m.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                              Text(_modeHint(m), style: TextStyle(fontSize: 11, color: cs.mutedForeground)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                for (final m in _allowedModes) _radioCard(m, cs),
               ],
             ),
           ),
