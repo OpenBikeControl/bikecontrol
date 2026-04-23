@@ -740,10 +740,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   static const _trainerActions = [
-    InGameAction.trainerShiftUp,
-    InGameAction.trainerShiftDown,
-    InGameAction.trainerErgIncrease,
-    InGameAction.trainerErgDecrease,
+    InGameAction.trainerUp,
+    InGameAction.trainerDown,
+    InGameAction.trainerSwitchMode,
     InGameAction.trainerIntensityUp,
     InGameAction.trainerIntensityDown,
   ];

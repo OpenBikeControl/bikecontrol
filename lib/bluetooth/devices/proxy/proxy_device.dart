@@ -8,7 +8,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
-import 'package:prop/prop.dart';
+import 'package:prop/prop.dart' hide TrainerMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -228,20 +228,33 @@ class ProxyDevice extends BluetoothDevice {
       return NotHandled('No active FitnessBikeDefinition');
     }
     switch (action) {
-      case InGameAction.trainerShiftUp:
-        def.shiftUp();
-        return Success('Shifted up to gear ${def.currentGear.value}');
-      case InGameAction.trainerShiftDown:
-        def.shiftDown();
-        return Success('Shifted down to gear ${def.currentGear.value}');
-      case InGameAction.trainerErgIncrease:
-        final current = def.ergTargetPower.value ?? 150;
-        def.setManualErgPower(current + 10);
-        return Success('ERG target: ${def.ergTargetPower.value} W');
-      case InGameAction.trainerErgDecrease:
-        final current = def.ergTargetPower.value ?? 150;
-        def.setManualErgPower(current - 10);
-        return Success('ERG target: ${def.ergTargetPower.value} W');
+      case InGameAction.trainerUp:
+        if (def.trainerMode.value == TrainerMode.ergMode) {
+          final current = def.ergTargetPower.value ?? 150;
+          def.setManualErgPower(current + 10);
+          return Success('ERG target: ${def.ergTargetPower.value} W');
+        } else {
+          def.shiftUp();
+          return Success('Shifted up to gear ${def.currentGear.value}');
+        }
+      case InGameAction.trainerDown:
+        if (def.trainerMode.value == TrainerMode.ergMode) {
+          final current = def.ergTargetPower.value ?? 150;
+          def.setManualErgPower(current - 10);
+          return Success('ERG target: ${def.ergTargetPower.value} W');
+        } else {
+          def.shiftDown();
+          return Success('Shifted down to gear ${def.currentGear.value}');
+        }
+      case InGameAction.trainerSwitchMode:
+        if (def.trainerMode.value == TrainerMode.ergMode) {
+          def.exitErgMode();
+          return Success('Switched to sim mode');
+        } else {
+          final current = def.ergTargetPower.value ?? 150;
+          def.setManualErgPower(current);
+          return Success('Switched to erg mode @ $current W');
+        }
       case InGameAction.trainerIntensityUp:
         def.adjustIntensity(0.05);
         return Success('Intensity +5%');

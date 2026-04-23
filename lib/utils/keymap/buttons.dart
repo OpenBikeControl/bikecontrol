@@ -64,10 +64,9 @@ enum InGameAction {
   spectateRider('Spectate Rider', icon: LucideIcons.eye),
 
   // trainer control
-  trainerShiftUp('Trainer: Shift Up', icon: LucideIcons.chevronUp, isOutsideTrainerApp: true),
-  trainerShiftDown('Trainer: Shift Down', icon: LucideIcons.chevronDown, isOutsideTrainerApp: true),
-  trainerErgIncrease('Trainer: ERG +10W', icon: LucideIcons.plus, isOutsideTrainerApp: true),
-  trainerErgDecrease('Trainer: ERG -10W', icon: LucideIcons.minus, isOutsideTrainerApp: true),
+  trainerUp('Trainer: Up', icon: LucideIcons.chevronUp, isOutsideTrainerApp: true),
+  trainerDown('Trainer: Down', icon: LucideIcons.chevronDown, isOutsideTrainerApp: true),
+  trainerSwitchMode('Trainer: Switch Mode', icon: LucideIcons.repeat, isOutsideTrainerApp: true),
   trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
   trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true);
 
