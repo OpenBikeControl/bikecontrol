@@ -37,7 +37,7 @@ class ProxyDevice extends BluetoothDevice {
       ) {
     emulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
     emulator.advertisementNameOverride = () {
-      return IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld
+      return IAPManager.instance.isProEnabledForCurrentDevice
           ? null
           : 'BikeControl - 20 min trial';
     };
@@ -50,7 +50,7 @@ class ProxyDevice extends BluetoothDevice {
     // (isConnected), not merely while we're advertising (isStarted).
     final isBridgeSession =
         emulator.isConnected.value && emulator.retrofitMode.value != RetrofitMode.proxy;
-    final isPro = IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld;
+    final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
     if (isBridgeSession && !isPro) {
       core.bridgeUsageTracker.startSession();
       _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) async {

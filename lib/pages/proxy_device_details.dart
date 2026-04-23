@@ -50,6 +50,17 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     super.dispose();
   }
 
+  /// Pro check that tolerates an uninitialized IAPManager (e.g. widget tests
+  /// where Supabase has not been bootstrapped). Mirrors the defensive pattern
+  /// used in `BaseDevice.isProEnabledForRepeat`.
+  bool get _isProForCurrentDevice {
+    try {
+      return IAPManager.instance.isProEnabledForCurrentDevice;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final device = widget.device;
@@ -93,7 +104,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 SizedBox(height: 20),
                 LiveMetricsSection(device: device),
                 SizedBox(height: 32),
-                if (!IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld &&
+                if (!_isProForCurrentDevice &&
                     widget.device.emulator.activeDefinition is FitnessBikeDefinition) ...[
                   VirtualShiftingProNotice(
                     trainerAppName: core.settings.getTrainerApp()?.name ?? 'your trainer app',
