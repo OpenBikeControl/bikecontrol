@@ -49,9 +49,17 @@ class ProxyDevice extends BluetoothDevice {
     final isBridgeSession = emulator.isConnected.value && emulator.retrofitMode.value != RetrofitMode.proxy;
     final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
     if (isBridgeSession && !isPro) {
+      if (core.bridgeUsageTracker.isExhausted) {
+        // Already at daily limit — stop the transporters but keep the upstream
+        // BLE connection. The user can reconnect tomorrow or after going Pro.
+        emulator.stop();
+        return;
+      }
       core.bridgeUsageTracker.startSession();
-      _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) async {
-        await disconnect();
+      _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) {
+        // Stop the Bridge (transporters + mDNS) but leave the upstream BLE
+        // trainer connection intact so the user sees live data.
+        emulator.stop();
       });
     } else {
       core.bridgeUsageTracker.stopSession();
