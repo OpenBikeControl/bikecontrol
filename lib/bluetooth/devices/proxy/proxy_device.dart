@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
 import 'package:prop/prop.dart' hide TrainerMode;
@@ -60,10 +63,28 @@ class ProxyDevice extends BluetoothDevice {
         // Stop the Bridge (transporters + mDNS) but leave the upstream BLE
         // trainer connection intact so the user sees live data.
         emulator.stop();
+        _announceBridgeTrialOver();
       });
     } else {
       core.bridgeUsageTracker.stopSession();
     }
+  }
+
+  void _announceBridgeTrialOver() {
+    final title = AppLocalizations.current.bridgeTrialTimeOverTitle;
+    final body = AppLocalizations.current.bridgeTrialTimeOverBody;
+    core.connection.signalNotification(
+      AlertNotification(LogLevel.LOGLEVEL_WARNING, '$title — $body'),
+    );
+    core.flutterLocalNotificationsPlugin.show(
+      1340,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails('BridgeTrial', 'Bridge Trial Status'),
+        iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      ),
+    );
   }
 
   void _seedFitnessBikeDefinition(FitnessBikeDefinition def) {
