@@ -71,7 +71,6 @@ class _ScanWidgetState extends State<ScanWidget> {
                         Column(
                           spacing: 14,
                           children: [
-                            SizedBox(),
                             SmoothWifiAnimation(),
                             Text(
                               context.i18n.scanningForDevices,
