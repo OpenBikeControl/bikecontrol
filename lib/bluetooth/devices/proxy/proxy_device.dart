@@ -43,6 +43,7 @@ class ProxyDevice extends BluetoothDevice {
       return IAPManager.instance.isProEnabledForCurrentDevice ? null : 'BikeControl - 20 min trial';
     };
     emulator.shouldAdvertise = () => !_isBridgeTrialOver;
+    emulator.shouldAdvertiseZwift = () => core.settings.getTrainerApp()?.name == 'Zwift';
     emulator.isConnected.addListener(_syncBridgeTracking);
     emulator.retrofitMode.addListener(_syncBridgeTracking);
   }
