@@ -94,9 +94,8 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   SizedBox(height: 12),
                 ],
                 ConnectionCard(device: device),
+                SizedBox(height: 12),
                 _gearSection(),
-                SizedBox(height: 20),
-                LiveMetricsSection(device: device),
                 SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
                     widget.device.emulator.activeDefinition is FitnessBikeDefinition) ...[
@@ -113,6 +112,8 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   ),
                   SizedBox(height: 26),
                 ],
+                LiveMetricsSection(device: device),
+                SizedBox(height: 20),
                 _settingsSection(),
                 SizedBox(height: 32),
                 _actions(),
