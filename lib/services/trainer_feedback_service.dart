@@ -31,6 +31,10 @@ class TrainerFeedbackPayload {
   /// Parsed Target Setting Feature flags set in the trainer's FTMS Feature read.
   final List<String>? trainerFtmsTargetSettingFlags;
 
+  /// Freeform diagnostic blob. Currently used to dump the trainer's
+  /// non-standard services and their characteristic UUIDs for support.
+  final String? freetext;
+
   const TrainerFeedbackPayload({
     required this.userFeedback,
     this.userRating,
@@ -47,6 +51,7 @@ class TrainerFeedbackPayload {
     this.trainerApp,
     this.trainerFtmsMachineFeatures,
     this.trainerFtmsTargetSettingFlags,
+    this.freetext,
   });
 
   static const int _trainerAppMaxLength = 100;
@@ -80,6 +85,10 @@ class TrainerFeedbackPayload {
     if (trainerFtmsTargetSettingFlags != null &&
         trainerFtmsTargetSettingFlags!.isNotEmpty) {
       json['trainer_ftms_target_setting_flags'] = trainerFtmsTargetSettingFlags;
+    }
+    final trimmedFreetext = freetext?.trim();
+    if (trimmedFreetext != null && trimmedFreetext.isNotEmpty) {
+      json['freetext'] = trimmedFreetext;
     }
     return json;
   }

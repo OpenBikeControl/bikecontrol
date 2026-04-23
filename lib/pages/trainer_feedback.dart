@@ -25,6 +25,11 @@ class TrainerFeedbackPage extends StatefulWidget {
 }
 
 class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
+  // case-insensitive short-form matches for standard services we always skip.
+  static const _standardServiceShortUuids = {
+    '1800', '1801', '180a', '180f', '180e', '1802',
+  };
+
   final TextEditingController _feedbackController = TextEditingController();
   TrainerFeedbackRating? _rating;
   bool _submitting = false;
@@ -281,9 +286,36 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
       appPlatform: _appPlatform(),
       trainerApp: core.settings.getTrainerApp()?.name,
       trainerFtmsMachineFeatures: fitnessDef?.trainerFtmsMachineFeatureFlagNames,
-      trainerFtmsTargetSettingFlags:
-          fitnessDef?.trainerFtmsTargetSettingFlagNames,
+      trainerFtmsTargetSettingFlags: fitnessDef?.trainerFtmsTargetSettingFlagNames,
+      freetext: _buildServicesFreetext(),
     );
+  }
+
+  bool _isStandardService(String uuid) {
+    // universal_ble gives full 128-bit UUIDs like 00001800-0000-1000-8000-00805f9b34fb
+    // or sometimes the short form. Normalise and compare on the 2-byte significant chunk.
+    final lower = uuid.toLowerCase();
+    // Full 128-bit form with the Bluetooth base UUID: chars [4..8] carry the short ID.
+    if (lower.length >= 8 && lower.endsWith('-0000-1000-8000-00805f9b34fb')) {
+      final shortId = lower.substring(4, 8);
+      return _standardServiceShortUuids.contains(shortId);
+    }
+    return _standardServiceShortUuids.contains(lower);
+  }
+
+  String? _buildServicesFreetext() {
+    final services = widget.device.emulator.services;
+    if (services == null || services.isEmpty) return null;
+    final filtered = services.where((s) => !_isStandardService(s.uuid)).toList();
+    if (filtered.isEmpty) return null;
+    final buf = StringBuffer('Services & characteristics:\n');
+    for (final s in filtered) {
+      buf.writeln('${s.uuid}:');
+      for (final c in s.characteristics) {
+        buf.writeln('  - ${c.uuid}');
+      }
+    }
+    return buf.toString().trimRight();
   }
 
   String? _computeBluetoothName() {

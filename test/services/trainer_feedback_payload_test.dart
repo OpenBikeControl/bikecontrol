@@ -91,5 +91,21 @@ void main() {
 
       expect((json['trainer_app'] as String).length, 100);
     });
+
+    test('serializes freetext field when present', () {
+      final json = const TrainerFeedbackPayload(
+        userFeedback: 'works great',
+        freetext: 'Services & characteristics:\n00001826-...:\n  - 00002ad2-...',
+      ).toJson();
+      expect(json['freetext'], contains('00001826'));
+    });
+
+    test('omits freetext when empty or null', () {
+      expect(const TrainerFeedbackPayload(userFeedback: 'x').toJson(), isNot(contains('freetext')));
+      expect(
+        const TrainerFeedbackPayload(userFeedback: 'x', freetext: '   ').toJson(),
+        isNot(contains('freetext')),
+      );
+    });
   });
 }
