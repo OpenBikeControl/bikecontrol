@@ -2,15 +2,14 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
-import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
 import 'package:bike_control/pages/trainer_feedback.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -94,8 +93,11 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 SizedBox(height: 20),
                 LiveMetricsSection(device: device),
                 SizedBox(height: 32),
-                if (!_isPro()) ...[
-                  _proNoticeBlock(),
+                if (!IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld &&
+                    widget.device.emulator.activeDefinition is FitnessBikeDefinition) ...[
+                  VirtualShiftingProNotice(
+                    trainerAppName: core.settings.getTrainerApp()?.name ?? 'your trainer app',
+                  ),
                   SizedBox(height: 12),
                 ],
                 _settingsSection(),
@@ -128,16 +130,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     return GearHeroCard(definition: def);
   }
 
-  bool _isPro() {
-    try {
-      return IAPManager.instance.isProEnabledForCurrentDeviceOrDidPurchaseOld;
-    } catch (_) {
-      // Accessing IAP state can fail in tests where Supabase isn't initialized.
-      // Treat as non-Pro so the notice renders (matches the intended default).
-      return false;
-    }
-  }
-
   Widget _settingsSection() {
     final def = widget.device.emulator.activeDefinition;
     if (def is! FitnessBikeDefinition) return const SizedBox.shrink();
@@ -151,47 +143,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
         ),
         TrainerSettingsSection(definition: def, device: widget.device),
       ],
-    );
-  }
-
-  Widget _proNoticeBlock() {
-    final cs = Theme.of(context).colorScheme;
-    final trainerApp = core.settings.getTrainerApp()?.name ?? 'your trainer app';
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: cs.muted,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: cs.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 10,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 10,
-            children: [
-              Icon(Icons.workspace_premium, color: Colors.orange, size: 18),
-              Expanded(
-                child: Text(
-                  AppLocalizations.of(context).virtualShiftingProNote(trainerApp),
-                  style: TextStyle(fontSize: 12, color: cs.foreground),
-                ),
-              ),
-            ],
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Button.primary(
-              onPressed: () => showGoProDialog(context),
-              leading: const Icon(Icons.workspace_premium, size: 14),
-              child: Text(AppLocalizations.of(context).goPro),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
