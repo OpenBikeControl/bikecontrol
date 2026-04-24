@@ -7,6 +7,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -43,7 +44,7 @@ class ProxyDevice extends BluetoothDevice {
       return IAPManager.instance.isProEnabledForCurrentDevice ? null : 'BikeControl - 20 min trial';
     };
     emulator.shouldAdvertise = () => !_isBridgeTrialOver;
-    emulator.shouldAdvertiseZwift = () => core.settings.getTrainerApp()?.name == 'Zwift';
+    emulator.shouldAdvertiseZwift = () => core.settings.getTrainerApp() is Zwift;
     emulator.isConnected.addListener(_syncBridgeTracking);
     emulator.retrofitMode.addListener(_syncBridgeTracking);
   }
