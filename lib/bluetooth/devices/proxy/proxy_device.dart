@@ -334,36 +334,12 @@ class ProxyDevice extends BluetoothDevice {
     }
   }
 
-  /// True when the user's 5-day trial has ended and they haven't upgraded.
-  /// Blocks any smart-trainer connect attempt — BLE upstream, transporter
-  /// setup, advertising, all of it. Pro and purchased-base-version users
-  /// bypass this gate (`IAPManager.isTrialExpired` already returns false for
-  /// them).
-  bool get _isSubscriptionTrialExpired => IAPManager.instance.isTrialExpired;
-
-  void _announceSubscriptionTrialExpired() {
-    final title = AppLocalizations.current.trialExpiredSmartTrainerBlockedTitle;
-    final body = AppLocalizations.current.trialExpiredSmartTrainerBlockedBody;
-    core.connection.signalNotification(
-      AlertNotification(LogLevel.LOGLEVEL_WARNING, '$title — $body'),
-    );
-    core.flutterLocalNotificationsPlugin.show(
-      1341,
-      title,
-      body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails('SubscriptionTrial', 'Subscription Trial Status'),
-        iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
-      ),
-    );
-  }
-
   Future<void> startProxy() async {
-    if (_isSubscriptionTrialExpired) {
-      _announceSubscriptionTrialExpired();
-      // Clear auto-connect so the next scan cycle doesn't keep re-firing this
-      // gate. The user re-enables auto-connect implicitly when they tap
-      // Connect after purchasing.
+    if (IAPManager.instance.isTrialExpired) {
+      // 5-day trial over, user hasn't purchased — silently refuse the connect.
+      // The UI Connect buttons surface a Go Pro dialog before ever reaching
+      // here; this branch exists as a defensive funnel for the auto-connect
+      // path. Clear auto-connect so the scanner doesn't keep re-firing.
       await core.settings.setAutoConnect(trainerKey, false);
       return;
     }
