@@ -23,6 +23,7 @@ void main() {
     expect(sum.distanceKm, 0);
     expect(sum.avgHeartRateBpm, 0);
     expect(sum.maxHeartRateBpm, 0);
+    expect(sum.sampleCount, 0);
   });
 
   test('averages ignore null entries', () {
@@ -42,6 +43,7 @@ void main() {
     expect(sum.avgSpeedKph, closeTo(22.0, 0.001));
     expect(sum.avgHeartRateBpm, 145);
     expect(sum.maxHeartRateBpm, 150);
+    expect(sum.sampleCount, 3);
   });
 
   test('distance is avg speed * active duration', () {

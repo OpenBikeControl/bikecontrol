@@ -1,5 +1,7 @@
 import 'workout_sample.dart';
 
+/// Aggregate metrics for one completed workout: averages, maxes, distance,
+/// and timing. Computed via [WorkoutSummary.fromSamples].
 class WorkoutSummary {
   final DateTime startedAt;
   final Duration activeDuration;
@@ -30,7 +32,7 @@ class WorkoutSummary {
     required DateTime startedAt,
     required Duration activeDuration,
   }) {
-    int sum(int? Function(WorkoutSample) pick, {int Function(int, int)? reduce}) {
+    int aggregate(int? Function(WorkoutSample) pick, {bool max = false}) {
       int n = 0;
       int acc = 0;
       int best = 0;
@@ -41,7 +43,7 @@ class WorkoutSummary {
         if (v > best) best = v;
         n++;
       }
-      if (reduce != null) return best;
+      if (max) return best;
       return n == 0 ? 0 : (acc / n).round();
     }
 
@@ -63,13 +65,13 @@ class WorkoutSummary {
     return WorkoutSummary(
       startedAt: startedAt,
       activeDuration: activeDuration,
-      avgPowerW: sum((s) => s.powerW),
-      maxPowerW: sum((s) => s.powerW, reduce: (a, b) => a > b ? a : b),
-      avgCadenceRpm: sum((s) => s.cadenceRpm),
+      avgPowerW: aggregate((s) => s.powerW),
+      maxPowerW: aggregate((s) => s.powerW, max: true),
+      avgCadenceRpm: aggregate((s) => s.cadenceRpm),
       avgSpeedKph: avgSpeed,
       distanceKm: distanceKm,
-      avgHeartRateBpm: sum((s) => s.heartRateBpm),
-      maxHeartRateBpm: sum((s) => s.heartRateBpm, reduce: (a, b) => a > b ? a : b),
+      avgHeartRateBpm: aggregate((s) => s.heartRateBpm),
+      maxHeartRateBpm: aggregate((s) => s.heartRateBpm, max: true),
       sampleCount: samples.length,
     );
   }
