@@ -1180,9 +1180,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     // Leading icon
     final Widget leadingIcon;
     if (button != null) {
-      leadingIcon = (!isSuccess)
-          ? ButtonWidget(button: button, size: size - 4)
-          : ButtonWidget(button: button, size: size - 4);
+      leadingIcon = isError
+          ? const Icon(LucideIcons.circleX, size: 16, color: Color(0xFFEF4444))
+          : isSuccess
+              ? const Icon(LucideIcons.circleCheck, size: 16, color: Color(0xFF22C55E))
+              : ButtonWidget(button: button, size: size - 4);
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_ERROR) {
       leadingIcon = Icon(LucideIcons.circleX, size: 16, color: const Color(0xFFEF4444));
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {
