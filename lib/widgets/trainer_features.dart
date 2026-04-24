@@ -27,7 +27,7 @@ class TrainerFeatures extends StatelessWidget {
         if (isBikeControl)
           ...core.connection.proxyDevices.map(
             (device) => Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16, bottom: 16),
+              padding: const EdgeInsets.only(left: 16.0, right: 16, bottom: 8),
               child: MiniWorkoutCard(device: device),
             ),
           ),
