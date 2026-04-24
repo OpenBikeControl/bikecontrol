@@ -26,10 +26,16 @@ class _MiniWorkoutPageState extends State<MiniWorkoutPage> {
   void initState() {
     super.initState();
     WakelockPlus.enable();
-    final metrics = TrainerMetrics.fromDefinition(widget.device.emulator.activeDefinition);
-    if (metrics != null && _recorder.state.value == WorkoutState.idle) {
-      _recorder.start(metrics);
-    }
+    // Deferred: start() flips core.workoutRecorder.state, which is watched by
+    // MiniWorkoutCard on the route below. Firing it inside initState would
+    // dirty an ancestor mid-build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final metrics = TrainerMetrics.fromDefinition(widget.device.emulator.activeDefinition);
+      if (metrics != null && _recorder.state.value == WorkoutState.idle) {
+        _recorder.start(metrics);
+      }
+    });
   }
 
   @override
