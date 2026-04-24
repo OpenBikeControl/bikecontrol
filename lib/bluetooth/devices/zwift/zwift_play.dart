@@ -85,10 +85,11 @@ class ZwiftPlay extends ZwiftDevice {
           ZwiftButtons.navigationLeft: const Offset(0.66, 0.40),
           ZwiftButtons.navigationRight: const Offset(0.90, 0.40),
           ZwiftButtons.navigationDown: const Offset(0.78, 0.56),
-          // Handlebar-drop buttons (mirrored from the right variant).
-          ZwiftButtons.onOffLeft: const Offset(0.40, 0.20),
-          ZwiftButtons.sideButtonLeft: const Offset(0.22, 0.30),
-          ZwiftButtons.paddleLeft: const Offset(0.08, 0.60),
+          // On/off sits directly below the down button.
+          ZwiftButtons.onOffLeft: const Offset(0.78, 0.78),
+          // Paddle on top, side button to its LEFT on the left controller.
+          ZwiftButtons.paddleLeft: const Offset(0.35, 0.18),
+          ZwiftButtons.sideButtonLeft: const Offset(0.18, 0.18),
         },
       );
     }
@@ -102,10 +103,11 @@ class ZwiftPlay extends ZwiftDevice {
         ZwiftButtons.z: const Offset(0.10, 0.40),
         ZwiftButtons.a: const Offset(0.34, 0.40),
         ZwiftButtons.b: const Offset(0.22, 0.56),
-        // Handlebar-drop buttons on the right C-curve.
-        ZwiftButtons.onOffRight: const Offset(0.60, 0.20),
-        ZwiftButtons.sideButtonRight: const Offset(0.78, 0.30),
-        ZwiftButtons.paddleRight: const Offset(0.92, 0.60),
+        // On/off sits directly below the down button.
+        ZwiftButtons.onOffRight: const Offset(0.22, 0.78),
+        // Paddle on top, side button to its RIGHT on the right controller.
+        ZwiftButtons.paddleRight: const Offset(0.65, 0.18),
+        ZwiftButtons.sideButtonRight: const Offset(0.82, 0.18),
       },
     );
   }
