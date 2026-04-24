@@ -1,12 +1,12 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_simulator.dart';
+import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
-import 'package:prop/protocol/zp.pbenum.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/core.dart';
@@ -18,9 +18,18 @@ class TrainerFeatures extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trainerApp = core.settings.getTrainerApp();
+    final isBikeControl = trainerApp is BikeControl;
     return Column(
+      spacing: 8,
       children: [
-        if (core.settings.getTrainerApp() != null)
+        // BikeControl hosts the Mini Workout in-app — surface the card for each
+        // connected smart trainer instead of the "control $app manually" tile.
+        if (isBikeControl)
+          ...core.connection.proxyDevices.map(
+            (device) => MiniWorkoutCard(device: device),
+          ),
+        if (trainerApp != null && !isBikeControl)
           FeatureWidget(
             icon: Icons.computer,
             iconColor: BKColor.main,
@@ -28,19 +37,12 @@ class TrainerFeatures extends StatelessWidget {
             iconBgColor: BKColor.main.withValues(alpha: 0.08),
             title: AppLocalizations.of(
               context,
-            ).manualyControllingButton(core.settings.getTrainerApp()?.name ?? 'your trainer'),
+            ).manualyControllingButton(trainerApp.name),
             description: context.i18n.noControllerUseCompanionMode,
             isNew: false,
             withCard: withCard,
             onTap: () {
-              if (core.settings.getTrainerApp() == null) {
-                buildToast(
-                  level: LogLevel.LOGLEVEL_WARNING,
-                  title: context.i18n.selectTrainerApp,
-                );
-              } else {
-                context.push(ButtonSimulator());
-              }
+              context.push(ButtonSimulator());
             },
           ),
         if (kDebugMode && false) ...[
