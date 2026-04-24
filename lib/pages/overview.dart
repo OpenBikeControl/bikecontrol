@@ -16,6 +16,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/blog_posts_widget.dart';
+import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
@@ -545,14 +546,35 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   final id = device.uniqueId;
                   final pressedButton = _pressedButton[id];
                   final generation = _pressGeneration[id] ?? 0;
-                  return device.availableButtons.map((btn) {
+                  final keymap = core.actionHandler.supportedApp?.keymap;
+                  Widget btnFor(ControllerButton btn) {
                     final pressGen = pressedButton?.name == btn.name ? generation : 0;
                     return AnimatedButtonWidget(
                       key: ValueKey(btn.name),
                       button: btn,
                       pressGeneration: pressGen,
+                      keymap: keymap,
+                      device: device,
+                      onUpdate: () {
+                        _clearErrorBanner();
+                        setState(() {});
+                      },
                     );
-                  }).toList();
+                  }
+                  final layout = device.controllerLayout;
+                  if (layout != null) {
+                    return ControllerCanvas(
+                      layout: layout,
+                      availableButtons: device.availableButtons,
+                      buttonBuilder: btnFor,
+                    );
+                  }
+                  return Wrap(
+                    alignment: WrapAlignment.start,
+                    spacing: 9,
+                    runSpacing: 9,
+                    children: device.availableButtons.map(btnFor).toList(),
+                  );
                 },
                 onUpdate: () {
                   _clearErrorBanner();
