@@ -13,6 +13,7 @@ import 'package:bike_control/services/blog_service.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/blog_posts_widget.dart';
@@ -561,6 +562,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       },
                     );
                   }
+
                   final layout = device.controllerLayout;
                   if (layout != null) {
                     return ControllerCanvas(
@@ -616,6 +618,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           key: _trainerKey,
           child: _buildTrainerCard(trainerApp, enabledTrainers),
         ),
+        const Gap(22),
 
         if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
       ],
@@ -1062,8 +1065,10 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   const Gap(12),
                 ] else ...[
                   const Gap(12),
-                  Text(context.i18n.noConnectionMethodIsConnectedOrActive).small.muted,
-                  const Gap(12),
+                  if (trainerApp! is! BikeControl) ...[
+                    Text(context.i18n.noConnectionMethodIsConnectedOrActive).small.muted,
+                    const Gap(12),
+                  ],
                 ],
               ],
             ),
@@ -1205,8 +1210,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       leadingIcon = isError
           ? const Icon(LucideIcons.circleX, size: 16, color: Color(0xFFEF4444))
           : isSuccess
-              ? const Icon(LucideIcons.circleCheck, size: 16, color: Color(0xFF22C55E))
-              : ButtonWidget(button: button, size: size - 4);
+          ? const Icon(LucideIcons.circleCheck, size: 16, color: Color(0xFF22C55E))
+          : ButtonWidget(button: button, size: size - 4);
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_ERROR) {
       leadingIcon = Icon(LucideIcons.circleX, size: 16, color: const Color(0xFFEF4444));
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {

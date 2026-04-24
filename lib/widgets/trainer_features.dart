@@ -6,7 +6,6 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/core.dart';
@@ -27,7 +26,10 @@ class TrainerFeatures extends StatelessWidget {
         // connected smart trainer instead of the "control $app manually" tile.
         if (isBikeControl)
           ...core.connection.proxyDevices.map(
-            (device) => MiniWorkoutCard(device: device),
+            (device) => Padding(
+              padding: const EdgeInsets.only(left: 16.0, right: 16, bottom: 16),
+              child: MiniWorkoutCard(device: device),
+            ),
           ),
         if (trainerApp != null && !isBikeControl)
           FeatureWidget(
@@ -45,30 +47,6 @@ class TrainerFeatures extends StatelessWidget {
               context.push(ButtonSimulator());
             },
           ),
-        if (kDebugMode && false) ...[
-          const Gap(12),
-          FeatureWidget(
-            icon: Icons.radio,
-            withCard: withCard,
-            iconColor: BKColor.mainEnd,
-            bgColor: BKColor.mainEnd.withValues(alpha: 0.03),
-            iconBgColor: BKColor.mainEnd.withValues(alpha: 0.08),
-            title: 'Device Mirroring',
-            description: 'BLE-to-WiFi bridge for trainers & sensors',
-            isNew: true,
-          ),
-          const Gap(8),
-          FeatureWidget(
-            icon: Icons.bolt,
-            withCard: withCard,
-            iconColor: BKColor.main,
-            bgColor: BKColor.main.withValues(alpha: 0.03),
-            iconBgColor: BKColor.main.withValues(alpha: 0.08),
-            title: 'Legacy Trainer Support',
-            description: 'Virtual shifting for older smart trainers',
-            isNew: true,
-          ),
-        ],
       ],
     );
   }
