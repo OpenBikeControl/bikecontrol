@@ -67,8 +67,8 @@ class ControllerContourPainter extends CustomPainter {
 
     void drawPuck(double centerXNorm) {
       final cx = centerXNorm * w;
-      final cy = 0.30 * h;
-      final half = 0.26 * h;
+      final cy = 0.42 * h;
+      final half = 0.40 * h; // ~1.5× the original so 56-px buttons sit inside
       const r = 10.0; // corner-rounding offset, in edge-direction units
 
       // Rounded diamond (rotated rounded square) traced clockwise from the
@@ -85,13 +85,13 @@ class ControllerContourPainter extends CustomPainter {
         ..quadraticBezierTo(cx, cy - half, cx + r, cy - half + r)
         ..close();
 
-      // Chin — narrow rounded rect whose top overlaps inside the lower half
+      // Chin — narrow rounded rect whose top overlaps inside the lower point
       // of the diamond so the union reads as one continuous silhouette.
       final chinHalfWidth = 0.07 * w;
       final chin = Path()
         ..addRRect(
           RRect.fromRectAndRadius(
-            Rect.fromLTRB(cx - chinHalfWidth, cy + half * 0.55, cx + chinHalfWidth, 0.90 * h),
+            Rect.fromLTRB(cx - chinHalfWidth, 0.78 * h, cx + chinHalfWidth, 0.96 * h),
             const Radius.circular(14),
           ),
         );
