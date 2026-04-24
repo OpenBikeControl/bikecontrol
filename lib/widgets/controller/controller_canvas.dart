@@ -46,11 +46,16 @@ class ControllerCanvas extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Positioned.fill(
-                  child: CustomPaint(
-                    painter: ControllerContourPainter(
-                      shape: layout.shape,
-                      color: cs.border,
-                      fillColor: cs.muted.withValues(alpha: 0.6),
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: ControllerContourPainter(
+                        shape: layout.shape,
+                        color: cs.border,
+                        // Subtle darkening via the muted foreground at low alpha
+                        // — visually distinct from the solid `cs.muted` button
+                        // fill, so the buttons don't blend into the background.
+                        fillColor: cs.mutedForeground.withValues(alpha: 0.08),
+                      ),
                     ),
                   ),
                 ),
