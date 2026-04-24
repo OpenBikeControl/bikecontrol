@@ -39,7 +39,7 @@ class ButtonWidget extends StatelessWidget {
     final onBg = bg.computeLuminance() < 0.5 ? Colors.white : Colors.black;
     final actionIcon = _primaryActionIcon;
     final hasAssignment = _assignedPairs.isNotEmpty;
-    final badgeSize = size * 0.34;
+    final badgeSize = size * 0.44;
 
     return SizedBox(
       width: size,
@@ -78,8 +78,8 @@ class ButtonWidget extends StatelessWidget {
             ),
           if (actionIcon != null)
             Positioned(
-              top: -badgeSize * 0.25,
-              right: -badgeSize * 0.25,
+              top: -badgeSize * 0.15,
+              right: -badgeSize * 0.15,
               child: Container(
                 width: badgeSize,
                 height: badgeSize,

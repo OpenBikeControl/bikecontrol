@@ -19,7 +19,7 @@ class ThinkRiderVs200 extends BluetoothDevice {
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
-    aspectRatio: 2.4,
+    aspectRatio: 1.4,
     shape: ContourShape.pill,
     positions: {
       ThinkRiderVs200Buttons.shiftUp: const Offset(0.3, 0.5),
