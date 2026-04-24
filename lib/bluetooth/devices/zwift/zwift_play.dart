@@ -1,8 +1,10 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:prop/prop.dart';
 
 class ZwiftPlay extends ZwiftDevice {
@@ -69,4 +71,36 @@ class ZwiftPlay extends ZwiftDevice {
 
   @override
   String get latestFirmwareVersion => '1.3.1';
+
+  @override
+  ControllerLayout get controllerLayout {
+    if (deviceType == ZwiftDeviceType.playLeft) {
+      return ControllerLayout(
+        aspectRatio: 0.65,
+        shape: ContourShape.rect,
+        positions: {
+          ZwiftButtons.navigationUp: const Offset(0.5, 0.22),
+          ZwiftButtons.navigationLeft: const Offset(0.25, 0.42),
+          ZwiftButtons.navigationRight: const Offset(0.75, 0.42),
+          ZwiftButtons.navigationDown: const Offset(0.5, 0.62),
+          ZwiftButtons.onOffLeft: const Offset(0.2, 0.82),
+          ZwiftButtons.sideButtonLeft: const Offset(0.85, 0.1),
+          ZwiftButtons.paddleLeft: const Offset(0.5, 0.92),
+        },
+      );
+    }
+    return ControllerLayout(
+      aspectRatio: 0.65,
+      shape: ContourShape.rect,
+      positions: {
+        ZwiftButtons.y: const Offset(0.5, 0.22),
+        ZwiftButtons.z: const Offset(0.25, 0.42),
+        ZwiftButtons.a: const Offset(0.75, 0.42),
+        ZwiftButtons.b: const Offset(0.5, 0.62),
+        ZwiftButtons.onOffRight: const Offset(0.8, 0.82),
+        ZwiftButtons.sideButtonRight: const Offset(0.15, 0.1),
+        ZwiftButtons.paddleRight: const Offset(0.5, 0.92),
+      },
+    );
+  }
 }

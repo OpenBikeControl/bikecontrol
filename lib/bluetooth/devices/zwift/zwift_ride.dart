@@ -3,7 +3,9 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:prop/prop.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:universal_ble/universal_ble.dart';
@@ -45,6 +47,34 @@ class ZwiftRide extends ZwiftDevice {
 
   @override
   bool get canVibrate => true;
+
+  @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 2.2,
+    shape: ContourShape.dropBar,
+    positions: {
+      // Left grip
+      ZwiftButtons.navigationUp: const Offset(0.11, 0.3),
+      ZwiftButtons.navigationLeft: const Offset(0.05, 0.45),
+      ZwiftButtons.navigationRight: const Offset(0.17, 0.45),
+      ZwiftButtons.navigationDown: const Offset(0.11, 0.6),
+      ZwiftButtons.shiftUpLeft: const Offset(0.11, 0.76),
+      ZwiftButtons.shiftDownLeft: const Offset(0.05, 0.86),
+      ZwiftButtons.powerUpLeft: const Offset(0.17, 0.86),
+      ZwiftButtons.onOffLeft: const Offset(0.05, 0.2),
+      ZwiftButtons.paddleLeft: const Offset(0.05, 0.96),
+      // Right grip
+      ZwiftButtons.a: const Offset(0.83, 0.45),
+      ZwiftButtons.b: const Offset(0.89, 0.6),
+      ZwiftButtons.y: const Offset(0.89, 0.3),
+      ZwiftButtons.z: const Offset(0.77, 0.45),
+      ZwiftButtons.shiftUpRight: const Offset(0.89, 0.76),
+      ZwiftButtons.shiftDownRight: const Offset(0.83, 0.86),
+      ZwiftButtons.powerUpRight: const Offset(0.95, 0.86),
+      ZwiftButtons.onOffRight: const Offset(0.95, 0.2),
+      ZwiftButtons.paddleRight: const Offset(0.95, 0.96),
+    },
+  );
 
   @override
   Future<void> processData(Uint8List bytes) async {

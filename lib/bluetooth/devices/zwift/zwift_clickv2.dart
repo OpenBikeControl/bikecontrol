@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -42,6 +43,24 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   bool get canVibrate => false;
+
+  @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 1.8,
+    shape: ContourShape.pill,
+    positions: {
+      ZwiftButtons.navigationUp: const Offset(0.18, 0.3),
+      ZwiftButtons.navigationLeft: const Offset(0.08, 0.55),
+      ZwiftButtons.navigationRight: const Offset(0.28, 0.55),
+      ZwiftButtons.navigationDown: const Offset(0.18, 0.8),
+      ZwiftButtons.a: const Offset(0.82, 0.3),
+      ZwiftButtons.b: const Offset(0.92, 0.55),
+      ZwiftButtons.y: const Offset(0.82, 0.8),
+      ZwiftButtons.z: const Offset(0.72, 0.55),
+      ZwiftButtons.shiftUpLeft: const Offset(0.45, 0.5),
+      ZwiftButtons.shiftUpRight: const Offset(0.55, 0.5),
+    },
+  );
 
   @override
   String toString() {
