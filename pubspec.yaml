@@ -23,6 +23,8 @@ dependencies:
   lottie: ^3.3.2
   d4rt: ^0.2.2
   path_provider: ^2.1.5
+  fit_tool: ^1.0.5
+  share_plus: ^11.0.0
   smtc_windows: ^1.1.0
   flutter_volume_controller: ^1.3.4
   intl: any
