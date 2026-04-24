@@ -17,6 +17,16 @@ enum ContourShape {
   steeringPad,
   /// Phone silhouette — e.g. Gyroscope Steering (virtual).
   phone,
+  /// Zwift Play right-side grip with paired handlebar drop. Compact button
+  /// panel on the left half + C-curve of a handlebar drop on the right.
+  zwiftPlayRight,
+  /// Mirrored zwiftPlayRight for the left-hand controller: drop curves to
+  /// the left, button panel on the right half.
+  zwiftPlayLeft,
+  /// Zwift Click V2 is two separate pucks (nav + ABYZ) each with a small
+  /// "chin" extending downward for the shift button. Two independent
+  /// outlines — no unification between the halves.
+  zwiftClickV2,
 }
 
 /// Declarative layout for one physical controller. Positions use normalized

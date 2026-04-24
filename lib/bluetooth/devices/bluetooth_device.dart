@@ -327,8 +327,8 @@ abstract class BluetoothDevice extends BaseDevice {
           if (firmwareVersion != null || rssi != null) const Gap(16),
         ],
         if (firmwareVersion != null &&
-            (showFull || (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion))) ...[
-          if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+            (showFull || (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion))) ...[
+          if (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion)
             Icon(
               Icons.warning,
               size: fontSize,
@@ -342,9 +342,7 @@ abstract class BluetoothDevice extends BaseDevice {
               color: foregroundColor,
             ),
           ),
-          if (this is ZwiftDevice &&
-              firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion &&
-              (this as ZwiftDevice).latestFirmwareVersion != null)
+          if (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion)
             Text(
               ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion!)})',
               style: TextStyle(color: foregroundColor, fontSize: fontSize),

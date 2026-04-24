@@ -4,9 +4,9 @@ import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:media_key_detector/media_key_detector.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'smtc_stub.dart' if (dart.library.io) 'package:smtc_windows/smtc_windows.dart';
 
@@ -102,7 +102,16 @@ class MediaKeyHandler {
 
     final button = availableDevice.getOrAddButton(
       keyPressed,
-      () => ControllerButton(keyPressed),
+      () => ControllerButton(
+        keyPressed,
+        icon: switch (mediaKey) {
+          MediaKey.playPause => LucideIcons.play,
+          MediaKey.fastForward => LucideIcons.skipForward,
+          MediaKey.rewind => LucideIcons.skipBack,
+          MediaKey.volumeUp => Icons.volume_up_outlined,
+          MediaKey.volumeDown => Icons.volume_down,
+        },
+      ),
     );
 
     // Send press followed by release. HidDevice has supportsLongPress: false,
