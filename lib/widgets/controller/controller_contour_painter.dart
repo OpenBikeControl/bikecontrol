@@ -58,29 +58,45 @@ class ControllerContourPainter extends CustomPainter {
   }
 
   /// Zwift Click V2: two identical pucks (nav on the left, ABYZ on the
-  /// right) each with a narrower "chin" extending below for the shift
-  /// button. Two independent outlines so the two halves read as separate
-  /// physical units.
+  /// right). Each puck body is a rounded-corner diamond, with a narrower
+  /// "chin" extending below for the shift button. Two independent outlines
+  /// so the two halves read as separate physical units.
   void _paintZwiftClickV2(Canvas canvas, Size size, Paint paint) {
     final w = size.width;
     final h = size.height;
 
-    void drawPuck(double centerX) {
-      final body = Path()
-        ..addRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTRB((centerX - 0.20) * w, 0.02 * h, (centerX + 0.20) * w, 0.58 * h),
-            const Radius.circular(20),
-          ),
-        );
+    void drawPuck(double centerXNorm) {
+      final cx = centerXNorm * w;
+      final cy = 0.30 * h;
+      final half = 0.26 * h;
+      const r = 10.0; // corner-rounding offset, in edge-direction units
+
+      // Rounded diamond (rotated rounded square) traced clockwise from the
+      // top corner. `r` controls how much of each corner is rounded.
+      final diamond = Path()
+        ..moveTo(cx + r, cy - half + r)
+        ..lineTo(cx + half - r, cy - r)
+        ..quadraticBezierTo(cx + half, cy, cx + half - r, cy + r)
+        ..lineTo(cx + r, cy + half - r)
+        ..quadraticBezierTo(cx, cy + half, cx - r, cy + half - r)
+        ..lineTo(cx - half + r, cy + r)
+        ..quadraticBezierTo(cx - half, cy, cx - half + r, cy - r)
+        ..lineTo(cx - r, cy - half + r)
+        ..quadraticBezierTo(cx, cy - half, cx + r, cy - half + r)
+        ..close();
+
+      // Chin — narrow rounded rect whose top overlaps inside the lower half
+      // of the diamond so the union reads as one continuous silhouette.
+      final chinHalfWidth = 0.07 * w;
       final chin = Path()
         ..addRRect(
           RRect.fromRectAndRadius(
-            Rect.fromLTRB((centerX - 0.10) * w, 0.52 * h, (centerX + 0.10) * w, 0.88 * h),
+            Rect.fromLTRB(cx - chinHalfWidth, cy + half * 0.55, cx + chinHalfWidth, 0.90 * h),
             const Radius.circular(14),
           ),
         );
-      canvas.drawPath(Path.combine(PathOperation.union, body, chin), paint);
+
+      canvas.drawPath(Path.combine(PathOperation.union, diamond, chin), paint);
     }
 
     drawPuck(0.25); // left puck (navigation)
