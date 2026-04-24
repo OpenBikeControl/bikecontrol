@@ -22,30 +22,36 @@ class ControllerCanvas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return AspectRatio(
-      aspectRatio: layout.aspectRatio,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final w = constraints.maxWidth;
-          final h = constraints.maxHeight;
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: ControllerContourPainter(shape: layout.shape, color: cs.border),
-                ),
-              ),
-              for (final btn in availableButtons)
-                if (layout.positions[btn] case final pos?)
-                  Positioned(
-                    left: (pos.dx * w) - buttonSize / 2,
-                    top: (pos.dy * h) - buttonSize / 2,
-                    child: buttonBuilder(btn),
+    return Container(
+      width: double.infinity,
+      constraints: BoxConstraints(
+        maxHeight: 300,
+      ),
+      child: AspectRatio(
+        aspectRatio: layout.aspectRatio,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            final h = constraints.maxHeight;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: ControllerContourPainter(shape: layout.shape, color: cs.border),
                   ),
-            ],
-          );
-        },
+                ),
+                for (final btn in availableButtons)
+                  if (layout.positions[btn] case final pos?)
+                    Positioned(
+                      left: (pos.dx * w) - buttonSize / 2,
+                      top: (pos.dy * h) - buttonSize / 2,
+                      child: buttonBuilder(btn),
+                    ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
