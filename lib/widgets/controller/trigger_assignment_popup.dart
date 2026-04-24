@@ -28,10 +28,6 @@ Future<void> showTriggerAssignmentPopup({
         MenuLabel(child: Text(button.displayName)),
         for (final trigger in ButtonTrigger.values)
           MenuButton(
-            leading: Icon(
-              keymap.getKeyPair(button, trigger: trigger)?.icon ?? Icons.add_circle_outline,
-              size: 16,
-            ),
             onPressed: (ctx) async {
               await _openEditorForTrigger(
                 context: context,
@@ -54,6 +50,9 @@ class _TriggerLabel extends StatelessWidget {
   final Keymap keymap;
   final ControllerButton button;
 
+  static const double _titleWidth = 110;
+  static const double _rowHeight = 44;
+
   const _TriggerLabel({required this.trigger, required this.keymap, required this.button});
 
   @override
@@ -62,19 +61,26 @@ class _TriggerLabel extends StatelessWidget {
     final assigned = kp != null && !kp.hasNoAction;
     final value = assigned ? kp.toString() : AppLocalizations.of(context).noActionAssigned;
     final cs = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(trigger.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(width: 6),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.w400,
-            color: assigned ? null : cs.mutedForeground,
+    return SizedBox(
+      height: _rowHeight,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: _titleWidth,
+            child: Text(trigger.title, style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
-        ),
-      ],
+          Icon(kp?.icon ?? Icons.add_circle_outline, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w400,
+              color: assigned ? null : cs.mutedForeground,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
