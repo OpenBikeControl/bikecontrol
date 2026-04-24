@@ -51,7 +51,40 @@ class ControllerContourPainter extends CustomPainter {
       case ContourShape.zwiftPlayLeft:
         _paintZwiftPlay(canvas, size, paint, mirror: true);
         break;
+      case ContourShape.zwiftClickV2:
+        _paintZwiftClickV2(canvas, size, paint);
+        break;
     }
+  }
+
+  /// Zwift Click V2: two identical pucks (nav on the left, ABYZ on the
+  /// right) each with a narrower "chin" extending below for the shift
+  /// button. Two independent outlines so the two halves read as separate
+  /// physical units.
+  void _paintZwiftClickV2(Canvas canvas, Size size, Paint paint) {
+    final w = size.width;
+    final h = size.height;
+
+    void drawPuck(double centerX) {
+      final body = Path()
+        ..addRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTRB((centerX - 0.20) * w, 0.02 * h, (centerX + 0.20) * w, 0.58 * h),
+            const Radius.circular(20),
+          ),
+        );
+      final chin = Path()
+        ..addRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTRB((centerX - 0.10) * w, 0.52 * h, (centerX + 0.10) * w, 0.88 * h),
+            const Radius.circular(14),
+          ),
+        );
+      canvas.drawPath(Path.combine(PathOperation.union, body, chin), paint);
+    }
+
+    drawPuck(0.25); // left puck (navigation)
+    drawPuck(0.75); // right puck (ABYZ)
   }
 
   /// Zwift Play silhouette: a rounded button-panel grip on one side and a
