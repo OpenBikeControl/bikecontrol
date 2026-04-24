@@ -93,12 +93,12 @@ abstract class SupportedApp {
   bool isExperimental(AppConnectionMethod method) => supportLevel(method) == ConnectionSupport.experimental;
 
   static final List<SupportedApp> supportedApps = [
-    BikeControl(),
     MyWhoosh(),
     Zwift(),
     TrainingPeaks(),
     Biketerra(),
     Rouvy(),
+    BikeControl(),
     OpenBikeControl(),
     CustomApp(),
   ];

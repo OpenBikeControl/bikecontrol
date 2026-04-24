@@ -7,6 +7,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -176,40 +177,41 @@ class ProxyDevice extends BluetoothDevice {
       ];
     }
     return [
-      ValueListenableBuilder<RetrofitMode>(
-        valueListenable: emulator.retrofitMode,
-        builder: (context, mode, _) {
-          final icon = switch (mode) {
-            RetrofitMode.proxy => LucideIcons.wifi,
-            RetrofitMode.wifi => LucideIcons.cog,
-            RetrofitMode.bluetooth => LucideIcons.bluetooth,
-          };
-          return ValueListenableBuilder<bool>(
-            valueListenable: emulator.isConnected,
-            builder: (context, connected, _) {
-              final trialOver = _isBridgeTrialOver;
-              final effectiveIcon = trialOver ? Icons.warning_amber_rounded : icon;
-              final label = trialOver
-                  ? AppLocalizations.of(context).bridgeTrialTimeOverTitle
-                  : (connected ? 'Bridge live' : 'Waiting for connection...');
-              final iconColor = trialOver
-                  ? Colors.orange
-                  : (connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground);
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 4,
-                children: [
-                  Icon(effectiveIcon, size: 12, color: iconColor),
-                  Text(
-                    label,
-                    style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ),
+      if (core.settings.getTrainerApp() is! BikeControl)
+        ValueListenableBuilder<RetrofitMode>(
+          valueListenable: emulator.retrofitMode,
+          builder: (context, mode, _) {
+            final icon = switch (mode) {
+              RetrofitMode.proxy => LucideIcons.wifi,
+              RetrofitMode.wifi => LucideIcons.cog,
+              RetrofitMode.bluetooth => LucideIcons.bluetooth,
+            };
+            return ValueListenableBuilder<bool>(
+              valueListenable: emulator.isConnected,
+              builder: (context, connected, _) {
+                final trialOver = _isBridgeTrialOver;
+                final effectiveIcon = trialOver ? Icons.warning_amber_rounded : icon;
+                final label = trialOver
+                    ? AppLocalizations.of(context).bridgeTrialTimeOverTitle
+                    : (connected ? 'Bridge live' : 'Waiting for connection...');
+                final iconColor = trialOver
+                    ? Colors.orange
+                    : (connected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground);
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
+                  children: [
+                    Icon(effectiveIcon, size: 12, color: iconColor),
+                    Text(
+                      label,
+                      style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
     ];
   }
 
