@@ -45,13 +45,11 @@ class _MiniWorkoutPageState extends State<MiniWorkoutPage> {
         title: Text(AppLocalizations.of(ctx).miniWorkoutConfirmStopTitle),
         content: Text(AppLocalizations.of(ctx).miniWorkoutConfirmStopBody),
         actions: [
-          Button(
-            style: ButtonStyle.outline(),
+          Button.outline(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: Text(AppLocalizations.of(ctx).cancel),
           ),
-          Button(
-            style: ButtonStyle.primary(),
+          Button.primary(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(AppLocalizations.of(ctx).miniWorkoutStop),
           ),
@@ -179,19 +177,16 @@ class _MiniWorkoutPageState extends State<MiniWorkoutPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (s == WorkoutState.recording)
-            Button(
-              style: ButtonStyle.secondary(),
+            Button.secondary(
               onPressed: _recorder.pause,
               child: Text(l10n.miniWorkoutPause),
             ),
           if (s == WorkoutState.paused)
-            Button(
-              style: ButtonStyle.primary(),
+            Button.primary(
               onPressed: _recorder.resume,
               child: Text(l10n.miniWorkoutResume),
             ),
-          Button(
-            style: ButtonStyle.destructive(),
+          Button.destructive(
             onPressed: _stopAndSave,
             child: Text(l10n.miniWorkoutStop),
           ),
