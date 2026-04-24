@@ -20,6 +20,7 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
+import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
@@ -48,6 +49,7 @@ class Core {
   late final shiftingConfigs = ShiftingConfigsController(settings.prefs);
   final connection = Connection();
   late final workoutRecorder = WorkoutRecorder();
+  late final workoutRepository = WorkoutRepository();
 
   late final supabase = Supabase.instance.client;
   late final whooshLink = WhooshLink();
