@@ -72,16 +72,17 @@ class ControllerContourPainter extends CustomPainter {
       return Rect.fromLTRB(a < b ? a : b, fy(y0), a < b ? b : a, fy(y1));
     }
 
-    // Grip: wider rounded rect occupying the majority of the layout, ending
-    // above the drop's bottom edge so the step between the two reads as a
-    // distinct shoulder.
+    // Grip: tall rounded rect spanning nearly the full layout height — this
+    // is the physical body the rider holds.
     final grip = Path()
-      ..addRRect(RRect.fromRectAndRadius(rect(0.02, 0.10, 0.60, 0.85), const Radius.circular(20)));
+      ..addRRect(RRect.fromRectAndRadius(rect(0.02, 0.05, 0.60, 0.95), const Radius.circular(20)));
 
-    // Drop: slimmer rounded rect extending further down than the grip. A
-    // ~4% overlap with the grip keeps the outline continuous after union.
+    // Drop: short rounded rect, vertically centred and shorter than the grip
+    // so the step points *up* (the drop is the smaller silhouette clipping
+    // around the handlebar, not the main body). ~4% horizontal overlap with
+    // the grip keeps the outline continuous after union.
     final drop = Path()
-      ..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.10, 0.98, 0.95), const Radius.circular(20)));
+      ..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.22, 0.98, 0.78), const Radius.circular(20)));
 
     canvas.drawPath(Path.combine(PathOperation.union, grip, drop), paint);
   }
