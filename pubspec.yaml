@@ -92,6 +92,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
+  fake_async: any
   pubghost: ^1.0.7
   intl_utils: ^2.8.12
   golden_screenshot: ^8.1.1
