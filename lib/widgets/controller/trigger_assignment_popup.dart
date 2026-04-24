@@ -2,9 +2,12 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Opens a dropdown anchored to [context] with one entry per [ButtonTrigger].
@@ -29,7 +32,6 @@ Future<void> showTriggerAssignmentPopup({
               size: 16,
             ),
             onPressed: (ctx) async {
-              Navigator.of(ctx).pop();
               await _openEditorForTrigger(
                 context: context,
                 device: device,
@@ -63,16 +65,30 @@ Future<void> _openEditorForTrigger({
   required ButtonTrigger trigger,
   required VoidCallback onUpdate,
 }) async {
-  final keyPair = keymap.getOrCreateKeyPair(button, trigger: trigger);
+  Keymap selectedKeymap = keymap;
+  if (core.actionHandler.supportedApp is! CustomApp) {
+    final currentProfile = core.actionHandler.supportedApp!.name;
+    final newName = await KeymapManager().duplicate(
+      context,
+      currentProfile,
+      skipName: '$currentProfile (Copy)',
+    );
+    if (!context.mounted) return;
+    if (newName == null) return;
+    buildToast(title: context.i18n.createdNewCustomProfile(newName));
+    selectedKeymap = core.actionHandler.supportedApp!.keymap;
+  }
+
+  final keyPair = selectedKeymap.getOrCreateKeyPair(button, trigger: trigger);
   await openDrawer(
     context: context,
     builder: (c) => ButtonEditPage(
       device: device,
       keyPair: keyPair,
-      keymap: keymap,
+      keymap: selectedKeymap,
       trigger: trigger,
       onUpdate: () {
-        keymap.signalUpdate();
+        selectedKeymap.signalUpdate();
         if (core.actionHandler.supportedApp is CustomApp) {
           core.settings.setKeyMap(core.actionHandler.supportedApp!);
         }
