@@ -75,39 +75,39 @@ class ZwiftPlay extends ZwiftDevice {
   @override
   ControllerLayout get controllerLayout {
     if (deviceType == ZwiftDeviceType.playLeft) {
-      // Mirrored: grip on the right half, handlebar drop curving to the left.
+      // Mirrored: grip on the right (~40-98%), handlebar drop on the left (~2-44%).
       return ControllerLayout(
-        aspectRatio: 1.3,
+        aspectRatio: 1.2,
         shape: ContourShape.zwiftPlayLeft,
         positions: {
           // D-pad diamond in the right-side grip.
-          ZwiftButtons.navigationUp: const Offset(0.78, 0.24),
-          ZwiftButtons.navigationLeft: const Offset(0.66, 0.40),
-          ZwiftButtons.navigationRight: const Offset(0.90, 0.40),
-          ZwiftButtons.navigationDown: const Offset(0.78, 0.56),
+          ZwiftButtons.navigationUp: const Offset(0.69, 0.22),
+          ZwiftButtons.navigationLeft: const Offset(0.54, 0.40),
+          ZwiftButtons.navigationRight: const Offset(0.84, 0.40),
+          ZwiftButtons.navigationDown: const Offset(0.69, 0.58),
           // On/off sits directly below the down button.
-          ZwiftButtons.onOffLeft: const Offset(0.78, 0.78),
+          ZwiftButtons.onOffLeft: const Offset(0.69, 0.76),
           // Paddle on top, side button to its LEFT on the left controller.
-          ZwiftButtons.paddleLeft: const Offset(0.35, 0.18),
-          ZwiftButtons.sideButtonLeft: const Offset(0.18, 0.18),
+          ZwiftButtons.paddleLeft: const Offset(0.32, 0.20),
+          ZwiftButtons.sideButtonLeft: const Offset(0.14, 0.20),
         },
       );
     }
-    // Right variant matches the user-supplied sketch.
+    // Right variant: grip on the left (~2-60%), slimmer handlebar drop on the right (~56-98%).
     return ControllerLayout(
-      aspectRatio: 1.3,
+      aspectRatio: 1.2,
       shape: ContourShape.zwiftPlayRight,
       positions: {
         // Face-button diamond in the left-side grip.
-        ZwiftButtons.y: const Offset(0.22, 0.24),
-        ZwiftButtons.z: const Offset(0.10, 0.40),
-        ZwiftButtons.a: const Offset(0.34, 0.40),
-        ZwiftButtons.b: const Offset(0.22, 0.56),
+        ZwiftButtons.y: const Offset(0.31, 0.22),
+        ZwiftButtons.z: const Offset(0.16, 0.40),
+        ZwiftButtons.a: const Offset(0.46, 0.40),
+        ZwiftButtons.b: const Offset(0.31, 0.58),
         // On/off sits directly below the down button.
-        ZwiftButtons.onOffRight: const Offset(0.22, 0.78),
+        ZwiftButtons.onOffRight: const Offset(0.31, 0.76),
         // Paddle on top, side button to its RIGHT on the right controller.
-        ZwiftButtons.paddleRight: const Offset(0.65, 0.18),
-        ZwiftButtons.sideButtonRight: const Offset(0.82, 0.18),
+        ZwiftButtons.paddleRight: const Offset(0.68, 0.20),
+        ZwiftButtons.sideButtonRight: const Offset(0.86, 0.20),
       },
     );
   }
