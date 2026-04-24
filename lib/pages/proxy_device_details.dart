@@ -7,6 +7,7 @@ import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
 import 'package:bike_control/pages/trainer_feedback.dart';
 import 'package:bike_control/utils/core.dart';
@@ -113,6 +114,8 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   SizedBox(height: 26),
                 ],
                 LiveMetricsSection(device: device),
+                SizedBox(height: 20),
+                MiniWorkoutCard(device: device),
                 SizedBox(height: 20),
                 _settingsSection(),
                 SizedBox(height: 32),
