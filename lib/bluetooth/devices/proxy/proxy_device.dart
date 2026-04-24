@@ -241,6 +241,20 @@ class ProxyDevice extends BluetoothDevice {
             if (speed != null) {
               _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
             }
+            // Gear (sim / VS mode) or ERG target wattage (erg mode).
+            if (def.trainerMode.value == TrainerMode.ergMode) {
+              final watts = def.ergTargetPower.value;
+              if (watts != null) {
+                _addTextMetric(parts, context, 'ERG $watts W', LucideIcons.target);
+              }
+            } else {
+              _addTextMetric(
+                parts,
+                context,
+                'Gear ${def.currentGear.value}/${def.maxGear}',
+                LucideIcons.settings2,
+              );
+            }
           }
           if (parts.isEmpty) return const SizedBox.shrink();
           return Padding(
@@ -258,16 +272,20 @@ class ProxyDevice extends BluetoothDevice {
 
   void _addMetric(List<Widget> parts, BuildContext context, int? value, String unit, IconData icon) {
     if (value == null) return;
+    _addTextMetric(parts, context, '$value $unit', icon);
+  }
+
+  void _addTextMetric(List<Widget> parts, BuildContext context, String text, IconData icon) {
     parts.add(
       Container(
-        constraints: BoxConstraints(minWidth: 52),
+        constraints: const BoxConstraints(minWidth: 52),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 4,
           children: [
             Icon(icon, size: 12, color: Theme.of(context).colorScheme.mutedForeground),
             Text(
-              '$value $unit',
+              text,
               style: TextStyle(
                 fontSize: 11,
                 color: Theme.of(context).colorScheme.mutedForeground,
