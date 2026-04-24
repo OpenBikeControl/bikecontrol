@@ -1,53 +1,90 @@
-import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/widgets/keymap_explanation.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ButtonWidget extends StatelessWidget {
   final ControllerButton button;
-  final bool big;
-  final double? size;
-  final Color? color;
+  final double size;
+  final Keymap? keymap;
 
-  const ButtonWidget({super.key, required this.button, this.big = false, this.color, this.size});
+  const ButtonWidget({
+    super.key,
+    required this.button,
+    this.size = 56,
+    this.keymap,
+  });
+
+  List<KeyPair> get _assignedPairs {
+    if (keymap == null) return const [];
+    return keymap!.getKeyPairs(button).where((kp) => !kp.hasNoAction).toList();
+  }
+
+  IconData? get _primaryActionIcon {
+    const ordered = [ButtonTrigger.singleClick, ButtonTrigger.doubleClick, ButtonTrigger.longPress];
+    for (final t in ordered) {
+      final kp = _assignedPairs.firstOrNullWhere((p) => p.trigger == t);
+      if (kp?.icon != null) return kp!.icon;
+    }
+    return _assignedPairs.firstOrNull?.icon;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicWidth(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        constraints: BoxConstraints(
-          minWidth: size ?? (big && button.color != null ? 40 : 30),
-          minHeight: size ?? (big && button.color != null ? 40 : 0),
-        ),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color:
-                color ??
-                (button.color != null ? Colors.black.getContrastColor(0.3) : Theme.of(context).colorScheme.primary),
+    final cs = Theme.of(context).colorScheme;
+    final color = button.color ?? cs.muted;
+    final icon = _primaryActionIcon ?? button.icon;
+    final assignedCount = _assignedPairs.length;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(color: cs.border, width: 1.5),
+            ),
           ),
-          shape: button.color != null || button.icon != null ? BoxShape.circle : BoxShape.rectangle,
-          borderRadius: button.color != null || button.icon != null ? null : BorderRadius.circular(8),
-          color: color?.withLuminance(0.9) ?? button.color ?? Colors.black,
-        ),
-        child: Center(
-          child: button.icon != null
-              ? Icon(
-                  button.icon,
-                  color: color ?? Colors.white,
-                  size: size ?? (big && button.color != null ? null : 14),
-                )
-              : Text(
-                  button.displayName.splitByUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: screenshotMode ? null : 'monospace',
-                    fontSize: big && button.color != null ? 20 : 12,
-                    fontWeight: button.color != null ? FontWeight.bold : null,
-                    color: color?.getContrastColor(0.3) ?? Colors.white,
-                  ),
+          if (icon != null)
+            Icon(icon, size: size * 0.42, color: cs.foreground)
+          else
+            Text(
+              button.initials,
+              style: TextStyle(
+                fontSize: size * 0.26,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+                color: cs.foreground,
+              ),
+            ),
+          if (icon != null)
+            Positioned(
+              bottom: 2,
+              child: Text(
+                button.initials,
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: cs.mutedForeground),
+              ),
+            ),
+          if (assignedCount > 1)
+            Positioned(
+              top: 2,
+              right: 2,
+              child: Container(
+                width: 14,
+                height: 14,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
+                child: Text(
+                  '$assignedCount',
+                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: cs.primaryForeground),
                 ),
-        ),
+              ),
+            ),
+        ],
       ),
     );
   }

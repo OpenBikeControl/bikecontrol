@@ -48,7 +48,7 @@ class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget> with Single
         scale: _scale.value,
         child: child,
       ),
-      child: ButtonWidget(button: widget.button, color: Colors.gray),
+      child: ButtonWidget(button: widget.button),
     );
   }
 }
