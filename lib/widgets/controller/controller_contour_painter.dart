@@ -1,58 +1,63 @@
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/material.dart';
 
-/// Strokes a light silhouette of the controller behind the positioned
-/// buttons. Stroke-only (no fill) so the buttons remain the focal point.
+/// Strokes the controller silhouette with a light fill behind it so the
+/// controller body stands out from the page, without competing with the
+/// positioned buttons visually.
 class ControllerContourPainter extends CustomPainter {
   final ContourShape shape;
   final Color color;
+  final Color fillColor;
 
-  const ControllerContourPainter({required this.shape, required this.color});
+  const ControllerContourPainter({
+    required this.shape,
+    required this.color,
+    required this.fillColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final stroke = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
+    final fill = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.fill;
+
+    void drawBoth(Path path) {
+      canvas.drawPath(path, fill);
+      canvas.drawPath(path, stroke);
+    }
 
     switch (shape) {
       case ContourShape.puck:
-        canvas.drawOval(Offset.zero & size, paint);
+        drawBoth(Path()..addOval(Offset.zero & size));
         break;
       case ContourShape.pill:
         final r = size.height / 2;
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(r)),
-          paint,
-        );
+        drawBoth(Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(r))));
         break;
       case ContourShape.rect:
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(18)),
-          paint,
-        );
+        drawBoth(Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(18))));
         break;
       case ContourShape.dropBar:
-        _paintDropBar(canvas, size, paint);
+        _paintDropBar(canvas, size, fill, stroke);
         break;
       case ContourShape.steeringPad:
-        _paintSteeringPad(canvas, size, paint);
+        _paintSteeringPad(canvas, size, drawBoth);
         break;
       case ContourShape.phone:
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(28)),
-          paint,
-        );
+        drawBoth(Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(28))));
         break;
       case ContourShape.zwiftPlayRight:
-        _paintZwiftPlay(canvas, size, paint, mirror: false);
+        _paintZwiftPlay(canvas, size, fill, stroke, mirror: false);
         break;
       case ContourShape.zwiftPlayLeft:
-        _paintZwiftPlay(canvas, size, paint, mirror: true);
+        _paintZwiftPlay(canvas, size, fill, stroke, mirror: true);
         break;
       case ContourShape.zwiftClickV2:
-        _paintZwiftClickV2(canvas, size, paint);
+        _paintZwiftClickV2(canvas, size, fill, stroke);
         break;
     }
   }
@@ -61,7 +66,7 @@ class ControllerContourPainter extends CustomPainter {
   /// right). Each puck body is a rounded-corner diamond, with a narrower
   /// "chin" extending below for the shift button. Two independent outlines
   /// so the two halves read as separate physical units.
-  void _paintZwiftClickV2(Canvas canvas, Size size, Paint paint) {
+  void _paintZwiftClickV2(Canvas canvas, Size size, Paint fill, Paint stroke) {
     final w = size.width;
     final h = size.height;
 
@@ -96,7 +101,9 @@ class ControllerContourPainter extends CustomPainter {
           ),
         );
 
-      canvas.drawPath(Path.combine(PathOperation.union, diamond, chin), paint);
+      final unified = Path.combine(PathOperation.union, diamond, chin);
+      canvas.drawPath(unified, fill);
+      canvas.drawPath(unified, stroke);
     }
 
     drawPuck(0.25); // left puck (navigation)
@@ -108,7 +115,7 @@ class ControllerContourPainter extends CustomPainter {
   /// outline via `Path.combine(union)` so the seam between the two shapes
   /// never strokes a doubled line. [mirror] flips the two halves for the
   /// left-hand variant.
-  void _paintZwiftPlay(Canvas canvas, Size size, Paint paint, {required bool mirror}) {
+  void _paintZwiftPlay(Canvas canvas, Size size, Paint fill, Paint stroke, {required bool mirror}) {
     final w = size.width;
     final h = size.height;
 
@@ -134,10 +141,14 @@ class ControllerContourPainter extends CustomPainter {
     final drop = Path()
       ..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.05, 0.98, 0.60), const Radius.circular(20)));
 
-    canvas.drawPath(Path.combine(PathOperation.union, grip, drop), paint);
+    final unified = Path.combine(PathOperation.union, grip, drop);
+    canvas.drawPath(unified, fill);
+    canvas.drawPath(unified, stroke);
   }
 
-  void _paintDropBar(Canvas canvas, Size size, Paint paint) {
+  /// Drop-bar contour has two open grip strokes + a connecting top bar. No
+  /// closed area to fill, so this draws only the stroke.
+  void _paintDropBar(Canvas canvas, Size size, Paint fill, Paint stroke) {
     final w = size.width;
     final h = size.height;
     final gripW = w * 0.22;
@@ -152,23 +163,25 @@ class ControllerContourPainter extends CustomPainter {
       ..lineTo(w - gripW, bottomY)
       ..moveTo(gripW, topY)
       ..lineTo(w - gripW, topY);
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, stroke);
   }
 
-  void _paintSteeringPad(Canvas canvas, Size size, Paint paint) {
+  void _paintSteeringPad(Canvas canvas, Size size, void Function(Path) drawBoth) {
     final w = size.width;
     final h = size.height;
     final midY = h / 2;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.15, midY - h * 0.15, w * 0.7, h * 0.3),
-        const Radius.circular(10),
-      ),
-      paint,
+    drawBoth(
+      Path()
+        ..addRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * 0.15, midY - h * 0.15, w * 0.7, h * 0.3),
+            const Radius.circular(10),
+          ),
+        ),
     );
   }
 
   @override
   bool shouldRepaint(covariant ControllerContourPainter old) =>
-      old.shape != shape || old.color != color;
+      old.shape != shape || old.color != color || old.fillColor != fillColor;
 }
