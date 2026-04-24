@@ -51,28 +51,33 @@ class ZwiftRide extends ZwiftDevice {
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
     aspectRatio: 2.2,
+    // The dropBar painter now reuses the Zwift Play silhouettes — Play-left
+    // in the left half of the canvas, Play-right in the right half.
     shape: ContourShape.dropBar,
     positions: {
-      // Left grip
-      ZwiftButtons.navigationUp: const Offset(0.11, 0.3),
-      ZwiftButtons.navigationLeft: const Offset(0.05, 0.45),
-      ZwiftButtons.navigationRight: const Offset(0.17, 0.45),
-      ZwiftButtons.navigationDown: const Offset(0.11, 0.6),
-      ZwiftButtons.shiftUpLeft: const Offset(0.11, 0.76),
-      ZwiftButtons.shiftDownLeft: const Offset(0.05, 0.86),
-      ZwiftButtons.powerUpLeft: const Offset(0.17, 0.86),
-      ZwiftButtons.onOffLeft: const Offset(0.05, 0.2),
-      ZwiftButtons.paddleLeft: const Offset(0.05, 0.96),
-      // Right grip
-      ZwiftButtons.a: const Offset(0.83, 0.45),
-      ZwiftButtons.b: const Offset(0.89, 0.6),
-      ZwiftButtons.y: const Offset(0.89, 0.3),
-      ZwiftButtons.z: const Offset(0.77, 0.45),
-      ZwiftButtons.shiftUpRight: const Offset(0.89, 0.76),
-      ZwiftButtons.shiftDownRight: const Offset(0.83, 0.86),
-      ZwiftButtons.powerUpRight: const Offset(0.95, 0.86),
-      ZwiftButtons.onOffRight: const Offset(0.95, 0.2),
-      ZwiftButtons.paddleRight: const Offset(0.95, 0.96),
+      // LEFT half — Play-LEFT positions scaled from x∈[0,1] (Play canvas) to
+      // x∈[0,0.5] (Ride canvas left half). y values unchanged.
+      ZwiftButtons.navigationUp: const Offset(0.345, 0.22),
+      ZwiftButtons.navigationLeft: const Offset(0.27, 0.40),
+      ZwiftButtons.navigationRight: const Offset(0.42, 0.40),
+      ZwiftButtons.navigationDown: const Offset(0.345, 0.58),
+      ZwiftButtons.onOffLeft: const Offset(0.345, 0.76),
+      ZwiftButtons.paddleLeft: const Offset(0.16, 0.22),
+      // Ride-only extras laid out down the left drop column.
+      ZwiftButtons.shiftUpLeft: const Offset(0.07, 0.22),
+      ZwiftButtons.shiftDownLeft: const Offset(0.07, 0.40),
+      ZwiftButtons.powerUpLeft: const Offset(0.07, 0.58),
+      // RIGHT half — Play-RIGHT positions scaled to x∈[0.5,1.0].
+      ZwiftButtons.y: const Offset(0.655, 0.22),
+      ZwiftButtons.z: const Offset(0.58, 0.40),
+      ZwiftButtons.a: const Offset(0.73, 0.40),
+      ZwiftButtons.b: const Offset(0.655, 0.58),
+      ZwiftButtons.onOffRight: const Offset(0.655, 0.76),
+      ZwiftButtons.paddleRight: const Offset(0.84, 0.22),
+      // Ride-only extras laid out down the right drop column.
+      ZwiftButtons.shiftUpRight: const Offset(0.93, 0.22),
+      ZwiftButtons.shiftDownRight: const Offset(0.93, 0.40),
+      ZwiftButtons.powerUpRight: const Offset(0.93, 0.58),
     },
   );
 
