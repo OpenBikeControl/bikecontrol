@@ -42,16 +42,41 @@ Future<void> showTriggerAssignmentPopup({
                 onUpdate: onUpdate,
               );
             },
-            child: Text(_labelFor(context, trigger, keymap, button)),
+            child: _TriggerLabel(trigger: trigger, keymap: keymap, button: button),
           ),
       ],
     ),
   );
 }
 
-String _labelFor(BuildContext context, ButtonTrigger trigger, Keymap keymap, ControllerButton button) {
-  final kp = keymap.getKeyPair(button, trigger: trigger);
-  return '${trigger.title}: ${kp?.toString() ?? AppLocalizations.of(context).noActionAssigned}';
+class _TriggerLabel extends StatelessWidget {
+  final ButtonTrigger trigger;
+  final Keymap keymap;
+  final ControllerButton button;
+
+  const _TriggerLabel({required this.trigger, required this.keymap, required this.button});
+
+  @override
+  Widget build(BuildContext context) {
+    final kp = keymap.getKeyPair(button, trigger: trigger);
+    final assigned = kp != null && !kp.hasNoAction;
+    final value = assigned ? kp.toString() : AppLocalizations.of(context).noActionAssigned;
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(trigger.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.w400,
+            color: assigned ? null : cs.mutedForeground,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 Future<void> _openEditorForTrigger({
