@@ -38,6 +38,7 @@ class ButtonWidget extends StatelessWidget {
     // themes even when `button.color` is explicitly set to black.
     final onBg = bg.computeLuminance() < 0.5 ? Colors.white : Colors.black;
     final actionIcon = _primaryActionIcon;
+    final hasAssignment = _assignedPairs.isNotEmpty;
     final badgeSize = size * 0.34;
 
     return SizedBox(
@@ -52,6 +53,15 @@ class ButtonWidget extends StatelessWidget {
               color: bg,
               shape: BoxShape.circle,
               border: Border.all(color: cs.border, width: 1.5),
+              boxShadow: hasAssignment
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.22),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
           ),
           if (button.icon != null)
