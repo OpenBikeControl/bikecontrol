@@ -147,6 +147,10 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                         core.settings.setKeyMap(selectedApp);
                       }
                       core.logic.startEnabledConnectionMethod();
+
+                      if (selectedApp is BikeControl) {
+                        core.settings.setLastTarget(Target.thisDevice);
+                      }
                       widget.onUpdate();
                       setState(() {});
                     },
@@ -206,7 +210,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                   ],
 
                   if (core.settings.getLastTarget() == Target.otherDevice &&
-                      !core.logic.hasRecommendedConnectionMethods) ...[
+                      !core.logic.hasRecommendedConnectionMethods &&
+                      core.settings.getTrainerApp() is! BikeControl) ...[
                     SizedBox(height: 8),
                     Warning(
                       children: [

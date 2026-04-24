@@ -278,7 +278,7 @@ class ProxyDevice extends BluetoothDevice {
   void _addTextMetric(List<Widget> parts, BuildContext context, String text, IconData icon) {
     parts.add(
       Container(
-        constraints: const BoxConstraints(minWidth: 52),
+        constraints: const BoxConstraints(minWidth: 42),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 4,

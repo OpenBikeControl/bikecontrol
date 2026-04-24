@@ -107,6 +107,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               children: [
                 _intro(context),
                 GearHeroCard(definition: def, simOnly: true),
+                _vsModeCard(),
                 _gradeSmoothingCard(context),
                 _gearCountCard(context),
                 _heroCurve(context),
@@ -130,6 +131,50 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   }
 
   Widget _heroCurve(BuildContext context) => GearRatioCurve(definition: def);
+
+  Widget _vsModeCard() {
+    return AnimatedBuilder(
+      animation: Listenable.merge([def.virtualShiftingMode, def.trainerFeature]),
+      builder: (context, _) {
+        final mode = def.virtualShiftingMode.value;
+        return SettingTile(
+          title: 'Virtual Shifting Mode',
+          subtitle: 'How resistance is computed per gear',
+          child: RadioGroup<VirtualShiftingMode>(
+            value: mode,
+            onChanged: (v) async {
+              def.setVirtualShiftingMode(v);
+              await _updateActive((c) => c.copyWith(mode: v));
+            },
+            child: Row(
+              spacing: 6,
+              children: [
+                _vsRadioCard('Target Power', VirtualShiftingMode.targetPower),
+                _vsRadioCard('Track Resistance', VirtualShiftingMode.trackResistance),
+                _vsRadioCard('Basic', VirtualShiftingMode.basicResistance),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _vsRadioCard(String label, VirtualShiftingMode value) {
+    final supported = def.supportsVirtualShiftingMode(value);
+    return Expanded(
+      child: RadioCard<VirtualShiftingMode>(
+        value: value,
+        enabled: supported,
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _gearCountCard(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
