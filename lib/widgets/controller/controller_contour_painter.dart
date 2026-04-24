@@ -77,12 +77,13 @@ class ControllerContourPainter extends CustomPainter {
     final grip = Path()
       ..addRRect(RRect.fromRectAndRadius(rect(0.02, 0.05, 0.60, 0.95), const Radius.circular(20)));
 
-    // Drop: short rounded rect, vertically centred and shorter than the grip
-    // so the step points *up* (the drop is the smaller silhouette clipping
-    // around the handlebar, not the main body). ~4% horizontal overlap with
-    // the grip keeps the outline continuous after union.
+    // Drop: short rounded rect aligned to the top edge of the layout. The
+    // grip continues below the drop's bottom, so the shoulder between the
+    // two points up (the drop is the smaller silhouette clipping around the
+    // handlebar, not the main body). ~4% horizontal overlap with the grip
+    // keeps the outline continuous after union.
     final drop = Path()
-      ..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.22, 0.98, 0.78), const Radius.circular(20)));
+      ..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.05, 0.98, 0.60), const Radius.circular(20)));
 
     canvas.drawPath(Path.combine(PathOperation.union, grip, drop), paint);
   }
