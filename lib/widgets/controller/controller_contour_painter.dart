@@ -114,12 +114,23 @@ class ControllerContourPainter extends CustomPainter {
   /// slimmer handlebar-drop block on the other, merged into a single closed
   /// outline via `Path.combine(union)` so the seam between the two shapes
   /// never strokes a doubled line. [mirror] flips the two halves for the
-  /// left-hand variant.
-  void _paintZwiftPlay(Canvas canvas, Size size, Paint fill, Paint stroke, {required bool mirror}) {
+  /// left-hand variant. [xMin] / [xMax] restrict the Play shape to a
+  /// sub-range of the canvas width — used by [_paintDropBar] to tile two
+  /// Play silhouettes (left + right) onto the same canvas.
+  void _paintZwiftPlay(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke, {
+    required bool mirror,
+    double xMin = 0.0,
+    double xMax = 1.0,
+  }) {
     final w = size.width;
     final h = size.height;
+    final xRange = xMax - xMin;
 
-    double fx(double x) => mirror ? (1.0 - x) * w : x * w;
+    double fx(double x) => (xMin + (mirror ? (1.0 - x) : x) * xRange) * w;
     double fy(double y) => y * h;
 
     Rect rect(double x0, double y0, double x1, double y1) {
@@ -144,24 +155,14 @@ class ControllerContourPainter extends CustomPainter {
     canvas.drawPath(unified, stroke);
   }
 
-  /// Drop-bar contour has two open grip strokes + a connecting top bar. No
-  /// closed area to fill, so this draws only the stroke.
+  /// Handlebar-integrated controllers (Zwift Ride, Wahoo KICKR BIKE SHIFT):
+  /// reuse the Zwift Play left silhouette on the left half of the canvas and
+  /// the Zwift Play right silhouette on the right half. The two silhouettes
+  /// stay as independent closed shapes so they read as two distinct hand
+  /// positions rather than a single connected bar.
   void _paintDropBar(Canvas canvas, Size size, Paint fill, Paint stroke) {
-    final w = size.width;
-    final h = size.height;
-    final gripW = w * 0.22;
-    final topY = h * 0.22;
-    final bottomY = h * 0.92;
-    final path = Path()
-      ..moveTo(0, topY)
-      ..lineTo(gripW, topY)
-      ..lineTo(gripW, bottomY)
-      ..moveTo(w, topY)
-      ..lineTo(w - gripW, topY)
-      ..lineTo(w - gripW, bottomY)
-      ..moveTo(gripW, topY)
-      ..lineTo(w - gripW, topY);
-    canvas.drawPath(path, stroke);
+    _paintZwiftPlay(canvas, size, fill, stroke, mirror: true, xMin: 0.0, xMax: 0.5);
+    _paintZwiftPlay(canvas, size, fill, stroke, mirror: false, xMin: 0.5, xMax: 1.0);
   }
 
   void _paintSteeringPad(Canvas canvas, Size size, void Function(Path) drawBoth) {
