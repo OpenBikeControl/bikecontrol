@@ -3,10 +3,12 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/controller/trigger_conflict_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -105,6 +107,29 @@ Future<void> _openEditorForTrigger({
     if (newName == null) return;
     buildToast(title: context.i18n.createdNewCustomProfile(newName));
     selectedKeymap = core.actionHandler.supportedApp!.keymap;
+  }
+
+  final currentKeyPair = selectedKeymap.getKeyPair(button, trigger: trigger);
+  final hasAction = currentKeyPair != null && !currentKeyPair.hasNoAction;
+  final isPro = IAPManager.instance.hasActiveSubscription;
+  final hasOtherAssignedTrigger = hasActiveTriggerOtherThan(selectedKeymap, button, trigger);
+  bool clearOtherTriggers = false;
+
+  if (!isPro && !hasAction && hasOtherAssignedTrigger) {
+    final resolution = await showTriggerConflictDialog(context, trigger);
+    if (!context.mounted || resolution == null) return;
+
+    if (resolution == TriggerConflictResolution.goPro) {
+      await IAPManager.instance.purchaseSubscription(context);
+      if (!context.mounted || !IAPManager.instance.hasActiveSubscription) return;
+    } else if (resolution == TriggerConflictResolution.replaceOtherTriggers) {
+      clearOtherTriggers = true;
+    }
+  }
+
+  if (clearOtherTriggers) {
+    clearOtherTriggerAssignments(selectedKeymap, button, trigger);
+    selectedKeymap.signalUpdate();
   }
 
   final keyPair = selectedKeymap.getOrCreateKeyPair(button, trigger: trigger);
