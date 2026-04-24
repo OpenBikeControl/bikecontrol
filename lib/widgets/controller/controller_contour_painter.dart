@@ -73,7 +73,7 @@ class ControllerContourPainter extends CustomPainter {
     void drawPuck(double centerXNorm) {
       final cx = centerXNorm * w;
       final cy = 0.42 * h;
-      final half = 0.40 * h; // ~1.5× the original so 56-px buttons sit inside
+      final half = 0.46 * h; // ~1.5× the original so 56-px buttons sit inside
       const r = 10.0; // corner-rounding offset, in edge-direction units
 
       // Rounded diamond (rotated rounded square) traced clockwise from the
@@ -130,16 +130,14 @@ class ControllerContourPainter extends CustomPainter {
 
     // Grip: tall rounded rect spanning nearly the full layout height — this
     // is the physical body the rider holds.
-    final grip = Path()
-      ..addRRect(RRect.fromRectAndRadius(rect(0.02, 0.05, 0.60, 0.95), const Radius.circular(20)));
+    final grip = Path()..addRRect(RRect.fromRectAndRadius(rect(0.02, 0.05, 0.60, 0.95), const Radius.circular(20)));
 
     // Drop: short rounded rect aligned to the top edge of the layout. The
     // grip continues below the drop's bottom, so the shoulder between the
     // two points up (the drop is the smaller silhouette clipping around the
     // handlebar, not the main body). ~4% horizontal overlap with the grip
     // keeps the outline continuous after union.
-    final drop = Path()
-      ..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.05, 0.98, 0.60), const Radius.circular(20)));
+    final drop = Path()..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.05, 0.98, 0.60), const Radius.circular(20)));
 
     final unified = Path.combine(PathOperation.union, grip, drop);
     canvas.drawPath(unified, fill);
@@ -171,13 +169,12 @@ class ControllerContourPainter extends CustomPainter {
     final h = size.height;
     final midY = h / 2;
     drawBoth(
-      Path()
-        ..addRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTWH(w * 0.15, midY - h * 0.15, w * 0.7, h * 0.3),
-            const Radius.circular(10),
-          ),
+      Path()..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(w * 0.15, midY - h * 0.15, w * 0.7, h * 0.3),
+          const Radius.circular(10),
         ),
+      ),
     );
   }
 

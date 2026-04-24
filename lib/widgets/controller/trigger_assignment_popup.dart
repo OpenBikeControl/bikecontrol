@@ -70,7 +70,7 @@ class _TriggerLabel extends StatelessWidget {
             width: _titleWidth,
             child: Text(trigger.title, style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
-          Icon(kp?.icon ?? Icons.add_circle_outline, size: 16),
+          if (kp?.icon != null) Icon(kp!.icon, size: 16),
           const SizedBox(width: 6),
           Text(
             value,

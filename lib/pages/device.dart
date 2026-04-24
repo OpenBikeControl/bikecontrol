@@ -85,7 +85,7 @@ class _DevicePageState extends State<DevicePage> {
                       spacing: 8,
                       children: [
                         device.showInformation(context, showFull: false),
-                        if (!widget.isMobile && !screenshotMode) widget.footerBuilder(device),
+                        if (!screenshotMode) widget.footerBuilder(device),
                         ...device.showAdditionalInformation(context),
                       ],
                     ),
