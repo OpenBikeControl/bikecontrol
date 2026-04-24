@@ -181,7 +181,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                                 child: IntrinsicHeight(
                                   child: ButtonWidget(
                                     button: button,
-                                    big: true,
                                   ),
                                 ),
                               ),

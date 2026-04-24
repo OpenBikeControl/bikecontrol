@@ -395,7 +395,7 @@ class KeypairExplanation extends StatelessWidget {
     return Basic(
       leading: withKey
           ? Row(
-              children: keyPair.buttons.map((b) => ButtonWidget(button: b, big: true)).toList(),
+              children: keyPair.buttons.map((b) => ButtonWidget(button: b)).toList(),
             )
           : Icon(keyPair.icon),
       leadingAlignment: Alignment.centerLeft,
