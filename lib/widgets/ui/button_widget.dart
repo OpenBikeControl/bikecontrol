@@ -32,30 +32,30 @@ class ButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final color = button.color ?? cs.muted;
-    final icon = _primaryActionIcon ?? button.icon;
-    final assignedCount = _assignedPairs.length;
+    final bg = button.color ?? cs.muted;
     // Pick a foreground that contrasts with the actual button background
     // rather than the theme's `cs.foreground`, which stays dark on light
     // themes even when `button.color` is explicitly set to black.
-    final onColor = color.computeLuminance() < 0.5 ? Colors.white : Colors.black;
-    final onColorMuted = onColor.withValues(alpha: 0.65);
+    final onBg = bg.computeLuminance() < 0.5 ? Colors.white : Colors.black;
+    final actionIcon = _primaryActionIcon;
+    final badgeSize = size * 0.34;
 
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
+        clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           Container(
             decoration: BoxDecoration(
-              color: color,
+              color: bg,
               shape: BoxShape.circle,
               border: Border.all(color: cs.border, width: 1.5),
             ),
           ),
-          if (icon != null)
-            Icon(icon, size: size * 0.42, color: onColor)
+          if (button.icon != null)
+            Icon(button.icon, size: size * 0.42, color: onBg)
           else
             Text(
               button.initials,
@@ -63,30 +63,23 @@ class ButtonWidget extends StatelessWidget {
                 fontSize: size * 0.26,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.2,
-                color: onColor,
+                color: onBg,
               ),
             ),
-          if (icon != null)
+          if (actionIcon != null)
             Positioned(
-              bottom: 2,
-              child: Text(
-                button.initials,
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: onColorMuted),
-              ),
-            ),
-          if (assignedCount > 1)
-            Positioned(
-              top: 2,
-              right: 2,
+              top: -badgeSize * 0.25,
+              right: -badgeSize * 0.25,
               child: Container(
-                width: 14,
-                height: 14,
+                width: badgeSize,
+                height: badgeSize,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
-                child: Text(
-                  '$assignedCount',
-                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: cs.primaryForeground),
+                decoration: BoxDecoration(
+                  color: cs.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: cs.background, width: 1.5),
                 ),
+                child: Icon(actionIcon, size: badgeSize * 0.6, color: cs.primaryForeground),
               ),
             ),
         ],
