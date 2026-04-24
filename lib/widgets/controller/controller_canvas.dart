@@ -19,14 +19,23 @@ class ControllerCanvas extends StatelessWidget {
     this.buttonSize = 56,
   });
 
+  /// When a device sets `allowMultiple: true`, its `availableButtons` are
+  /// cloned with a per-device `sourceDeviceId` set, which breaks `==` against
+  /// the original `ControllerButton` stored in `layout.positions`. Match on
+  /// the `name` field instead — unique within any one device's button set.
+  Offset? _positionFor(ControllerButton btn) {
+    for (final entry in layout.positions.entries) {
+      if (entry.key.name == btn.name) return entry.value;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      constraints: BoxConstraints(
-        maxHeight: 300,
-      ),
+      constraints: BoxConstraints(maxHeight: 250),
       child: AspectRatio(
         aspectRatio: layout.aspectRatio,
         child: LayoutBuilder(
@@ -38,11 +47,15 @@ class ControllerCanvas extends StatelessWidget {
               children: [
                 Positioned.fill(
                   child: CustomPaint(
-                    painter: ControllerContourPainter(shape: layout.shape, color: cs.border),
+                    painter: ControllerContourPainter(
+                      shape: layout.shape,
+                      color: cs.border,
+                      fillColor: cs.muted.withValues(alpha: 0.6),
+                    ),
                   ),
                 ),
                 for (final btn in availableButtons)
-                  if (layout.positions[btn] case final pos?)
+                  if (_positionFor(btn) case final pos?)
                     Positioned(
                       left: (pos.dx * w) - buttonSize / 2,
                       top: (pos.dy * h) - buttonSize / 2,
