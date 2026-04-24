@@ -1074,6 +1074,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ),
           ),
           Divider(thickness: 0.5),
+          const Gap(12),
           TrainerFeatures(withCard: false),
         ],
       ),
