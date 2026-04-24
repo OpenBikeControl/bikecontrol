@@ -25,6 +25,7 @@ Future<void> showTriggerAssignmentPopup({
     context: context,
     builder: (c) => DropdownMenu(
       children: [
+        MenuLabel(child: Text(button.displayName)),
         for (final trigger in ButtonTrigger.values)
           MenuButton(
             leading: Icon(
@@ -50,11 +51,7 @@ Future<void> showTriggerAssignmentPopup({
 
 String _labelFor(BuildContext context, ButtonTrigger trigger, Keymap keymap, ControllerButton button) {
   final kp = keymap.getKeyPair(button, trigger: trigger);
-  if (kp == null || kp.hasNoAction) {
-    return '${trigger.title}: ${AppLocalizations.of(context).noActionAssigned}';
-  }
-  final actionName = kp.inGameAction?.title ?? kp.physicalKey?.debugName ?? AppLocalizations.of(context).action;
-  return '${trigger.title}: $actionName';
+  return '${trigger.title}: ${kp?.toString() ?? AppLocalizations.of(context).noActionAssigned}';
 }
 
 Future<void> _openEditorForTrigger({
