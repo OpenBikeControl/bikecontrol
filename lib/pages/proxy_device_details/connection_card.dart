@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
+import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -209,6 +211,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
           ),
           LoadingWidget(
             futureCallback: () async {
+              if (IAPManager.instance.isTrialExpired) {
+                await showGoProDialog(context);
+                return;
+              }
               if (_pendingMode == RetrofitMode.bluetooth) {
                 final ok = await _ensureBluetoothAdvertisePermissions();
                 if (!ok) return;
