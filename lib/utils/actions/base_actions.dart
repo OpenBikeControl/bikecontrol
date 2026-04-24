@@ -164,11 +164,7 @@ abstract class BaseActions {
     }
 
     // Handle trainer-control actions
-    if (keyPair.inGameAction == InGameAction.trainerUp ||
-        keyPair.inGameAction == InGameAction.trainerDown ||
-        keyPair.inGameAction == InGameAction.trainerSwitchMode ||
-        keyPair.inGameAction == InGameAction.trainerIntensityUp ||
-        keyPair.inGameAction == InGameAction.trainerIntensityDown) {
+    if (trainerActions.contains(keyPair.inGameAction)) {
       if (!isKeyDown) return Ignored('');
       final proxy = core.connection.proxyDevices.whereType<ProxyDevice>().where((d) => d.isConnected).firstOrNull;
       if (proxy == null) {

@@ -746,7 +746,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   late final PageController _horizontalScrollController = PageController();
 
   Widget _buildFlowRow(SupportedApp? trainerApp, List<TrainerConnection> enabledTrainers) {
-    final isConnected = enabledTrainers.any((t) => t.isConnected.value);
+    final isConnected = enabledTrainers.any((t) => t.isConnected.value) || trainerApp is BikeControl;
     final appName = trainerApp?.name ?? '-';
     final compact = _screenWidth < 518;
 

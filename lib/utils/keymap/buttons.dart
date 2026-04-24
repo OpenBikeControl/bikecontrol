@@ -92,6 +92,14 @@ enum InGameAction {
   }
 }
 
+const trainerActions = [
+  InGameAction.trainerUp,
+  InGameAction.trainerDown,
+  InGameAction.trainerSwitchMode,
+  InGameAction.trainerIntensityUp,
+  InGameAction.trainerIntensityDown,
+];
+
 class ControllerButton {
   static const int _deviceIdSuffixLength = 4;
   static const _unset = Object();
