@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
@@ -92,6 +93,7 @@ abstract class SupportedApp {
   bool isExperimental(AppConnectionMethod method) => supportLevel(method) == ConnectionSupport.experimental;
 
   static final List<SupportedApp> supportedApps = [
+    BikeControl(),
     MyWhoosh(),
     Zwift(),
     TrainingPeaks(),
