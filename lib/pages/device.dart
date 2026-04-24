@@ -17,11 +17,13 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
 
+typedef ControllerFooterBuilder = Widget Function(BaseDevice device);
+
 class DevicePage extends StatefulWidget {
   final bool isMobile;
   final Map<String, GlobalKey> cardKeys;
   final VoidCallback onUpdate;
-  final List<Widget> Function(BaseDevice) footerBuilder;
+  final ControllerFooterBuilder footerBuilder;
   const DevicePage({
     super.key,
     required this.onUpdate,
@@ -82,26 +84,8 @@ class _DevicePageState extends State<DevicePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 8,
                       children: [
-                        Row(
-                          spacing: 12,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: device.showInformation(context, showFull: false),
-                            ),
-                            if (!widget.isMobile && !screenshotMode)
-                              Flexible(
-                                child: Wrap(
-                                  alignment: WrapAlignment.start,
-                                  runAlignment: WrapAlignment.start,
-                                  crossAxisAlignment: WrapCrossAlignment.start,
-                                  spacing: 9,
-                                  runSpacing: 9,
-                                  children: widget.footerBuilder(device),
-                                ),
-                              ),
-                          ],
-                        ),
+                        device.showInformation(context, showFull: false),
+                        if (!widget.isMobile && !screenshotMode) widget.footerBuilder(device),
                         ...device.showAdditionalInformation(context),
                       ],
                     ),
