@@ -9,6 +9,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -25,6 +26,12 @@ abstract class BaseDevice {
   final String uniqueId;
   final IconData icon;
   final List<ControllerButton> availableButtons;
+
+  /// Optional visual layout for the [DevicePage] controller footer. When
+  /// null, the footer falls back to a plain [Wrap] of buttons. Subclasses
+  /// for known hardware override this with a [ControllerLayout] positioning
+  /// each button on a rough silhouette of the physical controller.
+  ControllerLayout? get controllerLayout => null;
 
   BaseDevice(
     this._name, {
