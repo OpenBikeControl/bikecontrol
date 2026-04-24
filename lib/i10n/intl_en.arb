@@ -521,6 +521,8 @@
   },
   "trialDaysRemaining": "{trialDaysRemaining} days remaining",
   "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
+  "trialExpiredSmartTrainerBlockedTitle": "5-day trial expired",
+  "trialExpiredSmartTrainerBlockedBody": "Your 5-day trial is over. Upgrade to Pro or buy the Base version to connect to your smart trainer.",
   "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
   "trialPeriodDescription": "Enjoy unlimited commands during your trial period. After the trial, commands will be limited to {dailyCommandLimit} per day.",
   "troubleshootingGuide": "Questions & Answers",

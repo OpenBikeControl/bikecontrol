@@ -4,6 +4,8 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -52,6 +54,10 @@ class _DevicePageState extends State<ProxyPage> {
                 child: Button.ghost(
                   onPressed: () async {
                     if (!device.emulator.isStarted.value && !device.isStarting.value) {
+                      if (IAPManager.instance.isTrialExpired) {
+                        await showGoProDialog(context);
+                        return;
+                      }
                       final savedMode = core.settings.getRetrofitMode(device.trainerKey);
                       device.emulator.setRetrofitMode(savedMode);
                       await core.settings.setAutoConnect(device.trainerKey, true);
@@ -59,6 +65,7 @@ class _DevicePageState extends State<ProxyPage> {
                       // renders a "Connecting…" state via device.isStarting.
                       unawaited(device.startProxy().catchError((_) {}));
                     }
+                    if (!context.mounted) return;
                     await context.push(ProxyDeviceDetailsPage(device: device));
                     widget.onUpdate();
                   },
