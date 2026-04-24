@@ -36,6 +36,8 @@ class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget>
     upperBound: 1.0,
   );
 
+  bool _hovered = false;
+
   @override
   void didUpdateWidget(covariant AnimatedButtonWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -65,15 +67,28 @@ class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget>
 
   @override
   Widget build(BuildContext context) {
-    final child = ScaleTransition(
+    // Inner ScaleTransition handles the pressGeneration pulse (fast in/out).
+    final pressed = ScaleTransition(
       scale: Tween(begin: 1.0, end: 1.18).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut)),
       child: ButtonWidget(button: widget.button, size: widget.size, keymap: widget.keymap),
     );
-    if (!_canOpenPopup) return child;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _onTap,
-      child: child,
+    if (!_canOpenPopup) return pressed;
+    // Outer AnimatedScale handles the hover lift — compounded multiplicatively
+    // with the press pulse, so a tap mid-hover reads as both effects at once.
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedScale(
+        scale: _hovered ? 1.12 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _onTap,
+          child: pressed,
+        ),
+      ),
     );
   }
 }
