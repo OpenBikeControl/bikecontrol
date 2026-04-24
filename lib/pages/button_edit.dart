@@ -739,21 +739,13 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     );
   }
 
-  static const _trainerActions = [
-    InGameAction.trainerUp,
-    InGameAction.trainerDown,
-    InGameAction.trainerSwitchMode,
-    InGameAction.trainerIntensityUp,
-    InGameAction.trainerIntensityDown,
-  ];
-
   List<Widget> _trainerDirectControlSection() {
     final proxy = core.connection.proxyDevices.whereType<ProxyDevice>().where((d) => d.isConnected).firstOrNull;
     if (proxy == null) return const [];
     return [
       SizedBox(height: 8),
       ColoredTitle(text: '${proxy.name} Direct Control'),
-      for (final action in _trainerActions)
+      for (final action in trainerActions)
         SelectableCard(
           icon: action.icon,
           title: Text(action.title),

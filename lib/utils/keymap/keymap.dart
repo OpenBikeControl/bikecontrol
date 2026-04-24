@@ -296,7 +296,11 @@ class KeyPair {
           when inGameAction != null &&
               inGameAction!.icon != null &&
               (core.logic.emulatorEnabled ||
-                  [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)) =>
+                  [
+                    InGameAction.headwindHeartRateMode,
+                    InGameAction.headwindSpeed,
+                    ...trainerActions,
+                  ].contains(inGameAction!)) =>
         inGameAction!.icon,
 
       _ when screenshotPath != null && screenshotPath!.trim().isNotEmpty => Icons.image_outlined,
