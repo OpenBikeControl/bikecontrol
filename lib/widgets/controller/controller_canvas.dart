@@ -33,42 +33,48 @@ class ControllerCanvas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(maxHeight: 250),
-      child: AspectRatio(
-        aspectRatio: layout.aspectRatio,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            final h = constraints.maxHeight;
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: ControllerContourPainter(
-                        shape: layout.shape,
-                        color: cs.border,
-                        // Subtle darkening via the muted foreground at low alpha
-                        // — visually distinct from the solid `cs.muted` button
-                        // fill, so the buttons don't blend into the background.
-                        fillColor: cs.mutedForeground.withValues(alpha: 0.08),
+    return Center(
+      child: Container(
+        width: double.infinity,
+        alignment: Alignment.center,
+        constraints: BoxConstraints(
+          maxHeight: layout.shape == ContourShape.pill ? 140 : 250,
+          maxWidth: layout.shape == ContourShape.pill ? 200 : double.infinity,
+        ),
+        child: AspectRatio(
+          aspectRatio: layout.aspectRatio,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final w = constraints.maxWidth;
+              final h = constraints.maxHeight;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: ControllerContourPainter(
+                          shape: layout.shape,
+                          color: cs.border,
+                          // Subtle darkening via the muted foreground at low alpha
+                          // — visually distinct from the solid `cs.muted` button
+                          // fill, so the buttons don't blend into the background.
+                          fillColor: cs.mutedForeground.withValues(alpha: 0.08),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                for (final btn in availableButtons)
-                  if (_positionFor(btn) case final pos?)
-                    Positioned(
-                      left: (pos.dx * w) - buttonSize / 2,
-                      top: (pos.dy * h) - buttonSize / 2,
-                      child: buttonBuilder(btn),
-                    ),
-              ],
-            );
-          },
+                  for (final btn in availableButtons)
+                    if (_positionFor(btn) case final pos?)
+                      Positioned(
+                        left: (pos.dx * w) - buttonSize / 2,
+                        top: (pos.dy * h) - buttonSize / 2,
+                        child: buttonBuilder(btn),
+                      ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
