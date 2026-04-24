@@ -108,8 +108,8 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          IconButton.primary(
-            icon: const Icon(LucideIcons.play, size: 20),
+          IconButton.destructive(
+            icon: const Icon(LucideIcons.circle, size: 20),
             onPressed: _start,
           ),
         ],
