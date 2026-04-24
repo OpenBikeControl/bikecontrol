@@ -35,6 +35,11 @@ class ButtonWidget extends StatelessWidget {
     final color = button.color ?? cs.muted;
     final icon = _primaryActionIcon ?? button.icon;
     final assignedCount = _assignedPairs.length;
+    // Pick a foreground that contrasts with the actual button background
+    // rather than the theme's `cs.foreground`, which stays dark on light
+    // themes even when `button.color` is explicitly set to black.
+    final onColor = color.computeLuminance() < 0.5 ? Colors.white : Colors.black;
+    final onColorMuted = onColor.withValues(alpha: 0.65);
 
     return SizedBox(
       width: size,
@@ -50,7 +55,7 @@ class ButtonWidget extends StatelessWidget {
             ),
           ),
           if (icon != null)
-            Icon(icon, size: size * 0.42, color: cs.foreground)
+            Icon(icon, size: size * 0.42, color: onColor)
           else
             Text(
               button.initials,
@@ -58,7 +63,7 @@ class ButtonWidget extends StatelessWidget {
                 fontSize: size * 0.26,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.2,
-                color: cs.foreground,
+                color: onColor,
               ),
             ),
           if (icon != null)
@@ -66,7 +71,7 @@ class ButtonWidget extends StatelessWidget {
               bottom: 2,
               child: Text(
                 button.initials,
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: cs.mutedForeground),
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: onColorMuted),
               ),
             ),
           if (assignedCount > 1)
