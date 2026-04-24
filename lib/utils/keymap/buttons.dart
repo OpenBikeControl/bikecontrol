@@ -142,6 +142,15 @@ class ControllerButton {
     return '${name.splitByUpperCase()} (${shortenedId.toUpperCase()})';
   }
 
+  /// Uppercase initials derived from the camelCase [name].
+  /// Example: `sideButtonLeft` → `SBL`, `navigationUp` → `NU`, `a` → `A`.
+  /// Uses the raw [name] (not [displayName]) so the multi-device `(HASH)`
+  /// suffix never leaks into the label.
+  String get initials {
+    final words = name.splitByUpperCase().split(' ');
+    return words.where((w) => w.isNotEmpty).map((w) => w[0].toUpperCase()).join();
+  }
+
   @override
   String toString() {
     return name;
