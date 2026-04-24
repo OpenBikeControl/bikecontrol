@@ -75,31 +75,37 @@ class ZwiftPlay extends ZwiftDevice {
   @override
   ControllerLayout get controllerLayout {
     if (deviceType == ZwiftDeviceType.playLeft) {
+      // Mirrored: grip on the right half, handlebar drop curving to the left.
       return ControllerLayout(
-        aspectRatio: 0.65,
-        shape: ContourShape.rect,
+        aspectRatio: 1.3,
+        shape: ContourShape.zwiftPlayLeft,
         positions: {
-          ZwiftButtons.navigationUp: const Offset(0.5, 0.22),
-          ZwiftButtons.navigationLeft: const Offset(0.25, 0.42),
-          ZwiftButtons.navigationRight: const Offset(0.75, 0.42),
-          ZwiftButtons.navigationDown: const Offset(0.5, 0.62),
-          ZwiftButtons.onOffLeft: const Offset(0.2, 0.82),
-          ZwiftButtons.sideButtonLeft: const Offset(0.85, 0.1),
-          ZwiftButtons.paddleLeft: const Offset(0.5, 0.92),
+          // D-pad diamond in the right-side grip.
+          ZwiftButtons.navigationUp: const Offset(0.78, 0.24),
+          ZwiftButtons.navigationLeft: const Offset(0.66, 0.40),
+          ZwiftButtons.navigationRight: const Offset(0.90, 0.40),
+          ZwiftButtons.navigationDown: const Offset(0.78, 0.56),
+          // Handlebar-drop buttons (mirrored from the right variant).
+          ZwiftButtons.onOffLeft: const Offset(0.40, 0.20),
+          ZwiftButtons.sideButtonLeft: const Offset(0.22, 0.30),
+          ZwiftButtons.paddleLeft: const Offset(0.08, 0.60),
         },
       );
     }
+    // Right variant matches the user-supplied sketch.
     return ControllerLayout(
-      aspectRatio: 0.65,
-      shape: ContourShape.rect,
+      aspectRatio: 1.3,
+      shape: ContourShape.zwiftPlayRight,
       positions: {
-        ZwiftButtons.y: const Offset(0.5, 0.22),
-        ZwiftButtons.z: const Offset(0.25, 0.42),
-        ZwiftButtons.a: const Offset(0.75, 0.42),
-        ZwiftButtons.b: const Offset(0.5, 0.62),
-        ZwiftButtons.onOffRight: const Offset(0.8, 0.82),
-        ZwiftButtons.sideButtonRight: const Offset(0.15, 0.1),
-        ZwiftButtons.paddleRight: const Offset(0.5, 0.92),
+        // Face-button diamond in the left-side grip.
+        ZwiftButtons.y: const Offset(0.22, 0.24),
+        ZwiftButtons.z: const Offset(0.10, 0.40),
+        ZwiftButtons.a: const Offset(0.34, 0.40),
+        ZwiftButtons.b: const Offset(0.22, 0.56),
+        // Handlebar-drop buttons on the right C-curve.
+        ZwiftButtons.onOffRight: const Offset(0.60, 0.20),
+        ZwiftButtons.sideButtonRight: const Offset(0.78, 0.30),
+        ZwiftButtons.paddleRight: const Offset(0.92, 0.60),
       },
     );
   }
