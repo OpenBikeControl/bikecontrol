@@ -55,8 +55,10 @@ class ControllerContourPainter extends CustomPainter {
   }
 
   /// Zwift Play silhouette: a rounded button-panel grip on one side and a
-  /// C-shaped handlebar drop sweeping to the other. [mirror] flips the two
-  /// halves for the left-hand variant.
+  /// slimmer handlebar-drop block on the other, merged into a single closed
+  /// outline via `Path.combine(union)` so the seam between the two shapes
+  /// never strokes a doubled line. [mirror] flips the two halves for the
+  /// left-hand variant.
   void _paintZwiftPlay(Canvas canvas, Size size, Paint paint, {required bool mirror}) {
     final w = size.width;
     final h = size.height;
@@ -64,33 +66,24 @@ class ControllerContourPainter extends CustomPainter {
     double fx(double x) => mirror ? (1.0 - x) * w : x * w;
     double fy(double y) => y * h;
 
-    // Button-panel grip (rounded rect in the 0..0.5 band, pre-mirror).
-    final gripLeft = mirror ? fx(0.48) : fx(0.02);
-    final gripRight = mirror ? fx(0.02) : fx(0.48);
-    canvas.drawRRect(
-      RRect.fromLTRBR(
-        gripLeft < gripRight ? gripLeft : gripRight,
-        fy(0.10),
-        gripLeft < gripRight ? gripRight : gripLeft,
-        fy(0.68),
-        const Radius.circular(20),
-      ),
-      paint,
-    );
+    Rect rect(double x0, double y0, double x1, double y1) {
+      final a = fx(x0);
+      final b = fx(x1);
+      return Rect.fromLTRB(a < b ? a : b, fy(y0), a < b ? b : a, fy(y1));
+    }
 
-    // Handlebar-drop C-curve on the opposite half. Normalized points (pre-
-    // mirror). Traces: top-of-drop → round right corner → down outer edge →
-    // round bottom corner → inward along bottom → up to meet the grip.
-    final path = Path()
-      ..moveTo(fx(0.45), fy(0.10))
-      ..lineTo(fx(0.82), fy(0.10))
-      ..quadraticBezierTo(fx(0.98), fy(0.10), fx(0.98), fy(0.28))
-      ..lineTo(fx(0.98), fy(0.82))
-      ..quadraticBezierTo(fx(0.98), fy(0.95), fx(0.85), fy(0.95))
-      ..lineTo(fx(0.55), fy(0.95))
-      ..quadraticBezierTo(fx(0.45), fy(0.95), fx(0.45), fy(0.85))
-      ..lineTo(fx(0.45), fy(0.10));
-    canvas.drawPath(path, paint);
+    // Grip: wider rounded rect occupying the majority of the layout, ending
+    // above the drop's bottom edge so the step between the two reads as a
+    // distinct shoulder.
+    final grip = Path()
+      ..addRRect(RRect.fromRectAndRadius(rect(0.02, 0.10, 0.60, 0.85), const Radius.circular(20)));
+
+    // Drop: slimmer rounded rect extending further down than the grip. A
+    // ~4% overlap with the grip keeps the outline continuous after union.
+    final drop = Path()
+      ..addRRect(RRect.fromRectAndRadius(rect(0.56, 0.10, 0.98, 0.95), const Radius.circular(20)));
+
+    canvas.drawPath(Path.combine(PathOperation.union, grip, drop), paint);
   }
 
   void _paintDropBar(Canvas canvas, Size size, Paint paint) {
