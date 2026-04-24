@@ -45,7 +45,52 @@ class ControllerContourPainter extends CustomPainter {
           paint,
         );
         break;
+      case ContourShape.zwiftPlayRight:
+        _paintZwiftPlay(canvas, size, paint, mirror: false);
+        break;
+      case ContourShape.zwiftPlayLeft:
+        _paintZwiftPlay(canvas, size, paint, mirror: true);
+        break;
     }
+  }
+
+  /// Zwift Play silhouette: a rounded button-panel grip on one side and a
+  /// C-shaped handlebar drop sweeping to the other. [mirror] flips the two
+  /// halves for the left-hand variant.
+  void _paintZwiftPlay(Canvas canvas, Size size, Paint paint, {required bool mirror}) {
+    final w = size.width;
+    final h = size.height;
+
+    double fx(double x) => mirror ? (1.0 - x) * w : x * w;
+    double fy(double y) => y * h;
+
+    // Button-panel grip (rounded rect in the 0..0.5 band, pre-mirror).
+    final gripLeft = mirror ? fx(0.48) : fx(0.02);
+    final gripRight = mirror ? fx(0.02) : fx(0.48);
+    canvas.drawRRect(
+      RRect.fromLTRBR(
+        gripLeft < gripRight ? gripLeft : gripRight,
+        fy(0.10),
+        gripLeft < gripRight ? gripRight : gripLeft,
+        fy(0.68),
+        const Radius.circular(20),
+      ),
+      paint,
+    );
+
+    // Handlebar-drop C-curve on the opposite half. Normalized points (pre-
+    // mirror). Traces: top-of-drop → round right corner → down outer edge →
+    // round bottom corner → inward along bottom → up to meet the grip.
+    final path = Path()
+      ..moveTo(fx(0.45), fy(0.10))
+      ..lineTo(fx(0.82), fy(0.10))
+      ..quadraticBezierTo(fx(0.98), fy(0.10), fx(0.98), fy(0.28))
+      ..lineTo(fx(0.98), fy(0.82))
+      ..quadraticBezierTo(fx(0.98), fy(0.95), fx(0.85), fy(0.95))
+      ..lineTo(fx(0.55), fy(0.95))
+      ..quadraticBezierTo(fx(0.45), fy(0.95), fx(0.45), fy(0.85))
+      ..lineTo(fx(0.45), fy(0.10));
+    canvas.drawPath(path, paint);
   }
 
   void _paintDropBar(Canvas canvas, Size size, Paint paint) {
