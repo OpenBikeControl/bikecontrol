@@ -1065,7 +1065,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   const Gap(12),
                 ] else ...[
                   const Gap(12),
-                  if (trainerApp! is! BikeControl) ...[
+                  if (trainerApp is! BikeControl) ...[
                     Text(context.i18n.noConnectionMethodIsConnectedOrActive).small.muted,
                     const Gap(12),
                   ],
