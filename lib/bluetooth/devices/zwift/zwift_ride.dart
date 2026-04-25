@@ -16,6 +16,8 @@ class ZwiftRide extends ZwiftDevice {
   /// analog drift or light touches.
   static const int analogPaddleThreshold = 25;
 
+  DateTime? initializationTime;
+
   ZwiftRide(super.scanResult, {super.isBeta, List<ControllerButton>? availableButtons})
     : super(
         availableButtons:
@@ -95,7 +97,7 @@ class ZwiftRide extends ZwiftDevice {
 
     switch (opcode) {
       case Opcode.RIDE_ON:
-        //print("Empty RideOn response - unencrypted mode");
+        initializationTime = DateTime.now();
 
         break;
       case Opcode.STATUS_RESPONSE:

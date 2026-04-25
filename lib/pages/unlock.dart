@@ -165,6 +165,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
               child: Text(AppLocalizations.of(context).unlock_markAsUnlocked),
               onPressed: () {
                 propPrefs.setZwiftClickV2LastUnlock(widget.device.scanResult.deviceId, DateTime.now());
+                propPrefs.setNotSureIfUnlocked(widget.device.scanResult.deviceId, true);
                 closeDrawer(context);
               },
             ),

@@ -4,8 +4,10 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:bike_control/widgets/unlock_confirm.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -79,6 +81,10 @@ class ZwiftClickV2 extends ZwiftRide {
     return lastUnlock > DateTime.now().subtract(const Duration(days: 1));
   }
 
+  bool get isLikelyUnlocked {
+    return propPrefs.notSureIfUnlocked(scanResult.deviceId);
+  }
+
   @override
   Future<void> setupHandshake() async {
     final hasScript = await DeviceScriptService.instance.hasCustomScript(runtimeType.toString());
@@ -96,8 +102,24 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    if (!ftmsEmulator.processCharacteristic(characteristic, bytes)) {
+    final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
+    if (!processed) {
       await super.processCharacteristic(characteristic, bytes);
+    } else {
+      if (bytes.startsWith(startCommand)) {
+        initializationTime = DateTime.now();
+      }
+    }
+  }
+
+  @override
+  Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked, {bool longPress = false}) async {
+    super.handleButtonsClicked(buttonsClicked, longPress: longPress);
+
+    if (isLikelyUnlocked && initializationTime != null) {
+      if (initializationTime!.add(Duration(minutes: 1)).isBefore(DateTime.now())) {
+        propPrefs.setNotSureIfUnlocked(scanResult.deviceId, false);
+      }
     }
   }
 
@@ -105,13 +127,50 @@ class ZwiftClickV2 extends ZwiftRide {
   List<Widget> showAdditionalInformation(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (!isConnected) return [];
-    if (isUnlocked && lastUnlockDate != null) {
+    if (isUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
       return [
         Warning(
           important: false,
           children: [
             Row(
-              spacing: 8,
+              spacing: 12,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.gray,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(Icons.lock_open_rounded, color: Colors.white),
+                ),
+                Flexible(
+                  child: Text(
+                    'Likely unlocked until ${DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1)))}',
+                  ).xSmall,
+                ),
+                Button.outline(
+                  child: Text('Unlock again'),
+                  onPressed: () {
+                    openDrawer(
+                      context: context,
+                      position: OverlayPosition.bottom,
+                      builder: (_) => UnlockPage(device: this),
+                    );
+                  },
+                ),
+              ],
+            ),
+            if (initializationTime != null) UnlockConfirm(device: this),
+          ],
+        ),
+      ];
+    } else if (isUnlocked && lastUnlockDate != null) {
+      return [
+        Warning(
+          important: false,
+          children: [
+            Row(
+              spacing: 12,
               children: [
                 Container(
                   decoration: BoxDecoration(
@@ -128,30 +187,28 @@ class ZwiftClickV2 extends ZwiftRide {
                     ),
                   ).xSmall,
                 ),
-                Tooltip(
-                  tooltip: (c) => Text('Unlock again'),
-                  child: IconButton.ghost(
-                    icon: Icon(Icons.lock_reset_rounded),
-                    onPressed: () {
-                      openDrawer(
-                        context: context,
-                        position: OverlayPosition.bottom,
-                        builder: (_) => UnlockPage(device: this),
-                      );
-                    },
-                  ),
+                Button.outline(
+                  child: Text('Unlock again'),
+                  onPressed: () {
+                    openDrawer(
+                      context: context,
+                      position: OverlayPosition.bottom,
+                      builder: (_) => UnlockPage(device: this),
+                    );
+                  },
                 ),
               ],
             ),
-            if (kDebugMode)
+            if (kDebugMode) ...[
               Button(
                 onPressed: () {
-                  test();
+                  sendCommand(Opcode.RESET, null);
                 },
                 leading: const Icon(Icons.translate_sharp),
                 style: ButtonStyle.primary(size: ButtonSize.small),
                 child: Text('Reset'),
               ),
+            ],
           ],
         ),
       ];
@@ -186,6 +243,7 @@ class ZwiftClickV2 extends ZwiftRide {
                               leading: const Icon(Icons.check),
                               onPressed: (c) {
                                 propPrefs.setZwiftClickV2LastUnlock(scanResult.deviceId, DateTime.now());
+                                propPrefs.setNotSureIfUnlocked(scanResult.deviceId, true);
                                 super.setupHandshake();
                               },
                               child: Text(context.i18n.unlock_markAsUnlocked),
@@ -194,7 +252,7 @@ class ZwiftClickV2 extends ZwiftRide {
                             MenuButton(
                               onPressed: (c) {
                                 openDrawer(
-                                  context: c,
+                                  context: context,
                                   position: OverlayPosition.bottom,
                                   builder: (_) => UnlockPage(device: this),
                                 );
@@ -217,7 +275,7 @@ class ZwiftClickV2 extends ZwiftRide {
           if (kDebugMode)
             Button(
               onPressed: () {
-                test();
+                sendCommand(Opcode.RESET, null);
               },
               leading: const Icon(Icons.translate_sharp),
               style: ButtonStyle.primary(size: ButtonSize.small),
@@ -226,54 +284,5 @@ class ZwiftClickV2 extends ZwiftRide {
         ],
       ),
     ];
-  }
-
-  Future<void> test() async {
-    await sendCommand(Opcode.RESET, null);
-    //await sendCommand(Opcode.GET, Get(dataObjectId: VendorDO.PAGE_DEVICE_PAIRING.value)); // 0008 82E0 03
-
-    /*await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_DEV_INFO.value)); // 0008 00
-    await sendCommand(Opcode.LOG_LEVEL_SET, LogLevelSet(logLevel: LogLevel.LOGLEVEL_TRACE)); // 4108 05
-
-    await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_CLIENT_SERVER_CONFIGURATION.value)); // 0008 10
-    await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_CLIENT_SERVER_CONFIGURATION.value)); // 0008 10
-    await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_CLIENT_SERVER_CONFIGURATION.value)); // 0008 10
-
-    await sendCommand(Opcode.GET, Get(dataObjectId: DO.PAGE_CONTROLLER_INPUT_CONFIG.value)); // 0008 80 08
-
-    await sendCommand(Opcode.GET, Get(dataObjectId: DO.BATTERY_STATE.value)); // 0008 83 06
-
-    // 	Value: FF04 000A 1540 E9D9 C96B 7463 C27F 1B4E 4D9F 1CB1 205D 882E D7CE
-    // 	Value: FF04 000A 15B2 6324 0A31 D6C6 B81F C129 D6A4 E99D FFFC B9FC 418D
-    await sendCommandBuffer(
-      Uint8List.fromList([
-        0xFF,
-        0x04,
-        0x00,
-        0x0A,
-        0x15,
-        0xC2,
-        0x63,
-        0x24,
-        0x0A,
-        0x31,
-        0xD6,
-        0xC6,
-        0xB8,
-        0x1F,
-        0xC1,
-        0x29,
-        0xD6,
-        0xA4,
-        0xE9,
-        0x9D,
-        0xFF,
-        0xFC,
-        0xB9,
-        0xFC,
-        0x41,
-        0x8D,
-      ]),
-    );*/
   }
 }
