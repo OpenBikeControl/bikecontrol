@@ -40,7 +40,14 @@ class _ConnectionCardState extends State<ConnectionCard> {
   @override
   void initState() {
     super.initState();
-    final saved = widget.device.emulator.retrofitMode.value;
+    // Read directly from settings (with the device's smart-trainer-aware
+    // fallback) — the emulator's value defaults to RetrofitMode.proxy at
+    // construction time, which would otherwise hide the VS-default for users
+    // landing on the details page before tap-to-connect runs.
+    final saved = core.settings.getRetrofitMode(
+      widget.device.trainerKey,
+      fallback: widget.device.defaultRetrofitMode,
+    );
     if (saved == RetrofitMode.proxy) {
       _pendingMode = RetrofitMode.proxy;
     } else {

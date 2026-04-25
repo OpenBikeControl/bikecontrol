@@ -128,12 +128,12 @@ class Settings {
 
   static String _retrofitModeKey(String trainerKey) => 'retrofit_mode_$trainerKey';
 
-  RetrofitMode getRetrofitMode(String trainerKey) {
+  RetrofitMode getRetrofitMode(String trainerKey, {RetrofitMode fallback = RetrofitMode.proxy}) {
     final raw = prefs.getString(_retrofitModeKey(trainerKey));
-    if (raw == null) return RetrofitMode.proxy;
+    if (raw == null) return fallback;
     return RetrofitMode.values.firstWhere(
       (m) => m.name == raw,
-      orElse: () => RetrofitMode.proxy,
+      orElse: () => fallback,
     );
   }
 
