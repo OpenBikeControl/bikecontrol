@@ -74,11 +74,6 @@ class _DevicePageState extends State<DevicePage> {
                       await context.push(ControllerSettingsPage(device: device));
                       widget.onUpdate();
                     },
-                    trailing: Icon(
-                      LucideIcons.settings,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.mutedForeground,
-                    ),
                     child: device.showInformation(
                       context,
                       showFull: false,
