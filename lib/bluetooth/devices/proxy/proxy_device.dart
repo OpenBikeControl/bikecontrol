@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -45,6 +46,7 @@ class ProxyDevice extends BluetoothDevice {
     : super(
         availableButtons: const [],
         icon: _iconFor(scanResult),
+        isBeta: true,
       ) {
     emulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
     emulator.isTrial = () {
@@ -185,18 +187,53 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
-    if (!isConnected) {
-      return [
-        Text(
-          'Connect to enable / adjust Virtual Shifting, or to proxy the device via WiFi',
-          style: TextStyle(
-            fontSize: 11,
-            color: Theme.of(context).colorScheme.mutedForeground,
+    if (isConnected) return const [];
+    return [_buildFeatureList(context)];
+  }
+
+  Widget _buildFeatureList(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final muted = TextStyle(fontSize: 11, color: cs.mutedForeground);
+
+    final services = scanResult.services.map((s) => s.toLowerCase()).toSet();
+    final hasZwiftAdv = services.contains(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID.toLowerCase());
+    final controller = core.connection.controllerDevices.firstOrNull;
+    final supportsWifiProxy = services.contains(FitnessBikeDefinition.CYCLING_POWER_SERVICE_UUID.toLowerCase());
+
+    final features = <(IconData, String)>[
+      (LucideIcons.slidersHorizontal, 'Adjust virtual shifting gears'),
+      if (!hasZwiftAdv) (LucideIcons.sparkles, 'Add virtual shifting capability'),
+      if (controller != null)
+        (LucideIcons.gamepad2, 'Direct gear / intensity / mode changes via ${controller.name}'),
+      (LucideIcons.dumbbell, 'Start a mini workout'),
+      if (supportsWifiProxy) (LucideIcons.wifi, 'Proxy to WiFi'),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Connect your $name for:', style: muted),
+        const Gap(2),
+        for (final (icon, label) in features)
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Gap(4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(icon, size: 11, color: cs.mutedForeground),
+                ),
+                const Gap(6),
+                Flexible(child: Text(label, style: muted)),
+              ],
+            ),
           ),
-        ),
-      ];
-    }
-    return const [];
+      ],
+    );
   }
 
   @override
@@ -241,13 +278,10 @@ class ProxyDevice extends BluetoothDevice {
             }
           }
           if (parts.isEmpty) return const SizedBox.shrink();
-          return Padding(
-            padding: const EdgeInsets.only(left: 60.0),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 4,
-              children: parts,
-            ),
+          return Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            children: parts,
           );
         },
       ),
