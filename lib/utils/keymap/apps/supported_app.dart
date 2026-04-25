@@ -66,14 +66,6 @@ abstract class SupportedApp {
   /// (e.g. MyWhoosh → 30).
   int get virtualGearAmount => 24;
 
-  /// Bridge connection transports this trainer app can use. Defaults to both
-  /// Bluetooth and WiFi. Apps that only expose a Bluetooth pairing flow
-  /// (e.g. MyWhoosh) should override this to exclude [TrainerConnectionType.wifi].
-  List<TrainerConnectionType> get supportedTrainerConnectionTypes => const [
-    TrainerConnectionType.bluetooth,
-    TrainerConnectionType.wifi,
-  ];
-
   /// Whether this app supports the given connection method.
   /// Experimental methods are excluded unless the experimental setting is enabled.
   bool supports(AppConnectionMethod method) {
