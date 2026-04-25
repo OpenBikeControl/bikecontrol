@@ -8,6 +8,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -173,6 +174,27 @@ class ProxyDevice extends BluetoothDevice {
   /// (those settings don't apply) and for WiFi modes whose definition is
   /// created lazily per TCP client — the details page rehydrates on mount.
   String get trainerKey => scanResult.name ?? scanResult.deviceId;
+
+  /// Whether the underlying device looks like a smart trainer (FTMS-capable).
+  /// Power-meter-only or HR-only devices have no trainer commands to drive,
+  /// so Virtual Shifting is meaningless for them — they stay on Proxy.
+  bool get _isSmartTrainer =>
+      scanResult.services.any((s) => s.toLowerCase() == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase());
+
+  /// Default connect mode when the user hasn't explicitly picked one. Smart
+  /// trainers default to Virtual Shifting (transport resolved from the
+  /// active Trainer Connection Settings); other devices fall back to Proxy.
+  /// When VS is the conceptual default but no transport is enabled in
+  /// Connection Settings, falls through to Proxy so the device still works.
+  RetrofitMode get defaultRetrofitMode {
+    if (!_isSmartTrainer) return RetrofitMode.proxy;
+    final transport = core.logic.preferredBridgeTransport(core.logic.enabledTrainerConnections);
+    return switch (transport) {
+      TrainerConnectionType.bluetooth => RetrofitMode.bluetooth,
+      TrainerConnectionType.wifi => RetrofitMode.wifi,
+      null => RetrofitMode.proxy,
+    };
+  }
 
   void applyTrainerSettings() {
     final def = emulator.activeDefinition;
@@ -387,7 +409,7 @@ class ProxyDevice extends BluetoothDevice {
     // If they connected previously and haven't since tapped Disconnect,
     // honour that intent by kicking off startProxy() here (fire-and-forget).
     if (!isStarting.value && !emulator.isStarted.value && core.settings.getAutoConnect(trainerKey)) {
-      final savedMode = core.settings.getRetrofitMode(trainerKey);
+      final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
       emulator.setRetrofitMode(savedMode);
       await startProxy();
     }
