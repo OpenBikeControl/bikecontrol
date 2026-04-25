@@ -9,6 +9,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -28,7 +29,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
-import '../bluetooth/devices/proxy/proxy_device.dart';
 
 class ButtonEditPage extends StatefulWidget {
   final Keymap keymap;
@@ -157,7 +157,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ],
                   ),
 
-                ..._trainerDirectControlSection(),
+                if (core.connection.proxyDevices.any((e) => e.isConnected) ||
+                    core.settings.getTrainerApp() is BikeControl) ...[
+                  ColoredTitle(text: 'Trainer Direct Control'),
+                  ..._buildTrainerConnectionActions(trainerActions),
+                ],
 
                 if (core.logic.hasNoConnectionMethod)
                   ConstrainedBox(
@@ -711,8 +715,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ],
 
                 SizedBox(height: 8),
-                ColoredTitle(text: context.i18n.setting),
-                SizedBox(height: 8),
                 DestructiveButton(
                   onPressed: () {
                     _keyPair.physicalKey = null;
@@ -737,35 +739,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ),
       ),
     );
-  }
-
-  List<Widget> _trainerDirectControlSection() {
-    final proxy = core.connection.proxyDevices.whereType<ProxyDevice>().where((d) => d.isConnected).firstOrNull;
-    if (proxy == null) return const [];
-    return [
-      SizedBox(height: 8),
-      ColoredTitle(text: '${proxy.name} Direct Control'),
-      for (final action in trainerActions)
-        SelectableCard(
-          icon: action.icon,
-          title: Text(action.title),
-          isActive: _keyPair.inGameAction == action,
-          onPressed: () {
-            _keyPair.touchPosition = Offset.zero;
-            _keyPair.physicalKey = null;
-            _keyPair.logicalKey = null;
-            _keyPair.androidAction = null;
-            _keyPair.androidIntentAction = null;
-            _keyPair.command = null;
-            _keyPair.screenshotPath = null;
-            _keyPair.inGameAction = action;
-            _keyPair.inGameActionValue = null;
-            widget.onUpdate();
-            setState(() {});
-          },
-        ),
-      SizedBox(height: 8),
-    ];
   }
 
   List<InGameAction> _mapActions(List<InGameAction> actions) {

@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
-import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/android.dart';
@@ -166,7 +165,7 @@ abstract class BaseActions {
     // Handle trainer-control actions
     if (trainerActions.contains(keyPair.inGameAction)) {
       if (!isKeyDown) return Ignored('');
-      final proxy = core.connection.proxyDevices.whereType<ProxyDevice>().where((d) => d.isConnected).firstOrNull;
+      final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
       if (proxy == null) {
         return Error('No proxy trainer connected');
       }
