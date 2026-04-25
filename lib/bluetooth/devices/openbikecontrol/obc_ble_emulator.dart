@@ -8,7 +8,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNot
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
