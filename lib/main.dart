@@ -246,13 +246,24 @@ class _BikeControlAppState extends State<BikeControlApp> {
           : ToastLayer(
               key: ValueKey('Test'),
               padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
-              child: ComponentTheme<CardTheme>(
-                data: CardTheme(
-                  borderWidth: 1.5,
-                ),
-                child: _Starter(
-                  child: widget.customChild ?? Navigation(),
-                ),
+              child: m.Builder(
+                builder: (context) {
+                  return ComponentTheme<CardTheme>(
+                    data: CardTheme(
+                      borderWidth: 1.5,
+                    ),
+                    child: ComponentTheme<DividerTheme>(
+                      data: Theme.of(context).brightness == Brightness.dark
+                          ? DividerTheme(
+                              color: Theme.of(context).colorScheme.border,
+                            )
+                          : DividerTheme(),
+                      child: _Starter(
+                        child: widget.customChild ?? Navigation(),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
     );

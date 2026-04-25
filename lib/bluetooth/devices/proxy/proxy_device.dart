@@ -201,10 +201,9 @@ class ProxyDevice extends BluetoothDevice {
     final supportsWifiProxy = services.contains(FitnessBikeDefinition.CYCLING_POWER_SERVICE_UUID.toLowerCase());
 
     final features = <(IconData, String)>[
-      (LucideIcons.slidersHorizontal, 'Adjust virtual shifting gears'),
       if (!hasZwiftAdv) (LucideIcons.sparkles, 'Add virtual shifting capability'),
-      if (controller != null)
-        (LucideIcons.gamepad2, 'Direct gear / intensity / mode changes via ${controller.name}'),
+      (LucideIcons.slidersHorizontal, 'Adjust virtual shifting gears'),
+      if (controller != null) (LucideIcons.gamepad2, 'Direct gear / intensity / mode changes via ${controller.name}'),
       (LucideIcons.dumbbell, 'Start a mini workout'),
       if (supportsWifiProxy) (LucideIcons.wifi, 'Proxy to WiFi'),
     ];

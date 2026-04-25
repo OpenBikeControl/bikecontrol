@@ -317,8 +317,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           valueListenable: IAPManager.instance.isPurchased,
           builder: (context, value, child) => value ? SizedBox(height: 12) : IAPStatusWidget(small: false),
         ),
-        _buildErrorBanner(),
-        const Gap(22),
         Card(
           padding: EdgeInsets.zero,
           child: Column(
@@ -454,7 +452,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               ],
             ),
           ),
-        const Gap(22),
+        const Gap(12),
+        _buildErrorBanner(),
+        const Gap(12),
 
         KeyedSubtree(
           key: _trainerKey,
@@ -687,7 +687,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   const Gap(12),
                 ] else ...[
                   const Gap(12),
-                  if (trainerApp is! BikeControl) ...[
+                  if (trainerApp is! BikeControl && trainerApp != null) ...[
                     Text(context.i18n.noConnectionMethodIsConnectedOrActive).small.muted,
                     const Gap(12),
                   ],
@@ -695,9 +695,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               ],
             ),
           ),
-          Divider(thickness: 0.5),
-          const Gap(12),
-          TrainerFeatures(withCard: false),
+          if (trainerApp != null) ...[
+            Divider(
+              thickness: Theme.of(context).brightness == Brightness.dark ? 1.5 : 0.5,
+            ),
+            const Gap(12),
+            TrainerFeatures(withCard: false),
+          ],
         ],
       ),
     );
@@ -728,16 +732,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       builder: (context, mode, _) {
         // Proxy mode mirrors raw FTMS over WiFi — surface a wifi icon, not the
         // bridge-specific bluetooth/cog visuals.
-        final IconData icon = switch (mode) {
-          RetrofitMode.bluetooth => Icons.bluetooth,
-          RetrofitMode.wifi => Icons.wifi,
-          RetrofitMode.proxy => Icons.wifi,
-        };
+        final IconData icon = device.icon;
         return ValueListenableBuilder<bool>(
           valueListenable: device.emulator.isConnected,
           builder: (context, connected, _) {
             return ValueListenableBuilder<bool>(
-              valueListenable: device.isStarting,
+              valueListenable: device.emulator.isStarted,
               builder: (context, starting, _) {
                 final title = 'Bridge (${device.toString()})';
                 return Row(
@@ -745,9 +745,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     StatusIcon(icon: icon, status: connected, started: starting),
                     const Gap(8),
                     Expanded(
-                      child: connected
-                          ? Text(title).small.semiBold
-                          : Text(title).small.muted,
+                      child: connected ? Text(title).small.semiBold : Text(title).small.muted,
                     ),
                   ],
                 );
@@ -977,15 +975,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     Widget buildCard() => Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Card(
-              padding: const EdgeInsets.all(2),
-              borderRadius: BorderRadius.circular(22),
-              child: _buildActivityRow(entry!, isLatest: true),
-            ),
-          ),
-        );
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Card(
+          padding: const EdgeInsets.all(2),
+          borderRadius: BorderRadius.circular(22),
+          child: _buildActivityRow(entry!, isLatest: true),
+        ),
+      ),
+    );
 
     return KeyedSubtree(
       key: _errorBannerKey,
