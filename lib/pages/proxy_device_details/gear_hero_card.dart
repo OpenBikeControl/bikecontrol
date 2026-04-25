@@ -61,7 +61,7 @@ class GearHeroCard extends StatelessWidget {
                 color: cs.border,
               ),
             ),
-            child: isErg ? _ergContent(cs) : _gearContent(context, cs),
+            child: isErg ? _ergContent(context, cs) : _gearContent(context, cs),
           ),
         );
       },
@@ -116,31 +116,55 @@ class GearHeroCard extends StatelessWidget {
     );
   }
 
-  Widget _ergContent(ColorScheme cs) {
+  Widget _ergContent(BuildContext context, ColorScheme cs) {
     final target = definition.ergTargetPower.value ?? 150;
     return Column(
       spacing: 12,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 8,
+          spacing: 28,
           children: [
-            Text(
-              '$target',
-              style: TextStyle(
-                fontSize: 72,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -2,
-                color: cs.primary,
-              ),
+            _shiftButton(
+              context: context,
+              icon: LucideIcons.minus,
+              filled: false,
+              onTap: target > 0
+                  ? () => definition.setManualErgPower((target - 5).clamp(0, 500))
+                  : null,
             ),
-            Text(
-              'W',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: cs.mutedForeground,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '$target',
+                  style: TextStyle(
+                    fontSize: 72,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -2,
+                    color: cs.primary,
+                  ),
+                ),
+                const Gap(4),
+                Text(
+                  'W',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: cs.mutedForeground,
+                  ),
+                ),
+              ],
+            ),
+            _shiftButton(
+              context: context,
+              icon: LucideIcons.plus,
+              filled: true,
+              onTap: target < 500
+                  ? () => definition.setManualErgPower((target + 5).clamp(0, 500))
+                  : null,
             ),
           ],
         ),
@@ -191,9 +215,10 @@ class GearHeroCard extends StatelessWidget {
     required BuildContext context,
     required IconData icon,
     required bool filled,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
     final cs = Theme.of(context).colorScheme;
+    final disabled = onTap == null;
     return Button.ghost(
       onPressed: onTap,
       child: Container(
@@ -204,10 +229,13 @@ class GearHeroCard extends StatelessWidget {
           shape: BoxShape.circle,
           border: filled ? null : Border.all(color: cs.border, width: 1),
         ),
-        child: Icon(
-          icon,
-          size: 22,
-          color: filled ? cs.primaryForeground : cs.mutedForeground,
+        child: Opacity(
+          opacity: disabled ? 0.4 : 1.0,
+          child: Icon(
+            icon,
+            size: 22,
+            color: filled ? cs.primaryForeground : cs.mutedForeground,
+          ),
         ),
       ),
     );
