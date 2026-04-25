@@ -3,7 +3,6 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -19,7 +18,7 @@ Future<void> main() async {
     core.actionHandler = StubActions();
   });
 
-  testWidgets('shows "MyWhoosh does not support this, yet" on WiFi card when MyWhoosh is selected', (tester) async {
+  testWidgets('renders both Proxy and Virtual Shifting rows', (tester) async {
     final device = ProxyDevice(
       BleDevice(
         deviceId: 'x',
@@ -37,7 +36,13 @@ Future<void> main() async {
     );
     await tester.pump();
 
-    expect(find.text('MyWhoosh does not support this, yet'), findsOneWidget);
-    expect(find.text(MyWhoosh().name), findsNothing); // sanity: the hint interpolates the name inline, not the raw enum
+    expect(find.text('Proxy'), findsOneWidget);
+    expect(find.text('Virtual Shifting'), findsOneWidget);
+    // No transport is enabled in this test (no TrainerConnection switched on),
+    // so the missing-transport hint must surface on the VS row.
+    expect(
+      find.textContaining('Enable a Bluetooth or WiFi Trainer Connection'),
+      findsOneWidget,
+    );
   });
 }
