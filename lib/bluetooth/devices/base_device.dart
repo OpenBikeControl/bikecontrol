@@ -10,6 +10,7 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -481,17 +482,14 @@ abstract class BaseDevice {
   }
 
   Widget showInformation(BuildContext context, {required bool showFull}) {
+    final meta = showMetaInformation(context, showFull: showFull);
     return Row(
       spacing: 12,
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.muted,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 24),
+        StatusIcon(
+          icon: icon,
+          status: isConnected,
+          started: false,
         ),
         Expanded(
           child: Column(
@@ -509,33 +507,15 @@ abstract class BaseDevice {
                   if (isBeta) BetaPill(),
                 ],
               ),
-              Wrap(
-                runSpacing: 6,
-                spacing: 6,
-                alignment: WrapAlignment.start,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                runAlignment: WrapAlignment.start,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  Text(
-                    isConnected ? AppLocalizations.of(context).connected : AppLocalizations.of(context).disconnected,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isConnected
-                          ? Theme.of(context).colorScheme.mutedForeground
-                          : Theme.of(context).colorScheme.destructive,
-                    ),
-                  ),
-                  ...showMetaInformation(context, showFull: showFull),
-                ],
-              ),
+              if (meta.isNotEmpty)
+                Wrap(
+                  runSpacing: 6,
+                  spacing: 6,
+                  alignment: WrapAlignment.start,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  runAlignment: WrapAlignment.start,
+                  children: meta,
+                ),
             ],
           ),
         ),
