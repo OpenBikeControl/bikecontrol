@@ -36,6 +36,13 @@ class ProxyDevice extends BluetoothDevice {
 
   StreamSubscription<void>? _bridgeBudgetSub;
 
+  /// Latest [FitnessBikeDefinition] handed to us via
+  /// [DirconEmulator.onFitnessBikeDefinitionCreated]. The emulator builds a
+  /// fresh definition each time the transport starts, so this reference is
+  /// rebound on every session — read it through [_isTrainerActive] to gate
+  /// the bridge-usage timer on real trainer activity.
+  FitnessBikeDefinition? _currentFbd;
+
   ProxyDevice(super.scanResult)
     : super(
         availableButtons: const [],
@@ -64,7 +71,7 @@ class ProxyDevice extends BluetoothDevice {
         scheduleMicrotask(() => unawaited(emulator.pauseAdvertising()));
         return;
       }
-      core.bridgeUsageTracker.startSession();
+      core.bridgeUsageTracker.startSession(isActive: _isTrainerActive);
       _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) {
         scheduleMicrotask(() => unawaited(emulator.pauseAdvertising()));
         _announceBridgeTrialOver();
@@ -101,6 +108,7 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   void _seedFitnessBikeDefinition(FitnessBikeDefinition def) {
+    _currentFbd = def;
     final cfg = core.shiftingConfigs.activeFor(trainerKey);
     def.setMaxGear(cfg.maxGear);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
@@ -110,6 +118,19 @@ class ProxyDevice extends BluetoothDevice {
     if (cfg.gearRatios != null && cfg.gearRatios!.length == def.maxGear) {
       def.setGearRatios(cfg.gearRatios!);
     }
+  }
+
+  /// Is the connected trainer reporting any sign of riding right now? Used to
+  /// gate the bridge-usage tracker so coast / paused minutes don't burn the
+  /// non-Pro daily budget. Any of cadence, speed or power being non-zero is
+  /// enough; null values (no trainer notification yet) count as idle.
+  bool _isTrainerActive() {
+    final fbd = _currentFbd;
+    if (fbd == null) return false;
+    if ((fbd.cadenceRpm.value ?? 0) > 0) return true;
+    if ((fbd.speedKph.value ?? 0) > 0) return true;
+    if ((fbd.powerW.value ?? 0) > 0) return true;
+    return false;
   }
 
   static IconData _iconFor(BleDevice scanResult) {
