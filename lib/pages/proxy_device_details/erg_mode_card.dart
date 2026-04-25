@@ -60,24 +60,46 @@ class ErgModeCard extends StatelessWidget {
               if (isErg && target != null) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 8,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      '$target',
-                      style: TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -2,
-                        color: cs.primary,
-                      ),
+                    IconButton.outline(
+                      icon: const Icon(LucideIcons.minus, size: 20),
+                      onPressed: target > 0
+                          ? () => definition.setManualErgPower((target - 5).clamp(0, 500))
+                          : null,
                     ),
-                    Text(
-                      'W',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: cs.mutedForeground,
-                      ),
+                    const Gap(16),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '$target',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -2,
+                            color: cs.primary,
+                          ),
+                        ),
+                        const Gap(4),
+                        Text(
+                          'W',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: cs.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Gap(16),
+                    IconButton.outline(
+                      icon: const Icon(LucideIcons.plus, size: 20),
+                      onPressed: target < 500
+                          ? () => definition.setManualErgPower((target + 5).clamp(0, 500))
+                          : null,
                     ),
                   ],
                 ),
