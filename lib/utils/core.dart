@@ -318,6 +318,26 @@ class CoreLogic {
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ];
 
+  /// Resolves the Bridge (Virtual Shifting) transport — Bluetooth or WiFi —
+  /// from the user's currently enabled Trainer Connections. Bluetooth wins
+  /// over WiFi when both are enabled because it survives backgrounding on
+  /// iOS and avoids LAN reachability issues; the Connection Settings card
+  /// is the user's authoritative input. Returns `null` when no enabled
+  /// connection carries trainer telemetry (e.g. only `local` is on).
+  TrainerConnectionType? preferredBridgeTransport(List<TrainerConnection> enabled) {
+    for (final conn in enabled) {
+      if (conn.virtualShiftingTransport == TrainerConnectionType.bluetooth) {
+        return TrainerConnectionType.bluetooth;
+      }
+    }
+    for (final conn in enabled) {
+      if (conn.virtualShiftingTransport == TrainerConnectionType.wifi) {
+        return TrainerConnectionType.wifi;
+      }
+    }
+    return null;
+  }
+
   List<TrainerConnection> get enabledNonLocalTrainerConnections => [
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,

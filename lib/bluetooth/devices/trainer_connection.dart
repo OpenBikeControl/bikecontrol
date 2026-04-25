@@ -5,7 +5,7 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-export 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodTypee;
+export 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodType, ConnectionMethodTypee;
 
 abstract class TrainerConnection {
   final String title;
