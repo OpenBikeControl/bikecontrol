@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -33,7 +34,7 @@ import 'package:bike_control/widgets/ui/trainer_label.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
-import 'package:prop/prop.dart' show LogLevel, Logger;
+import 'package:prop/prop.dart' show LogLevel, Logger, RetrofitMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -148,6 +149,10 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     });
   }
 
+  void _onProxyStateChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -173,6 +178,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _connectionListener = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
     });
+
+    for (final proxy in core.connection.proxyDevices) {
+      proxy.isStarting.addListener(_onProxyStateChanged);
+      proxy.emulator.isConnected.addListener(_onProxyStateChanged);
+    }
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -447,6 +457,10 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _logoController.dispose();
     _timeRefreshTimer.cancel();
     _actionListener.cancel();
+    for (final proxy in core.connection.proxyDevices) {
+      proxy.isStarting.removeListener(_onProxyStateChanged);
+      proxy.emulator.isConnected.removeListener(_onProxyStateChanged);
+    }
     _connectionListener.cancel();
     super.dispose();
   }
@@ -995,6 +1009,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     List<TrainerConnection> enabledTrainers,
   ) {
     final appName = trainerApp?.name ?? 'No app selected';
+    final proxies = core.connection.proxyDevices.where((p) => p.isConnected).toList();
 
     return Card(
       padding: EdgeInsets.zero,
@@ -1056,11 +1071,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     ),
                   ],
                 ),
-                if (enabledTrainers.isNotEmpty) ...[
+                if (enabledTrainers.isNotEmpty || proxies.isNotEmpty) ...[
                   const Gap(12),
                   for (final enabledTrainer in enabledTrainers) ...[
                     _buildTrainerConnectionRow(enabledTrainer),
-                    if (enabledTrainer != enabledTrainers.last) const Gap(8),
+                    if (enabledTrainer != enabledTrainers.last || proxies.isNotEmpty) const Gap(8),
+                  ],
+                  for (final proxy in proxies) ...[
+                    _buildBridgeConnectionRow(proxy),
+                    if (proxy != proxies.last) const Gap(8),
                   ],
                   const Gap(12),
                 ] else ...[
@@ -1097,6 +1116,43 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           child: connected ? Text(trainer.title).small.semiBold : Text(trainer.title).small.muted,
         ),
       ],
+    );
+  }
+
+  Widget _buildBridgeConnectionRow(ProxyDevice device) {
+    return ValueListenableBuilder<RetrofitMode>(
+      valueListenable: device.emulator.retrofitMode,
+      builder: (context, mode, _) {
+        // Proxy mode mirrors raw FTMS over WiFi — surface a wifi icon, not the
+        // bridge-specific bluetooth/cog visuals.
+        final IconData icon = switch (mode) {
+          RetrofitMode.bluetooth => Icons.bluetooth,
+          RetrofitMode.wifi => Icons.wifi,
+          RetrofitMode.proxy => Icons.wifi,
+        };
+        return ValueListenableBuilder<bool>(
+          valueListenable: device.emulator.isConnected,
+          builder: (context, connected, _) {
+            return ValueListenableBuilder<bool>(
+              valueListenable: device.isStarting,
+              builder: (context, starting, _) {
+                final title = 'Bridge (${device.toString()})';
+                return Row(
+                  children: [
+                    StatusIcon(icon: icon, status: connected, started: starting),
+                    const Gap(8),
+                    Expanded(
+                      child: connected
+                          ? Text(title).small.semiBold
+                          : Text(title).small.muted,
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
