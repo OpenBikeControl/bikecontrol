@@ -178,8 +178,9 @@ class ProxyDevice extends BluetoothDevice {
   /// Whether the underlying device looks like a smart trainer (FTMS-capable).
   /// Power-meter-only or HR-only devices have no trainer commands to drive,
   /// so Virtual Shifting is meaningless for them — they stay on Proxy.
-  bool get _isSmartTrainer =>
-      scanResult.services.any((s) => s.toLowerCase() == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase());
+  bool get _isSmartTrainer => scanResult.services.any(
+    (s) => s.toLowerCase() == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase(),
+  );
 
   /// Default connect mode when the user hasn't explicitly picked one. Smart
   /// trainers default to Virtual Shifting (transport resolved from the
@@ -209,7 +210,55 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
-    if (isConnected) return const [];
+    if (isConnected) {
+      return [
+        ValueListenableBuilder<String>(
+          valueListenable: emulator.data,
+          builder: (context, value, _) {
+            if (value.isEmpty) return const SizedBox.shrink();
+            final def = emulator.activeDefinition;
+            final parts = <Widget>[];
+            if (def is ProxyBikeDefinition) {
+              _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
+              _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
+              _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
+              final speed = def.speedKph.value;
+              if (speed != null) {
+                _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+              }
+            } else if (def is FitnessBikeDefinition) {
+              _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
+              _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
+              _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
+              final speed = def.speedKph.value;
+              if (speed != null) {
+                _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+              }
+              // Gear (sim / VS mode) or ERG target wattage (erg mode).
+              if (def.trainerMode.value == TrainerMode.ergMode) {
+                final watts = def.ergTargetPower.value;
+                if (watts != null) {
+                  _addTextMetric(parts, context, 'ERG $watts W', LucideIcons.target);
+                }
+              } else {
+                _addTextMetric(
+                  parts,
+                  context,
+                  'Gear ${def.currentGear.value}/${def.maxGear}',
+                  LucideIcons.settings2,
+                );
+              }
+            }
+            if (parts.isEmpty) return const SizedBox.shrink();
+            return Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: parts,
+            );
+          },
+        ),
+      ];
+    }
     return [_buildFeatureList(context)];
   }
 
@@ -255,58 +304,6 @@ class ProxyDevice extends BluetoothDevice {
           ),
       ],
     );
-  }
-
-  @override
-  List<Widget> showAdditionalInformation(BuildContext context) {
-    if (!isConnected) return const [];
-    return [
-      ValueListenableBuilder<String>(
-        valueListenable: emulator.data,
-        builder: (context, value, _) {
-          if (value.isEmpty) return const SizedBox.shrink();
-          final def = emulator.activeDefinition;
-          final parts = <Widget>[];
-          if (def is ProxyBikeDefinition) {
-            _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
-            _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
-            _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
-            final speed = def.speedKph.value;
-            if (speed != null) {
-              _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
-            }
-          } else if (def is FitnessBikeDefinition) {
-            _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
-            _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
-            _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
-            final speed = def.speedKph.value;
-            if (speed != null) {
-              _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
-            }
-            // Gear (sim / VS mode) or ERG target wattage (erg mode).
-            if (def.trainerMode.value == TrainerMode.ergMode) {
-              final watts = def.ergTargetPower.value;
-              if (watts != null) {
-                _addTextMetric(parts, context, 'ERG $watts W', LucideIcons.target);
-              }
-            } else {
-              _addTextMetric(
-                parts,
-                context,
-                'Gear ${def.currentGear.value}/${def.maxGear}',
-                LucideIcons.settings2,
-              );
-            }
-          }
-          if (parts.isEmpty) return const SizedBox.shrink();
-          return Wrap(
-            spacing: 12,
-            runSpacing: 4,
-            children: parts,
-          );
-        },
-      ),
-    ];
   }
 
   void _addMetric(List<Widget> parts, BuildContext context, int? value, String unit, IconData icon) {

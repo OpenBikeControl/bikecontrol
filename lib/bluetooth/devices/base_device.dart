@@ -483,45 +483,57 @@ abstract class BaseDevice {
 
   Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
     final meta = showMetaInformation(context, showFull: showFull);
-    return Row(
+    return Column(
       spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        StatusIcon(
-          icon: icon,
-          status: isConnected,
-          started: false,
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            spacing: 4,
-            children: [
-              Row(
-                spacing: 6,
+        Row(
+          spacing: 12,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StatusIcon(
+              icon: icon,
+              status: isConnected,
+              started: false,
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                spacing: 4,
                 children: [
-                  Text(
-                    toString(),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                  Row(
+                    spacing: 6,
+                    children: [
+                      Text(
+                        toString(),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                      ),
+                      if (isBeta) BetaPill(),
+                      Expanded(child: SizedBox()),
+                      Icon(
+                        LucideIcons.settings,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.mutedForeground,
+                      ),
+                    ],
                   ),
-                  if (isBeta) BetaPill(),
+                  if (meta.isNotEmpty)
+                    Wrap(
+                      runSpacing: 6,
+                      spacing: 6,
+                      alignment: WrapAlignment.start,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      runAlignment: WrapAlignment.start,
+                      children: meta,
+                    ),
                 ],
               ),
-              if (meta.isNotEmpty)
-                Wrap(
-                  runSpacing: 6,
-                  spacing: 6,
-                  alignment: WrapAlignment.start,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  runAlignment: WrapAlignment.start,
-                  children: meta,
-                ),
-              if (footer != null) footer,
-              ...showAdditionalInformation(context),
-            ],
-          ),
+            ),
+          ],
         ),
+        if (footer != null) footer,
+        ...showAdditionalInformation(context),
       ],
     );
   }
