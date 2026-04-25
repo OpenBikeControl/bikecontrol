@@ -260,5 +260,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   }
 
   @override
+  TrainerConnectionType? get virtualShiftingTransport => TrainerConnectionType.wifi;
+
+  @override
   Widget getTile() => OpenBikeControlMdnsTile();
 }
