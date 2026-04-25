@@ -18,11 +18,6 @@ class MyWhoosh extends SupportedApp {
   @override
   int get virtualGearAmount => 30;
 
-  @override
-  List<TrainerConnectionType> get supportedTrainerConnectionTypes => const [
-    TrainerConnectionType.bluetooth,
-  ];
-
   MyWhoosh()
     : super(
         name: 'MyWhoosh',
