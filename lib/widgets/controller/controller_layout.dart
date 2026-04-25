@@ -38,9 +38,29 @@ class ControllerLayout {
   final ContourShape shape;
   final Map<ControllerButton, Offset> positions;
 
+  /// Optional asset path to an SVG silhouette in `assets/contours/`. When set,
+  /// the canvas renders that SVG behind the buttons instead of the procedural
+  /// [ControllerContourPainter] for [shape].
+  final String? svgAsset;
+
+  /// Rotates the SVG silhouette by this many degrees (90° increments only).
+  /// [aspectRatio] and [positions] are interpreted in the post-rotation frame
+  /// — i.e. the on-screen canvas. Useful when the source SVG is portrait but
+  /// the device sits landscape on the bar (e.g. ThinkRider VS200).
+  final double rotation;
+
+  /// Horizontally mirrors the SVG silhouette. Used to share a single source
+  /// SVG between mirror-image device pairs (e.g. Zwift Play left vs right).
+  /// [positions] still refer to the on-screen frame, so the buttons aren't
+  /// flipped — only the silhouette art is.
+  final bool mirrorX;
+
   const ControllerLayout({
     required this.aspectRatio,
     required this.shape,
     required this.positions,
+    this.svgAsset,
+    this.rotation = 0,
+    this.mirrorX = false,
   });
 }

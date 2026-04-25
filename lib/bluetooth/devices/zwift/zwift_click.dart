@@ -25,11 +25,12 @@ class ZwiftClick extends ZwiftDevice {
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
-    aspectRatio: 1.4,
+    aspectRatio: 1.0,
     shape: ContourShape.pill,
+    svgAsset: 'assets/contours/zwift_click_v1.svg',
     positions: {
-      ZwiftButtons.shiftUpLeft: const Offset(0.3, 0.5),
-      ZwiftButtons.shiftUpRight: const Offset(0.7, 0.5),
+      ZwiftButtons.shiftUpLeft: const Offset(0.5, 0.3),
+      ZwiftButtons.shiftUpRight: const Offset(0.5, 0.6),
     },
   );
 }

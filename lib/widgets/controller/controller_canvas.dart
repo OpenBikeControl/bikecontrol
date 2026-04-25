@@ -1,6 +1,7 @@
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_contour_painter.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 typedef ControllerButtonBuilder = Widget Function(ControllerButton button);
@@ -37,10 +38,7 @@ class ControllerCanvas extends StatelessWidget {
       child: Container(
         width: double.infinity,
         alignment: Alignment.center,
-        constraints: BoxConstraints(
-          maxHeight: layout.shape == ContourShape.pill ? 120 : 250,
-          maxWidth: layout.shape == ContourShape.pill ? 240 : double.infinity,
-        ),
+        height: layout.shape == ContourShape.pill ? 200 : 250,
         child: AspectRatio(
           aspectRatio: layout.aspectRatio,
           child: LayoutBuilder(
@@ -52,16 +50,27 @@ class ControllerCanvas extends StatelessWidget {
                 children: [
                   Positioned.fill(
                     child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: ControllerContourPainter(
-                          shape: layout.shape,
-                          color: cs.border,
-                          // Subtle darkening via the muted foreground at low alpha
-                          // — visually distinct from the solid `cs.muted` button
-                          // fill, so the buttons don't blend into the background.
-                          fillColor: cs.mutedForeground.withValues(alpha: 0.08),
-                        ),
-                      ),
+                      child: layout.svgAsset != null
+                          ? Transform.flip(
+                              flipX: layout.mirrorX,
+                              child: RotatedBox(
+                                quarterTurns: ((layout.rotation / 90).round() % 4 + 4) % 4,
+                                child: SvgPicture.asset(
+                                  layout.svgAsset!,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            )
+                          : CustomPaint(
+                              painter: ControllerContourPainter(
+                                shape: layout.shape,
+                                color: cs.border,
+                                // Subtle darkening via the muted foreground at low alpha
+                                // — visually distinct from the solid `cs.muted` button
+                                // fill, so the buttons don't blend into the background.
+                                fillColor: cs.mutedForeground.withValues(alpha: 0.08),
+                              ),
+                            ),
                     ),
                   ),
                   for (final btn in availableButtons)

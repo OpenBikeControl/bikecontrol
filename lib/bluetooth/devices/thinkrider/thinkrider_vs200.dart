@@ -19,11 +19,13 @@ class ThinkRiderVs200 extends BluetoothDevice {
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
-    aspectRatio: 1.4,
+    aspectRatio: 1124.01 / 766.94,
     shape: ContourShape.pill,
+    svgAsset: 'assets/contours/thinkrider_vs200.svg',
+    rotation: 90,
     positions: {
-      ThinkRiderVs200Buttons.shiftUp: const Offset(0.3, 0.5),
-      ThinkRiderVs200Buttons.shiftDown: const Offset(0.7, 0.5),
+      ThinkRiderVs200Buttons.shiftDown: const Offset(0.26, 0.5),
+      ThinkRiderVs200Buttons.shiftUp: const Offset(0.74, 0.5),
     },
   );
 

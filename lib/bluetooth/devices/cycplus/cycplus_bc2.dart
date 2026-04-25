@@ -17,8 +17,9 @@ class CycplusBc2 extends BluetoothDevice {
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
-    aspectRatio: 1.4,
+    aspectRatio: 1.0,
     shape: ContourShape.pill,
+    svgAsset: 'assets/contours/cycpluc_bc2.svg',
     positions: {
       CycplusBc2Buttons.shiftUp: const Offset(0.3, 0.5),
       CycplusBc2Buttons.shiftDown: const Offset(0.7, 0.5),
