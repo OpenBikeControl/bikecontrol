@@ -50,7 +50,7 @@ class ZwiftRide extends ZwiftDevice {
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
-    aspectRatio: 515 / 288,
+    aspectRatio: 575 / 288,
     // SVG depicts both Plays side-by-side; shape kept as dropBar only as a
     // sizing-bucket hint for [ControllerCanvas] (the painter is not used).
     shape: ContourShape.dropBar,
@@ -63,22 +63,22 @@ class ZwiftRide extends ZwiftDevice {
       ZwiftButtons.navigationRight: const Offset(0.44, 0.40),
       ZwiftButtons.navigationDown: const Offset(0.345, 0.56),
       ZwiftButtons.onOffLeft: const Offset(0.345, 0.76),
-      ZwiftButtons.paddleLeft: const Offset(0.16, 0.19),
+      ZwiftButtons.paddleLeft: const Offset(0.13, 0.1),
       // Ride-only extras laid out down the left drop column.
-      ZwiftButtons.shiftUpLeft: const Offset(0.07, 0.22),
-      ZwiftButtons.shiftDownLeft: const Offset(0.07, 0.40),
-      ZwiftButtons.powerUpLeft: const Offset(0.07, 0.58),
+      ZwiftButtons.shiftUpLeft: const Offset(0.03, 0.32),
+      ZwiftButtons.shiftDownLeft: const Offset(0.03, 0.55),
+      ZwiftButtons.powerUpLeft: const Offset(0.07, 0.88),
       // RIGHT half — ZwiftPlay RIGHT positions with x mapped via x→x·0.5+0.5.
       ZwiftButtons.y: const Offset(0.67, 0.24),
-      ZwiftButtons.z: const Offset(0.60, 0.40),
-      ZwiftButtons.a: const Offset(0.76, 0.40),
+      ZwiftButtons.z: const Offset(0.58, 0.40),
+      ZwiftButtons.a: const Offset(0.77, 0.40),
       ZwiftButtons.b: const Offset(0.67, 0.56),
-      ZwiftButtons.onOffRight: const Offset(0.655, 0.76),
-      ZwiftButtons.paddleRight: const Offset(0.825, 0.19),
+      ZwiftButtons.onOffRight: const Offset(0.67, 0.76),
+      ZwiftButtons.paddleRight: const Offset(0.89, 0.1),
       // Ride-only extras laid out down the right drop column.
-      ZwiftButtons.shiftUpRight: const Offset(0.93, 0.22),
-      ZwiftButtons.shiftDownRight: const Offset(0.93, 0.40),
-      ZwiftButtons.powerUpRight: const Offset(0.93, 0.58),
+      ZwiftButtons.shiftUpRight: const Offset(0.97, 0.32),
+      ZwiftButtons.shiftDownRight: const Offset(0.97, 0.55),
+      ZwiftButtons.powerUpRight: const Offset(0.93, 0.88),
     },
   );
 
