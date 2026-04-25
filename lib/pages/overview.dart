@@ -317,6 +317,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           valueListenable: IAPManager.instance.isPurchased,
           builder: (context, value, child) => value ? SizedBox(height: 12) : IAPStatusWidget(small: false),
         ),
+        _buildErrorBanner(),
+        const Gap(22),
         Card(
           padding: EdgeInsets.zero,
           child: Column(
