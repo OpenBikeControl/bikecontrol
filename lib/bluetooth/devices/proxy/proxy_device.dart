@@ -10,6 +10,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
@@ -310,6 +311,7 @@ class ProxyDevice extends BluetoothDevice {
           return Success('ERG target: ${def.ergTargetPower.value} W');
         } else {
           def.shiftUp();
+          unawaited(_triggerKeymapAction(InGameAction.shiftUp));
           return Success('Shifted up to gear ${def.currentGear.value}');
         }
       case InGameAction.trainerDown:
@@ -319,6 +321,7 @@ class ProxyDevice extends BluetoothDevice {
           return Success('ERG target: ${def.ergTargetPower.value} W');
         } else {
           def.shiftDown();
+          unawaited(_triggerKeymapAction(InGameAction.shiftDown));
           return Success('Shifted down to gear ${def.currentGear.value}');
         }
       case InGameAction.trainerSwitchMode:
@@ -339,6 +342,26 @@ class ProxyDevice extends BluetoothDevice {
       default:
         return NotHandled('');
     }
+  }
+
+  /// Fires the user-defined [inGameAction] from the active keymap, if any.
+  /// Used so that virtual-shifting trainer actions (trainerUp/Down) can also
+  /// surface as the keymap's shift actions in the connected app.
+  Future<void> _triggerKeymapAction(InGameAction inGameAction) async {
+    final keymap = core.actionHandler.supportedApp?.keymap;
+    if (keymap == null) return;
+    final keyPair = keymap.keyPairs.firstOrNullWhere(
+      (kp) => kp.inGameAction == inGameAction && !kp.hasNoAction,
+    );
+    final button = keyPair?.buttons.firstOrNull;
+    if (keyPair == null || button == null) return;
+
+    await core.actionHandler.performAction(
+      button,
+      isKeyDown: true,
+      isKeyUp: true,
+      trigger: keyPair.trigger,
+    );
   }
 
   @override
