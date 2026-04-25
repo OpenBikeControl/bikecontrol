@@ -481,10 +481,11 @@ abstract class BaseDevice {
     return [];
   }
 
-  Widget showInformation(BuildContext context, {required bool showFull}) {
+  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
     final meta = showMetaInformation(context, showFull: showFull);
     return Row(
       spacing: 12,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         StatusIcon(
           icon: icon,
@@ -494,7 +495,7 @@ abstract class BaseDevice {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             spacing: 4,
             children: [
               Row(
@@ -516,6 +517,8 @@ abstract class BaseDevice {
                   runAlignment: WrapAlignment.start,
                   children: meta,
                 ),
+              if (footer != null) footer,
+              ...showAdditionalInformation(context),
             ],
           ),
         ),

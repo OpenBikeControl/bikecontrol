@@ -21,6 +21,7 @@ class ThinkRiderVs200 extends BluetoothDevice {
   ControllerLayout get controllerLayout => ControllerLayout(
     aspectRatio: 1124.01 / 766.94,
     shape: ContourShape.pill,
+    padding: 20,
     svgAsset: 'assets/contours/thinkrider_vs200.svg',
     rotation: 90,
     positions: {

@@ -38,6 +38,7 @@ class ControllerCanvas extends StatelessWidget {
       child: Container(
         width: double.infinity,
         alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(vertical: layout.padding),
         height: layout.shape == ContourShape.pill ? 200 : 250,
         child: AspectRatio(
           aspectRatio: layout.aspectRatio,
@@ -58,6 +59,9 @@ class ControllerCanvas extends StatelessWidget {
                                 child: SvgPicture.asset(
                                   layout.svgAsset!,
                                   fit: BoxFit.contain,
+                                  colorFilter: Theme.of(context).brightness == Brightness.dark
+                                      ? ColorFilter.mode(cs.primary.withValues(alpha: 1), BlendMode.srcIn)
+                                      : null,
                                 ),
                               ),
                             )

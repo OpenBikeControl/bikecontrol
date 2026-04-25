@@ -70,19 +70,11 @@ class _DevicePageState extends State<ProxyPage> {
                     widget.onUpdate();
                   },
                   trailing: Icon(
-                    Icons.chevron_right,
+                    LucideIcons.settings,
                     size: 16,
                     color: Theme.of(context).colorScheme.mutedForeground,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      device.showInformation(context, showFull: false),
-                      ...device.showAdditionalInformation(context),
-                    ],
-                  ),
+                  child: device.showInformation(context, showFull: false),
                 ),
               ),
               if (index != core.connection.proxyDevices.length - 1)

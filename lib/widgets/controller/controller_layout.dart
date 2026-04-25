@@ -6,23 +6,31 @@ import 'package:flutter/material.dart';
 enum ContourShape {
   /// Circle or ellipse — e.g. Zwift Click V1.
   puck,
+
   /// Rounded-rect pill shape — e.g. Cycplus BC2, Zwift Click V2.
   pill,
+
   /// Rounded rectangle — e.g. Zwift Play grip.
   rect,
+
   /// Two handlebar drops joined by a flat top tube — e.g. Zwift Ride,
   /// Wahoo KICKR BIKE SHIFT.
   dropBar,
+
   /// Flat triangular steering pad — e.g. Elite Sterzo.
   steeringPad,
+
   /// Phone silhouette — e.g. Gyroscope Steering (virtual).
   phone,
+
   /// Zwift Play right-side grip with paired handlebar drop. Compact button
   /// panel on the left half + C-curve of a handlebar drop on the right.
   zwiftPlayRight,
+
   /// Mirrored zwiftPlayRight for the left-hand controller: drop curves to
   /// the left, button panel on the right half.
   zwiftPlayLeft,
+
   /// Zwift Click V2 is two separate pucks (nav + ABYZ) each with a small
   /// "chin" extending downward for the shift button. Two independent
   /// outlines — no unification between the halves.
@@ -36,6 +44,7 @@ enum ContourShape {
 class ControllerLayout {
   final double aspectRatio;
   final ContourShape shape;
+  final double padding;
   final Map<ControllerButton, Offset> positions;
 
   /// Optional asset path to an SVG silhouette in `assets/contours/`. When set,
@@ -61,6 +70,7 @@ class ControllerLayout {
     required this.positions,
     this.svgAsset,
     this.rotation = 0,
+    this.padding = 0,
     this.mirrorX = false,
   });
 }

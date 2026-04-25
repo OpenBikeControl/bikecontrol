@@ -75,28 +75,26 @@ class _DevicePageState extends State<DevicePage> {
                       widget.onUpdate();
                     },
                     trailing: Icon(
-                      Icons.chevron_right,
+                      LucideIcons.settings,
                       size: 16,
                       color: Theme.of(context).colorScheme.mutedForeground,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        device.showInformation(context, showFull: false),
-                        if (!screenshotMode) widget.footerBuilder(device),
-                        ...device.showAdditionalInformation(context),
-                      ],
+                    child: device.showInformation(
+                      context,
+                      showFull: false,
+                      footer: !screenshotMode ? widget.footerBuilder(device) : null,
                     ),
                   ),
                 ),
-                if (index != core.connection.controllerDevices.length - 1)
+                if (index != core.connection.controllerDevices.length - 1) ...[
                   Divider(
-                    thickness: 0.5,
+                    thickness: Theme.of(context).brightness == Brightness.dark ? 1 : 0.5,
                     indent: 20,
                     endIndent: 20,
+                    height: 5,
                   ),
+                  SizedBox(height: 12),
+                ],
               ],
             )
             .flatten(),

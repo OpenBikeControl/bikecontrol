@@ -115,7 +115,7 @@ class SramAxs extends BluetoothDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull}) {
+  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 12,
