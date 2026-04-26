@@ -22,4 +22,10 @@ class PropPrefs {
     final key = 'clickV2_$deviceId';
     _prefs.setInt("${key}_unlock_date", dateTime.millisecondsSinceEpoch);
   }
+
+  void setNotSureIfUnlocked(String deviceId, bool bool) {}
+
+  bool notSureIfUnlocked(String deviceId) {
+    return false;
+  }
 }
