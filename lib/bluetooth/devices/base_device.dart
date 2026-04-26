@@ -511,11 +511,12 @@ abstract class BaseDevice {
                       ),
                       if (isBeta) BetaPill(),
                       Expanded(child: SizedBox()),
-                      Icon(
-                        LucideIcons.settings,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.mutedForeground,
-                      ),
+                      if (!showFull)
+                        Icon(
+                          LucideIcons.settings,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.mutedForeground,
+                        ),
                     ],
                   ),
                   if (meta.isNotEmpty)

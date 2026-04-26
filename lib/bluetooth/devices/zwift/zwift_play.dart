@@ -85,8 +85,8 @@ class ZwiftPlay extends ZwiftDevice {
           ZwiftButtons.onOffLeft: const Offset(0.69, 0.76),
           // D-pad diamond in the right-side grip.
           ZwiftButtons.navigationUp: const Offset(0.69, 0.24),
-          ZwiftButtons.navigationLeft: const Offset(0.50, 0.40),
-          ZwiftButtons.navigationRight: const Offset(0.88, 0.40),
+          ZwiftButtons.navigationLeft: const Offset(0.54, 0.40),
+          ZwiftButtons.navigationRight: const Offset(0.84, 0.40),
           ZwiftButtons.navigationDown: const Offset(0.69, 0.56),
           // Paddle on top of the drop, side button to its LEFT on the left controller.
           ZwiftButtons.paddleLeft: const Offset(0.32, 0.19),

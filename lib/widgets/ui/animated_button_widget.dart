@@ -27,8 +27,7 @@ class AnimatedButtonWidget extends StatefulWidget {
   State<AnimatedButtonWidget> createState() => _AnimatedButtonWidgetState();
 }
 
-class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget>
-    with SingleTickerProviderStateMixin {
+class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget> with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 120),
@@ -70,7 +69,11 @@ class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget>
     // Inner ScaleTransition handles the pressGeneration pulse (fast in/out).
     final pressed = ScaleTransition(
       scale: Tween(begin: 1.0, end: 1.18).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut)),
-      child: ButtonWidget(button: widget.button, size: widget.size, keymap: widget.keymap),
+      child: ButtonWidget(
+        button: widget.button,
+        size: widget.size,
+        keymap: widget.keymap,
+      ),
     );
     if (!_canOpenPopup) return pressed;
     // Outer AnimatedScale handles the hover lift — compounded multiplicatively

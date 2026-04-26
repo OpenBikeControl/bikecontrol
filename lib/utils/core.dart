@@ -10,6 +10,9 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/shifting_configs_controller.dart';
+import 'package:bike_control/services/workout/workout_recorder.dart';
+import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/remote.dart';
@@ -18,19 +21,15 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
-import 'package:bike_control/services/shifting_configs_controller.dart';
-import 'package:bike_control/services/workout/workout_recorder.dart';
-import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart';
 import 'package:prop/services/bridge_usage_tracker.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -482,5 +481,5 @@ class Local extends TrainerConnection {
   }
 
   @override
-  Widget getTile() => LocalTile();
+  Widget getTile({bool small = false}) => LocalTile(small: small);
 }

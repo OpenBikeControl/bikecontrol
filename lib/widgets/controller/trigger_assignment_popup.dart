@@ -25,6 +25,7 @@ Future<void> showTriggerAssignmentPopup({
 }) async {
   showDropdown<void>(
     context: context,
+    consumeOutsideTaps: true,
     builder: (c) => DropdownMenu(
       children: [
         MenuLabel(child: Text(button.displayName)),

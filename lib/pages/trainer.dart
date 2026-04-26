@@ -60,11 +60,12 @@ class _TrainerPageState extends State<TrainerPage> {
         (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
 
     final recommendedTiles = [
-      if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
-      if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
+      if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(small: false),
+      if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(small: false),
 
       if (core.logic.showZwiftMsdnEmulator)
         ZwiftMdnsTile(
+          small: false,
           onUpdate: () {
             core.connection.signalNotification(
               LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
@@ -73,6 +74,7 @@ class _TrainerPageState extends State<TrainerPage> {
         ),
       if (core.logic.showZwiftBleEmulator)
         ZwiftTile(
+          small: false,
           onUpdate: () {
             if (mounted) {
               core.connection.signalNotification(
@@ -82,15 +84,15 @@ class _TrainerPageState extends State<TrainerPage> {
             }
           },
         ),
-      if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
-      if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
+      if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: false),
+      if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
     ];
 
     final otherTiles = [
-      if (showWhooshLinkAsOther) MyWhooshLinkTile(),
-      if (core.logic.showRemote) RemoteMousePairingWidget(),
-      if (core.logic.showLocalControl && showLocalAsOther) LocalTile(),
-      if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(),
+      if (showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
+      if (core.logic.showRemote) RemoteMousePairingWidget(small: false),
+      if (core.logic.showLocalControl && showLocalAsOther) LocalTile(small: false),
+      if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(small: false),
     ];
 
     return Scrollbar(

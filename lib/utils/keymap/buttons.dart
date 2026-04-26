@@ -156,7 +156,17 @@ class ControllerButton {
   /// suffix never leaks into the label.
   String get initials {
     final words = name.splitByUpperCase().split(' ');
-    return words.where((w) => w.isNotEmpty).map((w) => w[0].toUpperCase()).join();
+    return words
+        .where((w) => w.isNotEmpty)
+        .map(
+          (w) => w
+              .replaceAll('Up', '↑')
+              .replaceAll('Right', '→')
+              .replaceAll('Down', '↓')
+              .replaceAll('Left', '←')[0]
+              .toUpperCase(),
+        )
+        .join();
   }
 
   @override

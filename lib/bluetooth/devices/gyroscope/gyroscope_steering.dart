@@ -322,22 +322,13 @@ class GyroscopeSteering extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
-    return Column(
-      children: [
-        super.showInformation(context, showFull: showFull),
-        const Gap(12),
-        Row(
-          spacing: 8,
-          children: [
-            Text(_isCalibrated ? 'Calibrated' : 'Calibrating...').xSmall.muted,
-            Text(
-              'Steering Angle: ${_isCalibrated ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°' : 'Calibrating...'}',
-            ).xSmall.muted,
-          ],
-        ),
-      ],
-    );
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
+    return [
+      Text(_isCalibrated ? 'Calibrated' : 'Calibrating...').xSmall.muted,
+      Text(
+        'Steering Angle: ${_isCalibrated ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°' : 'Calibrating...'}',
+      ).xSmall.muted,
+    ];
   }
 
   @override

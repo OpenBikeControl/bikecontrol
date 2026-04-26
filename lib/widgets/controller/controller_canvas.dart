@@ -39,7 +39,11 @@ class ControllerCanvas extends StatelessWidget {
         width: double.infinity,
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(vertical: layout.padding),
-        height: layout.shape == ContourShape.pill ? 200 : 250,
+        constraints: BoxConstraints(
+          maxHeight: layout.shape == ContourShape.pill
+              ? 200 / Theme.of(context).scaling
+              : 250 / Theme.of(context).scaling,
+        ),
         child: AspectRatio(
           aspectRatio: layout.aspectRatio,
           child: LayoutBuilder(

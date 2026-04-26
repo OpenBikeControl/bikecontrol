@@ -13,8 +13,8 @@ class _FakeConnection extends TrainerConnection {
     required super.title,
     required super.type,
     TrainerConnectionType? transport,
-  })  : _transport = transport,
-        super(supportedActions: const []);
+  }) : _transport = transport,
+       super(supportedActions: const []);
 
   @override
   TrainerConnectionType? get virtualShiftingTransport => _transport;
@@ -24,7 +24,7 @@ class _FakeConnection extends TrainerConnection {
       NotHandled('');
 
   @override
-  Widget getTile() => const SizedBox.shrink();
+  Widget getTile({bool small = false}) => const SizedBox.shrink();
 }
 
 void main() {

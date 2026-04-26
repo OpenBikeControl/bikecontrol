@@ -33,6 +33,7 @@ class ConnectionMethod extends StatefulWidget {
   final Widget? additionalChild;
   final bool isRecommended;
   final bool isEnabled;
+  final bool small;
   final bool showTroubleshooting;
   final ConnectionSupport? supportLevel;
   final List<PlatformRequirement> requirements;
@@ -45,6 +46,7 @@ class ConnectionMethod extends StatefulWidget {
     required this.title,
     required this.isRecommended,
     required this.isEnabled,
+    required this.small,
     this.additionalChild,
     required this.description,
     this.instructionLink,
@@ -110,6 +112,75 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
           }
         });
       }
+    }
+
+    if (widget.small) {
+      return SizedBox(
+        width: double.infinity,
+        child: Basic(
+          leading: StatusIcon(
+            status: widget.trainerConnection.isConnected.value,
+            started: widget.trainerConnection.isStarted.value,
+            icon: widget.trainerConnection.type.icon,
+          ),
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              Expanded(
+                child: widget.trainerConnection.isConnected.value ? Text(widget.title) : Text(widget.title).muted,
+              ),
+              if (widget.supportLevel == ConnectionSupport.beta)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: BetaPill(),
+                )
+              else if (widget.supportLevel == ConnectionSupport.experimental)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: BetaPill(text: 'EXPER.'),
+                ),
+            ],
+          ),
+          subtitle: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 6,
+            children: [
+              Text(widget.description).xSmall.textMuted,
+              if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
+              if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(),
+              if (widget.instructionLink != null)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Button(
+                      style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
+                          ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
+                          : ButtonStyle.outline(),
+                      leading: Icon(
+                        widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
+                      ),
+                      onPressed: () {
+                        if (widget.instructionLink!.contains("youtube")) {
+                          launchUrlString(widget.instructionLink!);
+                        } else {
+                          openDrawer(
+                            context: context,
+                            position: OverlayPosition.bottom,
+                            builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
+                          );
+                        }
+                      },
+                      child: Text(AppLocalizations.of(context).instructions),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      );
     }
 
     return SizedBox(

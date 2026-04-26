@@ -17,12 +17,12 @@ class CycplusBc2 extends BluetoothDevice {
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
-    aspectRatio: 1.0,
+    aspectRatio: 1.25,
     shape: ContourShape.pill,
     svgAsset: 'assets/contours/cycpluc_bc2.svg',
     positions: {
-      CycplusBc2Buttons.shiftUp: const Offset(0.3, 0.5),
-      CycplusBc2Buttons.shiftDown: const Offset(0.7, 0.5),
+      CycplusBc2Buttons.shiftUp: const Offset(0.3, 0.48),
+      CycplusBc2Buttons.shiftDown: const Offset(0.7, 0.48),
     },
   );
 
@@ -90,12 +90,14 @@ class CycplusBc2Buttons {
   static const ControllerButton shiftUp = ControllerButton(
     'shiftUp',
     action: InGameAction.shiftUp,
+    color: Colors.black,
     icon: Icons.add,
   );
 
   static const ControllerButton shiftDown = ControllerButton(
     'shiftDown',
     action: InGameAction.shiftDown,
+    color: Colors.black,
     icon: Icons.remove,
   );
 

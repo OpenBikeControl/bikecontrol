@@ -23,13 +23,13 @@ abstract class TrainerConnection {
   /// Bluetooth (BLE peripheral). `null` for connection methods that don't carry
   /// trainer telemetry (e.g. [ConnectionMethodType.local]).
   TrainerConnectionType? get virtualShiftingTransport => switch (type) {
-        ConnectionMethodType.bluetooth => TrainerConnectionType.bluetooth,
-        ConnectionMethodType.network => TrainerConnectionType.wifi,
-        ConnectionMethodType.openBikeControl => null,
-        ConnectionMethodType.local => null,
-      };
+    ConnectionMethodType.bluetooth => TrainerConnectionType.bluetooth,
+    ConnectionMethodType.network => TrainerConnectionType.wifi,
+    ConnectionMethodType.openBikeControl => null,
+    ConnectionMethodType.local => null,
+  };
 
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp});
 
-  Widget getTile();
+  Widget getTile({bool small = false});
 }

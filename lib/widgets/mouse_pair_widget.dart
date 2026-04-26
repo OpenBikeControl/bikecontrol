@@ -11,7 +11,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../utils/requirements/multi.dart';
 
 class RemoteMousePairingWidget extends StatefulWidget {
-  const RemoteMousePairingWidget({super.key});
+  final bool small;
+  const RemoteMousePairingWidget({super.key, required this.small});
 
   @override
   State<RemoteMousePairingWidget> createState() => _PairWidgetState();
@@ -29,6 +30,7 @@ class _PairWidgetState extends State<RemoteMousePairingWidget> {
             return ConnectionMethod(
               trainerConnection: core.remotePairing,
               isEnabled: core.logic.isRemoteControlEnabled,
+              small: widget.small,
               showTroubleshooting: true,
               isRecommended: false,
               supportLevel: ConnectionSupport.beta,

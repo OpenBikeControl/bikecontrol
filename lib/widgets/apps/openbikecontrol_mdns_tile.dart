@@ -9,7 +9,8 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OpenBikeControlMdnsTile extends StatefulWidget {
-  const OpenBikeControlMdnsTile({super.key});
+  final bool small;
+  const OpenBikeControlMdnsTile({super.key, required this.small});
 
   @override
   State<OpenBikeControlMdnsTile> createState() => _OpenBikeProtocolTileState();
@@ -27,6 +28,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
             return ConnectionMethod(
               trainerConnection: core.obpMdnsEmulator,
               isRecommended: true,
+              small: widget.small,
               supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.obpMdns),
               supportedActions: isConnected?.supportedActions,
               isEnabled: core.settings.getObpMdnsEnabled(),

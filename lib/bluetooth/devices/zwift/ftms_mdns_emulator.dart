@@ -8,7 +8,6 @@ import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -107,8 +106,9 @@ class FtmsMdnsEmulator extends TrainerConnection {
   }
 
   @override
-  Widget getTile() => ZwiftMdnsTile(
+  Widget getTile({bool small = false}) => ZwiftMdnsTile(
     onUpdate: () {},
+    small: small,
   );
 }
 

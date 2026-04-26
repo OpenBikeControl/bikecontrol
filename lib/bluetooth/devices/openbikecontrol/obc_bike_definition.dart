@@ -40,6 +40,9 @@ class ObcBikeDefinition extends BleDefinition {
   List<String> get serviceUUIDs => [OpenBikeControlConstants.SERVICE_UUID];
 
   @override
+  List<String> get advertiseServiceUUIDs => serviceUUIDs;
+
+  @override
   void onNotification(String characteristic, Uint8List bytes) {
     onMessageCallback.onMessage(bytes);
   }
