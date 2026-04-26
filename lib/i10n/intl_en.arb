@@ -780,5 +780,62 @@
   "diagAppPlatform": "App platform",
   "enabledLabel": "Enabled",
   "disabledLabel": "Disabled",
-  "notAvailable": "Not available"
+  "notAvailable": "Not available",
+  "editingTrigger": "Editing {trigger}",
+  "@editingTrigger": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      }
+    }
+  },
+  "longPressFallbackHint": "This device uses long press toggle mode: first click sends key down, second click sends key up.",
+  "trainerDirectControl": "Trainer Direct Control",
+  "repeatSingleClick": "Repeat single click action",
+  "localRemoteSetting": "Local / Remote Setting",
+  "broadcastIntent": "Broadcast Custom Intent",
+  "broadcastIntentDesc": "For automation apps like MacroDroid or Tasker",
+  "otherActions": "Other Actions",
+  "takeScreenshot": "Take Screenshot",
+  "accessoryActions": "Accessory Actions",
+  "kickrHeadwind": "KICKR Headwind",
+  "setHeadwindSpeedTo": "Set Speed to {value}%",
+  "@setHeadwindSpeedTo": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "setSpeed": "Set Speed",
+  "increaseSpeed": "Increase Speed",
+  "decreaseSpeed": "Decrease Speed",
+  "increaseSpeedCyclic": "Increase Speed Cyclically",
+  "decreaseSpeedCyclic": "Decrease Speed Cyclically",
+  "setHeartRateMode": "Set to Heart Rate Mode",
+  "noExecutableSelected": "No executable file selected",
+  "launchShortcut": "Launch Shortcut",
+  "shortcutNameHint": "Shortcut name",
+  "launchShortcutDesc": "Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.",
+  "noPathSelected": "No path selected",
+  "cannotWriteFolder": "Cannot write to this folder. Please grant write permission and try again.",
+  "intentSuffixHint": "one",
+  "broadcastIntentExplanation": "Sends an Android broadcast with action \"{prefix}<your suffix>\" when the button is pressed. Apps like MacroDroid or Tasker can listen for the intent and run your automations.",
+  "@broadcastIntentExplanation": {
+    "placeholders": {
+      "prefix": {
+        "type": "String"
+      }
+    }
+  },
+  "customModeAction": "Custom {mode} action",
+  "@customModeAction": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "customLabel": "Custom",
+  "blogTab": "Blog"
 }
