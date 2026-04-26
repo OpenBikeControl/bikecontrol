@@ -56,58 +56,7 @@ class ControllerContourPainter extends CustomPainter {
       case ContourShape.zwiftPlayLeft:
         _paintZwiftPlay(canvas, size, fill, stroke, mirror: true);
         break;
-      case ContourShape.zwiftClickV2:
-        _paintZwiftClickV2(canvas, size, fill, stroke);
-        break;
     }
-  }
-
-  /// Zwift Click V2: two identical pucks (nav on the left, ABYZ on the
-  /// right). Each puck body is a rounded-corner diamond, with a narrower
-  /// "chin" extending below for the shift button. Two independent outlines
-  /// so the two halves read as separate physical units.
-  void _paintZwiftClickV2(Canvas canvas, Size size, Paint fill, Paint stroke) {
-    final w = size.width;
-    final h = size.height;
-
-    void drawPuck(double centerXNorm) {
-      final cx = centerXNorm * w;
-      final cy = 0.42 * h;
-      final half = 0.46 * h; // ~1.5× the original so 56-px buttons sit inside
-      const r = 10.0; // corner-rounding offset, in edge-direction units
-
-      // Rounded diamond (rotated rounded square) traced clockwise from the
-      // top corner. `r` controls how much of each corner is rounded.
-      final diamond = Path()
-        ..moveTo(cx + r, cy - half + r)
-        ..lineTo(cx + half - r, cy - r)
-        ..quadraticBezierTo(cx + half, cy, cx + half - r, cy + r)
-        ..lineTo(cx + r, cy + half - r)
-        ..quadraticBezierTo(cx, cy + half, cx - r, cy + half - r)
-        ..lineTo(cx - half + r, cy + r)
-        ..quadraticBezierTo(cx - half, cy, cx - half + r, cy - r)
-        ..lineTo(cx - r, cy - half + r)
-        ..quadraticBezierTo(cx, cy - half, cx + r, cy - half + r)
-        ..close();
-
-      // Chin — narrow rounded rect whose top overlaps inside the lower point
-      // of the diamond so the union reads as one continuous silhouette.
-      final chinHalfWidth = 0.07 * w;
-      final chin = Path()
-        ..addRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTRB(cx - chinHalfWidth, 0.78 * h, cx + chinHalfWidth, 0.96 * h),
-            const Radius.circular(14),
-          ),
-        );
-
-      final unified = Path.combine(PathOperation.union, diamond, chin);
-      canvas.drawPath(unified, fill);
-      canvas.drawPath(unified, stroke);
-    }
-
-    drawPuck(0.25); // left puck (navigation)
-    drawPuck(0.75); // right puck (ABYZ)
   }
 
   /// Zwift Play silhouette: a rounded button-panel grip on one side and a

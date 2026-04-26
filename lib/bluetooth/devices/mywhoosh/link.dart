@@ -10,10 +10,9 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class WhooshLink extends TrainerConnection {
   Socket? _socket;
@@ -189,5 +188,5 @@ class WhooshLink extends TrainerConnection {
   }
 
   @override
-  Widget getTile() => MyWhooshLinkTile();
+  Widget getTile({bool small = false}) => MyWhooshLinkTile(small: small);
 }

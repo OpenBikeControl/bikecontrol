@@ -91,12 +91,14 @@ class ThinkRiderVs200Buttons {
   static const ControllerButton shiftUp = ControllerButton(
     'shiftUp',
     action: InGameAction.shiftUp,
+    color: Colors.black,
     icon: Icons.add,
   );
 
   static const ControllerButton shiftDown = ControllerButton(
     'shiftDown',
     action: InGameAction.shiftDown,
+    color: Colors.black,
     icon: Icons.remove,
   );
 

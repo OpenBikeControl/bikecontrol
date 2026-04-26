@@ -205,7 +205,12 @@ abstract class BluetoothDevice extends BaseDevice {
     }
 
     if (!kIsWeb) {
-      await UniversalBle.requestMtu(device.deviceId, 517);
+      try {
+        await UniversalBle.requestMtu(device.deviceId, 517);
+      } catch (e) {
+        // not critical, just log it
+        debugPrint('Failed to request MTU: $e');
+      }
     }
 
     services = await UniversalBle.discoverServices(device.deviceId);
@@ -303,7 +308,6 @@ abstract class BluetoothDevice extends BaseDevice {
     return [
       // metaRow: battery + signal
       if (batteryLevel != null || rssi != null) ...[
-        const Gap(4),
         if (batteryLevel != null) ...[
           Icon(
             switch (batteryLevel!) {

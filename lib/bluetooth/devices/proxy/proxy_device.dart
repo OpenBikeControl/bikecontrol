@@ -154,17 +154,24 @@ class ProxyDevice extends BluetoothDevice {
     emulator.setScanResult(scanResult);
     emulator.handleServices(services);
 
-    await emulator.startServer();
-    applyTrainerSettings();
-    // Read the trainer's FTMS Feature map proactively so the UI can gate
-    // virtual-shifting options and the feedback payload can report it. Runs
-    // off the critical path — failures just leave trainerFeature null.
-    final def = emulator.activeDefinition;
-    if (def is FitnessBikeDefinition) unawaited(def.probeTrainerFeatures());
-    onChange.value = 'Connected to ${scanResult.name}';
+    try {
+      await emulator.startServer();
+      applyTrainerSettings();
+      // Read the trainer's FTMS Feature map proactively so the UI can gate
+      // virtual-shifting options and the feedback payload can report it. Runs
+      // off the critical path — failures just leave trainerFeature null.
+      final def = emulator.activeDefinition;
+      if (def is FitnessBikeDefinition) unawaited(def.probeTrainerFeatures());
+      onChange.value = 'Connected to ${scanResult.name}';
 
-    if (_isBridgeTrialOver) {
-      _announceBridgeTrialOver();
+      if (_isBridgeTrialOver) {
+        _announceBridgeTrialOver();
+      }
+    } catch (e) {
+      core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start emulator: $e'));
+      onChange.value = 'Failed to start emulator: $e';
+      emulator.stop();
+      disconnect();
     }
   }
 

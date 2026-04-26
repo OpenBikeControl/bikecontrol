@@ -49,7 +49,7 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
     aspectRatio: 494.86 / 252.86,
-    shape: ContourShape.zwiftClickV2,
+    shape: ContourShape.pill,
     svgAsset: 'assets/contours/zwift_click_v2.svg',
     positions: {
       // Left puck — navigation diamond + minus (shift-up-left) under "down".
@@ -70,7 +70,7 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   String toString() {
-    return "$name V2";
+    return "Zwift Click V2";
   }
 
   bool get isUnlocked {

@@ -390,6 +390,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   final pressedButton = _pressedButton[id];
                   final generation = _pressGeneration[id] ?? 0;
                   final keymap = core.actionHandler.supportedApp?.keymap;
+                  final size = 56 / Theme.of(context).scaling;
                   Widget btnFor(ControllerButton btn) {
                     final pressGen = pressedButton?.name == btn.name ? generation : 0;
                     return AnimatedButtonWidget(
@@ -398,6 +399,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       pressGeneration: pressGen,
                       keymap: keymap,
                       device: device,
+                      size: size,
                       onUpdate: () {
                         _clearErrorBanner();
                         setState(() {});
@@ -411,6 +413,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                       layout: layout,
                       availableButtons: device.availableButtons,
                       buttonBuilder: btnFor,
+                      buttonSize: size,
                     );
                   }
                   return Wrap(
@@ -678,11 +681,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   const Gap(12),
                   for (final enabledTrainer in enabledTrainers) ...[
                     _buildTrainerConnectionRow(enabledTrainer),
-                    if (enabledTrainer != enabledTrainers.last || proxies.isNotEmpty) const Gap(8),
+                    if (enabledTrainer != enabledTrainers.last || proxies.isNotEmpty) const Gap(12),
                   ],
                   for (final proxy in proxies) ...[
                     _buildBridgeConnectionRow(proxy),
-                    if (proxy != proxies.last) const Gap(8),
+                    if (proxy != proxies.last) const Gap(12),
                   ],
                   const Gap(12),
                 ] else ...[
@@ -708,22 +711,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   Widget _buildTrainerConnectionRow(TrainerConnection trainer) {
-    final connected = trainer.isConnected.value;
-    final started = trainer.isStarted.value;
-
-    return Row(
-      children: [
-        StatusIcon(
-          icon: trainer.type.icon,
-          status: connected,
-          started: started,
-        ),
-        const Gap(8),
-        Expanded(
-          child: connected ? Text(trainer.title).small.semiBold : Text(trainer.title).small.muted,
-        ),
-      ],
-    );
+    return trainer.getTile(small: true);
   }
 
   Widget _buildBridgeConnectionRow(ProxyDevice device) {
@@ -740,14 +728,18 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               valueListenable: device.emulator.isStarted,
               builder: (context, starting, _) {
                 final title = 'Bridge (${device.toString()})';
-                return Row(
-                  children: [
-                    StatusIcon(icon: icon, status: connected, started: starting),
-                    const Gap(8),
-                    Expanded(
-                      child: connected ? Text(title).small.semiBold : Text(title).small.muted,
-                    ),
-                  ],
+                return SizedBox(
+                  width: double.infinity,
+                  child: Basic(
+                    leading: StatusIcon(icon: icon, status: connected, started: starting),
+                    title: connected ? Text(title).small.semiBold : Text(title).small.muted,
+                    subtitle: Text(
+                      context.i18n.chooseBikeControlInConnectionScreen.replaceAll(
+                        'BikeControl',
+                        device.emulator.advertisementName,
+                      ),
+                    ).xSmall.textMuted,
+                  ),
                 );
               },
             );

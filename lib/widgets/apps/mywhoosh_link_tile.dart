@@ -12,7 +12,8 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class MyWhooshLinkTile extends StatefulWidget {
-  const MyWhooshLinkTile({super.key});
+  final bool small;
+  const MyWhooshLinkTile({super.key, required this.small});
 
   @override
   State<MyWhooshLinkTile> createState() => _MywhooshLinkTileState();
@@ -30,6 +31,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
             return ConnectionMethod(
               trainerConnection: core.whooshLink,
               isRecommended: Platform.isIOS,
+              small: widget.small,
               supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.myWhooshLink),
               isEnabled: core.settings.getMyWhooshLinkEnabled(),
               title: context.i18n.connectUsingMyWhooshLink,

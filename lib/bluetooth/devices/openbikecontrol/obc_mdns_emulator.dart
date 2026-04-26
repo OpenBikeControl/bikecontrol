@@ -13,7 +13,6 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart';
@@ -263,5 +262,5 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   TrainerConnectionType? get virtualShiftingTransport => TrainerConnectionType.wifi;
 
   @override
-  Widget getTile() => OpenBikeControlMdnsTile();
+  Widget getTile({bool small = false}) => OpenBikeControlMdnsTile(small: small);
 }
