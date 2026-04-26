@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/services/trainer_feedback_service.dart';
 import 'package:bike_control/utils/core.dart';
@@ -95,9 +96,9 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
-          title: const Text(
-            'Send Trainer Feedback',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
+          title: Text(
+            AppLocalizations.of(context).trainerFeedbackTitle,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           backgroundColor: Theme.of(context).colorScheme.background,
         ),
@@ -131,15 +132,15 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
             children: [
               Icon(LucideIcons.logIn, size: 20, color: cs.mutedForeground),
               const Gap(10),
-              const Text(
-                'Sign in to send feedback',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              Text(
+                AppLocalizations.of(context).signInToSendFeedback,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ],
           ),
           const Gap(8),
           Text(
-            'Feedback is tied to your BikeControl account so we can follow up on trainer-specific issues.',
+            AppLocalizations.of(context).feedbackAccountTied,
             style: TextStyle(fontSize: 13, color: cs.mutedForeground),
           ),
           const Gap(16),
@@ -158,7 +159,7 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
                 ),
               );
             },
-            child: const Text('Sign in'),
+            child: Text(AppLocalizations.of(context).signIn),
           ),
         ],
       ),
@@ -185,18 +186,19 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   }
 
   Widget _ratingSection() {
+    final l10n = AppLocalizations.of(context);
     return _sectionCard(
-      title: 'Your rating',
-      subtitle: 'Required',
+      title: l10n.yourRating,
+      subtitle: l10n.requiredField,
       child: RadioGroup<TrainerFeedbackRating>(
         value: _rating,
         onChanged: (v) => setState(() => _rating = v),
         child: Row(
           spacing: 6,
           children: [
-            _ratingRadio('Works', TrainerFeedbackRating.works),
-            _ratingRadio('Needs adjustment', TrainerFeedbackRating.needsAdjustment),
-            _ratingRadio("Doesn't work", TrainerFeedbackRating.doesNotWork),
+            _ratingRadio(l10n.ratingWorks, TrainerFeedbackRating.works),
+            _ratingRadio(l10n.ratingNeedsAdjustment, TrainerFeedbackRating.needsAdjustment),
+            _ratingRadio(l10n.ratingDoesntWork, TrainerFeedbackRating.doesNotWork),
           ],
         ),
       ),
@@ -219,12 +221,13 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   }
 
   Widget _feedbackSection() {
+    final l10n = AppLocalizations.of(context);
     return _sectionCard(
-      title: 'Your feedback',
-      subtitle: 'Required',
+      title: l10n.yourFeedback,
+      subtitle: l10n.requiredField,
       child: TextArea(
         controller: _feedbackController,
-        placeholder: const Text('Describe how your trainer works with BikeControl…'),
+        placeholder: Text(l10n.feedbackPlaceholder),
         expandableHeight: true,
         initialHeight: 120,
       ),
@@ -232,10 +235,11 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   }
 
   Widget _diagnosticSection() {
+    final l10n = AppLocalizations.of(context);
     final rows = _diagnosticRows();
     return _sectionCard(
-      title: 'Diagnostic data being sent',
-      subtitle: 'Read-only — automatically collected',
+      title: l10n.diagnosticDataTitle,
+      subtitle: l10n.diagnosticDataSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -253,24 +257,25 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
     return Button.primary(
       onPressed: enabled ? _submit : null,
       leading: _submitting ? const SmallProgressIndicator() : const Icon(LucideIcons.send, size: 16),
-      child: const Text('Send feedback'),
+      child: Text(AppLocalizations.of(context).sendFeedback),
     );
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
     setState(() => _submitting = true);
     try {
       final payload = _buildPayload();
       await TrainerFeedbackService().submit(payload);
       if (!mounted) return;
-      buildToast(level: LogLevel.LOGLEVEL_INFO, title: 'Thanks for your feedback!');
+      buildToast(level: LogLevel.LOGLEVEL_INFO, title: l10n.thanksForFeedback);
       Navigator.of(context).pop();
     } on TrainerFeedbackException catch (e) {
       if (!mounted) return;
       buildToast(level: LogLevel.LOGLEVEL_ERROR, title: e.message);
     } catch (_) {
       if (!mounted) return;
-      buildToast(level: LogLevel.LOGLEVEL_ERROR, title: 'Failed to submit feedback');
+      buildToast(level: LogLevel.LOGLEVEL_ERROR, title: l10n.feedbackSubmitFailed);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -366,43 +371,44 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   }
 
   List<(String, String?)> _diagnosticRows() {
+    final l10n = AppLocalizations.of(context);
     final payload = _buildPayload();
     final ratios = payload.gearRatios;
     return [
-      ('Bluetooth name', payload.bluetoothName),
-      ('Manufacturer', payload.hardwareManufacturer),
-      ('Firmware', payload.firmwareVersion),
+      (l10n.diagBluetoothName, payload.bluetoothName),
+      (l10n.diagManufacturer, payload.hardwareManufacturer),
+      (l10n.diagFirmware, payload.firmwareVersion),
       (
-        'Supports virtual shifting',
+        l10n.diagSupportsVirtualShifting,
         payload.trainerSupportsVirtualShifting == null
             ? null
-            : (payload.trainerSupportsVirtualShifting! ? 'Yes' : 'No'),
+            : (payload.trainerSupportsVirtualShifting! ? l10n.yes : l10n.no),
       ),
-      ('Control mode', payload.trainerControlMode),
-      ('Virtual shifting mode', payload.virtualShiftingMode?.replaceAll('_', ' ').splitByUpperCase()),
+      (l10n.diagControlMode, payload.trainerControlMode),
+      (l10n.diagVirtualShiftingMode, payload.virtualShiftingMode?.replaceAll('_', ' ').splitByUpperCase()),
       (
-        'Grade smoothing',
-        payload.gradeSmoothing == null ? null : (payload.gradeSmoothing! ? 'Enabled' : 'Disabled'),
+        l10n.diagGradeSmoothing,
+        payload.gradeSmoothing == null ? null : (payload.gradeSmoothing! ? l10n.enabledLabel : l10n.disabledLabel),
       ),
       (
-        'Gear ratios',
+        l10n.diagGearRatios,
         ratios == null || ratios.isEmpty ? null : ratios.map((r) => r.toStringAsFixed(2)).join(', '),
       ),
-      ('Trainer app', payload.trainerApp),
+      (l10n.diagTrainerApp, payload.trainerApp),
       (
-        'FTMS machine features',
+        l10n.diagFtmsMachineFeatures,
         payload.trainerFtmsMachineFeatures == null || payload.trainerFtmsMachineFeatures!.isEmpty
             ? null
             : payload.trainerFtmsMachineFeatures!.join(', '),
       ),
       (
-        'FTMS target settings',
+        l10n.diagFtmsTargetSettings,
         payload.trainerFtmsTargetSettingFlags == null || payload.trainerFtmsTargetSettingFlags!.isEmpty
             ? null
             : payload.trainerFtmsTargetSettingFlags!.join(', '),
       ),
-      ('App version', payload.appVersion),
-      ('App platform', payload.appPlatform),
+      (l10n.diagAppVersion, payload.appVersion),
+      (l10n.diagAppPlatform, payload.appPlatform),
     ];
   }
 
@@ -444,7 +450,7 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
           Expanded(
             child: value == null
                 ? Text(
-                    'Not available',
+                    AppLocalizations.of(context).notAvailable,
                     style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic, color: cs.mutedForeground),
                   )
                 : Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
