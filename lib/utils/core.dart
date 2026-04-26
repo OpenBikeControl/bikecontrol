@@ -315,7 +315,7 @@ class CoreLogic {
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
-  ];
+  ].sortedBy((e) => e.isConnected.value ? 0 : 1);
 
   /// Resolves the Bridge (Virtual Shifting) transport — Bluetooth or WiFi —
   /// from the user's currently enabled Trainer Connections. Bluetooth wins

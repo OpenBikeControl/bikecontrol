@@ -161,6 +161,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     core.settings.getTrainerApp() is BikeControl) ...[
                   ColoredTitle(text: 'Trainer Direct Control'),
                   ..._buildTrainerConnectionActions(trainerActions),
+                  SizedBox(height: 8),
                 ],
 
                 if (core.logic.hasNoConnectionMethod)
@@ -752,7 +753,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         builder: (context) {
           return SelectableCard(
             icon: action.icon,
-            title: Text(action.title),
+            title: Text(switch (action) {
+              InGameAction.shiftUp => 'Trainer: Gear Up / ERG up',
+              InGameAction.shiftDown => 'Trainer: Gear Up / ERG down',
+              _ => action.title,
+            }),
             subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
                 ? Text(_keyPair.inGameActionValue!.toString())
                 : action.alternativeTitle != null

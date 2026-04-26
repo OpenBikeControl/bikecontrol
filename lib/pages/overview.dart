@@ -678,7 +678,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   ],
                 ),
                 if (enabledTrainers.isNotEmpty || proxies.isNotEmpty) ...[
-                  const Gap(12),
+                  const Gap(18),
                   for (final enabledTrainer in enabledTrainers) ...[
                     _buildTrainerConnectionRow(enabledTrainer),
                     if (enabledTrainer != enabledTrainers.last || proxies.isNotEmpty) const Gap(12),

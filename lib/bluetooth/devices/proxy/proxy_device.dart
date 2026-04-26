@@ -346,25 +346,27 @@ class ProxyDevice extends BluetoothDevice {
       return NotHandled('No active FitnessBikeDefinition');
     }
     switch (action) {
-      case InGameAction.trainerUp:
+      case InGameAction.shiftUp:
         if (def.trainerMode.value == TrainerMode.ergMode) {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current + 10);
           return Success('ERG target: ${def.ergTargetPower.value} W');
         } else {
-          def.shiftUp();
-          unawaited(_triggerKeymapAction(InGameAction.shiftUp));
-          return Success('Shifted up to gear ${def.currentGear.value}');
+          final didChange = def.shiftUp();
+          return didChange
+              ? NotHandled('Shifted up to gear ${def.currentGear.value}')
+              : Ignored('Already in highest gear');
         }
-      case InGameAction.trainerDown:
+      case InGameAction.shiftDown:
         if (def.trainerMode.value == TrainerMode.ergMode) {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current - 10);
           return Success('ERG target: ${def.ergTargetPower.value} W');
         } else {
-          def.shiftDown();
-          unawaited(_triggerKeymapAction(InGameAction.shiftDown));
-          return Success('Shifted down to gear ${def.currentGear.value}');
+          final didChange = def.shiftDown();
+          return didChange
+              ? NotHandled('Shifted down to gear ${def.currentGear.value}')
+              : Ignored('Already in lowest gear');
         }
       case InGameAction.trainerSwitchMode:
         if (def.trainerMode.value == TrainerMode.ergMode) {
@@ -384,26 +386,6 @@ class ProxyDevice extends BluetoothDevice {
       default:
         return NotHandled('');
     }
-  }
-
-  /// Fires the user-defined [inGameAction] from the active keymap, if any.
-  /// Used so that virtual-shifting trainer actions (trainerUp/Down) can also
-  /// surface as the keymap's shift actions in the connected app.
-  Future<void> _triggerKeymapAction(InGameAction inGameAction) async {
-    final keymap = core.actionHandler.supportedApp?.keymap;
-    if (keymap == null) return;
-    final keyPair = keymap.keyPairs.firstOrNullWhere(
-      (kp) => kp.inGameAction == inGameAction && !kp.hasNoAction,
-    );
-    final button = keyPair?.buttons.firstOrNull;
-    if (keyPair == null || button == null) return;
-
-    await core.actionHandler.performAction(
-      button,
-      isKeyDown: true,
-      isKeyUp: true,
-      trigger: keyPair.trigger,
-    );
   }
 
   @override

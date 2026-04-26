@@ -142,28 +142,18 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                 ),
             ],
           ),
-          subtitle: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 6,
-            children: [
-              Text(widget.description).xSmall.textMuted,
-              if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
-              if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(),
-              if (widget.instructionLink != null)
-                Wrap(
+          subtitle: Text(widget.description).xSmall.textMuted,
+          trailing: widget.instructionLink != null && !widget.trainerConnection.isConnected.value
+              ? Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    Button(
-                      style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
-                          ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
-                          : ButtonStyle.outline(),
+                    Button.outline(
                       leading: Icon(
                         widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
                       ),
                       onPressed: () {
-                        if (widget.instructionLink!.contains("youtube")) {
+                        if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
                           launchUrlString(widget.instructionLink!);
                         } else {
                           openDrawer(
@@ -176,9 +166,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                       child: Text(AppLocalizations.of(context).instructions),
                     ),
                   ],
-                ),
-            ],
-          ),
+                )
+              : null,
         ),
       );
     }
@@ -239,7 +228,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                         widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
                       ),
                       onPressed: () {
-                        if (widget.instructionLink!.contains("youtube")) {
+                        if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
                           launchUrlString(widget.instructionLink!);
                         } else {
                           openDrawer(

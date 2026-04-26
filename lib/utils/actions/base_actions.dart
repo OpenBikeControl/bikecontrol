@@ -170,7 +170,13 @@ abstract class BaseActions {
         return Error('No proxy trainer connected');
       }
       await IAPManager.instance.incrementCommandCount();
-      return proxy.handleTrainerAction(keyPair.inGameAction!);
+      final result = proxy.handleTrainerAction(keyPair.inGameAction!);
+      // Ignored e.g. when already in highest gear
+      // Success when action was executed and the action should not be sent to connected trainer
+      // NotHandled means the e.g. gear changes should still be sent to the trainer, so we continue with the regular flow
+      if (result is Ignored || result is Success) {
+        return result;
+      }
     }
 
     if (core.logic.hasNoConnectionMethod) {
