@@ -50,7 +50,7 @@ class StatusIcon extends StatelessWidget {
         Positioned(
           right: 0,
           top: 0,
-          child: (started && !status) ? SmallProgressIndicator() : _dot(12, color),
+          child: (started && !status) ? RepaintBoundary(child: SmallProgressIndicator()) : _dot(12, color),
         ),
       ],
     );

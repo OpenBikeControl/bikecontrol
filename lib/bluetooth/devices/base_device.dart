@@ -494,7 +494,7 @@ abstract class BaseDevice {
             StatusIcon(
               icon: icon,
               status: isConnected,
-              started: false,
+              started: !isConnected,
             ),
             Expanded(
               child: Column(

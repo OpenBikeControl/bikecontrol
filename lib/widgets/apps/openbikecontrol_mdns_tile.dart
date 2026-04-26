@@ -33,7 +33,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
               supportedActions: isConnected?.supportedActions,
               isEnabled: core.settings.getObpMdnsEnabled(),
               title: context.i18n.connectDirectlyOverNetwork,
-
+              instructionLink: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership',
               description: isConnected != null
                   ? context.i18n.connectedTo(
                       "${isConnected.appId}:\n${isConnected.supportedActions.joinToString(transform: (s) => s.title)}",

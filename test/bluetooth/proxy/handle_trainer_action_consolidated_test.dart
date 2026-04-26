@@ -29,28 +29,28 @@ void main() {
 
     test('trainerUp in sim mode shifts up', () {
       def.setTargetGear(5);
-      final result = device.handleTrainerAction(InGameAction.trainerUp);
+      final result = device.handleTrainerAction(InGameAction.shiftUp);
       expect(result, isA<Success>());
       expect(def.currentGear.value, 6);
     });
 
     test('trainerUp in erg mode raises power', () {
       def.setManualErgPower(150);
-      final result = device.handleTrainerAction(InGameAction.trainerUp);
+      final result = device.handleTrainerAction(InGameAction.shiftUp);
       expect(result, isA<Success>());
       expect(def.ergTargetPower.value, 160);
     });
 
     test('trainerDown in sim mode shifts down', () {
       def.setTargetGear(5);
-      final result = device.handleTrainerAction(InGameAction.trainerDown);
+      final result = device.handleTrainerAction(InGameAction.shiftDown);
       expect(result, isA<Success>());
       expect(def.currentGear.value, 4);
     });
 
     test('trainerDown in erg mode lowers power', () {
       def.setManualErgPower(150);
-      final result = device.handleTrainerAction(InGameAction.trainerDown);
+      final result = device.handleTrainerAction(InGameAction.shiftDown);
       expect(result, isA<Success>());
       expect(def.ergTargetPower.value, 140);
     });

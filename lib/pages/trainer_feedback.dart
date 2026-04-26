@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/services/trainer_feedback_service.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
@@ -27,7 +28,12 @@ class TrainerFeedbackPage extends StatefulWidget {
 class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   // case-insensitive short-form matches for standard services we always skip.
   static const _standardServiceShortUuids = {
-    '1800', '1801', '180a', '180f', '180e', '1802',
+    '1800',
+    '1801',
+    '180a',
+    '180f',
+    '180e',
+    '1802',
   };
 
   final TextEditingController _feedbackController = TextEditingController();
@@ -164,12 +170,16 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ratingSection(),
-        const Gap(20),
-        _feedbackSection(),
-        const Gap(20),
-        _diagnosticSection(),
-        const Gap(20),
-        _submitButton(),
+
+        if (_rating != null) ...[
+          const Gap(20),
+          _feedbackSection(),
+
+          const Gap(20),
+          _diagnosticSection(),
+          const Gap(20),
+          _submitButton(),
+        ],
       ],
     );
   }
@@ -369,7 +379,7 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
             : (payload.trainerSupportsVirtualShifting! ? 'Yes' : 'No'),
       ),
       ('Control mode', payload.trainerControlMode),
-      ('Virtual shifting mode', payload.virtualShiftingMode),
+      ('Virtual shifting mode', payload.virtualShiftingMode?.replaceAll('_', ' ').splitByUpperCase()),
       (
         'Grade smoothing',
         payload.gradeSmoothing == null ? null : (payload.gradeSmoothing! ? 'Enabled' : 'Disabled'),

@@ -90,6 +90,17 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 SizedBox(height: 12),
+                Button(
+                  style: ButtonStyle.primary(),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
+                    );
+                  },
+                  leading: const Icon(LucideIcons.messageSquare, size: 18),
+                  child: const Text('Provide Feedback'),
+                ),
+                SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
                   w,
                   SizedBox(height: 12),
@@ -198,19 +209,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 8,
       children: [
-        if (widget.device.isConnected) ...[
-          Button(
-            style: ButtonStyle.primary(),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
-              );
-            },
-            leading: const Icon(LucideIcons.messageSquare, size: 18),
-            child: const Text('Provide Feedback'),
-          ),
-          SizedBox(),
-        ],
         LoadingWidget(
           futureCallback: () async {
             await core.settings.setAutoConnect(device.trainerKey, false);
