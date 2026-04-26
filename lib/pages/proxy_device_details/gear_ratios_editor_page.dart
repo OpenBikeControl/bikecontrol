@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
@@ -81,16 +82,16 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
-          title: const Text(
-            'Gear Settings',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
+          title: Text(
+            AppLocalizations.of(context).gearSettings,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           trailing: [
             Button(
               style: ButtonStyle.destructive(size: ButtonSize.small),
               onPressed: _resetGearSettings,
               leading: const Icon(LucideIcons.rotateCcw, size: 12),
-              child: const Text('Reset', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              child: Text(AppLocalizations.of(context).reset, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ),
           ],
           backgroundColor: cs.background,
@@ -127,7 +128,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   Widget _intro(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Text(
-      'Tune each virtual gear to match your ride feel. Changes apply instantly.',
+      AppLocalizations.of(context).tuneGearsIntro,
       style: TextStyle(fontSize: 13, color: cs.mutedForeground),
       softWrap: true,
     );
@@ -141,8 +142,8 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
       builder: (context, _) {
         final mode = def.virtualShiftingMode.value;
         return SettingTile(
-          title: 'Virtual Shifting Mode',
-          subtitle: 'How resistance is computed per gear',
+          title: AppLocalizations.of(context).virtualShiftingMode,
+          subtitle: AppLocalizations.of(context).virtualShiftingModeDesc,
           child: RadioGroup<VirtualShiftingMode>(
             value: mode,
             onChanged: (v) async {
@@ -152,9 +153,9 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             child: Row(
               spacing: 6,
               children: [
-                _vsRadioCard('Target Power', VirtualShiftingMode.targetPower),
-                _vsRadioCard('Track Resistance', VirtualShiftingMode.trackResistance),
-                _vsRadioCard('Basic', VirtualShiftingMode.basicResistance),
+                _vsRadioCard(AppLocalizations.of(context).targetPowerMode, VirtualShiftingMode.targetPower),
+                _vsRadioCard(AppLocalizations.of(context).trackResistanceMode, VirtualShiftingMode.trackResistance),
+                _vsRadioCard(AppLocalizations.of(context).basicMode, VirtualShiftingMode.basicResistance),
               ],
             ),
           ),
@@ -187,8 +188,8 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final mismatch = app != null && expected != null && expected != count;
     return SettingTile(
       icon: LucideIcons.hash,
-      title: 'Gear Count',
-      subtitle: 'Size of the virtual shifter',
+      title: AppLocalizations.of(context).gearCount,
+      subtitle: AppLocalizations.of(context).gearCountDesc,
       trailing: StepperControl(
         value: count.toDouble(),
         step: 1.0,
@@ -215,8 +216,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   Icon(LucideIcons.triangleAlert, size: 14, color: Colors.amber.shade700),
                   Expanded(
                     child: Text(
-                      '${app.name} uses $expected gears, this config uses $count. '
-                      'The gear displayed in ${app.name} may not match.',
+                      AppLocalizations.of(context).gearCountMismatch(app.name, expected, count),
                       style: TextStyle(fontSize: 12, color: cs.foreground),
                     ),
                   ),
@@ -225,7 +225,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                       def.setMaxGear(expected);
                       await _updateActive((c) => c.copyWith(maxGear: expected));
                     },
-                    child: Text('Use $expected', style: const TextStyle(fontSize: 12)),
+                    child: Text(AppLocalizations.of(context).useGearCount(expected), style: const TextStyle(fontSize: 12)),
                   ),
                 ],
               ),
@@ -239,8 +239,8 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
       valueListenable: def.gradeSmoothingEnabled,
       builder: (context, enabled, _) => SettingTile(
         icon: LucideIcons.waves,
-        title: 'Grade Smoothing',
-        subtitle: 'Averages sudden slope changes',
+        title: AppLocalizations.of(context).gradeSmoothing,
+        subtitle: AppLocalizations.of(context).gradeSmoothingDesc,
         trailing: Switch(
           value: enabled,
           onChanged: (v) async {
@@ -257,24 +257,24 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   static List<double> _evenSteps(double lo, double hi, int count) =>
       List<double>.generate(count, (i) => lerpDouble(lo, hi, count == 1 ? 0.0 : i / (count - 1))!);
 
-  List<_Preset> _presetsForCount(int count) => [
+  List<_Preset> _presetsForCount(BuildContext context, int count) => [
     _Preset(
-      label: 'Default',
+      label: AppLocalizations.of(context).presetDefault,
       range: '0.75–5.49',
       values: List<double>.unmodifiable(FitnessBikeDefinition.defaultGearRatiosFor(count)),
     ),
     _Preset(
-      label: 'Compact',
+      label: AppLocalizations.of(context).presetCompact,
       range: '1.00–4.00',
       values: List<double>.unmodifiable(_evenSteps(1.00, 4.00, count)),
     ),
     _Preset(
-      label: 'Wide',
+      label: AppLocalizations.of(context).presetWide,
       range: '0.50–6.50',
       values: List<double>.unmodifiable(_evenSteps(0.50, 6.50, count)),
     ),
     _Preset(
-      label: '1\u00D7',
+      label: AppLocalizations.of(context).preset1x,
       range: '2.20–4.20',
       values: List<double>.unmodifiable(_evenSteps(2.20, 4.20, count)),
     ),
@@ -295,7 +295,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
       spacing: 8,
       children: [
         Text(
-          'PRESETS',
+          AppLocalizations.of(context).presetsLabel,
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w700,
@@ -309,6 +309,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             return Row(
               spacing: 8,
               children: _presetsForCount(
+                context,
                 def.maxGear,
               ).map((p) => Expanded(child: _presetButton(context, p, current))).toList(),
             );
@@ -362,7 +363,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'PER-GEAR',
+              AppLocalizations.of(context).perGearLabel,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
@@ -470,15 +471,15 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   spacing: 6,
                   children: [
                     Text(
-                      'Gear $gear',
+                      AppLocalizations.of(context).gearNumber(gear),
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
-                    if (isCurrent) _badge('CURRENT', const Color(0xFF2563EB), Colors.white),
-                    if (isNeutral && !isCurrent) _badge('NEUTRAL', const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
+                    if (isCurrent) _badge(AppLocalizations.of(context).currentBadge, const Color(0xFF2563EB), Colors.white),
+                    if (isNeutral && !isCurrent) _badge(AppLocalizations.of(context).neutralBadge, const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
                   ],
                 ),
                 Text(
-                  _hintFor(gear, ratio, ratios, def.neutralGear),
+                  _hintFor(context, gear, ratio, ratios, def.neutralGear),
                   style: TextStyle(fontSize: 10, color: cs.mutedForeground),
                 ),
               ],
@@ -515,16 +516,17 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
   }
 }
 
-String _hintFor(int gear, double ratio, List<double> ratios, int neutralGear) {
+String _hintFor(BuildContext context, int gear, double ratio, List<double> ratios, int neutralGear) {
+  final l10n = AppLocalizations.of(context);
   if (gear == neutralGear) {
-    return 'Reference \u2014 base ratio';
+    return l10n.referenceBaseRatio;
   }
   final neutral = ratios[neutralGear - 1];
   final delta = ratio - neutral;
-  if (delta.abs() < 0.05) return 'close to neutral';
+  if (delta.abs() < 0.05) return l10n.closeToNeutral;
   final mag = delta.abs().toStringAsFixed(2);
-  if (delta > 0) return '+$mag harder than neutral';
-  return '\u2212$mag easier than neutral';
+  if (delta > 0) return l10n.harderThanNeutral(mag);
+  return l10n.easierThanNeutral(mag);
 }
 
 class _Preset {
