@@ -326,6 +326,35 @@ class Settings {
     await prefs.setBool('miui_warning_dismissed', dismissed);
   }
 
+  // Review prompt
+  int getReviewSessionCount() {
+    return prefs.getInt('review_session_count') ?? 0;
+  }
+
+  Future<void> setReviewSessionCount(int count) async {
+    await prefs.setInt('review_session_count', count);
+  }
+
+  bool getReviewCompleted() {
+    return prefs.getBool('review_completed') ?? false;
+  }
+
+  Future<void> setReviewCompleted(bool completed) async {
+    await prefs.setBool('review_completed', completed);
+  }
+
+  int? getReviewDismissedAtSessionCount() {
+    return prefs.getInt('review_dismissed_at_session_count');
+  }
+
+  Future<void> setReviewDismissedAtSessionCount(int? count) async {
+    if (count == null) {
+      await prefs.remove('review_dismissed_at_session_count');
+    } else {
+      await prefs.setInt('review_dismissed_at_session_count', count);
+    }
+  }
+
   List<String> _getIgnoredDeviceIds() {
     return prefs.getStringList('ignored_device_ids') ?? [];
   }
