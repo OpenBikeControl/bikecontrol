@@ -19,7 +19,6 @@ import gamepads_darwin
 import google_sign_in_ios
 import in_app_purchase_storekit
 import in_app_review
-import ios_receipt
 import just_audio
 import keypress_simulator_macos
 import media_key_detector_macos
@@ -51,7 +50,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FLTGoogleSignInPlugin.register(with: registry.registrar(forPlugin: "FLTGoogleSignInPlugin"))
   InAppPurchasePlugin.register(with: registry.registrar(forPlugin: "InAppPurchasePlugin"))
   InAppReviewPlugin.register(with: registry.registrar(forPlugin: "InAppReviewPlugin"))
-  IosReceiptPlugin.register(with: registry.registrar(forPlugin: "IosReceiptPlugin"))
   JustAudioPlugin.register(with: registry.registrar(forPlugin: "JustAudioPlugin"))
   KeypressSimulatorMacosPlugin.register(with: registry.registrar(forPlugin: "KeypressSimulatorMacosPlugin"))
   MediaKeyDetectorPlugin.register(with: registry.registrar(forPlugin: "MediaKeyDetectorPlugin"))

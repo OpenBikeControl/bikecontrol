@@ -47,8 +47,6 @@ dependencies:
   file_picker: ^10.3.10
   flutter_screen_capture: ^2.0.1
   in_app_review: ^2.0.11
-  ios_receipt:
-    path: ios_receipt
   flutter_secure_storage: ^10.0.0
   in_app_purchase: ^3.2.1
   purchases_flutter: ^9.10.2
