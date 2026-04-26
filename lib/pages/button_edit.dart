@@ -146,20 +146,20 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                   ],
                 ),
-                Text('Editing ${widget.trigger.title}').xSmall.muted,
+                Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
                 if (_usesFallbackLongPressMode)
                   Warning(
                     important: false,
                     children: [
                       Text(
-                        'This device uses long press toggle mode: first click sends key down, second click sends key up.',
+                        context.i18n.longPressFallbackHint,
                       ).small,
                     ],
                   ),
 
                 if (core.connection.proxyDevices.any((e) => e.isConnected) ||
                     core.settings.getTrainerApp() is BikeControl) ...[
-                  ColoredTitle(text: 'Trainer Direct Control'),
+                  ColoredTitle(text: context.i18n.trainerDirectControl),
                   ..._buildTrainerConnectionActions(trainerActions),
                   SizedBox(height: 8),
                 ],
@@ -185,7 +185,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           : null;
                       return SelectableCard(
                         icon: Icons.repeat,
-                        title: Text('Repeat single click action'),
+                        title: Text(context.i18n.repeatSingleClick),
                         isProOnly: true,
                         isActive: _keyPair.hasNoAction,
                         value: _keyPair.hasNoAction ? singleClickLabel : null,
@@ -253,7 +253,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (core.logic.showLocalRemoteOptions) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: 'Local / Remote Setting'),
+                  ColoredTitle(text: context.i18n.localRemoteSetting),
 
                   if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard) &&
                       (core.settings.getLocalEnabled() || core.settings.getRemoteKeyboardControlEnabled()))
@@ -563,8 +563,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       icon: Icons.broadcast_on_home_outlined,
                       isProOnly: true,
                       isActive: _keyPair.androidIntentAction?.trim().isNotEmpty == true,
-                      title: Text('Broadcast Custom Intent'),
-                      subtitle: Text('For automation apps like MacroDroid or Tasker').xSmall.muted,
+                      title: Text(context.i18n.broadcastIntent),
+                      subtitle: Text(context.i18n.broadcastIntentDesc).xSmall.muted,
                       value: _keyPair.fullAndroidIntentAction,
                       onPressed: () async {
                         await _showCustomIntentDialog(context);
@@ -575,7 +575,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: 'Other Actions'),
+                  ColoredTitle(text: context.i18n.otherActions),
                   SelectableCard(
                     isProOnly: true,
                     title: Text(Platform.isMacOS || Platform.isIOS ? 'Launch Shortcut' : 'Run Command'),
@@ -589,7 +589,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   if (Platform.isMacOS || Platform.isWindows)
                     SelectableCard(
                       isProOnly: true,
-                      title: Text('Take Screenshot'),
+                      title: Text(context.i18n.takeScreenshot),
                       icon: Icons.image_outlined,
                       isActive: _keyPair.screenshotPath?.trim().isNotEmpty == true,
                       value: _keyPair.screenshotPath,
@@ -601,11 +601,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (core.connection.accessories.isNotEmpty) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: 'Accessory Actions'),
+                  ColoredTitle(text: context.i18n.accessoryActions),
                   Builder(
                     builder: (context) => SelectableCard(
                       icon: Icons.air,
-                      title: Text('KICKR Headwind'),
+                      title: Text(context.i18n.kickrHeadwind),
                       isActive:
                           _keyPair.inGameAction != null &&
                           (_keyPair.inGameAction == InGameAction.headwindSpeed ||
@@ -626,7 +626,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 subMenu: [0, 25, 50, 75, 100]
                                     .map(
                                       (value) => MenuButton(
-                                        child: Text('Set Speed to $value%'),
+                                        child: Text(context.i18n.setHeadwindSpeedTo(value)),
                                         onPressed: (_) {
                                           _keyPair.inGameAction = InGameAction.headwindSpeed;
                                           _keyPair.inGameActionValue = value;
@@ -640,10 +640,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       ),
                                     )
                                     .toList(),
-                                child: Text('Set Speed'),
+                                child: Text(context.i18n.setSpeed),
                               ),
                               MenuButton(
-                                child: Text('Increase Speed'),
+                                child: Text(context.i18n.increaseSpeed),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedInc;
                                   _keyPair.inGameActionValue = null;
@@ -656,7 +656,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Decrease Speed'),
+                                child: Text(context.i18n.decreaseSpeed),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedDec;
                                   _keyPair.inGameActionValue = null;
@@ -669,7 +669,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Increase Speed Cyclically'),
+                                child: Text(context.i18n.increaseSpeedCyclic),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedCyclicInc;
                                   _keyPair.inGameActionValue = null;
@@ -682,7 +682,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Decrease Speed Cyclically'),
+                                child: Text(context.i18n.decreaseSpeedCyclic),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedCyclicDec;
                                   _keyPair.inGameActionValue = null;
@@ -695,7 +695,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Set to Heart Rate Mode'),
+                                child: Text(context.i18n.setHeartRateMode),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindHeartRateMode;
                                   _keyPair.inGameActionValue = null;
@@ -812,6 +812,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   Future<void> _showCommandDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     if (Platform.isWindows) {
       final result = await FilePicker.platform.pickFiles(
         dialogTitle: 'Select command to run',
@@ -823,7 +824,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       }
       final selectedPath = result.files.single.path?.trim();
       if (selectedPath == null || selectedPath.isEmpty) {
-        buildToast(title: 'No executable file selected');
+        buildToast(title: l10n.noExecutableSelected);
         return;
       }
       _setCommand(selectedPath);
@@ -835,7 +836,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       context: context,
       builder: (context) => SafeArea(
         child: AlertDialog(
-          title: Text('Launch Shortcut'),
+          title: Text(context.i18n.launchShortcut),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -843,14 +844,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             children: [
               TextField(
                 controller: controller,
-                hintText: 'Shortcut name',
+                hintText: context.i18n.shortcutNameHint,
                 autofocus: true,
                 onTapOutside: (_) {
                   FocusScope.of(context).unfocus();
                 },
               ),
               if (Platform.isMacOS)
-                Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small
+                Text(context.i18n.launchShortcutDesc).small
               else
                 Text(
                   'Note that Shortcuts on iOS are very limited: BikeControl needs to be in the foreground when you want to run the command, and your shortcut should have "Open BikeControl" as its first action so BikeControl can continue to trigger shortcuts.',
@@ -904,17 +905,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   Future<void> _showScreenshotDialog() async {
+    final l10n = AppLocalizations.of(context);
     final selectedPath = Directory.current.path;
 
     final path = selectedPath.trim();
     if (path.isEmpty) {
-      buildToast(title: 'No path selected');
+      buildToast(title: l10n.noPathSelected);
       return;
     }
 
     final hasWriteAccess = await _ensureScreenshotDirectoryWritable(path);
     if (!hasWriteAccess) {
-      buildToast(title: 'Cannot write to this folder. Please grant write permission and try again.');
+      buildToast(title: l10n.cannotWriteFolder);
       return;
     }
 
@@ -966,7 +968,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       context: context,
       builder: (context) => SafeArea(
         child: AlertDialog(
-          title: Text('Broadcast Custom Intent'),
+          title: Text(context.i18n.broadcastIntent),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -980,7 +982,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   Expanded(
                     child: TextField(
                       controller: controller,
-                      hintText: 'one',
+                      hintText: context.i18n.intentSuffixHint,
                       autofocus: true,
                       onTapOutside: (_) {
                         FocusScope.of(context).unfocus();
@@ -990,8 +992,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ],
               ),
               Text(
-                'Sends an Android broadcast with action "${KeyPair.intentActionPrefix}<your suffix>" when the button is pressed. '
-                'Apps like MacroDroid or Tasker can listen for the intent and run your automations.',
+                context.i18n.broadcastIntentExplanation(KeyPair.intentActionPrefix),
               ).xSmall,
             ],
           ),
@@ -1153,13 +1154,13 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
               );
             }),
             MenuDivider(),
-            MenuLabel(child: Text('Custom ${supportedMode.name.capitalize()} action')),
+            MenuLabel(child: Text(context.i18n.customModeAction(supportedMode.name.capitalize()))),
             MenuButton(
               leading: Icon(Icons.edit_outlined),
               onPressed: (_) {
                 _editAction(supportedMode);
               },
-              child: Text('Custom'),
+              child: Text(context.i18n.customLabel),
             ),
           ],
         ),
