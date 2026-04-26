@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
 import 'past_workout.dart';
+import 'workout_summary.dart';
 
 class WorkoutRepository {
   final Directory? _rootOverride;
@@ -22,11 +24,18 @@ class WorkoutRepository {
     return dir;
   }
 
-  Future<File> save({required DateTime startedAt, required List<int> fitBytes}) async {
+  Future<File> save({
+    required DateTime startedAt,
+    required List<int> fitBytes,
+    WorkoutSummary? summary,
+  }) async {
     final dir = await rootDirectory();
     final name = _filenameFor(startedAt);
     final file = File('${dir.path}${Platform.pathSeparator}$name');
     await file.writeAsBytes(fitBytes, flush: true);
+    if (summary != null) {
+      await _sidecarFor(file).writeAsString(jsonEncode(summary.toJson()), flush: true);
+    }
     return file;
   }
 
@@ -40,7 +49,12 @@ class WorkoutRepository {
       final parsed = _parseFilename(e.path);
       if (parsed == null) continue;
       final stat = await e.stat();
-      workouts.add(PastWorkout(file: e, startedAt: parsed, sizeBytes: stat.size));
+      workouts.add(PastWorkout(
+        file: e,
+        startedAt: parsed,
+        sizeBytes: stat.size,
+        summary: await _readSidecar(e),
+      ));
     }
     workouts.sort((a, b) => b.startedAt.compareTo(a.startedAt));
     return workouts;
@@ -48,6 +62,22 @@ class WorkoutRepository {
 
   Future<void> delete(File file) async {
     if (await file.exists()) await file.delete();
+    final sidecar = _sidecarFor(file);
+    if (await sidecar.exists()) await sidecar.delete();
+  }
+
+  File _sidecarFor(File fit) => File('${fit.path}.json');
+
+  Future<WorkoutSummary?> _readSidecar(File fit) async {
+    final sidecar = _sidecarFor(fit);
+    if (!await sidecar.exists()) return null;
+    try {
+      final raw = await sidecar.readAsString();
+      final json = jsonDecode(raw) as Map<String, Object?>;
+      return WorkoutSummary.fromJson(json);
+    } catch (_) {
+      return null;
+    }
   }
 
   String _filenameFor(DateTime when) {
