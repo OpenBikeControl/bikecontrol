@@ -1,7 +1,7 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/workout/workout_summary_dialog.dart';
-import 'package:bike_control/pages/workout/workouts_list_page.dart';
+import 'package:bike_control/pages/workout/workouts_list_page.dart' show WorkoutsList;
 import 'package:bike_control/services/workout/fit_writer.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
@@ -57,7 +57,11 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
       return;
     }
     final bytes = FitFileWriter.encode(samples: result.samples, summary: result.summary);
-    final file = await core.workoutRepository.save(startedAt: result.startedAt, fitBytes: bytes);
+    final file = await core.workoutRepository.save(
+      startedAt: result.startedAt,
+      fitBytes: bytes,
+      summary: result.summary,
+    );
     if (!mounted) return;
     await showWorkoutSummaryDialog(context: context, summary: result.summary, fitFile: file);
   }
@@ -101,7 +105,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
     if (state == WorkoutState.idle) {
       return Row(
         spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _gridTile(
             context: context,
@@ -114,8 +118,14 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
             context: context,
             icon: LucideIcons.list,
             label: l10n.miniWorkoutPastWorkouts,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const WorkoutsListPage()),
+            onTap: () => openSheet(
+              context: context,
+              draggable: true,
+              position: OverlayPosition.bottom,
+              builder: (_) => const Padding(
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
+                child: WorkoutsList(showHeader: true),
+              ),
             ),
           ),
         ],

@@ -27,6 +27,32 @@ class WorkoutSummary {
     required this.sampleCount,
   });
 
+  Map<String, Object?> toJson() => {
+    'startedAt': startedAt.toUtc().toIso8601String(),
+    'activeDurationSeconds': activeDuration.inSeconds,
+    'avgPowerW': avgPowerW,
+    'maxPowerW': maxPowerW,
+    'avgCadenceRpm': avgCadenceRpm,
+    'avgSpeedKph': avgSpeedKph,
+    'distanceKm': distanceKm,
+    'avgHeartRateBpm': avgHeartRateBpm,
+    'maxHeartRateBpm': maxHeartRateBpm,
+    'sampleCount': sampleCount,
+  };
+
+  factory WorkoutSummary.fromJson(Map<String, Object?> j) => WorkoutSummary(
+    startedAt: DateTime.parse(j['startedAt'] as String),
+    activeDuration: Duration(seconds: (j['activeDurationSeconds'] as num).toInt()),
+    avgPowerW: (j['avgPowerW'] as num).toInt(),
+    maxPowerW: (j['maxPowerW'] as num).toInt(),
+    avgCadenceRpm: (j['avgCadenceRpm'] as num).toInt(),
+    avgSpeedKph: (j['avgSpeedKph'] as num).toDouble(),
+    distanceKm: (j['distanceKm'] as num).toDouble(),
+    avgHeartRateBpm: (j['avgHeartRateBpm'] as num).toInt(),
+    maxHeartRateBpm: (j['maxHeartRateBpm'] as num).toInt(),
+    sampleCount: (j['sampleCount'] as num).toInt(),
+  );
+
   factory WorkoutSummary.fromSamples(
     List<WorkoutSample> samples, {
     required DateTime startedAt,
