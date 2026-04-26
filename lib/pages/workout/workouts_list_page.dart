@@ -5,47 +5,9 @@ import 'package:bike_control/services/workout/past_workout.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-/// Full-page wrapper around [WorkoutsList] for the Navigator stack. The same
-/// list is rendered inside a sheet via [WorkoutsList] without the Scaffold
-/// chrome — see `MiniWorkoutCard.openSheet(...)`.
-class WorkoutsListPage extends StatelessWidget {
-  const WorkoutsListPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(l10n.miniWorkoutPastWorkouts),
-          trailing: [
-            if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux))
-              IconButton.ghost(
-                icon: const Icon(LucideIcons.folder, size: 20),
-                onPressed: () async {
-                  final dir = await core.workoutRepository.rootDirectory();
-                  await launchUrl(Uri.file(dir.path));
-                },
-              ),
-          ],
-        ),
-        const Divider(),
-      ],
-      child: const WorkoutsList(),
-    );
-  }
-}
 
 /// Reusable list of past workouts. Renders just the list contents (no
 /// Scaffold) so it fits inside a sheet, drawer, or full-page Scaffold.
