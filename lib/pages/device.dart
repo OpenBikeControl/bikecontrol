@@ -77,7 +77,7 @@ class _DevicePageState extends State<DevicePage> {
                     child: device.showInformation(
                       context,
                       showFull: false,
-                      footer: !screenshotMode ? widget.footerBuilder(device) : null,
+                      footer: widget.footerBuilder(device),
                     ),
                   ),
                 ),

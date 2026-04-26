@@ -281,7 +281,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   @override
   void dispose() {
-    WakelockPlus.disable();
+    if (!screenshotMode) {
+      WakelockPlus.disable();
+    }
     WidgetsBinding.instance.removeObserver(this);
     _horizontalScrollController.dispose();
 
@@ -735,7 +737,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     title: connected ? Text(title).small.semiBold : Text(title).small.muted,
                     subtitle: Text(
                       context.i18n.chooseBikeControlInConnectionScreen.replaceAll(
-                        'BikeControl',
+                        screenshotMode ? '1337' : 'BikeControl',
                         device.emulator.advertisementName,
                       ),
                     ).xSmall.textMuted,

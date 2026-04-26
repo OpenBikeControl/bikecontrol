@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
@@ -90,27 +91,32 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 SizedBox(height: 12),
-                Button(
-                  style: ButtonStyle.primary(),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
-                    );
-                  },
-                  leading: const Icon(LucideIcons.messageSquare, size: 18),
-                  child: const Text('Provide Feedback'),
-                ),
+                if (!screenshotMode)
+                  Button(
+                    style: ButtonStyle.primary(),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => TrainerFeedbackPage(device: device)),
+                      );
+                    },
+                    leading: const Icon(LucideIcons.messageSquare, size: 18),
+                    child: const Text('Provide Feedback'),
+                  ),
                 SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
                   w,
                   SizedBox(height: 12),
                 ],
-                ConnectionCard(device: device),
-                SizedBox(height: 12),
+
+                if (!screenshotMode) ...[
+                  ConnectionCard(device: device),
+                  SizedBox(height: 12),
+                ],
                 _gearSection(),
                 SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
-                    widget.device.emulator.activeDefinition is FitnessBikeDefinition) ...[
+                    widget.device.emulator.activeDefinition is FitnessBikeDefinition &&
+                    !screenshotMode) ...[
                   ValueListenableBuilder<Duration>(
                     valueListenable: core.bridgeUsageTracker.usedTodayListenable,
                     builder: (context, used, _) {

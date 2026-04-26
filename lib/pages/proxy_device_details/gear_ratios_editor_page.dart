@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
@@ -106,9 +107,11 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               spacing: 18,
               children: [
                 _intro(context),
-                GearHeroCard(definition: def, simOnly: true),
-                _vsModeCard(),
-                _gradeSmoothingCard(context),
+                if (!screenshotMode) ...[
+                  GearHeroCard(definition: def, simOnly: true),
+                  _vsModeCard(),
+                  _gradeSmoothingCard(context),
+                ],
                 _gearCountCard(context),
                 _heroCurve(context),
                 _presets(context),
