@@ -20,7 +20,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TrainerFeedbackPage extends StatefulWidget {
   final ProxyDevice device;
-  const TrainerFeedbackPage({super.key, required this.device});
+  final TrainerFeedbackRating? initialRating;
+  const TrainerFeedbackPage({super.key, required this.device, this.initialRating});
 
   @override
   State<TrainerFeedbackPage> createState() => _TrainerFeedbackPageState();
@@ -48,6 +49,7 @@ class _TrainerFeedbackPageState extends State<TrainerFeedbackPage> {
   @override
   void initState() {
     super.initState();
+    _rating = widget.initialRating;
     _authSub = core.supabase.auth.onAuthStateChange.listen((_) {
       if (mounted) setState(() {});
     });

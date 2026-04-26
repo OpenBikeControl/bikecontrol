@@ -713,5 +713,7 @@
   "recommended": "Consigliato",
   "workoutShareText": "Allenamento {fileName}",
   "connectionSettings": "Impostazioni connessione",
-  "needsTargetLeavePrompt": "{appName} ha bisogno di una destinazione prima di connettersi. Vuoi uscire senza sceglierne una?"
+  "needsTargetLeavePrompt": "{appName} ha bisogno di una destinazione prima di connettersi. Vuoi uscire senza sceglierne una?",
+  "feedbackQuestion": "Funziona?",
+  "feedbackNoDifference": "Nessuna differenza"
 }

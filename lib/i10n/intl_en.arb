@@ -861,5 +861,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "feedbackQuestion": "Does it work?",
+  "feedbackNoDifference": "No difference"
 }

@@ -9,6 +9,7 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
@@ -160,6 +161,22 @@ abstract class BaseActions {
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
       return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
+    }
+
+    // Handle workout pause/resume — local recorder, no trainer required.
+    if (keyPair.inGameAction == InGameAction.workoutPauseResume) {
+      if (!isKeyDown) return Ignored('');
+      final recorder = core.workoutRecorder;
+      if (recorder.state.value == WorkoutState.recording) {
+        recorder.pause();
+        await IAPManager.instance.incrementCommandCount();
+        return Success('Workout paused');
+      } else if (recorder.state.value == WorkoutState.paused) {
+        recorder.resume();
+        await IAPManager.instance.incrementCommandCount();
+        return Success('Workout resumed');
+      }
+      return Ignored('No active workout');
     }
 
     // Handle trainer-control actions

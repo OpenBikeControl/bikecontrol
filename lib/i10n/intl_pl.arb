@@ -713,5 +713,7 @@
   "recommended": "Zalecane",
   "workoutShareText": "Trening {fileName}",
   "connectionSettings": "Ustawienia połączenia",
-  "needsTargetLeavePrompt": "{appName} potrzebuje celu, żeby się połączyć. Wyjść mimo to?"
+  "needsTargetLeavePrompt": "{appName} potrzebuje celu, żeby się połączyć. Wyjść mimo to?",
+  "feedbackQuestion": "Działa?",
+  "feedbackNoDifference": "Bez różnicy"
 }
