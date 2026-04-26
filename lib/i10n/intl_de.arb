@@ -713,5 +713,7 @@
   "recommended": "Empfohlen",
   "workoutShareText": "Workout {fileName}",
   "connectionSettings": "Verbindungseinstellungen",
-  "needsTargetLeavePrompt": "{appName} braucht ein Ziel, um sich zu verbinden. Trotzdem ohne Auswahl verlassen?"
+  "needsTargetLeavePrompt": "{appName} braucht ein Ziel, um sich zu verbinden. Trotzdem ohne Auswahl verlassen?",
+  "feedbackQuestion": "Funktioniert es?",
+  "feedbackNoDifference": "Kein Unterschied"
 }

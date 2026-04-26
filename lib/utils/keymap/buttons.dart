@@ -66,7 +66,8 @@ enum InGameAction {
   // trainer control
   trainerSwitchMode('Trainer: Switch ERG/SIM', icon: LucideIcons.repeat, isOutsideTrainerApp: true),
   trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
-  trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true);
+  trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true),
+  workoutPauseResume('Workout: Pause/Resume', icon: LucideIcons.pause, isOutsideTrainerApp: true);
 
   final String title;
   final bool isLongPress;
@@ -96,6 +97,7 @@ const trainerActions = [
   InGameAction.trainerSwitchMode,
   InGameAction.trainerIntensityUp,
   InGameAction.trainerIntensityDown,
+  InGameAction.workoutPauseResume,
 ];
 
 class ControllerButton {

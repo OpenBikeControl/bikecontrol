@@ -713,5 +713,7 @@
   "recommended": "Recommandé",
   "workoutShareText": "Entraînement {fileName}",
   "connectionSettings": "Réglages de connexion",
-  "needsTargetLeavePrompt": "{appName} a besoin d'une cible avant de pouvoir se connecter. Partir sans en choisir ?"
+  "needsTargetLeavePrompt": "{appName} a besoin d'une cible avant de pouvoir se connecter. Partir sans en choisir ?",
+  "feedbackQuestion": "Ça fonctionne ?",
+  "feedbackNoDifference": "Aucune différence"
 }
