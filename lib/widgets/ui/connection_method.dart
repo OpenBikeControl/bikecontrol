@@ -97,7 +97,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
   Widget build(BuildContext context) {
     void callback() {
       if (kIsWeb) {
-        buildToast(title: 'Not Supported on Web :)');
+        buildToast(title: AppLocalizations.of(context).notSupportedOnWeb);
       } else if (widget.requirements.isEmpty) {
         widget.onChange(!widget.isEnabled);
       } else {
@@ -198,7 +198,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   child: BetaPill(text: 'EXPER.'),
                 )
               else if (widget.isRecommended && !screenshotMode)
-                SecondaryBadge(child: Text('Recommended')),
+                SecondaryBadge(child: Text(AppLocalizations.of(context).recommended)),
               Switch(
                 value: widget.isEnabled,
                 onChanged: (value) {

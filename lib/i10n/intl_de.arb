@@ -703,5 +703,15 @@
   "broadcastIntentExplanation": "Sends an Android broadcast with action \"{prefix}<your suffix>\" when the button is pressed. Apps like MacroDroid or Tasker can listen for the intent and run your automations.",
   "customModeAction": "Custom {mode} action",
   "customLabel": "Custom",
-  "blogTab": "Blog"
+  "blogTab": "Blog",
+  "openConnectionSettings": "Open connection settings",
+  "noTargetSelected": "No target selected",
+  "stay": "Stay",
+  "leave": "Leave",
+  "showExperimental": "Show experimental",
+  "notSupportedOnWeb": "Not Supported on Web :)",
+  "recommended": "Recommended",
+  "workoutShareText": "Workout {fileName}",
+  "connectionSettings": "Connection Settings",
+  "needsTargetLeavePrompt": "{appName} needs a target before it can connect. Leave without picking one?"
 }
