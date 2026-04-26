@@ -92,12 +92,6 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
             valueListenable: _recorder.state,
             builder: (context, state, _) => _body(context, state, l10n),
           ),
-          Button.ghost(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const WorkoutsListPage()),
-            ),
-            child: Text(l10n.miniWorkoutPastWorkouts),
-          ),
         ],
       ),
     );
@@ -106,11 +100,23 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
   Widget _body(BuildContext context, WorkoutState state, AppLocalizations l10n) {
     if (state == WorkoutState.idle) {
       return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 8,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          IconButton.destructive(
-            icon: const Icon(LucideIcons.circle, size: 20),
-            onPressed: _start,
+          _gridTile(
+            context: context,
+            icon: LucideIcons.circle,
+            iconColor: Theme.of(context).colorScheme.destructive,
+            label: l10n.miniWorkoutStart,
+            onTap: _start,
+          ),
+          _gridTile(
+            context: context,
+            icon: LucideIcons.list,
+            label: l10n.miniWorkoutPastWorkouts,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const WorkoutsListPage()),
+            ),
           ),
         ],
       );
@@ -155,6 +161,42 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _gridTile({
+    required BuildContext context,
+    required IconData icon,
+    Color? iconColor,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return Button.ghost(
+      onPressed: onTap,
+      style: ButtonStyle.ghost().copyWith(
+        padding: (context, states, value) => const EdgeInsets.all(0),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: cs.muted,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: cs.border),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 6,
+          children: [
+            Icon(icon, size: 22, color: iconColor),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
