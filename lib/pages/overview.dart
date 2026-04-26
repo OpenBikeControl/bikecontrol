@@ -21,6 +21,7 @@ import 'package:bike_control/widgets/blog_posts_widget.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
+import 'package:bike_control/widgets/review_banner.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
@@ -315,6 +316,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Gap(8),
+        ReviewBanner(service: core.reviewPromptService),
         ValueListenableBuilder(
           valueListenable: IAPManager.instance.isPurchased,
           builder: (context, value, child) => value ? SizedBox(height: 12) : IAPStatusWidget(small: false),
