@@ -167,7 +167,7 @@
   },
   "deviceLimitReached": "Device limit reached for {platform}. Revoke other devices to register a new one.",
   "devicesActive": "{active} active",
-  "disconnectAndForget": "Disconnect and Forget",
+  "disconnectAndForget": "Disconnect & forget",
   "disconnectAndForgetForThisSession": "Disconnect",
   "disconnectDevices": "Disconnect Devices",
   "disconnected": "Disconnected",
@@ -614,5 +614,58 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
+  "smartTrainer": "Smart Trainer",
+  "provideFeedback": "Provide Feedback",
+  "virtualShiftingSettings": "Virtual Shifting Settings",
+  "yourTrainerApp": "your trainer app",
+  "proxyMode": "Proxy",
+  "virtualShifting": "Virtual Shifting",
+  "proxyModeHint": "Mirrors your trainer over WiFi without touching gear logic.",
+  "virtualShiftingBluetoothHint": "Adds or adjusts virtual shifting and creates a Bluetooth-advertised trainer.",
+  "virtualShiftingWifiHint": "Adds or adjusts virtual shifting and creates a WiFi-advertised trainer.",
+  "virtualShiftingTransportNeededHint": "Enable a Bluetooth or WiFi Trainer Connection to use Virtual Shifting.",
+  "connectModeLabel": "CONNECT MODE",
+  "connectingInMode": "Connecting in {mode} mode…",
+  "@connectingInMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "connectModeActive": "Connect mode: {mode}",
+  "@connectModeActive": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "bikeWeight": "Bike Weight",
+  "riderWeight": "Rider Weight",
+  "virtualShiftingPhysicsDesc": "Used for virtual shifting physics",
+  "gearSettings": "Gear Settings",
+  "gearsCount": "{count} gears",
+  "@gearsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "smoothingOn": "Smoothing on",
+  "smoothingOff": "Smoothing off",
+  "customRatios": "Custom ratios",
+  "trainerControl": "Trainer Control",
+  "fixedTargetPowerMode": "Fixed target power mode",
+  "virtualGearShifting": "Virtual gear shifting",
+  "ergMode": "ERG",
+  "simMode": "SIM",
+  "powerLabel": "POWER",
+  "heartLabel": "HEART",
+  "cadenceLabel": "CADENCE",
+  "speedLabel": "SPEED",
+  "unlockAfterMinuteCheck": "After a minute has passed, double check by pressing a button",
+  "unlockConfirmByButton": "Confirm unlock by pressing a button"
 }

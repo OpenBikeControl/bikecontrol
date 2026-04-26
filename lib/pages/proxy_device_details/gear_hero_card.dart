@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -27,15 +28,15 @@ class GearHeroCard extends StatelessWidget {
         if (simOnly && isErg) return const SizedBox.shrink();
         return SettingTile(
           icon: LucideIcons.cog,
-          title: 'Trainer Control',
-          subtitle: isErg ? 'Fixed target power mode' : 'Virtual gear shifting',
+          title: AppLocalizations.of(context).trainerControl,
+          subtitle: isErg ? AppLocalizations.of(context).fixedTargetPowerMode : AppLocalizations.of(context).virtualGearShifting,
           trailing: simOnly
               ? null
               : Row(
                   mainAxisSize: MainAxisSize.min,
                   spacing: 8,
                   children: [
-                    _modePill(cs, TrainerMode.simMode, active: !isErg),
+                    _modePill(context, cs, TrainerMode.simMode, active: !isErg),
                     Switch(
                       value: isErg,
                       onChanged: (v) {
@@ -48,7 +49,7 @@ class GearHeroCard extends StatelessWidget {
                         }
                       },
                     ),
-                    _modePill(cs, TrainerMode.ergMode, active: isErg),
+                    _modePill(context, cs, TrainerMode.ergMode, active: isErg),
                   ],
                 ),
           child: Container(
@@ -192,7 +193,7 @@ class GearHeroCard extends StatelessWidget {
     );
   }
 
-  Widget _modePill(ColorScheme cs, TrainerMode mode, {required bool active}) {
+  Widget _modePill(BuildContext context, ColorScheme cs, TrainerMode mode, {required bool active}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
@@ -201,7 +202,7 @@ class GearHeroCard extends StatelessWidget {
         border: active ? null : Border.all(color: cs.border),
       ),
       child: Text(
-        _modeLabel(mode),
+        _modeLabel(context, mode),
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
@@ -241,9 +242,9 @@ class GearHeroCard extends StatelessWidget {
     );
   }
 
-  String _modeLabel(TrainerMode mode) => switch (mode) {
-    TrainerMode.ergMode => 'ERG',
-    TrainerMode.simMode => 'SIM',
-    TrainerMode.simModeVirtualShifting => 'Virtual Shifting',
+  String _modeLabel(BuildContext context, TrainerMode mode) => switch (mode) {
+    TrainerMode.ergMode => AppLocalizations.of(context).ergMode,
+    TrainerMode.simMode => AppLocalizations.of(context).simMode,
+    TrainerMode.simModeVirtualShifting => AppLocalizations.of(context).virtualShifting,
   };
 }

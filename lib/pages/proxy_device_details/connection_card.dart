@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
@@ -135,18 +136,16 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   String _connectModeLabel(_ConnectMode m) => switch (m) {
-        _ConnectMode.proxy => 'Proxy',
-        _ConnectMode.virtualShifting => 'Virtual Shifting',
+        _ConnectMode.proxy => AppLocalizations.of(context).proxyMode,
+        _ConnectMode.virtualShifting => AppLocalizations.of(context).virtualShifting,
       };
 
   String _connectModeHint(_ConnectMode m) => switch (m) {
-        _ConnectMode.proxy => 'Mirrors your trainer over WiFi without touching gear logic.',
+        _ConnectMode.proxy => AppLocalizations.of(context).proxyModeHint,
         _ConnectMode.virtualShifting => switch (_resolvedVirtualShiftingMode) {
-            RetrofitMode.bluetooth =>
-              'Adds or adjusts virtual shifting and creates a Bluetooth-advertised trainer.',
-            RetrofitMode.wifi =>
-              'Adds or adjusts virtual shifting and creates a WiFi-advertised trainer.',
-            _ => 'Enable a Bluetooth or WiFi Trainer Connection to use Virtual Shifting.',
+            RetrofitMode.bluetooth => AppLocalizations.of(context).virtualShiftingBluetoothHint,
+            RetrofitMode.wifi => AppLocalizations.of(context).virtualShiftingWifiHint,
+            _ => AppLocalizations.of(context).virtualShiftingTransportNeededHint,
           },
       };
 
@@ -183,7 +182,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           const SmallProgressIndicator(),
           Expanded(
             child: Text(
-              'Connecting in ${emulator.retrofitMode.value.label} mode…',
+              AppLocalizations.of(context).connectingInMode(emulator.retrofitMode.value.label),
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: cs.foreground),
             ),
           ),
@@ -215,7 +214,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
         spacing: 14,
         children: [
           Text(
-            'CONNECT MODE',
+            AppLocalizations.of(context).connectModeLabel,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
@@ -262,7 +261,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
             },
             renderChild: (isLoading, tap) => Button.primary(
               onPressed: tap,
-              child: isLoading ? SmallProgressIndicator() : const Text('Connect'),
+              child: isLoading ? SmallProgressIndicator() : Text(AppLocalizations.of(context).connect),
             ),
           ),
         ],
@@ -299,7 +298,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                   children: [
                     Icon(_modeIcon(mode), size: 16, color: cs.mutedForeground),
                     Text(
-                      'Connect mode: ${mode.label}',
+                      AppLocalizations.of(context).connectModeActive(mode.label),
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ],
@@ -323,7 +322,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
         spacing: 10,
         children: [
           Text(
-            'CONNECT MODE',
+            AppLocalizations.of(context).connectModeLabel,
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1, color: cs.mutedForeground),
           ),
           RadioGroup<_ConnectMode>(

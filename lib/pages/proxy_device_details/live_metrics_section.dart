@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -47,7 +48,7 @@ class LiveMetricsSection extends StatelessWidget {
               (v) => MetricCard(
                 icon: LucideIcons.zap,
                 iconColor: const Color(0xFFF59E0B),
-                label: 'POWER',
+                label: AppLocalizations.of(context).powerLabel,
                 value: v?.toString(),
                 unit: 'W',
               ),
@@ -57,7 +58,7 @@ class LiveMetricsSection extends StatelessWidget {
               (v) => MetricCard(
                 icon: LucideIcons.heart,
                 iconColor: const Color(0xFFEF4444),
-                label: 'HEART',
+                label: AppLocalizations.of(context).heartLabel,
                 value: v?.toString(),
                 unit: 'bpm',
               ),
@@ -72,7 +73,7 @@ class LiveMetricsSection extends StatelessWidget {
               (v) => MetricCard(
                 icon: LucideIcons.rotateCw,
                 iconColor: const Color(0xFF8B5CF6),
-                label: 'CADENCE',
+                label: AppLocalizations.of(context).cadenceLabel,
                 value: v?.toString(),
                 unit: 'rpm',
               ),
@@ -82,7 +83,7 @@ class LiveMetricsSection extends StatelessWidget {
               (v) => MetricCard(
                 icon: LucideIcons.gauge,
                 iconColor: const Color(0xFF0EA5E9),
-                label: 'SPEED',
+                label: AppLocalizations.of(context).speedLabel,
                 value: v?.toStringAsFixed(1),
                 unit: 'km/h',
               ),
