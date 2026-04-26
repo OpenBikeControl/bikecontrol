@@ -48,23 +48,23 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
-    aspectRatio: 534.86 / 252.86,
+    aspectRatio: 494.86 / 252.86,
     shape: ContourShape.zwiftClickV2,
     svgAsset: 'assets/contours/zwift_click_v2.svg',
     positions: {
       // Left puck — navigation diamond + minus (shift-up-left) under "down".
-      ZwiftButtons.navigationUp: const Offset(0.21, 0.25),
-      ZwiftButtons.navigationLeft: const Offset(0.11, 0.44),
-      ZwiftButtons.navigationRight: const Offset(0.31, 0.44),
-      ZwiftButtons.navigationDown: const Offset(0.21, 0.62),
-      ZwiftButtons.shiftUpLeft: const Offset(0.21, 0.87),
+      ZwiftButtons.navigationUp: const Offset(0.227, 0.25),
+      ZwiftButtons.navigationLeft: const Offset(0.119, 0.44),
+      ZwiftButtons.navigationRight: const Offset(0.335, 0.44),
+      ZwiftButtons.navigationDown: const Offset(0.227, 0.62),
+      ZwiftButtons.shiftUpLeft: const Offset(0.227, 0.87),
       // Right puck — face-button diamond. Per the physical device: Y top,
       // Z left, A right, B bottom. Plus (shift-up-right) sits under B.
-      ZwiftButtons.y: const Offset(0.79, 0.25),
-      ZwiftButtons.z: const Offset(0.69, 0.44),
-      ZwiftButtons.a: const Offset(0.88, 0.44),
-      ZwiftButtons.b: const Offset(0.79, 0.62),
-      ZwiftButtons.shiftUpRight: const Offset(0.79, 0.87),
+      ZwiftButtons.y: const Offset(0.773, 0.25),
+      ZwiftButtons.z: const Offset(0.665, 0.44),
+      ZwiftButtons.a: const Offset(0.870, 0.44),
+      ZwiftButtons.b: const Offset(0.773, 0.62),
+      ZwiftButtons.shiftUpRight: const Offset(0.773, 0.87),
     },
   );
 
