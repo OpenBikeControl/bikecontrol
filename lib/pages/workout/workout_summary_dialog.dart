@@ -44,7 +44,7 @@ class _WorkoutSummaryDialog extends StatelessWidget {
                   child: Button.primary(
                     leading: const Icon(LucideIcons.share2, size: 16),
                     onPressed: () => SharePlus.instance.share(
-                      ShareParams(files: [XFile(fitFile.path)], text: 'Workout ${fitFile.uri.pathSegments.last}'),
+                      ShareParams(files: [XFile(fitFile.path)], text: l10n.workoutShareText(fitFile.uri.pathSegments.last)),
                     ),
                     child: Text(l10n.miniWorkoutShareFit),
                   ),

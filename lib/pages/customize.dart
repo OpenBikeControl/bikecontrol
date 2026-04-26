@@ -153,7 +153,7 @@ class _CustomizeState extends State<CustomizePage> {
             children: [
               Text(context.i18n.noTrainerSelected).small,
               Button.outline(
-                child: Text('Open connection settings'),
+                child: Text(context.i18n.openConnectionSettings),
                 onPressed: () async {
                   await context.push(const TrainerConnectionSettingsPage());
                   setState(() {});
@@ -166,7 +166,7 @@ class _CustomizeState extends State<CustomizePage> {
             children: [
               Text(context.i18n.noConnectionMethodSelected).small,
               Button.outline(
-                child: Text('Open connection settings'),
+                child: Text(context.i18n.openConnectionSettings),
                 onPressed: () async {
                   await context.push(const TrainerConnectionSettingsPage());
                   setState(() {});

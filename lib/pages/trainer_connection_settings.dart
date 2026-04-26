@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
@@ -18,22 +19,21 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
   }
 
   Future<bool> _confirmLeave() async {
-    final trainerName = core.settings.getTrainerApp()?.name ?? 'this trainer app';
+    final l10n = AppLocalizations.of(context);
+    final trainerName = core.settings.getTrainerApp()?.name ?? l10n.yourTrainerApp;
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('No target selected'),
-        content: Text(
-          "$trainerName needs a target before it can connect. Leave without picking one?",
-        ),
+        title: Text(l10n.noTargetSelected),
+        content: Text(l10n.needsTargetLeavePrompt(trainerName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Stay'),
+            child: Text(l10n.stay),
           ),
           DestructiveButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Leave'),
+            child: Text(l10n.leave),
           ),
         ],
       ),
@@ -63,7 +63,7 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
               ),
             ],
             title: Text(
-              'Connection Settings',
+              AppLocalizations.of(context).connectionSettings,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
             ),
             trailing: [
@@ -80,7 +80,7 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
                             children: [
                               MenuCheckbox(
                                 value: core.settings.getShowExperimental(),
-                                child: Text('Show experimental'),
+                                child: Text(AppLocalizations.of(context).showExperimental),
                                 onChanged: (c, value) {
                                   core.settings.setShowExperimental(value);
                                   setState(() {});
