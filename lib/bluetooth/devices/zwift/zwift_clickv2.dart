@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
@@ -70,7 +71,7 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   String toString() {
-    return "Zwift Click V2";
+    return screenshotMode ? 'Controller' : "Zwift Click V2";
   }
 
   bool get isUnlocked {
@@ -126,7 +127,7 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
-    if (!isConnected) return [];
+    if (!isConnected || screenshotMode) return [];
     if (isUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
       return [
         Warning(

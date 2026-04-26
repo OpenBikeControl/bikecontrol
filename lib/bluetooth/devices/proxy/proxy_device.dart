@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -218,6 +219,14 @@ class ProxyDevice extends BluetoothDevice {
   @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     if (isConnected) {
+      if (screenshotMode) {
+        final parts = <Widget>[];
+        _addMetric(parts, context, 250, 'W', LucideIcons.zap);
+        _addMetric(parts, context, 133, 'bpm', LucideIcons.heart);
+        _addMetric(parts, context, 90, 'rpm', LucideIcons.rotateCw);
+        _addMetric(parts, context, 40, 'km/h', LucideIcons.gauge);
+        return parts;
+      }
       return [
         ValueListenableBuilder<String>(
           valueListenable: emulator.data,
