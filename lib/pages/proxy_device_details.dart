@@ -67,9 +67,9 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
-          title: const Text(
-            'Smart Trainer',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
+          title: Text(
+            AppLocalizations.of(context).smartTrainer,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
           ),
           trailing: [
             IconButton.ghost(
@@ -100,7 +100,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                       );
                     },
                     leading: const Icon(LucideIcons.messageSquare, size: 18),
-                    child: const Text('Provide Feedback'),
+                    child: Text(AppLocalizations.of(context).provideFeedback),
                   ),
                 SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
@@ -123,7 +123,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                       final remaining = core.bridgeUsageTracker.dailyLimit - used;
                       final clamped = remaining.isNegative ? Duration.zero : remaining;
                       return VirtualShiftingProNotice(
-                        trainerAppName: core.settings.getTrainerApp()?.name ?? 'your trainer app',
+                        trainerAppName: core.settings.getTrainerApp()?.name ?? AppLocalizations.of(context).yourTrainerApp,
                         remainingToday: clamped,
                       );
                     },
@@ -200,9 +200,9 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10,
       children: [
-        const Text(
-          'Virtual Shifting Settings',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+        Text(
+          AppLocalizations.of(context).virtualShiftingSettings,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         TrainerSettingsSection(definition: def, device: widget.device),
       ],
@@ -225,7 +225,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
             style: ButtonStyle.outline(),
             onPressed: tap,
             leading: isLoading ? const SmallProgressIndicator() : const Icon(LucideIcons.bluetoothOff, size: 18),
-            child: const Text('Disconnect'),
+            child: Text(AppLocalizations.of(context).disconnectAndForgetForThisSession),
           ),
         ),
         LoadingWidget(
@@ -238,7 +238,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
             style: ButtonStyle.destructive(),
             onPressed: tap,
             leading: isLoading ? const SmallProgressIndicator() : const Icon(LucideIcons.trash2, size: 18),
-            child: const Text('Disconnect & forget'),
+            child: Text(AppLocalizations.of(context).disconnectAndForget),
           ),
         ),
       ],

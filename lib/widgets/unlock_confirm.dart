@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -44,9 +45,9 @@ class _UnlockConfirmState extends State<UnlockConfirm> with SingleTickerProvider
           child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60)),
         ),
         if (_secondsRemaining > 0)
-          Text('After a minute has passed, double check by pressing a button').xSmall
+          Text(AppLocalizations.of(context).unlockAfterMinuteCheck).xSmall
         else
-          Text('Confirm unlock by pressing a button').xSmall,
+          Text(AppLocalizations.of(context).unlockConfirmByButton).xSmall,
       ],
     );
   }

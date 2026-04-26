@@ -78,8 +78,8 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       valueListenable: def.bicycleWeightKg,
       builder: (context, kg, _) => SettingTile(
         icon: LucideIcons.bike,
-        title: 'Bike Weight',
-        subtitle: 'Used for virtual shifting physics',
+        title: context.i18n.bikeWeight,
+        subtitle: context.i18n.virtualShiftingPhysicsDesc,
         trailing: StepperControl(
           value: kg,
           step: 0.5,
@@ -100,8 +100,8 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
       valueListenable: def.riderWeightKg,
       builder: (context, kg, _) => SettingTile(
         icon: LucideIcons.user,
-        title: 'Rider Weight',
-        subtitle: 'Used for virtual shifting physics',
+        title: context.i18n.riderWeight,
+        subtitle: context.i18n.virtualShiftingPhysicsDesc,
         trailing: StepperControl(
           value: kg,
           step: 1.0,
@@ -126,13 +126,13 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
           final cs = Theme.of(context).colorScheme;
           final hasCustomRatios = core.shiftingConfigs.activeFor(widget.device.trainerKey).gearRatios != null;
           final parts = [
-            '${ratios.length} gears',
-            'Smoothing ${smoothing ? 'on' : 'off'}',
-            if (hasCustomRatios) 'Custom ratios',
+            context.i18n.gearsCount(ratios.length),
+            smoothing ? context.i18n.smoothingOn : context.i18n.smoothingOff,
+            if (hasCustomRatios) context.i18n.customRatios,
           ];
           return SettingTile(
             icon: LucideIcons.cog,
-            title: 'Gear Settings',
+            title: context.i18n.gearSettings,
             subtitle: parts.join(' · '),
             trailing: Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
             onTap: () => context.push(GearRatiosEditorPage(definition: def, device: widget.device)),
