@@ -73,6 +73,8 @@ class Settings {
         await IAPManager.instance.startTrial();
       }
 
+      core.reviewPromptService.start();
+
       // Initialize settings sync service for Pro users
       try {
         _syncService = SettingsSyncService();

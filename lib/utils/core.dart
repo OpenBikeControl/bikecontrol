@@ -10,6 +10,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/review_prompt_service.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/services/workout/workout_repository.dart';
@@ -72,6 +73,15 @@ class Core {
   late final mediaKeyHandler = MediaKeyHandler();
   late final logic = CoreLogic();
   late final permissions = Permissions();
+
+  ReviewPromptService? _reviewPromptService;
+  ReviewPromptService get reviewPromptService {
+    return _reviewPromptService ??= ReviewPromptService(
+      settings: settings,
+      trainerConnections: logic.trainerConnections.map((t) => t.isConnected).toList(),
+      isMobilePlatform: !kIsWeb && (Platform.isAndroid || Platform.isIOS),
+    );
+  }
 
   /// Stops all active BLE connection methods and disables their settings.
   /// Call this before enabling a new BLE connection to ensure mutual exclusivity.
