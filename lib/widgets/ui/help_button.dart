@@ -1,17 +1,13 @@
-import 'dart:io';
-
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/markdown.dart';
+import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart';
-import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
-import '../../gen/l10n.dart';
 
 class HelpButton extends StatelessWidget {
   final bool isMobile;
@@ -48,7 +44,7 @@ class HelpButton extends StatelessWidget {
                     ),
                     MenuButton(
                       leading: Icon(Icons.help_outline),
-                      child: Text(context.i18n.troubleshootingGuide),
+                      child: Text(AppLocalizations.of(context).troubleshootingPage),
                       onPressed: (c) {
                         openDrawer(
                           context: context,
@@ -80,84 +76,33 @@ class HelpButton extends StatelessWidget {
                       },
                       child: Text('GitHub'),
                     ),
-                    if (!kIsWeb) ...[
-                      MenuButton(
-                        leading: Icon(Icons.email_outlined),
-                        child: Text('Mail'),
-                        onPressed: (c) {
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: const Text('Mail Support'),
-                                content: Container(
-                                  constraints: BoxConstraints(maxWidth: 400),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    spacing: 16,
-                                    children: [
-                                      Text(
-                                        AppLocalizations.of(context).mailSupportExplanation,
-                                      ),
-                                      ...[
-                                        OutlineButton(
-                                          leading: Icon(Icons.reddit_outlined),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            launchUrlString('https://www.reddit.com/r/BikeControl/');
-                                          },
-                                          child: const Text('Reddit'),
-                                        ),
-                                        OutlineButton(
-                                          leading: Icon(Icons.facebook_outlined),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            launchUrlString('https://www.facebook.com/groups/1892836898778912');
-                                          },
-                                          child: const Text('Facebook'),
-                                        ),
-                                        OutlineButton(
-                                          leading: Icon(RadixIcons.githubLogo),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues');
-                                          },
-                                          child: const Text('GitHub'),
-                                        ),
-                                        SecondaryButton(
-                                          leading: Icon(Icons.mail_outlined),
-                                          onPressed: () async {
-                                            Navigator.pop(context);
-
-                                            final isFromStore = (Platform.isAndroid
-                                                ? isFromPlayStore == true
-                                                : Platform.isIOS);
-                                            final suffix = isFromStore ? '' : '-sw';
-
-                                            String email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
-                                            String subject = Uri.encodeComponent(
-                                              context.i18n.helpRequested(packageInfoValue?.version ?? ''),
-                                            );
-                                            final dbg = await debugText();
-                                            String body = Uri.encodeComponent("""
-                
-        $dbg""");
-                                            Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
-
-                                            launchUrl(mail);
-                                          },
-                                          child: const Text('Mail'),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
+                    MenuButton(
+                      leading: Icon(LucideIcons.messageCircle),
+                      child: Text(context.i18n.chatWithSupport),
+                      onPressed: (c) async {
+                        final captured = await debugText();
+                        String? capturedFreetext = captured;
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => SupportChatPage(
+                              diagnosticPreview: captured,
+                              telemetryBuilder: () async {
+                                if (capturedFreetext != null) {
+                                  final snapshot = TelemetrySnapshot.general(
+                                    freetext: capturedFreetext,
+                                  );
+                                  capturedFreetext = null;
+                                  return snapshot;
+                                }
+                                return TelemetrySnapshot.general(
+                                  freetext: await debugText(),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               );

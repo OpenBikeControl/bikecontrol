@@ -9,9 +9,11 @@ import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
-import 'package:bike_control/pages/proxy_device_details/inline_feedback_prompt.dart';
 import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
+import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -92,7 +94,20 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 _deviceCard(),
                 SizedBox(height: 12),
                 if (!screenshotMode)
-                  InlineFeedbackPrompt(device: device),
+                  Button(
+                    style: ButtonStyle.primary(),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => SupportChatPage(
+                            telemetryBuilder: () async => TelemetrySnapshot.fromDevice(device: device),
+                          ),
+                        ),
+                      );
+                    },
+                    leading: const Icon(LucideIcons.messageSquare, size: 18),
+                    child: Text(context.i18n.chatWithSupport),
+                  ),
                 SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
                   w,

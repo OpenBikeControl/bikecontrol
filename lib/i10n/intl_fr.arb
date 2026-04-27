@@ -476,6 +476,7 @@
   "scan": "BALAYAGE",
   "scanningForDevices": "Recherche d'appareils en cours… Assure-toi qu'ils sont allumés, à portée et non connectés à un autre appareil.",
   "selectADeviceToSyncFrom": "Sélectionne un appareil à synchroniser depuis",
+  "lookingForSmartTrainers": "Recherche de Smart Trainers…",
   "selectKeymap": "Sélectionner le clavier",
   "selectTargetWhereAppRuns": "Sélectionne la cible où {appName} fonctionne sur",
   "@selectTargetWhereAppRuns": {
@@ -525,6 +526,7 @@
   "trialPeriodActive": "Période d'essai active -{trialDaysRemaining} jours restants",
   "trialPeriodDescription": "Profite de commandes illimitées pendant ta période d'essai. Après la période d'essai, le nombre de commandes sera limité à {dailyCommandLimit} par jour.",
   "troubleshootingGuide": "Questions et réponses",
+
   "tryingToConnectAgain": "Tentative de reconnexion...",
   "unassignAction": "Action de désaffectation",
   "unlimited": "Illimité",
@@ -715,5 +717,34 @@
   "connectionSettings": "Réglages de connexion",
   "needsTargetLeavePrompt": "{appName} a besoin d'une cible avant de pouvoir se connecter. Partir sans en choisir ?",
   "feedbackQuestion": "Ça fonctionne ?",
-  "feedbackNoDifference": "Aucune différence"
+  "feedbackNoDifference": "Aucune différence",
+  "supportChat": "Chat de support",
+  "chatWithSupport": "Discuter avec le support",
+  "signInToChatWithSupport": "Connecte-toi pour discuter avec le support",
+  "signInToChatExplanation": "Ton chat est lié à ton compte BikeControl pour qu'on puisse te recontacter.",
+  "retry": "Réessayer",
+  "supportChatEmpty": "Envoie un message pour démarrer la conversation.",
+  "supportChatIntro": "Tu vas parler avec Jonas de BikeControl",
+  "messageComposerPlaceholder": "Écris un message…",
+  "attachImage": "Choisir une image",
+  "attachDocument": "Choisir un fichier",
+  "diagnosticInfoAttached": "Les données suivantes seront jointes au message à des fins de diagnostic",
+  "attachmentTooLarge": "La pièce jointe dépasse 10 Mo",
+  "attachmentMimeUnsupported": "Type de fichier non pris en charge",
+  "failedToSendMessage": "Échec de l'envoi du message",
+  "failedToOpenChat": "Impossible d'ouvrir le chat de support",
+  "senderYou": "Toi",
+  "senderAdmin": "Support",
+  "viewThread": "Créer un fil",
+  "threadTitle": "Fil",
+  "replyCount": "Réponses ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "Pas envie de te connecter ? Écris un mail à la place",
+  "troubleshootingPage": "Guide de dépannage"
 }

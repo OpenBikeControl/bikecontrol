@@ -476,6 +476,7 @@
   "scan": "SCAN",
   "scanningForDevices": "Suche nach Geräten... Stelle sicher, dass diese eingeschaltet und in Reichweite sind und nicht mit einem anderen Gerät verbunden sind.",
   "selectADeviceToSyncFrom": "Wähle ein Gerät aus, von dem synchronisiert werden soll.",
+  "lookingForSmartTrainers": "Suche nach Smart Trainern…",
   "selectKeymap": "Tastaturbelegung auswählen",
   "selectTargetWhereAppRuns": "Ziel auswählen, auf dem {appName} läuft",
   "@selectTargetWhereAppRuns": {
@@ -524,7 +525,7 @@
   "trialExpired": "Testphase abgelaufen. Befehle beschränkt auf {dailyCommandLimit} pro Tag.",
   "trialPeriodActive": "Testphase aktiv - {trialDaysRemaining} verbleibende Tage",
   "trialPeriodDescription": "Während der Testphase stehen unbegrenzt viele Befehle zur Verfügung. Nach Ablauf der Testphase sind die Befehle auf {dailyCommandLimit} pro Tag eingeschränkt.",
-  "troubleshootingGuide": "Fragen und Antworten",
+  "troubleshootingGuide": "Hilfe & Support",
   "tryingToConnectAgain": "Verbinde erneut...",
   "unassignAction": "Zuweisung aufheben",
   "unlimited": "Unbegrenzt",
@@ -715,5 +716,34 @@
   "connectionSettings": "Verbindungseinstellungen",
   "needsTargetLeavePrompt": "{appName} braucht ein Ziel, um sich zu verbinden. Trotzdem ohne Auswahl verlassen?",
   "feedbackQuestion": "Funktioniert es?",
-  "feedbackNoDifference": "Kein Unterschied"
+  "feedbackNoDifference": "Kein Unterschied",
+  "supportChat": "Support-Chat",
+  "chatWithSupport": "Chat mit Support",
+  "signInToChatWithSupport": "Melde dich an, um mit dem Support zu chatten",
+  "signInToChatExplanation": "Dein Chat ist mit deinem BikeControl-Konto verknüpft, damit wir bei Problemen nachfragen können.",
+  "retry": "Erneut versuchen",
+  "supportChatEmpty": "Sende eine Nachricht, um die Unterhaltung zu starten.",
+  "supportChatIntro": "Du schreibst mit Jonas von BikeControl",
+  "messageComposerPlaceholder": "Nachricht eingeben…",
+  "attachImage": "Bild auswählen",
+  "attachDocument": "Datei auswählen",
+  "diagnosticInfoAttached": "Die folgenden Daten werden zur Nachricht für Diagnosezwecke angehängt",
+  "attachmentTooLarge": "Anhang überschreitet 10 MB",
+  "attachmentMimeUnsupported": "Dateityp nicht unterstützt",
+  "failedToSendMessage": "Nachricht konnte nicht gesendet werden",
+  "failedToOpenChat": "Support-Chat konnte nicht geöffnet werden",
+  "senderYou": "Du",
+  "senderAdmin": "Support",
+  "viewThread": "Thread erstellen",
+  "threadTitle": "Thread",
+  "replyCount": "Antworten ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "Keine Lust dich anzumelden? Schreibe stattdessen eine Mail",
+  "troubleshootingPage": "Fehlerbehebung"
 }

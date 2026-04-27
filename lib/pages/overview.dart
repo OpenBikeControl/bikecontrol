@@ -435,30 +435,26 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ],
           ),
         ),
-        if (core.connection.proxyDevices.isNotEmpty)
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.muted.withAlpha(60),
-              border: Border(
-                left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-                right: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-                bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-              ),
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.only(top: 8),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.muted.withAlpha(60),
+            border: Border(
+              left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+              right: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+              bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
             ),
-            child: Column(
-              children: [
-                Gap(8),
-                ProxyPage(
-                  onUpdate: () {
-                    setState(() {});
-                  },
-                  isMobile: widget.isMobile,
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
           ),
+          child: ProxyPage(
+            onUpdate: () {
+              setState(() {});
+            },
+            isMobile: widget.isMobile,
+          ),
+        ),
         const Gap(12),
         _buildErrorBanner(),
         const Gap(12),

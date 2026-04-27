@@ -475,6 +475,7 @@
   "save": "Zapisz",
   "scan": "SKANUJ",
   "scanningForDevices": "Skanowanie urządzeń... Upewnij się, że są włączone, znajdują się w zasięgu i nie są podłączone do innego urządzenia.",
+  "lookingForSmartTrainers": "Szukam Smart Trainerów…",
   "selectADeviceToSyncFrom": "Wybierz urządzenie, z którego chcesz przeprowadzić synchronizację",
   "selectKeymap": "Wybierz mapę klawiszy",
   "selectTargetWhereAppRuns": "Wybierz urządzenie docelowe, na którym działa {appName}",
@@ -524,7 +525,7 @@
   "trialExpired": "Wersja próbna wygasła. Liczba poleceń ograniczona do {dailyCommandLimit} na dzień.",
   "trialPeriodActive": "Okres próbny jest aktywny - pozostało {trialDaysRemaining} dni",
   "trialPeriodDescription": "Korzystaj z nieograniczonej liczby poleceń w okresie próbnym. Po zakończeniu okresu próbnego polecenia będą ograniczone do {dailyCommandLimit} na dzień.",
-  "troubleshootingGuide": "Pytania i odpowiedzi",
+  "troubleshootingGuide": "Pomoc i wsparcie",
   "tryingToConnectAgain": "Próba ponownego połączenia...",
   "unassignAction": "Anuluj przypisanie akcji",
   "unlimited": "Nieograniczony",
@@ -715,5 +716,34 @@
   "connectionSettings": "Ustawienia połączenia",
   "needsTargetLeavePrompt": "{appName} potrzebuje celu, żeby się połączyć. Wyjść mimo to?",
   "feedbackQuestion": "Działa?",
-  "feedbackNoDifference": "Bez różnicy"
+  "feedbackNoDifference": "Bez różnicy",
+  "supportChat": "Czat wsparcia",
+  "chatWithSupport": "Czat ze wsparciem",
+  "signInToChatWithSupport": "Zaloguj się, aby porozmawiać ze wsparciem",
+  "signInToChatExplanation": "Twój czat jest powiązany z kontem BikeControl, dzięki czemu możemy się z Tobą skontaktować.",
+  "retry": "Spróbuj ponownie",
+  "supportChatEmpty": "Wyślij wiadomość, aby rozpocząć rozmowę.",
+  "supportChatIntro": "Będziesz rozmawiać z Jonasem z BikeControl",
+  "messageComposerPlaceholder": "Wpisz wiadomość…",
+  "attachImage": "Wybierz zdjęcie",
+  "attachDocument": "Wybierz plik",
+  "diagnosticInfoAttached": "Następujące dane zostaną dołączone do wiadomości w celach diagnostycznych",
+  "attachmentTooLarge": "Załącznik przekracza 10 MB",
+  "attachmentMimeUnsupported": "Nieobsługiwany typ pliku",
+  "failedToSendMessage": "Nie udało się wysłać wiadomości",
+  "failedToOpenChat": "Nie udało się otworzyć czatu wsparcia",
+  "senderYou": "Ty",
+  "senderAdmin": "Wsparcie",
+  "viewThread": "Utwórz wątek",
+  "threadTitle": "Wątek",
+  "replyCount": "Odpowiedzi ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "Nie chcesz się logować? Napisz maila",
+  "troubleshootingPage": "Przewodnik rozwiązywania problemów"
 }

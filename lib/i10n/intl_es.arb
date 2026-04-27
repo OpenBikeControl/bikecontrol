@@ -475,6 +475,7 @@
   "save": "Guardar",
   "scan": "ESCANEAR",
   "scanningForDevices": "Buscando dispositivos... Asegúrese de que estén encendidos, dentro del alcance y no conectados a otro dispositivo.",
+  "lookingForSmartTrainers": "Buscando Smart Trainers…",
   "selectADeviceToSyncFrom": "Selecciona un dispositivo del que sincronizar",
   "selectKeymap": "Seleccionar mapa de teclas",
   "selectTargetWhereAppRuns": "Seleccione en qué dispositivo se usa {appName}",
@@ -524,7 +525,7 @@
   "trialExpired": "El periodo de prueba ha caducado. Los comandos están limitados a {dailyCommandLimit} por día.",
   "trialPeriodActive": "Periodo de prueba activo: quedan {trialDaysRemaining} días",
   "trialPeriodDescription": "Disfruta de comandos ilimitados durante el periodo de prueba. Después, los comandos estarán limitados a {dailyCommandLimit} al día.",
-  "troubleshootingGuide": "Guía de solución de problemas",
+  "troubleshootingGuide": "Ayuda y soporte",
   "tryingToConnectAgain": "Intentando conectar de nuevo...",
   "unassignAction": "Quitar asignación de la acción",
   "unlimited": "Ilimitado",
@@ -715,5 +716,34 @@
   "connectionSettings": "Ajustes de conexión",
   "needsTargetLeavePrompt": "{appName} necesita un destino antes de poder conectar. ¿Salir sin elegir uno?",
   "feedbackQuestion": "¿Funciona?",
-  "feedbackNoDifference": "Sin diferencia"
+  "feedbackNoDifference": "Sin diferencia",
+  "supportChat": "Chat de soporte",
+  "chatWithSupport": "Chatear con soporte",
+  "signInToChatWithSupport": "Inicia sesión para chatear con soporte",
+  "signInToChatExplanation": "Tu chat está vinculado a tu cuenta de BikeControl para que podamos hacer un seguimiento.",
+  "retry": "Reintentar",
+  "supportChatEmpty": "Envía un mensaje para iniciar la conversación.",
+  "supportChatIntro": "Vas a hablar con Jonas de BikeControl",
+  "messageComposerPlaceholder": "Escribe un mensaje…",
+  "attachImage": "Elegir imagen",
+  "attachDocument": "Elegir archivo",
+  "diagnosticInfoAttached": "Los siguientes datos se adjuntarán al mensaje con fines de diagnóstico",
+  "attachmentTooLarge": "El archivo supera 10 MB",
+  "attachmentMimeUnsupported": "Tipo de archivo no admitido",
+  "failedToSendMessage": "No se pudo enviar el mensaje",
+  "failedToOpenChat": "No se pudo abrir el chat de soporte",
+  "senderYou": "Tú",
+  "senderAdmin": "Soporte",
+  "viewThread": "Crear hilo",
+  "threadTitle": "Hilo",
+  "replyCount": "Respuestas ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "¿No quieres iniciar sesión? Escribe un correo",
+  "troubleshootingPage": "Guía de solución de problemas"
 }
