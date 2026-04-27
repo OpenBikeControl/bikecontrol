@@ -583,6 +583,7 @@
   "signIn": "Accedi",
   "retry": "Riprova",
   "supportChatEmpty": "Invia un messaggio per iniziare la conversazione.",
+  "supportChatIntro": "Parlerai con Jonas di BikeControl",
   "messageComposerPlaceholder": "Scrivi un messaggio…",
   "attachImage": "Scegli un'immagine",
   "attachDocument": "Scegli un file",

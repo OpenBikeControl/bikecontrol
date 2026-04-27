@@ -259,15 +259,44 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     }
 
     if (rootMessages.isEmpty && _pendingMessages.isEmpty) {
+      final cs = Theme.of(context).colorScheme;
       return RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: cs.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Avatar(
+                    initials: 'JB',
+                    size: 52,
+                    provider: AssetImage('jonas.jpg'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    context.i18n.supportChatIntro,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: cs.foreground,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Center(
               child: Text(
                 context.i18n.supportChatEmpty,
-                style: TextStyle(color: Theme.of(context).colorScheme.mutedForeground),
+                style: TextStyle(color: cs.mutedForeground),
                 textAlign: TextAlign.center,
               ),
             ),

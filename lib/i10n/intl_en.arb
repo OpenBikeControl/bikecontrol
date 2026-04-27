@@ -620,6 +620,7 @@
   "signIn": "Sign in",
   "retry": "Retry",
   "supportChatEmpty": "Send a message to start the conversation.",
+  "supportChatIntro": "You'll be talking to Jonas from BikeControl",
   "messageComposerPlaceholder": "Type a message…",
   "attachImage": "Pick image",
   "attachDocument": "Pick file",
