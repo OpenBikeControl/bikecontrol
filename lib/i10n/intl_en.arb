@@ -484,6 +484,7 @@
   "save": "Save",
   "scan": "SCAN",
   "scanningForDevices": "Scanning for devices... Make sure they are powered on and in range and not connected to another device.",
+  "lookingForSmartTrainers": "Looking for Smart Trainers…",
   "selectADeviceToSyncFrom": "Select a device to sync from",
   "selectKeymap": "Select Keymap",
   "selectTargetWhereAppRuns": "Select Target where {appName} runs on",

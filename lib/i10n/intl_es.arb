@@ -472,6 +472,7 @@
   "save": "Guardar",
   "scan": "ESCANEAR",
   "scanningForDevices": "Buscando dispositivos... Asegúrese de que estén encendidos, dentro del alcance y no conectados a otro dispositivo.",
+  "lookingForSmartTrainers": "Buscando Smart Trainers…",
   "selectADeviceToSyncFrom": "Selecciona un dispositivo del que sincronizar",
   "selectKeymap": "Seleccionar mapa de teclas",
   "selectTargetWhereAppRuns": "Seleccione en qué dispositivo se usa {appName}",
