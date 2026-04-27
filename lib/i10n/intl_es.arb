@@ -605,5 +605,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "¿No quieres iniciar sesión? Escribe un correo"
+  "dontWantToSignInWriteAMail": "¿No quieres iniciar sesión? Escribe un correo",
+  "troubleshootingPage": "Guía de solución de problemas"
 }
