@@ -487,6 +487,7 @@
   "save": "Save",
   "scan": "SCAN",
   "scanningForDevices": "Scanning for devices... Make sure they are powered on and in range and not connected to another device.",
+  "lookingForSmartTrainers": "Looking for Smart Trainers…",
   "selectADeviceToSyncFrom": "Select a device to sync from",
   "selectKeymap": "Select Keymap",
   "selectTargetWhereAppRuns": "Select Target where {appName} runs on",
@@ -553,7 +554,7 @@
   "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
   "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
   "trialPeriodDescription": "Enjoy unlimited commands during your trial period. After the trial, commands will be limited to {dailyCommandLimit} per day.",
-  "troubleshootingGuide": "Questions & Answers",
+  "troubleshootingGuide": "Help & Support",
   "tryingToConnectAgain": "Trying to connect again...",
   "unassignAction": "Unassign action",
   "unlimited": "Unlimited",
@@ -863,5 +864,34 @@
     }
   },
   "feedbackQuestion": "Does it work?",
-  "feedbackNoDifference": "No difference"
+  "feedbackNoDifference": "No difference",
+  "supportChat": "Support Chat",
+  "chatWithSupport": "Chat with Support",
+  "signInToChatWithSupport": "Sign in to chat with support",
+  "signInToChatExplanation": "Your chat is tied to your BikeControl account so we can follow up on issues.",
+  "retry": "Retry",
+  "supportChatEmpty": "Send a message to start the conversation.",
+  "supportChatIntro": "You'll be talking to Jonas from BikeControl",
+  "messageComposerPlaceholder": "Type a message…",
+  "attachImage": "Pick image",
+  "attachDocument": "Pick file",
+  "diagnosticInfoAttached": "The following data will be attached to the message for diagnostic purposes",
+  "attachmentTooLarge": "Attachment exceeds 10 MB",
+  "attachmentMimeUnsupported": "Unsupported file type",
+  "failedToSendMessage": "Failed to send message",
+  "failedToOpenChat": "Failed to open support chat",
+  "senderYou": "You",
+  "senderAdmin": "Support",
+  "viewThread": "Create Thread",
+  "threadTitle": "Thread",
+  "replyCount": "Replies ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "Don't want to sign in? Write a mail instead",
+  "troubleshootingPage": "Troubleshooting Guide"
 }
