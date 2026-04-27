@@ -472,6 +472,7 @@
   "save": "Sauvegarder",
   "scan": "BALAYAGE",
   "scanningForDevices": "Recherche d'appareils en cours... Assurez-vous qu'ils sont allumés, à portée et non connectés à un autre appareil.",
+  "lookingForSmartTrainers": "Recherche de Smart Trainers…",
   "selectADeviceToSyncFrom": "Sélectionnez un appareil à synchroniser depuis",
   "selectKeymap": "Sélectionner le clavier",
   "selectTargetWhereAppRuns": "Sélectionnez la cible où {appName} fonctionne sur",
