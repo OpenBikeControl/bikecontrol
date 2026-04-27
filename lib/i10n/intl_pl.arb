@@ -593,7 +593,7 @@
   "failedToOpenChat": "Nie udało się otworzyć czatu wsparcia",
   "senderYou": "Ty",
   "senderAdmin": "Wsparcie",
-  "viewThread": "Zobacz wątek",
+  "viewThread": "Utwórz wątek",
   "threadTitle": "Wątek",
   "replyCount": "Odpowiedzi ({count})",
   "@replyCount": {

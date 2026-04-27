@@ -593,7 +593,7 @@
   "failedToOpenChat": "Support-Chat konnte nicht geöffnet werden",
   "senderYou": "Du",
   "senderAdmin": "Support",
-  "viewThread": "Thread anzeigen",
+  "viewThread": "Thread erstellen",
   "threadTitle": "Thread",
   "replyCount": "Antworten ({count})",
   "@replyCount": {

@@ -630,7 +630,7 @@
   "failedToOpenChat": "Failed to open support chat",
   "senderYou": "You",
   "senderAdmin": "Support",
-  "viewThread": "View thread",
+  "viewThread": "Create Thread",
   "threadTitle": "Thread",
   "replyCount": "Replies ({count})",
   "@replyCount": {
