@@ -522,7 +522,7 @@
   "trialExpired": "Wersja próbna wygasła. Liczba poleceń ograniczona do {dailyCommandLimit} na dzień.",
   "trialPeriodActive": "Okres próbny jest aktywny - pozostało {trialDaysRemaining} dni",
   "trialPeriodDescription": "Korzystaj z nieograniczonej liczby poleceń w okresie próbnym. Po zakończeniu okresu próbnego polecenia będą ograniczone do {dailyCommandLimit} na dzień.",
-  "troubleshootingGuide": "Pytania i odpowiedzi",
+  "troubleshootingGuide": "Pomoc i wsparcie",
   "tryingToConnectAgain": "Próba ponownego połączenia...",
   "unassignAction": "Anuluj przypisanie akcji",
   "unlimited": "Nieograniczony",

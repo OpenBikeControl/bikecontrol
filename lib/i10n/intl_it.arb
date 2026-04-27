@@ -522,7 +522,7 @@
   "trialExpired": "Prova scaduta. Comandi limitati a{dailyCommandLimit} al giorno.",
   "trialPeriodActive": "Periodo di prova attivo -{trialDaysRemaining} giorni rimanenti",
   "trialPeriodDescription": "Goditi comandi illimitati durante il periodo di prova. Dopo la prova, i comandi saranno limitati a{dailyCommandLimit} al giorno.",
-  "troubleshootingGuide": "Domande e risposte",
+  "troubleshootingGuide": "Aiuto e supporto",
   "tryingToConnectAgain": "Sto provando a connettermi di nuovo...",
   "unassignAction": "Annulla assegnazione azione",
   "unlimited": "Illimitato",

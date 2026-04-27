@@ -522,7 +522,7 @@
   "trialExpired": "El periodo de prueba ha caducado. Los comandos están limitados a {dailyCommandLimit} por día.",
   "trialPeriodActive": "Periodo de prueba activo: quedan {trialDaysRemaining} días",
   "trialPeriodDescription": "Disfruta de comandos ilimitados durante el periodo de prueba. Después, los comandos estarán limitados a {dailyCommandLimit} al día.",
-  "troubleshootingGuide": "Guía de solución de problemas",
+  "troubleshootingGuide": "Ayuda y soporte",
   "tryingToConnectAgain": "Intentando conectar de nuevo...",
   "unassignAction": "Quitar asignación de la acción",
   "unlimited": "Ilimitado",
