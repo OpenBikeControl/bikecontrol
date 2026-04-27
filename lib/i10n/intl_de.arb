@@ -574,5 +574,34 @@
   "yourDevices": "Deine Geräte",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Einstellungen werden automatisch synchronisiert, sobald Änderungen vorgenommen werdem. Tippe auf ein Gerät, um dessen Einstellungen anzuwenden.",
   "zwiftControllerAction": "Zwift Controller-Aktion",
-  "zwiftControllerDescription": "Ermöglicht es BikeControl, als Zwift-kompatibler Controller zu fungieren."
+  "zwiftControllerDescription": "Ermöglicht es BikeControl, als Zwift-kompatibler Controller zu fungieren.",
+
+  "supportChat": "Support-Chat",
+  "chatWithSupport": "Chat mit Support",
+  "signInToChatWithSupport": "Melde dich an, um mit dem Support zu chatten",
+  "signInToChatExplanation": "Dein Chat ist mit deinem BikeControl-Konto verknüpft, damit wir bei Problemen nachfragen können.",
+  "signIn": "Anmelden",
+  "retry": "Erneut versuchen",
+  "supportChatEmpty": "Sende eine Nachricht, um die Unterhaltung zu starten.",
+  "messageComposerPlaceholder": "Nachricht eingeben…",
+  "attachImage": "Bild auswählen",
+  "attachDocument": "Datei auswählen",
+  "diagnosticInfoAttached": "Diagnoseinformationen angehängt",
+  "attachmentTooLarge": "Anhang überschreitet 10 MB",
+  "attachmentMimeUnsupported": "Dateityp nicht unterstützt",
+  "failedToSendMessage": "Nachricht konnte nicht gesendet werden",
+  "failedToOpenChat": "Support-Chat konnte nicht geöffnet werden",
+  "senderYou": "Du",
+  "senderAdmin": "Support",
+  "viewThread": "Thread anzeigen",
+  "threadTitle": "Thread",
+  "replyCount": "Antworten ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "Keine Lust dich anzumelden? Schreibe stattdessen eine Mail"
 }
