@@ -611,5 +611,34 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
+
+  "supportChat": "Support Chat",
+  "chatWithSupport": "Chat with Support",
+  "signInToChatWithSupport": "Sign in to chat with support",
+  "signInToChatExplanation": "Your chat is tied to your BikeControl account so we can follow up on issues.",
+  "signIn": "Sign in",
+  "retry": "Retry",
+  "supportChatEmpty": "Send a message to start the conversation.",
+  "messageComposerPlaceholder": "Type a message…",
+  "attachImage": "Pick image",
+  "attachDocument": "Pick file",
+  "diagnosticInfoAttached": "Diagnostic info attached",
+  "attachmentTooLarge": "Attachment exceeds 10 MB",
+  "attachmentMimeUnsupported": "Unsupported file type",
+  "failedToSendMessage": "Failed to send message",
+  "failedToOpenChat": "Failed to open support chat",
+  "senderYou": "You",
+  "senderAdmin": "Support",
+  "viewThread": "View thread",
+  "threadTitle": "Thread",
+  "replyCount": "Replies ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "Don't want to sign in? Write a mail instead"
 }
