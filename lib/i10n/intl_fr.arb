@@ -588,7 +588,7 @@
   "messageComposerPlaceholder": "Écris un message…",
   "attachImage": "Choisir une image",
   "attachDocument": "Choisir un fichier",
-  "diagnosticInfoAttached": "Infos de diagnostic jointes",
+  "diagnosticInfoAttached": "Les données suivantes seront jointes au message à des fins de diagnostic",
   "attachmentTooLarge": "La pièce jointe dépasse 10 Mo",
   "attachmentMimeUnsupported": "Type de fichier non pris en charge",
   "failedToSendMessage": "Échec de l'envoi du message",
