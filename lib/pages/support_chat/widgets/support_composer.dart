@@ -47,7 +47,6 @@ class SupportComposer extends StatefulWidget {
 class _SupportComposerState extends State<SupportComposer> {
   final TextEditingController _controller = TextEditingController();
   StagedAttachment? _attachment;
-  bool _diagnosticExpanded = false;
 
   @override
   void initState() {
@@ -134,7 +133,6 @@ class _SupportComposerState extends State<SupportComposer> {
     setState(() {
       _controller.clear();
       _attachment = null;
-      _diagnosticExpanded = false;
     });
     try {
       await widget.onSend(body, attachment);
@@ -161,13 +159,6 @@ class _SupportComposerState extends State<SupportComposer> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (hasDiagnostic) ...[
-            Align(
-              alignment: Alignment.centerRight,
-              child: _diagnosticPreview(cs),
-            ),
-            const SizedBox(height: 8),
-          ],
           if (_attachment != null) _stagedAttachmentChip(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -190,6 +181,10 @@ class _SupportComposerState extends State<SupportComposer> {
                 ),
               ),
               const SizedBox(width: 8),
+              if (hasDiagnostic) ...[
+                _diagnosticPreview(cs),
+                const SizedBox(width: 8),
+              ],
               IconButton.primary(
                 icon: widget.sending ? const SmallProgressIndicator() : const Icon(LucideIcons.send, size: 18),
                 onPressed: _canSend ? _submit : null,
@@ -208,45 +203,27 @@ class _SupportComposerState extends State<SupportComposer> {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: cs.border),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Button.outline(
-            onPressed: () => setState(() => _diagnosticExpanded = !_diagnosticExpanded),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(LucideIcons.fileText, size: 14, color: cs.mutedForeground),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.i18n.diagnosticInfoAttached,
-                    style: TextStyle(fontSize: 12, color: cs.mutedForeground, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    _diagnosticExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
-                    size: 14,
-                    color: cs.mutedForeground,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_diagnosticExpanded)
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                child: SelectableText(
+      child: Button.outline(
+        style: ButtonStyle.outlineIcon(),
+        child: Icon(LucideIcons.info),
+        onPressed: () => openSheet(
+          context: context,
+          constraints: const BoxConstraints(maxWidth: 360),
+          builder: (c) => Container(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("${context.i18n.diagnosticInfoAttached}:"),
+                Text(
                   widget.diagnosticPreview!,
                   style: TextStyle(fontSize: 11, color: cs.mutedForeground, fontFamily: 'monospace'),
                 ),
-              ),
+              ],
             ),
-        ],
+          ),
+          position: OverlayPosition.bottom,
+        ),
       ),
     );
   }

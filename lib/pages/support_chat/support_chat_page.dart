@@ -320,13 +320,15 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     // always in view on first build and stays pinned when new messages arrive.
     // Children are reversed so visually they still read top-to-bottom oldest
     // → newest.
-    return ListView(
-      reverse: true,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      children: [
-        for (final group in groups.reversed)
-          SupportMessageGroup(messages: group, service: _service, meta: meta),
-      ],
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView(
+        reverse: true,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        children: [
+          for (final group in groups.reversed) SupportMessageGroup(messages: group, service: _service, meta: meta),
+        ],
+      ),
     );
   }
 

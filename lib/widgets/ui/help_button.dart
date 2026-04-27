@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
@@ -43,7 +44,7 @@ class HelpButton extends StatelessWidget {
                     ),
                     MenuButton(
                       leading: Icon(Icons.help_outline),
-                      child: Text(context.i18n.troubleshootingGuide),
+                      child: Text(AppLocalizations.of(context).troubleshootingPage),
                       onPressed: (c) {
                         openDrawer(
                           context: context,
