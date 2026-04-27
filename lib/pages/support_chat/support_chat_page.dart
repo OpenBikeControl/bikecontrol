@@ -42,7 +42,6 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
   List<SupportMessage> _messages = [];
   final List<SupportMessage> _pendingMessages = [];
   bool _sending = false;
-  bool _diagnosticExpanded = false;
 
   @override
   void initState() {
@@ -162,7 +161,6 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         _pendingMessages.removeWhere((m) => m.id == placeholderId);
         _messages = [..._messages, sent];
         _sending = false;
-        _diagnosticExpanded = false;
       });
     } on SupportChatException catch (e) {
       if (!mounted) return;
@@ -240,8 +238,11 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     return Column(
       children: [
         Expanded(child: _messageList()),
-        if ((widget.diagnosticPreview ?? '').isNotEmpty) _diagnosticPreview(),
-        SupportComposer(sending: _sending, onSend: _send),
+        SupportComposer(
+          sending: _sending,
+          onSend: _send,
+          diagnosticPreview: widget.diagnosticPreview,
+        ),
       ],
     );
   }
@@ -298,68 +299,22 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     );
   }
 
-  Widget _diagnosticPreview() {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: cs.muted.withAlpha(40),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: cs.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          GestureDetector(
-            onTap: () => setState(() => _diagnosticExpanded = !_diagnosticExpanded),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Icon(LucideIcons.fileText, size: 14, color: cs.mutedForeground),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.i18n.diagnosticInfoAttached,
-                      style: TextStyle(fontSize: 12, color: cs.mutedForeground, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  Icon(
-                    _diagnosticExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
-                    size: 14,
-                    color: cs.mutedForeground,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_diagnosticExpanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: SelectableText(
-                widget.diagnosticPreview!,
-                style: TextStyle(fontSize: 11, color: cs.mutedForeground, fontFamily: 'monospace'),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   void _openThread(SupportMessage parent) {
     final chat = _chat;
     if (chat == null) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SupportThreadPage(
-          chat: chat,
-          parent: parent,
-          telemetryBuilder: widget.telemetryBuilder,
-        ),
-      ),
-    ).then((_) {
-      if (mounted) _refresh();
-    });
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => SupportThreadPage(
+              chat: chat,
+              parent: parent,
+              telemetryBuilder: widget.telemetryBuilder,
+            ),
+          ),
+        )
+        .then((_) {
+          if (mounted) _refresh();
+        });
   }
 
   Widget _signInGate() {
