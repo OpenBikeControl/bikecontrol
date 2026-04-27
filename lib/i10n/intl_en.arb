@@ -551,7 +551,7 @@
   "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
   "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
   "trialPeriodDescription": "Enjoy unlimited commands during your trial period. After the trial, commands will be limited to {dailyCommandLimit} per day.",
-  "troubleshootingGuide": "Questions & Answers",
+  "troubleshootingGuide": "Help & Support",
   "tryingToConnectAgain": "Trying to connect again...",
   "unassignAction": "Unassign action",
   "unlimited": "Unlimited",
