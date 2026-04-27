@@ -48,6 +48,13 @@ class SupportChatService {
   static const _attachmentBucket = 'support-attachments';
   static const _signedUrlTtlSeconds = 300;
 
+  // Mirrors the values passed to Supabase.initialize() in
+  // lib/utils/settings/settings.dart. The Supabase Dart client doesn't
+  // expose these back through SupabaseClient, so we keep them here for the
+  // raw multipart edge-function upload below.
+  static const String _supabaseUrl = 'https://pikrcyynovdvogrldfnw.supabase.co';
+  static const String _supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
   final SupabaseClient _supabase;
   final http.Client _httpClient;
 
@@ -172,10 +179,10 @@ class SupportChatService {
       throw SupportChatException(attachmentTooLargeMessage ?? 'Attachment exceeds 10 MB');
     }
 
-    final uri = Uri.parse('${_supabase.supabaseUrl}/functions/v1/$_uploadAttachmentFunction');
+    final uri = Uri.parse('$_supabaseUrl/functions/v1/$_uploadAttachmentFunction');
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer ${session.accessToken}';
-    request.headers['apikey'] = _supabase.supabaseKey;
+    request.headers['apikey'] = _supabaseAnonKey;
     request.fields['chat_id'] = chatId;
 
     final mediaType = MediaType.parse(mimeType);
