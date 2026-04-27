@@ -33,7 +33,7 @@ class SupportMessageBubble extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isUser = message.senderRole == SupportMessageSenderRole.user;
     final alignment = isUser ? AxisAlignmentDirectional.end : AxisAlignmentDirectional.start;
-    final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.card;
+    final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.secondary;
 
     return ChatBubble(
       alignment: alignment,
@@ -47,7 +47,7 @@ class SupportMessageBubble extends StatelessWidget {
           children: [
             if (showSenderLabel)
               Text(
-                isUser ? context.i18n.senderYou : context.i18n.senderAdmin,
+                isUser ? context.i18n.senderYou : 'Jonas @ BikeControl',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,

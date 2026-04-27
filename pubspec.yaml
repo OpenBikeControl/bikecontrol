@@ -125,6 +125,7 @@ flutter:
     - assets/contours/
     - icon.png
     - openbikecontrol.png
+    - jonas.jpg
 
 flutter_intl:
   enabled: true

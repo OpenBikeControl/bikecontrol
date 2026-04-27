@@ -321,8 +321,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 12),
         children: [
-          for (final group in groups)
-            SupportMessageGroup(messages: group, service: _service, meta: meta),
+          for (final group in groups) SupportMessageGroup(messages: group, service: _service, meta: meta),
         ],
       ),
     );
