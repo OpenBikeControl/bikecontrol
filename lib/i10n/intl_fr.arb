@@ -593,7 +593,7 @@
   "failedToOpenChat": "Impossible d'ouvrir le chat de support",
   "senderYou": "Toi",
   "senderAdmin": "Support",
-  "viewThread": "Voir le fil",
+  "viewThread": "Créer un fil",
   "threadTitle": "Fil",
   "replyCount": "Réponses ({count})",
   "@replyCount": {
