@@ -88,18 +88,18 @@ class _DevicePageState extends State<ProxyPage> {
         ValueListenableBuilder<bool>(
           valueListenable: core.connection.isScanning,
           builder: (context, scanning, _) {
-            if (!scanning) return const SizedBox.shrink();
+            if (!scanning || core.connection.proxyDevices.isNotEmpty) return const SizedBox.shrink();
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
+                spacing: 8,
                 children: [
-                  const SmallProgressIndicator(),
-                  const SizedBox(width: 8),
                   Text(
                     context.i18n.lookingForSmartTrainers,
                     style: TextStyle(fontSize: 12, color: cs.mutedForeground),
                   ),
+                  SizedBox(width: 10, height: 10, child: SmallProgressIndicator(color: cs.mutedForeground)),
                 ],
               ),
             );
