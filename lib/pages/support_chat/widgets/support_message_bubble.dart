@@ -24,20 +24,19 @@ class SupportMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isUser = message.senderRole == SupportMessageSenderRole.user;
-    final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.card;
-    final align = isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
 
-    final bubble = ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 520),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: bubbleColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: cs.border),
-        ),
+    final alignment = isUser ? AxisAlignmentDirectional.end : AxisAlignmentDirectional.start;
+    final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.card;
+
+    final bubble = ChatBubble(
+      alignment: alignment,
+      color: bubbleColor,
+      widthFactor: 0.85,
+      child: DefaultTextStyle.merge(
+        style: TextStyle(color: cs.foreground),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               isUser ? context.i18n.senderYou : context.i18n.senderAdmin,
@@ -49,23 +48,18 @@ class SupportMessageBubble extends StatelessWidget {
             ),
             if (message.body.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text(
-                message.body,
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text(message.body, style: const TextStyle(fontSize: 14)),
             ],
             if (message.attachments.isNotEmpty) ...[
               const SizedBox(height: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   for (final att in message.attachments)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
-                      child: SupportAttachmentView(
-                        attachment: att,
-                        service: service,
-                      ),
+                      child: SupportAttachmentView(attachment: att, service: service),
                     ),
                 ],
               ),
@@ -92,29 +86,24 @@ class SupportMessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
       child: Column(
-        crossAxisAlignment: align,
+        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isUser) ...[
-                const Avatar(
-                  initials: 'OB',
-                  size: 38,
-                  provider: AssetImage('openbikecontrol.png'),
-                ),
-                const SizedBox(width: 8),
-              ],
-              Flexible(child: bubble),
-            ],
+          ChatGroup(
+            avatarPrefix: isUser
+                ? null
+                : const Avatar(
+                    initials: 'OB',
+                    size: 38,
+                    provider: AssetImage('openbikecontrol.png'),
+                  ),
+            children: [bubble],
           ),
           if (onReply != null)
             Padding(
               padding: EdgeInsets.only(
                 top: 2,
                 right: 4,
-                left: isUser ? 4 : 36,
+                left: isUser ? 4 : 46,
               ),
               child: Button.ghost(
                 onPressed: onReply,
