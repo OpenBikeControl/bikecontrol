@@ -605,5 +605,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "Keine Lust dich anzumelden? Schreibe stattdessen eine Mail"
+  "dontWantToSignInWriteAMail": "Keine Lust dich anzumelden? Schreibe stattdessen eine Mail",
+  "troubleshootingPage": "Fehlerbehebung"
 }

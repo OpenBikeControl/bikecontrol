@@ -605,5 +605,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "Nie chcesz się logować? Napisz maila"
+  "dontWantToSignInWriteAMail": "Nie chcesz się logować? Napisz maila",
+  "troubleshootingPage": "Przewodnik rozwiązywania problemów"
 }

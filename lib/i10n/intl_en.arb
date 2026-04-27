@@ -642,5 +642,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "Don't want to sign in? Write a mail instead"
+  "dontWantToSignInWriteAMail": "Don't want to sign in? Write a mail instead",
+  "troubleshootingPage": "Troubleshooting Guide"
 }
