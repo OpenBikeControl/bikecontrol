@@ -2,7 +2,6 @@ import 'package:bike_control/pages/support_chat/widgets/support_attachment_view.
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SupportMessageBubble extends StatelessWidget {
@@ -100,7 +99,11 @@ class SupportMessageBubble extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!isUser) ...[
-                _supportAvatar(cs),
+                const Avatar(
+                  initials: 'OB',
+                  size: 38,
+                  provider: AssetImage('openbikecontrol.png'),
+                ),
                 const SizedBox(width: 8),
               ],
               Flexible(child: bubble),
@@ -124,20 +127,6 @@ class SupportMessageBubble extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
-
-  Widget _supportAvatar(ColorScheme cs) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        color: cs.card,
-        shape: BoxShape.circle,
-        border: Border.all(color: cs.border),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: const OpenBikeControlLogo(size: 18),
     );
   }
 
