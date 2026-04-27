@@ -35,7 +35,6 @@ class SupportChatPage extends StatefulWidget {
 class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingObserver {
   final SupportChatService _service = SupportChatService();
   StreamSubscription<AuthState>? _authSub;
-  final ScrollController _scrollController = ScrollController();
 
   bool _loading = false;
   String? _loadError;
@@ -43,25 +42,6 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
   List<SupportMessage> _messages = [];
   final List<SupportMessage> _pendingMessages = [];
   bool _sending = false;
-
-  /// Jumps the message list to the bottom on the next frame so the newest
-  /// message is in view. Safe to call before the ListView is built — guards
-  /// on hasClients.
-  void _scrollToBottom({bool animate = false}) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) return;
-      final target = _scrollController.position.maxScrollExtent;
-      if (animate) {
-        _scrollController.animateTo(
-          target,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
-      } else {
-        _scrollController.jumpTo(target);
-      }
-    });
-  }
 
   @override
   void initState() {
@@ -83,7 +63,6 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _authSub?.cancel();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -108,7 +87,6 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         _messages = fetched.messages;
         _loading = false;
       });
-      _scrollToBottom();
     } on SupportChatException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -128,12 +106,10 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     try {
       final fetched = await _service.fetchChat();
       if (!mounted) return;
-      final hadNewMessages = fetched.messages.length != _messages.length;
       setState(() {
         if (fetched.chat != null) _chat = fetched.chat;
         _messages = fetched.messages;
       });
-      if (hadNewMessages) _scrollToBottom(animate: true);
     } on SupportChatException catch (e) {
       if (!mounted) return;
       buildToast(level: LogLevel.LOGLEVEL_ERROR, title: e.message);
@@ -162,7 +138,6 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
       _sending = true;
       _pendingMessages.add(placeholder);
     });
-    _scrollToBottom(animate: true);
 
     try {
       final attachments = <SupportAttachmentUpload>[];
@@ -187,7 +162,6 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         _messages = [..._messages, sent];
         _sending = false;
       });
-      _scrollToBottom(animate: true);
     } on SupportChatException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -342,15 +316,17 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     };
     final groups = groupConsecutiveBySender(timeline);
 
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: ListView(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        children: [
-          for (final group in groups) SupportMessageGroup(messages: group, service: _service, meta: meta),
-        ],
-      ),
+    // reverse: true anchors the list at its bottom, so the newest message is
+    // always in view on first build and stays pinned when new messages arrive.
+    // Children are reversed so visually they still read top-to-bottom oldest
+    // → newest.
+    return ListView(
+      reverse: true,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      children: [
+        for (final group in groups.reversed)
+          SupportMessageGroup(messages: group, service: _service, meta: meta),
+      ],
     );
   }
 
