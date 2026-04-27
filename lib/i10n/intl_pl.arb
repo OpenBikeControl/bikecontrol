@@ -588,7 +588,7 @@
   "messageComposerPlaceholder": "Wpisz wiadomość…",
   "attachImage": "Wybierz zdjęcie",
   "attachDocument": "Wybierz plik",
-  "diagnosticInfoAttached": "Załączono informacje diagnostyczne",
+  "diagnosticInfoAttached": "Następujące dane zostaną dołączone do wiadomości w celach diagnostycznych",
   "attachmentTooLarge": "Załącznik przekracza 10 MB",
   "attachmentMimeUnsupported": "Nieobsługiwany typ pliku",
   "failedToSendMessage": "Nie udało się wysłać wiadomości",

@@ -625,7 +625,7 @@
   "messageComposerPlaceholder": "Type a message…",
   "attachImage": "Pick image",
   "attachDocument": "Pick file",
-  "diagnosticInfoAttached": "Diagnostic info attached",
+  "diagnosticInfoAttached": "The following data will be attached to the message for diagnostic purposes",
   "attachmentTooLarge": "Attachment exceeds 10 MB",
   "attachmentMimeUnsupported": "Unsupported file type",
   "failedToSendMessage": "Failed to send message",
