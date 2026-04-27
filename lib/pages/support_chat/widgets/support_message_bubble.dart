@@ -2,6 +2,7 @@ import 'package:bike_control/pages/support_chat/widgets/support_attachment_view.
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SupportMessageBubble extends StatelessWidget {
@@ -27,75 +28,91 @@ class SupportMessageBubble extends StatelessWidget {
     final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.card;
     final align = isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
 
+    final bubble = ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 520),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bubbleColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: cs.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isUser ? context.i18n.senderYou : context.i18n.senderAdmin,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isUser ? cs.primary : cs.mutedForeground,
+              ),
+            ),
+            if (message.body.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                message.body,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+            if (message.attachments.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final att in message.attachments)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: SupportAttachmentView(
+                        attachment: att,
+                        service: service,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _formatTimestamp(message.createdAt),
+                  style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+                ),
+                if (pending) ...[
+                  const SizedBox(width: 6),
+                  Icon(LucideIcons.clock, size: 10, color: cs.mutedForeground),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
       child: Column(
         crossAxisAlignment: align,
         children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: bubbleColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: cs.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isUser ? context.i18n.senderYou : context.i18n.senderAdmin,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isUser ? cs.primary : cs.mutedForeground,
-                    ),
-                  ),
-                  if (message.body.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      message.body,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ],
-                  if (message.attachments.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (final att in message.attachments)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: SupportAttachmentView(
-                              attachment: att,
-                              service: service,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _formatTimestamp(message.createdAt),
-                        style: TextStyle(fontSize: 10, color: cs.mutedForeground),
-                      ),
-                      if (pending) ...[
-                        const SizedBox(width: 6),
-                        Icon(LucideIcons.clock, size: 10, color: cs.mutedForeground),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!isUser) ...[
+                _supportAvatar(cs),
+                const SizedBox(width: 8),
+              ],
+              Flexible(child: bubble),
+            ],
           ),
           if (onReply != null)
             Padding(
-              padding: const EdgeInsets.only(top: 2, right: 4, left: 4),
+              padding: EdgeInsets.only(
+                top: 2,
+                right: 4,
+                left: isUser ? 4 : 36,
+              ),
               child: Button.ghost(
                 onPressed: onReply,
                 leading: const Icon(LucideIcons.cornerUpLeft, size: 12),
@@ -107,6 +124,20 @@ class SupportMessageBubble extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _supportAvatar(ColorScheme cs) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: cs.card,
+        shape: BoxShape.circle,
+        border: Border.all(color: cs.border),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: const OpenBikeControlLogo(size: 18),
     );
   }
 
