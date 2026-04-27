@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/pages/support_chat/support_thread_page.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_composer.dart';
-import 'package:bike_control/pages/support_chat/widgets/support_message_bubble.dart';
+import 'package:bike_control/pages/support_chat/widgets/support_message_group.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
@@ -276,24 +276,24 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
       );
     }
 
+    final timeline = [...rootMessages, ..._pendingMessages];
+    final meta = <String, SupportMessageMeta>{
+      for (final m in rootMessages)
+        m.id: SupportMessageMeta(
+          replyCount: replyCounts[m.id] ?? 0,
+          onReply: () => _openThread(m),
+        ),
+      for (final p in _pendingMessages) p.id: const SupportMessageMeta(pending: true),
+    };
+    final groups = groupConsecutiveBySender(timeline);
+
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 12),
         children: [
-          for (final message in rootMessages)
-            SupportMessageBubble(
-              message: message,
-              service: _service,
-              replyCount: replyCounts[message.id] ?? 0,
-              onReply: () => _openThread(message),
-            ),
-          for (final pending in _pendingMessages)
-            SupportMessageBubble(
-              message: pending,
-              service: _service,
-              pending: true,
-            ),
+          for (final group in groups)
+            SupportMessageGroup(messages: group, service: _service, meta: meta),
         ],
       ),
     );

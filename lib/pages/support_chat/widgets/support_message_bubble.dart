@@ -4,12 +4,19 @@ import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// Renders a single chat message as a shadcn [ChatBubble]. Designed to be
+/// nested inside a [ChatGroup] (see [SupportMessageGroup]) so that runs of
+/// consecutive same-sender messages share one avatar.
 class SupportMessageBubble extends StatelessWidget {
   final SupportMessage message;
   final SupportChatService service;
   final int replyCount;
   final VoidCallback? onReply;
   final bool pending;
+
+  /// Hide the per-message sender label. Set on every bubble after the first
+  /// in a [ChatGroup] so we don't repeat "You" / "Support" on each line.
+  final bool showSenderLabel;
 
   const SupportMessageBubble({
     super.key,
@@ -18,17 +25,17 @@ class SupportMessageBubble extends StatelessWidget {
     this.replyCount = 0,
     this.onReply,
     this.pending = false,
+    this.showSenderLabel = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isUser = message.senderRole == SupportMessageSenderRole.user;
-
     final alignment = isUser ? AxisAlignmentDirectional.end : AxisAlignmentDirectional.start;
     final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.card;
 
-    final bubble = ChatBubble(
+    return ChatBubble(
       alignment: alignment,
       color: bubbleColor,
       widthFactor: 0.85,
@@ -38,16 +45,17 @@ class SupportMessageBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              isUser ? context.i18n.senderYou : context.i18n.senderAdmin,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isUser ? cs.primary : cs.mutedForeground,
+            if (showSenderLabel)
+              Text(
+                isUser ? context.i18n.senderYou : context.i18n.senderAdmin,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isUser ? cs.primary : cs.mutedForeground,
+                ),
               ),
-            ),
             if (message.body.isNotEmpty) ...[
-              const SizedBox(height: 4),
+              if (showSenderLabel) const SizedBox(height: 4),
               Text(message.body, style: const TextStyle(fontSize: 14)),
             ],
             if (message.attachments.isNotEmpty) ...[
@@ -78,34 +86,9 @@ class SupportMessageBubble extends StatelessWidget {
                 ],
               ],
             ),
-          ],
-        ),
-      ),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      child: Column(
-        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          ChatGroup(
-            avatarPrefix: isUser
-                ? null
-                : const Avatar(
-                    initials: 'OB',
-                    size: 38,
-                    provider: AssetImage('openbikecontrol.png'),
-                  ),
-            children: [bubble],
-          ),
-          if (onReply != null)
-            Padding(
-              padding: EdgeInsets.only(
-                top: 2,
-                right: 4,
-                left: isUser ? 4 : 46,
-              ),
-              child: Button.ghost(
+            if (onReply != null) ...[
+              const SizedBox(height: 4),
+              Button.ghost(
                 onPressed: onReply,
                 leading: const Icon(LucideIcons.cornerUpLeft, size: 12),
                 child: Text(
@@ -113,8 +96,9 @@ class SupportMessageBubble extends StatelessWidget {
                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
                 ),
               ),
-            ),
-        ],
+            ],
+          ],
+        ),
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_composer.dart';
-import 'package:bike_control/pages/support_chat/widgets/support_message_bubble.dart';
+import 'package:bike_control/pages/support_chat/widgets/support_message_group.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/core.dart';
@@ -165,16 +165,20 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 12),
               children: [
-                SupportMessageBubble(message: _parent, service: _service),
+                SupportMessageGroup(messages: [_parent], service: _service),
                 if (_replies.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Divider(),
                   ),
-                for (final reply in _replies)
-                  SupportMessageBubble(message: reply, service: _service),
-                for (final pending in _pendingReplies)
-                  SupportMessageBubble(message: pending, service: _service, pending: true),
+                for (final group in groupConsecutiveBySender([..._replies, ..._pendingReplies]))
+                  SupportMessageGroup(
+                    messages: group,
+                    service: _service,
+                    meta: {
+                      for (final p in _pendingReplies) p.id: const SupportMessageMeta(pending: true),
+                    },
+                  ),
               ],
             ),
           ),
