@@ -43,10 +43,17 @@ class SupportMessageGroup extends StatelessWidget {
       child: ChatGroup(
         avatarPrefix: isUser
             ? null
-            : const Avatar(
-                initials: 'OB',
-                size: 38,
-                provider: AssetImage('openbikecontrol.png'),
+            : Container(
+                // rounded background to match the avatar shape, since shadcn doesn't support
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Avatar(
+                  initials: 'OB',
+                  size: 52,
+                  provider: AssetImage('jonas.jpg'),
+                ),
               ),
         children: [
           for (var i = 0; i < messages.length; i++)
