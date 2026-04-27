@@ -437,7 +437,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         ),
         Container(
           margin: EdgeInsets.symmetric(horizontal: 16),
-          padding: EdgeInsets.only(top: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.muted.withAlpha(60),
