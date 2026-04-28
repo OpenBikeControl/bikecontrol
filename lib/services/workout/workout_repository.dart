@@ -32,11 +32,27 @@ class WorkoutRepository {
     final dir = await rootDirectory();
     final name = _filenameFor(startedAt);
     final file = File('${dir.path}${Platform.pathSeparator}$name');
-    await file.writeAsBytes(fitBytes, flush: true);
+    // Write to a temp file then rename so a crash mid-write doesn't leave a
+    // half .fit file that list() would surface as a "past workout".
+    await _atomicWriteBytes(file, fitBytes);
     if (summary != null) {
-      await _sidecarFor(file).writeAsString(jsonEncode(summary.toJson()), flush: true);
+      await _atomicWriteString(_sidecarFor(file), jsonEncode(summary.toJson()));
     }
     return file;
+  }
+
+  Future<void> _atomicWriteBytes(File target, List<int> bytes) async {
+    final tmp = File('${target.path}.tmp');
+    if (await tmp.exists()) await tmp.delete();
+    await tmp.writeAsBytes(bytes, flush: true);
+    await tmp.rename(target.path);
+  }
+
+  Future<void> _atomicWriteString(File target, String contents) async {
+    final tmp = File('${target.path}.tmp');
+    if (await tmp.exists()) await tmp.delete();
+    await tmp.writeAsString(contents, flush: true);
+    await tmp.rename(target.path);
   }
 
   Future<List<PastWorkout>> list() async {

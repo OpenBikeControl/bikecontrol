@@ -106,6 +106,13 @@ class ShiftingConfig {
     List<double>? gearRatios,
     bool clearGearRatios = false,
   }) {
+    final resolvedMaxGear = maxGear ?? this.maxGear;
+    final resolvedRatios = clearGearRatios ? null : (gearRatios ?? this.gearRatios);
+    // If the gear count changed and we're left with custom ratios whose
+    // length no longer matches, drop them so listeners fall back to the
+    // freshly-sized defaults rather than silently overwriting custom ratios
+    // in the view layer.
+    final ratiosMatchMaxGear = resolvedRatios == null || resolvedRatios.length == resolvedMaxGear;
     return ShiftingConfig(
       name: name ?? this.name,
       trainerKey: trainerKey ?? this.trainerKey,
@@ -114,8 +121,8 @@ class ShiftingConfig {
       bikeWeightKg: bikeWeightKg ?? this.bikeWeightKg,
       riderWeightKg: riderWeightKg ?? this.riderWeightKg,
       gradeSmoothing: gradeSmoothing ?? this.gradeSmoothing,
-      maxGear: maxGear ?? this.maxGear,
-      gearRatios: clearGearRatios ? null : (gearRatios ?? this.gearRatios),
+      maxGear: resolvedMaxGear,
+      gearRatios: ratiosMatchMaxGear ? resolvedRatios : null,
     );
   }
 

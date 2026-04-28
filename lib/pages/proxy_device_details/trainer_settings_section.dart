@@ -48,10 +48,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setVirtualShiftingMode(cfg.mode);
-    final ratios = cfg.gearRatios;
-    def.setGearRatios(
-      ratios != null && ratios.length == def.maxGear ? ratios : FitnessBikeDefinition.defaultGearRatiosFor(def.maxGear),
-    );
+    def.setGearRatios(cfg.gearRatios ?? FitnessBikeDefinition.defaultGearRatiosFor(def.maxGear));
   }
 
   Future<void> _updateActive(ShiftingConfig Function(ShiftingConfig) mutate) async {

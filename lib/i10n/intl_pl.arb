@@ -336,6 +336,8 @@
   "no": "Nie",
   "noActionAssigned": "Brak przypisanej akcji",
   "noActionAssignedForButton": "Nie można wykonać {button}: Brak przypisanej akcji",
+  "noActiveWorkout": "Brak aktywnego treningu",
+  "noProxyTrainerConnected": "Nie podłączono smart trainera",
   "noConnectionMethodIsConnectedOrActive": "Żadna metoda połączenia nie jest podłączona lub aktywna.",
   "noConnectionMethodSelected": "Nie wybrano metody połączenia",
   "noControllerConnected": "Brak połączenia",
@@ -380,6 +382,8 @@
   "paywall_useBikecontrolOnAllPlatforms": "Używaj BikeControl na wszystkich platformach",
   "paywall_yearly": "Rocznie",
   "permissionsRequired": "Aby aplikacja BikeControl mogła wyszukiwać urządzenia w pobliżu i informować o zmianie połączenia, włącz następujące uprawnienia:",
+  "proSubscriptionRequiredForAction": "Subskrypcja Pro wymagana do tej akcji",
+  "proSubscriptionRequiredForAdditionalTriggers": "Subskrypcja Pro wymagana do dodatkowych typów wyzwalaczy",
   "platformNotSupported": "Platforma {platform} nie jest obsługiwana :(",
   "@platformNotSupported": {
     "placeholders": {
@@ -712,6 +716,8 @@
   "showExperimental": "Pokaż eksperymentalne",
   "notSupportedOnWeb": "Niewspierane w wersji Web :)",
   "recommended": "Zalecane",
+  "workoutPaused": "Trening wstrzymany",
+  "workoutResumed": "Trening wznowiony",
   "workoutShareText": "Trening {fileName}",
   "connectionSettings": "Ustawienia połączenia",
   "needsTargetLeavePrompt": "{appName} potrzebuje celu, żeby się połączyć. Wyjść mimo to?",
@@ -762,5 +768,42 @@
   "trainerIntensityIncreased": "Intensywność +5%",
   "trainerIntensityDecreased": "Intensywność −5%",
   "successRatingMessage": "Dzięki, że korzystasz z BikeControl! Rozważ ocenę aplikacji w {store} — bardzo nam to pomaga!",
-  "rateBikeControl": "Oceń BikeControl"
+  "rateBikeControl": "Oceń BikeControl",
+  "bridgeMinutesRemainingToday": "Pozostało {minutes} min dzisiaj",
+  "@bridgeMinutesRemainingToday": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "bridgeTrialTimeOverTitle": "Czas próbny Bridge zakończony",
+  "bridgeTrialTimeOverBody": "Wykorzystałeś swój dzisiejszy 20-minutowy okres próbny Bridge. Przejdź na Pro, aby odblokować nieograniczone wirtualne przełączanie.",
+  "connect": "Połącz",
+  "smartTrainerAndAccessories": "Smart trainer i akcesoria",
+  "trainerAppDoesNotSupportConnectionYet": "{trainerApp} jeszcze tego nie obsługuje",
+  "@trainerAppDoesNotSupportConnectionYet": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerMissingFtmsWarning": "{trainerName} nie udostępnia usługi FTMS, więc wirtualne przełączanie może nie działać. Użyj poniższego przycisku \"Wyślij opinię\", aby zgłosić ten trainer.",
+  "@trainerMissingFtmsWarning": {
+    "placeholders": {
+      "trainerName": {
+        "type": "String"
+      }
+    }
+  },
+  "virtualShiftingProNote": "Wirtualne przełączanie to funkcja Pro – ale wszystkie ustawienia możesz przetestować w BikeControl. Połączenie w {trainerApp} jest ograniczone do 20 min dziennie, żebyś mógł zobaczyć, jak to działa.",
+  "@virtualShiftingProNote": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  }
 }
