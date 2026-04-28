@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/paywall.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:purchases_flutter/purchases_flutter.dart' show Purchases;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -94,8 +96,12 @@ List<Widget> buildMenuButtons(BuildContext context) {
 
 Future<String> debugText() async {
   final userId = IAPManager.instance.isUsingRevenueCat ? (await Purchases.appUserID) : null;
+  final proxies = core.connection.proxyDevices;
+  final proxyBlock = proxies.isEmpty
+      ? '-'
+      : proxies.map(_describeProxyDevice).join('\n  ');
   return '''
-                
+
 ---
 App Version: ${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}
 Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
@@ -103,10 +109,53 @@ Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title).join(', ')}
+Smart Trainers (Proxy):
+  $proxyBlock
 Status: ${IAPManager.instance.getStatusMessage()}${userId != null ? ' (User ID: $userId)' : ''}
-Logs: 
+Logs:
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
+}
+
+/// Compact one-line summary of a [ProxyDevice] for the support / feedback
+/// payload. Pulls in the bits that matter for diagnosing a Bridge / proxy
+/// issue: connection state, retrofit mode, the active definition class, and
+/// any current telemetry.
+String _describeProxyDevice(ProxyDevice device) {
+  final emulator = device.emulator;
+  final state = !device.isConnected
+      ? 'disconnected'
+      : !emulator.isStarted.value
+      ? 'starting'
+      : emulator.isConnected.value
+      ? 'bridged'
+      : 'started';
+  final mode = emulator.retrofitMode.value.name;
+  final def = emulator.activeDefinition;
+  final defKind = def == null ? 'none' : def.runtimeType.toString();
+
+  final parts = <String>[
+    device.scanResult.name ?? device.scanResult.deviceId,
+    'state=$state',
+    'mode=$mode',
+    'def=$defKind',
+  ];
+  if (device.firmwareVersion != null) parts.add('fw=${device.firmwareVersion}');
+  if (device.manufacturerName != null) parts.add('mfg=${device.manufacturerName}');
+
+  if (def is FitnessBikeDefinition) {
+    parts.add('gear=${def.currentGear.value}/${def.maxGear}');
+    parts.add('trainerMode=${def.trainerMode.value.name}');
+    final power = def.powerW.value;
+    final cadence = def.cadenceRpm.value;
+    final speed = def.speedKph.value;
+    final hr = def.heartRateBpm.value;
+    if (power != null) parts.add('power=${power}W');
+    if (cadence != null) parts.add('cadence=${cadence}rpm');
+    if (speed != null) parts.add('speed=${speed.toStringAsFixed(1)}km/h');
+    if (hr != null) parts.add('hr=${hr}bpm');
+  }
+  return parts.join(' · ');
 }
 
 class BKMenuButton extends StatelessWidget {
