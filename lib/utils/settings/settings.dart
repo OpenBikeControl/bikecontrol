@@ -326,6 +326,17 @@ class Settings {
     await prefs.setBool('miui_warning_dismissed', dismissed);
   }
 
+  /// Sticky flag: true once the user has opened a support chat at least once
+  /// on this device. HelpButton uses it to decide whether to do a background
+  /// poll for unread admin replies on app start.
+  bool getSupportChatActive() {
+    return prefs.getBool('support_chat_active') ?? false;
+  }
+
+  Future<void> setSupportChatActive(bool active) async {
+    await prefs.setBool('support_chat_active', active);
+  }
+
   // Review prompt
   int getReviewSessionCount() {
     return prefs.getInt('review_session_count') ?? 0;

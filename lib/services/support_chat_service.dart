@@ -73,6 +73,9 @@ class SupportChatService {
       );
       final data = _asMap(response.data);
       final chatJson = _asMap(data['chat']);
+      // Persist the sticky "user has a support chat" flag so HelpButton can
+      // poll for unread replies on subsequent app launches.
+      await core.settings.setSupportChatActive(true);
       return SupportChat.fromJson(chatJson);
     } on FunctionException catch (e) {
       throw SupportChatException(_extractError(e.details) ?? 'Failed to open support chat');
