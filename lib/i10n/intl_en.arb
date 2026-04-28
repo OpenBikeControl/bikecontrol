@@ -938,5 +938,8 @@
     }
   },
   "trainerIntensityIncreased": "Intensity +5%",
-  "trainerIntensityDecreased": "Intensity -5%"
+  "trainerIntensityDecreased": "Intensity -5%",
+  "successRatingMessage": "Thank you for using BikeControl! Please consider rating BikeControl in the {store} — it helps a lot!",
+  "@successRatingMessage": {"placeholders": {"store": {"type": "String"}}},
+  "rateBikeControl": "Rate BikeControl"
 }

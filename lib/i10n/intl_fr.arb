@@ -761,5 +761,7 @@
   "trainerSwitchedToSim": "Basculé en mode SIM",
   "trainerSwitchedToErg": "Basculé en mode ERG @ {watts} W",
   "trainerIntensityIncreased": "Intensité +5 %",
-  "trainerIntensityDecreased": "Intensité −5 %"
+  "trainerIntensityDecreased": "Intensité −5 %",
+  "successRatingMessage": "Merci d'utiliser BikeControl ! Pense à noter BikeControl sur le {store} — ça aide beaucoup !",
+  "rateBikeControl": "Noter BikeControl"
 }
