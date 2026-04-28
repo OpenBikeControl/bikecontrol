@@ -6,6 +6,7 @@ import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/wahoo_element.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
+import 'package:flutter/foundation.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
@@ -94,7 +95,7 @@ abstract class SupportedApp {
     Rouvy(),
     BikeControl(),
     OpenBikeControl(),
-    WahooElement(),
+    if (kDebugMode) WahooElement(),
     CustomApp(),
   ];
 
