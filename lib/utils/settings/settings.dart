@@ -318,6 +318,14 @@ class Settings {
     await prefs.setBool('zwift_mdns_emulator_enabled', enabled);
   }
 
+  bool getDi2BleEnabled() {
+    return prefs.getBool('di2_ble_enabled') ?? false;
+  }
+
+  Future<void> setDi2BleEnabled(bool enabled) async {
+    await prefs.setBool('di2_ble_enabled', enabled);
+  }
+
   bool getMiuiWarningDismissed() {
     return prefs.getBool('miui_warning_dismissed') ?? false;
   }
