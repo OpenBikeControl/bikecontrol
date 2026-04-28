@@ -444,22 +444,20 @@ class KeyPair {
   }
 
   /// Serialise a [ControllerButton] for storage. Emits a plain string when
-  /// only the name is needed (legacy format), or a map carrying any of
-  /// `deviceId` / `icon`. Icons are stored as `{codePoint, fontFamily,
-  /// fontPackage}` so we can rebuild the [IconData] on decode.
+  /// only the name is needed (legacy format), or a map carrying `deviceId`.
+  ///
+  /// We deliberately don't persist the `IconData` here: known
+  /// [ControllerButton.values] restore their const icon by name on decode,
+  /// and reconstructing an `IconData` from a JSON-decoded codePoint at
+  /// runtime would defeat Flutter's icon-font tree-shaker. Unknown buttons
+  /// stay icon-less — same as before this serialisation existed.
   static dynamic _encodeButton(ControllerButton e) {
-    if (e.sourceDeviceId == null && e.icon == null) {
+    if (e.sourceDeviceId == null) {
       return e.name;
     }
     return {
       'name': e.name,
-      if (e.sourceDeviceId != null) 'deviceId': e.sourceDeviceId,
-      if (e.icon != null)
-        'icon': {
-          'codePoint': e.icon!.codePoint,
-          if (e.icon!.fontFamily != null) 'fontFamily': e.icon!.fontFamily,
-          if (e.icon!.fontPackage != null) 'fontPackage': e.icon!.fontPackage,
-        },
+      'deviceId': e.sourceDeviceId,
     };
   }
 
@@ -499,34 +497,29 @@ class KeyPair {
     ControllerButton? decodeButton(dynamic raw) {
       String? name;
       String? deviceId;
-      IconData? icon;
 
       if (raw is String) {
         name = raw;
       } else if (raw is Map) {
         name = raw['name']?.toString();
         deviceId = raw['deviceId']?.toString();
-        final rawIcon = raw['icon'];
-        if (rawIcon is Map && rawIcon['codePoint'] is num) {
-          icon = IconData(
-            (rawIcon['codePoint'] as num).toInt(),
-            fontFamily: rawIcon['fontFamily']?.toString(),
-            fontPackage: rawIcon['fontPackage']?.toString(),
-          );
-        }
       }
 
       if (name == null) {
         return null;
       }
 
+      // Known buttons get their const icon back automatically because
+      // ControllerButton.values carries it in the static definition. We
+      // never reconstruct an IconData from the encoded payload — that
+      // would block icon-font tree-shaking.
       final baseButton = ControllerButton.values.firstOrNullWhere((element) => element.name == name);
 
       if (baseButton != null) {
-        return baseButton.copyWith(sourceDeviceId: deviceId, icon: icon);
+        return baseButton.copyWith(sourceDeviceId: deviceId);
       }
 
-      return ControllerButton(name, sourceDeviceId: deviceId, icon: icon);
+      return ControllerButton(name, sourceDeviceId: deviceId);
     }
 
     final buttons = (decoded['actions'] as List)
