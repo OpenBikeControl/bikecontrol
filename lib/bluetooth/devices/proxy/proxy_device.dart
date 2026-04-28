@@ -287,19 +287,20 @@ class ProxyDevice extends BluetoothDevice {
     final controller = core.connection.controllerDevices.firstOrNull;
     final supportsWifiProxy = services.contains(FitnessBikeDefinition.CYCLING_POWER_SERVICE_UUID.toLowerCase());
 
+    final l10n = AppLocalizations.of(context);
     final features = <(IconData, String)>[
-      if (!hasZwiftAdv) (LucideIcons.sparkles, 'Add virtual shifting capability'),
-      (LucideIcons.slidersHorizontal, 'Adjust virtual shifting gears'),
-      if (controller != null) (LucideIcons.gamepad2, 'Direct gear / intensity / mode changes via ${controller.name}'),
-      (LucideIcons.dumbbell, 'Start a mini workout'),
-      if (supportsWifiProxy) (LucideIcons.wifi, 'Proxy to WiFi'),
+      if (!hasZwiftAdv) (LucideIcons.sparkles, l10n.proxyFeatureAddVirtualShifting),
+      (LucideIcons.slidersHorizontal, l10n.proxyFeatureAdjustGears),
+      if (controller != null) (LucideIcons.gamepad2, l10n.proxyFeatureDirectControl(controller.name)),
+      (LucideIcons.dumbbell, l10n.proxyFeatureMiniWorkout),
+      if (supportsWifiProxy) (LucideIcons.wifi, l10n.proxyFeatureWifiProxy),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Connect your $name for:', style: muted),
+        Text(l10n.proxyConnectFor(name), style: muted),
         const Gap(2),
         for (final (icon, label) in features)
           Padding(
@@ -350,8 +351,10 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   ActionResult handleTrainerAction(InGameAction action) {
+    final l10n = AppLocalizations.current;
     final def = emulator.activeDefinition;
     if (def is! FitnessBikeDefinition) {
+      // Internal-only diagnostic; not user-visible toast copy.
       return NotHandled('No active FitnessBikeDefinition');
     }
     switch (action) {
@@ -359,39 +362,39 @@ class ProxyDevice extends BluetoothDevice {
         if (def.trainerMode.value == TrainerMode.ergMode) {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current + 10);
-          return Success('ERG target: ${def.ergTargetPower.value} W');
+          return Success(l10n.trainerErgTarget(def.ergTargetPower.value ?? current));
         } else {
           final didChange = def.shiftUp();
           return didChange
-              ? NotHandled('Shifted up to gear ${def.currentGear.value}')
-              : Ignored('Already in highest gear');
+              ? NotHandled(l10n.trainerShiftedUp(def.currentGear.value))
+              : Ignored(l10n.trainerAlreadyHighestGear);
         }
       case InGameAction.shiftDown:
         if (def.trainerMode.value == TrainerMode.ergMode) {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current - 10);
-          return Success('ERG target: ${def.ergTargetPower.value} W');
+          return Success(l10n.trainerErgTarget(def.ergTargetPower.value ?? current));
         } else {
           final didChange = def.shiftDown();
           return didChange
-              ? NotHandled('Shifted down to gear ${def.currentGear.value}')
-              : Ignored('Already in lowest gear');
+              ? NotHandled(l10n.trainerShiftedDown(def.currentGear.value))
+              : Ignored(l10n.trainerAlreadyLowestGear);
         }
       case InGameAction.trainerSwitchMode:
         if (def.trainerMode.value == TrainerMode.ergMode) {
           def.exitErgMode();
-          return Success('Switched to sim mode');
+          return Success(l10n.trainerSwitchedToSim);
         } else {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current);
-          return Success('Switched to erg mode @ $current W');
+          return Success(l10n.trainerSwitchedToErg(current));
         }
       case InGameAction.trainerIntensityUp:
         def.adjustIntensity(0.05);
-        return Success('Intensity +5%');
+        return Success(l10n.trainerIntensityIncreased);
       case InGameAction.trainerIntensityDown:
         def.adjustIntensity(-0.05);
-        return Success('Intensity -5%');
+        return Success(l10n.trainerIntensityDecreased);
       default:
         return NotHandled('');
     }
