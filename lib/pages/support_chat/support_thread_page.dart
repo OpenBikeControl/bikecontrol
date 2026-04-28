@@ -47,7 +47,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   Future<void> _refresh({bool initial = false}) async {
     if (initial) setState(() => _loading = true);
     try {
-      final fetched = await _service.fetchChat();
+      final fetched = await _service.fetchChat(skipLastSeen: false);
       final all = fetched.messages;
       final updatedParent = all.firstWhere(
         (m) => m.id == widget.parent.id,

@@ -80,7 +80,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     });
     try {
       final chat = await _service.openChat();
-      final fetched = await _service.fetchChat();
+      final fetched = await _service.fetchChat(skipLastSeen: false);
       if (!mounted) return;
       setState(() {
         _chat = fetched.chat ?? chat;
@@ -104,7 +104,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
 
   Future<void> _refresh() async {
     try {
-      final fetched = await _service.fetchChat();
+      final fetched = await _service.fetchChat(skipLastSeen: false);
       if (!mounted) return;
       setState(() {
         if (fetched.chat != null) _chat = fetched.chat;

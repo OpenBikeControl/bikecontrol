@@ -86,12 +86,13 @@ class SupportChatService {
     }
   }
 
-  Future<({SupportChat? chat, List<SupportMessage> messages})> fetchChat() async {
+  Future<({SupportChat? chat, List<SupportMessage> messages})> fetchChat({required bool skipLastSeen}) async {
     final session = _requireSession();
     try {
       final response = await _supabase.functions.invoke(
         _getChatFunction,
         method: HttpMethod.get,
+        queryParameters: {'skipLastSeen': skipLastSeen.toString()},
         headers: _authHeaders(session),
       );
       final data = _asMap(response.data);
@@ -99,10 +100,7 @@ class SupportChatService {
       final chat = rawChat is Map ? SupportChat.fromJson(Map<String, dynamic>.from(rawChat)) : null;
       final rawMessages = data['messages'];
       final messages = rawMessages is List
-          ? rawMessages
-                .whereType<Map>()
-                .map((e) => SupportMessage.fromJson(Map<String, dynamic>.from(e)))
-                .toList()
+          ? rawMessages.whereType<Map>().map((e) => SupportMessage.fromJson(Map<String, dynamic>.from(e))).toList()
           : <SupportMessage>[];
       return (chat: chat, messages: messages);
     } on FunctionException catch (e) {
@@ -126,8 +124,7 @@ class SupportChatService {
       'chat_id': chatId,
       'body': body.trim(),
       if (parentMessageId != null) 'parent_message_id': parentMessageId,
-      if (attachments.isNotEmpty)
-        'attachment_paths': attachments.map((a) => a.toJson()).toList(growable: false),
+      if (attachments.isNotEmpty) 'attachment_paths': attachments.map((a) => a.toJson()).toList(growable: false),
       ...telemetry,
     };
 
@@ -141,16 +138,18 @@ class SupportChatService {
       final data = _asMap(response.data);
       final messageJson = _asMap(data['message']);
       // Echo attachments client-side; the API doesn't return them inline.
-      messageJson['attachments'] ??= attachments.map((a) {
-        return {
-          'id': a.storagePath,
-          'message_id': messageJson['id'],
-          'storage_path': a.storagePath,
-          'file_name': a.fileName,
-          'mime_type': a.mimeType,
-          'created_at': messageJson['created_at'],
-        };
-      }).toList(growable: false);
+      messageJson['attachments'] ??= attachments
+          .map((a) {
+            return {
+              'id': a.storagePath,
+              'message_id': messageJson['id'],
+              'storage_path': a.storagePath,
+              'file_name': a.fileName,
+              'mime_type': a.mimeType,
+              'created_at': messageJson['created_at'],
+            };
+          })
+          .toList(growable: false);
       return SupportMessage.fromJson(messageJson);
     } on FunctionException catch (e) {
       throw SupportChatException(_extractError(e.details) ?? 'Failed to send message');
@@ -190,19 +189,23 @@ class SupportChatService {
 
     final mediaType = MediaType.parse(mimeType);
     if (fileBytes != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file',
-        fileBytes,
-        filename: fileName,
-        contentType: mediaType,
-      ));
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName,
+          contentType: mediaType,
+        ),
+      );
     } else if (filePath != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        filePath,
-        filename: fileName,
-        contentType: mediaType,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          filePath,
+          filename: fileName,
+          contentType: mediaType,
+        ),
+      );
     } else {
       throw const SupportChatException('Selected file has no readable content');
     }
