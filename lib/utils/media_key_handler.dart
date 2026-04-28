@@ -27,7 +27,14 @@ class MediaKeyHandler {
           mediaKeyDetector.setIsPlaying(isPlaying: false);
           mediaKeyDetector.removeListener(_onMediaKeyDetectedListener);
         }
+        final hidDevice = core.connection.controllerDevices.firstOrNullWhere(
+          (e) => e is HidDevice && e.uniqueId == 'HID Device',
+        );
+        if (hidDevice != null) {
+          core.connection.disconnect(hidDevice, persistForget: false, forget: false);
+        }
       } else {
+        _ensureHidDevice();
         FlutterVolumeController.addListener(
           (volume) {
             _lastVolume ??= volume;
@@ -87,16 +94,22 @@ class MediaKeyHandler {
     });
   }
 
-  bool _onMediaKeyDetectedListener(MediaKey mediaKey) {
-    final hidDevice = HidDevice('HID Device');
-
-    var availableDevice = core.connection.controllerDevices.firstOrNullWhere(
-      (e) => e.toString() == hidDevice.toString(),
+  HidDevice _ensureHidDevice() {
+    // Display label is "Bluetooth Media Remote", but the uniqueId stays
+    // "HID Device" so keymaps saved before the rename keep matching.
+    final hidDevice = HidDevice('Bluetooth Media Remote', uniqueId: 'HID Device');
+    final existing = core.connection.controllerDevices.firstOrNullWhere(
+      (e) => e is HidDevice && e.uniqueId == hidDevice.uniqueId,
     );
-    if (availableDevice == null) {
-      core.connection.addDevices([hidDevice]);
-      availableDevice = hidDevice;
+    if (existing is HidDevice) {
+      return existing;
     }
+    core.connection.addDevices([hidDevice]);
+    return hidDevice;
+  }
+
+  bool _onMediaKeyDetectedListener(MediaKey mediaKey) {
+    final availableDevice = _ensureHidDevice();
 
     final keyPressed = mediaKey.name;
 
