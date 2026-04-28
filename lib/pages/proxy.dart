@@ -53,7 +53,10 @@ class _DevicePageState extends State<ProxyPage> {
               (index, device) => [
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.only(bottom: index == core.connection.proxyDevices.length - 1 ? 8 : 12.0),
+                  padding: EdgeInsets.only(
+                    bottom: index == core.connection.proxyDevices.length - 1 ? 8 : 12.0,
+                    top: index == 0 ? 8 : 0,
+                  ),
                   child: Button.ghost(
                     onPressed: () async {
                       if (!device.emulator.isStarted.value && !device.isStarting.value) {

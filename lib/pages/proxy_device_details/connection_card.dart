@@ -58,20 +58,20 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   List<_ConnectMode> get _connectModes => const [
-        _ConnectMode.proxy,
-        _ConnectMode.virtualShifting,
-      ];
+    _ConnectMode.virtualShifting,
+    _ConnectMode.proxy,
+  ];
 
   /// Resolves which concrete [RetrofitMode] the Virtual Shifting radio will
   /// switch into when picked. Mirrors the active Trainer Connections — BT wins
   /// over WiFi. Returns `null` when neither transport is enabled, in which
   /// case the VS radio renders disabled and the missing-transport hint shows.
-  RetrofitMode? get _resolvedVirtualShiftingMode {
+  RetrofitMode get _resolvedVirtualShiftingMode {
     final transport = core.logic.preferredBridgeTransport(core.logic.enabledTrainerConnections);
     return switch (transport) {
       TrainerConnectionType.bluetooth => RetrofitMode.bluetooth,
       TrainerConnectionType.wifi => RetrofitMode.wifi,
-      null => null,
+      null => RetrofitMode.wifi,
     };
   }
 
@@ -99,17 +99,13 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   Widget _radioCard(_ConnectMode m, ColorScheme cs) {
-    final RetrofitMode? resolved = m == _ConnectMode.proxy
+    final RetrofitMode resolved = m == _ConnectMode.proxy
         ? RetrofitMode.proxy
-        : _resolvedVirtualShiftingMode;
-    final IconData iconData = resolved == null
-        ? LucideIcons.cog
-        : _modeIcon(resolved);
-    final bool disabled = m == _ConnectMode.virtualShifting && resolved == null;
+        : (_resolvedVirtualShiftingMode ?? RetrofitMode.wifi);
+    final IconData iconData = _modeIcon(resolved);
 
     return RadioCard<_ConnectMode>(
       value: m,
-      enabled: !disabled,
       child: Row(
         spacing: 12,
         children: [
@@ -136,18 +132,18 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   String _connectModeLabel(_ConnectMode m) => switch (m) {
-        _ConnectMode.proxy => AppLocalizations.of(context).proxyMode,
-        _ConnectMode.virtualShifting => AppLocalizations.of(context).virtualShifting,
-      };
+    _ConnectMode.proxy => AppLocalizations.of(context).proxyMode,
+    _ConnectMode.virtualShifting => AppLocalizations.of(context).virtualShifting,
+  };
 
   String _connectModeHint(_ConnectMode m) => switch (m) {
-        _ConnectMode.proxy => AppLocalizations.of(context).proxyModeHint,
-        _ConnectMode.virtualShifting => switch (_resolvedVirtualShiftingMode) {
-            RetrofitMode.bluetooth => AppLocalizations.of(context).virtualShiftingBluetoothHint,
-            RetrofitMode.wifi => AppLocalizations.of(context).virtualShiftingWifiHint,
-            _ => AppLocalizations.of(context).virtualShiftingTransportNeededHint,
-          },
-      };
+    _ConnectMode.proxy => AppLocalizations.of(context).proxyModeHint,
+    _ConnectMode.virtualShifting => switch (_resolvedVirtualShiftingMode) {
+      RetrofitMode.bluetooth => AppLocalizations.of(context).virtualShiftingBluetoothHint,
+      RetrofitMode.wifi => AppLocalizations.of(context).virtualShiftingWifiHint,
+      _ => AppLocalizations.of(context).virtualShiftingTransportNeededHint,
+    },
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -225,10 +221,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           RadioGroup<_ConnectMode>(
             value: _connectModeOf(_pendingMode),
             onChanged: (m) async {
-              final RetrofitMode? next = m == _ConnectMode.proxy
-                  ? RetrofitMode.proxy
-                  : _resolvedVirtualShiftingMode;
-              if (next == null) return;
+              final RetrofitMode next = m == _ConnectMode.proxy ? RetrofitMode.proxy : _resolvedVirtualShiftingMode;
               setState(() => _pendingMode = next);
               await core.settings.setRetrofitMode(widget.device.trainerKey, next);
             },
@@ -328,9 +321,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           RadioGroup<_ConnectMode>(
             value: _connectModeOf(active),
             onChanged: (m) async {
-              final RetrofitMode? next = m == _ConnectMode.proxy
-                  ? RetrofitMode.proxy
-                  : _resolvedVirtualShiftingMode;
+              final RetrofitMode? next = m == _ConnectMode.proxy ? RetrofitMode.proxy : _resolvedVirtualShiftingMode;
               if (next == null) return;
               if (next == active) return;
               if (next == RetrofitMode.bluetooth) {
