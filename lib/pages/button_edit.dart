@@ -251,6 +251,20 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ..._buildTrainerConnectionActions(_mapActions(core.zwiftEmulator.supportedActions)),
                 ],
 
+                if (core.logic.showDi2Ble) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: 'Wahoo ELEMNT Action'),
+                  if (!core.settings.getDi2BleEnabled())
+                    Warning(
+                      important: false,
+                      children: [
+                        Text(AppLocalizations.of(context).enableItInTheConnectionSettingsFirst),
+                      ],
+                    )
+                  else
+                    ..._buildTrainerConnectionActions(core.di2Emulator.supportedActions),
+                ],
+
                 if (core.logic.showLocalRemoteOptions) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: context.i18n.localRemoteSetting),
