@@ -67,7 +67,13 @@ enum InGameAction {
   trainerSwitchMode('Trainer: Switch ERG/SIM', icon: LucideIcons.repeat, isOutsideTrainerApp: true),
   trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
   trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true),
-  workoutPauseResume('Workout: Pause/Resume', icon: LucideIcons.pause, isOutsideTrainerApp: true);
+  workoutPauseResume('Workout: Pause/Resume', icon: LucideIcons.pause, isOutsideTrainerApp: true),
+
+  // Wahoo ELEMNT — D-Fly channel buttons emitted via the Di2Definition.
+  dFlyChannel1('D-Fly Channel 1', icon: LucideIcons.circleDot),
+  dFlyChannel2('D-Fly Channel 2', icon: LucideIcons.circleDot),
+  dFlyChannel3('D-Fly Channel 3', icon: LucideIcons.circleDot),
+  dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot);
 
   final String title;
   final bool isLongPress;
