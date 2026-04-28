@@ -745,5 +745,20 @@
     }
   },
   "dontWantToSignInWriteAMail": "Non vuoi accedere? Scrivi una mail",
-  "troubleshootingPage": "Guida alla risoluzione dei problemi"
+  "troubleshootingPage": "Guida alla risoluzione dei problemi",
+  "proxyConnectFor": "Collega il tuo {name} per:",
+  "proxyFeatureAddVirtualShifting": "Aggiungi Virtual Shifting",
+  "proxyFeatureAdjustGears": "Regola i rapporti Virtual Shifting",
+  "proxyFeatureDirectControl": "Cambio rapporto / intensità / modalità diretto via {controller}",
+  "proxyFeatureMiniWorkout": "Avvia un mini-allenamento",
+  "proxyFeatureWifiProxy": "Proxy via WiFi",
+  "trainerErgTarget": "Obiettivo ERG: {watts} W",
+  "trainerShiftedUp": "Cambio aumentato al rapporto {gear}",
+  "trainerShiftedDown": "Cambio ridotto al rapporto {gear}",
+  "trainerAlreadyHighestGear": "Sei già nel rapporto più alto",
+  "trainerAlreadyLowestGear": "Sei già nel rapporto più basso",
+  "trainerSwitchedToSim": "Passato in modalità SIM",
+  "trainerSwitchedToErg": "Passato in modalità ERG @ {watts} W",
+  "trainerIntensityIncreased": "Intensità +5%",
+  "trainerIntensityDecreased": "Intensità −5%"
 }

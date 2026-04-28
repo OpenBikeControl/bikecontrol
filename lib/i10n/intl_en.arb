@@ -893,5 +893,50 @@
     }
   },
   "dontWantToSignInWriteAMail": "Don't want to sign in? Write a mail instead",
-  "troubleshootingPage": "Troubleshooting Guide"
+  "troubleshootingPage": "Troubleshooting Guide",
+  "proxyConnectFor": "Connect your {name} for:",
+  "@proxyConnectFor": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "proxyFeatureAddVirtualShifting": "Add virtual shifting capability",
+  "proxyFeatureAdjustGears": "Adjust virtual shifting gears",
+  "proxyFeatureDirectControl": "Direct gear / intensity / mode changes via {controller}",
+  "@proxyFeatureDirectControl": {
+    "placeholders": {
+      "controller": {"type": "String"}
+    }
+  },
+  "proxyFeatureMiniWorkout": "Start a mini workout",
+  "proxyFeatureWifiProxy": "Proxy to WiFi",
+  "trainerErgTarget": "ERG target: {watts} W",
+  "@trainerErgTarget": {
+    "placeholders": {
+      "watts": {"type": "int"}
+    }
+  },
+  "trainerShiftedUp": "Shifted up to gear {gear}",
+  "@trainerShiftedUp": {
+    "placeholders": {
+      "gear": {"type": "int"}
+    }
+  },
+  "trainerShiftedDown": "Shifted down to gear {gear}",
+  "@trainerShiftedDown": {
+    "placeholders": {
+      "gear": {"type": "int"}
+    }
+  },
+  "trainerAlreadyHighestGear": "Already in highest gear",
+  "trainerAlreadyLowestGear": "Already in lowest gear",
+  "trainerSwitchedToSim": "Switched to sim mode",
+  "trainerSwitchedToErg": "Switched to erg mode @ {watts} W",
+  "@trainerSwitchedToErg": {
+    "placeholders": {
+      "watts": {"type": "int"}
+    }
+  },
+  "trainerIntensityIncreased": "Intensity +5%",
+  "trainerIntensityDecreased": "Intensity -5%"
 }

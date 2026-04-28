@@ -1,13 +1,19 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-void main() {
+Future<void> main() async {
+  // handleTrainerAction reads AppLocalizations.current for its result
+  // messages, so we initialise the EN bundle once before any test runs.
+  await AppLocalizations.load(const Locale('en'));
+
   group('ProxyDevice.handleTrainerAction (consolidated)', () {
     late ProxyDevice device;
     late FitnessBikeDefinition def;
