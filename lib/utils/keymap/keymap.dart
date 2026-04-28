@@ -376,6 +376,9 @@ class KeyPair {
           core.settings.getZwiftMdnsEmulatorEnabled() &&
           core.zwiftMdnsEmulator.supportedActions.contains(inGameAction)) ||
       (inGameAction != null &&
+          core.logic.isDi2BleEnabled &&
+          core.di2Emulator.supportedActions.contains(inGameAction)) ||
+      (inGameAction != null &&
           [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction) &&
           (core.connection.accessories.isNotEmpty || kDebugMode)) ||
       (screenshotPath != null && screenshotPath!.trim().isNotEmpty) ||
