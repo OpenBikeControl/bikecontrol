@@ -9,6 +9,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:http/http.dart' as http;
+import 'package:prop/utils/shared.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -38,19 +39,18 @@ class _HelpButtonState extends State<HelpButton> {
   Future<void> _checkForUnread() async {
     if (core.supabase.auth.currentSession == null) return;
     try {
-      final fetched = await SupportChatService().fetchChat();
+      final fetched = await SupportChatService().fetchChat(skipLastSeen: true);
       if (!mounted) return;
       final lastSeen = fetched.chat?.lastSeenAt;
       final hasUnreadAdminReply = fetched.messages.any(
-        (m) =>
-            m.senderRole == SupportMessageSenderRole.admin &&
-            (lastSeen == null || m.createdAt.isAfter(lastSeen)),
+        (m) => m.senderRole == SupportMessageSenderRole.admin && (lastSeen == null || m.createdAt.isAfter(lastSeen)),
       );
       if (hasUnreadAdminReply != _hasUnread) {
         setState(() => _hasUnread = hasUnreadAdminReply);
       }
-    } catch (_) {
+    } catch (error) {
       // Best-effort — leave the dot off.
+      Logger.error('Failed to check for unread support messages $error');
     }
   }
 
