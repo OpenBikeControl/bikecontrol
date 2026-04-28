@@ -26,8 +26,10 @@ class _StubBluetoothTransporter implements BluetoothTransporter {
   @override
   String get advertisementName => 'Test Di2';
 
+  final ValueNotifier<bool> _hasSubscribers = ValueNotifier(false);
+
   @override
-  ValueListenable<bool> get hasSubscribers => ValueNotifier(true);
+  ValueListenable<bool> get hasSubscribers => _hasSubscribers;
 
   @override
   Future<void> start({bool advertise = true}) async {
@@ -68,8 +70,10 @@ KeyPair _channelPair(InGameAction action, {bool longPress = false}) {
   );
 }
 
-Future<void> main() async {
-  await AppLocalizations.load(const Locale('en'));
+void main() {
+  setUpAll(() async {
+    await AppLocalizations.load(const Locale('en'));
+  });
 
   group('Di2Emulator.sendAction', () {
     late Di2Emulator emulator;
