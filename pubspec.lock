@@ -1750,10 +1750,10 @@ packages:
     dependency: "direct main"
     description:
       name: shorebird_code_push
-      sha256: "82203f39a66c78548da944dbe4079c2aa2a60fa5bc1105ed707b144c94f04349"
+      sha256: "55d5eea098a4293199d22dfd263ce1d6c10820ceb42c2acb950f971a8bcee0ce"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.5"
+    version: "2.0.6"
   sign_in_button:
     dependency: "direct main"
     description:
