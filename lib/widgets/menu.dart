@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
@@ -117,10 +118,12 @@ ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transfor
 ''';
 }
 
-/// Compact one-line summary of a [ProxyDevice] for the support / feedback
-/// payload. Pulls in the bits that matter for diagnosing a Bridge / proxy
-/// issue: connection state, retrofit mode, the active definition class, and
-/// any current telemetry.
+/// Compact summary of a [ProxyDevice] for the support / feedback payload.
+/// First line lists the bits that matter for diagnosing a Bridge / proxy
+/// issue (state, retrofit mode, active definition class, firmware,
+/// manufacturer). When the emulator has discovered non-standard BLE
+/// services on the trainer, the same "Services & characteristics:" block
+/// the chat freetext uses is appended on subsequent lines.
 String _describeProxyDevice(ProxyDevice device) {
   final emulator = device.emulator;
   final state = !device.isConnected
@@ -142,20 +145,17 @@ String _describeProxyDevice(ProxyDevice device) {
   ];
   if (device.firmwareVersion != null) parts.add('fw=${device.firmwareVersion}');
   if (device.manufacturerName != null) parts.add('mfg=${device.manufacturerName}');
-
   if (def is FitnessBikeDefinition) {
     parts.add('gear=${def.currentGear.value}/${def.maxGear}');
     parts.add('trainerMode=${def.trainerMode.value.name}');
-    final power = def.powerW.value;
-    final cadence = def.cadenceRpm.value;
-    final speed = def.speedKph.value;
-    final hr = def.heartRateBpm.value;
-    if (power != null) parts.add('power=${power}W');
-    if (cadence != null) parts.add('cadence=${cadence}rpm');
-    if (speed != null) parts.add('speed=${speed.toStringAsFixed(1)}km/h');
-    if (hr != null) parts.add('hr=${hr}bpm');
   }
-  return parts.join(' · ');
+
+  final summary = parts.join(' · ');
+  final services = buildProxyServicesFreetext(device);
+  if (services == null) return summary;
+  // Indent the services block so it visibly belongs to its proxy entry.
+  final indented = services.split('\n').map((l) => '    $l').join('\n');
+  return '$summary\n$indented';
 }
 
 class BKMenuButton extends StatelessWidget {
