@@ -1,8 +1,18 @@
+import 'dart:io' show Platform;
+
 import 'package:bike_control/pages/support_chat/widgets/support_attachment_view.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:in_app_review/in_app_review.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+/// Magic admin-message body that the backend sends to nudge a happy user
+/// toward leaving a store rating. The bubble swaps it for a localised
+/// thank-you sentence + an in-app rating button instead of rendering the
+/// raw token.
+const String _kSuccessRatingToken = 'success_rating';
 
 /// Renders a single chat message as a shadcn [ChatBubble]. Designed to be
 /// nested inside a [ChatGroup] (see [SupportMessageGroup]) so that runs of
@@ -34,6 +44,10 @@ class SupportMessageBubble extends StatelessWidget {
     final isUser = message.senderRole == SupportMessageSenderRole.user;
     final alignment = isUser ? AxisAlignmentDirectional.end : AxisAlignmentDirectional.start;
     final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.secondary;
+    final isRatingPrompt = !isUser && message.body == _kSuccessRatingToken;
+    final renderedBody = isRatingPrompt
+        ? context.i18n.successRatingMessage(_storeName())
+        : message.body;
 
     return ChatBubble(
       alignment: alignment,
@@ -54,9 +68,17 @@ class SupportMessageBubble extends StatelessWidget {
                   color: isUser ? cs.primary : cs.mutedForeground,
                 ),
               ),
-            if (message.body.isNotEmpty) ...[
+            if (renderedBody.isNotEmpty) ...[
               if (showSenderLabel) const SizedBox(height: 4),
-              Text(message.body, style: const TextStyle(fontSize: 14)),
+              Text(renderedBody, style: const TextStyle(fontSize: 14)),
+            ],
+            if (isRatingPrompt) ...[
+              const SizedBox(height: 8),
+              PrimaryButton(
+                onPressed: _openRating,
+                leading: const Icon(LucideIcons.star, size: 14),
+                child: Text(context.i18n.rateBikeControl),
+              ),
             ],
             if (message.attachments.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -101,6 +123,30 @@ class SupportMessageBubble extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Platform-specific store name shown in the rating prompt copy. Web and
+  /// Linux fall back to "App Store" since they don't have a native store flow.
+  String _storeName() {
+    if (kIsWeb) return 'App Store';
+    if (Platform.isIOS || Platform.isMacOS) return 'App Store';
+    if (Platform.isAndroid) return 'Play Store';
+    if (Platform.isWindows) return 'Microsoft Store';
+    return 'App Store';
+  }
+
+  /// Triggers the platform's in-app review sheet, falling back to the store
+  /// listing when the in-app sheet isn't available (e.g. simulator, browser).
+  Future<void> _openRating() async {
+    final review = InAppReview.instance;
+    if (await review.isAvailable()) {
+      await review.requestReview();
+    } else {
+      await review.openStoreListing(
+        appStoreId: 'id6753721284',
+        microsoftStoreId: '9NP42GS03Z26',
+      );
+    }
   }
 
   String _formatTimestamp(DateTime utc) {

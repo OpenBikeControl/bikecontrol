@@ -760,5 +760,7 @@
   "trainerSwitchedToSim": "Przełączono na tryb SIM",
   "trainerSwitchedToErg": "Przełączono na tryb ERG @ {watts} W",
   "trainerIntensityIncreased": "Intensywność +5%",
-  "trainerIntensityDecreased": "Intensywność −5%"
+  "trainerIntensityDecreased": "Intensywność −5%",
+  "successRatingMessage": "Dzięki, że korzystasz z BikeControl! Rozważ ocenę aplikacji w {store} — bardzo nam to pomaga!",
+  "rateBikeControl": "Oceń BikeControl"
 }
