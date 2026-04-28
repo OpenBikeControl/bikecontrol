@@ -309,7 +309,8 @@ class CoreLogic {
       showLocalControl ||
       showZwiftBleEmulator ||
       showZwiftMsdnEmulator ||
-      showMyWhooshLink;
+      showMyWhooshLink ||
+      showDi2Ble;
 
   bool get hasOfficialConnectionMethods =>
       showObpBluetoothEmulator || showObpMdnsEmulator || showZwiftBleEmulator || showZwiftMsdnEmulator;
