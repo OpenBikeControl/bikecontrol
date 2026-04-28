@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -494,7 +495,7 @@ abstract class BaseDevice {
             StatusIcon(
               icon: icon,
               status: isConnected,
-              started: !isConnected,
+              started: !isConnected && (this is! ProxyDevice || (this as ProxyDevice).isStarting.value),
             ),
             Expanded(
               child: Column(

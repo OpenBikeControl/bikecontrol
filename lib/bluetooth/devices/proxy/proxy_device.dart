@@ -201,7 +201,7 @@ class ProxyDevice extends BluetoothDevice {
     return switch (transport) {
       TrainerConnectionType.bluetooth => RetrofitMode.bluetooth,
       TrainerConnectionType.wifi => RetrofitMode.wifi,
-      null => RetrofitMode.proxy,
+      null => RetrofitMode.wifi,
     };
   }
 
@@ -231,7 +231,7 @@ class ProxyDevice extends BluetoothDevice {
         ValueListenableBuilder<String>(
           valueListenable: emulator.data,
           builder: (context, value, _) {
-            if (value.isEmpty) return const SizedBox.shrink();
+            if (value.isEmpty) return Text('Waiting for connection...').xSmall.muted;
             final def = emulator.activeDefinition;
             final parts = <Widget>[];
             if (def is ProxyBikeDefinition) {
