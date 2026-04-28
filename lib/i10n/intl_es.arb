@@ -336,6 +336,8 @@
   "no": "No",
   "noActionAssigned": "Sin acción asignada",
   "noActionAssignedForButton": "No se pudo ejecutar {button}: no hay ninguna acción asignada",
+  "noActiveWorkout": "Sin entrenamiento activo",
+  "noProxyTrainerConnected": "No hay un smart trainer conectado",
   "noConnectionMethodIsConnectedOrActive": "No hay ningún método de conexión conectado ni activo.",
   "noConnectionMethodSelected": "No se ha seleccionado ningún método de conexión",
   "noControllerConnected": "Ninguno conectado",
@@ -380,6 +382,8 @@
   "paywall_useBikecontrolOnAllPlatforms": "Utilice BikeControl en todas las plataformas",
   "paywall_yearly": "Anual",
   "permissionsRequired": "Para que BikeControl busque dispositivos cercanos y le notifique cuando cambie la conexión, habilite los siguientes permisos:",
+  "proSubscriptionRequiredForAction": "Suscripción Pro necesaria para esta acción",
+  "proSubscriptionRequiredForAdditionalTriggers": "Suscripción Pro necesaria para tipos de gatillo adicionales",
   "platformNotSupported": "Esta plataforma {platform} no es compatible :(",
   "@platformNotSupported": {
     "placeholders": {
@@ -712,6 +716,8 @@
   "showExperimental": "Mostrar experimentales",
   "notSupportedOnWeb": "No soportado en Web :)",
   "recommended": "Recomendado",
+  "workoutPaused": "Entrenamiento pausado",
+  "workoutResumed": "Entrenamiento reanudado",
   "workoutShareText": "Entrenamiento {fileName}",
   "connectionSettings": "Ajustes de conexión",
   "needsTargetLeavePrompt": "{appName} necesita un destino antes de poder conectar. ¿Salir sin elegir uno?",
@@ -762,5 +768,42 @@
   "trainerIntensityIncreased": "Intensidad +5%",
   "trainerIntensityDecreased": "Intensidad −5%",
   "successRatingMessage": "¡Gracias por usar BikeControl! Considera valorar BikeControl en el {store} — nos ayuda mucho.",
-  "rateBikeControl": "Valorar BikeControl"
+  "rateBikeControl": "Valorar BikeControl",
+  "bridgeMinutesRemainingToday": "Quedan {minutes} min hoy",
+  "@bridgeMinutesRemainingToday": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "bridgeTrialTimeOverTitle": "Tiempo de prueba del Bridge agotado",
+  "bridgeTrialTimeOverBody": "Has usado tus 20 min diarios de prueba del Bridge. Hazte Pro para desbloquear el cambio de marchas virtual sin límites.",
+  "connect": "Conectar",
+  "smartTrainerAndAccessories": "Smart trainer y accesorios",
+  "trainerAppDoesNotSupportConnectionYet": "{trainerApp} todavía no admite esto",
+  "@trainerAppDoesNotSupportConnectionYet": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerMissingFtmsWarning": "{trainerName} no anuncia el servicio FTMS, por lo que el cambio de marchas virtual puede no funcionar. Usa el botón \"Enviar feedback\" más abajo para reportar este trainer.",
+  "@trainerMissingFtmsWarning": {
+    "placeholders": {
+      "trainerName": {
+        "type": "String"
+      }
+    }
+  },
+  "virtualShiftingProNote": "El cambio de marchas virtual es una función Pro, pero puedes probar todos los ajustes dentro de BikeControl. Conectarlo en {trainerApp} está limitado a 20 min al día, para que veas cómo funciona.",
+  "@virtualShiftingProNote": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -348,6 +348,8 @@
   "no": "No",
   "noActionAssigned": "No action assigned",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
+  "noActiveWorkout": "No active workout",
+  "noProxyTrainerConnected": "No smart trainer connected",
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
   "noConnectionMethodSelected": "No Connection Method selected",
   "noControllerConnected": "None connected",
@@ -392,6 +394,8 @@
   "paywall_useBikecontrolOnAllPlatforms": "Use BikeControl on all platforms",
   "paywall_yearly": "Yearly",
   "permissionsRequired": "In order for BikeControl to search for nearby devices and update you when the connection changes, please enable the following permissions:",
+  "proSubscriptionRequiredForAction": "Pro subscription required for this action",
+  "proSubscriptionRequiredForAdditionalTriggers": "Pro subscription required for additional trigger types",
   "platformNotSupported": "This {platform} is not supported :(",
   "@platformNotSupported": {
     "placeholders": {
@@ -846,6 +850,8 @@
   "showExperimental": "Show experimental",
   "notSupportedOnWeb": "Not Supported on Web :)",
   "recommended": "Recommended",
+  "workoutPaused": "Workout paused",
+  "workoutResumed": "Workout resumed",
   "workoutShareText": "Workout {fileName}",
   "@workoutShareText": {
     "placeholders": {

@@ -170,13 +170,13 @@ abstract class BaseActions {
       if (recorder.state.value == WorkoutState.recording) {
         recorder.pause();
         await IAPManager.instance.incrementCommandCount();
-        return Success('Workout paused');
+        return Success(AppLocalizations.current.workoutPaused);
       } else if (recorder.state.value == WorkoutState.paused) {
         recorder.resume();
         await IAPManager.instance.incrementCommandCount();
-        return Success('Workout resumed');
+        return Success(AppLocalizations.current.workoutResumed);
       }
-      return Ignored('No active workout');
+      return Ignored(AppLocalizations.current.noActiveWorkout);
     }
 
     // Handle trainer-control actions
@@ -184,7 +184,7 @@ abstract class BaseActions {
       if (!isKeyDown) return Ignored('');
       final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
       if (proxy == null) {
-        return Error('No proxy trainer connected');
+        return Error(AppLocalizations.current.noProxyTrainerConnected);
       }
       await IAPManager.instance.incrementCommandCount();
       final result = proxy.handleTrainerAction(keyPair.inGameAction!);
@@ -251,9 +251,9 @@ abstract class BaseActions {
       if (keyPair.isSpecialKey && IAPManager.instance.hasPurchasedBefore50RVC) {
         // it's okay to allow special keys for users who purchased before the subscription model, even without an active subscription, since they already paid for the pro features
       } else if (IAPManager.instance.isProEnabled) {
-        return Error('Current device not registered', type: ErrorType.deviceRegistrationNeeded);
+        return Error(AppLocalizations.current.currentDeviceIsNotRegistered, type: ErrorType.deviceRegistrationNeeded);
       } else {
-        return Error('Pro subscription required for action: $keyPair', type: ErrorType.proRequired);
+        return Error(AppLocalizations.current.proSubscriptionRequiredForAction, type: ErrorType.proRequired);
       }
     }
 
@@ -264,7 +264,7 @@ abstract class BaseActions {
       }).toList();
 
       if (activeTriggers.length > 1 && trigger != activeTriggers.first) {
-        return Error('Pro subscription required for additional trigger types', type: ErrorType.proRequired);
+        return Error(AppLocalizations.current.proSubscriptionRequiredForAdditionalTriggers, type: ErrorType.proRequired);
       }
     }
 

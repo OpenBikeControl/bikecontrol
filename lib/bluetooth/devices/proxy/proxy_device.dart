@@ -117,7 +117,7 @@ class ProxyDevice extends BluetoothDevice {
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setVirtualShiftingMode(cfg.mode);
-    if (cfg.gearRatios != null && cfg.gearRatios!.length == def.maxGear) {
+    if (cfg.gearRatios != null) {
       def.setGearRatios(cfg.gearRatios!);
     }
   }
