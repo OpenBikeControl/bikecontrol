@@ -1,6 +1,7 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
@@ -18,7 +19,7 @@ class TrainerFeatures extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trainerApp = core.settings.getTrainerApp();
-    final isBikeControl = trainerApp is BikeControl;
+    final isBikeControl = trainerApp is BikeControl || core.workoutRecorder.state.value != WorkoutState.idle;
     return Column(
       spacing: 8,
       children: [
