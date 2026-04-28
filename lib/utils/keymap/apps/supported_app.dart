@@ -4,6 +4,7 @@ import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
+import 'package:bike_control/utils/keymap/apps/wahoo_element.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 
 import '../buttons.dart';
@@ -21,6 +22,7 @@ enum AppConnectionMethod {
   local,
   remoteMouse,
   remoteKeyboard,
+  di2Ble,
 }
 
 enum ConnectionSupport {
@@ -92,6 +94,7 @@ abstract class SupportedApp {
     Rouvy(),
     BikeControl(),
     OpenBikeControl(),
+    WahooElement(),
     CustomApp(),
   ];
 
