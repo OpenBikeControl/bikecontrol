@@ -177,7 +177,8 @@ class Keymap {
       );
       return button;
     } else {
-      return allButtons.firstWhere((b) => b.name == name);
+      final found = allButtons.firstWhere((b) => b.name == name);
+      return found.copyWith(icon: found.icon ?? button.icon);
     }
   }
 
@@ -442,20 +443,31 @@ class KeyPair {
     return '${modifierStrings.join('+')}+$baseKey';
   }
 
+  /// Serialise a [ControllerButton] for storage. Emits a plain string when
+  /// only the name is needed (legacy format), or a map carrying any of
+  /// `deviceId` / `icon`. Icons are stored as `{codePoint, fontFamily,
+  /// fontPackage}` so we can rebuild the [IconData] on decode.
+  static dynamic _encodeButton(ControllerButton e) {
+    if (e.sourceDeviceId == null && e.icon == null) {
+      return e.name;
+    }
+    return {
+      'name': e.name,
+      if (e.sourceDeviceId != null) 'deviceId': e.sourceDeviceId,
+      if (e.icon != null)
+        'icon': {
+          'codePoint': e.icon!.codePoint,
+          if (e.icon!.fontFamily != null) 'fontFamily': e.icon!.fontFamily,
+          if (e.icon!.fontPackage != null) 'fontPackage': e.icon!.fontPackage,
+        },
+    };
+  }
+
   String encode() {
     // encode to save in preferences
 
     return jsonEncode({
-      'actions': buttons
-          .map(
-            (e) => e.sourceDeviceId == null
-                ? e.name
-                : {
-                    'name': e.name,
-                    'deviceId': e.sourceDeviceId,
-                  },
-          )
-          .toList(),
+      'actions': buttons.map(_encodeButton).toList(),
       if (logicalKey != null) 'logicalKey': logicalKey?.keyId.toString(),
       if (physicalKey != null) 'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
       if (modifiers.isNotEmpty) 'modifiers': modifiers.map((e) => e.name).toList(),
@@ -487,12 +499,21 @@ class KeyPair {
     ControllerButton? decodeButton(dynamic raw) {
       String? name;
       String? deviceId;
+      IconData? icon;
 
       if (raw is String) {
         name = raw;
       } else if (raw is Map) {
         name = raw['name']?.toString();
         deviceId = raw['deviceId']?.toString();
+        final rawIcon = raw['icon'];
+        if (rawIcon is Map && rawIcon['codePoint'] is num) {
+          icon = IconData(
+            (rawIcon['codePoint'] as num).toInt(),
+            fontFamily: rawIcon['fontFamily']?.toString(),
+            fontPackage: rawIcon['fontPackage']?.toString(),
+          );
+        }
       }
 
       if (name == null) {
@@ -502,10 +523,10 @@ class KeyPair {
       final baseButton = ControllerButton.values.firstOrNullWhere((element) => element.name == name);
 
       if (baseButton != null) {
-        return baseButton.copyWith(sourceDeviceId: deviceId);
+        return baseButton.copyWith(sourceDeviceId: deviceId, icon: icon);
       }
 
-      return ControllerButton(name, sourceDeviceId: deviceId);
+      return ControllerButton(name, sourceDeviceId: deviceId, icon: icon);
     }
 
     final buttons = (decoded['actions'] as List)
