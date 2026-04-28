@@ -66,7 +66,7 @@ class TelemetrySnapshot {
       trainerApp: core.settings.getTrainerApp()?.name,
       trainerFtmsMachineFeatures: fitnessDef?.trainerFtmsMachineFeatureFlagNames,
       trainerFtmsTargetSettingFlags: fitnessDef?.trainerFtmsTargetSettingFlagNames,
-      freetext: freetextOverride ?? _buildServicesFreetext(device),
+      freetext: freetextOverride ?? buildProxyServicesFreetext(device),
     );
   }
 
@@ -132,7 +132,13 @@ bool _isStandardService(String uuid) {
   return _standardServiceShortUuids.contains(lower);
 }
 
-String? _buildServicesFreetext(ProxyDevice device) {
+/// Returns a multi-line "Services & characteristics:" block for the given
+/// proxy device, skipping the standard GAP/GATT services that aren't useful
+/// for diagnostics. Returns `null` when the emulator hasn't discovered any
+/// services yet or only standard ones are present. Re-used by
+/// [debugText] so the support payload and the standalone debug text both
+/// surface the same BLE topology.
+String? buildProxyServicesFreetext(ProxyDevice device) {
   final services = device.emulator.services;
   if (services == null || services.isEmpty) return null;
   final filtered = services.where((s) => !_isStandardService(s.uuid)).toList();
