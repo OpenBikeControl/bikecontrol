@@ -33,7 +33,6 @@ class Di2Emulator extends TrainerConnection {
     Di2ButtonState.released,
   );
 
-  final ValueNotifier<String> _data = ValueNotifier<String>('');
   final Di2Definition _definition;
   BluetoothTransporter? _transporter;
 
@@ -58,9 +57,6 @@ class Di2Emulator extends TrainerConnection {
 
   @visibleForTesting
   Di2Definition get definition => _definition;
-
-  /// Live data field exposed to UI listeners (mirrors the Di2 definition).
-  ValueListenable<String> get data => _data;
 
   BluetoothTransporter _makeTransporter(Di2Definition def) {
     final factory = transporterFactory;
