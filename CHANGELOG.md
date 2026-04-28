@@ -1,7 +1,20 @@
 ### 5.4.0 (unreleased)
 
-**Features**:
-- Android: broadcast a custom Intent on button press - connect your controller to automation apps like MacroDroid or Tasker to turn your phone into a ringbell, trigger Shortcuts, toggle lights, and more (Pro)
+You can now connect your smart trainer directly to BikeControl. Connect your trainer for:
+- Add virtual shifting capability if your trainer app doesn't support it
+- Adjust virtual shifting gears to your liking
+- Direct gear / intensity / mode changes via your controller
+- Start a mini workout
+- Proxy Bluetooth devices to WiFi
+- and much more
+
+**Other new Features**:
+- In-app chat support: reach out from the app with attachments and diagnostics
+- Redesigned controller visualization with per-device contours: adjust buttons right from the main screen
+- Android: broadcast a custom Intent on button press - connect your controller to automation apps like MacroDroid or Tasker to turn your phone into a ringbell, trigger Shortcuts, toggle lights, and more
+
+**Fixes**:
+- Many UI adjustments and bug fixes
 
 ### 5.3.0 (15-04-2026)
 

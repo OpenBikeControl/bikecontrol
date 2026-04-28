@@ -5,13 +5,21 @@
 ## Description
 
 With BikeControl you can **control your favorite trainer app** using your Zwift Click, Zwift Ride, Zwift Play, Shimano Di2, or other similar devices. Here's what you can do with it, depending on your configuration:
-- Virtual Gear shifting
+- Add Virtual Shifting for trainer apps that do not support it natively
+- Adjust Virtual Shifting to your liking: change the number of gears, adjust the gear ratios, and more
 - Steering / navigation
 - adjust workout intensity
 - control music on your device
 - create screenshots or launch any command / shortcut
 - gestures: single click, double click, long press, etc. can be configured to do different things
 - more? If you can do it via keyboard, mouse, or touch, you can do it with BikeControl
+
+You can also connect your smart trainer directly to BikeControl to:
+- Add virtual shifting capability if your trainer app doesn't support it
+- Adjust virtual shifting gears to your liking
+- Direct gear / intensity / mode changes via your controller
+- Start a mini workout
+- Proxy to WiFi
 
 [![Youtube Video](https://github.com/user-attachments/assets/14a45ca1-e31b-4fbd-8d03-95aa60470405)](https://youtu.be/0r3LO5lFlyc)
 
