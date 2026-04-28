@@ -108,7 +108,7 @@ class SupportMessageBubble extends StatelessWidget {
                 ],
               ],
             ),
-            if (onReply != null) ...[
+            if (onReply != null && !isRatingPrompt) ...[
               const SizedBox(height: 4),
               Button.ghost(
                 onPressed: onReply,
