@@ -7,6 +7,7 @@ import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/keyboard_pair_widget.dart';
 import 'package:bike_control/widgets/mouse_pair_widget.dart';
@@ -84,6 +85,7 @@ class _TrainerPageState extends State<TrainerPage> {
             }
           },
         ),
+      if (core.logic.showDi2Ble) Di2BleTile(small: false),
       if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: false),
       if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
     ];
