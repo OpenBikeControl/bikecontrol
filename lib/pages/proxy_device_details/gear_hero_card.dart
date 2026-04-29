@@ -29,7 +29,9 @@ class GearHeroCard extends StatelessWidget {
         return SettingTile(
           icon: LucideIcons.cog,
           title: AppLocalizations.of(context).trainerControl,
-          subtitle: isErg ? AppLocalizations.of(context).fixedTargetPowerMode : AppLocalizations.of(context).virtualGearShifting,
+          subtitle: isErg
+              ? AppLocalizations.of(context).fixedTargetPowerMode
+              : AppLocalizations.of(context).virtualGearShifting,
           trailing: simOnly
               ? null
               : Row(
@@ -73,45 +75,47 @@ class GearHeroCard extends StatelessWidget {
     final gear = definition.currentGear.value;
     final ratio = definition.gearRatio.value;
     final target = definition.targetPowerW.value;
+    final isSmall = MediaQuery.sizeOf(context).width < 600;
     final subtitle = StringBuffer('of ${definition.maxGear}  ·  ratio ${ratio.toStringAsFixed(2)}');
     if (target != null) subtitle.write('  ·  target $target W');
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 28,
+    return Column(
       children: [
-        _shiftButton(
-          context: context,
-          icon: LucideIcons.minus,
-          filled: false,
-          onTap: () => definition.shiftDown(),
-        ),
-        Column(
-          spacing: 2,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: isSmall ? 12 : 28,
           children: [
+            Expanded(child: SizedBox()),
+            _shiftButton(
+              context: context,
+              icon: LucideIcons.minus,
+              filled: false,
+              onTap: () => definition.shiftDown(),
+            ),
             Text(
               '$gear',
               style: TextStyle(
-                fontSize: 72,
+                fontSize: isSmall ? 52 : 72,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -2,
                 color: cs.foreground,
               ),
             ),
-            Text(
-              subtitle.toString(),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: cs.mutedForeground,
-              ),
+            _shiftButton(
+              context: context,
+              icon: LucideIcons.plus,
+              filled: true,
+              onTap: () => definition.shiftUp(),
             ),
+            Expanded(child: SizedBox()),
           ],
         ),
-        _shiftButton(
-          context: context,
-          icon: LucideIcons.plus,
-          filled: true,
-          onTap: () => definition.shiftUp(),
+        Text(
+          subtitle.toString(),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: cs.mutedForeground,
+          ),
         ),
       ],
     );
@@ -119,20 +123,19 @@ class GearHeroCard extends StatelessWidget {
 
   Widget _ergContent(BuildContext context, ColorScheme cs) {
     final target = definition.ergTargetPower.value ?? 150;
+    final isSmall = MediaQuery.sizeOf(context).width < 600;
     return Column(
-      spacing: 12,
+      spacing: isSmall ? 12 : 28,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 28,
           children: [
+            Expanded(child: SizedBox()),
             _shiftButton(
               context: context,
               icon: LucideIcons.minus,
               filled: false,
-              onTap: target > 0
-                  ? () => definition.setManualErgPower((target - 5).clamp(0, 500))
-                  : null,
+              onTap: target > 0 ? () => definition.setManualErgPower((target - 5).clamp(0, 500)) : null,
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -142,7 +145,7 @@ class GearHeroCard extends StatelessWidget {
                 Text(
                   '$target',
                   style: TextStyle(
-                    fontSize: 72,
+                    fontSize: isSmall ? 52 : 72,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -2,
                     color: cs.primary,
@@ -163,10 +166,9 @@ class GearHeroCard extends StatelessWidget {
               context: context,
               icon: LucideIcons.plus,
               filled: true,
-              onTap: target < 500
-                  ? () => definition.setManualErgPower((target + 5).clamp(0, 500))
-                  : null,
+              onTap: target < 500 ? () => definition.setManualErgPower((target + 5).clamp(0, 500)) : null,
             ),
+            Expanded(child: SizedBox()),
           ],
         ),
         Slider(
