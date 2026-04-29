@@ -98,8 +98,6 @@ PODS:
     - Flutter
   - integration_test (0.0.1):
     - Flutter
-  - ios_receipt (0.0.1):
-    - Flutter
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -136,6 +134,8 @@ PODS:
   - SDWebImage/Core (5.21.6)
   - sensors_plus (0.0.1):
     - Flutter
+  - share_plus (0.0.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -166,7 +166,6 @@ DEPENDENCIES:
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
-  - ios_receipt (from `.symlinks/plugins/ios_receipt/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/darwin`)
   - media_key_detector_ios (from `.symlinks/plugins/media_key_detector_ios/ios`)
   - nsd_ios (from `.symlinks/plugins/nsd_ios/ios`)
@@ -177,6 +176,7 @@ DEPENDENCIES:
   - purchases_ui_flutter (from `.symlinks/plugins/purchases_ui_flutter/ios`)
   - restart_app (from `.symlinks/plugins/restart_app/ios`)
   - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - universal_ble (from `.symlinks/plugins/universal_ble/darwin`)
@@ -232,8 +232,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/in_app_review/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
-  ios_receipt:
-    :path: ".symlinks/plugins/ios_receipt/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/darwin"
   media_key_detector_ios:
@@ -254,6 +252,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/restart_app/ios"
   sensors_plus:
     :path: ".symlinks/plugins/sensors_plus/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sign_in_with_apple:
@@ -289,7 +289,6 @@ SPEC CHECKSUMS:
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
   in_app_review: 436034b18594851a7328d7f1c2ed5ec235b79cfc
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
-  ios_receipt: c2d5b4c36953c377a024992393976214ce6951e6
   just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
   media_key_detector_ios: 7ff9aefdfea00bb7b71e184132381b7d0e7e1269
   nsd_ios: 8c37babdc6538e3350dbed3a52674d2edde98173
@@ -306,6 +305,7 @@ SPEC CHECKSUMS:
   RevenueCatUI: ac7492873928e9e7f297e5e27a7c4f23f9008326
   SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
   sensors_plus: 7229095999f30740798f0eeef5cd120357a8f4f2
+  share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   sign_in_with_apple: f3bf75217ea4c2c8b91823f225d70230119b8440
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
