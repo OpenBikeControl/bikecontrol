@@ -9,6 +9,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -145,16 +146,24 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                   ],
                 ),
-                Text('Editing ${widget.trigger.title}').xSmall.muted,
+                Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
                 if (_usesFallbackLongPressMode)
                   Warning(
                     important: false,
                     children: [
                       Text(
-                        'This device uses long press toggle mode: first click sends key down, second click sends key up.',
+                        context.i18n.longPressFallbackHint,
                       ).small,
                     ],
                   ),
+
+                if (core.connection.proxyDevices.any((e) => e.isConnected) ||
+                    core.settings.getTrainerApp() is BikeControl) ...[
+                  ColoredTitle(text: context.i18n.trainerDirectControl),
+                  ..._buildTrainerConnectionActions(trainerActions),
+                  SizedBox(height: 8),
+                ],
+
                 if (core.logic.hasNoConnectionMethod)
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 300),
@@ -164,7 +173,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ],
                     ),
                   ),
-                if (widget.trigger == ButtonTrigger.longPress) ...[
+                if (widget.trigger == ButtonTrigger.longPress)
                   Builder(
                     builder: (context) {
                       final singleClickPair = widget.keymap.getKeyPair(
@@ -176,7 +185,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           : null;
                       return SelectableCard(
                         icon: Icons.repeat,
-                        title: Text('Repeat single click action'),
+                        title: Text(context.i18n.repeatSingleClick),
                         isProOnly: true,
                         isActive: _keyPair.hasNoAction,
                         value: _keyPair.hasNoAction ? singleClickLabel : null,
@@ -189,6 +198,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             _keyPair.inGameAction = null;
                             _keyPair.inGameActionValue = null;
                             _keyPair.androidAction = null;
+                            _keyPair.androidIntentAction = null;
                             _keyPair.command = null;
                             _keyPair.screenshotPath = null;
                             setState(() {});
@@ -198,7 +208,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       );
                     },
                   ),
-                ],
                 if (core.logic.showObpActions) ...[
                   ColoredTitle(text: context.i18n.openBikeControlActions),
                   if (core.logic.obpConnectedApp == null)
@@ -242,9 +251,23 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ..._buildTrainerConnectionActions(_mapActions(core.zwiftEmulator.supportedActions)),
                 ],
 
+                if (core.logic.showDi2Ble) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: 'Wahoo ELEMNT Action'),
+                  if (!core.settings.getDi2BleEnabled())
+                    Warning(
+                      important: false,
+                      children: [
+                        Text(AppLocalizations.of(context).enableItInTheConnectionSettingsFirst),
+                      ],
+                    )
+                  else
+                    ..._buildTrainerConnectionActions(core.di2Emulator.supportedActions),
+                ],
+
                 if (core.logic.showLocalRemoteOptions) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: 'Local / Remote Setting'),
+                  ColoredTitle(text: context.i18n.localRemoteSetting),
 
                   if (core.actionHandler.supportedModes.contains(SupportedMode.keyboard) &&
                       (core.settings.getLocalEnabled() || core.settings.getRemoteKeyboardControlEnabled()))
@@ -325,6 +348,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.androidIntentAction = null;
                                       _keyPair.command = null;
                                       _keyPair.screenshotPath = null;
 
@@ -349,6 +373,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.androidIntentAction = null;
                                       _keyPair.command = null;
                                       _keyPair.screenshotPath = null;
 
@@ -370,6 +395,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.androidIntentAction = null;
                                       _keyPair.command = null;
                                       _keyPair.screenshotPath = null;
 
@@ -394,6 +420,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.androidIntentAction = null;
                                       _keyPair.command = null;
                                       _keyPair.screenshotPath = null;
 
@@ -415,6 +442,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.androidIntentAction = null;
                                       _keyPair.command = null;
                                       _keyPair.screenshotPath = null;
 
@@ -443,6 +471,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
+                                      _keyPair.androidIntentAction = null;
                                       _keyPair.command = null;
                                       _keyPair.screenshotPath = null;
 
@@ -492,6 +521,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                             return;
                                           }
                                           _keyPair.androidAction = action;
+                                          _keyPair.androidIntentAction = null;
                                           _keyPair.physicalKey = null;
                                           _keyPair.logicalKey = null;
                                           _keyPair.modifiers = [];
@@ -513,37 +543,53 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         },
                       ),
                     ),
-                  if (core.logic.showLocalControl && core.actionHandler is AndroidActions)
-                    Builder(
-                      builder: (context) => SelectableCard(
-                        icon: Icons.assistant_outlined,
-                        isActive:
-                            _keyPair.androidAction == AndroidSystemAction.assistant && core.settings.getLocalEnabled(),
-                        title: Text(AndroidSystemAction.assistant.title),
-                        value: _keyPair.androidAction == AndroidSystemAction.assistant
-                            ? _keyPair.androidAction?.title
-                            : null,
-                        isProOnly: true,
-                        onPressed: () {
-                          _keyPair.androidAction = AndroidSystemAction.assistant;
-                          _keyPair.physicalKey = null;
-                          _keyPair.logicalKey = null;
-                          _keyPair.modifiers = [];
-                          _keyPair.touchPosition = Offset.zero;
-                          _keyPair.inGameAction = null;
-                          _keyPair.inGameActionValue = null;
-                          _keyPair.command = null;
-                          _keyPair.screenshotPath = null;
-                          setState(() {});
-                          widget.onUpdate();
-                        },
-                      ),
+                ],
+
+                if (defaultTargetPlatform == TargetPlatform.android) ...[
+                  Builder(
+                    builder: (context) => SelectableCard(
+                      icon: Icons.assistant_outlined,
+                      isActive:
+                          _keyPair.androidAction == AndroidSystemAction.assistant && core.settings.getLocalEnabled(),
+                      title: Text(AndroidSystemAction.assistant.title),
+                      value: _keyPair.androidAction == AndroidSystemAction.assistant
+                          ? _keyPair.androidAction?.title
+                          : null,
+                      isProOnly: true,
+                      onPressed: () {
+                        _keyPair.androidAction = AndroidSystemAction.assistant;
+                        _keyPair.androidIntentAction = null;
+                        _keyPair.physicalKey = null;
+                        _keyPair.logicalKey = null;
+                        _keyPair.modifiers = [];
+                        _keyPair.touchPosition = Offset.zero;
+                        _keyPair.inGameAction = null;
+                        _keyPair.inGameActionValue = null;
+                        _keyPair.command = null;
+                        _keyPair.screenshotPath = null;
+                        setState(() {});
+                        widget.onUpdate();
+                      },
                     ),
+                  ),
+                  Builder(
+                    builder: (context) => SelectableCard(
+                      icon: Icons.broadcast_on_home_outlined,
+                      isProOnly: true,
+                      isActive: _keyPair.androidIntentAction?.trim().isNotEmpty == true,
+                      title: Text(context.i18n.broadcastIntent),
+                      subtitle: Text(context.i18n.broadcastIntentDesc).xSmall.muted,
+                      value: _keyPair.fullAndroidIntentAction,
+                      onPressed: () async {
+                        await _showCustomIntentDialog(context);
+                      },
+                    ),
+                  ),
                 ],
 
                 if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: 'Other Actions'),
+                  ColoredTitle(text: context.i18n.otherActions),
                   SelectableCard(
                     isProOnly: true,
                     title: Text(Platform.isMacOS || Platform.isIOS ? 'Launch Shortcut' : 'Run Command'),
@@ -557,7 +603,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   if (Platform.isMacOS || Platform.isWindows)
                     SelectableCard(
                       isProOnly: true,
-                      title: Text('Take Screenshot'),
+                      title: Text(context.i18n.takeScreenshot),
                       icon: Icons.image_outlined,
                       isActive: _keyPair.screenshotPath?.trim().isNotEmpty == true,
                       value: _keyPair.screenshotPath,
@@ -569,11 +615,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (core.connection.accessories.isNotEmpty) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: 'Accessory Actions'),
+                  ColoredTitle(text: context.i18n.accessoryActions),
                   Builder(
                     builder: (context) => SelectableCard(
                       icon: Icons.air,
-                      title: Text('KICKR Headwind'),
+                      title: Text(context.i18n.kickrHeadwind),
                       isActive:
                           _keyPair.inGameAction != null &&
                           (_keyPair.inGameAction == InGameAction.headwindSpeed ||
@@ -594,11 +640,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 subMenu: [0, 25, 50, 75, 100]
                                     .map(
                                       (value) => MenuButton(
-                                        child: Text('Set Speed to $value%'),
+                                        child: Text(context.i18n.setHeadwindSpeedTo(value)),
                                         onPressed: (_) {
                                           _keyPair.inGameAction = InGameAction.headwindSpeed;
                                           _keyPair.inGameActionValue = value;
                                           _keyPair.androidAction = null;
+                                          _keyPair.androidIntentAction = null;
                                           _keyPair.command = null;
                                           _keyPair.screenshotPath = null;
                                           widget.onUpdate();
@@ -607,14 +654,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                       ),
                                     )
                                     .toList(),
-                                child: Text('Set Speed'),
+                                child: Text(context.i18n.setSpeed),
                               ),
                               MenuButton(
-                                child: Text('Increase Speed'),
+                                child: Text(context.i18n.increaseSpeed),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedInc;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
+                                  _keyPair.androidIntentAction = null;
                                   _keyPair.command = null;
                                   _keyPair.screenshotPath = null;
                                   widget.onUpdate();
@@ -622,11 +670,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Decrease Speed'),
+                                child: Text(context.i18n.decreaseSpeed),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedDec;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
+                                  _keyPair.androidIntentAction = null;
                                   _keyPair.command = null;
                                   _keyPair.screenshotPath = null;
                                   widget.onUpdate();
@@ -634,11 +683,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Increase Speed Cyclically'),
+                                child: Text(context.i18n.increaseSpeedCyclic),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedCyclicInc;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
+                                  _keyPair.androidIntentAction = null;
                                   _keyPair.command = null;
                                   _keyPair.screenshotPath = null;
                                   widget.onUpdate();
@@ -646,11 +696,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Decrease Speed Cyclically'),
+                                child: Text(context.i18n.decreaseSpeedCyclic),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindSpeedCyclicDec;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
+                                  _keyPair.androidIntentAction = null;
                                   _keyPair.command = null;
                                   _keyPair.screenshotPath = null;
                                   widget.onUpdate();
@@ -658,11 +709,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                 },
                               ),
                               MenuButton(
-                                child: Text('Set to Heart Rate Mode'),
+                                child: Text(context.i18n.setHeartRateMode),
                                 onPressed: (_) {
                                   _keyPair.inGameAction = InGameAction.headwindHeartRateMode;
                                   _keyPair.inGameActionValue = null;
                                   _keyPair.androidAction = null;
+                                  _keyPair.androidIntentAction = null;
                                   _keyPair.command = null;
                                   _keyPair.screenshotPath = null;
                                   widget.onUpdate();
@@ -678,8 +730,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ],
 
                 SizedBox(height: 8),
-                ColoredTitle(text: context.i18n.setting),
-                SizedBox(height: 8),
                 DestructiveButton(
                   onPressed: () {
                     _keyPair.physicalKey = null;
@@ -689,6 +739,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     _keyPair.inGameAction = null;
                     _keyPair.inGameActionValue = null;
                     _keyPair.androidAction = null;
+                    _keyPair.androidIntentAction = null;
                     _keyPair.command = null;
                     _keyPair.screenshotPath = null;
                     widget.onUpdate();
@@ -716,7 +767,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         builder: (context) {
           return SelectableCard(
             icon: action.icon,
-            title: Text(action.title),
+            title: Text(switch (action) {
+              InGameAction.shiftUp => 'Trainer: Gear Up / ERG up',
+              InGameAction.shiftDown => 'Trainer: Gear Up / ERG down',
+              _ => action.title,
+            }),
             subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
                 ? Text(_keyPair.inGameActionValue!.toString())
                 : action.alternativeTitle != null
@@ -737,6 +792,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             _keyPair.physicalKey = null;
                             _keyPair.logicalKey = null;
                             _keyPair.androidAction = null;
+                            _keyPair.androidIntentAction = null;
                             _keyPair.command = null;
                             _keyPair.screenshotPath = null;
                             _keyPair.inGameAction = action;
@@ -754,6 +810,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 _keyPair.physicalKey = null;
                 _keyPair.logicalKey = null;
                 _keyPair.androidAction = null;
+                _keyPair.androidIntentAction = null;
                 _keyPair.command = null;
                 _keyPair.screenshotPath = null;
                 _keyPair.inGameAction = action;
@@ -769,6 +826,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   Future<void> _showCommandDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     if (Platform.isWindows) {
       final result = await FilePicker.platform.pickFiles(
         dialogTitle: 'Select command to run',
@@ -780,7 +838,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       }
       final selectedPath = result.files.single.path?.trim();
       if (selectedPath == null || selectedPath.isEmpty) {
-        buildToast(title: 'No executable file selected');
+        buildToast(title: l10n.noExecutableSelected);
         return;
       }
       _setCommand(selectedPath);
@@ -792,7 +850,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       context: context,
       builder: (context) => SafeArea(
         child: AlertDialog(
-          title: Text('Launch Shortcut'),
+          title: Text(context.i18n.launchShortcut),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -800,14 +858,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             children: [
               TextField(
                 controller: controller,
-                hintText: 'Shortcut name',
+                hintText: context.i18n.shortcutNameHint,
                 autofocus: true,
                 onTapOutside: (_) {
                   FocusScope.of(context).unfocus();
                 },
               ),
               if (Platform.isMacOS)
-                Text('Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.').small
+                Text(context.i18n.launchShortcutDesc).small
               else
                 Text(
                   'Note that Shortcuts on iOS are very limited: BikeControl needs to be in the foreground when you want to run the command, and your shortcut should have "Open BikeControl" as its first action so BikeControl can continue to trigger shortcuts.',
@@ -853,6 +911,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       _keyPair.inGameAction = null;
       _keyPair.inGameActionValue = null;
       _keyPair.androidAction = null;
+      _keyPair.androidIntentAction = null;
     }
 
     widget.onUpdate();
@@ -860,17 +919,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   Future<void> _showScreenshotDialog() async {
+    final l10n = AppLocalizations.of(context);
     final selectedPath = Directory.current.path;
 
     final path = selectedPath.trim();
     if (path.isEmpty) {
-      buildToast(title: 'No path selected');
+      buildToast(title: l10n.noPathSelected);
       return;
     }
 
     final hasWriteAccess = await _ensureScreenshotDirectoryWritable(path);
     if (!hasWriteAccess) {
-      buildToast(title: 'Cannot write to this folder. Please grant write permission and try again.');
+      buildToast(title: l10n.cannotWriteFolder);
       return;
     }
 
@@ -902,6 +962,95 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
     if (_keyPair.screenshotPath != null) {
       _keyPair.command = null;
+      _keyPair.physicalKey = null;
+      _keyPair.logicalKey = null;
+      _keyPair.modifiers = [];
+      _keyPair.touchPosition = Offset.zero;
+      _keyPair.inGameAction = null;
+      _keyPair.inGameActionValue = null;
+      _keyPair.androidAction = null;
+      _keyPair.androidIntentAction = null;
+    }
+
+    widget.onUpdate();
+    setState(() {});
+  }
+
+  Future<void> _showCustomIntentDialog(BuildContext context) async {
+    final controller = TextEditingController(text: _keyPair.androidIntentAction ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: AlertDialog(
+          title: Text(context.i18n.broadcastIntent),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 10,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 8,
+                children: [
+                  Text(KeyPair.intentActionPrefix).muted,
+                  Expanded(
+                    child: TextField(
+                      controller: controller,
+                      hintText: context.i18n.intentSuffixHint,
+                      autofocus: true,
+                      onTapOutside: (_) {
+                        FocusScope.of(context).unfocus();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                context.i18n.broadcastIntentExplanation(KeyPair.intentActionPrefix),
+              ).xSmall,
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.i18n.cancel),
+            ),
+            if (_keyPair.androidIntentAction?.trim().isNotEmpty == true)
+              TextButton(
+                onPressed: () => Navigator.pop(context, ''),
+                child: Text('Clear'),
+              ),
+            TextButton(
+              onPressed: () async {
+                if (!await IAPManager.instance.ensureProForFeature(context)) {
+                  return;
+                }
+                if (context.mounted) Navigator.pop(context, controller.text);
+              },
+              child: Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    var action = result.trim();
+    if (action.startsWith(KeyPair.intentActionPrefix)) {
+      action = action.substring(KeyPair.intentActionPrefix.length);
+    }
+    _setAndroidIntentAction(action.isEmpty ? null : action);
+  }
+
+  void _setAndroidIntentAction(String? value) {
+    _keyPair.androidIntentAction = value;
+
+    if (_keyPair.androidIntentAction != null) {
+      _keyPair.command = null;
+      _keyPair.screenshotPath = null;
       _keyPair.physicalKey = null;
       _keyPair.logicalKey = null;
       _keyPair.modifiers = [];
@@ -995,6 +1144,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   _keyPair.inGameAction = keyPairAction.inGameAction;
                   _keyPair.inGameActionValue = keyPairAction.inGameActionValue;
                   _keyPair.androidAction = null;
+                  _keyPair.androidIntentAction = null;
                   _keyPair.command = keyPairAction.command;
                   _keyPair.screenshotPath = keyPairAction.screenshotPath;
                   setState(() {});
@@ -1018,13 +1168,13 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
               );
             }),
             MenuDivider(),
-            MenuLabel(child: Text('Custom ${supportedMode.name.capitalize()} action')),
+            MenuLabel(child: Text(context.i18n.customModeAction(supportedMode.name.capitalize()))),
             MenuButton(
               leading: Icon(Icons.edit_outlined),
               onPressed: (_) {
                 _editAction(supportedMode);
               },
-              child: Text('Custom'),
+              child: Text(context.i18n.customLabel),
             ),
           ],
         ),
@@ -1046,6 +1196,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ),
       );
       _keyPair.androidAction = null;
+      _keyPair.androidIntentAction = null;
       _keyPair.command = null;
       _keyPair.screenshotPath = null;
       setState(() {});
@@ -1057,6 +1208,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       _keyPair.physicalKey = null;
       _keyPair.logicalKey = null;
       _keyPair.androidAction = null;
+      _keyPair.androidIntentAction = null;
       _keyPair.command = null;
       _keyPair.screenshotPath = null;
       await context.push(TouchAreaSetupPage(keyPair: _keyPair));

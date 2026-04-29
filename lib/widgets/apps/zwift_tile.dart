@@ -9,9 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:prop/prop.dart';
 
 class ZwiftTile extends StatefulWidget {
+  final bool small;
   final VoidCallback onUpdate;
 
-  const ZwiftTile({super.key, required this.onUpdate});
+  const ZwiftTile({super.key, required this.onUpdate, required this.small});
 
   @override
   State<ZwiftTile> createState() => _ZwiftTileState();
@@ -30,6 +31,7 @@ class _ZwiftTileState extends State<ZwiftTile> {
               builder: (context, setState) {
                 final isRouvy = core.settings.getTrainerApp() is Rouvy;
                 return ConnectionMethod(
+                  small: widget.small,
                   trainerConnection: core.zwiftEmulator,
                   isRecommended: true,
                   supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.zwiftBle),

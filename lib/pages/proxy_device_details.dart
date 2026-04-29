@@ -1,0 +1,297 @@
+import 'dart:async';
+
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
+import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
+import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
+import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
+import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/telemetry_snapshot.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/status_icon.dart';
+import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/emulators/dircon_emulator.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+class ProxyDeviceDetailsPage extends StatefulWidget {
+  final ProxyDevice device;
+  const ProxyDeviceDetailsPage({super.key, required this.device});
+
+  @override
+  State<ProxyDeviceDetailsPage> createState() => _ProxyDeviceDetailsPageState();
+}
+
+class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
+  late StreamSubscription<BaseDevice> _connectionSub;
+
+  void _onEmulatorStateChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    widget.device.emulator.isStarted.addListener(_onEmulatorStateChanged);
+    widget.device.onChange.addListener(_onEmulatorStateChanged);
+    widget.device.emulator.isConnected.addListener(_onEmulatorStateChanged);
+    widget.device.emulator.retrofitMode.addListener(_onEmulatorStateChanged);
+    _connectionSub = core.connection.connectionStream.listen((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectionSub.cancel();
+    widget.device.emulator.isStarted.removeListener(_onEmulatorStateChanged);
+    widget.device.onChange.removeListener(_onEmulatorStateChanged);
+    widget.device.emulator.isConnected.removeListener(_onEmulatorStateChanged);
+    widget.device.emulator.retrofitMode.removeListener(_onEmulatorStateChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final device = widget.device;
+
+    return Scaffold(
+      headers: [
+        AppBar(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          leading: [
+            IconButton.ghost(
+              icon: const Icon(LucideIcons.arrowLeft, size: 24),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+          title: Text(
+            AppLocalizations.of(context).smartTrainer,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
+          ),
+          trailing: [
+            IconButton.ghost(
+              icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+          backgroundColor: Theme.of(context).colorScheme.background,
+        ),
+        const Divider(),
+      ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _deviceCard(),
+                SizedBox(height: 12),
+                if (!screenshotMode)
+                  Button(
+                    style: ButtonStyle.primary(),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => SupportChatPage(
+                            telemetryBuilder: () async => TelemetrySnapshot.fromDevice(device: device),
+                          ),
+                        ),
+                      );
+                    },
+                    leading: const Icon(LucideIcons.messageSquare, size: 18),
+                    child: Text(context.i18n.chatWithSupport),
+                  ),
+                SizedBox(height: 12),
+                if (_ftmsMissingWarning() case final w?) ...[
+                  w,
+                  SizedBox(height: 12),
+                ],
+
+                if (!screenshotMode) ...[
+                  ConnectionCard(device: device),
+                  SizedBox(height: 12),
+                  if (_bridgeStatusRow() case final w?) ...[
+                    w,
+                    SizedBox(height: 12),
+                  ],
+                ],
+                _gearSection(),
+                SizedBox(height: 20),
+                if (!IAPManager.instance.isProEnabledForCurrentDevice &&
+                    widget.device.emulator.activeDefinition is FitnessBikeDefinition &&
+                    !screenshotMode) ...[
+                  ValueListenableBuilder<Duration>(
+                    valueListenable: core.bridgeUsageTracker.usedTodayListenable,
+                    builder: (context, used, _) {
+                      final remaining = core.bridgeUsageTracker.dailyLimit - used;
+                      final clamped = remaining.isNegative ? Duration.zero : remaining;
+                      return VirtualShiftingProNotice(
+                        trainerAppName: core.settings.getTrainerApp()?.name ?? AppLocalizations.of(context).yourTrainerApp,
+                        remainingToday: clamped,
+                      );
+                    },
+                  ),
+                  SizedBox(height: 26),
+                ],
+                LiveMetricsSection(device: device),
+                SizedBox(height: 20),
+                MiniWorkoutCard(device: device),
+                SizedBox(height: 20),
+                _settingsSection(),
+                SizedBox(height: 32),
+                _actions(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget? _ftmsMissingWarning() {
+    final services = widget.device.scanResult.services.map((s) => s.toLowerCase()).toSet();
+    final ftms = FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase();
+    if (services.contains(ftms)) return null;
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cs.muted,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: cs.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 10,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context).trainerMissingFtmsWarning(widget.device.name),
+              style: TextStyle(fontSize: 12, color: cs.foreground),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bridge (trainer-app-side) connection status. Mirrors the row shown for
+  /// each proxy on the Overview page: green dot when the trainer app has
+  /// actually connected to our advertised bridge, muted otherwise. Hidden
+  /// while the bridge isn't started so the disconnected ConnectionCard remains
+  /// the obvious primary action.
+  Widget? _bridgeStatusRow() {
+    final emulator = widget.device.emulator;
+    if (!emulator.isStarted.value) return null;
+    final cs = Theme.of(context).colorScheme;
+    final connected = emulator.isConnected.value;
+    final mode = emulator.retrofitMode.value;
+    final IconData icon = switch (mode) {
+      RetrofitMode.bluetooth => LucideIcons.bluetooth,
+      RetrofitMode.wifi => LucideIcons.wifi,
+      RetrofitMode.proxy => LucideIcons.radioTower,
+    };
+    final advertisement = emulator.advertisementName;
+    final subtitle = AppLocalizations.of(context).chooseBikeControlInConnectionScreen.replaceAll(
+      screenshotMode ? '1337' : 'BikeControl',
+      advertisement,
+    );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cs.border),
+      ),
+      child: Basic(
+        leading: StatusIcon(icon: icon, status: connected, started: emulator.isStarted.value),
+        title: connected
+            ? Text('Bridge (${widget.device.toString()})').small.semiBold
+            : Text('Bridge (${widget.device.toString()})').small.muted,
+        subtitle: Text(subtitle).xSmall.textMuted,
+      ),
+    );
+  }
+
+  Widget _deviceCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.card,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Theme.of(context).colorScheme.border),
+      ),
+      child: widget.device.showInformation(context, showFull: true),
+    );
+  }
+
+  Widget _gearSection() {
+    final def = widget.device.emulator.activeDefinition;
+    if (def is! FitnessBikeDefinition) return const SizedBox.shrink();
+    return GearHeroCard(definition: def);
+  }
+
+  Widget _settingsSection() {
+    final def = widget.device.emulator.activeDefinition;
+    if (def is! FitnessBikeDefinition) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 10,
+      children: [
+        Text(
+          AppLocalizations.of(context).virtualShiftingSettings,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+        ),
+        TrainerSettingsSection(definition: def, device: widget.device),
+      ],
+    );
+  }
+
+  Widget _actions() {
+    final device = widget.device;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        LoadingWidget(
+          futureCallback: () async {
+            await core.settings.setAutoConnect(device.trainerKey, false);
+            await core.connection.disconnect(device, forget: false, persistForget: false);
+            if (mounted) Navigator.of(context).pop();
+          },
+          renderChild: (isLoading, tap) => Button(
+            style: ButtonStyle.outline(),
+            onPressed: tap,
+            leading: isLoading ? const SmallProgressIndicator() : const Icon(LucideIcons.bluetoothOff, size: 18),
+            child: Text(AppLocalizations.of(context).disconnectAndForgetForThisSession),
+          ),
+        ),
+        LoadingWidget(
+          futureCallback: () async {
+            await core.settings.setAutoConnect(device.trainerKey, false);
+            await core.connection.disconnect(device, forget: true, persistForget: true);
+            if (mounted) Navigator.of(context).pop();
+          },
+          renderChild: (isLoading, tap) => Button(
+            style: ButtonStyle.destructive(),
+            onPressed: tap,
+            leading: isLoading ? const SmallProgressIndicator() : const Icon(LucideIcons.trash2, size: 18),
+            child: Text(AppLocalizations.of(context).disconnectAndForget),
+          ),
+        ),
+      ],
+    );
+  }
+}

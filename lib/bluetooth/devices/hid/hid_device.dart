@@ -9,53 +9,56 @@ import 'package:flutter/material.dart' show PopupMenuButton, PopupMenuItem;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class HidDevice extends BaseDevice {
-  HidDevice(super.name)
+  HidDevice(super.name, {String? uniqueId})
     : super(
         availableButtons: [],
-        uniqueId: name!,
+        uniqueId: uniqueId ?? name!,
         supportsLongPress: false,
         icon: LucideIcons.gamepad2,
       );
 
   @override
   Future<void> connect() {
+    isConnected = true;
     return Future.value(null);
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull}) {
-    return Column(
+  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(child: Text(toString()).bold),
-            PopupMenuButton(
-              itemBuilder: (c) => [
-                PopupMenuItem(
-                  child: Text('Ignore'),
-                  onTap: () {
-                    core.connection.disconnect(this, forget: true, persistForget: true);
-                    if (core.actionHandler is AndroidActions) {
-                      (core.actionHandler as AndroidActions).ignoreHidDevices();
-                    } else if (core.mediaKeyHandler.isMediaKeyDetectionEnabled.value) {
-                      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = false;
-                      core.settings.setMediaKeyDetectionEnabled(false);
-                    }
-                  },
-                ),
-              ],
+        Expanded(child: super.showInformation(context, showFull: true, footer: footer)),
+        PopupMenuButton(
+          itemBuilder: (c) => [
+            PopupMenuItem(
+              child: Text('Ignore'),
+              onTap: () {
+                core.connection.disconnect(this, forget: true, persistForget: true);
+                if (core.actionHandler is AndroidActions) {
+                  (core.actionHandler as AndroidActions).ignoreHidDevices();
+                } else if (core.mediaKeyHandler.isMediaKeyDetectionEnabled.value) {
+                  core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = false;
+                  core.settings.setMediaKeyDetectionEnabled(false);
+                }
+              },
             ),
           ],
         ),
-        if (Platform.isAndroid && !core.settings.getLocalEnabled())
-          Warning(
-            children: [
-              Text(
-                AppLocalizations.of(context).androidAccessibilityHint,
-              ).xSmall,
-            ],
-          ),
       ],
     );
+  }
+
+  @override
+  List<Widget> showAdditionalInformation(BuildContext context) {
+    return [
+      if (Platform.isAndroid && !core.settings.getLocalEnabled())
+        Warning(
+          children: [
+            Text(
+              AppLocalizations.of(context).androidAccessibilityHint,
+            ).xSmall,
+          ],
+        ),
+    ];
   }
 }

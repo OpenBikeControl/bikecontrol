@@ -4,9 +4,9 @@ import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:media_key_detector/media_key_detector.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'smtc_stub.dart' if (dart.library.io) 'package:smtc_windows/smtc_windows.dart';
 
@@ -27,7 +27,14 @@ class MediaKeyHandler {
           mediaKeyDetector.setIsPlaying(isPlaying: false);
           mediaKeyDetector.removeListener(_onMediaKeyDetectedListener);
         }
+        final hidDevice = core.connection.controllerDevices.firstOrNullWhere(
+          (e) => e is HidDevice && e.uniqueId == 'HID Device',
+        );
+        if (hidDevice != null) {
+          core.connection.disconnect(hidDevice, persistForget: false, forget: false);
+        }
       } else {
+        _ensureHidDevice();
         FlutterVolumeController.addListener(
           (volume) {
             _lastVolume ??= volume;
@@ -87,22 +94,37 @@ class MediaKeyHandler {
     });
   }
 
-  bool _onMediaKeyDetectedListener(MediaKey mediaKey) {
-    final hidDevice = HidDevice('HID Device');
-
-    var availableDevice = core.connection.controllerDevices.firstOrNullWhere(
-      (e) => e.toString() == hidDevice.toString(),
+  HidDevice _ensureHidDevice() {
+    // Display label is "Bluetooth Media Remote", but the uniqueId stays
+    // "HID Device" so keymaps saved before the rename keep matching.
+    final hidDevice = HidDevice('Bluetooth Media Remote', uniqueId: 'HID Device');
+    final existing = core.connection.controllerDevices.firstOrNullWhere(
+      (e) => e is HidDevice && e.uniqueId == hidDevice.uniqueId,
     );
-    if (availableDevice == null) {
-      core.connection.addDevices([hidDevice]);
-      availableDevice = hidDevice;
+    if (existing is HidDevice) {
+      return existing;
     }
+    core.connection.addDevices([hidDevice]);
+    return hidDevice;
+  }
+
+  bool _onMediaKeyDetectedListener(MediaKey mediaKey) {
+    final availableDevice = _ensureHidDevice();
 
     final keyPressed = mediaKey.name;
 
     final button = availableDevice.getOrAddButton(
       keyPressed,
-      () => ControllerButton(keyPressed),
+      () => ControllerButton(
+        keyPressed,
+        icon: switch (mediaKey) {
+          MediaKey.playPause => LucideIcons.play,
+          MediaKey.fastForward => LucideIcons.skipForward,
+          MediaKey.rewind => LucideIcons.skipBack,
+          MediaKey.volumeUp => Icons.volume_up_outlined,
+          MediaKey.volumeDown => Icons.volume_down,
+        },
+      ),
     );
 
     // Send press followed by release. HidDevice has supportsLongPress: false,

@@ -109,6 +109,20 @@ class AndroidActions extends BaseActions {
       return Success("Global action: ${keyPair.androidAction!.title}");
     }
 
+    final intentAction = keyPair.fullAndroidIntentAction;
+    if (intentAction != null) {
+      if (!isKeyDown) {
+        return Ignored('Custom intent ignored');
+      }
+      try {
+        await AndroidIntent(action: intentAction).sendBroadcast();
+      } on PlatformException catch (e) {
+        return Error('Could not broadcast intent "$intentAction": ${e.message}');
+      }
+      await IAPManager.instance.incrementCommandCount();
+      return Success("Custom intent broadcast: $intentAction");
+    }
+
     final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: windowInfo);
     if (point != Offset.zero) {
       try {

@@ -98,6 +98,7 @@ class Keymap {
           inGameAction: existing.inGameAction,
           inGameActionValue: existing.inGameActionValue,
           androidAction: existing.androidAction,
+          androidIntentAction: existing.androidIntentAction,
           command: existing.command,
           screenshotPath: existing.screenshotPath,
         );
@@ -147,6 +148,7 @@ class Keymap {
     keyPair.inGameAction = null;
     keyPair.inGameActionValue = null;
     keyPair.androidAction = null;
+    keyPair.androidIntentAction = null;
     keyPair.command = null;
     keyPair.screenshotPath = null;
   }
@@ -175,7 +177,8 @@ class Keymap {
       );
       return button;
     } else {
-      return allButtons.firstWhere((b) => b.name == name);
+      final found = allButtons.firstWhere((b) => b.name == name);
+      return found.copyWith(icon: found.icon ?? button.icon);
     }
   }
 
@@ -203,6 +206,7 @@ class Keymap {
               (button.action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
           inGameActionValue: buttonFromBase?.inGameActionValue,
           androidAction: buttonFromBase?.androidAction,
+          androidIntentAction: buttonFromBase?.androidIntentAction,
           command: buttonFromBase?.command,
           screenshotPath: buttonFromBase?.screenshotPath,
         ),
@@ -216,6 +220,8 @@ class Keymap {
 }
 
 class KeyPair {
+  static const String intentActionPrefix = 'app.bikecontrol.trigger.';
+
   final List<ControllerButton> buttons;
   PhysicalKeyboardKey? physicalKey;
   LogicalKeyboardKey? logicalKey;
@@ -225,6 +231,7 @@ class KeyPair {
   InGameAction? inGameAction;
   int? inGameActionValue;
   AndroidSystemAction? androidAction;
+  String? androidIntentAction;
   String? command;
   String? screenshotPath;
 
@@ -239,6 +246,7 @@ class KeyPair {
     this.inGameAction,
     this.inGameActionValue,
     this.androidAction,
+    this.androidIntentAction,
     this.command,
     this.screenshotPath,
   }) {
@@ -247,7 +255,15 @@ class KeyPair {
     }
   }
 
+  String? get fullAndroidIntentAction {
+    final suffix = androidIntentAction?.trim();
+    if (suffix == null || suffix.isEmpty) return null;
+    return '$intentActionPrefix$suffix';
+  }
+
   bool get isLongPress => trigger == ButtonTrigger.longPress;
+
+  bool get doesNotNeedTrainerConnection => inGameAction?.isOutsideTrainerApp == true || androidIntentAction != null;
 
   set isLongPress(bool value) {
     if (value) {
@@ -281,7 +297,11 @@ class KeyPair {
           when inGameAction != null &&
               inGameAction!.icon != null &&
               (core.logic.emulatorEnabled ||
-                  [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)) =>
+                  [
+                    InGameAction.headwindHeartRateMode,
+                    InGameAction.headwindSpeed,
+                    ...trainerActions,
+                  ].contains(inGameAction!)) =>
         inGameAction!.icon,
 
       _ when screenshotPath != null && screenshotPath!.trim().isNotEmpty => Icons.image_outlined,
@@ -293,6 +313,11 @@ class KeyPair {
               core.settings.getLocalEnabled() &&
               core.actionHandler is AndroidActions =>
         androidAction!.icon,
+      _
+          when androidIntentAction != null &&
+              androidIntentAction!.trim().isNotEmpty &&
+              defaultTargetPlatform == TargetPlatform.android =>
+        Icons.broadcast_on_home_outlined,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
         RadixIcons.keyboard,
       _
@@ -311,6 +336,7 @@ class KeyPair {
       touchPosition == Offset.zero &&
       inGameAction == null &&
       androidAction == null &&
+      (androidIntentAction == null || androidIntentAction!.trim().isEmpty) &&
       (screenshotPath == null || screenshotPath!.trim().isEmpty) &&
       (command == null || command!.trim().isEmpty);
 
@@ -327,6 +353,10 @@ class KeyPair {
           core.logic.showLocalControl &&
           core.settings.getLocalEnabled() &&
           core.actionHandler is AndroidActions) ||
+      (androidIntentAction != null &&
+          androidIntentAction!.trim().isNotEmpty &&
+          core.logic.showLocalControl &&
+          defaultTargetPlatform == TargetPlatform.android) ||
       (touchPosition != Offset.zero &&
           core.logic.showLocalRemoteOptions &&
           core.actionHandler.supportedModes.contains(SupportedMode.touch)) ||
@@ -346,6 +376,9 @@ class KeyPair {
           core.settings.getZwiftMdnsEmulatorEnabled() &&
           core.zwiftMdnsEmulator.supportedActions.contains(inGameAction)) ||
       (inGameAction != null &&
+          core.logic.isDi2BleEnabled &&
+          core.di2Emulator.supportedActions.contains(inGameAction)) ||
+      (inGameAction != null &&
           [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction) &&
           (core.connection.accessories.isNotEmpty || kDebugMode)) ||
       (screenshotPath != null && screenshotPath!.trim().isNotEmpty) ||
@@ -353,16 +386,17 @@ class KeyPair {
 
   @override
   String toString() {
-    final text =
-        (inGameAction != null &&
-            (core.logic.emulatorEnabled ||
-                [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction!)))
+    final text = (inGameAction != null && (core.logic.emulatorEnabled || inGameAction!.isOutsideTrainerApp))
         ? [
             inGameAction!.title,
             if (inGameActionValue != null) '$inGameActionValue',
           ].joinToString(separator: ': ')
         : (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions)
         ? androidAction!.title
+        : (androidIntentAction != null &&
+              androidIntentAction!.trim().isNotEmpty &&
+              defaultTargetPlatform == TargetPlatform.android)
+        ? fullAndroidIntentAction!
         : (screenshotPath != null && screenshotPath!.trim().isNotEmpty)
         ? screenshotPath!
         : (command != null && command!.trim().isNotEmpty)
@@ -412,20 +446,29 @@ class KeyPair {
     return '${modifierStrings.join('+')}+$baseKey';
   }
 
+  /// Serialise a [ControllerButton] for storage. Emits a plain string when
+  /// only the name is needed (legacy format), or a map carrying `deviceId`.
+  ///
+  /// We deliberately don't persist the `IconData` here: known
+  /// [ControllerButton.values] restore their const icon by name on decode,
+  /// and reconstructing an `IconData` from a JSON-decoded codePoint at
+  /// runtime would defeat Flutter's icon-font tree-shaker. Unknown buttons
+  /// stay icon-less — same as before this serialisation existed.
+  static dynamic _encodeButton(ControllerButton e) {
+    if (e.sourceDeviceId == null) {
+      return e.name;
+    }
+    return {
+      'name': e.name,
+      'deviceId': e.sourceDeviceId,
+    };
+  }
+
   String encode() {
     // encode to save in preferences
 
     return jsonEncode({
-      'actions': buttons
-          .map(
-            (e) => e.sourceDeviceId == null
-                ? e.name
-                : {
-                    'name': e.name,
-                    'deviceId': e.sourceDeviceId,
-                  },
-          )
-          .toList(),
+      'actions': buttons.map(_encodeButton).toList(),
       if (logicalKey != null) 'logicalKey': logicalKey?.keyId.toString(),
       if (physicalKey != null) 'physicalKey': physicalKey?.usbHidUsage.toString() ?? '0',
       if (modifiers.isNotEmpty) 'modifiers': modifiers.map((e) => e.name).toList(),
@@ -436,6 +479,7 @@ class KeyPair {
       'inGameAction': inGameAction?.name,
       'inGameActionValue': inGameActionValue,
       'androidAction': androidAction?.name,
+      'androidIntentAction': androidIntentAction,
       'command': command,
       'screenshotPath': screenshotPath,
     });
@@ -468,6 +512,10 @@ class KeyPair {
         return null;
       }
 
+      // Known buttons get their const icon back automatically because
+      // ControllerButton.values carries it in the static definition. We
+      // never reconstruct an IconData from the encoded payload — that
+      // would block icon-font tree-shaking.
       final baseButton = ControllerButton.values.firstOrNullWhere((element) => element.name == name);
 
       if (baseButton != null) {
@@ -496,6 +544,7 @@ class KeyPair {
     final rawCommand = decoded['command']?.toString().trim();
     final rawScreenshotPath = decoded['screenshotPath']?.toString().trim();
     final rawLegacyShortcutName = decoded['shortcutName']?.toString().trim();
+    final rawAndroidIntentAction = decoded['androidIntentAction']?.toString().trim();
 
     final decodedTrigger = decoded.containsKey('trigger')
         ? ButtonTrigger.values.firstOrNullWhere((element) => element.name == decoded['trigger'])
@@ -520,6 +569,9 @@ class KeyPair {
       androidAction: decoded.containsKey('androidAction')
           ? AndroidSystemAction.values.firstOrNullWhere((element) => element.name == decoded['androidAction'])
           : null,
+      androidIntentAction: rawAndroidIntentAction != null && rawAndroidIntentAction.isNotEmpty
+          ? rawAndroidIntentAction
+          : null,
       command: rawCommand != null && rawCommand.isNotEmpty
           ? rawCommand
           : (rawLegacyShortcutName != null && rawLegacyShortcutName.isNotEmpty ? rawLegacyShortcutName : null),
@@ -540,6 +592,7 @@ class KeyPair {
           inGameAction == other.inGameAction &&
           inGameActionValue == other.inGameActionValue &&
           androidAction == other.androidAction &&
+          androidIntentAction == other.androidIntentAction &&
           command == other.command &&
           screenshotPath == other.screenshotPath;
 
@@ -553,6 +606,7 @@ class KeyPair {
     inGameAction,
     inGameActionValue,
     androidAction,
+    androidIntentAction,
     command,
     screenshotPath,
   );
@@ -561,7 +615,11 @@ class KeyPair {
       command != null && command!.trim().isNotEmpty ||
       screenshotPath != null && screenshotPath!.trim().isNotEmpty ||
       isSpecialKey ||
-      (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions);
+      (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions) ||
+      (androidIntentAction != null &&
+          androidIntentAction!.trim().isNotEmpty &&
+          core.logic.showLocalControl &&
+          core.actionHandler is AndroidActions);
 }
 
 enum ButtonTrigger {

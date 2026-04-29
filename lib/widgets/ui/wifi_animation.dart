@@ -4,7 +4,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 class SmoothWifiAnimation extends StatefulWidget {
   const SmoothWifiAnimation({
     super.key,
-    this.size = 160,
+    this.size = 140,
     this.label = 'SCANNING',
   });
 

@@ -17,11 +17,13 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
 
+typedef ControllerFooterBuilder = Widget Function(BaseDevice device);
+
 class DevicePage extends StatefulWidget {
   final bool isMobile;
   final Map<String, GlobalKey> cardKeys;
   final VoidCallback onUpdate;
-  final List<Widget> Function(BaseDevice) footerBuilder;
+  final ControllerFooterBuilder footerBuilder;
   const DevicePage({
     super.key,
     required this.onUpdate,
@@ -72,47 +74,22 @@ class _DevicePageState extends State<DevicePage> {
                       await context.push(ControllerSettingsPage(device: device));
                       widget.onUpdate();
                     },
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.mutedForeground,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        Row(
-                          spacing: 12,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: device.showInformation(context, showFull: false),
-                            ),
-                            if (!widget.isMobile && !screenshotMode)
-                              Flexible(
-                                child: Wrap(
-                                  alignment: WrapAlignment.start,
-                                  runAlignment: WrapAlignment.start,
-                                  crossAxisAlignment: WrapCrossAlignment.start,
-                                  spacing: 9,
-                                  runSpacing: 9,
-                                  children: widget.footerBuilder(device),
-                                ),
-                              ),
-                          ],
-                        ),
-                        ...device.showAdditionalInformation(context),
-                      ],
+                    child: device.showInformation(
+                      context,
+                      showFull: false,
+                      footer: widget.footerBuilder(device),
                     ),
                   ),
                 ),
-                if (index != core.connection.controllerDevices.length - 1)
+                if (index != core.connection.controllerDevices.length - 1) ...[
                   Divider(
-                    thickness: 0.5,
+                    thickness: Theme.of(context).brightness == Brightness.dark ? 1 : 0.5,
                     indent: 20,
                     endIndent: 20,
+                    height: 5,
                   ),
+                  SizedBox(height: 12),
+                ],
               ],
             )
             .flatten(),

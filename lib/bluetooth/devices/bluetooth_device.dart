@@ -39,10 +39,11 @@ abstract class BluetoothDevice extends BaseDevice {
     bool allowMultiple = false,
     bool isBeta = false,
     bool supportsLongPress = true,
+    IconData icon = LucideIcons.gamepad,
     String? buttonPrefix,
   }) : super(
          scanResult.name,
-         icon: LucideIcons.gamepad,
+         icon: icon,
          uniqueId: scanResult.deviceId,
          availableButtons: allowMultiple
              ? availableButtons.toList().map((b) => b.copyWith(sourceDeviceId: scanResult.deviceId)).toList()
@@ -56,6 +57,9 @@ abstract class BluetoothDevice extends BaseDevice {
 
   int? batteryLevel;
   String? firmwareVersion;
+  String? hardwareRevision;
+  String? manufacturerName;
+  String? deviceName;
   int? rssi;
 
   static List<String> servicesToScan = [
@@ -127,7 +131,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase()) => ShimanoDi2(
           scanResult,
         ),
-        _ when scanResult.services.containsAny(ProxyDevice.proxyServiceUUIDs) && kDebugMode => ProxyDevice(scanResult),
+        _ when scanResult.services.containsAny(ProxyDevice.proxyServiceUUIDs) => ProxyDevice(scanResult),
         _ when scanResult.services.contains(SramAxsConstants.SERVICE_UUID.toLowerCase()) => SramAxs(
           scanResult,
         ),
@@ -201,7 +205,12 @@ abstract class BluetoothDevice extends BaseDevice {
     }
 
     if (!kIsWeb) {
-      await UniversalBle.requestMtu(device.deviceId, 517);
+      try {
+        await UniversalBle.requestMtu(device.deviceId, 517);
+      } catch (e) {
+        // not critical, just log it
+        debugPrint('Failed to request MTU: $e');
+      }
     }
 
     services = await UniversalBle.discoverServices(device.deviceId);
@@ -209,17 +218,48 @@ abstract class BluetoothDevice extends BaseDevice {
     final deviceInformationService = services!.firstOrNullWhere(
       (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID.toLowerCase(),
     );
-    final firmwareCharacteristic = deviceInformationService?.characteristics.firstOrNullWhere(
-      (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION.toLowerCase(),
-    );
-    if (firmwareCharacteristic != null) {
-      final firmwareData = await UniversalBle.read(
-        device.deviceId,
-        deviceInformationService!.uuid,
-        firmwareCharacteristic.uuid,
+    Future<String?> readStringChar(BleService? service, String charUuid) async {
+      final characteristic = service?.characteristics.firstOrNullWhere(
+        (c) => c.uuid == charUuid.toLowerCase(),
       );
-      firmwareVersion = String.fromCharCodes(firmwareData);
+      if (characteristic == null) return null;
+      try {
+        final data = await UniversalBle.read(
+          device.deviceId,
+          service!.uuid,
+          characteristic.uuid,
+        );
+        final decoded = String.fromCharCodes(data).trim();
+        return decoded.isEmpty ? null : decoded;
+      } catch (_) {
+        return null;
+      }
+    }
 
+    firmwareVersion = await readStringChar(
+      deviceInformationService,
+      BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_FIRMWARE_REVISION,
+    );
+    hardwareRevision = await readStringChar(
+      deviceInformationService,
+      BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_HARDWARE_REVISION,
+    );
+    manufacturerName = await readStringChar(
+      deviceInformationService,
+      BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_MANUFACTURER_NAME,
+    );
+
+    final genericAccessService = services!.firstOrNullWhere(
+      (service) => service.uuid == BleUuid.GENERIC_ACCESS_SERVICE_UUID.toLowerCase(),
+    );
+    deviceName =
+        await readStringChar(
+          genericAccessService,
+          BleUuid.GENERIC_ACCESS_CHARACTERISTIC_DEVICE_NAME,
+        ) ??
+        device.name;
+
+    if (firmwareVersion != null || hardwareRevision != null || manufacturerName != null || deviceName != null) {
       core.connection.signalChange(this);
     }
 
@@ -268,7 +308,6 @@ abstract class BluetoothDevice extends BaseDevice {
     return [
       // metaRow: battery + signal
       if (batteryLevel != null || rssi != null) ...[
-        const Gap(4),
         if (batteryLevel != null) ...[
           Icon(
             switch (batteryLevel!) {
@@ -292,8 +331,8 @@ abstract class BluetoothDevice extends BaseDevice {
           if (firmwareVersion != null || rssi != null) const Gap(16),
         ],
         if (firmwareVersion != null &&
-            (showFull || (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion))) ...[
-          if (this is ZwiftDevice && firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion)
+            (showFull || (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion))) ...[
+          if (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion)
             Icon(
               Icons.warning,
               size: fontSize,
@@ -307,9 +346,7 @@ abstract class BluetoothDevice extends BaseDevice {
               color: foregroundColor,
             ),
           ),
-          if (this is ZwiftDevice &&
-              firmwareVersion != (this as ZwiftDevice).latestFirmwareVersion &&
-              (this as ZwiftDevice).latestFirmwareVersion != null)
+          if (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion)
             Text(
               ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion!)})',
               style: TextStyle(color: foregroundColor, fontSize: fontSize),

@@ -133,6 +133,7 @@ class UserSettingsRepository {
         userId: userId,
         deviceId: deviceId,
         keymaps: keymapsData,
+        shiftingConfigs: core.shiftingConfigs.all,
         ignoredDeviceIds: ignoredIds,
         ignoredDeviceNames: ignoredNames,
         version: newVersion,
@@ -177,6 +178,11 @@ class UserSettingsRepository {
       // Apply ignored devices
       if (settings.ignoredDeviceIds != null && settings.ignoredDeviceNames != null) {
         await _applyIgnoredDevices(settings.ignoredDeviceIds!, settings.ignoredDeviceNames!);
+      }
+
+      // Apply shifting configs
+      if (settings.shiftingConfigs != null) {
+        await core.shiftingConfigs.hydrateFromSync(settings.shiftingConfigs!);
       }
 
       return true;

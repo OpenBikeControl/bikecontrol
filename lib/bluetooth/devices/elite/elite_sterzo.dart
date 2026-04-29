@@ -3,16 +3,28 @@ import 'dart:convert';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../messages/notification.dart';
 
 class EliteSterzo extends BluetoothDevice {
   EliteSterzo(super.scanResult) : super(availableButtons: SterzoButtons.values);
+
+  @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 2.4,
+    shape: ContourShape.steeringPad,
+    positions: {
+      SterzoButtons.leftSteer: const Offset(0.2, 0.5),
+      SterzoButtons.rightSteer: const Offset(0.8, 0.5),
+    },
+  );
 
   double _lastAngle = 0.0;
   int? _latestChallenge;

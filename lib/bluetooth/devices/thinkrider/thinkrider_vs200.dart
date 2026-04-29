@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -15,6 +16,19 @@ class ThinkRiderVs200 extends BluetoothDevice {
         allowMultiple: true,
         supportsLongPress: false,
       );
+
+  @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 1124.01 / 766.94,
+    shape: ContourShape.pill,
+    padding: 20,
+    svgAsset: 'assets/contours/thinkrider_vs200.svg',
+    rotation: 90,
+    positions: {
+      ThinkRiderVs200Buttons.shiftDown: const Offset(0.26, 0.5),
+      ThinkRiderVs200Buttons.shiftUp: const Offset(0.74, 0.5),
+    },
+  );
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -77,12 +91,14 @@ class ThinkRiderVs200Buttons {
   static const ControllerButton shiftUp = ControllerButton(
     'shiftUp',
     action: InGameAction.shiftUp,
+    color: Colors.black,
     icon: Icons.add,
   );
 
   static const ControllerButton shiftDown = ControllerButton(
     'shiftDown',
     action: InGameAction.shiftDown,
+    color: Colors.black,
     icon: Icons.remove,
   );
 

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -13,6 +14,17 @@ class CycplusBc2 extends BluetoothDevice {
         availableButtons: CycplusBc2Buttons.values,
         allowMultiple: true,
       );
+
+  @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 1.25,
+    shape: ContourShape.pill,
+    svgAsset: 'assets/contours/cycpluc_bc2.svg',
+    positions: {
+      CycplusBc2Buttons.shiftUp: const Offset(0.3, 0.48),
+      CycplusBc2Buttons.shiftDown: const Offset(0.7, 0.48),
+    },
+  );
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -78,12 +90,14 @@ class CycplusBc2Buttons {
   static const ControllerButton shiftUp = ControllerButton(
     'shiftUp',
     action: InGameAction.shiftUp,
+    color: Colors.black,
     icon: Icons.add,
   );
 
   static const ControllerButton shiftDown = ControllerButton(
     'shiftDown',
     action: InGameAction.shiftDown,
+    color: Colors.black,
     icon: Icons.remove,
   );
 

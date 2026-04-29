@@ -15,13 +15,12 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/title.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState;
 
 class ZwiftEmulator extends TrainerConnection {
   bool get isLoading => _isLoading;
@@ -399,5 +398,5 @@ class ZwiftEmulator extends TrainerConnection {
   }
 
   @override
-  Widget getTile() => ZwiftTile(onUpdate: () {});
+  Widget getTile({bool small = false}) => ZwiftTile(onUpdate: () {}, small: small);
 }

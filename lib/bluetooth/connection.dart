@@ -28,7 +28,7 @@ class Connection {
   final devices = <BaseDevice>[];
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
-  List<BluetoothDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
+  List<ProxyDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
   List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
   List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
@@ -373,11 +373,20 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
+
+      final willConnect = device is! ProxyDevice || core.settings.getAutoConnect(device.trainerKey);
+      if (willConnect) {
+        _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
+      }
       _connect(device)
           .then((_) {
             _handlingConnectionQueue = false;
-            _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'));
+
+            if (willConnect) {
+              _actionStreams.add(
+                AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
+              );
+            }
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();
             }
@@ -402,48 +411,55 @@ class Connection {
   }
 
   Future<void> _connect(BaseDevice device) async {
-    try {
-      final actionSubscription = device.actionStream.listen((data) {
-        _actionStreams.add(data);
-        // Reset the inactivity timer whenever a button is pressed on this
-        // device – we deliberately only react to ButtonNotification so that
-        // internal log / action messages don't keep the timer alive.
-        // Only BLE devices benefit from inactivity disconnect (battery-powered
-        // controllers); gamepads, HID, and gyroscope devices are excluded.
-        if (data is ButtonNotification && device is BluetoothDevice) {
-          _resetInactivityTimer(device);
-        }
-      });
-      if (device is BluetoothDevice) {
-        final connectionStateSubscription = device.device.connectionStream.listen((state) {
-          device.isConnected = state;
-          _connectionStreams.add(device);
-          if (!state) {
-            _actionStreams.add(
-              AlertNotification(
-                state ? LogLevel.LOGLEVEL_INFO : LogLevel.LOGLEVEL_WARNING,
-                '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
-              ),
-            );
-          }
-          core.flutterLocalNotificationsPlugin.show(
-            1338,
-            '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
-            !state ? AppLocalizations.current.tryingToConnectAgain : null,
-            NotificationDetails(
-              android: AndroidNotificationDetails('Connection', 'Connection Status'),
-              iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+    // Cancel any stale subscriptions from a previous connect attempt so a retry
+    // doesn't stack listeners on the same device's streams.
+    await _streamSubscriptions.remove(device)?.cancel();
+    await _connectionSubscriptions.remove(device)?.cancel();
+
+    final actionSubscription = device.actionStream.listen((data) {
+      _actionStreams.add(data);
+      // Reset the inactivity timer whenever a button is pressed on this
+      // device – we deliberately only react to ButtonNotification so that
+      // internal log / action messages don't keep the timer alive.
+      // Only BLE devices benefit from inactivity disconnect (battery-powered
+      // controllers); gamepads, HID, and gyroscope devices are excluded.
+      if (data is ButtonNotification && device is BluetoothDevice) {
+        _resetInactivityTimer(device);
+      }
+    });
+    _streamSubscriptions[device] = actionSubscription;
+
+    if (device is BluetoothDevice) {
+      final connectionStateSubscription = device.device.connectionStream.listen((state) {
+        device.isConnected = state;
+        _connectionStreams.add(device);
+        if (!state) {
+          _actionStreams.add(
+            AlertNotification(
+              state ? LogLevel.LOGLEVEL_INFO : LogLevel.LOGLEVEL_WARNING,
+              '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
             ),
           );
-          if (!device.isConnected) {
-            disconnect(device, forget: false, persistForget: false);
-            // try reconnect
-            performScanning();
-          }
-        });
-        _connectionSubscriptions[device] = connectionStateSubscription;
-      }
+        }
+        core.flutterLocalNotificationsPlugin.show(
+          1338,
+          '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+          !state ? AppLocalizations.current.tryingToConnectAgain : null,
+          NotificationDetails(
+            android: AndroidNotificationDetails('Connection', 'Connection Status'),
+            iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+          ),
+        );
+        if (!device.isConnected) {
+          disconnect(device, forget: false, persistForget: false);
+          // try reconnect
+          performScanning();
+        }
+      });
+      _connectionSubscriptions[device] = connectionStateSubscription;
+    }
 
+    try {
       await device.connect();
       signalChange(device);
 
@@ -451,10 +467,8 @@ class Connection {
 
       core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
 
-      _streamSubscriptions[device] = actionSubscription;
-
       // Start the inactivity timer for BLE devices to save their battery.
-      if (device is BluetoothDevice) {
+      if (device is BluetoothDevice && device is! ProxyDevice) {
         _resetInactivityTimer(device);
       }
 
@@ -466,6 +480,8 @@ class Connection {
         });
       }
     } catch (e, backtrace) {
+      await _streamSubscriptions.remove(device)?.cancel();
+      await _connectionSubscriptions.remove(device)?.cancel();
       _actionStreams.add(LogNotification("$e\n$backtrace"));
       if (kDebugMode) {
         print(e);
@@ -575,10 +591,18 @@ class Connection {
         AlertNotification(
           LogLevel.LOGLEVEL_WARNING,
           '${device.toString()} disconnected after ${_inactivityTimeout.inMinutes} minutes of inactivity',
+          buttonTitle: 'Reconnect',
+          onTap: () {
+            _connect(device).catchError((Object error, StackTrace stackTrace) {
+              _actionStreams.add(
+                LogNotification('Failed to reconnect ${device.toString()} after inactivity timeout: $error'),
+              );
+            });
+          },
         ),
       );
       unawaited(
-        disconnect(device, forget: false, persistForget: false).catchError((Object error, StackTrace stackTrace) {
+        disconnect(device, forget: true, persistForget: false).catchError((Object error, StackTrace stackTrace) {
           _actionStreams.add(
             LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error'),
           );

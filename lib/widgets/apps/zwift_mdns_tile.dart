@@ -9,9 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:prop/prop.dart';
 
 class ZwiftMdnsTile extends StatefulWidget {
+  final bool small;
   final VoidCallback onUpdate;
 
-  const ZwiftMdnsTile({super.key, required this.onUpdate});
+  const ZwiftMdnsTile({super.key, required this.onUpdate, required this.small});
 
   @override
   State<ZwiftMdnsTile> createState() => _ZwiftTileState();
@@ -30,6 +31,7 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
               builder: (context, setState) {
                 final isRouvy = core.settings.getTrainerApp() is Rouvy;
                 return ConnectionMethod(
+                  small: widget.small,
                   trainerConnection: core.zwiftMdnsEmulator,
                   isRecommended: true,
                   supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.zwiftMdns),

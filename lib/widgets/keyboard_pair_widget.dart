@@ -7,7 +7,8 @@ import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class RemoteKeyboardPairingWidget extends StatefulWidget {
-  const RemoteKeyboardPairingWidget({super.key});
+  final bool small;
+  const RemoteKeyboardPairingWidget({super.key, required this.small});
 
   @override
   State<RemoteKeyboardPairingWidget> createState() => _PairWidgetState();
@@ -25,6 +26,7 @@ class _PairWidgetState extends State<RemoteKeyboardPairingWidget> {
             return ConnectionMethod(
               trainerConnection: core.remoteKeyboardPairing,
               isRecommended: false,
+              small: widget.small,
               supportLevel: ConnectionSupport.beta,
               isEnabled: core.logic.isRemoteKeyboardControlEnabled,
               showTroubleshooting: true,

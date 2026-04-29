@@ -33,6 +33,7 @@ class ConnectionMethod extends StatefulWidget {
   final Widget? additionalChild;
   final bool isRecommended;
   final bool isEnabled;
+  final bool small;
   final bool showTroubleshooting;
   final ConnectionSupport? supportLevel;
   final List<PlatformRequirement> requirements;
@@ -45,6 +46,7 @@ class ConnectionMethod extends StatefulWidget {
     required this.title,
     required this.isRecommended,
     required this.isEnabled,
+    required this.small,
     this.additionalChild,
     required this.description,
     this.instructionLink,
@@ -95,7 +97,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
   Widget build(BuildContext context) {
     void callback() {
       if (kIsWeb) {
-        buildToast(title: 'Not Supported on Web :)');
+        buildToast(title: AppLocalizations.of(context).notSupportedOnWeb);
       } else if (widget.requirements.isEmpty) {
         widget.onChange(!widget.isEnabled);
       } else {
@@ -110,6 +112,64 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
           }
         });
       }
+    }
+
+    if (widget.small) {
+      return SizedBox(
+        width: double.infinity,
+        child: Basic(
+          leading: StatusIcon(
+            status: widget.trainerConnection.isConnected.value,
+            started: widget.trainerConnection.isStarted.value,
+            icon: widget.trainerConnection.type.icon,
+          ),
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              Expanded(
+                child: widget.trainerConnection.isConnected.value ? Text(widget.title) : Text(widget.title).muted,
+              ),
+              if (widget.supportLevel == ConnectionSupport.beta)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: BetaPill(),
+                )
+              else if (widget.supportLevel == ConnectionSupport.experimental)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1.0),
+                  child: BetaPill(text: 'EXPER.'),
+                ),
+            ],
+          ),
+          subtitle: Text(widget.description).xSmall.textMuted,
+          trailing: widget.instructionLink != null && !widget.trainerConnection.isConnected.value
+              ? Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Button.outline(
+                      leading: Icon(
+                        widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
+                      ),
+                      onPressed: () {
+                        if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
+                          launchUrlString(widget.instructionLink!);
+                        } else {
+                          openDrawer(
+                            context: context,
+                            position: OverlayPosition.bottom,
+                            builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
+                          );
+                        }
+                      },
+                      child: Text(AppLocalizations.of(context).instructions),
+                    ),
+                  ],
+                )
+              : null,
+        ),
+      );
     }
 
     return SizedBox(
@@ -138,7 +198,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   child: BetaPill(text: 'EXPER.'),
                 )
               else if (widget.isRecommended && !screenshotMode)
-                SecondaryBadge(child: Text('Recommended')),
+                SecondaryBadge(child: Text(AppLocalizations.of(context).recommended)),
               Switch(
                 value: widget.isEnabled,
                 onChanged: (value) {
@@ -168,7 +228,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                         widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
                       ),
                       onPressed: () {
-                        if (widget.instructionLink!.contains("youtube")) {
+                        if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
                           launchUrlString(widget.instructionLink!);
                         } else {
                           openDrawer(

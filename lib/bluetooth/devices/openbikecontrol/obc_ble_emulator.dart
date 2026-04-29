@@ -8,16 +8,16 @@ import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNot
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/title.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState, ButtonState;
 
 class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   late final _peripheralManager = PeripheralManager();
@@ -289,5 +289,8 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   }
 
   @override
-  Widget getTile() => OpenBikeControlBluetoothTile();
+  TrainerConnectionType? get virtualShiftingTransport => TrainerConnectionType.bluetooth;
+
+  @override
+  Widget getTile({bool small = false}) => OpenBikeControlBluetoothTile(small: small);
 }

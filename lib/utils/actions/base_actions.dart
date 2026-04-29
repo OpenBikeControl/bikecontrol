@@ -9,6 +9,7 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
@@ -162,14 +163,50 @@ abstract class BaseActions {
       return await headwind.handleKeypair(keyPair, isKeyDown: isKeyDown);
     }
 
+    // Handle workout pause/resume — local recorder, no trainer required.
+    if (keyPair.inGameAction == InGameAction.workoutPauseResume) {
+      if (!isKeyDown) return Ignored('');
+      final recorder = core.workoutRecorder;
+      if (recorder.state.value == WorkoutState.recording) {
+        recorder.pause();
+        await IAPManager.instance.incrementCommandCount();
+        return Success(AppLocalizations.current.workoutPaused);
+      } else if (recorder.state.value == WorkoutState.paused) {
+        recorder.resume();
+        await IAPManager.instance.incrementCommandCount();
+        return Success(AppLocalizations.current.workoutResumed);
+      }
+      return Ignored(AppLocalizations.current.noActiveWorkout);
+    }
+
+    // Handle trainer-control actions
+    if (trainerActions.contains(keyPair.inGameAction)) {
+      if (!isKeyDown) return Ignored('');
+      final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
+      if (proxy == null) {
+        return Error(AppLocalizations.current.noProxyTrainerConnected);
+      }
+      await IAPManager.instance.incrementCommandCount();
+      final result = proxy.handleTrainerAction(keyPair.inGameAction!);
+      // Ignored e.g. when already in highest gear
+      // Success when action was executed and the action should not be sent to connected trainer
+      // NotHandled means the e.g. gear changes should still be sent to the trainer, so we continue with the regular flow
+      if (result is Ignored || result is Success) {
+        return result;
+      }
+    }
+
     if (core.logic.hasNoConnectionMethod) {
       if (GyroscopeSteeringButtons.values.contains(button)) {
         return Ignored('Too many messages from gyroscope steering');
       } else {
         return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst, type: ErrorType.noConnectionMethod);
       }
-    } else if (!(await core.logic.isTrainerConnected())) {
-      return Error(AppLocalizations.current.noConnectionMethodIsConnectedOrActive, type: ErrorType.trainerNotConnected);
+    } else if (!(await core.logic.isTrainerConnected()) && !keyPair.doesNotNeedTrainerConnection) {
+      return Error(
+        AppLocalizations.current.noConnectionMethodIsConnectedOrActive,
+        type: ErrorType.trainerNotConnected,
+      );
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
@@ -214,9 +251,9 @@ abstract class BaseActions {
       if (keyPair.isSpecialKey && IAPManager.instance.hasPurchasedBefore50RVC) {
         // it's okay to allow special keys for users who purchased before the subscription model, even without an active subscription, since they already paid for the pro features
       } else if (IAPManager.instance.isProEnabled) {
-        return Error('Current device not registered', type: ErrorType.deviceRegistrationNeeded);
+        return Error(AppLocalizations.current.currentDeviceIsNotRegistered, type: ErrorType.deviceRegistrationNeeded);
       } else {
-        return Error('Pro subscription required for action: $keyPair', type: ErrorType.proRequired);
+        return Error(AppLocalizations.current.proSubscriptionRequiredForAction, type: ErrorType.proRequired);
       }
     }
 
@@ -227,7 +264,7 @@ abstract class BaseActions {
       }).toList();
 
       if (activeTriggers.length > 1 && trigger != activeTriggers.first) {
-        return Error('Pro subscription required for additional trigger types', type: ErrorType.proRequired);
+        return Error(AppLocalizations.current.proSubscriptionRequiredForAdditionalTriggers, type: ErrorType.proRequired);
       }
     }
 

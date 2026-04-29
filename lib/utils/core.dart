@@ -5,11 +5,16 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
+import 'package:bike_control/bluetooth/devices/shimano/di2_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/review_prompt_service.dart';
+import 'package:bike_control/services/shifting_configs_controller.dart';
+import 'package:bike_control/services/workout/workout_recorder.dart';
+import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/remote.dart';
@@ -20,13 +25,13 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart';
+import 'package:prop/services/bridge_usage_tracker.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -42,10 +47,22 @@ class Core {
   late BaseActions actionHandler;
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   final settings = Settings();
+  late final shiftingConfigs = ShiftingConfigsController(settings.prefs);
   final connection = Connection();
+  late final workoutRecorder = WorkoutRecorder();
+  late final workoutRepository = WorkoutRepository();
 
   late final supabase = Supabase.instance.client;
   late final whooshLink = WhooshLink();
+  BridgeUsageTracker? _bridgeUsageTracker;
+  BridgeUsageTracker get bridgeUsageTracker {
+    _bridgeUsageTracker ??= BridgeUsageTracker(
+      prefs: settings.prefs,
+      dailyLimit: const Duration(minutes: 20),
+    );
+    return _bridgeUsageTracker!;
+  }
+
   late final zwiftEmulator = ZwiftEmulator();
   late final zwiftMdnsEmulator = FtmsMdnsEmulator();
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
@@ -53,10 +70,20 @@ class Core {
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
   late final remotePairing = RemotePairing();
   late final remoteKeyboardPairing = RemoteKeyboardPairing();
+  late final di2Emulator = Di2Emulator();
 
   late final mediaKeyHandler = MediaKeyHandler();
   late final logic = CoreLogic();
   late final permissions = Permissions();
+
+  ReviewPromptService? _reviewPromptService;
+  ReviewPromptService get reviewPromptService {
+    return _reviewPromptService ??= ReviewPromptService(
+      settings: settings,
+      trainerConnections: logic.trainerConnections.map((t) => t.isConnected).toList(),
+      isMobilePlatform: !kIsWeb && (Platform.isAndroid || Platform.isIOS),
+    );
+  }
 
   /// Stops all active BLE connection methods and disables their settings.
   /// Call this before enabling a new BLE connection to ensure mutual exclusivity.
@@ -76,6 +103,10 @@ class Core {
     if (settings.getRemoteKeyboardControlEnabled()) {
       settings.setRemoteKeyboardControlEnabled(false);
       await remoteKeyboardPairing.stopAdvertising();
+    }
+    if (settings.getDi2BleEnabled()) {
+      await settings.setDi2BleEnabled(false);
+      await di2Emulator.stopAdvertising();
     }
   }
 }
@@ -176,6 +207,10 @@ class CoreLogic {
     return core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator;
   }
 
+  bool get isDi2BleEnabled {
+    return core.settings.getDi2BleEnabled() && showDi2Ble;
+  }
+
   bool get isObpBleEnabled {
     return core.settings.getObpBleEnabled() && showObpBluetoothEmulator;
   }
@@ -192,6 +227,13 @@ class CoreLogic {
     final app = core.settings.getTrainerApp();
     return app != null &&
         app.supports(AppConnectionMethod.zwiftBle) &&
+        core.settings.getLastTarget() != Target.thisDevice;
+  }
+
+  bool get showDi2Ble {
+    final app = core.settings.getTrainerApp();
+    return app != null &&
+        app.supports(AppConnectionMethod.di2Ble) &&
         core.settings.getLastTarget() != Target.thisDevice;
   }
 
@@ -239,7 +281,8 @@ class CoreLogic {
       (core.settings.getZwiftBleEmulatorEnabled() && showZwiftBleEmulator) ||
       (core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator) ||
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
-      (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
+      (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator) ||
+      (core.settings.getDi2BleEnabled() && showDi2Ble);
 
   bool get showObpActions =>
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
@@ -257,7 +300,8 @@ class CoreLogic {
       !isZwiftMdnsEnabled &&
       !showObpActions &&
       !(core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) &&
-      !showLocalRemoteOptions;
+      !showLocalRemoteOptions &&
+      !isDi2BleEnabled;
 
   bool get hasRecommendedConnectionMethods =>
       showObpBluetoothEmulator ||
@@ -265,7 +309,8 @@ class CoreLogic {
       showLocalControl ||
       showZwiftBleEmulator ||
       showZwiftMsdnEmulator ||
-      showMyWhooshLink;
+      showMyWhooshLink ||
+      showDi2Ble;
 
   bool get hasOfficialConnectionMethods =>
       showObpBluetoothEmulator || showObpMdnsEmulator || showZwiftBleEmulator || showZwiftMsdnEmulator;
@@ -277,6 +322,7 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
@@ -287,6 +333,7 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
@@ -298,9 +345,30 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
-  ];
+  ].sortedBy((e) => e.isConnected.value ? 0 : 1);
+
+  /// Resolves the Bridge (Virtual Shifting) transport — Bluetooth or WiFi —
+  /// from the user's currently enabled Trainer Connections. Bluetooth wins
+  /// over WiFi when both are enabled because it survives backgrounding on
+  /// iOS and avoids LAN reachability issues; the Connection Settings card
+  /// is the user's authoritative input. Returns `null` when no enabled
+  /// connection carries trainer telemetry (e.g. only `local` is on).
+  TrainerConnectionType? preferredBridgeTransport(List<TrainerConnection> enabled) {
+    for (final conn in enabled) {
+      if (conn.virtualShiftingTransport == TrainerConnectionType.bluetooth) {
+        return TrainerConnectionType.bluetooth;
+      }
+    }
+    for (final conn in enabled) {
+      if (conn.virtualShiftingTransport == TrainerConnectionType.wifi) {
+        return TrainerConnectionType.wifi;
+      }
+    }
+    return null;
+  }
 
   List<TrainerConnection> get enabledNonLocalTrainerConnections => [
     if (isObpBleEnabled) core.obpBluetoothEmulator,
@@ -308,6 +376,7 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ];
@@ -318,6 +387,7 @@ class CoreLogic {
     if (showMyWhooshLink) core.whooshLink,
     if (showZwiftBleEmulator) core.zwiftEmulator,
     if (showZwiftMsdnEmulator) core.zwiftMdnsEmulator,
+    if (showDi2Ble) core.di2Emulator,
     if (showRemote) core.remotePairing,
     if (showRemote) core.remoteKeyboardPairing,
   ];
@@ -389,6 +459,18 @@ class CoreLogic {
       });
     }
 
+    if (isDi2BleEnabled &&
+        await core.permissions.getRemoteControlRequirements().allGranted &&
+        !core.di2Emulator.isStarted.value) {
+      core.di2Emulator.startAdvertising().catchError((e, s) {
+        recordError(e, s, context: 'Di2 Emulator');
+        core.settings.setDi2BleEnabled(false);
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Di2 Emulator: $e'),
+        );
+      });
+    }
+
     if (isMyWhooshLinkEnabled && !core.whooshLink.isStarted.value) {
       core.connection.startMyWhooshServer();
     }
@@ -446,5 +528,5 @@ class Local extends TrainerConnection {
   }
 
   @override
-  Widget getTile() => LocalTile();
+  Widget getTile({bool small = false}) => LocalTile(small: small);
 }

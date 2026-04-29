@@ -6,6 +6,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -146,6 +147,10 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                         core.settings.setKeyMap(selectedApp);
                       }
                       core.logic.startEnabledConnectionMethod();
+
+                      if (selectedApp is BikeControl) {
+                        core.settings.setLastTarget(Target.thisDevice);
+                      }
                       widget.onUpdate();
                       setState(() {});
                     },
@@ -172,37 +177,41 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                           ),
                         ),
                       ),
-                    SizedBox(height: 0),
-                    Text(
-                      context.i18n.selectTargetWhereAppRuns(
-                        screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name ?? 'the Trainer app',
-                      ),
-                    ).small,
-                    Row(
-                      spacing: 8,
-                      children: [Target.thisDevice, Target.otherDevice]
-                          .map(
-                            (target) => Expanded(
-                              child: SelectableCard(
-                                title: Center(child: Icon(target.icon)),
-                                isActive: target == core.settings.getLastTarget(),
-                                subtitle: Center(
-                                  child: Text(target.getTitle(context)),
+                    // BikeControl is self-hosted — no external target to pick.
+                    if (core.settings.getTrainerApp() is! BikeControl) ...[
+                      SizedBox(height: 0),
+                      Text(
+                        context.i18n.selectTargetWhereAppRuns(
+                          screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name ?? 'the Trainer app',
+                        ),
+                      ).small,
+                      Row(
+                        spacing: 8,
+                        children: [Target.thisDevice, Target.otherDevice]
+                            .map(
+                              (target) => Expanded(
+                                child: SelectableCard(
+                                  title: Center(child: Icon(target.icon)),
+                                  isActive: target == core.settings.getLastTarget(),
+                                  subtitle: Center(
+                                    child: Text(target.getTitle(context)),
+                                  ),
+                                  onPressed: () async {
+                                    await _setTarget(context, target);
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
                                 ),
-                                onPressed: () async {
-                                  await _setTarget(context, target);
-                                  setState(() {});
-                                  widget.onUpdate();
-                                },
                               ),
-                            ),
-                          )
-                          .toList(),
-                    ),
+                            )
+                            .toList(),
+                      ),
+                    ],
                   ],
 
                   if (core.settings.getLastTarget() == Target.otherDevice &&
-                      !core.logic.hasRecommendedConnectionMethods) ...[
+                      !core.logic.hasRecommendedConnectionMethods &&
+                      core.settings.getTrainerApp() is! BikeControl) ...[
                     SizedBox(height: 8),
                     Warning(
                       children: [
