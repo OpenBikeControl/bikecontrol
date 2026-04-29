@@ -7,6 +7,7 @@ import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/keyboard_pair_widget.dart';
 import 'package:bike_control/widgets/mouse_pair_widget.dart';
@@ -60,11 +61,12 @@ class _TrainerPageState extends State<TrainerPage> {
         (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
 
     final recommendedTiles = [
-      if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(),
-      if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(),
+      if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(small: false),
+      if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(small: false),
 
       if (core.logic.showZwiftMsdnEmulator)
         ZwiftMdnsTile(
+          small: false,
           onUpdate: () {
             core.connection.signalNotification(
               LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
@@ -73,6 +75,7 @@ class _TrainerPageState extends State<TrainerPage> {
         ),
       if (core.logic.showZwiftBleEmulator)
         ZwiftTile(
+          small: false,
           onUpdate: () {
             if (mounted) {
               core.connection.signalNotification(
@@ -82,15 +85,16 @@ class _TrainerPageState extends State<TrainerPage> {
             }
           },
         ),
-      if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(),
-      if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(),
+      if (core.logic.showDi2Ble) Di2BleTile(small: false),
+      if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: false),
+      if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
     ];
 
     final otherTiles = [
-      if (showWhooshLinkAsOther) MyWhooshLinkTile(),
-      if (core.logic.showRemote) RemoteMousePairingWidget(),
-      if (core.logic.showLocalControl && showLocalAsOther) LocalTile(),
-      if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(),
+      if (showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
+      if (core.logic.showRemote) RemoteMousePairingWidget(small: false),
+      if (core.logic.showLocalControl && showLocalAsOther) LocalTile(small: false),
+      if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(small: false),
     ];
 
     return Scrollbar(
@@ -111,7 +115,7 @@ class _TrainerPageState extends State<TrainerPage> {
                     widget.onUpdate();
                   },
                 ),
-                if (core.settings.getTrainerApp() != null) ...[
+                if (core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null) ...[
                   if (recommendedTiles.isNotEmpty) ...[
                     Gap(32),
                     ColoredTitle(text: context.i18n.recommendedConnectionMethods),

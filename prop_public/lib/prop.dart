@@ -1,4 +1,5 @@
 export 'emulators/click_emulator.dart';
+export 'emulators/dircon_emulator.dart';
 export 'emulators/prefs.dart';
 export 'emulators/shared.dart';
 export 'protocol/zp.pb.dart';

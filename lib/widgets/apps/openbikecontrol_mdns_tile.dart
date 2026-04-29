@@ -9,7 +9,8 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OpenBikeControlMdnsTile extends StatefulWidget {
-  const OpenBikeControlMdnsTile({super.key});
+  final bool small;
+  const OpenBikeControlMdnsTile({super.key, required this.small});
 
   @override
   State<OpenBikeControlMdnsTile> createState() => _OpenBikeProtocolTileState();
@@ -27,11 +28,12 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
             return ConnectionMethod(
               trainerConnection: core.obpMdnsEmulator,
               isRecommended: true,
+              small: widget.small,
               supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.obpMdns),
               supportedActions: isConnected?.supportedActions,
               isEnabled: core.settings.getObpMdnsEnabled(),
               title: context.i18n.connectDirectlyOverNetwork,
-
+              instructionLink: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership',
               description: isConnected != null
                   ? context.i18n.connectedTo(
                       "${isConnected.appId}:\n${isConnected.supportedActions.joinToString(transform: (s) => s.title)}",
@@ -51,15 +53,13 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                     core.connection.signalNotification(
                       AlertNotification(
                         LogLevel.LOGLEVEL_ERROR,
-                        context.i18n.errorStartingOpenBikeControlServer,
+                        "${context.i18n.errorStartingOpenBikeControlServer}:\n$e",
                       ),
                     );
                   });
                 }
                 setState(() {});
               },
-
-
             );
           },
         );

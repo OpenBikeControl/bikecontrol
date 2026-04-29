@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
@@ -12,6 +13,28 @@ class WahooKickrBikeShift extends BluetoothDevice {
     : super(
         availableButtons: WahooKickrBikeShiftConstants.prefixToButton.values.toList(),
       );
+
+  @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 2.2,
+    shape: ContourShape.dropBar,
+    positions: {
+      // Left
+      WahooKickrShiftButtons.leftUp: const Offset(0.11, 0.3),
+      WahooKickrShiftButtons.leftDown: const Offset(0.11, 0.55),
+      WahooKickrShiftButtons.leftBrake: const Offset(0.05, 0.8),
+      WahooKickrShiftButtons.leftSteer: const Offset(0.17, 0.3),
+      WahooKickrShiftButtons.shiftUpLeft: const Offset(0.05, 0.45),
+      WahooKickrShiftButtons.shiftDownLeft: const Offset(0.17, 0.45),
+      // Right
+      WahooKickrShiftButtons.rightUp: const Offset(0.89, 0.3),
+      WahooKickrShiftButtons.rightDown: const Offset(0.89, 0.55),
+      WahooKickrShiftButtons.rightBrake: const Offset(0.95, 0.8),
+      WahooKickrShiftButtons.rightSteer: const Offset(0.83, 0.3),
+      WahooKickrShiftButtons.shiftUpRight: const Offset(0.95, 0.45),
+      WahooKickrShiftButtons.shiftDownRight: const Offset(0.83, 0.45),
+    },
+  );
 
   @override
   Future<void> handleServices(List<BleService> services) async {

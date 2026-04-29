@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
+import 'package:version/version.dart';
 
 abstract class ZwiftDevice extends BluetoothDevice {
   ZwiftDevice(super.scanResult, {required super.availableButtons, super.isBeta});
@@ -68,13 +69,28 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
     await setupHandshake();
 
-    if (latestFirmwareVersion != null && firmwareVersion != null && firmwareVersion != latestFirmwareVersion) {
+    if (hasNewerFirmwareVersion) {
       actionStreamInternal.add(
         AlertNotification(
           LogLevel.LOGLEVEL_WARNING,
           'A new firmware version is available for ${device.name ?? device.rawName}: $latestFirmwareVersion (current: $firmwareVersion). Please update it in Zwift Companion app.',
         ),
       );
+    }
+  }
+
+  bool get hasNewerFirmwareVersion {
+    final isDifferent =
+        latestFirmwareVersion != null && firmwareVersion != null && firmwareVersion != latestFirmwareVersion;
+
+    if (isDifferent) {
+      try {
+        return Version.parse(firmwareVersion!) < Version.parse(latestFirmwareVersion!);
+      } catch (_) {
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 
@@ -90,13 +106,6 @@ abstract class ZwiftDevice extends BluetoothDevice {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    if (kDebugMode && false) {
-      actionStreamInternal.add(
-        LogNotification(
-          "Received data on $characteristic: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}",
-        ),
-      );
-    }
     if (bytes.isEmpty) {
       return;
     }

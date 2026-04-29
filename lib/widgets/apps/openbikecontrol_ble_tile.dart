@@ -9,7 +9,8 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OpenBikeControlBluetoothTile extends StatefulWidget {
-  const OpenBikeControlBluetoothTile({super.key});
+  final bool small;
+  const OpenBikeControlBluetoothTile({super.key, required this.small});
 
   @override
   State<OpenBikeControlBluetoothTile> createState() => _OpenBikeProtocolTileState();
@@ -25,6 +26,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
           valueListenable: core.obpBluetoothEmulator.connectedApp,
           builder: (context, isConnected, _) {
             return ConnectionMethod(
+              small: widget.small,
               trainerConnection: core.obpBluetoothEmulator,
               isRecommended: true,
               supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.obpBle),

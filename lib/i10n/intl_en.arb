@@ -43,6 +43,17 @@
   "battery": "Battery",
   "beforeDate": "Before {date}",
   "bluetoothAdvertiseAccess": "Bluetooth Advertise access",
+  "bridgeMinutesRemainingToday": "{minutes} min remaining today",
+  "@bridgeMinutesRemainingToday": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "bridgeTrialTimeOverTitle": "Bridge trial time is over",
+  "bridgeTrialTimeOverBody": "You've used your 20 min daily Bridge trial. Upgrade to Pro to unlock unlimited virtual shifting.",
   "bluetoothKeyboardExplanation": "This will allow you to use your phone as a Bluetooth keyboard to control compatible apps. Once paired, you can use the buttons on your bike controller to send keyboard inputs to the app.",
   "bluetoothTurnedOn": "Bluetooth turned on",
   "browserNotSupported": "This Browser does not support Web Bluetooth and platform is not supported :(",
@@ -70,6 +81,7 @@
   "close": "Close",
   "commandsRemainingToday": "{commandsRemainingToday}/{dailyCommandLimit} commands remaining today",
   "configuration": "Configuration",
+  "connect": "Connect",
   "connectControllerToPreview": "Connect a controller device to preview and customize the keymap.",
   "connectControllers": "Connect Controllers",
   "connectDirectlyOverNetwork": "Connect directly over Network",
@@ -155,7 +167,7 @@
   },
   "deviceLimitReached": "Device limit reached for {platform}. Revoke other devices to register a new one.",
   "devicesActive": "{active} active",
-  "disconnectAndForget": "Disconnect and Forget",
+  "disconnectAndForget": "Disconnect & forget",
   "disconnectAndForgetForThisSession": "Disconnect",
   "disconnectDevices": "Disconnect Devices",
   "disconnected": "Disconnected",
@@ -275,6 +287,33 @@
   "manageYourDevices": "Manage your devices",
   "manualyControllingButton": "Control {trainerApp} manually!",
   "mediaKeyDetectionTooltip": "Enable this option to allow BikeControl to detect bluetooth remotes.\nIn order to do so BikeControl needs to act as a media player.",
+  "miniWorkout": "Mini Workout",
+  "miniWorkoutStart": "Start Workout",
+  "miniWorkoutPause": "Pause",
+  "miniWorkoutResume": "Resume",
+  "miniWorkoutStop": "Stop",
+  "miniWorkoutRecording": "Recording",
+  "miniWorkoutPaused": "Paused",
+  "miniWorkoutNoTrainerConnected": "Connect a smart trainer to start a workout.",
+  "miniWorkoutConfirmStopTitle": "Stop workout?",
+  "miniWorkoutConfirmStopBody": "Your workout will be saved and you can view the summary.",
+  "miniWorkoutSummaryTitle": "Workout summary",
+  "miniWorkoutSummaryDuration": "Duration",
+  "miniWorkoutSummaryAvgPower": "Avg power",
+  "miniWorkoutSummaryMaxPower": "Max power",
+  "miniWorkoutSummaryAvgCadence": "Avg cadence",
+  "miniWorkoutSummaryAvgSpeed": "Avg speed",
+  "miniWorkoutSummaryDistance": "Distance",
+  "miniWorkoutSummaryAvgHeartRate": "Avg heart rate",
+  "miniWorkoutSummaryMaxHeartRate": "Max heart rate",
+  "miniWorkoutShareFit": "Share .fit file",
+  "miniWorkoutOpenFolder": "Open workouts folder",
+  "miniWorkoutPastWorkouts": "Past workouts",
+  "miniWorkoutNoPastWorkouts": "No past workouts yet.",
+  "miniWorkoutDelete": "Delete",
+  "miniWorkoutConfirmDeleteTitle": "Delete workout?",
+  "miniWorkoutConfirmDeleteBody": "This removes the .fit file from your device.",
+  "miniWorkoutRecordingTooShort": "Workout too short to save (minimum 10 seconds).",
   "miuiDeviceDetected": "MIUI Device Detected",
   "miuiDisableBatteryOptimization": "• Disable battery optimization for BikeControl",
   "miuiEnableAutostart": "• Enable autostart for BikeControl",
@@ -309,6 +348,8 @@
   "no": "No",
   "noActionAssigned": "No action assigned",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
+  "noActiveWorkout": "No active workout",
+  "noProxyTrainerConnected": "No smart trainer connected",
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
   "noConnectionMethodSelected": "No Connection Method selected",
   "noControllerConnected": "None connected",
@@ -353,6 +394,8 @@
   "paywall_useBikecontrolOnAllPlatforms": "Use BikeControl on all platforms",
   "paywall_yearly": "Yearly",
   "permissionsRequired": "In order for BikeControl to search for nearby devices and update you when the connection changes, please enable the following permissions:",
+  "proSubscriptionRequiredForAction": "Pro subscription required for this action",
+  "proSubscriptionRequiredForAdditionalTriggers": "Pro subscription required for additional trigger types",
   "platformNotSupported": "This {platform} is not supported :(",
   "@platformNotSupported": {
     "placeholders": {
@@ -417,6 +460,9 @@
   "restart": "Restart",
   "restorePurchaseInfo": "Click on the button above, then on \"Restore Purchase\". Please contact me directly if you have any issues.",
   "restorePurchases": "Restore purchases",
+  "reviewPromptBody": "If BikeControl has helped your training, please consider leaving a review. It helps a lot!",
+  "reviewPromptRate": "Rate BikeControl",
+  "reviewPromptTitle": "Enjoying BikeControl?",
   "revoke": "Revoke",
   "revoked": "Revoked",
   "runAppOnPlatformRemotely": "Run {appName} on {platform} and control it remotely from this device{preferredConnection}.",
@@ -445,6 +491,7 @@
   "save": "Save",
   "scan": "SCAN",
   "scanningForDevices": "Scanning for devices... Make sure they are powered on and in range and not connected to another device.",
+  "lookingForSmartTrainers": "Looking for Smart Trainers…",
   "selectADeviceToSyncFrom": "Select a device to sync from",
   "selectKeymap": "Select Keymap",
   "selectTargetWhereAppRuns": "Select Target where {appName} runs on",
@@ -475,6 +522,7 @@
   "simulateMediaKey": "Control Music playback",
   "simulateTouch": "Click any button on screen",
   "skip": "Skip",
+  "smartTrainerAndAccessories": "Smart Trainer & Accessories",
   "stop": "Stop",
   "supportedActions": "Supported Actions",
   "syncSettings": "Sync Settings",
@@ -486,15 +534,31 @@
   "termsOfUse": "Terms of Use",
   "theFollowingPermissionsRequired": "The following permissions are required:",
   "thisFeatureIsOnlyAvailableWithPro": "This feature is only available with Pro. Upgrade to Pro to unlock all features.",
+  "trainerAppDoesNotSupportConnectionYet": "{trainerApp} does not support this, yet",
+  "@trainerAppDoesNotSupportConnectionYet": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
   "touchAreaInstructions": "1. Create an in-game screenshot of your app (e.g. within MyWhoosh) in landscape orientation\n2. Load the screenshot with the button below\n3. The app is automatically set to landscape orientation for accurate mapping\n4. Press a button on your Click device to create a touch area\n5. Drag the touch areas to the desired position on the screenshot\n6. Save and close this screen",
   "touchSimulationForegroundMessage": "To simulate touches the app needs to stay in the foreground.",
   "trainer": "Trainer",
   "trainerConnection": "Trainer Connection",
+  "trainerMissingFtmsWarning": "{trainerName} does not advertise the FTMS service, so virtual shifting may not work. Please use the \"Send feedback\" button below to report this trainer.",
+  "@trainerMissingFtmsWarning": {
+    "placeholders": {
+      "trainerName": {
+        "type": "String"
+      }
+    }
+  },
   "trialDaysRemaining": "{trialDaysRemaining} days remaining",
   "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
   "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
   "trialPeriodDescription": "Enjoy unlimited commands during your trial period. After the trial, commands will be limited to {dailyCommandLimit} per day.",
-  "troubleshootingGuide": "Questions & Answers",
+  "troubleshootingGuide": "Help & Support",
   "tryingToConnectAgain": "Trying to connect again...",
   "unassignAction": "Unassign action",
   "unlimited": "Unlimited",
@@ -529,6 +593,14 @@
     }
   },
   "viewDetailedInstructions": "View Detailed Instructions",
+  "virtualShiftingProNote": "Virtual shifting is a Pro feature - but you can test all settings within BikeControl. Connecting it in {trainerApp} is limited to 20 min per day, so you're able to see how it works.",
+  "@virtualShiftingProNote": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
   "volumeDown": "Volume Down",
   "volumeUp": "Volume Up",
   "waiting": "Waiting...",
@@ -547,5 +619,333 @@
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
   "zwiftControllerAction": "Zwift Controller Action",
-  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller."
+  "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
+  "smartTrainer": "Smart Trainer",
+  "provideFeedback": "Provide Feedback",
+  "virtualShiftingSettings": "Virtual Shifting Settings",
+  "yourTrainerApp": "your trainer app",
+  "proxyMode": "Proxy",
+  "virtualShifting": "Virtual Shifting",
+  "proxyModeHint": "Mirrors your trainer over WiFi without touching gear logic.",
+  "virtualShiftingBluetoothHint": "Adds or adjusts virtual shifting and creates a Bluetooth-advertised trainer.",
+  "virtualShiftingWifiHint": "Adds or adjusts virtual shifting and creates a WiFi-advertised trainer.",
+  "virtualShiftingTransportNeededHint": "Enable a Bluetooth or WiFi Trainer Connection to use Virtual Shifting.",
+  "connectModeLabel": "CONNECT MODE",
+  "connectingInMode": "Connecting in {mode} mode…",
+  "@connectingInMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "connectModeActive": "Connect mode: {mode}",
+  "@connectModeActive": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "bikeWeight": "Bike Weight",
+  "riderWeight": "Rider Weight",
+  "virtualShiftingPhysicsDesc": "Used for virtual shifting physics",
+  "gearSettings": "Gear Settings",
+  "gearsCount": "{count} gears",
+  "@gearsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "smoothingOn": "Smoothing on",
+  "smoothingOff": "Smoothing off",
+  "customRatios": "Custom ratios",
+  "trainerControl": "Trainer Control",
+  "fixedTargetPowerMode": "Fixed target power mode",
+  "virtualGearShifting": "Virtual gear shifting",
+  "ergMode": "ERG",
+  "simMode": "SIM",
+  "powerLabel": "POWER",
+  "heartLabel": "HEART",
+  "cadenceLabel": "CADENCE",
+  "speedLabel": "SPEED",
+  "unlockAfterMinuteCheck": "After a minute has passed, double check by pressing a button",
+  "unlockConfirmByButton": "Confirm unlock by pressing a button",
+  "tuneGearsIntro": "Tune each virtual gear to match your ride feel. Changes apply instantly.",
+  "virtualShiftingMode": "Virtual Shifting Mode",
+  "virtualShiftingModeDesc": "How resistance is computed per gear",
+  "targetPowerMode": "Target Power",
+  "trackResistanceMode": "Track Resistance",
+  "basicMode": "Basic",
+  "gearCount": "Gear Count",
+  "gearCountDesc": "Size of the virtual shifter",
+  "gearCountMismatch": "{appName} uses {expected} gears, this config uses {actual}. The gear displayed in {appName} may not match.",
+  "@gearCountMismatch": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "int"
+      },
+      "actual": {
+        "type": "int"
+      }
+    }
+  },
+  "useGearCount": "Use {count}",
+  "@useGearCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradeSmoothing": "Grade Smoothing",
+  "gradeSmoothingDesc": "Averages sudden slope changes",
+  "presetDefault": "Default",
+  "presetCompact": "Compact",
+  "presetWide": "Wide",
+  "preset1x": "1×",
+  "presetsLabel": "PRESETS",
+  "perGearLabel": "PER-GEAR",
+  "gearNumber": "Gear {gear}",
+  "@gearNumber": {
+    "placeholders": {
+      "gear": {
+        "type": "int"
+      }
+    }
+  },
+  "currentBadge": "CURRENT",
+  "neutralBadge": "NEUTRAL",
+  "referenceBaseRatio": "Reference — base ratio",
+  "closeToNeutral": "close to neutral",
+  "harderThanNeutral": "+{magnitude} harder than neutral",
+  "@harderThanNeutral": {
+    "placeholders": {
+      "magnitude": {
+        "type": "String"
+      }
+    }
+  },
+  "easierThanNeutral": "−{magnitude} easier than neutral",
+  "@easierThanNeutral": {
+    "placeholders": {
+      "magnitude": {
+        "type": "String"
+      }
+    }
+  },
+  "nameHint": "Name",
+  "newShiftingConfig": "New shifting config",
+  "manageShiftingConfigs": "Manage shifting configs",
+  "active": "Active",
+  "configCopySuffix": "{name} copy",
+  "@configCopySuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "newAction": "New",
+  "manageAction": "Manage",
+  "defaultName": "Default",
+  "trainerFeedbackTitle": "Send Trainer Feedback",
+  "signInToSendFeedback": "Sign in to send feedback",
+  "feedbackAccountTied": "Feedback is tied to your BikeControl account so we can follow up on trainer-specific issues.",
+  "signIn": "Sign in",
+  "yourRating": "Your rating",
+  "requiredField": "Required",
+  "ratingWorks": "Works",
+  "ratingNeedsAdjustment": "Needs adjustment",
+  "ratingDoesntWork": "Doesn't work",
+  "yourFeedback": "Your feedback",
+  "feedbackPlaceholder": "Describe how your trainer works with BikeControl…",
+  "diagnosticDataTitle": "Diagnostic data being sent",
+  "diagnosticDataSubtitle": "Read-only — automatically collected",
+  "sendFeedback": "Send feedback",
+  "thanksForFeedback": "Thanks for your feedback!",
+  "feedbackSubmitFailed": "Failed to submit feedback",
+  "diagBluetoothName": "Bluetooth name",
+  "diagManufacturer": "Manufacturer",
+  "diagFirmware": "Firmware",
+  "diagSupportsVirtualShifting": "Supports virtual shifting",
+  "diagControlMode": "Control mode",
+  "diagVirtualShiftingMode": "Virtual shifting mode",
+  "diagGradeSmoothing": "Grade smoothing",
+  "diagGearRatios": "Gear ratios",
+  "diagTrainerApp": "Trainer app",
+  "diagFtmsMachineFeatures": "FTMS machine features",
+  "diagFtmsTargetSettings": "FTMS target settings",
+  "diagAppVersion": "App version",
+  "diagAppPlatform": "App platform",
+  "enabledLabel": "Enabled",
+  "disabledLabel": "Disabled",
+  "notAvailable": "Not available",
+  "editingTrigger": "Editing {trigger}",
+  "@editingTrigger": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      }
+    }
+  },
+  "longPressFallbackHint": "This device uses long press toggle mode: first click sends key down, second click sends key up.",
+  "trainerDirectControl": "Trainer Direct Control",
+  "repeatSingleClick": "Repeat single click action",
+  "localRemoteSetting": "Local / Remote Setting",
+  "broadcastIntent": "Broadcast Custom Intent",
+  "broadcastIntentDesc": "For automation apps like MacroDroid or Tasker",
+  "otherActions": "Other Actions",
+  "takeScreenshot": "Take Screenshot",
+  "accessoryActions": "Accessory Actions",
+  "kickrHeadwind": "KICKR Headwind",
+  "setHeadwindSpeedTo": "Set Speed to {value}%",
+  "@setHeadwindSpeedTo": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "setSpeed": "Set Speed",
+  "increaseSpeed": "Increase Speed",
+  "decreaseSpeed": "Decrease Speed",
+  "increaseSpeedCyclic": "Increase Speed Cyclically",
+  "decreaseSpeedCyclic": "Decrease Speed Cyclically",
+  "setHeartRateMode": "Set to Heart Rate Mode",
+  "noExecutableSelected": "No executable file selected",
+  "launchShortcut": "Launch Shortcut",
+  "shortcutNameHint": "Shortcut name",
+  "launchShortcutDesc": "Runs a macOS Shortcuts shortcut by its exact name when this button is pressed.",
+  "noPathSelected": "No path selected",
+  "cannotWriteFolder": "Cannot write to this folder. Please grant write permission and try again.",
+  "intentSuffixHint": "one",
+  "broadcastIntentExplanation": "Sends an Android broadcast with action \"{prefix}<your suffix>\" when the button is pressed. Apps like MacroDroid or Tasker can listen for the intent and run your automations.",
+  "@broadcastIntentExplanation": {
+    "placeholders": {
+      "prefix": {
+        "type": "String"
+      }
+    }
+  },
+  "customModeAction": "Custom {mode} action",
+  "@customModeAction": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "customLabel": "Custom",
+  "blogTab": "Blog",
+  "openConnectionSettings": "Open connection settings",
+  "noTargetSelected": "No target selected",
+  "stay": "Stay",
+  "leave": "Leave",
+  "showExperimental": "Show experimental",
+  "notSupportedOnWeb": "Not Supported on Web :)",
+  "recommended": "Recommended",
+  "workoutPaused": "Workout paused",
+  "workoutResumed": "Workout resumed",
+  "workoutShareText": "Workout {fileName}",
+  "@workoutShareText": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionSettings": "Connection Settings",
+  "needsTargetLeavePrompt": "{appName} needs a target before it can connect. Leave without picking one?",
+  "@needsTargetLeavePrompt": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "feedbackQuestion": "Does it work?",
+  "feedbackNoDifference": "No difference",
+  "supportChat": "Support Chat",
+  "chatWithSupport": "Chat with Support",
+  "signInToChatWithSupport": "Sign in to chat with support",
+  "signInToChatExplanation": "Your chat is tied to your BikeControl account so we can follow up on issues.",
+  "retry": "Retry",
+  "supportChatEmpty": "Send a message to start the conversation.",
+  "supportChatIntro": "You'll be talking to Jonas from BikeControl",
+  "messageComposerPlaceholder": "Type a message…",
+  "attachImage": "Pick image",
+  "attachDocument": "Pick file",
+  "diagnosticInfoAttached": "The following data will be attached to the message for diagnostic purposes",
+  "attachmentTooLarge": "Attachment exceeds 10 MB",
+  "attachmentMimeUnsupported": "Unsupported file type",
+  "failedToSendMessage": "Failed to send message",
+  "failedToOpenChat": "Failed to open support chat",
+  "senderYou": "You",
+  "senderAdmin": "Support",
+  "viewThread": "Create Thread",
+  "threadTitle": "Thread",
+  "replyCount": "Replies ({count})",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "Don't want to sign in? Write a mail instead",
+  "troubleshootingPage": "Troubleshooting Guide",
+  "proxyConnectFor": "Connect your {name} for:",
+  "@proxyConnectFor": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "proxyFeatureAddVirtualShifting": "Add virtual shifting capability",
+  "proxyFeatureAdjustGears": "Adjust virtual shifting gears",
+  "proxyFeatureDirectControl": "Direct gear / intensity / mode changes via {controller}",
+  "@proxyFeatureDirectControl": {
+    "placeholders": {
+      "controller": {"type": "String"}
+    }
+  },
+  "proxyFeatureMiniWorkout": "Start a mini workout",
+  "proxyFeatureWifiProxy": "Proxy to WiFi",
+  "trainerErgTarget": "ERG target: {watts} W",
+  "@trainerErgTarget": {
+    "placeholders": {
+      "watts": {"type": "int"}
+    }
+  },
+  "trainerShiftedUp": "Shifted up to gear {gear}",
+  "@trainerShiftedUp": {
+    "placeholders": {
+      "gear": {"type": "int"}
+    }
+  },
+  "trainerShiftedDown": "Shifted down to gear {gear}",
+  "@trainerShiftedDown": {
+    "placeholders": {
+      "gear": {"type": "int"}
+    }
+  },
+  "trainerAlreadyHighestGear": "Already in highest gear",
+  "trainerAlreadyLowestGear": "Already in lowest gear",
+  "trainerSwitchedToSim": "Switched to sim mode",
+  "trainerSwitchedToErg": "Switched to erg mode @ {watts} W",
+  "@trainerSwitchedToErg": {
+    "placeholders": {
+      "watts": {"type": "int"}
+    }
+  },
+  "trainerIntensityIncreased": "Intensity +5%",
+  "trainerIntensityDecreased": "Intensity -5%",
+  "successRatingMessage": "Thank you for using BikeControl! Please consider rating BikeControl in the {store} — it helps a lot!",
+  "@successRatingMessage": {"placeholders": {"store": {"type": "String"}}},
+  "rateBikeControl": "Rate BikeControl"
 }

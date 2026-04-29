@@ -138,18 +138,13 @@ class ShimanoDi2 extends BluetoothDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull}) {
-    return Column(
-      spacing: 12,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        super.showInformation(context, showFull: showFull),
-        Text(
-          'Make sure to set your Di2 buttons to D-Fly channels in the Shimano E-TUBE app.',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      ],
-    );
+  List<Widget> showAdditionalInformation(BuildContext context) {
+    return [
+      Text(
+        'Make sure to set your Di2 buttons to D-Fly channels in the Shimano E-TUBE app.',
+        style: TextStyle(fontSize: 12, color: Colors.grey),
+      ),
+    ];
   }
 }
 

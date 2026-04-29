@@ -6,8 +6,6 @@
 	<string>export</string>
 	<key>generateAppStoreInformation</key>
 	<false/>
-	<key>manageAppVersionAndBuildNumber</key>
-	<true/>
 	<key>method</key>
 	<string>app-store-connect</string>
 	<key>signingStyle</key>

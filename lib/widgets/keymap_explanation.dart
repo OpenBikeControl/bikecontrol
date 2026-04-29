@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
@@ -11,6 +10,7 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/controller/trigger_conflict_dialog.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -23,11 +23,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/messages/notification.dart';
 import '../utils/iap/iap_manager.dart';
-
-enum _TriggerConflictResolution {
-  goPro,
-  replaceOtherTriggers,
-}
 
 class KeymapExplanation extends StatefulWidget {
   final Keymap keymap;
@@ -181,7 +176,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                                 child: IntrinsicHeight(
                                   child: ButtonWidget(
                                     button: button,
-                                    big: true,
                                   ),
                                 ),
                               ),
@@ -369,17 +363,17 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     required String? hintText,
   }) async {
     final isPro = IAPManager.instance.hasActiveSubscription;
-    final hasOtherAssignedTrigger = _hasActiveTriggerOtherThan(button, trigger);
+    final hasOtherAssignedTrigger = hasActiveTriggerOtherThan(widget.keymap, button, trigger);
 
     final shouldShowConflictDialog = hintText != null || forceConflictDialog || (!hasAction && hasOtherAssignedTrigger);
 
     if ((!isPro || hintText != null) && shouldShowConflictDialog) {
-      final resolution = await _showTriggerConflictDialog(trigger, hintText: hintText);
+      final resolution = await showTriggerConflictDialog(context, trigger, hintText: hintText);
       if (!mounted || resolution == null) {
         return;
       }
 
-      if (resolution == _TriggerConflictResolution.goPro) {
+      if (resolution == TriggerConflictResolution.goPro) {
         await IAPManager.instance.purchaseSubscription(context);
         if (!mounted || !IAPManager.instance.hasActiveSubscription) {
           return;
@@ -410,78 +404,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     }).toList();
   }
 
-  bool _hasActiveTriggerOtherThan(ControllerButton button, ButtonTrigger trigger) {
-    return _activeTriggers(button).any((candidate) => candidate != trigger);
-  }
-
-  Future<_TriggerConflictResolution?> _showTriggerConflictDialog(ButtonTrigger trigger, {required String? hintText}) {
-    return showDialog<_TriggerConflictResolution>(
-      context: context,
-      builder: (c) => Container(
-        constraints: BoxConstraints(maxWidth: 420),
-        child: AlertDialog(
-          title: Row(
-            children: [
-              if (!IAPManager.instance.hasActiveSubscription) ...[
-                Icon(Icons.workspace_premium, color: Colors.orange),
-                const SizedBox(width: 8),
-              ],
-              Text(AppLocalizations.of(context).additionalTriggerAssignment),
-            ],
-          ),
-          content: Text(
-            hintText ?? AppLocalizations.of(context).anotherTriggerIsAlreadyAssignedForThisButton(trigger.title),
-          ),
-          actions: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              spacing: 8,
-              children: [
-                Button.secondary(
-                  onPressed: () => Navigator.of(c).pop(),
-                  child: Text(AppLocalizations.of(context).cancel),
-                ),
-
-                Button.secondary(
-                  onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.replaceOtherTriggers),
-                  child: Text(AppLocalizations.of(context).replaceExisting),
-                ),
-                if (!IAPManager.instance.hasActiveSubscription)
-                  PrimaryButton(
-                    onPressed: () => Navigator.of(c).pop(_TriggerConflictResolution.goPro),
-                    child: Text(AppLocalizations.of(context).goPro),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _clearOtherTriggerAssignments(Keymap keymap, ControllerButton button, ButtonTrigger keepTrigger) {
-    for (final trigger in ButtonTrigger.values) {
-      if (trigger == keepTrigger) {
-        continue;
-      }
-      final existing = keymap.getKeyPair(button, trigger: trigger);
-      if (existing == null || existing.hasNoAction) {
-        continue;
-      }
-
-      final keyPair = keymap.getOrCreateKeyPair(button, trigger: trigger);
-      keyPair.physicalKey = null;
-      keyPair.logicalKey = null;
-      keyPair.modifiers = [];
-      keyPair.touchPosition = Offset.zero;
-      keyPair.inGameAction = null;
-      keyPair.inGameActionValue = null;
-      keyPair.androidAction = null;
-      keyPair.command = null;
-      keyPair.screenshotPath = null;
-    }
-  }
-
   Future<void> _openButtonEditor(
     BaseDevice device,
     ControllerButton button,
@@ -506,7 +428,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     }
 
     if (clearOtherTriggers) {
-      _clearOtherTriggerAssignments(selectedKeymap, button, trigger);
+      clearOtherTriggerAssignments(selectedKeymap, button, trigger);
       selectedKeymap.signalUpdate();
     }
 

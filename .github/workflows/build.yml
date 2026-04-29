@@ -352,7 +352,7 @@ jobs:
       - name: Zip Windows Symbols
         shell: pwsh
         run: |
-          7z a -p"${{ secrets.ZIP_PASSWORD }}" symbols-win.zip symbols-win/
+          7z a -p"${{ secrets.ZIP_PASSWORD }}" symbols-win.zip symbols-win/ build/windows/x64/runner/Release/*.pdb
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

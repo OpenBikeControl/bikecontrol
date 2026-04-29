@@ -64,10 +64,15 @@ class IAPManager {
 
   bool get isProEnabled => hasActiveSubscription && (isLoggedIn || (!isLoggedIn && isLocalPro.value));
 
-  bool get isProEnabledForCurrentDevice =>
-      hasActiveSubscription && ((isLoggedIn && entitlements.isRegisteredDevice) || (!isLoggedIn && isLocalPro.value));
+  bool get isProEnabledForCurrentDevice {
+    if (!_isInitialized) return false;
+    return hasActiveSubscription && ((isLoggedIn && entitlements.isRegisteredDevice) || (!isLoggedIn && isLocalPro.value));
+  }
 
-  bool get isProEnabledForCurrentDeviceOrDidPurchaseOld => isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
+  bool get isProEnabledForCurrentDeviceOrDidPurchaseOld {
+    if (!_isInitialized) return false;
+    return isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
+  }
 
   bool get hasPurchasedBefore50RVC =>
       isPurchased.value &&

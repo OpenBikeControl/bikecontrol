@@ -15,7 +15,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class LocalTile extends StatefulWidget {
-  const LocalTile({super.key});
+  final bool small;
+  const LocalTile({super.key, required this.small});
 
   @override
   State<LocalTile> createState() => _LocalTileState();
@@ -197,6 +198,7 @@ class _LocalTileState extends State<LocalTile> {
       isEnabled: core.settings.getLocalEnabled(),
       isRecommended: !core.logic.hasOfficialConnectionMethods,
       showTroubleshooting: true,
+      small: widget.small,
       instructionLink: 'INSTRUCTIONS_LOCAL.md',
       title: context.i18n.controlAppUsingModes(
         core.settings.getTrainerApp()?.name ?? '',

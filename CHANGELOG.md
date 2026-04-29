@@ -1,3 +1,21 @@
+### 5.4.0 (05-05-2026)
+
+You can now connect your smart trainer directly to BikeControl. Connect your trainer for:
+- Fully customize Virtual Shifting gears to your liking
+- Add virtual shifting capability if your trainer app doesn't support it
+- Direct gear / intensity / mode changes via your controller
+- Start a mini workout
+- Proxy Bluetooth devices to WiFi
+- and much more – read more in our blog!
+
+**Other new Features**:
+- In-app chat support: reach out from the app with attachments and diagnostics
+- Redesigned controller visualization with per-device contours: adjust buttons right from the main screen
+- Android: broadcast a custom Intent on button press – connect your controller to automation apps like MacroDroid or Tasker to turn your phone into a ringbell, trigger Shortcuts, toggle lights, and more
+
+**Fixes**:
+- Many UI adjustments and bug fixes
+
 ### 5.3.0 (15-04-2026)
 
 Rouvy is now officially supported by BikeControl! Read more about it [in our blog](https://bikecontrol.app/blog/rouvy-bikecontrol-integration)

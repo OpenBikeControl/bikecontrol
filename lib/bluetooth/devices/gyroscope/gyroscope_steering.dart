@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/device_info.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
@@ -24,6 +25,16 @@ class GyroscopeSteering extends BaseDevice {
         buttonPrefix: 'gyro',
         icon: LucideIcons.phone,
       );
+
+  @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 0.5,
+    shape: ContourShape.phone,
+    positions: {
+      GyroscopeSteeringButtons.leftSteer: const Offset(0.25, 0.5),
+      GyroscopeSteeringButtons.rightSteer: const Offset(0.75, 0.5),
+    },
+  );
 
   StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
@@ -311,22 +322,13 @@ class GyroscopeSteering extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull}) {
-    return Column(
-      children: [
-        super.showInformation(context, showFull: showFull),
-        const Gap(12),
-        Row(
-          spacing: 8,
-          children: [
-            Text(_isCalibrated ? 'Calibrated' : 'Calibrating...').xSmall.muted,
-            Text(
-              'Steering Angle: ${_isCalibrated ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°' : 'Calibrating...'}',
-            ).xSmall.muted,
-          ],
-        ),
-      ],
-    );
+  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
+    return [
+      Text(_isCalibrated ? 'Calibrated' : 'Calibrating...').xSmall.muted,
+      Text(
+        'Steering Angle: ${_isCalibrated ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°' : 'Calibrating...'}',
+      ).xSmall.muted,
+    ];
   }
 
   @override

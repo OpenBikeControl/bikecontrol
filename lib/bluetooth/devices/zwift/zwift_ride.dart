@@ -3,7 +3,9 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:prop/prop.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:universal_ble/universal_ble.dart';
@@ -13,6 +15,8 @@ class ZwiftRide extends ZwiftDevice {
   /// Values below this threshold are ignored to prevent accidental triggers from
   /// analog drift or light touches.
   static const int analogPaddleThreshold = 25;
+
+  DateTime? initializationTime;
 
   ZwiftRide(super.scanResult, {super.isBeta, List<ControllerButton>? availableButtons})
     : super(
@@ -47,6 +51,40 @@ class ZwiftRide extends ZwiftDevice {
   bool get canVibrate => true;
 
   @override
+  ControllerLayout get controllerLayout => ControllerLayout(
+    aspectRatio: 575 / 288,
+    // SVG depicts both Plays side-by-side; shape kept as dropBar only as a
+    // sizing-bucket hint for [ControllerCanvas] (the painter is not used).
+    shape: ContourShape.dropBar,
+    svgAsset: 'assets/contours/zwift_play_both.svg',
+    positions: {
+      // LEFT half — ZwiftPlay LEFT positions with x scaled by 0.5 so they
+      // land inside the left controller silhouette in the both-svg.
+      ZwiftButtons.navigationUp: const Offset(0.345, 0.24),
+      ZwiftButtons.navigationLeft: const Offset(0.25, 0.40),
+      ZwiftButtons.navigationRight: const Offset(0.44, 0.40),
+      ZwiftButtons.navigationDown: const Offset(0.345, 0.56),
+      ZwiftButtons.onOffLeft: const Offset(0.345, 0.76),
+      ZwiftButtons.paddleLeft: const Offset(0.13, 0.1),
+      // Ride-only extras laid out down the left drop column.
+      ZwiftButtons.shiftUpLeft: const Offset(0.03, 0.32),
+      ZwiftButtons.shiftDownLeft: const Offset(0.03, 0.55),
+      ZwiftButtons.powerUpLeft: const Offset(0.07, 0.88),
+      // RIGHT half — ZwiftPlay RIGHT positions with x mapped via x→x·0.5+0.5.
+      ZwiftButtons.y: const Offset(0.67, 0.24),
+      ZwiftButtons.z: const Offset(0.58, 0.40),
+      ZwiftButtons.a: const Offset(0.77, 0.40),
+      ZwiftButtons.b: const Offset(0.67, 0.56),
+      ZwiftButtons.onOffRight: const Offset(0.67, 0.76),
+      ZwiftButtons.paddleRight: const Offset(0.89, 0.1),
+      // Ride-only extras laid out down the right drop column.
+      ZwiftButtons.shiftUpRight: const Offset(0.97, 0.32),
+      ZwiftButtons.shiftDownRight: const Offset(0.97, 0.55),
+      ZwiftButtons.powerUpRight: const Offset(0.93, 0.88),
+    },
+  );
+
+  @override
   Future<void> processData(Uint8List bytes) async {
     Opcode? opcode = Opcode.valueOf(bytes[0]);
     Uint8List message = bytes.sublist(1);
@@ -59,7 +97,7 @@ class ZwiftRide extends ZwiftDevice {
 
     switch (opcode) {
       case Opcode.RIDE_ON:
-        //print("Empty RideOn response - unencrypted mode");
+        initializationTime = DateTime.now();
 
         break;
       case Opcode.STATUS_RESPONSE:

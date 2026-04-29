@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -9,6 +10,8 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/controller/controller_layout.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -25,6 +28,12 @@ abstract class BaseDevice {
   final String uniqueId;
   final IconData icon;
   final List<ControllerButton> availableButtons;
+
+  /// Optional visual layout for the [DevicePage] controller footer. When
+  /// null, the footer falls back to a plain [Wrap] of buttons. Subclasses
+  /// for known hardware override this with a [ControllerLayout] positioning
+  /// each button on a rough silhouette of the physical controller.
+  ControllerLayout? get controllerLayout => null;
 
   BaseDevice(
     this._name, {
@@ -473,65 +482,60 @@ abstract class BaseDevice {
     return [];
   }
 
-  Widget showInformation(BuildContext context, {required bool showFull}) {
-    return Row(
+  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
+    final meta = showMetaInformation(context, showFull: showFull);
+    return Column(
       spacing: 12,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.muted,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 24),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: 4,
-            children: [
-              Row(
-                spacing: 6,
+        Row(
+          spacing: 12,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StatusIcon(
+              icon: icon,
+              status: isConnected,
+              started: !isConnected && (this is! ProxyDevice || (this as ProxyDevice).isStarting.value),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                spacing: 4,
                 children: [
-                  Text(
-                    toString(),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                  Row(
+                    spacing: 6,
+                    children: [
+                      Text(
+                        toString(),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                      ),
+                      if (isBeta) BetaPill(),
+                      Expanded(child: SizedBox()),
+                      if (!showFull)
+                        Icon(
+                          LucideIcons.settings,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.mutedForeground,
+                        ),
+                    ],
                   ),
-                  if (isBeta) BetaPill(),
+                  if (meta.isNotEmpty)
+                    Wrap(
+                      runSpacing: 6,
+                      spacing: 6,
+                      alignment: WrapAlignment.start,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      runAlignment: WrapAlignment.start,
+                      children: meta,
+                    ),
                 ],
               ),
-              Wrap(
-                runSpacing: 6,
-                spacing: 6,
-                alignment: WrapAlignment.start,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                runAlignment: WrapAlignment.start,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isConnected ? const Color(0xFF22C55E) : Theme.of(context).colorScheme.mutedForeground,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  Text(
-                    isConnected ? AppLocalizations.of(context).connected : AppLocalizations.of(context).disconnected,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isConnected
-                          ? Theme.of(context).colorScheme.mutedForeground
-                          : Theme.of(context).colorScheme.destructive,
-                    ),
-                  ),
-                  ...showMetaInformation(context, showFull: showFull),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+        if (footer != null) footer,
+        ...showAdditionalInformation(context),
       ],
     );
   }

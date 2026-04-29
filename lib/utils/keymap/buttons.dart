@@ -38,12 +38,12 @@ enum InGameAction {
   pause('Pause/Resume', icon: BootstrapIcons.pause, isLongPress: true),
 
   // headwind
-  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100], icon: Icons.air),
-  headwindSpeedInc('Headwind Speed Increase', icon: Icons.air),
-  headwindSpeedDec('Headwind Speed Decrease', icon: Icons.air),
-  headwindSpeedCyclicInc('Headwind Speed Cyclic Increase', icon: Icons.air),
-  headwindSpeedCyclicDec('Headwind Speed Cyclic Decrease', icon: Icons.air),
-  headwindHeartRateMode('Headwind HR Mode', icon: Icons.favorite),
+  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100], icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedInc('Headwind Speed Increase', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedDec('Headwind Speed Decrease', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedCyclicInc('Headwind Speed Cyclic Increase', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindSpeedCyclicDec('Headwind Speed Cyclic Decrease', icon: Icons.air, isOutsideTrainerApp: true),
+  headwindHeartRateMode('Headwind HR Mode', icon: Icons.favorite, isOutsideTrainerApp: true),
 
   // openbikecontrol
   up('Up', icon: RadixIcons.arrowUp),
@@ -61,21 +61,50 @@ enum InGameAction {
   joinRider('Join Rider', icon: LucideIcons.userPlus),
   changeRoute('Change Route', icon: LucideIcons.signpost),
   mapToggle('Map Toggle', icon: LucideIcons.map),
-  spectateRider('Spectate Rider', icon: LucideIcons.eye);
+  spectateRider('Spectate Rider', icon: LucideIcons.eye),
+
+  // trainer control
+  trainerSwitchMode('Trainer: Switch ERG/SIM', icon: LucideIcons.repeat, isOutsideTrainerApp: true),
+  trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
+  trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true),
+  workoutPauseResume('Workout: Pause/Resume', icon: LucideIcons.pause, isOutsideTrainerApp: true),
+
+  // Wahoo ELEMNT — D-Fly channel buttons emitted via the Di2Definition.
+  dFlyChannel1('D-Fly Channel 1', icon: LucideIcons.circleDot),
+  dFlyChannel2('D-Fly Channel 2', icon: LucideIcons.circleDot),
+  dFlyChannel3('D-Fly Channel 3', icon: LucideIcons.circleDot),
+  dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot);
 
   final String title;
   final bool isLongPress;
+  final bool isOutsideTrainerApp;
   final IconData? icon;
   final String? alternativeTitle;
   final List<int>? possibleValues;
 
-  const InGameAction(this.title, {this.possibleValues, this.alternativeTitle, this.icon, this.isLongPress = false});
+  const InGameAction(
+    this.title, {
+    this.possibleValues,
+    this.isOutsideTrainerApp = false,
+    this.alternativeTitle,
+    this.icon,
+    this.isLongPress = false,
+  });
 
   @override
   String toString() {
     return title;
   }
 }
+
+const trainerActions = [
+  InGameAction.shiftUp,
+  InGameAction.shiftDown,
+  InGameAction.trainerSwitchMode,
+  InGameAction.trainerIntensityUp,
+  InGameAction.trainerIntensityDown,
+  InGameAction.workoutPauseResume,
+];
 
 class ControllerButton {
   static const int _deviceIdSuffixLength = 4;
@@ -125,6 +154,25 @@ class ControllerButton {
         ? sourceDeviceId!
         : sourceDeviceId!.substring(sourceDeviceId!.length - _deviceIdSuffixLength);
     return '${name.splitByUpperCase()} (${shortenedId.toUpperCase()})';
+  }
+
+  /// Uppercase initials derived from the camelCase [name].
+  /// Example: `sideButtonLeft` → `SBL`, `navigationUp` → `NU`, `a` → `A`.
+  /// Uses the raw [name] (not [displayName]) so the multi-device `(HASH)`
+  /// suffix never leaks into the label.
+  String get initials {
+    final words = name.splitByUpperCase().split(' ');
+    return words
+        .where((w) => w.isNotEmpty)
+        .map(
+          (w) => w
+              .replaceAll('Up', '↑')
+              .replaceAll('Right', '→')
+              .replaceAll('Down', '↓')
+              .replaceAll('Left', '←')[0]
+              .toUpperCase(),
+        )
+        .join();
   }
 
   @override

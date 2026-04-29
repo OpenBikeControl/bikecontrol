@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -125,11 +126,42 @@ class Settings {
     return SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
   }
 
+  static String _retrofitModeKey(String trainerKey) => 'retrofit_mode_$trainerKey';
+
+  RetrofitMode getRetrofitMode(String trainerKey, {RetrofitMode fallback = RetrofitMode.proxy}) {
+    final raw = prefs.getString(_retrofitModeKey(trainerKey));
+    if (raw == null) return fallback;
+    return RetrofitMode.values.firstWhere(
+      (m) => m.name == raw,
+      orElse: () => fallback,
+    );
+  }
+
+  Future<void> setRetrofitMode(String trainerKey, RetrofitMode mode) async {
+    await prefs.setString(_retrofitModeKey(trainerKey), mode.name);
+  }
+
+  static String _autoConnectKey(String trainerKey) => 'auto_connect_$trainerKey';
+
+  /// Whether the user wants this trainer to auto-start on scan. Set to true
+  /// when they explicitly connect (tap-to-connect or Connect button) and
+  /// cleared when they tap Disconnect.
+  bool getAutoConnect(String trainerKey) {
+    return prefs.getBool(_autoConnectKey(trainerKey)) ?? false;
+  }
+
+  Future<void> setAutoConnect(String trainerKey, bool autoConnect) async {
+    await prefs.setBool(_autoConnectKey(trainerKey), autoConnect);
+  }
+
   Future<void> setKeyMap(SupportedApp app) async {
     if (app is CustomApp) {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());
     }
     await prefs.setString('app', app.name);
+    for (final device in core.connection.devices.whereType<ProxyDevice>()) {
+      device.applyTrainerSettings();
+    }
     _triggerAutoSync();
   }
 
@@ -286,12 +318,60 @@ class Settings {
     await prefs.setBool('zwift_mdns_emulator_enabled', enabled);
   }
 
+  bool getDi2BleEnabled() {
+    return prefs.getBool('di2_ble_enabled') ?? false;
+  }
+
+  Future<void> setDi2BleEnabled(bool enabled) async {
+    await prefs.setBool('di2_ble_enabled', enabled);
+  }
+
   bool getMiuiWarningDismissed() {
     return prefs.getBool('miui_warning_dismissed') ?? false;
   }
 
   Future<void> setMiuiWarningDismissed(bool dismissed) async {
     await prefs.setBool('miui_warning_dismissed', dismissed);
+  }
+
+  /// Sticky flag: true once the user has opened a support chat at least once
+  /// on this device. HelpButton uses it to decide whether to do a background
+  /// poll for unread admin replies on app start.
+  bool getSupportChatActive() {
+    return prefs.getBool('support_chat_active') ?? false;
+  }
+
+  Future<void> setSupportChatActive(bool active) async {
+    await prefs.setBool('support_chat_active', active);
+  }
+
+  // Review prompt
+  int getReviewSessionCount() {
+    return prefs.getInt('review_session_count') ?? 0;
+  }
+
+  Future<void> setReviewSessionCount(int count) async {
+    await prefs.setInt('review_session_count', count);
+  }
+
+  bool getReviewCompleted() {
+    return prefs.getBool('review_completed') ?? false;
+  }
+
+  Future<void> setReviewCompleted(bool completed) async {
+    await prefs.setBool('review_completed', completed);
+  }
+
+  int? getReviewDismissedAtSessionCount() {
+    return prefs.getInt('review_dismissed_at_session_count');
+  }
+
+  Future<void> setReviewDismissedAtSessionCount(int? count) async {
+    if (count == null) {
+      await prefs.remove('review_dismissed_at_session_count');
+    } else {
+      await prefs.setInt('review_dismissed_at_session_count', count);
+    }
   }
 
   List<String> _getIgnoredDeviceIds() {
