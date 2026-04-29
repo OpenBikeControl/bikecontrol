@@ -1,8 +1,8 @@
 ### 5.4.0 (unreleased)
 
 You can now connect your smart trainer directly to BikeControl. Connect your trainer for:
+- Fully customize Virtual Shifting gears to your liking
 - Add virtual shifting capability if your trainer app doesn't support it
-- Adjust virtual shifting gears to your liking
 - Direct gear / intensity / mode changes via your controller
 - Start a mini workout
 - Proxy Bluetooth devices to WiFi

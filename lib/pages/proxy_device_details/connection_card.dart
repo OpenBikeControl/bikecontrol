@@ -16,10 +16,19 @@ import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-enum _ConnectMode { proxy, virtualShifting }
+enum _ConnectMode { proxy, virtualShiftingWifi, virtualShiftingBluetooth }
 
-_ConnectMode _connectModeOf(RetrofitMode mode) =>
-    mode == RetrofitMode.proxy ? _ConnectMode.proxy : _ConnectMode.virtualShifting;
+_ConnectMode _connectModeOf(RetrofitMode mode) => switch (mode) {
+  RetrofitMode.proxy => _ConnectMode.proxy,
+  RetrofitMode.bluetooth => _ConnectMode.virtualShiftingBluetooth,
+  RetrofitMode.wifi => _ConnectMode.virtualShiftingWifi,
+};
+
+RetrofitMode _retrofitModeOf(_ConnectMode mode) => switch (mode) {
+  _ConnectMode.proxy => RetrofitMode.proxy,
+  _ConnectMode.virtualShiftingBluetooth => RetrofitMode.bluetooth,
+  _ConnectMode.virtualShiftingWifi => RetrofitMode.wifi,
+};
 
 class ConnectionCard extends StatefulWidget {
   final ProxyDevice device;
@@ -51,21 +60,42 @@ class _ConnectionCardState extends State<ConnectionCard> {
     );
     if (saved == RetrofitMode.proxy) {
       _pendingMode = RetrofitMode.proxy;
+    } else if (saved == RetrofitMode.bluetooth) {
+      _pendingMode = RetrofitMode.bluetooth;
     } else {
-      _pendingMode = _resolvedVirtualShiftingMode ?? RetrofitMode.wifi;
+      _pendingMode = _resolvedVirtualShiftingMode;
     }
     _useAccordion = saved != RetrofitMode.proxy;
   }
 
-  List<_ConnectMode> get _connectModes => const [
-    _ConnectMode.virtualShifting,
-    _ConnectMode.proxy,
-  ];
+  /// Radio rows shown for the current setup. When the user has picked
+  /// [Target.otherDevice], we expose both Bluetooth and WiFi as separate VS
+  /// transports — `preferredBridgeTransport` only sees Trainer Connections,
+  /// and apps like MyWhoosh that have no Bluetooth controller channel would
+  /// otherwise never get a Bluetooth VS option, even though they happily pair
+  /// with a BLE-advertised smart trainer. For [Target.thisDevice] / no target,
+  /// keep the auto-resolved single VS row.
+  List<_ConnectMode> get _connectModes {
+    if (core.settings.getLastTarget() == Target.otherDevice) {
+      return const [
+        _ConnectMode.virtualShiftingWifi,
+        _ConnectMode.virtualShiftingBluetooth,
+        _ConnectMode.proxy,
+      ];
+    }
+    return [
+      switch (_resolvedVirtualShiftingMode) {
+        RetrofitMode.bluetooth => _ConnectMode.virtualShiftingBluetooth,
+        _ => _ConnectMode.virtualShiftingWifi,
+      },
+      _ConnectMode.proxy,
+    ];
+  }
 
   /// Resolves which concrete [RetrofitMode] the Virtual Shifting radio will
   /// switch into when picked. Mirrors the active Trainer Connections — BT wins
-  /// over WiFi. Returns `null` when neither transport is enabled, in which
-  /// case the VS radio renders disabled and the missing-transport hint shows.
+  /// over WiFi. Falls back to WiFi when no transport is enabled; the
+  /// missing-transport hint is driven separately via [_hasUsableTransport].
   RetrofitMode get _resolvedVirtualShiftingMode {
     final transport = core.logic.preferredBridgeTransport(core.logic.enabledTrainerConnections);
     return switch (transport) {
@@ -99,10 +129,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   Widget _radioCard(_ConnectMode m, ColorScheme cs) {
-    final RetrofitMode resolved = m == _ConnectMode.proxy
-        ? RetrofitMode.proxy
-        : (_resolvedVirtualShiftingMode ?? RetrofitMode.wifi);
-    final IconData iconData = _modeIcon(resolved);
+    final IconData iconData = _modeIcon(_retrofitModeOf(m));
 
     return RadioCard<_ConnectMode>(
       value: m,
@@ -133,17 +160,31 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   String _connectModeLabel(_ConnectMode m) => switch (m) {
     _ConnectMode.proxy => AppLocalizations.of(context).proxyMode,
-    _ConnectMode.virtualShifting => AppLocalizations.of(context).virtualShifting,
+    _ConnectMode.virtualShiftingBluetooth ||
+    _ConnectMode.virtualShiftingWifi => AppLocalizations.of(context).virtualShifting,
   };
 
-  String _connectModeHint(_ConnectMode m) => switch (m) {
-    _ConnectMode.proxy => AppLocalizations.of(context).proxyModeHint,
-    _ConnectMode.virtualShifting => switch (_resolvedVirtualShiftingMode) {
-      RetrofitMode.bluetooth => AppLocalizations.of(context).virtualShiftingBluetoothHint,
-      RetrofitMode.wifi => AppLocalizations.of(context).virtualShiftingWifiHint,
-      _ => AppLocalizations.of(context).virtualShiftingTransportNeededHint,
-    },
-  };
+  /// `true` when at least one Trainer Connection is enabled, OR the user has
+  /// picked [Target.otherDevice] — in the latter case BikeControl can always
+  /// advertise itself via BT/WiFi for the remote app, regardless of any
+  /// Trainer Connection toggles.
+  bool get _hasUsableTransport {
+    if (core.settings.getLastTarget() == Target.otherDevice) return true;
+    return core.logic.preferredBridgeTransport(core.logic.enabledTrainerConnections) != null;
+  }
+
+  String _connectModeHint(_ConnectMode m) {
+    final hasTransport = _hasUsableTransport;
+    return switch (m) {
+      _ConnectMode.proxy => AppLocalizations.of(context).proxyModeHint,
+      _ConnectMode.virtualShiftingBluetooth => hasTransport
+          ? AppLocalizations.of(context).virtualShiftingBluetoothHint
+          : AppLocalizations.of(context).virtualShiftingTransportNeededHint,
+      _ConnectMode.virtualShiftingWifi => hasTransport
+          ? AppLocalizations.of(context).virtualShiftingWifiHint
+          : AppLocalizations.of(context).virtualShiftingTransportNeededHint,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +262,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           RadioGroup<_ConnectMode>(
             value: _connectModeOf(_pendingMode),
             onChanged: (m) async {
-              final RetrofitMode next = m == _ConnectMode.proxy ? RetrofitMode.proxy : _resolvedVirtualShiftingMode;
+              final RetrofitMode next = _retrofitModeOf(m);
               setState(() => _pendingMode = next);
               await core.settings.setRetrofitMode(widget.device.trainerKey, next);
             },
@@ -238,11 +279,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                 await showGoProDialog(context);
                 return;
               }
-              final connectMode = _connectModeOf(_pendingMode);
-              final RetrofitMode? next = connectMode == _ConnectMode.proxy
-                  ? RetrofitMode.proxy
-                  : _resolvedVirtualShiftingMode;
-              if (next == null) return;
+              final RetrofitMode next = _pendingMode;
               if (next == RetrofitMode.bluetooth) {
                 final ok = await _ensureBluetoothAdvertisePermissions();
                 if (!ok) return;
@@ -321,8 +358,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           RadioGroup<_ConnectMode>(
             value: _connectModeOf(active),
             onChanged: (m) async {
-              final RetrofitMode? next = m == _ConnectMode.proxy ? RetrofitMode.proxy : _resolvedVirtualShiftingMode;
-              if (next == null) return;
+              final RetrofitMode next = _retrofitModeOf(m);
               if (next == active) return;
               if (next == RetrofitMode.bluetooth) {
                 final ok = await _ensureBluetoothAdvertisePermissions();
