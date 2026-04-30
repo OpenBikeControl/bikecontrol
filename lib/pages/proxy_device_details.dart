@@ -15,11 +15,9 @@ import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
-import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ProxyDeviceDetailsPage extends StatefulWidget {
@@ -118,11 +116,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
                 if (!screenshotMode) ...[
                   ConnectionCard(device: device),
-                  SizedBox(height: 12),
-                  if (_bridgeStatusRow() case final w?) ...[
-                    w,
-                    SizedBox(height: 12),
-                  ],
+                  SizedBox(height: 2),
                 ],
                 _gearSection(),
                 SizedBox(height: 20),
@@ -135,7 +129,8 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                       final remaining = core.bridgeUsageTracker.dailyLimit - used;
                       final clamped = remaining.isNegative ? Duration.zero : remaining;
                       return VirtualShiftingProNotice(
-                        trainerAppName: core.settings.getTrainerApp()?.name ?? AppLocalizations.of(context).yourTrainerApp,
+                        trainerAppName:
+                            core.settings.getTrainerApp()?.name ?? AppLocalizations.of(context).yourTrainerApp,
                         remainingToday: clamped,
                       );
                     },
@@ -182,44 +177,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// Bridge (trainer-app-side) connection status. Mirrors the row shown for
-  /// each proxy on the Overview page: green dot when the trainer app has
-  /// actually connected to our advertised bridge, muted otherwise. Hidden
-  /// while the bridge isn't started so the disconnected ConnectionCard remains
-  /// the obvious primary action.
-  Widget? _bridgeStatusRow() {
-    final emulator = widget.device.emulator;
-    if (!emulator.isStarted.value) return null;
-    final cs = Theme.of(context).colorScheme;
-    final connected = emulator.isConnected.value;
-    final mode = emulator.retrofitMode.value;
-    final IconData icon = switch (mode) {
-      RetrofitMode.bluetooth => LucideIcons.bluetooth,
-      RetrofitMode.wifi => LucideIcons.wifi,
-      RetrofitMode.proxy => LucideIcons.radioTower,
-    };
-    final advertisement = emulator.advertisementName;
-    final subtitle = AppLocalizations.of(context).chooseBikeControlInConnectionScreen.replaceAll(
-      screenshotMode ? '1337' : 'BikeControl',
-      advertisement,
-    );
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: cs.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.border),
-      ),
-      child: Basic(
-        leading: StatusIcon(icon: icon, status: connected, started: emulator.isStarted.value),
-        title: connected
-            ? Text('Bridge (${widget.device.toString()})').small.semiBold
-            : Text('Bridge (${widget.device.toString()})').small.muted,
-        subtitle: Text(subtitle).xSmall.textMuted,
       ),
     );
   }
