@@ -366,7 +366,7 @@ class ProxyDevice extends BluetoothDevice {
         } else {
           final didChange = def.shiftUp();
           return didChange
-              ? NotHandled(l10n.trainerShiftedUp(def.currentGear.value))
+              ? Ignored(l10n.trainerShiftedUp(def.currentGear.value))
               : Ignored(l10n.trainerAlreadyHighestGear);
         }
       case InGameAction.shiftDown:
@@ -377,7 +377,7 @@ class ProxyDevice extends BluetoothDevice {
         } else {
           final didChange = def.shiftDown();
           return didChange
-              ? NotHandled(l10n.trainerShiftedDown(def.currentGear.value))
+              ? Ignored(l10n.trainerShiftedDown(def.currentGear.value))
               : Ignored(l10n.trainerAlreadyLowestGear);
         }
       case InGameAction.trainerSwitchMode:
