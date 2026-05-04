@@ -31,30 +31,15 @@ class ControllerContourPainter extends CustomPainter {
     }
 
     switch (shape) {
-      case ContourShape.puck:
-        drawBoth(Path()..addOval(Offset.zero & size));
-        break;
       case ContourShape.pill:
         final r = size.height / 2;
         drawBoth(Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(r))));
-        break;
-      case ContourShape.rect:
-        drawBoth(Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(18))));
-        break;
-      case ContourShape.dropBar:
-        _paintDropBar(canvas, size, fill, stroke);
         break;
       case ContourShape.steeringPad:
         _paintSteeringPad(canvas, size, drawBoth);
         break;
       case ContourShape.phone:
         drawBoth(Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(28))));
-        break;
-      case ContourShape.zwiftPlayRight:
-        _paintZwiftPlay(canvas, size, fill, stroke, mirror: false);
-        break;
-      case ContourShape.zwiftPlayLeft:
-        _paintZwiftPlay(canvas, size, fill, stroke, mirror: true);
         break;
     }
   }
