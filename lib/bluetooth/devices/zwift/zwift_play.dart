@@ -78,7 +78,7 @@ class ZwiftPlay extends ZwiftDevice {
       // Mirrored: grip on the right (~40-98%), handlebar drop on the left (~2-44%).
       return ControllerLayout(
         aspectRatio: 260 / 288,
-        shape: ContourShape.zwiftPlayLeft,
+        shape: ContourShape.steeringPad,
         svgAsset: 'assets/contours/zwift_play.svg',
         positions: {
           // On/off sits directly below the down button.
@@ -96,7 +96,7 @@ class ZwiftPlay extends ZwiftDevice {
     }
     return ControllerLayout(
       aspectRatio: 515 / 288,
-      shape: ContourShape.zwiftPlayRight,
+      shape: ContourShape.steeringPad,
       svgAsset: 'assets/contours/zwift_play.svg',
       mirrorX: true,
       positions: {
