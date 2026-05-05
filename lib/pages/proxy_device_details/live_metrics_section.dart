@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
+import 'package:bike_control/utils/units.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
@@ -37,6 +38,7 @@ class LiveMetricsSection extends StatelessWidget {
     if (metrics == null) {
       return const SizedBox.shrink();
     }
+    final units = unitSystemOf(context);
     return Column(
       spacing: 10,
       children: [
@@ -84,8 +86,8 @@ class LiveMetricsSection extends StatelessWidget {
                 icon: LucideIcons.gauge,
                 iconColor: const Color(0xFF0EA5E9),
                 label: AppLocalizations.of(context).speedLabel,
-                value: v?.toStringAsFixed(1),
-                unit: 'km/h',
+                value: v == null ? null : units.fromKph(v).toStringAsFixed(1),
+                unit: units.speedSymbol,
               ),
             ),
           ],

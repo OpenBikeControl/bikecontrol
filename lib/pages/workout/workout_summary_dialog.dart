@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
+import 'package:bike_control/utils/units.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -84,7 +85,7 @@ class _WorkoutSummaryDialog extends StatelessWidget {
         icon: LucideIcons.route,
         color: const Color(0xFF10B981),
         label: l10n.miniWorkoutSummaryDistance,
-        value: '${summary.distanceKm.toStringAsFixed(2)} km',
+        value: summary.distanceKm.asDistance(context),
       ),
       _tile(
         context: context,
@@ -112,7 +113,7 @@ class _WorkoutSummaryDialog extends StatelessWidget {
         icon: LucideIcons.gauge,
         color: const Color(0xFF0EA5E9),
         label: l10n.miniWorkoutSummaryAvgSpeed,
-        value: '${summary.avgSpeedKph.toStringAsFixed(1)} km/h',
+        value: summary.avgSpeedKph.asSpeed(context),
       ),
       if (summary.avgHeartRateBpm > 0)
         _tile(
