@@ -77,7 +77,7 @@ class GearHeroCard extends StatelessWidget {
     final target = definition.targetPowerW.value;
     final isSmall = MediaQuery.sizeOf(context).width < 600;
     final subtitle = StringBuffer('of ${definition.maxGear}  ·  ratio ${ratio.toStringAsFixed(2)}');
-    if (target != null) subtitle.write('  ·  target $target W');
+    if (target != null && definition.trainerMode.value == TrainerMode.ergMode) subtitle.write('  ·  target $target W');
     return Column(
       children: [
         Row(
@@ -230,7 +230,7 @@ class GearHeroCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: filled ? cs.primary : cs.muted,
           shape: BoxShape.circle,
-          border: filled ? null : Border.all(color: cs.border, width: 1),
+          border: filled ? null : Border.all(color: cs.border, width: 2),
         ),
         child: Opacity(
           opacity: disabled ? 0.4 : 1.0,

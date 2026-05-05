@@ -5,6 +5,7 @@ import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.
 import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/units.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -73,44 +74,54 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
   Widget _bikeWeightCard() {
     return ValueListenableBuilder<double>(
       valueListenable: def.bicycleWeightKg,
-      builder: (context, kg, _) => SettingTile(
-        icon: LucideIcons.bike,
-        title: context.i18n.bikeWeight,
-        subtitle: context.i18n.virtualShiftingPhysicsDesc,
-        trailing: StepperControl(
-          value: kg,
-          step: 0.5,
-          min: 1.0,
-          max: 50.0,
-          format: (v) => '${v.toStringAsFixed(1)} kg',
-          onChanged: (v) async {
-            def.setBicycleWeightKg(v);
-            await _updateActive((c) => c.copyWith(bikeWeightKg: v));
-          },
-        ),
-      ),
+      builder: (context, kg, _) {
+        final units = unitSystemOf(context);
+        final isImp = units == UnitSystem.imperial;
+        return SettingTile(
+          icon: LucideIcons.bike,
+          title: context.i18n.bikeWeight,
+          subtitle: context.i18n.virtualShiftingPhysicsDesc,
+          trailing: StepperControl(
+            value: units.fromKg(kg),
+            step: isImp ? 1.0 : 0.5,
+            min: isImp ? 2.0 : 1.0,
+            max: isImp ? 110.0 : 50.0,
+            format: (v) => '${v.toStringAsFixed(isImp ? 0 : 1)} ${units.weightSymbol}',
+            onChanged: (v) async {
+              final kgValue = units.toKgFromDisplay(v);
+              def.setBicycleWeightKg(kgValue);
+              await _updateActive((c) => c.copyWith(bikeWeightKg: kgValue));
+            },
+          ),
+        );
+      },
     );
   }
 
   Widget _riderWeightCard() {
     return ValueListenableBuilder<double>(
       valueListenable: def.riderWeightKg,
-      builder: (context, kg, _) => SettingTile(
-        icon: LucideIcons.user,
-        title: context.i18n.riderWeight,
-        subtitle: context.i18n.virtualShiftingPhysicsDesc,
-        trailing: StepperControl(
-          value: kg,
-          step: 1.0,
-          min: 20.0,
-          max: 200.0,
-          format: (v) => '${v.toStringAsFixed(0)} kg',
-          onChanged: (v) async {
-            def.setRiderWeightKg(v);
-            await _updateActive((c) => c.copyWith(riderWeightKg: v));
-          },
-        ),
-      ),
+      builder: (context, kg, _) {
+        final units = unitSystemOf(context);
+        final isImp = units == UnitSystem.imperial;
+        return SettingTile(
+          icon: LucideIcons.user,
+          title: context.i18n.riderWeight,
+          subtitle: context.i18n.virtualShiftingPhysicsDesc,
+          trailing: StepperControl(
+            value: units.fromKg(kg),
+            step: 1.0,
+            min: isImp ? 44.0 : 20.0,
+            max: isImp ? 440.0 : 200.0,
+            format: (v) => '${v.toStringAsFixed(0)} ${units.weightSymbol}',
+            onChanged: (v) async {
+              final kgValue = units.toKgFromDisplay(v);
+              def.setRiderWeightKg(kgValue);
+              await _updateActive((c) => c.copyWith(riderWeightKg: kgValue));
+            },
+          ),
+        );
+      },
     );
   }
 

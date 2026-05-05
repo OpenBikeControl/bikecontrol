@@ -11,6 +11,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -219,12 +220,13 @@ class ProxyDevice extends BluetoothDevice {
   @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     if (isConnected) {
+      final units = unitSystemOf(context);
       if (screenshotMode) {
         final parts = <Widget>[];
         _addMetric(parts, context, 250, 'W', LucideIcons.zap);
         _addMetric(parts, context, 133, 'bpm', LucideIcons.heart);
         _addMetric(parts, context, 90, 'rpm', LucideIcons.rotateCw);
-        _addMetric(parts, context, 40, 'km/h', LucideIcons.gauge);
+        _addMetric(parts, context, units.fromKph(40).round(), units.speedSymbol, LucideIcons.gauge);
         return parts;
       }
       return [
@@ -240,7 +242,7 @@ class ProxyDevice extends BluetoothDevice {
               _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
               final speed = def.speedKph.value;
               if (speed != null) {
-                _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+                _addMetric(parts, context, units.fromKph(speed).round(), units.speedSymbol, LucideIcons.gauge);
               }
             } else if (def is FitnessBikeDefinition) {
               _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
@@ -248,7 +250,7 @@ class ProxyDevice extends BluetoothDevice {
               _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
               final speed = def.speedKph.value;
               if (speed != null) {
-                _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+                _addMetric(parts, context, units.fromKph(speed).round(), units.speedSymbol, LucideIcons.gauge);
               }
               // Gear (sim / VS mode) or ERG target wattage (erg mode).
               if (def.trainerMode.value == TrainerMode.ergMode) {
