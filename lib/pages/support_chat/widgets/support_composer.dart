@@ -33,11 +33,17 @@ class SupportComposer extends StatefulWidget {
   /// outgoing message. Right-aligned so it doesn't span the full width.
   final String? diagnosticPreview;
 
+  /// Optional text to prefill the composer with on first build. The text
+  /// field is auto-focused when this is non-empty so the user can start
+  /// typing immediately.
+  final String? initialText;
+
   const SupportComposer({
     super.key,
     required this.sending,
     required this.onSend,
     this.diagnosticPreview,
+    this.initialText,
   });
 
   @override
@@ -46,11 +52,20 @@ class SupportComposer extends StatefulWidget {
 
 class _SupportComposerState extends State<SupportComposer> {
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   StagedAttachment? _attachment;
 
   @override
   void initState() {
     super.initState();
+    final initial = widget.initialText;
+    if (initial != null && initial.isNotEmpty) {
+      _controller.text = initial;
+      _controller.selection = TextSelection.collapsed(offset: initial.length);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
     _controller.addListener(() {
       if (mounted) setState(() {});
     });
@@ -59,6 +74,7 @@ class _SupportComposerState extends State<SupportComposer> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -100,7 +116,7 @@ class _SupportComposerState extends State<SupportComposer> {
     });
   }
 
-  void _showAttachSheet() {
+  void _showAttachSheet(BuildContext context) {
     showDropdown(
       context: context,
       builder: (c) => DropdownMenu(
@@ -167,7 +183,7 @@ class _SupportComposerState extends State<SupportComposer> {
                 builder: (context) {
                   return IconButton.ghost(
                     icon: const Icon(LucideIcons.paperclip, size: 20),
-                    onPressed: widget.sending ? null : _showAttachSheet,
+                    onPressed: widget.sending ? null : () => _showAttachSheet(context),
                   );
                 },
               ),
@@ -175,6 +191,7 @@ class _SupportComposerState extends State<SupportComposer> {
               Expanded(
                 child: TextArea(
                   controller: _controller,
+                  focusNode: _focusNode,
                   placeholder: Text(context.i18n.messageComposerPlaceholder),
                   expandableHeight: true,
                   initialHeight: 56,
