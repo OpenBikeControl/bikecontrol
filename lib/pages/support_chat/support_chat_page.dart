@@ -21,11 +21,13 @@ typedef TelemetryBuilder = Future<TelemetrySnapshot> Function();
 class SupportChatPage extends StatefulWidget {
   final TelemetryBuilder telemetryBuilder;
   final String? diagnosticPreview;
+  final String? initialText;
 
   const SupportChatPage({
     super.key,
     required this.telemetryBuilder,
     this.diagnosticPreview,
+    this.initialText,
   });
 
   @override
@@ -242,6 +244,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
           sending: _sending,
           onSend: _send,
           diagnosticPreview: widget.diagnosticPreview,
+          initialText: widget.initialText,
         ),
       ],
     );

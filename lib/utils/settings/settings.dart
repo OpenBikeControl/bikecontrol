@@ -141,6 +141,16 @@ class Settings {
     await prefs.setString(_retrofitModeKey(trainerKey), mode.name);
   }
 
+  static String _feedbackSubmittedKey(String trainerKey) => 'feedback_submitted_$trainerKey';
+
+  bool getFeedbackSubmitted(String trainerKey) {
+    return prefs.getBool(_feedbackSubmittedKey(trainerKey)) ?? false;
+  }
+
+  Future<void> setFeedbackSubmitted(String trainerKey, bool submitted) async {
+    await prefs.setBool(_feedbackSubmittedKey(trainerKey), submitted);
+  }
+
   static String _autoConnectKey(String trainerKey) => 'auto_connect_$trainerKey';
 
   /// Whether the user wants this trainer to auto-start on scan. Set to true
@@ -332,6 +342,14 @@ class Settings {
 
   Future<void> setMiuiWarningDismissed(bool dismissed) async {
     await prefs.setBool('miui_warning_dismissed', dismissed);
+  }
+
+  bool getMyWhooshGearHintDismissed() {
+    return prefs.getBool('mywhoosh_gear_hint_dismissed') ?? false;
+  }
+
+  Future<void> setMyWhooshGearHintDismissed(bool dismissed) async {
+    await prefs.setBool('mywhoosh_gear_hint_dismissed', dismissed);
   }
 
   /// Sticky flag: true once the user has opened a support chat at least once

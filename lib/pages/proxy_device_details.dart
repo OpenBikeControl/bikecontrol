@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
@@ -93,21 +94,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 SizedBox(height: 12),
-                if (!screenshotMode)
-                  Button(
-                    style: ButtonStyle.primary(),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => SupportChatPage(
-                            telemetryBuilder: () async => TelemetrySnapshot.fromDevice(device: device),
-                          ),
-                        ),
-                      );
-                    },
-                    leading: const Icon(LucideIcons.messageSquare, size: 18),
-                    child: Text(context.i18n.chatWithSupport),
-                  ),
+                if (!screenshotMode) _provideFeedbackBox(),
                 SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
                   w,
@@ -147,6 +134,81 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _provideFeedbackBox() {
+    final cs = Theme.of(context).colorScheme;
+    final hasSubmitted = core.settings.getFeedbackSubmitted(widget.device.trainerKey);
+    return Card(
+      padding: const EdgeInsets.all(12),
+      fillColor: cs.secondary,
+      filled: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            context.i18n.provideFeedback,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Button(
+                  style: ButtonStyle.outline(),
+                  onPressed: () => _submitFeedback('feedbackWorks', context.i18n.feedbackWorks),
+                  leading: const Icon(LucideIcons.thumbsUp, size: 16),
+                  child: Text(context.i18n.feedbackWorks),
+                ),
+              ),
+              if (hasSubmitted) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Button(
+                    style: ButtonStyle.outline(),
+                    onPressed: () => _submitFeedback('feedbackNoDifference', context.i18n.feedbackNoDifference),
+                    leading: const Icon(LucideIcons.minus, size: 16),
+                    child: Text(context.i18n.feedbackNoDifference),
+                  ),
+                ),
+              ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Button(
+                  style: ButtonStyle.outline(),
+                  onPressed: () => _submitFeedback('feedbackNotWorking', context.i18n.feedbackNotWorking),
+                  leading: const Icon(LucideIcons.thumbsDown, size: 16),
+                  child: Text(context.i18n.feedbackNotWorking),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitFeedback(String key, String label) async {
+    final device = widget.device;
+    final base = buildProxyServicesFreetext(device);
+    final composed = (base == null || base.isEmpty) ? key : '$key\n\n$base';
+    await core.settings.setFeedbackSubmitted(device.trainerKey, true);
+    if (!mounted) return;
+    setState(() {});
+    final snapshot = TelemetrySnapshot.fromDevice(device: device, freetextOverride: composed);
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SupportChatPage(
+          telemetryBuilder: () async => snapshot,
+          diagnosticPreview: JsonEncoder.withIndent('  ').convert(snapshot.toJson()),
+          initialText: '$label\n',
         ),
       ),
     );

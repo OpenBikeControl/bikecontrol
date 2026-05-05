@@ -1,9 +1,12 @@
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
+import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-class GearHeroCard extends StatelessWidget {
+class GearHeroCard extends StatefulWidget {
   final FitnessBikeDefinition definition;
 
   /// When true, the card renders only in SIM mode and hides (returns an
@@ -13,26 +16,48 @@ class GearHeroCard extends StatelessWidget {
   const GearHeroCard({super.key, required this.definition, this.simOnly = false});
 
   @override
+  State<GearHeroCard> createState() => _GearHeroCardState();
+}
+
+class _GearHeroCardState extends State<GearHeroCard> {
+  late bool _myWhooshHintDismissed;
+
+  @override
+  void initState() {
+    super.initState();
+    _myWhooshHintDismissed = core.settings.getMyWhooshGearHintDismissed();
+  }
+
+  bool get _isMyWhooshActive => core.settings.getTrainerApp() is MyWhoosh;
+
+  Future<void> _dismissMyWhooshHint() async {
+    await core.settings.setMyWhooshGearHintDismissed(true);
+    if (!mounted) return;
+    setState(() => _myWhooshHintDismissed = true);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return AnimatedBuilder(
       animation: Listenable.merge([
-        definition.trainerMode,
-        definition.ergTargetPower,
-        definition.targetPowerW,
-        definition.currentGear,
-        definition.gearRatio,
+        widget.definition.trainerMode,
+        widget.definition.ergTargetPower,
+        widget.definition.targetPowerW,
+        widget.definition.currentGear,
+        widget.definition.gearRatio,
       ]),
       builder: (context, _) {
-        final isErg = definition.trainerMode.value == TrainerMode.ergMode;
-        if (simOnly && isErg) return const SizedBox.shrink();
-        return SettingTile(
+        final isErg = widget.definition.trainerMode.value == TrainerMode.ergMode;
+        if (widget.simOnly && isErg) return const SizedBox.shrink();
+        final showMyWhooshHint = !isErg && !_myWhooshHintDismissed && _isMyWhooshActive;
+        final tile = SettingTile(
           icon: LucideIcons.cog,
           title: AppLocalizations.of(context).trainerControl,
           subtitle: isErg
               ? AppLocalizations.of(context).fixedTargetPowerMode
               : AppLocalizations.of(context).virtualGearShifting,
-          trailing: simOnly
+          trailing: widget.simOnly
               ? null
               : Row(
                   mainAxisSize: MainAxisSize.min,
@@ -43,11 +68,11 @@ class GearHeroCard extends StatelessWidget {
                       value: isErg,
                       onChanged: (v) {
                         if (v) {
-                          definition.setManualErgPower(
-                            definition.ergTargetPower.value ?? 150,
+                          widget.definition.setManualErgPower(
+                            widget.definition.ergTargetPower.value ?? 150,
                           );
                         } else {
-                          definition.exitErgMode();
+                          widget.definition.exitErgMode();
                         }
                       },
                     ),
@@ -67,17 +92,46 @@ class GearHeroCard extends StatelessWidget {
             child: isErg ? _ergContent(context, cs) : _gearContent(context, cs),
           ),
         );
+        if (!showMyWhooshHint) return tile;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            tile,
+            Warning(
+              important: false,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.info_outline, size: 18),
+                    const Gap(8),
+                    Expanded(
+                      child: Text(AppLocalizations.of(context).myWhooshGearHintTitle).bold.small,
+                    ),
+                    IconButton.ghost(
+                      icon: const Icon(Icons.close, size: 16),
+                      onPressed: _dismissMyWhooshHint,
+                    ),
+                  ],
+                ),
+                Text(AppLocalizations.of(context).myWhooshGearHintBody).small,
+              ],
+            ),
+          ],
+        );
       },
     );
   }
 
   Widget _gearContent(BuildContext context, ColorScheme cs) {
-    final gear = definition.currentGear.value;
-    final ratio = definition.gearRatio.value;
-    final target = definition.targetPowerW.value;
+    final gear = widget.definition.currentGear.value;
+    final ratio = widget.definition.gearRatio.value;
+    final target = widget.definition.targetPowerW.value;
     final isSmall = MediaQuery.sizeOf(context).width < 600;
-    final subtitle = StringBuffer('of ${definition.maxGear}  ·  ratio ${ratio.toStringAsFixed(2)}');
-    if (target != null && definition.trainerMode.value == TrainerMode.ergMode) subtitle.write('  ·  target $target W');
+    final subtitle = StringBuffer('of ${widget.definition.maxGear}  ·  ratio ${ratio.toStringAsFixed(2)}');
+    if (target != null && widget.definition.trainerMode.value == TrainerMode.ergMode) {
+      subtitle.write('  ·  target $target W');
+    }
     return Column(
       children: [
         Row(
@@ -89,7 +143,7 @@ class GearHeroCard extends StatelessWidget {
               context: context,
               icon: LucideIcons.minus,
               filled: false,
-              onTap: () => definition.shiftDown(),
+              onTap: () => widget.definition.shiftDown(),
             ),
             Text(
               '$gear',
@@ -104,7 +158,7 @@ class GearHeroCard extends StatelessWidget {
               context: context,
               icon: LucideIcons.plus,
               filled: true,
-              onTap: () => definition.shiftUp(),
+              onTap: () => widget.definition.shiftUp(),
             ),
             Expanded(child: SizedBox()),
           ],
@@ -122,7 +176,7 @@ class GearHeroCard extends StatelessWidget {
   }
 
   Widget _ergContent(BuildContext context, ColorScheme cs) {
-    final target = definition.ergTargetPower.value ?? 150;
+    final target = widget.definition.ergTargetPower.value ?? 150;
     final isSmall = MediaQuery.sizeOf(context).width < 600;
     return Column(
       spacing: isSmall ? 12 : 28,
@@ -135,7 +189,7 @@ class GearHeroCard extends StatelessWidget {
               context: context,
               icon: LucideIcons.minus,
               filled: false,
-              onTap: target > 0 ? () => definition.setManualErgPower((target - 5).clamp(0, 500)) : null,
+              onTap: target > 0 ? () => widget.definition.setManualErgPower((target - 5).clamp(0, 500)) : null,
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -166,7 +220,7 @@ class GearHeroCard extends StatelessWidget {
               context: context,
               icon: LucideIcons.plus,
               filled: true,
-              onTap: target < 500 ? () => definition.setManualErgPower((target + 5).clamp(0, 500)) : null,
+              onTap: target < 500 ? () => widget.definition.setManualErgPower((target + 5).clamp(0, 500)) : null,
             ),
             Expanded(child: SizedBox()),
           ],
@@ -176,7 +230,7 @@ class GearHeroCard extends StatelessWidget {
           min: 0,
           max: 500,
           divisions: 100,
-          onChanged: (v) => definition.setManualErgPower(v.value.round()),
+          onChanged: (v) => widget.definition.setManualErgPower(v.value.round()),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
