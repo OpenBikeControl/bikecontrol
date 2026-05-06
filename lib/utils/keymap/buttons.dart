@@ -106,6 +106,13 @@ const trainerActions = [
   InGameAction.workoutPauseResume,
 ];
 
+const trainerOnlyActions = [
+  InGameAction.trainerSwitchMode,
+  InGameAction.trainerIntensityUp,
+  InGameAction.trainerIntensityDown,
+  InGameAction.workoutPauseResume,
+];
+
 class ControllerButton {
   static const int _deviceIdSuffixLength = 4;
   static const _unset = Object();

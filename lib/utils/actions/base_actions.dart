@@ -5,11 +5,11 @@ import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
@@ -181,18 +181,21 @@ abstract class BaseActions {
 
     // Handle trainer-control actions
     if (trainerActions.contains(keyPair.inGameAction)) {
-      if (!isKeyDown) return Ignored('');
       final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
       if (proxy == null) {
-        return Error(AppLocalizations.current.noProxyTrainerConnected);
-      }
-      await IAPManager.instance.incrementCommandCount();
-      final result = proxy.handleTrainerAction(keyPair.inGameAction!);
-      // Ignored e.g. when already in highest gear
-      // Success when action was executed and the action should not be sent to connected trainer
-      // NotHandled means the e.g. gear changes should still be sent to the trainer, so we continue with the regular flow
-      if (result is Ignored || result is Success) {
-        return result;
+        if (trainerOnlyActions.contains(keyPair.inGameAction)) {
+          return Error(AppLocalizations.current.noProxyTrainerConnected);
+        }
+      } else {
+        if (!isKeyDown) return Ignored('');
+        await IAPManager.instance.incrementCommandCount();
+        final result = proxy.handleTrainerAction(keyPair.inGameAction!);
+        // Ignored e.g. when already in highest gear
+        // Success when action was executed and the action should not be sent to connected trainer
+        // NotHandled means the e.g. gear changes should still be sent to the trainer, so we continue with the regular flow
+        if (result is Ignored || result is Success) {
+          return result;
+        }
       }
     }
 
@@ -264,7 +267,10 @@ abstract class BaseActions {
       }).toList();
 
       if (activeTriggers.length > 1 && trigger != activeTriggers.first) {
-        return Error(AppLocalizations.current.proSubscriptionRequiredForAdditionalTriggers, type: ErrorType.proRequired);
+        return Error(
+          AppLocalizations.current.proSubscriptionRequiredForAdditionalTriggers,
+          type: ErrorType.proRequired,
+        );
       }
     }
 
