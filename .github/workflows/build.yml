@@ -337,17 +337,12 @@ jobs:
         if: false
         run: msstore publish 'build/windows/x64/runner/Release/bike_control.store.msix' -id 9NP42GS03Z26
 
-      - name: Zip Windows Release
-        shell: pwsh
-        run: |
-          7z a -p"${{ secrets.ZIP_PASSWORD }}" build/windows/bike_control.windows.protected.zip build/windows/bike_control.windows.zip
-
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: Windows Release
-          path: build/windows/bike_control.windows.protected.zip
+          path: build/windows/bike_control.windows.zip
 
       - name: Zip Windows Symbols
         shell: pwsh
