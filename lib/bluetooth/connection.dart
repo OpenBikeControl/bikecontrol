@@ -374,7 +374,7 @@ class Connection {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
 
-      final willConnect = device is! ProxyDevice || core.settings.getAutoConnect(device.trainerKey);
+      final willConnect = device is! ProxyDevice || device.shouldAutoConnect;
       if (willConnect) {
         _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
       }

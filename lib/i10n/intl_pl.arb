@@ -810,5 +810,17 @@
         "type": "String"
       }
     }
+  },
+  "smartTrainerConsentTitle": "Łączenie z {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl połączy się teraz z Twoim Smart Trainerem i przejmie kontrolę nad wirtualnym przełączaniem biegów. Wszelkie zmiany biegów będą wykonywane bezpośrednio w BikeControl, a nie przez {appName}. W {appName} podłączysz się następnie do wirtualnego trenażera BikeControl zamiast bezpośrednio do {trainerName}.\n\nAby przywrócić domyślne zachowanie, kliknij przycisk „{disconnectLabel}” i ponownie połącz {appName} bezpośrednio z {trainerName}.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
   }
 }

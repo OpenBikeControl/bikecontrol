@@ -810,5 +810,17 @@
         "type": "String"
       }
     }
+  },
+  "smartTrainerConsentTitle": "Conectando a {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl se conectará ahora a tu Smart Trainer y tomará el control del cambio de marchas virtual. Los cambios se realizarán directamente en BikeControl y ya no a través de tu {appName}. En {appName} te conectarás entonces al entrenador virtual de BikeControl, en lugar de directamente a {trainerName}.\n\nPara volver al comportamiento por defecto, haz clic en el botón «{disconnectLabel}» y vuelve a conectar {appName} directamente a tu {trainerName}.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
   }
 }

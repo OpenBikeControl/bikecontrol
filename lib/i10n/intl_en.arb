@@ -952,5 +952,17 @@
   "trainerIntensityDecreased": "Intensity -5%",
   "successRatingMessage": "Thank you for using BikeControl! Please consider rating BikeControl in the {store} — it helps a lot!",
   "@successRatingMessage": {"placeholders": {"store": {"type": "String"}}},
-  "rateBikeControl": "Rate BikeControl"
+  "rateBikeControl": "Rate BikeControl",
+  "smartTrainerConsentTitle": "Connecting to {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl will now connect to your Smart Trainer and take over control over Virtual Shifting. Any shifting will happen directly in BikeControl, and no longer through your {appName}. In {appName} you will then connect to the BikeControl virtual trainer, instead of directly to {trainerName}.\n\nTo revert to the default behavior, click on the \"{disconnectLabel}\" button and connect {appName} directly to your {trainerName} again.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
+  }
 }

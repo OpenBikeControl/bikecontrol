@@ -810,5 +810,17 @@
         "type": "String"
       }
     }
+  },
+  "smartTrainerConsentTitle": "Verbinde mit {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl verbindet sich jetzt mit deinem Smart Trainer und übernimmt die Steuerung des virtuellen Schaltens. Sämtliches Schalten findet direkt in BikeControl statt und nicht mehr über deine {appName}. In {appName} verbindest du dich anschließend mit dem virtuellen BikeControl-Trainer statt direkt mit {trainerName}.\n\nUm zum Standardverhalten zurückzukehren, klicke auf die Schaltfläche „{disconnectLabel}“ und verbinde {appName} wieder direkt mit deinem {trainerName}.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
   }
 }
