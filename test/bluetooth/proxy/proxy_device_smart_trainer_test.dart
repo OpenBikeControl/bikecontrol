@@ -16,7 +16,7 @@ void main() {
         name: 'KICKR',
         services: const ['00001826-0000-1000-8000-00805f9b34fb'],
       ));
-      expect(dev.debugIsSmartTrainerForTesting, isTrue);
+      expect(dev.isSmartTrainer, isTrue);
     });
 
     test('FE-C-only scan result is also treated as a smart trainer', () {
@@ -25,7 +25,7 @@ void main() {
         name: 'X2Max',
         services: const ['6e40fec1-b5a3-f393-e0a9-e50e24dcca9e'],
       ));
-      expect(dev.debugIsSmartTrainerForTesting, isTrue);
+      expect(dev.isSmartTrainer, isTrue);
     });
 
     test('Power-meter-only scan result (CPS) is NOT a smart trainer', () {
@@ -34,7 +34,7 @@ void main() {
         name: 'Stages',
         services: const ['00001818-0000-1000-8000-00805f9b34fb'],
       ));
-      expect(dev.debugIsSmartTrainerForTesting, isFalse);
+      expect(dev.isSmartTrainer, isFalse);
     });
 
     test('HR-only scan result is NOT a smart trainer', () {
@@ -43,7 +43,7 @@ void main() {
         name: 'TICKR',
         services: const ['0000180d-0000-1000-8000-00805f9b34fb'],
       ));
-      expect(dev.debugIsSmartTrainerForTesting, isFalse);
+      expect(dev.isSmartTrainer, isFalse);
     });
 
     test('UUID matching is case-insensitive', () {
@@ -52,7 +52,7 @@ void main() {
         name: 'X2Max',
         services: const ['6E40FEC1-B5A3-F393-E0A9-E50E24DCCA9E'],
       ));
-      expect(dev.debugIsSmartTrainerForTesting, isTrue);
+      expect(dev.isSmartTrainer, isTrue);
     });
   });
 }

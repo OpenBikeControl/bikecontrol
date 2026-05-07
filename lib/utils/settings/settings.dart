@@ -164,6 +164,20 @@ class Settings {
     await prefs.setBool(_autoConnectKey(trainerKey), autoConnect);
   }
 
+  static String _smartTrainerConsentKey(String trainerKey) => 'smart_trainer_consent_$trainerKey';
+
+  /// Whether the user has acknowledged the one-time explainer dialog the
+  /// first time they tap a smart trainer (BikeControl takes over Virtual
+  /// Shifting; the trainer app then connects to the virtual trainer instead).
+  /// Set to true only after they confirm via Continue.
+  bool getSmartTrainerConsent(String trainerKey) {
+    return prefs.getBool(_smartTrainerConsentKey(trainerKey)) ?? false;
+  }
+
+  Future<void> setSmartTrainerConsent(String trainerKey, bool consent) async {
+    await prefs.setBool(_smartTrainerConsentKey(trainerKey), consent);
+  }
+
   Future<void> setKeyMap(SupportedApp app) async {
     if (app is CustomApp) {
       await prefs.setStringList('customapp_${app.profileName}', app.encodeKeymap());

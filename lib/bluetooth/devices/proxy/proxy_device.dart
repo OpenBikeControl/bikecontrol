@@ -13,7 +13,6 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerC
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
@@ -189,14 +188,11 @@ class ProxyDevice extends BluetoothDevice {
   /// or FE-C-over-BLE). Power-meter-only or HR-only devices have no trainer
   /// commands to drive, so Virtual Shifting is meaningless for them — they
   /// stay on Proxy.
-  bool get _isSmartTrainer => scanResult.services.any((s) {
+  bool get isSmartTrainer => scanResult.services.any((s) {
     final lower = s.toLowerCase();
     return lower == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase() ||
         lower == FitnessBikeDefinition.FEC_BLE_SERVICE_UUID.toLowerCase();
   });
-
-  @visibleForTesting
-  bool get debugIsSmartTrainerForTesting => _isSmartTrainer;
 
   /// Default connect mode when the user hasn't explicitly picked one. Smart
   /// trainers default to Virtual Shifting (transport resolved from the
@@ -204,7 +200,7 @@ class ProxyDevice extends BluetoothDevice {
   /// When VS is the conceptual default but no transport is enabled in
   /// Connection Settings, falls through to Proxy so the device still works.
   RetrofitMode get defaultRetrofitMode {
-    if (!_isSmartTrainer) return RetrofitMode.proxy;
+    if (!isSmartTrainer) return RetrofitMode.proxy;
     final transport = core.logic.preferredBridgeTransport(core.logic.enabledTrainerConnections);
     return switch (transport) {
       TrainerConnectionType.bluetooth => RetrofitMode.bluetooth,
@@ -409,17 +405,27 @@ class ProxyDevice extends BluetoothDevice {
     }
   }
 
+  /// Whether the auto-connect path is allowed to start this device on its own
+  /// (scan-time / app-launch). Requires an explicit prior connect intent
+  /// (`getAutoConnect`) and, for smart trainers, the one-time takeover-consent
+  /// flag set via the consent dialog.
+  bool get shouldAutoConnect {
+    if (!core.settings.getAutoConnect(trainerKey)) return false;
+    if (isSmartTrainer && !core.settings.getSmartTrainerConsent(trainerKey)) return false;
+    return true;
+  }
+
   @override
   Future<void> connect() async {
     // ProxyDevice intentionally skips the upstream auto-connect — BLE is only
     // opened once the user explicitly starts the emulator via startProxy().
     // If they connected previously and haven't since tapped Disconnect,
     // honour that intent by kicking off startProxy() here (fire-and-forget).
-    if (!isStarting.value && !emulator.isStarted.value && core.settings.getAutoConnect(trainerKey)) {
-      final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
-      emulator.setRetrofitMode(savedMode);
-      await startProxy();
-    }
+    if (isStarting.value || emulator.isStarted.value) return;
+    if (!shouldAutoConnect) return;
+    final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+    emulator.setRetrofitMode(savedMode);
+    await startProxy();
   }
 
   Future<void> startProxy() async {
