@@ -13,6 +13,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerC
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
@@ -184,12 +185,18 @@ class ProxyDevice extends BluetoothDevice {
   /// created lazily per TCP client — the details page rehydrates on mount.
   String get trainerKey => scanResult.name ?? scanResult.deviceId;
 
-  /// Whether the underlying device looks like a smart trainer (FTMS-capable).
-  /// Power-meter-only or HR-only devices have no trainer commands to drive,
-  /// so Virtual Shifting is meaningless for them — they stay on Proxy.
-  bool get _isSmartTrainer => scanResult.services.any(
-    (s) => s.toLowerCase() == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase(),
-  );
+  /// Whether the underlying device looks like a smart trainer (FTMS-capable
+  /// or FE-C-over-BLE). Power-meter-only or HR-only devices have no trainer
+  /// commands to drive, so Virtual Shifting is meaningless for them — they
+  /// stay on Proxy.
+  bool get _isSmartTrainer => scanResult.services.any((s) {
+    final lower = s.toLowerCase();
+    return lower == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase() ||
+        lower == FitnessBikeDefinition.FEC_BLE_SERVICE_UUID.toLowerCase();
+  });
+
+  @visibleForTesting
+  bool get debugIsSmartTrainerForTesting => _isSmartTrainer;
 
   /// Default connect mode when the user hasn't explicitly picked one. Smart
   /// trainers default to Virtual Shifting (transport resolved from the
