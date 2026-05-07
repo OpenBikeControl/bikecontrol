@@ -45,9 +45,7 @@ class SupportMessageBubble extends StatelessWidget {
     final alignment = isUser ? AxisAlignmentDirectional.end : AxisAlignmentDirectional.start;
     final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.secondary;
     final isRatingPrompt = !isUser && message.body == _kSuccessRatingToken;
-    final renderedBody = isRatingPrompt
-        ? context.i18n.successRatingMessage(_storeName())
-        : message.body;
+    final renderedBody = isRatingPrompt ? context.i18n.successRatingMessage(_storeName()) : message.body;
 
     return ChatBubble(
       alignment: alignment,
@@ -108,7 +106,7 @@ class SupportMessageBubble extends StatelessWidget {
                 ],
               ],
             ),
-            if (onReply != null && !isRatingPrompt) ...[
+            if (onReply != null && !isRatingPrompt && replyCount > 0) ...[
               const SizedBox(height: 4),
               Button.ghost(
                 onPressed: onReply,
