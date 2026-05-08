@@ -17,7 +17,7 @@ import 'package:flutter/foundation.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
-import 'package:prop/prop.dart';
+import 'package:prop/prop.dart' hide Set;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -600,7 +600,7 @@ class Settings {
 
   /// Get overlay display fields (set of OverlayField enum values).
   /// Defaults to {power, cadence}.
-  dynamic /* Set<OverlayField> */ getOverlayFields() {
+  Set<OverlayField> getOverlayFields() {
     final raw = prefs.getStringList('overlay_fields');
     if (raw == null) {
       return <OverlayField>{OverlayField.power, OverlayField.cadence};
@@ -613,10 +613,10 @@ class Settings {
   }
 
   /// Set overlay display fields.
-  Future<void> setOverlayFields(dynamic /* Set<OverlayField> */ fields) async {
+  Future<void> setOverlayFields(Set<OverlayField> fields) async {
     await prefs.setStringList(
       'overlay_fields',
-      (fields as Iterable).map((f) => (f as OverlayField).name).toList(),
+      fields.map((f) => f.name).toList(),
     );
   }
 
