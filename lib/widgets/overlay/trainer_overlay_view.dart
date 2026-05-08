@@ -1,10 +1,10 @@
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' hide OverlayState;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class TrainerOverlayView extends StatelessWidget {
-  final ValueListenable<OverlayState> state;
+  final ValueListenable<TrainerOverlayState> state;
 
   /// Called when user requests overlay close.
   final VoidCallback onHide;
@@ -30,7 +30,7 @@ class TrainerOverlayView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return ValueListenableBuilder<OverlayState>(
+    return ValueListenableBuilder<TrainerOverlayState>(
       valueListenable: state,
       builder: (context, s, _) {
         return Container(
@@ -74,7 +74,7 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  Widget _topBar(BuildContext context, ColorScheme cs, OverlayState s) {
+  Widget _topBar(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
     final modePill = _modePill(cs, s.mode);
     return Row(
       children: [
@@ -116,7 +116,7 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  Widget _metricsRow(BuildContext context, ColorScheme cs, OverlayState s) {
+  Widget _metricsRow(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
     final children = <Widget>[];
     if (s.fields.contains(OverlayField.power)) {
       children.add(_metric(cs, '${s.powerW ?? '--'} W'));

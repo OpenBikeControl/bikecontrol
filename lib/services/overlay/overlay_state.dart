@@ -16,7 +16,7 @@ enum OverlayField {
 
 /// Snapshot of everything the overlay needs to render. Immutable; comparable
 /// via `==` so debouncers can drop unchanged ticks.
-class OverlayState {
+class TrainerOverlayState {
   final int gear;
   final int maxGear;
   final double gearRatio;
@@ -26,7 +26,7 @@ class OverlayState {
   final int? ergTargetW;
   final Set<OverlayField> fields;
 
-  const OverlayState({
+  const TrainerOverlayState({
     required this.gear,
     required this.maxGear,
     required this.gearRatio,
@@ -48,7 +48,7 @@ class OverlayState {
         'fields': fields.map((f) => f.name).toList(),
       };
 
-  factory OverlayState.fromJson(Map<String, dynamic> json) {
+  factory TrainerOverlayState.fromJson(Map<String, dynamic> json) {
     final modeName = json['mode'] as String;
     final mode = TrainerMode.values.firstWhere(
       (m) => m.name == modeName,
@@ -58,7 +58,7 @@ class OverlayState {
         .map((e) => OverlayField.fromName(e as String))
         .whereType<OverlayField>()
         .toSet();
-    return OverlayState(
+    return TrainerOverlayState(
       gear: json['gear'] as int,
       maxGear: json['maxGear'] as int,
       gearRatio: (json['gearRatio'] as num).toDouble(),
@@ -73,7 +73,7 @@ class OverlayState {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is OverlayState &&
+    return other is TrainerOverlayState &&
         other.gear == gear &&
         other.maxGear == maxGear &&
         other.gearRatio == gearRatio &&

@@ -10,9 +10,9 @@ void main() {
     });
   });
 
-  group('OverlayState', () {
+  group('TrainerOverlayState', () {
     test('round-trips through json', () {
-      const s = OverlayState(
+      const s = TrainerOverlayState(
         gear: 12,
         maxGear: 24,
         gearRatio: 2.43,
@@ -22,18 +22,18 @@ void main() {
         ergTargetW: null,
         fields: {OverlayField.power, OverlayField.cadence},
       );
-      final round = OverlayState.fromJson(s.toJson());
+      final round = TrainerOverlayState.fromJson(s.toJson());
       expect(round, s);
     });
 
     test('equality respects field set', () {
-      const a = OverlayState(
+      const a = TrainerOverlayState(
         gear: 1, maxGear: 2, gearRatio: 1.0,
         mode: TrainerMode.simMode,
         powerW: null, cadenceRpm: null, ergTargetW: null,
         fields: {OverlayField.power},
       );
-      const b = OverlayState(
+      const b = TrainerOverlayState(
         gear: 1, maxGear: 2, gearRatio: 1.0,
         mode: TrainerMode.simMode,
         powerW: null, cadenceRpm: null, ergTargetW: null,

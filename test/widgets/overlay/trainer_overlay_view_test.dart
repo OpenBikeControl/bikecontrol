@@ -3,10 +3,10 @@ import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' hide OverlayState;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 void main() {
-  ValueNotifier<OverlayState> mkState({
+  ValueNotifier<TrainerOverlayState> mkState({
     int gear = 14,
     int maxGear = 24,
     int? powerW = 178,
@@ -14,7 +14,7 @@ void main() {
     Set<OverlayField> fields = const {OverlayField.power, OverlayField.cadence},
     TrainerMode mode = TrainerMode.simMode,
   }) {
-    return ValueNotifier(OverlayState(
+    return ValueNotifier(TrainerOverlayState(
       gear: gear, maxGear: maxGear, gearRatio: 2.43, mode: mode,
       powerW: powerW, cadenceRpm: cadenceRpm, ergTargetW: null, fields: fields,
     ));
