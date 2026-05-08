@@ -486,6 +486,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_app_group_directory:
+    dependency: transitive
+    description:
+      name: flutter_app_group_directory
+      sha256: "680ef9b2dee84c237cd7bb7fc78bc45867b32556a8a5f0de61278078b9fefd05"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   flutter_driver:
     dependency: transitive
     description: flutter
@@ -544,6 +552,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.8"
+  flutter_overlay_window:
+    dependency: "direct main"
+    description:
+      name: flutter_overlay_window
+      sha256: "17988420249da68e421d1b44b511e6113d3de7a9e52c3fbd6d99730508af4580"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -1136,6 +1152,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  live_activities:
+    dependency: "direct main"
+    description:
+      name: live_activities
+      sha256: "060f4d8f57b399e5c8beb255fa8426b9b4789320414ae68c8510aec113269dbd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.9"
   logger:
     dependency: transitive
     description:
@@ -2233,4 +2257,4 @@ packages:
     version: "2.1.0"
 sdks:
   dart: ">=3.11.0 <4.0.0"
-  flutter: ">=3.38.0"
+  flutter: ">=3.41.0"

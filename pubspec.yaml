@@ -54,6 +54,8 @@ dependencies:
   windows_iap:
     path: windows_iap
   window_manager: ^0.5.1
+  flutter_overlay_window: ^0.5.0
+  live_activities: ^2.4.9
   device_info_plus: ^12.1.0
   keypress_simulator:
     path: keypress_simulator/packages/keypress_simulator
