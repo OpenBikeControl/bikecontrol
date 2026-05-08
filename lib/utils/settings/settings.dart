@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
+import 'package:flutter/widgets.dart' show Offset;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -13,6 +14,7 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:prop/prop.dart';
@@ -586,6 +588,48 @@ class Settings {
     _syncDebounceTimer?.cancel();
     _syncService?.dispose();
     _syncService = null;
+  }
+
+  // ----- Trainer overlay -----
+
+  bool getOverlayEnabled() => prefs.getBool('overlay_enabled') ?? false;
+
+  Future<void> setOverlayEnabled(bool enabled) async {
+    await prefs.setBool('overlay_enabled', enabled);
+  }
+
+  /// Get overlay display fields (set of OverlayField enum values).
+  /// Defaults to {power, cadence}.
+  dynamic /* Set<OverlayField> */ getOverlayFields() {
+    final raw = prefs.getStringList('overlay_fields');
+    if (raw == null) {
+      return <OverlayField>{OverlayField.power, OverlayField.cadence};
+    }
+    final parsed = raw
+        .map(OverlayField.fromName)
+        .whereType<OverlayField>()
+        .toSet();
+    return parsed;
+  }
+
+  /// Set overlay display fields.
+  Future<void> setOverlayFields(dynamic /* Set<OverlayField> */ fields) async {
+    await prefs.setStringList(
+      'overlay_fields',
+      (fields as Iterable).map((f) => (f as OverlayField).name).toList(),
+    );
+  }
+
+  Offset? getOverlayPosition() {
+    final x = prefs.getDouble('overlay_position_x');
+    final y = prefs.getDouble('overlay_position_y');
+    if (x == null || y == null) return null;
+    return Offset(x, y);
+  }
+
+  Future<void> setOverlayPosition(Offset p) async {
+    await prefs.setDouble('overlay_position_x', p.dx);
+    await prefs.setDouble('overlay_position_y', p.dy);
   }
 
   Future<void> setShowExperimental(bool value) async {
