@@ -71,6 +71,8 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>This app connects to your trainer app on your local network.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSMotionUsageDescription</key>
 	<string>Access your accelerometer and gyroscope for steering support via your phone.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
