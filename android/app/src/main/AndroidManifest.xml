@@ -26,6 +26,9 @@
     <!-- to check if you have the latest version -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Required for trainer overlay display -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <application
         android:label="BikeControl"
         android:allowBackup="false"
@@ -84,6 +87,10 @@
                 android:exported="false"
                 android:stopWithTask="false"
                 android:foregroundServiceType="connectedDevice"/>
+
+        <service
+            android:name="flutter.overlay.window.flutter_overlay_window.OverlayService"
+            android:exported="false" />
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
