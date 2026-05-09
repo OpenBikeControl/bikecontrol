@@ -53,6 +53,8 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
+  - flutter_app_group_directory (0.0.1):
+    - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
   - flutter_secure_storage_darwin (10.0.0):
@@ -101,6 +103,8 @@ PODS:
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
+  - live_activities (0.0.1):
+    - Flutter
   - media_key_detector_ios (0.0.1):
     - Flutter
   - nsd_ios (0.0.1):
@@ -157,6 +161,7 @@ DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
+  - flutter_app_group_directory (from `.symlinks/plugins/flutter_app_group_directory/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - flutter_volume_controller (from `.symlinks/plugins/flutter_volume_controller/ios`)
@@ -167,6 +172,7 @@ DEPENDENCIES:
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/darwin`)
+  - live_activities (from `.symlinks/plugins/live_activities/ios`)
   - media_key_detector_ios (from `.symlinks/plugins/media_key_detector_ios/ios`)
   - nsd_ios (from `.symlinks/plugins/nsd_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -214,6 +220,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
+  flutter_app_group_directory:
+    :path: ".symlinks/plugins/flutter_app_group_directory/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   flutter_secure_storage_darwin:
@@ -234,6 +242,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/darwin"
+  live_activities:
+    :path: ".symlinks/plugins/live_activities/ios"
   media_key_detector_ios:
     :path: ".symlinks/plugins/media_key_detector_ios/ios"
   nsd_ios:
@@ -276,6 +286,7 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_app_group_directory: d2c3337f424828558953172f9378d00df9b7756d
   flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
   flutter_secure_storage_darwin: 557817588b80e60213cbecb573c45c76b788018d
   flutter_volume_controller: e4d5832f08008180f76e30faf671ffd5a425e529
@@ -290,6 +301,7 @@ SPEC CHECKSUMS:
   in_app_review: 436034b18594851a7328d7f1c2ed5ec235b79cfc
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
+  live_activities: 5a5313d5bf801bbbbe80d51eab80aed6d6df376b
   media_key_detector_ios: 7ff9aefdfea00bb7b71e184132381b7d0e7e1269
   nsd_ios: 8c37babdc6538e3350dbed3a52674d2edde98173
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4

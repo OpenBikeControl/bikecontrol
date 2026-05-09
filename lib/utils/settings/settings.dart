@@ -4,8 +4,8 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
-import 'package:flutter/widgets.dart' show Offset;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -14,7 +14,7 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:flutter/widgets.dart' show Offset;
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:prop/prop.dart' hide Set;
@@ -24,7 +24,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../main.dart';
-import '../actions/desktop.dart';
 import '../keymap/apps/custom_app.dart';
 import '../keymap/buttons.dart';
 
@@ -46,7 +45,7 @@ class Settings {
       }
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
-      if (core.actionHandler is DesktopActions) {
+      if (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS) {
         // Must add this line.
         await windowManager.ensureInitialized();
       }
@@ -605,10 +604,7 @@ class Settings {
     if (raw == null) {
       return <OverlayField>{OverlayField.power, OverlayField.cadence};
     }
-    final parsed = raw
-        .map(OverlayField.fromName)
-        .whereType<OverlayField>()
-        .toSet();
+    final parsed = raw.map(OverlayField.fromName).whereType<OverlayField>().toSet();
     return parsed;
   }
 
