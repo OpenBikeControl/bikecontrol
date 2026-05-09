@@ -33,7 +33,9 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
   void initState() {
     super.initState();
     _controller = TrainerOverlayService.forCurrentPlatform();
-    _enabled = core.settings.getOverlayEnabled();
+    // Use the controller's live state as source of truth — the persisted flag
+    // may be stale after a cold start where no overlay is actually showing.
+    _enabled = _controller.isShowing.value;
     _fields = core.settings.getOverlayFields();
     _controller.isShowing.addListener(_syncFromController);
   }
@@ -90,7 +92,6 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isIos = !kIsWeb && Platform.isIOS;
-    final isDesktop = !kIsWeb && (Platform.isMacOS || Platform.isWindows);
     final isAndroid = !kIsWeb && Platform.isAndroid;
 
     return Column(
@@ -108,7 +109,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
           trailing: Switch(value: _enabled, onChanged: _toggle),
         ),
         if (_enabled) _fieldsCard(l10n),
-        if (isDesktop && _enabled) _tipCard(l10n.overlayWindowsTip),
+        if (!kIsWeb && Platform.isWindows && _enabled) _tipCard(l10n.overlayWindowsTip),
         if (isAndroid) _androidPermissionTile(l10n),
       ],
     );
