@@ -8,6 +8,7 @@ import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -28,6 +29,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
   late TrainerOverlayController _controller;
   late bool _enabled;
   late Set<OverlayField> _fields;
+  bool _androidPermissionGranted = false;
 
   @override
   void initState() {
@@ -38,6 +40,14 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
     _enabled = _controller.isShowing.value;
     _fields = core.settings.getOverlayFields();
     _controller.isShowing.addListener(_syncFromController);
+    _refreshAndroidPermission();
+  }
+
+  Future<void> _refreshAndroidPermission() async {
+    if (kIsWeb || !Platform.isAndroid) return;
+    final granted = await FlutterOverlayWindow.isPermissionGranted();
+    if (!mounted) return;
+    setState(() => _androidPermissionGranted = granted);
   }
 
   @override
@@ -56,6 +66,8 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
     if (v) {
       final res = await _controller.show(widget.definition, _fields);
       if (!mounted) return;
+      // Permission state may have changed during show().
+      _refreshAndroidPermission();
       if (res.ok) {
         await core.settings.setOverlayEnabled(true);
         setState(() => _enabled = true);
@@ -110,7 +122,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
         ),
         if (_enabled) _fieldsCard(l10n),
         if (!kIsWeb && Platform.isWindows && _enabled) _tipCard(l10n.overlayWindowsTip),
-        if (isAndroid) _androidPermissionTile(l10n),
+        if (isAndroid && !_androidPermissionGranted) _androidPermissionTile(l10n),
       ],
     );
   }

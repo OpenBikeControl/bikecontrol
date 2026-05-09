@@ -3,6 +3,13 @@ import 'dart:convert';
 
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
+// Importing the entry point ensures it is compiled into the app binary.
+// `@pragma('vm:entry-point')` only prevents tree-shaking once a file is
+// compiled; without an import the secondary engine cannot find `overlayMain`
+// and Android logs `Width is zero` followed by `Destroying the overlay
+// window service`.
+// ignore: unused_import
+import 'package:bike_control/services/overlay/overlay_entry_point.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
