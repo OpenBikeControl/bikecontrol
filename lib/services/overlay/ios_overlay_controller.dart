@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:live_activities/live_activities.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
@@ -27,13 +28,11 @@ class IosOverlayController implements TrainerOverlayController {
   ValueListenable<bool> get isShowing => _showing;
 
   @override
-  Future<OverlayShowResult> show(
-      FitnessBikeDefinition def, Set<OverlayField> fields) async {
+  Future<OverlayShowResult> show(FitnessBikeDefinition def, Set<OverlayField> fields) async {
     try {
       await _la.init(appGroupId: _appGroupId);
     } catch (e) {
-      return OverlayShowResult.fail(OverlayShowFailure.systemDisabled,
-          message: 'Live Activities init failed: $e');
+      return OverlayShowResult.fail(OverlayShowFailure.systemDisabled, message: 'Live Activities init failed: $e');
     }
     _def = def;
     _fields = fields;
@@ -44,14 +43,20 @@ class IosOverlayController implements TrainerOverlayController {
     try {
       final result = await _la.createActivity(activityId, _toMap(s));
       if (result == null) {
-        return const OverlayShowResult.fail(OverlayShowFailure.systemDisabled,
-            message:
-                'Live Activities are disabled (Low Power Mode or system setting).');
+        return const OverlayShowResult.fail(
+          OverlayShowFailure.systemDisabled,
+          message: 'Live Activities are disabled (Low Power Mode or system setting).',
+        );
       }
       _activityId = activityId;
-    } catch (e) {
-      return OverlayShowResult.fail(OverlayShowFailure.systemDisabled,
-          message: 'Live Activity create failed: $e');
+    } catch (e, s) {
+      if (kDebugMode) {
+        // print stack trace
+        debugPrint('Live Activities create failed: $e');
+        debugPrintStack(stackTrace: s);
+        print((e as PlatformException).stacktrace);
+      }
+      return OverlayShowResult.fail(OverlayShowFailure.systemDisabled, message: 'Live Activity create failed: $e');
     }
 
     _showing.value = true;

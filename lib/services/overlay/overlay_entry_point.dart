@@ -43,15 +43,15 @@ class _OverlayAppState extends State<_OverlayApp> {
   }
 
   static TrainerOverlayState _emptyState() => const TrainerOverlayState(
-        gear: 0,
-        maxGear: 0,
-        gearRatio: 1.0,
-        mode: TrainerMode.simMode,
-        powerW: null,
-        cadenceRpm: null,
-        ergTargetW: null,
-        fields: {OverlayField.power, OverlayField.cadence},
-      );
+    gear: 0,
+    maxGear: 0,
+    gearRatio: 1.0,
+    mode: TrainerMode.simMode,
+    powerW: null,
+    cadenceRpm: null,
+    ergTargetW: null,
+    fields: {OverlayField.power, OverlayField.cadence},
+  );
 
   @override
   Widget build(BuildContext context) {
