@@ -18,6 +18,7 @@ import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/remote.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -82,6 +83,10 @@ class Core {
       settings: settings,
       trainerConnections: logic.trainerConnections.map((t) => t.isConnected).toList(),
       isMobilePlatform: !kIsWeb && (Platform.isAndroid || Platform.isIOS),
+      isOnTrial: () {
+        final iap = IAPManager.instance;
+        return !iap.isProEnabled && !iap.isPurchased.value && !iap.isTrialExpired;
+      },
     );
   }
 

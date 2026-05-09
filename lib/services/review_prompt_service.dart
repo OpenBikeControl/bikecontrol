@@ -8,6 +8,7 @@ class ReviewPromptService {
   final Settings settings;
   final List<ValueListenable<bool>> trainerConnections;
   final bool isMobilePlatform;
+  final bool Function() isOnTrial;
 
   final ValueNotifier<bool> shouldShowBanner = ValueNotifier(false);
 
@@ -18,7 +19,10 @@ class ReviewPromptService {
     required this.settings,
     required this.trainerConnections,
     required this.isMobilePlatform,
+    this.isOnTrial = _alwaysFalse,
   });
+
+  static bool _alwaysFalse() => false;
 
   void start() {
     for (final notifier in trainerConnections) {
@@ -43,6 +47,7 @@ class ReviewPromptService {
 
   bool _isEligible() {
     if (!isMobilePlatform) return false;
+    if (isOnTrial()) return false;
     if (settings.getReviewCompleted()) return false;
     final count = settings.getReviewSessionCount();
     if (count < sessionThreshold) return false;

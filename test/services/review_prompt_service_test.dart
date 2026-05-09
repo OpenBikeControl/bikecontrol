@@ -164,6 +164,47 @@ void main() {
       reshown.dispose();
     });
 
+    test('does not show banner while user is on trial time', () async {
+      await settings.setReviewSessionCount(10);
+
+      final trainer = ValueNotifier(true);
+      final service = ReviewPromptService(
+        settings: settings,
+        trainerConnections: [trainer],
+        isMobilePlatform: true,
+        isOnTrial: () => true,
+      );
+      service.start();
+      await Future.value();
+
+      expect(service.shouldShowBanner.value, false);
+
+      service.dispose();
+    });
+
+    test('shows banner once trial ends', () async {
+      await settings.setReviewSessionCount(10);
+
+      var onTrial = true;
+      final trainer = ValueNotifier(false);
+      final service = ReviewPromptService(
+        settings: settings,
+        trainerConnections: [trainer],
+        isMobilePlatform: true,
+        isOnTrial: () => onTrial,
+      );
+      service.start();
+      expect(service.shouldShowBanner.value, false);
+
+      onTrial = false;
+      trainer.value = true;
+      await Future.value();
+
+      expect(service.shouldShowBanner.value, true);
+
+      service.dispose();
+    });
+
     test('no trainer connection in this launch leaves session count untouched', () async {
       await settings.setReviewSessionCount(2);
 
