@@ -1,18 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
 import 'package:app_links/app_links.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
-import 'package:bike_control/widgets/overlay/trainer_overlay_host.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart' as dmw;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -25,6 +27,28 @@ final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // When desktop_multi_window spawns a sub-window engine it calls main()
+  // again in that engine. Detect this by inspecting the current window's
+  // arguments before doing anything else.
+  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+    final self = await dmw.WindowController.fromCurrentEngine();
+    final rawArgs = self.arguments;
+    if (rawArgs.isNotEmpty) {
+      try {
+        final argsMap =
+            jsonDecode(rawArgs) as Map<String, dynamic>;
+        if (argsMap['role'] == 'trainer-overlay') {
+          await runDesktopOverlayWindow(self);
+          return;
+        }
+      } catch (_) {
+        // Not a JSON sub-window argument — continue as main window.
+      }
+    }
+  }
+
   // setup crash reporting
 
   // Catch errors that happen in other isolates
@@ -54,8 +78,6 @@ void main() async {
         // Return true means "handled"
         return true;
       };
-
-      WidgetsFlutterBinding.ensureInitialized();
 
       final error = await core.settings.init();
 
@@ -260,9 +282,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
                             )
                           : DividerTheme(),
                       child: _Starter(
-                        child: TrainerOverlayHost(
-                          child: widget.customChild ?? Navigation(),
-                        ),
+                        child: widget.customChild ?? Navigation(),
                       ),
                     ),
                   );
