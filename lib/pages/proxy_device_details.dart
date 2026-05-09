@@ -9,6 +9,7 @@ import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
@@ -274,6 +275,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         TrainerSettingsSection(definition: def, device: widget.device),
+        OverlaySettingsSection(definition: def, device: widget.device),
       ],
     );
   }
