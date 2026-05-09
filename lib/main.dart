@@ -11,6 +11,7 @@ import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
+import 'package:bike_control/widgets/overlay/trainer_overlay_host.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
@@ -259,7 +260,9 @@ class _BikeControlAppState extends State<BikeControlApp> {
                             )
                           : DividerTheme(),
                       child: _Starter(
-                        child: widget.customChild ?? Navigation(),
+                        child: TrainerOverlayHost(
+                          child: widget.customChild ?? Navigation(),
+                        ),
                       ),
                     ),
                   );
