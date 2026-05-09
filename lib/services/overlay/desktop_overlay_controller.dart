@@ -96,6 +96,9 @@ class DesktopOverlayController with wm.WindowListener implements TrainerOverlayC
 
   Future<void> _restore() async {
     try {
+      // Restore opaque background before any other property; the transparent
+      // overlay color must not leak into the restored main-window state.
+      await wm.windowManager.setBackgroundColor(const Color(0xFF000000));
       await wm.windowManager.setAlwaysOnTop(_savedAlwaysOnTop);
       await wm.windowManager.setSkipTaskbar(_savedSkipTaskbar);
       await wm.windowManager.setResizable(_savedResizable);
