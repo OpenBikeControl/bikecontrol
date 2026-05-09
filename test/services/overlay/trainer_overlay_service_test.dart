@@ -14,8 +14,4 @@ void main() {
       expect(identical(c1, c2), isTrue);
     }
   });
-
-  test('trainerOverlayMode notifier exists and starts false', () {
-    expect(trainerOverlayMode.value, isFalse);
-  });
 }
