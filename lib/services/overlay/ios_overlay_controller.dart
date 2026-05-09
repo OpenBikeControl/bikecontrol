@@ -39,7 +39,7 @@ class IosOverlayController implements TrainerOverlayController {
     _fields = fields;
     _bind();
 
-    final s = _snapshot();
+    final s = _snapshot(def);
     final activityId = _generateId();
     try {
       final result = await _la.createActivity(activityId, _toMap(s));
@@ -113,8 +113,7 @@ class IosOverlayController implements TrainerOverlayController {
     );
   }
 
-  TrainerOverlayState _snapshot() {
-    final def = _def!;
+  TrainerOverlayState _snapshot(FitnessBikeDefinition def) {
     return TrainerOverlayState(
       gear: def.currentGear.value,
       maxGear: def.maxGear,
@@ -143,8 +142,11 @@ class IosOverlayController implements TrainerOverlayController {
 
   Future<void> _push({bool force = false}) async {
     final id = _activityId;
-    if (id == null) return;
-    final s = _snapshot();
+    final def = _def;
+    // Guard against a race where hide() clears _def/_activityId between a
+    // Timer firing and this method executing.
+    if (id == null || def == null) return;
+    final s = _snapshot(def);
     if (!force && s == _lastPushed) return;
     _lastPushed = s;
     _lastPushAt = DateTime.now();
