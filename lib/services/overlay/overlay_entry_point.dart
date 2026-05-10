@@ -3,9 +3,17 @@ import 'dart:convert';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+/// Overlay-side handle to the custom Kotlin bridge that forwards action
+/// requests to the main isolate. The Kotlin side
+/// (OverlayActionBridge.installOverlayHandler) registers a MethodCallHandler
+/// for this channel name on the overlay engine; the main side translates
+/// `'push'` into an `'action'` call back to main Dart.
+const _overlayActionsChannel = MethodChannel('bike_control/overlay_actions');
 
 void runOverlayApp() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +42,9 @@ class _OverlayAppState extends State<_OverlayApp> {
       final Map<String, dynamic> json = raw is String
           ? jsonDecode(raw) as Map<String, dynamic>
           : Map<String, dynamic>.from(raw as Map);
+      // BasicMessageChannel echoes our own sends back; ignore action requests
+      // we just dispatched to the main isolate.
+      if (json.containsKey('action')) return;
       _state.value = TrainerOverlayState.fromJson(json);
     } catch (e) {
       // Keep last known state on decode failure.
@@ -61,11 +72,28 @@ class _OverlayAppState extends State<_OverlayApp> {
         child: Center(
           child: TrainerOverlayView(
             state: _state,
-            onHide: () => FlutterOverlayWindow.closeOverlay(),
-            // No mode toggle: cannot reach the main isolate from here cheaply.
+            // Mode toggle: not exposed (no pill tap on Android).
             onModeToggle: null,
             // flutter_overlay_window provides its own dragging.
             onDragStart: null,
+            // Send action requests back to the main isolate, where the
+            // controller listens via `FlutterOverlayWindow.overlayListener`.
+            onPrimaryDecrement: () {
+              _overlayActionsChannel
+                  .invokeMethod('push', 'primaryDecrement')
+                  .catchError((Object e) {
+                if (kDebugMode) debugPrint('[overlay] decrement push failed: $e');
+                return null;
+              });
+            },
+            onPrimaryIncrement: () {
+              _overlayActionsChannel
+                  .invokeMethod('push', 'primaryIncrement')
+                  .catchError((Object e) {
+                if (kDebugMode) debugPrint('[overlay] increment push failed: $e');
+                return null;
+              });
+            },
           ),
         ),
       ),

@@ -4,7 +4,10 @@ enum OverlayField {
   power,
   cadence,
   ergTarget,
-  gearRatio;
+  gearRatio,
+  // When enabled, the overlay renders − / + buttons either side of the big
+  // primary value (gear in SIM, target watts in ERG). Default off.
+  controls;
 
   static OverlayField? fromName(String name) {
     for (final f in values) {
@@ -48,24 +51,31 @@ class TrainerOverlayState {
         'fields': fields.map((f) => f.name).toList(),
       };
 
+  /// Permissive parse — silently fills missing/wrong-typed fields with sane
+  /// defaults so a malformed cross-isolate message can never crash the
+  /// overlay (worst case: stale/empty card).
   factory TrainerOverlayState.fromJson(Map<String, dynamic> json) {
-    final modeName = json['mode'] as String;
+    final modeName = json['mode'];
     final mode = TrainerMode.values.firstWhere(
       (m) => m.name == modeName,
       orElse: () => TrainerMode.simMode,
     );
-    final fields = (json['fields'] as List)
-        .map((e) => OverlayField.fromName(e as String))
-        .whereType<OverlayField>()
-        .toSet();
+    final rawFields = json['fields'];
+    final fields = rawFields is List
+        ? rawFields
+            .whereType<String>()
+            .map(OverlayField.fromName)
+            .whereType<OverlayField>()
+            .toSet()
+        : <OverlayField>{};
     return TrainerOverlayState(
-      gear: json['gear'] as int,
-      maxGear: json['maxGear'] as int,
-      gearRatio: (json['gearRatio'] as num).toDouble(),
+      gear: (json['gear'] as num?)?.toInt() ?? 0,
+      maxGear: (json['maxGear'] as num?)?.toInt() ?? 0,
+      gearRatio: (json['gearRatio'] as num?)?.toDouble() ?? 1.0,
       mode: mode,
-      powerW: json['powerW'] as int?,
-      cadenceRpm: json['cadenceRpm'] as int?,
-      ergTargetW: json['ergTargetW'] as int?,
+      powerW: (json['powerW'] as num?)?.toInt(),
+      cadenceRpm: (json['cadenceRpm'] as num?)?.toInt(),
+      ergTargetW: (json['ergTargetW'] as num?)?.toInt(),
       fields: fields,
     );
   }

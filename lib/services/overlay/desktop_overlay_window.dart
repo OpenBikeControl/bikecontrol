@@ -122,13 +122,16 @@ class _OverlayApp extends StatelessWidget {
         child: Center(
           child: TrainerOverlayView(
             state: state,
-            onHide: () {
-              channel.invokeMethod('hide').catchError((_) {});
-            },
             onModeToggle: () {
               channel.invokeMethod('toggleMode').catchError((_) {});
             },
             onDragStart: () => wm.windowManager.startDragging(),
+            onPrimaryDecrement: () {
+              channel.invokeMethod('primaryDecrement').catchError((_) {});
+            },
+            onPrimaryIncrement: () {
+              channel.invokeMethod('primaryIncrement').catchError((_) {});
+            },
           ),
         ),
       ),

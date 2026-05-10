@@ -117,7 +117,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     if (widget.small) {
       final isSmallWidth = MediaQuery.sizeOf(context).width < 800;
       final icon = Icon(
-        widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
+        widget.instructionLink?.contains("youtube") == true ? Icons.ondemand_video : Icons.help_outline,
       );
       return SizedBox(
         width: double.infinity,
