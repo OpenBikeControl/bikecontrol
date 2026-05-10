@@ -16,6 +16,8 @@ PODS:
   - bluetooth_low_energy_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
+  - desktop_multi_window (0.0.1):
+    - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
   - file_picker (0.0.1):
@@ -112,6 +114,7 @@ DEPENDENCIES:
   - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
   - bluetooth_low_energy_darwin (from `Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
+  - desktop_multi_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
@@ -160,6 +163,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/audio_session/macos
   bluetooth_low_energy_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin
+  desktop_multi_window:
+    :path: Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   file_picker:
@@ -223,6 +228,7 @@ SPEC CHECKSUMS:
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   audio_session: 728ae3823d914f809c485d390274861a24b0904e
   bluetooth_low_energy_darwin: 50bc79258e60586e4c4bed5948bd31d925f37fac
+  desktop_multi_window: 566489c048b501134f9d7fb6a2354c60a9126486
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150

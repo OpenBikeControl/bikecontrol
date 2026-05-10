@@ -7,6 +7,7 @@ import 'package:app_links/app_links.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
+import 'package:bike_control/services/overlay/overlay_entry_point.dart' as overlay_entry;
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
@@ -26,9 +27,17 @@ import 'utils/core.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+/// Android overlay isolate entry point. Must live in this library because
+/// flutter_overlay_window's `DartEntrypoint(bundlePath, "overlayMain")` only
+/// resolves symbols in the default Dart library (the one with `main()`).
+/// `@pragma('vm:entry-point')` alone is not enough — the symbol also has to
+/// be findable by the 2-arg DartEntrypoint constructor.
+@pragma('vm:entry-point')
+void overlayMain() {
+  overlay_entry.runOverlayApp();
+}
 
+void main() async {
   // When desktop_multi_window spawns a sub-window engine it calls main()
   // again in that engine. Detect this by inspecting the current window's
   // arguments before doing anything else.
@@ -37,8 +46,7 @@ void main() async {
     final rawArgs = self.arguments;
     if (rawArgs.isNotEmpty) {
       try {
-        final argsMap =
-            jsonDecode(rawArgs) as Map<String, dynamic>;
+        final argsMap = jsonDecode(rawArgs) as Map<String, dynamic>;
         if (argsMap['role'] == 'trainer-overlay') {
           await runDesktopOverlayWindow(self);
           return;
@@ -65,6 +73,7 @@ void main() async {
 
   runZonedGuarded<Future<void>>(
     () async {
+      WidgetsFlutterBinding.ensureInitialized();
       // Catch Flutter framework errors (build/layout/paint)
       FlutterError.onError = (FlutterErrorDetails details) {
         _recordFlutterError(details);
