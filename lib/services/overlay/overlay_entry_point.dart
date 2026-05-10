@@ -7,8 +7,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-@pragma('vm:entry-point')
-void overlayMain() {
+void runOverlayApp() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const _OverlayApp());
 }
@@ -56,6 +55,7 @@ class _OverlayAppState extends State<_OverlayApp> {
   @override
   Widget build(BuildContext context) {
     return ShadcnApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: const Color(0x00000000),
         child: Center(
