@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 // Importing the entry point ensures it is compiled into the app binary.
 // `@pragma('vm:entry-point')` only prevents tree-shaking once a file is
 // compiled; without an import the secondary engine cannot find `overlayMain`
@@ -8,8 +10,6 @@ import 'dart:convert';
 // window service`.
 // ignore: unused_import
 import 'package:bike_control/services/overlay/overlay_entry_point.dart';
-import 'package:bike_control/services/overlay/overlay_state.dart';
-import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -29,7 +29,8 @@ class AndroidOverlayController implements TrainerOverlayController {
   ValueListenable<bool> get isShowing => _showing;
 
   @override
-  Future<OverlayShowResult> show(FitnessBikeDefinition def, Set<OverlayField> fields) async {
+  Future<OverlayShowResult> show(
+      FitnessBikeDefinition def, Set<OverlayField> fields) async {
     final granted = await FlutterOverlayWindow.isPermissionGranted();
     if (!granted) {
       final ok = await FlutterOverlayWindow.requestPermission();
@@ -38,22 +39,10 @@ class AndroidOverlayController implements TrainerOverlayController {
       }
     }
 
-    // The package leaves a stale overlay alive across hot restarts; re-showing
-    // while one is active makes nothing visible. Close first.
-    if (await FlutterOverlayWindow.isActive()) {
-      await FlutterOverlayWindow.closeOverlay();
-    }
-
     _def = def;
     _fields = fields;
     _bind();
 
-    // NOTE: flutter_overlay_window 0.5.0 passes width/height through to
-    // WindowManager.LayoutParams as RAW PIXELS (not dp). Using
-    // WindowSize.matchParent for width and a generous pixel height keeps the
-    // surface large enough to render. startPosition is required — without it,
-    // the package defaults y to -statusBarHeightPx() which can hide most of
-    // the overlay behind the status bar / off-screen.
     await FlutterOverlayWindow.showOverlay(
       enableDrag: true,
       overlayTitle: 'BikeControl',
@@ -61,9 +50,9 @@ class AndroidOverlayController implements TrainerOverlayController {
       flag: OverlayFlag.defaultFlag,
       visibility: NotificationVisibility.visibilityPublic,
       positionGravity: PositionGravity.auto,
-      height: 600,
-      width: WindowSize.matchParent,
-      startPosition: const OverlayPosition(0, 200),
+      height: 360,
+      width: 560,
+      startPosition: const OverlayPosition(20, 80),
     );
 
     _showing.value = true;
