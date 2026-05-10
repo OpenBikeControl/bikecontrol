@@ -6,12 +6,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 class TrainerOverlayView extends StatelessWidget {
   final ValueListenable<TrainerOverlayState> state;
 
-  /// Called when user requests overlay close.
-  final VoidCallback onHide;
-
   /// On desktop, called to toggle ERG/SIM. Pass `null` to render the mode
-  /// pill as a static label (Android overlay isolate cannot reliably handle
-  /// taps that bridge isolates).
+  /// pill as a static label.
   final VoidCallback? onModeToggle;
 
   /// Called when the user starts dragging. Desktop wires this to
@@ -19,12 +15,22 @@ class TrainerOverlayView extends StatelessWidget {
   /// handles dragging natively).
   final VoidCallback? onDragStart;
 
+  /// Called when the user taps the − button next to the primary value.
+  /// In SIM mode this should shift down a gear; in ERG mode it should
+  /// decrement target watts. Required when `OverlayField.controls` is in
+  /// `state.fields`; otherwise unused.
+  final VoidCallback? onPrimaryDecrement;
+
+  /// Called when the user taps the + button next to the primary value.
+  final VoidCallback? onPrimaryIncrement;
+
   const TrainerOverlayView({
     super.key,
     required this.state,
-    required this.onHide,
     this.onModeToggle,
     this.onDragStart,
+    this.onPrimaryDecrement,
+    this.onPrimaryIncrement,
   });
 
   @override
@@ -34,39 +40,20 @@ class TrainerOverlayView extends StatelessWidget {
       valueListenable: state,
       builder: (context, s, _) {
         return Container(
-          width: 220,
-          height: 140,
+          constraints: BoxConstraints(maxWidth: s.fields.contains(OverlayField.controls) ? 210 : 160),
           decoration: BoxDecoration(
             color: cs.background.withOpacity(0.92),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: cs.border),
           ),
-          padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+          padding: const EdgeInsets.fromLTRB(10, 6, 6, 8),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _topBar(context, cs, s),
-              const Spacer(),
-              Center(
-                child: Text(
-                  '${s.gear} / ${s.maxGear}',
-                  style: TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -1.5,
-                    color: cs.foreground,
-                  ),
-                ),
-              ),
-              if (s.fields.contains(OverlayField.gearRatio))
-                Center(
-                  child: Text(
-                    'ratio ${s.gearRatio.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 11, color: cs.mutedForeground),
-                  ),
-                ),
-              const Spacer(),
-              _metricsRow(context, cs, s),
+              _primaryRow(context, cs, s),
+              const SizedBox(height: 2),
+              _bottomRow(context, cs, s),
             ],
           ),
         );
@@ -74,41 +61,105 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  Widget _topBar(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
-    final modePill = _modePill(cs, s.mode);
-    return Row(
-      children: [
-        if (onModeToggle != null)
-          Button.ghost(onPressed: onModeToggle, child: modePill)
-        else
-          modePill,
-        const Spacer(),
-        if (onDragStart != null)
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onPanStart: (_) => onDragStart!(),
-            child: Icon(Icons.drag_indicator, size: 16, color: cs.mutedForeground),
-          ),
-        IconButton.ghost(
-          icon: const Icon(Icons.close, size: 14),
-          onPressed: onHide,
+  /// Row 1: big primary value (gear in SIM, target watts in ERG). When
+  /// `OverlayField.controls` is enabled, − and + buttons flank the primary
+  /// and the row is bigger; otherwise a small app icon sits on the leading
+  /// edge. Drag handle is always trailing.
+  Widget _primaryRow(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
+    final isErg = s.mode == TrainerMode.ergMode;
+    final primary = isErg ? '${s.ergTargetW ?? '--'} W' : '${s.gear} / ${s.maxGear}';
+    final showControls = s.fields.contains(OverlayField.controls);
+
+    final primaryText = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        primary,
+        style: TextStyle(
+          fontSize: showControls ? 36 : 30,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -1.0,
+          color: cs.foreground,
+          height: 1.0,
         ),
-      ],
+      ),
+    );
+
+    final primaryBlock = showControls
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _shiftButton(cs, Icons.remove, onPrimaryDecrement),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: primaryText,
+              ),
+              _shiftButton(cs, Icons.add, onPrimaryIncrement),
+            ],
+          )
+        : primaryText;
+
+    return SizedBox(
+      height: showControls ? 48 : 36,
+      child: Row(
+        children: [
+          if (!showControls)
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
+              child: Image(
+                image: AssetImage('icon.png'),
+                width: 18,
+                height: 18,
+              ),
+            ),
+          Expanded(child: Center(child: primaryBlock)),
+          if (onDragStart != null)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onPanStart: (_) => onDragStart!(),
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: Icon(Icons.drag_indicator, size: 14, color: cs.mutedForeground),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _shiftButton(ColorScheme cs, IconData icon, VoidCallback? onPressed) {
+    final disabled = onPressed == null;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPressed,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: cs.muted,
+          shape: BoxShape.circle,
+          border: Border.all(color: cs.border),
+        ),
+        child: Opacity(
+          opacity: disabled ? 0.4 : 1.0,
+          child: Icon(icon, size: 22, color: cs.foreground),
+        ),
+      ),
     );
   }
 
   Widget _modePill(ColorScheme cs, TrainerMode mode) {
     final label = mode == TrainerMode.ergMode ? 'ERG' : 'SIM';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: cs.primary,
         borderRadius: BorderRadius.circular(999),
       ),
+      alignment: Alignment.center,
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: FontWeight.w700,
           color: cs.primaryForeground,
         ),
@@ -116,22 +167,42 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  Widget _metricsRow(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
-    final children = <Widget>[];
+  /// Row 2: SIM/ERG pill, then power · cadence · (in SIM mode also gear-ratio
+  /// if opted in). The pill is always shown so the user can see the mode at
+  /// a glance; the metrics part hides cleanly when nothing is selected.
+  Widget _bottomRow(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
+    final isErg = s.mode == TrainerMode.ergMode;
+    final pill = _modePill(cs, s.mode);
+    final pillWidget = onModeToggle != null
+        ? Button.ghost(
+            onPressed: onModeToggle,
+            style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
+            child: pill,
+          )
+        : pill;
+
+    final metrics = <Widget>[];
     if (s.fields.contains(OverlayField.power)) {
-      children.add(_metric(cs, '${s.powerW ?? '--'} W'));
+      metrics.add(_metric(cs, '${s.powerW ?? '--'} W'));
     }
     if (s.fields.contains(OverlayField.cadence)) {
-      children.add(_metric(cs, '${s.cadenceRpm ?? '--'} rpm'));
+      metrics.add(_metric(cs, '${s.cadenceRpm ?? '--'} rpm'));
     }
-    if (s.fields.contains(OverlayField.ergTarget) &&
-        s.mode == TrainerMode.ergMode) {
-      children.add(_metric(cs, 'tgt ${s.ergTargetW ?? '--'} W'));
+    // Gear ratio is meaningless in ERG mode; only show it in SIM.
+    if (!isErg && s.fields.contains(OverlayField.gearRatio)) {
+      metrics.add(_metric(cs, '×${s.gearRatio.toStringAsFixed(2)}'));
     }
-    if (children.isEmpty) return const SizedBox.shrink();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: children,
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          pillWidget,
+          ...metrics,
+        ],
+      ),
     );
   }
 
@@ -139,9 +210,9 @@ class TrainerOverlayView extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: cs.foreground,
+        color: cs.mutedForeground,
       ),
     );
   }

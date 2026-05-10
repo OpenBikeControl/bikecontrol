@@ -151,6 +151,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
           row(OverlayField.cadence, l10n.overlayFieldCadence),
           row(OverlayField.ergTarget, l10n.overlayFieldErgTarget),
           row(OverlayField.gearRatio, l10n.overlayFieldGearRatio),
+          row(OverlayField.controls, l10n.overlayFieldControls),
         ],
       ),
     );

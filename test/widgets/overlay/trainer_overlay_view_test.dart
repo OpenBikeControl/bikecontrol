@@ -24,7 +24,7 @@ void main() {
     await tester.pumpWidget(
       ShadcnApp(
         home: Scaffold(
-          child: TrainerOverlayView(state: mkState(), onHide: () {}, onModeToggle: null),
+          child: TrainerOverlayView(state: mkState(), onModeToggle: null),
         ),
       ),
     );
@@ -38,7 +38,6 @@ void main() {
         home: Scaffold(
           child: TrainerOverlayView(
             state: mkState(fields: const {OverlayField.cadence}),
-            onHide: () {},
             onModeToggle: null,
           ),
         ),
@@ -54,7 +53,6 @@ void main() {
         home: Scaffold(
           child: TrainerOverlayView(
             state: mkState(powerW: null, cadenceRpm: null),
-            onHide: () {},
             onModeToggle: null,
           ),
         ),

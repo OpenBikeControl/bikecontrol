@@ -6,11 +6,37 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 import org.flame_engine.gamepads_android.GamepadsCompatibleActivity
 
 class MainActivity: FlutterFragmentActivity(), GamepadsCompatibleActivity {
     var keyListener: ((KeyEvent) -> Boolean)? = null
     var motionListener: ((MotionEvent) -> Boolean)? = null
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        // Custom bridge for trainer overlay action buttons. The package's
+        // own overlay→main path is broken in 0.5.0 (see OverlayActionBridge).
+        val mainChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            OverlayActionBridge.CHANNEL,
+        )
+        OverlayActionBridge.bindMainChannel(mainChannel)
+        mainChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "installOverlayHandler" -> {
+                    result.success(OverlayActionBridge.installOverlayHandler())
+                }
+                "uninstallOverlayHandler" -> {
+                    OverlayActionBridge.uninstallOverlayHandler()
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
 
     override fun isGamepadsInputDevice(device: InputDevice): Boolean {
         return device.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD

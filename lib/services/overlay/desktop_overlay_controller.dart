@@ -120,10 +120,31 @@ class DesktopOverlayController implements TrainerOverlayController {
             ));
           } catch (_) {}
           return null;
+        case 'primaryDecrement':
+          _adjustPrimary(def, increment: false);
+          return null;
+        case 'primaryIncrement':
+          _adjustPrimary(def, increment: true);
+          return null;
         default:
           return null;
       }
     });
+  }
+
+  /// Shift a gear (SIM mode) or step the ERG target power by 5 W.
+  void _adjustPrimary(FitnessBikeDefinition def, {required bool increment}) {
+    if (def.trainerMode.value == TrainerMode.ergMode) {
+      final current = def.ergTargetPower.value ?? 150;
+      final next = (current + (increment ? 5 : -5)).clamp(0, 500);
+      def.setManualErgPower(next);
+    } else {
+      if (increment) {
+        def.shiftUp();
+      } else {
+        def.shiftDown();
+      }
+    }
   }
 
   void _bind() {
