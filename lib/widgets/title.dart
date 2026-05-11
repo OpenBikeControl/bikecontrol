@@ -91,7 +91,11 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
   void _checkForUpdate() async {
     if (screenshotMode) {
       return;
-    } else if (updater.isAvailable) {
+    }
+    if (packageInfoValue == null) {
+      return;
+    }
+    if (updater.isAvailable) {
       final updateStatus = await updater.checkForUpdate();
       if (updateStatus == UpdateStatus.outdated) {
         updater
