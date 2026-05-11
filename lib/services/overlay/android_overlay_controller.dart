@@ -66,12 +66,16 @@ class AndroidOverlayController implements TrainerOverlayController {
     final dpr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
     int dpToPx(double dp) => (dp * dpr).round();
 
+    // Android requires a foreground-service notification for SYSTEM_ALERT_WINDOW
+    // overlays — we can't suppress it entirely. Use visibilitySecret so it
+    // doesn't appear on the lock screen / heads-up, an empty content line, and
+    // a minimal title so it sits unobtrusively in the notification shade.
     await FlutterOverlayWindow.showOverlay(
       enableDrag: true,
       overlayTitle: 'BikeControl',
-      overlayContent: 'Trainer overlay active',
+      overlayContent: '',
       flag: OverlayFlag.defaultFlag,
-      visibility: NotificationVisibility.visibilityPublic,
+      visibility: NotificationVisibility.visibilitySecret,
       positionGravity: PositionGravity.none,
       width: dpToPx(270),
       height: dpToPx(110),
