@@ -361,8 +361,8 @@ class KeyPair {
           core.logic.showLocalRemoteOptions &&
           core.actionHandler.supportedModes.contains(SupportedMode.touch)) ||
       (inGameAction != null &&
-          core.logic.obpConnectedApp != null &&
-          core.logic.obpConnectedApp!.supportedActions.contains(inGameAction)) ||
+          core.logic.showObpActions &&
+          core.logic.obpSupportedActions.contains(inGameAction)) ||
       (inGameAction != null &&
           core.logic.showMyWhooshLink &&
           core.settings.getMyWhooshLinkEnabled() &&

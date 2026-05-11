@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,24 @@ class MyWhoosh extends SupportedApp {
 
   @override
   int get virtualGearAmount => 30;
+
+  @override
+  List<ControllerButton> get defaultObpSupportedButtons => const [
+    0x01, // Shift Up
+    0x02, // Shift Down
+    0x03, // Gear Set
+    0x10, // Up
+    0x11, // Down
+    0x12, // Left/Look Left
+    0x13, // Right/Look Right
+    0x14, // Select/Confirm
+    0x15, // Back/Cancel
+    0x16, // Menu
+    0x17, // Home
+    0x18, // Steer Left
+    0x19, // Steer Right
+    0x40, // Camera View (Change Camera Angle)
+  ].map((id) => OpenBikeProtocolParser.BUTTON_NAMES[id]!).toList();
 
   MyWhoosh()
     : super(

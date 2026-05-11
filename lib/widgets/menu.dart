@@ -4,8 +4,6 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
-import 'package:bike_control/services/overlay/overlay_state.dart';
-import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -23,6 +21,7 @@ import 'package:purchases_flutter/purchases_flutter.dart' show Purchases;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../bluetooth/devices/zwift/zwift_clickv2.dart';
 import '../utils/iap/iap_manager.dart';
 
 List<Widget> buildMenuButtons(BuildContext context) {
@@ -175,7 +174,7 @@ class BKMenuButton extends StatelessWidget {
                 child: Text(context.i18n.continueAction),
                 onPressed: (c) {
                   //IAPManager.instance.purchaseFullVersion(context);
-                  /*core.connection.addDevices([
+                  core.connection.addDevices([
                     ZwiftClickV2(
                         BleDevice(
                           name: 'Controller',
@@ -185,8 +184,8 @@ class BKMenuButton extends StatelessWidget {
                       ..firmwareVersion = '1.2.0'
                       ..rssi = -51
                       ..batteryLevel = 81,
-                  ]);*/
-                  final service = TrainerOverlayService.forCurrentPlatform();
+                  ]);
+                  /*final service = TrainerOverlayService.forCurrentPlatform();
                   final fitness = FitnessBikeDefinition(
                     connectedDevice: BleDevice(deviceId: 'das', name: 'name'),
                     connectedDeviceServices: [],
@@ -204,7 +203,7 @@ class BKMenuButton extends StatelessWidget {
                   Future.delayed(Duration(seconds: 10), () {
                     fitness.data.value = DateTime.now().toIso8601String();
                     fitness.shiftUp();
-                  });
+                  });*/
                 },
               ),
               MenuButton(

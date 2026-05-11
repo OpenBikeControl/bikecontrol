@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -16,6 +17,38 @@ class TrainingPeaks extends SupportedApp {
 
   @override
   String? get logoAsset => 'assets/trainingpeaks.png';
+
+  @override
+  List<ControllerButton> get defaultObpSupportedButtons => const [
+    0x01, // Shift Up
+    0x02, // Shift Down
+    0x10, // Up
+    0x11, // Down
+    0x12, // Left/Look Left
+    0x13, // Right/Look Right
+    0x14, // Select/Confirm
+    0x15, // Back/Cancel
+    0x16, // Menu
+    0x21, // Push to Talk
+    0x30, // Increase Difficulty
+    0x31, // Decrease Difficulty
+    0x32, // Skip Interval
+    0x33, // Pause
+    0x34, // Resume
+    0x35, // Lap
+    0x36, // Previous Interval
+    0x37, // U-Turn
+    0x38, // Change Mode
+    0x39, // Take a Break
+    0x3A, // Join Rider
+    0x3B, // Change Route
+    0x40, // Camera View
+    0x41, // Camera 1
+    0x42, // Camera 2
+    0x43, // Camera 3
+    0x44, // HUD Toggle
+    0x45, // Map Toggle
+  ].map((id) => OpenBikeProtocolParser.BUTTON_NAMES[id]!).toList();
 
   TrainingPeaks()
     : super(

@@ -280,6 +280,20 @@ class CoreLogic {
   AppInfo? get obpConnectedApp =>
       core.obpMdnsEmulator.connectedApp.value ?? core.obpBluetoothEmulator.connectedApp.value;
 
+  /// Supported OBP buttons for the currently-selected trainer app.
+  /// Order: last-persisted list (overwritten on every AppInfo) → trainer-app
+  /// hard-coded defaults → empty when no trainer is selected.
+  List<ControllerButton> get obpSupportedButtons {
+    final trainerApp = core.settings.getTrainerApp();
+    if (trainerApp == null) return const [];
+    final stored = core.settings.getObpSupportedButtons(trainerApp.name);
+    if (stored != null && stored.isNotEmpty) return stored;
+    return trainerApp.defaultObpSupportedButtons;
+  }
+
+  List<InGameAction> get obpSupportedActions =>
+      obpSupportedButtons.mapNotNull((b) => b.action).toList();
+
   bool get emulatorEnabled =>
       screenshotMode ||
       (core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) ||

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
@@ -177,6 +178,28 @@ class Settings {
 
   Future<void> setSmartTrainerConsent(String trainerKey, bool consent) async {
     await prefs.setBool(_smartTrainerConsentKey(trainerKey), consent);
+  }
+
+  static String _obpSupportedButtonsKey(String appName) => 'obp_supported_buttons_$appName';
+
+  /// Last-known OpenBikeControl supported buttons for [appName]. Set when a
+  /// trainer app sends an AppInfo over BLE/mDNS; used by the ButtonEditor so
+  /// the user can configure mappings even before connecting.
+  List<ControllerButton>? getObpSupportedButtons(String appName) {
+    final stored = prefs.getStringList(_obpSupportedButtonsKey(appName));
+    if (stored == null) return null;
+    return stored
+        .mapNotNull((s) => int.tryParse(s))
+        .mapNotNull((id) => OpenBikeProtocolParser.BUTTON_NAMES[id])
+        .toList();
+  }
+
+  Future<void> setObpSupportedButtons(String appName, List<ControllerButton> buttons) async {
+    await prefs.setStringList(
+      _obpSupportedButtonsKey(appName),
+      buttons.where((b) => b.identifier != null).map((b) => b.identifier!.toString()).toList(),
+    );
+    _triggerAutoSync();
   }
 
   Future<void> setKeyMap(SupportedApp app) async {
