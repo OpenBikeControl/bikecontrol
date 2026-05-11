@@ -16,8 +16,6 @@ PODS:
   - bluetooth_low_energy_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
-  - desktop_multi_window (0.0.1):
-    - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
   - file_picker (0.0.1):
@@ -77,6 +75,8 @@ PODS:
     - FlutterMacOS
   - media_key_detector_macos (0.0.1):
     - FlutterMacOS
+  - multi_window_native (0.0.1):
+    - FlutterMacOS
   - nsd_macos (0.0.1):
     - FlutterMacOS
   - package_info_plus (0.0.1):
@@ -114,7 +114,6 @@ DEPENDENCIES:
   - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
   - bluetooth_low_energy_darwin (from `Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
-  - desktop_multi_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
@@ -131,6 +130,7 @@ DEPENDENCIES:
   - just_audio (from `Flutter/ephemeral/.symlinks/plugins/just_audio/darwin`)
   - keypress_simulator_macos (from `Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos`)
   - media_key_detector_macos (from `Flutter/ephemeral/.symlinks/plugins/media_key_detector_macos/macos`)
+  - multi_window_native (from `Flutter/ephemeral/.symlinks/plugins/multi_window_native/macos`)
   - nsd_macos (from `Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
@@ -163,8 +163,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/audio_session/macos
   bluetooth_low_energy_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/bluetooth_low_energy_darwin/darwin
-  desktop_multi_window:
-    :path: Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   file_picker:
@@ -197,6 +195,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/keypress_simulator_macos/macos
   media_key_detector_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/media_key_detector_macos/macos
+  multi_window_native:
+    :path: Flutter/ephemeral/.symlinks/plugins/multi_window_native/macos
   nsd_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos
   package_info_plus:
@@ -228,7 +228,6 @@ SPEC CHECKSUMS:
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   audio_session: 728ae3823d914f809c485d390274861a24b0904e
   bluetooth_low_energy_darwin: 50bc79258e60586e4c4bed5948bd31d925f37fac
-  desktop_multi_window: 566489c048b501134f9d7fb6a2354c60a9126486
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
@@ -249,6 +248,7 @@ SPEC CHECKSUMS:
   just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
   keypress_simulator_macos: f8556f9101f9f2f175652e0bceddf0fe82a4c6b2
   media_key_detector_macos: a93757a483b4b47283ade432b1af9e427c47329f
+  multi_window_native: 55264b5fb8520b9ec3c2ada60c9aed14c12836e6
   nsd_macos: 1a38a38a33adbb396b4c6f303bc076073514cadc
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba

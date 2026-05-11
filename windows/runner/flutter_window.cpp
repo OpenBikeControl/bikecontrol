@@ -3,7 +3,11 @@
 #include <optional>
 
 #include "flutter/generated_plugin_registrant.h"
-#include <desktop_multi_window/desktop_multi_window_plugin.h>
+
+// NOTE: multi_window_native ^1.0.4 requires Windows runner edits
+// (SetOnCloseCallback / GetFlutterViewController on FlutterWindow plus a
+// callback registration here) that aren't applied yet. The desktop overlay
+// is currently only verified on macOS; Windows wiring is TBD.
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -26,15 +30,6 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
-
-  // Make sure the trainer-overlay sub-window's engine also gets every plugin
-  // registered; without this the WindowMethodChannel from the parent is dead
-  // and `desktop_overlay_window.dart` never receives state updates.
-  DesktopMultiWindowSetWindowCreatedCallback([](void *controller) {
-    auto *fvc = reinterpret_cast<flutter::FlutterViewController *>(controller);
-    RegisterPlugins(fvc->engine());
-  });
-
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {

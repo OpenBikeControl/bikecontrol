@@ -8,7 +8,6 @@
 
 #include <app_links/app_links_plugin_c_api.h>
 #include <bluetooth_low_energy_windows/bluetooth_low_energy_windows_plugin_c_api.h>
-#include <desktop_multi_window/desktop_multi_window_plugin.h>
 #include <file_selector_windows/file_selector_windows.h>
 #include <flutter_screen_capture/flutter_screen_capture_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
@@ -16,6 +15,7 @@
 #include <gamepads_windows/gamepads_windows_plugin_c_api.h>
 #include <keypress_simulator_windows/keypress_simulator_windows_plugin_c_api.h>
 #include <media_key_detector_windows/media_key_detector_windows.h>
+#include <multi_window_native/multi_window_native_plugin.h>
 #include <nsd_windows/nsd_windows_plugin_c_api.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
@@ -30,8 +30,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("AppLinksPluginCApi"));
   BluetoothLowEnergyWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("BluetoothLowEnergyWindowsPluginCApi"));
-  DesktopMultiWindowPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("DesktopMultiWindowPlugin"));
   FileSelectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FileSelectorWindows"));
   FlutterScreenCapturePluginCApiRegisterWithRegistrar(
@@ -46,6 +44,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("KeypressSimulatorWindowsPluginCApi"));
   MediaKeyDetectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("MediaKeyDetectorWindows"));
+  MultiWindowNativePluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("MultiWindowNativePlugin"));
   NsdWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("NsdWindowsPluginCApi"));
   PermissionHandlerWindowsPluginRegisterWithRegistrar(

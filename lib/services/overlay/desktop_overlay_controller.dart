@@ -6,10 +6,14 @@ import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart' as dmw;
 import 'package:flutter/foundation.dart';
+import 'package:multi_window_native/multi_window_native.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
+/// Desktop trainer overlay backed by `multi_window_native`.
+///
+/// State flows main → overlay via [kStateMethod] broadcasts; user gestures
+/// (mode toggle, +/-) flow overlay → main via [kOverlayActionMethod].
 class DesktopOverlayController implements TrainerOverlayController {
   static const _minPushIntervalMs = 100; // ~10 Hz
 
@@ -17,7 +21,9 @@ class DesktopOverlayController implements TrainerOverlayController {
   @override
   ValueListenable<bool> get isShowing => _showing;
 
-  dmw.WindowController? _window;
+  /// Sub-window id reported back via [kOverlayReadyMethod]. `null` until the
+  /// overlay engine has booted and announced itself.
+  int? _overlayWindowId;
 
   FitnessBikeDefinition? _def;
   Listenable? _bound;
@@ -27,32 +33,30 @@ class DesktopOverlayController implements TrainerOverlayController {
   TrainerOverlayState? _lastPushed;
   DateTime _lastPushAt = DateTime.fromMillisecondsSinceEpoch(0);
 
-  /// Channel to communicate with the overlay sub-window.
-  /// The name must match [kOverlayChannel] in desktop_overlay_window.dart.
-  final _channel = dmw.WindowMethodChannel(
-    kOverlayChannel,
-    mode: dmw.ChannelMode.bidirectional,
-  );
+  /// Listener ids returned by `registerListener`, used to clean up on hide.
+  final List<({String method, String id})> _listenerIds = [];
 
   @override
-  Future<OverlayShowResult> show(
-      FitnessBikeDefinition def, Set<OverlayField> fields) async {
+  Future<OverlayShowResult> show(FitnessBikeDefinition def, Set<OverlayField> fields) async {
     if (_showing.value) return const OverlayShowResult.ok();
 
-    // Register the main-window side of the shared channel BEFORE creating the
-    // sub-window so that any calls from the overlay land here immediately.
-    _registerParentHandlers(def);
+    _registerMainListeners(def);
+
+    final saved = core.settings.getOverlayPosition();
+    final argsJson = jsonEncode({
+      if (saved != null) ...{'x': saved.dx, 'y': saved.dy},
+    });
 
     try {
-      final controller = await dmw.WindowController.create(
-        dmw.WindowConfiguration(
-          arguments: jsonEncode({'role': 'trainer-overlay'}),
-          hiddenAtLaunch: true,
-        ),
-      );
-      _window = controller;
-      await controller.show();
+      // Args layout matches the multi_window_native convention:
+      //   [routeName, argsJson, themeMode]
+      MultiWindowNative.createWindow([
+        'trainer-overlay',
+        argsJson,
+        'light',
+      ]);
     } catch (e) {
+      _unregisterMainListeners();
       return OverlayShowResult.fail(
         OverlayShowFailure.unknown,
         message: 'Failed to open overlay window: $e',
@@ -63,7 +67,8 @@ class DesktopOverlayController implements TrainerOverlayController {
     _fields = fields;
     _bind();
     _showing.value = true;
-    _push(force: true);
+    // Initial push happens on the kOverlayReadyMethod handler, once the
+    // sub-engine has registered its kStateMethod listener.
     return const OverlayShowResult.ok();
   }
 
@@ -76,19 +81,18 @@ class DesktopOverlayController implements TrainerOverlayController {
     _pushDebounce = null;
     _lastPushed = null;
 
-    final w = _window;
-    if (w != null) {
+    final id = _overlayWindowId;
+    if (id != null) {
       try {
-        await w.invokeMethod<void>('close');
+        await MultiWindowNative.closeWindow(
+          isMainWindow: false,
+          windowId: id.toString(),
+        );
       } catch (_) {}
-      _window = null;
+      _overlayWindowId = null;
     }
 
-    // Unregister our side of the channel.
-    try {
-      await _channel.setMethodCallHandler(null);
-    } catch (_) {}
-
+    _unregisterMainListeners();
     _showing.value = false;
   }
 
@@ -98,38 +102,100 @@ class DesktopOverlayController implements TrainerOverlayController {
     _push(force: true);
   }
 
-  void _registerParentHandlers(FitnessBikeDefinition def) {
-    _channel.setMethodCallHandler((call) async {
-      switch (call.method) {
-        case 'hide':
-          await hide();
-          return null;
-        case 'toggleMode':
-          if (def.trainerMode.value == TrainerMode.ergMode) {
-            def.exitErgMode();
-          } else {
-            def.setManualErgPower(def.ergTargetPower.value ?? 150);
+  void _registerMainListeners(FitnessBikeDefinition def) {
+    _unregisterMainListeners();
+
+    _listenerIds.add((
+      method: kOverlayReadyMethod,
+      id: MultiWindowNative.registerListener(kOverlayReadyMethod, (call) async {
+        try {
+          final m = _asMap(call.arguments);
+          final wid = (m['windowId'] as num?)?.toInt();
+          if (wid != null) _overlayWindowId = wid;
+        } catch (_) {}
+        // The sub-engine has just registered its kStateMethod listener.
+        // Push the current state now — the original `_push(force: true)`
+        // from show() races the engine boot and is dropped.
+        _push(force: true);
+      }),
+    ));
+
+    _listenerIds.add((
+      method: kOverlayActionMethod,
+      id: MultiWindowNative.registerListener(kOverlayActionMethod, (call) async {
+        try {
+          final m = _asMap(call.arguments);
+          final action = m['action'];
+          if (action is! String) return;
+          switch (action) {
+            case 'toggleMode':
+              if (def.trainerMode.value == TrainerMode.ergMode) {
+                def.exitErgMode();
+              } else {
+                def.setManualErgPower(def.ergTargetPower.value ?? 150);
+              }
+              break;
+            case 'primaryDecrement':
+              _adjustPrimary(def, increment: false);
+              break;
+            case 'primaryIncrement':
+              _adjustPrimary(def, increment: true);
+              break;
           }
-          return null;
-        case 'positionChanged':
-          try {
-            final m = Map<String, dynamic>.from(call.arguments as Map);
-            await core.settings.setOverlayPosition(Offset(
+        } catch (_) {}
+      }),
+    ));
+
+    _listenerIds.add((
+      method: kOverlayPositionMethod,
+      id: MultiWindowNative.registerListener(kOverlayPositionMethod, (call) async {
+        try {
+          final m = _asMap(call.arguments);
+          await core.settings.setOverlayPosition(
+            Offset(
               (m['x'] as num).toDouble(),
               (m['y'] as num).toDouble(),
-            ));
-          } catch (_) {}
-          return null;
-        case 'primaryDecrement':
-          _adjustPrimary(def, increment: false);
-          return null;
-        case 'primaryIncrement':
-          _adjustPrimary(def, increment: true);
-          return null;
-        default:
-          return null;
-      }
-    });
+            ),
+          );
+        } catch (_) {}
+      }),
+    ));
+
+    _listenerIds.add((
+      method: kOverlayClosedMethod,
+      id: MultiWindowNative.registerListener(kOverlayClosedMethod, (call) async {
+        // The sub-window closed itself (user clicked the traffic-light close
+        // button). Clean up local state without trying to close it again.
+        _cleanupAfterClose();
+      }),
+    ));
+  }
+
+  /// Cleanup that mirrors `hide()` but skips `MultiWindowNative.closeWindow`
+  /// — used when the sub-window closed itself.
+  void _cleanupAfterClose() {
+    if (!_showing.value) return;
+    _bound?.removeListener(_onChange);
+    _bound = null;
+    _def = null;
+    _pushDebounce?.cancel();
+    _pushDebounce = null;
+    _lastPushed = null;
+    _overlayWindowId = null;
+    _unregisterMainListeners();
+    _showing.value = false;
+  }
+
+  void _unregisterMainListeners() {
+    for (final e in _listenerIds) {
+      MultiWindowNative.unregisterListener(methodName: e.method, id: e.id);
+    }
+    _listenerIds.clear();
+  }
+
+  Map<String, dynamic> _asMap(dynamic raw) {
+    if (raw is String) return jsonDecode(raw) as Map<String, dynamic>;
+    return Map<String, dynamic>.from(raw as Map);
   }
 
   /// Shift a gear (SIM mode) or step the ERG target power by 5 W.
@@ -179,10 +245,8 @@ class DesktopOverlayController implements TrainerOverlayController {
   }
 
   Future<void> _push({bool force = false}) async {
-    final w = _window;
     final def = _def;
-    if (w == null || def == null) return;
-
+    if (def == null) return;
     final s = TrainerOverlayState(
       gear: def.currentGear.value,
       maxGear: def.maxGear,
@@ -196,9 +260,11 @@ class DesktopOverlayController implements TrainerOverlayController {
     if (!force && s == _lastPushed) return;
     _lastPushed = s;
     _lastPushAt = DateTime.now();
-
     try {
-      await w.invokeMethod<void>('state', jsonEncode(s.toJson()));
+      await MultiWindowNative.notifyAllWindows(
+        kStateMethod,
+        jsonEncode(s.toJson()),
+      );
     } catch (_) {}
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -15,10 +14,11 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart' as dmw;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
+import 'package:multi_window_native/multi_window_native.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:window_manager/window_manager.dart' as wm;
 
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
@@ -37,7 +37,13 @@ void overlayMain() {
   overlay_entry.runOverlayApp();
 }
 
-void main() async {
+/// Convention used to identify the trainer-overlay sub-window. `main(args)`
+/// receives this as the first arg when `MultiWindowNative.createWindow`
+/// spawns a sub-process for the overlay.
+const String kTrainerOverlayRoute = 'trainer-overlay';
+
+@pragma('vm:entry-point')
+Future<void> main(List<String> args) async {
   // setup crash reporting
 
   // Catch errors that happen in other isolates
@@ -56,23 +62,17 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // When desktop_multi_window spawns a sub-window engine it calls main()
-      // again in that engine. Detect this by inspecting the current window's
-      // arguments before doing anything else.
-      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
-        final self = await dmw.WindowController.fromCurrentEngine();
-        final rawArgs = self.arguments;
-        if (rawArgs.isNotEmpty) {
-          try {
-            final argsMap = jsonDecode(rawArgs) as Map<String, dynamic>;
-            if (argsMap['role'] == 'trainer-overlay') {
-              await runDesktopOverlayWindow(self);
-              return;
-            }
-          } catch (_) {
-            // Not a JSON sub-window argument — continue as main window.
-          }
-        }
+      // When multi_window_native spawns a sub-window engine it re-runs main()
+      // in that engine with the route name as the first arg. Detect this
+      // before doing any heavy bootstrap.
+      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows) &&
+          args.contains(kTrainerOverlayRoute)) {
+        await wm.windowManager.ensureInitialized();
+        await wm.windowManager.waitUntilReadyToShow();
+        final windowId = await wm.windowManager.getId();
+        MultiWindowNative.init(windowId);
+        await runDesktopOverlayWindow(windowId, args);
+        return;
       }
 
       // Catch Flutter framework errors (build/layout/paint)
@@ -95,6 +95,19 @@ void main() async {
         recordError(error, null, context: 'SettingsInit');
       } else {
         await core.shiftingConfigs.init();
+      }
+
+      // Initialise multi_window_native for the main window so it can register
+      // a listener and broadcast to sub-windows. This is a no-op on platforms
+      // where the plugin isn't available.
+      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+        try {
+          await wm.windowManager.ensureInitialized();
+          final mainWindowId = await wm.windowManager.getId();
+          MultiWindowNative.init(mainWindowId);
+        } catch (e, s) {
+          recordError(e, s, context: 'MultiWindowNative.init(main)');
+        }
       }
 
       runApp(BikeControlApp(error: error));

@@ -344,14 +344,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.11"
-  desktop_multi_window:
-    dependency: "direct main"
-    description:
-      name: desktop_multi_window
-      sha256: "60ba38725b8887b60e44d15afdcf0c3813568b5da2ccaf1e7f6fd09a380a6e24"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.0"
   device_auto_rotate_checker:
     dependency: "direct main"
     description:
@@ -1282,6 +1274,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.16.12"
+  multi_window_native:
+    dependency: "direct main"
+    description:
+      name: multi_window_native
+      sha256: f515640436811b102afbc32f9a1fc4dfd7a7311f7331024a50d614594aafb52b
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   nested:
     dependency: transitive
     description:
