@@ -366,6 +366,7 @@
   "overlayDisabledIos": "Trainer overlay shows on Dynamic Island and the Lock Screen during a ride.",
   "overlayEnabled": "Show overlay during ride",
   "overlayFieldCadence": "Cadence",
+  "overlayFieldControls": "Shift / power buttons",
   "overlayFieldErgTarget": "ERG target",
   "overlayFieldGearRatio": "Gear ratio",
   "overlayFieldPower": "Power",
