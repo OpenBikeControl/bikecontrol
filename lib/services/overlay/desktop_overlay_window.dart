@@ -3,27 +3,36 @@ import 'dart:io' show Platform;
 
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart' as dmw;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:multi_window_native/multi_window_native.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart' as wm;
 
-/// Channel name shared between the main window and overlay window.
-/// Both sides register on this channel; the main window sends 'state' / 'close'
-/// to the overlay; the overlay sends 'hide' / 'toggleMode' / 'positionChanged'
-/// to the main window.
-const kOverlayChannel = 'bike_control/overlay';
+/// Method names broadcast between main and overlay windows via
+/// `MultiWindowNative.notifyAllWindows` / `registerListener`. The package's
+/// API doesn't allow targeting a specific window, so each side filters by
+/// method-name convention:
+///   main → overlay: `kStateMethod`
+///   overlay → main: `kOverlayActionMethod`, `kOverlayReadyMethod`,
+///                   `kOverlayPositionMethod`
+const String kStateMethod = 'trainerOverlay.state';
+const String kOverlayActionMethod = 'trainerOverlay.action';
+const String kOverlayReadyMethod = 'trainerOverlay.ready';
+const String kOverlayPositionMethod = 'trainerOverlay.positionChanged';
 
-/// Entry point for the overlay sub-window process.
+/// Entry point for the overlay sub-window process, invoked from `main()` when
+/// args contain `kTrainerOverlayRoute`. Configures the secondary window
+/// (frameless, transparent, always-on-top, draggable) and runs the overlay UI.
 ///
-/// Called from [main] when [dmw.WindowController.fromCurrentEngine] reports
-/// that this engine was spawned as a sub-window whose arguments contain
-/// `role == "trainer-overlay"`.
-Future<void> runDesktopOverlayWindow(dmw.WindowController self) async {
-  await wm.windowManager.ensureInitialized();
-
+/// Communication is via package-level listeners:
+/// - listens on `kStateMethod` to receive state updates from main
+/// - broadcasts `kOverlayActionMethod` (mode toggle, shift +/-) back to main
+/// - broadcasts `kOverlayReadyMethod` once the window is mounted so main knows
+///   its windowId
+/// - broadcasts `kOverlayPositionMethod` whenever the user drags the window
+Future<void> runDesktopOverlayWindow(int windowId, List<String> args) async {
+  // Configure the secondary window itself.
   await wm.windowManager.waitUntilReadyToShow(
     const wm.WindowOptions(
       size: Size(220, 140),
@@ -48,35 +57,47 @@ Future<void> runDesktopOverlayWindow(dmw.WindowController self) async {
 
   final state = ValueNotifier<TrainerOverlayState>(_emptyState());
 
-  // Register the overlay side of the shared bidirectional channel.
-  // The main window will send 'state' and 'close' calls through here.
-  final channel = dmw.WindowMethodChannel(kOverlayChannel);
-  await self.setWindowMethodHandler((call) async {
-    switch (call.method) {
-      case 'state':
-        try {
-          final Map<String, dynamic> json = call.arguments is String
-              ? jsonDecode(call.arguments as String) as Map<String, dynamic>
-              : Map<String, dynamic>.from(call.arguments as Map);
-          state.value = TrainerOverlayState.fromJson(json);
-        } catch (e) {
-          if (kDebugMode) debugPrint('overlay state decode failed: $e');
-        }
-        return null;
-      case 'close':
-        try {
-          await wm.windowManager.close();
-        } catch (_) {}
-        return null;
-      default:
-        throw MissingPluginException('Not implemented: ${call.method}');
+  MultiWindowNative.registerListener(kStateMethod, (call) async {
+    try {
+      final raw = call.arguments;
+      final Map<String, dynamic> json = raw is String
+          ? jsonDecode(raw) as Map<String, dynamic>
+          : Map<String, dynamic>.from(raw as Map);
+      state.value = TrainerOverlayState.fromJson(json);
+    } catch (e) {
+      if (kDebugMode) debugPrint('overlay state decode failed: $e');
     }
   });
 
-  // Track window moves to persist position back to the main process.
-  wm.windowManager.addListener(_OverlayWindowListener(channel));
+  // Notify main of our windowId so it can close us later (or filter messages).
+  // Restore the persisted position if main sends it as part of the args.
+  Offset? initialPosition;
+  if (args.length > 1) {
+    try {
+      final m = jsonDecode(args[1]) as Map<String, dynamic>;
+      final x = (m['x'] as num?)?.toDouble();
+      final y = (m['y'] as num?)?.toDouble();
+      if (x != null && y != null) initialPosition = Offset(x, y);
+    } catch (_) {}
+  }
+  if (initialPosition != null) {
+    await wm.windowManager.setPosition(initialPosition);
+  }
 
-  runApp(_OverlayApp(state: state, channel: channel));
+  wm.windowManager.addListener(_OverlayWindowListener(windowId));
+
+  runApp(_OverlayApp(state: state, windowId: windowId));
+
+  // Tell main we're alive.
+  await MultiWindowNative.notifyAllWindows(kOverlayReadyMethod, {
+    'windowId': windowId,
+  });
+
+  // Required by the package to avoid black-screen on macOS / Windows.
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    await WidgetsBinding.instance.endOfFrame;
+    await MultiWindowNative.notifyUiRendered();
+  });
 }
 
 TrainerOverlayState _emptyState() => const TrainerOverlayState(
@@ -91,15 +112,16 @@ TrainerOverlayState _emptyState() => const TrainerOverlayState(
     );
 
 class _OverlayWindowListener extends wm.WindowListener {
-  final dmw.WindowMethodChannel _channel;
-  _OverlayWindowListener(this._channel);
+  final int _windowId;
+  _OverlayWindowListener(this._windowId);
 
   @override
   void onWindowMoved() {
     () async {
       try {
         final pos = await wm.windowManager.getPosition();
-        await _channel.invokeMethod('positionChanged', {
+        await MultiWindowNative.notifyAllWindows(kOverlayPositionMethod, {
+          'windowId': _windowId,
           'x': pos.dx,
           'y': pos.dy,
         });
@@ -110,8 +132,19 @@ class _OverlayWindowListener extends wm.WindowListener {
 
 class _OverlayApp extends StatelessWidget {
   final ValueListenable<TrainerOverlayState> state;
-  final dmw.WindowMethodChannel channel;
-  const _OverlayApp({required this.state, required this.channel});
+  final int windowId;
+  const _OverlayApp({required this.state, required this.windowId});
+
+  Future<void> _sendAction(String action) async {
+    try {
+      await MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
+        'windowId': windowId,
+        'action': action,
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('overlay action send failed ($action): $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,16 +155,10 @@ class _OverlayApp extends StatelessWidget {
         child: Center(
           child: TrainerOverlayView(
             state: state,
-            onModeToggle: () {
-              channel.invokeMethod('toggleMode').catchError((_) {});
-            },
+            onModeToggle: () => _sendAction('toggleMode'),
             onDragStart: () => wm.windowManager.startDragging(),
-            onPrimaryDecrement: () {
-              channel.invokeMethod('primaryDecrement').catchError((_) {});
-            },
-            onPrimaryIncrement: () {
-              channel.invokeMethod('primaryIncrement').catchError((_) {});
-            },
+            onPrimaryDecrement: () => _sendAction('primaryDecrement'),
+            onPrimaryIncrement: () => _sendAction('primaryIncrement'),
           ),
         ),
       ),

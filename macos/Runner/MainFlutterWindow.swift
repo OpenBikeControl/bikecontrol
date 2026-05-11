@@ -1,6 +1,6 @@
 import Cocoa
 import FlutterMacOS
-import desktop_multi_window
+import multi_window_native
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
@@ -11,24 +11,31 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
-    FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
-      RegisterGeneratedPlugins(registry: controller)
+    MultiWindowNativePlugin.onEngineCreatedCallback = { engine in
+      // Re-register every plugin on each new sub-window engine so the
+      // overlay window has access to window_manager, etc.
+      RegisterGeneratedPlugins(registry: engine)
 
       // Promote sub-windows (currently only the trainer overlay) so they sit
       // above fullscreened trainer apps (Zwift / MyWhoosh / Rouvy on their
       // own Space). `.fullScreenAuxiliary` lets the window participate in
       // any Space's fullscreen layer; a `.statusBar`-level keeps it above
-      // the fullscreen app's own content. Dispatch async because
-      // `controller.view.window` is nil until the view is hosted.
+      // the fullscreen app's content. Dispatched async because the engine's
+      // view isn't yet hosted in an NSWindow at this callback site.
       DispatchQueue.main.async {
-        guard let window = controller.view.window else { return }
-        window.level = .statusBar
-        window.collectionBehavior = [
-          .canJoinAllSpaces,
-          .fullScreenAuxiliary,
-          .stationary,
-          .ignoresCycle,
-        ]
+        for window in NSApp.windows {
+          guard window != self,
+                let vc = window.contentViewController as? FlutterViewController,
+                vc.engine == engine else { continue }
+          window.level = .statusBar
+          window.collectionBehavior = [
+            .canJoinAllSpaces,
+            .fullScreenAuxiliary,
+            .stationary,
+            .ignoresCycle,
+          ]
+          break
+        }
       }
     }
 
