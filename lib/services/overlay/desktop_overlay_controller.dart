@@ -37,8 +37,7 @@ class DesktopOverlayController implements TrainerOverlayController {
   final List<({String method, String id})> _listenerIds = [];
 
   @override
-  Future<OverlayShowResult> show(
-      FitnessBikeDefinition def, Set<OverlayField> fields) async {
+  Future<OverlayShowResult> show(FitnessBikeDefinition def, Set<OverlayField> fields) async {
     if (_showing.value) return const OverlayShowResult.ok();
 
     _registerMainListeners(def);
@@ -51,7 +50,7 @@ class DesktopOverlayController implements TrainerOverlayController {
     try {
       // Args layout matches the multi_window_native convention:
       //   [routeName, argsJson, themeMode]
-      await MultiWindowNative.createWindow([
+      MultiWindowNative.createWindow([
         'trainer-overlay',
         argsJson,
         'light',
@@ -68,7 +67,8 @@ class DesktopOverlayController implements TrainerOverlayController {
     _fields = fields;
     _bind();
     _showing.value = true;
-    _push(force: true);
+    // Initial push happens on the kOverlayReadyMethod handler, once the
+    // sub-engine has registered its kStateMethod listener.
     return const OverlayShowResult.ok();
   }
 
@@ -113,6 +113,10 @@ class DesktopOverlayController implements TrainerOverlayController {
           final wid = (m['windowId'] as num?)?.toInt();
           if (wid != null) _overlayWindowId = wid;
         } catch (_) {}
+        // The sub-engine has just registered its kStateMethod listener.
+        // Push the current state now — the original `_push(force: true)`
+        // from show() races the engine boot and is dropped.
+        _push(force: true);
       }),
     ));
 
@@ -147,13 +151,39 @@ class DesktopOverlayController implements TrainerOverlayController {
       id: MultiWindowNative.registerListener(kOverlayPositionMethod, (call) async {
         try {
           final m = _asMap(call.arguments);
-          await core.settings.setOverlayPosition(Offset(
-            (m['x'] as num).toDouble(),
-            (m['y'] as num).toDouble(),
-          ));
+          await core.settings.setOverlayPosition(
+            Offset(
+              (m['x'] as num).toDouble(),
+              (m['y'] as num).toDouble(),
+            ),
+          );
         } catch (_) {}
       }),
     ));
+
+    _listenerIds.add((
+      method: kOverlayClosedMethod,
+      id: MultiWindowNative.registerListener(kOverlayClosedMethod, (call) async {
+        // The sub-window closed itself (user clicked the traffic-light close
+        // button). Clean up local state without trying to close it again.
+        _cleanupAfterClose();
+      }),
+    ));
+  }
+
+  /// Cleanup that mirrors `hide()` but skips `MultiWindowNative.closeWindow`
+  /// — used when the sub-window closed itself.
+  void _cleanupAfterClose() {
+    if (!_showing.value) return;
+    _bound?.removeListener(_onChange);
+    _bound = null;
+    _def = null;
+    _pushDebounce?.cancel();
+    _pushDebounce = null;
+    _lastPushed = null;
+    _overlayWindowId = null;
+    _unregisterMainListeners();
+    _showing.value = false;
   }
 
   void _unregisterMainListeners() {

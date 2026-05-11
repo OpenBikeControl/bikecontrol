@@ -36,16 +36,21 @@ class TrainerOverlayView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final useConstraints = defaultTargetPlatform == TargetPlatform.android;
     return ValueListenableBuilder<TrainerOverlayState>(
       valueListenable: state,
       builder: (context, s, _) {
         return Container(
-          constraints: BoxConstraints(maxWidth: s.fields.contains(OverlayField.controls) ? 210 : 160),
-          decoration: BoxDecoration(
-            color: cs.background.withOpacity(0.92),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: cs.border),
-          ),
+          constraints: useConstraints
+              ? BoxConstraints(maxWidth: s.fields.contains(OverlayField.controls) ? 210 : 160)
+              : null,
+          decoration: useConstraints
+              ? BoxDecoration(
+                  color: cs.background.withOpacity(0.92),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: cs.border),
+                )
+              : null,
           padding: const EdgeInsets.fromLTRB(10, 6, 6, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
