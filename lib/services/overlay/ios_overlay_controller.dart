@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:bike_control/main.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,12 @@ import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 class IosOverlayController implements TrainerOverlayController {
   static const _appGroupId = 'group.de.jonasbark.swiftcontrol.overlay';
   static const _minPushIntervalMs = 500; // ~2 Hz
+
+  /// Custom MethodChannel that delivers Live Activity button taps from
+  /// `AppDelegate.swift` (which observes Darwin notifications posted by the
+  /// Widget Extension's `AppIntent`s) into the main Flutter engine.
+  static const _actionChannel =
+      MethodChannel('bike_control/overlay_actions_ios');
 
   final ValueNotifier<bool> _showing = ValueNotifier(false);
   final LiveActivities _la = LiveActivities();
@@ -23,6 +30,11 @@ class IosOverlayController implements TrainerOverlayController {
   Timer? _pushDebounce;
   TrainerOverlayState? _lastPushed;
   DateTime _lastPushAt = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// `true` once we've registered the MethodCallHandler that receives
+  /// forwarded actions from the Live Activity. One-shot for the lifetime of
+  /// the isolate.
+  bool _actionHandlerInstalled = false;
 
   @override
   ValueListenable<bool> get isShowing => _showing;
@@ -37,6 +49,7 @@ class IosOverlayController implements TrainerOverlayController {
     _def = def;
     _fields = fields;
     _bind();
+    _installActionHandler();
 
     final s = _snapshot(def);
     final activityId = _generateId();
@@ -48,7 +61,10 @@ class IosOverlayController implements TrainerOverlayController {
           message: 'Live Activities are disabled (Low Power Mode or system setting).',
         );
       }
-      _activityId = activityId;
+      // The package returns ActivityKit's generated activity id (not the
+      // string we passed in). updateActivity / endActivity look up the
+      // activity by THAT id, so we must store the returned value.
+      _activityId = result;
     } catch (e, s) {
       if (kDebugMode) {
         // print stack trace
@@ -144,6 +160,7 @@ class IosOverlayController implements TrainerOverlayController {
       'showCadence': s.fields.contains(OverlayField.cadence),
       'showErgTarget': s.fields.contains(OverlayField.ergTarget),
       'showGearRatio': s.fields.contains(OverlayField.gearRatio),
+      'showControls': s.fields.contains(OverlayField.controls),
       'gearRatio': s.gearRatio,
     };
     if (s.powerW != null) m['powerW'] = s.powerW;
@@ -164,7 +181,50 @@ class IosOverlayController implements TrainerOverlayController {
     _lastPushAt = DateTime.now();
     try {
       await _la.updateActivity(id, _toMap(s));
-    } catch (_) {}
+    } catch (error, stack) {
+      print('Live Activities update failed, ending activity, error: $e');
+      recordError(error, stack, context: 'ios overlay');
+    }
+  }
+
+  /// Wire the MethodCallHandler that receives action forwards from the Live
+  /// Activity buttons (via `AppDelegate.swift`'s Darwin notification observer).
+  /// One-shot for the lifetime of the controller; the handler no-ops while
+  /// `_def` is null (overlay hidden).
+  void _installActionHandler() {
+    if (_actionHandlerInstalled) return;
+    _actionHandlerInstalled = true;
+    _actionChannel.setMethodCallHandler((call) async {
+      if (call.method != 'action') return null;
+      final def = _def;
+      if (def == null) return null;
+      final action = call.arguments;
+      if (action is! String) return null;
+      switch (action) {
+        case 'primaryDecrement':
+          _adjustPrimary(def, increment: false);
+          break;
+        case 'primaryIncrement':
+          _adjustPrimary(def, increment: true);
+          break;
+      }
+      return null;
+    });
+  }
+
+  /// Shift a gear (SIM mode) or step the ERG target power by 5 W.
+  void _adjustPrimary(FitnessBikeDefinition def, {required bool increment}) {
+    if (def.trainerMode.value == TrainerMode.ergMode) {
+      final current = def.ergTargetPower.value ?? 150;
+      final next = (current + (increment ? 5 : -5)).clamp(0, 500);
+      def.setManualErgPower(next);
+    } else {
+      if (increment) {
+        def.shiftUp();
+      } else {
+        def.shiftDown();
+      }
+    }
   }
 
   static String _generateId() {
