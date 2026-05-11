@@ -1,4 +1,5 @@
 import ActivityKit
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -21,6 +22,7 @@ private struct TrainerSnapshot {
     let showCadence: Bool
     let showErgTarget: Bool
     let showGearRatio: Bool
+    let showControls: Bool
 
     var isErg: Bool { mode == "erg" }
 
@@ -52,7 +54,8 @@ private func snapshot(for attrs: LiveActivitiesAppAttributes) -> TrainerSnapshot
         showPower: sharedDefault.bool(forKey: k("showPower")),
         showCadence: sharedDefault.bool(forKey: k("showCadence")),
         showErgTarget: sharedDefault.bool(forKey: k("showErgTarget")),
-        showGearRatio: sharedDefault.bool(forKey: k("showGearRatio"))
+        showGearRatio: sharedDefault.bool(forKey: k("showGearRatio")),
+        showControls: sharedDefault.bool(forKey: k("showControls"))
     )
 }
 
@@ -74,27 +77,17 @@ struct TrainerActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LiveActivitiesAppAttributes.self) { context in
             // Lock Screen / banner — mirrors the Flutter compact 2-row layout.
+            // `.environment(\.colorScheme, .dark)` forces light-on-dark text on
+            // every device regardless of the user's system appearance, matching
+            // the dark `activityBackgroundTint`.
             let s = snapshot(for: context.attributes)
             VStack(spacing: 4) {
-                HStack(spacing: 8) {
-                    // SF Symbol stand-in for the app icon. Embedding the real
-                    // icon would require adding an Asset Catalog entry to the
-                    // Widget Extension target in Xcode.
-                    Image(systemName: "bicycle")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(s.primaryText)
-                        .font(.system(size: 30, weight: .heavy))
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                    Spacer().frame(width: 22)
-                }
+                primaryRow(s)
                 bottomRow(s)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
+            .environment(\.colorScheme, .dark)
             .activityBackgroundTint(Color.black.opacity(0.55))
             .activitySystemActionForegroundColor(Color.white)
         } dynamicIsland: { context in
@@ -104,25 +97,81 @@ struct TrainerActivity: Widget {
                     Text(s.primaryText)
                         .font(.title2.bold())
                         .monospacedDigit()
+                        .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
+                        .contentTransition(.numericText())
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     modePill(s.mode)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     bottomRow(s)
+                        .environment(\.colorScheme, .dark)
                 }
             } compactLeading: {
                 Image(systemName: "gear")
+                    .foregroundStyle(.white)
             } compactTrailing: {
                 Text(compactTrailing(s))
                     .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.white)
                     .lineLimit(1)
+                    .contentTransition(.numericText())
             } minimal: {
                 Text(minimalText(s))
                     .font(.caption2.bold())
                     .monospacedDigit()
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText())
+            }
+        }
+    }
+
+    /// Row 1: app glyph + big primary value, OR − / + buttons flanking the
+    /// primary when `OverlayField.controls` is enabled (iOS 17+ only — the
+    /// `AppIntent`-driven `Button(intent:)` initialiser requires it).
+    @ViewBuilder
+    private func primaryRow(_ s: TrainerSnapshot) -> some View {
+        if s.showControls, #available(iOSApplicationExtension 17.0, *) {
+            HStack(spacing: 12) {
+                Button(intent: ShiftPrimaryDecrementIntent()) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+
+                Text(s.primaryText)
+                    .font(.system(size: 30, weight: .heavy))
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .contentTransition(.numericText())
+                    .frame(maxWidth: .infinity)
+
+                Button(intent: ShiftPrimaryIncrementIntent()) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+            }
+        } else {
+            HStack(spacing: 8) {
+                Image(systemName: "bicycle")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.7))
+                Spacer()
+                Text(s.primaryText)
+                    .font(.system(size: 30, weight: .heavy))
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .contentTransition(.numericText())
+                Spacer().frame(width: 22)
             }
         }
     }
@@ -144,6 +193,7 @@ struct TrainerActivity: Widget {
             }
         }
         .font(.caption.monospacedDigit())
+        .foregroundStyle(.white)
     }
 
     private func modePill(_ mode: String) -> some View {
@@ -158,8 +208,9 @@ struct TrainerActivity: Widget {
 
     private func metric(_ text: String) -> some View {
         Text(text)
-            .foregroundStyle(.primary)
+            .foregroundStyle(.white)
             .lineLimit(1)
+            .contentTransition(.numericText())
     }
 
     /// Compact-trailing on the Dynamic Island: very tight, ~8 chars max.
