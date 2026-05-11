@@ -20,6 +20,7 @@ const String kStateMethod = 'trainerOverlay.state';
 const String kOverlayActionMethod = 'trainerOverlay.action';
 const String kOverlayReadyMethod = 'trainerOverlay.ready';
 const String kOverlayPositionMethod = 'trainerOverlay.positionChanged';
+const String kOverlayClosedMethod = 'trainerOverlay.closed';
 
 /// Entry point for the overlay sub-window process, invoked from `main()` when
 /// args contain `kTrainerOverlayRoute`. Configures the secondary window
@@ -35,16 +36,16 @@ Future<void> runDesktopOverlayWindow(int windowId, List<String> args) async {
   // Configure the secondary window itself.
   await wm.windowManager.waitUntilReadyToShow(
     const wm.WindowOptions(
-      size: Size(220, 140),
-      minimumSize: Size(220, 140),
-      backgroundColor: Color(0x00000000),
-      skipTaskbar: true,
+      size: Size(220, 100),
+      minimumSize: Size(180, 100),
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
       titleBarStyle: wm.TitleBarStyle.hidden,
       alwaysOnTop: true,
     ),
     () async {
       await wm.windowManager.setHasShadow(false);
-      await wm.windowManager.setResizable(false);
+      await wm.windowManager.setResizable(true);
       if (Platform.isMacOS) {
         await wm.windowManager.setVisibleOnAllWorkspaces(
           true,
@@ -57,13 +58,20 @@ Future<void> runDesktopOverlayWindow(int windowId, List<String> args) async {
 
   final state = ValueNotifier<TrainerOverlayState>(_emptyState());
 
-  MultiWindowNative.registerListener(kStateMethod, (call) async {
+  final stateListenerId = MultiWindowNative.registerListener(kStateMethod,
+      (call) async {
     try {
       final raw = call.arguments;
       final Map<String, dynamic> json = raw is String
           ? jsonDecode(raw) as Map<String, dynamic>
           : Map<String, dynamic>.from(raw as Map);
       state.value = TrainerOverlayState.fromJson(json);
+      // When BikeControl loses focus and regains it on the MAIN window, the
+      // overlay sub-window's engine stops scheduling frames automatically.
+      // The ValueNotifier.notifyListeners call still marks the
+      // ValueListenableBuilder dirty, but with no scheduled frame, build
+      // never runs and the overlay shows stale values. Force a frame.
+      WidgetsBinding.instance.scheduleForcedFrame();
     } catch (e) {
       if (kDebugMode) debugPrint('overlay state decode failed: $e');
     }
@@ -84,7 +92,8 @@ Future<void> runDesktopOverlayWindow(int windowId, List<String> args) async {
     await wm.windowManager.setPosition(initialPosition);
   }
 
-  wm.windowManager.addListener(_OverlayWindowListener(windowId));
+  final overlayListener = _OverlayWindowListener(windowId, stateListenerId);
+  wm.windowManager.addListener(overlayListener);
 
   runApp(_OverlayApp(state: state, windowId: windowId));
 
@@ -101,19 +110,20 @@ Future<void> runDesktopOverlayWindow(int windowId, List<String> args) async {
 }
 
 TrainerOverlayState _emptyState() => const TrainerOverlayState(
-      gear: 0,
-      maxGear: 0,
-      gearRatio: 1.0,
-      mode: TrainerMode.simMode,
-      powerW: null,
-      cadenceRpm: null,
-      ergTargetW: null,
-      fields: {OverlayField.power, OverlayField.cadence},
-    );
+  gear: 0,
+  maxGear: 0,
+  gearRatio: 1.0,
+  mode: TrainerMode.simMode,
+  powerW: null,
+  cadenceRpm: null,
+  ergTargetW: null,
+  fields: {OverlayField.power, OverlayField.cadence},
+);
 
 class _OverlayWindowListener extends wm.WindowListener {
   final int _windowId;
-  _OverlayWindowListener(this._windowId);
+  final String _stateListenerId;
+  _OverlayWindowListener(this._windowId, this._stateListenerId);
 
   @override
   void onWindowMoved() {
@@ -128,6 +138,36 @@ class _OverlayWindowListener extends wm.WindowListener {
       } catch (_) {}
     }();
   }
+
+  /// User clicked the close button (or otherwise closed the window
+  /// externally). Tell main to mark the overlay as no longer showing,
+  /// drop our state-listener registration, then notify the package to
+  /// deregister this engine.
+  @override
+  void onWindowClose() {
+    () async {
+      try {
+        await MultiWindowNative.notifyAllWindows(kOverlayClosedMethod, {
+          'windowId': _windowId,
+        });
+      } catch (_) {}
+      try {
+        MultiWindowNative.unregisterListener(
+          methodName: kStateMethod,
+          id: _stateListenerId,
+        );
+      } catch (_) {}
+      try {
+        wm.windowManager.removeListener(this);
+      } catch (_) {}
+      try {
+        await MultiWindowNative.closeWindow(
+          isMainWindow: false,
+          windowId: _windowId.toString(),
+        );
+      } catch (_) {}
+    }();
+  }
 }
 
 class _OverlayApp extends StatelessWidget {
@@ -137,7 +177,7 @@ class _OverlayApp extends StatelessWidget {
 
   Future<void> _sendAction(String action) async {
     try {
-      await MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
+      MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
         'windowId': windowId,
         'action': action,
       });
@@ -150,17 +190,21 @@ class _OverlayApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShadcnApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: const Color(0x00000000),
-        child: Center(
-          child: TrainerOverlayView(
-            state: state,
-            onModeToggle: () => _sendAction('toggleMode'),
-            onDragStart: () => wm.windowManager.startDragging(),
-            onPrimaryDecrement: () => _sendAction('primaryDecrement'),
-            onPrimaryIncrement: () => _sendAction('primaryIncrement'),
-          ),
-        ),
+      home: Builder(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.background,
+            child: Center(
+              child: TrainerOverlayView(
+                state: state,
+                onModeToggle: () => _sendAction('toggleMode'),
+                onDragStart: () => wm.windowManager.startDragging(),
+                onPrimaryDecrement: () => _sendAction('primaryDecrement'),
+                onPrimaryIncrement: () => _sendAction('primaryIncrement'),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
