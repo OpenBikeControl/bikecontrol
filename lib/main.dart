@@ -38,25 +38,6 @@ void overlayMain() {
 }
 
 void main() async {
-  // When desktop_multi_window spawns a sub-window engine it calls main()
-  // again in that engine. Detect this by inspecting the current window's
-  // arguments before doing anything else.
-  if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
-    final self = await dmw.WindowController.fromCurrentEngine();
-    final rawArgs = self.arguments;
-    if (rawArgs.isNotEmpty) {
-      try {
-        final argsMap = jsonDecode(rawArgs) as Map<String, dynamic>;
-        if (argsMap['role'] == 'trainer-overlay') {
-          await runDesktopOverlayWindow(self);
-          return;
-        }
-      } catch (_) {
-        // Not a JSON sub-window argument — continue as main window.
-      }
-    }
-  }
-
   // setup crash reporting
 
   // Catch errors that happen in other isolates
@@ -74,6 +55,26 @@ void main() async {
   runZonedGuarded<Future<void>>(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      // When desktop_multi_window spawns a sub-window engine it calls main()
+      // again in that engine. Detect this by inspecting the current window's
+      // arguments before doing anything else.
+      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+        final self = await dmw.WindowController.fromCurrentEngine();
+        final rawArgs = self.arguments;
+        if (rawArgs.isNotEmpty) {
+          try {
+            final argsMap = jsonDecode(rawArgs) as Map<String, dynamic>;
+            if (argsMap['role'] == 'trainer-overlay') {
+              await runDesktopOverlayWindow(self);
+              return;
+            }
+          } catch (_) {
+            // Not a JSON sub-window argument — continue as main window.
+          }
+        }
+      }
+
       // Catch Flutter framework errors (build/layout/paint)
       FlutterError.onError = (FlutterErrorDetails details) {
         _recordFlutterError(details);
