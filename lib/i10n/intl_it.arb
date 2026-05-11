@@ -822,5 +822,6 @@
       "appName": {"type": "String"},
       "disconnectLabel": {"type": "String"}
     }
-  }
+  },
+  "overlayFieldControls": "Pulsanti cambio / watt"
 }

@@ -823,5 +823,6 @@
       "appName": {"type": "String"},
       "disconnectLabel": {"type": "String"}
     }
-  }
+  },
+  "overlayFieldControls": "Boutons de vitesses / watts"
 }

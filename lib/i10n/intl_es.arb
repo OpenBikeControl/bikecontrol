@@ -822,5 +822,6 @@
       "appName": {"type": "String"},
       "disconnectLabel": {"type": "String"}
     }
-  }
+  },
+  "overlayFieldControls": "Botones de cambio / vatios"
 }
