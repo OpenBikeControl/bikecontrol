@@ -247,6 +247,13 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             ]
             newWindow.minSize = NSSize(width: 160, height: 80)
             newWindow.title = ""
+            // The overlay UI provides its own close affordance (and is
+            // closed by toggling the setting in the main app). Hide the
+            // standard close / miniaturize / zoom buttons so the panel
+            // chrome stays minimal.
+            newWindow.standardWindowButton(.closeButton)?.isHidden = true
+            newWindow.standardWindowButton(.miniaturizeButton)?.isHidden = true
+            newWindow.standardWindowButton(.zoomButton)?.isHidden = true
             newWindow.center()
             newWindow.delegate = self
 
