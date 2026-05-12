@@ -4,15 +4,15 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
-// NOTE: multi_window_native ^1.0.4 requires Windows runner edits
-// (SetOnCloseCallback / GetFlutterViewController on FlutterWindow plus a
-// callback registration here) that aren't applied yet. The desktop overlay
-// is currently only verified on macOS; Windows wiring is TBD.
-
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
 FlutterWindow::~FlutterWindow() {}
+
+void FlutterWindow::SetOnCloseCallback(
+    std::function<void(flutter::FlutterViewController*)> callback) {
+  on_close_callback_ = std::move(callback);
+}
 
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
@@ -45,10 +45,10 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
-  if (flutter_controller_) {
-    flutter_controller_ = nullptr;
+  if (on_close_callback_ && flutter_controller_) {
+    on_close_callback_(flutter_controller_.get());
   }
-
+  flutter_controller_ = nullptr;
   Win32Window::OnDestroy();
 }
 
