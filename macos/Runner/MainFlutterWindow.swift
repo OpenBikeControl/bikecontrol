@@ -20,19 +20,24 @@ class MainFlutterWindow: NSPanel {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
-    MultiWindowNativePlugin.onEngineCreatedCallback = { engine in
+    MultiWindowNativePlugin.onEngineCreatedCallback = { [weak self] engine in
       // Re-register every plugin on each new sub-window engine so the
       // overlay window has access to window_manager, etc.
       RegisterGeneratedPlugins(registry: engine)
-
 
       // Promote sub-windows (currently only the trainer overlay) so they sit
       // above fullscreened trainer apps (Zwift / MyWhoosh / Rouvy on their
       // own Space). `.fullScreenAuxiliary` lets the window participate in
       // any Space's fullscreen layer; a `.statusBar`-level keeps it above
-      // the fullscreen app's content. Dispatched async because the engine's
-      // view isn't yet hosted in an NSWindow at this callback site.
-      DispatchQueue.main.async {
+      // the fullscreen app's content.
+      //
+      // The plugin fires this callback BEFORE it creates the NSWindow and
+      // sets its contentViewController (see MultiWindowNativePlugin.swift
+      // ~line 145 vs 150). A single asyncAfter(0) used to race the window's
+      // own setup and silently miss it. Retry several times with a short
+      // delay until we find the new sub-window hosting `engine`.
+      func tryElevate(attempts: Int) {
+        guard let self = self else { return }
         for window in NSApp.windows {
           guard window != self,
                 let vc = window.contentViewController as? FlutterViewController,
@@ -44,8 +49,16 @@ class MainFlutterWindow: NSPanel {
             .stationary,
             .ignoresCycle,
           ]
-          break
+          return
         }
+        if attempts < 30 {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            tryElevate(attempts: attempts + 1)
+          }
+        }
+      }
+      DispatchQueue.main.async {
+        tryElevate(attempts: 0)
       }
     }
 
