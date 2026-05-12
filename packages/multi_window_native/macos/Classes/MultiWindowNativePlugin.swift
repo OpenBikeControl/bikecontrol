@@ -22,13 +22,26 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger)
         let instance = MultiWindowNativePlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
-        
-        // Setup main window reference and messenger
+
+        // Add this engine's messenger to the broadcast list directly. The
+        // upstream package only added it if `NSApp.mainWindow` happened to
+        // be set when `register(with:)` fired — which, for the main engine,
+        // is called from `awakeFromNib` *before* the window is shown and
+        // promoted to mainWindow. That's why sub-window broadcasts silently
+        // failed to reach Dart-main when the overlay was auto-opened early
+        // in the app lifecycle (BLE reconnects fast on a paired trainer).
+        // Doing the append here, using the registrar's own messenger, makes
+        // it deterministic regardless of NSApp.mainWindow timing.
+        if !messengers.contains(where: { $0 === registrar.messenger }) {
+            messengers.append(registrar.messenger)
+        }
+
+        // Wire the main window as our NSWindowDelegate when it becomes
+        // available so cleanup on app close still runs. This may be nil at
+        // register time for the main engine; the sub-engine's later
+        // register call will populate it once the main window is shown.
         if let mainFlutterWindow = NSApp.mainWindow,
-           let controller = mainFlutterWindow.contentViewController as? FlutterViewController {
-            let messenger = controller.engine.binaryMessenger
-            messengers.append(messenger)
-            print("messen=gers: main\(messengers.count)")
+           let _ = mainFlutterWindow.contentViewController as? FlutterViewController {
             instance.mainWindow = mainFlutterWindow
             mainFlutterWindow.delegate = instance
         }
@@ -87,17 +100,28 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             return
         case "closeWindow":
             // The Dart side calls `closeWindow(isMainWindow: false, windowId: ...)`
-            // to dismiss a specific secondary window. The package historically
-            // ignored those args and slammed `NSApp.mainWindow` instead, which
-            // either terminated the app or no-op'd silently depending on
-            // whether `NSApp.mainWindow` was set yet — so the overlay window
-            // never actually closed from the main side.
+            // to dismiss a specific secondary window. Two things to get right:
+            //
+            // 1. The package historically ignored those args and slammed
+            //    `NSApp.mainWindow` instead, which either terminated the app
+            //    or no-op'd silently depending on whether `NSApp.mainWindow`
+            //    was set yet — so the overlay never actually closed from
+            //    the main side.
+            //
+            // 2. We must NOT call `self.closeWindow(window)` directly here:
+            //    that calls `window.close()`, which synchronously fires the
+            //    `windowWillClose` delegate, which calls back into
+            //    `self.closeWindow(window)` — and then the outer call's
+            //    `secondaryWindowControllers.remove(at: index)` blows up on
+            //    a now-stale index. Just call `window.close()` and let the
+            //    delegate path do the one-pass cleanup.
             if let args = call.arguments as? [String: Any],
                let isMain = args["isMainWindow"] as? Bool, !isMain {
                 // We don't track windowId per secondary, but for our usage
                 // there's at most one secondary at a time. Close them all.
-                for (window, _) in self.secondaryWindowControllers {
-                    self.closeWindow(window)
+                let windows = self.secondaryWindowControllers.map { $0.window }
+                for window in windows {
+                    window.close()
                 }
             } else if let mainWindow = NSApp.mainWindow {
                 self.closeWindow(mainWindow)
@@ -199,12 +223,17 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
     
     // Register messenger for new window
     private func registerMessenger(_ messenger: FlutterBinaryMessenger, controller: FlutterViewController) {
-        if Self.messengers.contains(where: { $0 === messenger }) {
-            return // Already registered
-        }
+        // Always (re-)wire the per-controller channel handler — the closure
+        // captures `controller` so the notifyUiReady case knows which
+        // window to bring to the front. Skipping this when the messenger
+        // is already in the broadcast list (which now happens because
+        // `register(with:)` appends `registrar.messenger` itself) would
+        // leave the sub-window invisible because no one would call
+        // `controller.view.window?.makeKeyAndOrderFront(nil)`.
         setupChannelHandler(for: messenger, controller: controller)
-        Self.messengers.append(messenger)
-        print("messen=gers: secodnary\(Self.messengers.count)")
+        if !Self.messengers.contains(where: { $0 === messenger }) {
+            Self.messengers.append(messenger)
+        }
     }
     
     // Create a new secondary window
