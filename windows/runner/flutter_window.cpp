@@ -4,6 +4,7 @@
 
 #include "flutter/generated_plugin_registrant.h"
 #include <desktop_multi_window/desktop_multi_window_plugin.h>
+#include <window_manager/window_manager_plugin.h>
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -27,24 +28,27 @@ bool FlutterWindow::OnCreate() {
   }
   RegisterPlugins(flutter_controller_->engine());
 
-  // DIAGNOSTIC: do NOT call RegisterPlugins on the secondary engine.
-  // Several of BikeControl's Windows plugins (windows_iap, smtc_windows,
-  // media_key_detector_windows, bluetooth_low_energy_windows, ...) own
-  // process-singleton OS resources already held by this main engine. A
-  // second RegisterWithRegistrar pass on a second engine may not error but
-  // can deadlock the engine's boot before Dart main() runs — matching the
-  // symptom seen here with BOTH desktop_multi_window and multi_window_native.
+  // Selectively register ONLY the plugins the trainer overlay sub-window
+  // actually needs.
   //
-  // With plugin registration skipped, the trainer overlay sub-window won't
-  // have access to most plugins, but it doesn't need them — it only needs
-  // the desktop_multi_window plugin (to receive WindowMethodChannel calls
-  // from the parent) and window_manager (for position/size). Selectively
-  // register only those if the diagnostic confirms the theory.
+  // Calling `RegisterPlugins` (which calls every plugin's RegisterWith) on
+  // the secondary engine reliably deadlocks the sub-engine's boot before
+  // Dart `main()` runs — confirmed by toggling registration on/off as a
+  // diagnostic. Likely culprits are plugins that own process-singleton
+  // Windows resources already held by the main engine (windows_iap,
+  // media_key_detector_windows, bluetooth_low_energy_windows, etc.).
+  //
+  // The overlay uses only:
+  //   - desktop_multi_window (WindowMethodChannel to talk to main)
+  //   - window_manager       (set window styling, position, alwaysOnTop)
   DesktopMultiWindowSetWindowCreatedCallback([](void *controller) {
-    (void)controller;
-    // Intentionally empty for the moment. If Dart main() now runs in the
-    // sub-window, we'll add per-plugin registration here for the handful
-    // the overlay actually uses.
+    auto *fvc =
+        reinterpret_cast<flutter::FlutterViewController *>(controller);
+    auto *registry = fvc->engine();
+    WindowManagerPluginRegisterWithRegistrar(
+        registry->GetRegistrarForPlugin("WindowManagerPlugin"));
+    DesktopMultiWindowPluginRegisterWithRegistrar(
+        registry->GetRegistrarForPlugin("DesktopMultiWindowPlugin"));
   });
 
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
