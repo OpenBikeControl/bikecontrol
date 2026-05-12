@@ -18,6 +18,11 @@ class MainFlutterWindow: NSPanel {
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
 
+    // NSPanel can default to `.floating` depending on style mask, which
+    // would sit above the trainer-overlay sub-window even after we elevate
+    // it to `.statusBar`. Pin to `.normal` so the elevation actually wins.
+    self.level = .normal
+
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     MultiWindowNativePlugin.onEngineCreatedCallback = { [weak self] engine in
@@ -49,12 +54,20 @@ class MainFlutterWindow: NSPanel {
             .stationary,
             .ignoresCycle,
           ]
+          // Setting `.level` alone doesn't re-stack the window within its
+          // new level group. Without `orderFront`, the sub-window stays
+          // visually behind the main panel until something else forces a
+          // restack (minimising and restoring main, for instance).
+          window.orderFront(nil)
+          NSLog("[trainer-overlay] sub-window elevated to .statusBar")
           return
         }
         if attempts < 30 {
           DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             tryElevate(attempts: attempts + 1)
           }
+        } else {
+          NSLog("[trainer-overlay] sub-window not found after 30 attempts")
         }
       }
       DispatchQueue.main.async {
