@@ -221,13 +221,16 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             //
             // Initial size is intentionally small; consumers can resize
             // via `window_manager.setSize(...)` after the engine boots.
+            //
+            // Style mask intentionally omits `.titled` — the overlay has
+            // no title bar; the Flutter content fills the entire panel
+            // and provides its own drag handle via
+            // `window_manager.startDragging()`.
             let contentRect = NSMakeRect(0, 0, 220, 140)
             let styleMask: NSWindow.StyleMask = [
-                .titled,
-                .closable,
+                .borderless,
                 .resizable,
                 .nonactivatingPanel,
-                .utilityWindow,
             ]
             let newWindow = NSPanel(
                 contentRect: contentRect,
@@ -246,14 +249,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
                 .ignoresCycle,
             ]
             newWindow.minSize = NSSize(width: 160, height: 80)
-            newWindow.title = ""
-            // The overlay UI provides its own close affordance (and is
-            // closed by toggling the setting in the main app). Hide the
-            // standard close / miniaturize / zoom buttons so the panel
-            // chrome stays minimal.
-            newWindow.standardWindowButton(.closeButton)?.isHidden = true
-            newWindow.standardWindowButton(.miniaturizeButton)?.isHidden = true
-            newWindow.standardWindowButton(.zoomButton)?.isHidden = true
+            newWindow.isMovableByWindowBackground = true
             newWindow.center()
             newWindow.delegate = self
 
