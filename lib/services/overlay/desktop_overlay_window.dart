@@ -42,7 +42,6 @@ Future<void> runDesktopOverlayWindow(
 // ---------------------------------------------------------------------------
 
 Future<void> _runOverlay(int windowId, List<String> args) async {
-  debugPrint('[overlay-run] enter, windowId=$windowId');
   // Apply individual window settings rather than going through
   // `waitUntilReadyToShow(WindowOptions(...))`. WindowOptions tries to do
   // several things at once (size + titleBarStyle + backgroundColor + ...);
@@ -50,24 +49,16 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   // one at a time post-engine-boot, matching the package example's pattern.
   try {
     await wm.windowManager.setAlwaysOnTop(true);
-    debugPrint('[overlay-run] setAlwaysOnTop done');
-    // multi_window_native creates macOS sub-windows hard-coded at 1000x1000
-    // with minSize 800x900. Lower the minimum first, then resize down.
     await wm.windowManager.setMinimumSize(const Size(180, 100));
-    debugPrint('[overlay-run] setMinimumSize done');
     await wm.windowManager.setSize(const Size(220, 140));
-    debugPrint('[overlay-run] setSize done');
     await wm.windowManager.setHasShadow(false);
-    debugPrint('[overlay-run] setHasShadow done');
     if (Platform.isMacOS) {
       await wm.windowManager.setVisibleOnAllWorkspaces(
         true,
         visibleOnFullScreen: true,
       );
     }
-  } catch (e) {
-    debugPrint('[overlay-run] window setup failed: $e');
-  }
+  } catch (_) {}
 
   final state = ValueNotifier<TrainerOverlayState>(_emptyState());
 
@@ -103,7 +94,6 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   final overlayListener = _OverlayWindowListener(windowId, stateListenerId);
   wm.windowManager.addListener(overlayListener);
 
-  debugPrint('[overlay-run] about to runApp');
   runApp(
     _OverlayApp(
       state: state,
@@ -113,41 +103,31 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
             'windowId': windowId,
             'action': 'toggleMode',
           });
-        } catch (e) {
-          if (kDebugMode) debugPrint('overlay action send failed (toggleMode): $e');
-        }
+        } catch (_) {}
       },
       onPrimaryDecrement: () {
-        debugPrint('[overlay-sub] − tap, broadcasting primaryDecrement');
         try {
           MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
             'windowId': windowId,
             'action': 'primaryDecrement',
           });
-        } catch (e) {
-          debugPrint('[overlay-sub] action send failed (primaryDecrement): $e');
-        }
+        } catch (_) {}
       },
       onPrimaryIncrement: () {
-        debugPrint('[overlay-sub] + tap, broadcasting primaryIncrement');
         try {
           MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
             'windowId': windowId,
             'action': 'primaryIncrement',
           });
-        } catch (e) {
-          debugPrint('[overlay-sub] action send failed (primaryIncrement): $e');
-        }
+        } catch (_) {}
       },
     ),
   );
-  debugPrint('[overlay-run] runApp returned');
 
   // Tell main we're alive.
   await MultiWindowNative.notifyAllWindows(kOverlayReadyMethod, {
     'windowId': windowId,
   });
-  debugPrint('[overlay-run] notified ready');
 
   // Required by the package to avoid black-screen on macOS.
   WidgetsBinding.instance.addPostFrameCallback((_) async {

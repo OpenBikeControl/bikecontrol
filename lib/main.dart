@@ -16,9 +16,7 @@ import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
-import 'package:flutter/services.dart' show MethodChannel;
 import 'package:multi_window_native/multi_window_native.dart';
-import 'package:multi_window_native/multi_window_native_method_channel.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart' as wm;
 
@@ -46,30 +44,6 @@ const String kTrainerOverlayRoute = 'trainer-overlay';
 
 @pragma('vm:entry-point')
 Future<void> main(List<String> args) async {
-  // Liveness probe — write to a file we can grep for after the fact.
-  // print/stderr from a Windows sub-engine may not reach `flutter run`'s
-  // captured stdout, so file output is the unambiguous signal.
-  if (!kIsWeb) {
-    try {
-      final tmp = Platform.environment['TEMP'] ??
-          Platform.environment['TMPDIR'] ??
-          '/tmp';
-      File('$tmp/bikecontrol_dart_alive.log').writeAsStringSync(
-        '${DateTime.now().toIso8601String()} args=$args pid=$pid\n',
-        mode: FileMode.append,
-        flush: true,
-      );
-    } catch (_) {
-      // ignore — diagnostic only
-    }
-  }
-
-  // ignore: avoid_print
-  print('[main:entry] args=$args');
-  stderr.writeln('[main:entry/stderr] args=$args');
-
-  // setup crash reporting
-
   // Catch errors that happen in other isolates
   if (!kIsWeb) {
     Isolate.current.addErrorListener(
@@ -92,20 +66,11 @@ Future<void> main(List<String> args) async {
       // both macOS and Windows now that we use multi_window_native on both.
       if (!kIsWeb && (Platform.isMacOS || Platform.isWindows) &&
           args.contains(kTrainerOverlayRoute)) {
-        // Diagnostic prints — these land on the console attached to the
-        // Flutter app and tell us exactly where the sub-window's Dart main
-        // gets stuck.
-        debugPrint('[overlay-main] start, args=$args');
         await wm.windowManager.ensureInitialized();
-        debugPrint('[overlay-main] wm.ensureInitialized done');
         await wm.windowManager.waitUntilReadyToShow();
-        debugPrint('[overlay-main] wm.waitUntilReadyToShow done');
         final windowId = await wm.windowManager.getId();
-        debugPrint('[overlay-main] windowId=$windowId');
         MultiWindowNative.init(windowId);
-        debugPrint('[overlay-main] MultiWindowNative.init done');
         await runDesktopOverlayWindow(windowId, args);
-        debugPrint('[overlay-main] runDesktopOverlayWindow returned');
         return;
       }
 
@@ -137,17 +102,6 @@ Future<void> main(List<String> args) async {
           await wm.windowManager.ensureInitialized();
           final mainWindowId = await wm.windowManager.getId();
           MultiWindowNative.init(mainWindowId);
-
-          // Diagnostic: spy on every incoming method call on the
-          // multi_window_native channel. If broadcasts from the sub-window
-          // never log here, BroadcastToAll on the C++ side isn't actually
-          // delivering to main's Dart side.
-          const spyChannel =
-              MethodChannel('com.coditas.multi_window_native/pluginChannel');
-          spyChannel.setMethodCallHandler((call) async {
-            debugPrint('[main:wm-spy] received ${call.method}: ${call.arguments}');
-            return MethodChannelMultiWindowNative.handleMethodCall(call);
-          });
         } catch (e, s) {
           recordError(e, s, context: 'MultiWindowNative.init(main)');
         }

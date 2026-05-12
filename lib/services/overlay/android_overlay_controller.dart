@@ -100,12 +100,9 @@ class AndroidOverlayController implements TrainerOverlayController {
         final ok = await _overlayActionsChannel
             .invokeMethod<bool>('installOverlayHandler');
         if (ok == true) return;
-      } catch (e) {
-        debugPrint('[main] installOverlayHandler error: $e');
-      }
+      } catch (_) {}
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    debugPrint('[main] overlay handler never installed (engine never cached)');
   }
 
   @override
