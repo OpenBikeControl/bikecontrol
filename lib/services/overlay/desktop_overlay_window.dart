@@ -190,21 +190,22 @@ class _OverlayApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShadcnApp(
       debugShowCheckedModeBanner: false,
-      home: Builder(
-        builder: (context) {
-          return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.background,
-            child: Center(
-              child: TrainerOverlayView(
-                state: state,
-                onModeToggle: () => _sendAction('toggleMode'),
-                onDragStart: () => wm.windowManager.startDragging(),
-                onPrimaryDecrement: () => _sendAction('primaryDecrement'),
-                onPrimaryIncrement: () => _sendAction('primaryIncrement'),
-              ),
-            ),
-          );
-        },
+      home: Scaffold(
+        // Explicit opaque dark surface. Using `Theme.of(context).colorScheme.background`
+        // resolves to near-white under shadcn's light theme, which made the
+        // entire sub-window look blank on Windows. A fixed dark colour also
+        // saves us from relying on platform transparency (which Win32 doesn't
+        // implement without WS_EX_LAYERED).
+        backgroundColor: const Color(0xFF111114),
+        child: Center(
+          child: TrainerOverlayView(
+            state: state,
+            onModeToggle: () => _sendAction('toggleMode'),
+            onDragStart: () => wm.windowManager.startDragging(),
+            onPrimaryDecrement: () => _sendAction('primaryDecrement'),
+            onPrimaryIncrement: () => _sendAction('primaryIncrement'),
+          ),
+        ),
       ),
     );
   }
