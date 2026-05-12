@@ -47,11 +47,24 @@ const String kTrainerOverlayRoute = 'trainer-overlay';
 
 @pragma('vm:entry-point')
 Future<void> main(List<String> args) async {
-  // First thing — runs before anything else can fail. If this print is
-  // missing from the sub-window's console, the engine never invoked Dart
-  // main() at all (entry-point resolution / snapshot issue).
-  // Using stderr directly (not debugPrint) so it bypasses any buffering or
-  // isolate-binding quirks.
+  // Liveness probe — write to a file we can grep for after the fact.
+  // print/stderr from a Windows sub-engine may not reach `flutter run`'s
+  // captured stdout, so file output is the unambiguous signal.
+  if (!kIsWeb) {
+    try {
+      final tmp = Platform.environment['TEMP'] ??
+          Platform.environment['TMPDIR'] ??
+          '/tmp';
+      File('$tmp/bikecontrol_dart_alive.log').writeAsStringSync(
+        '${DateTime.now().toIso8601String()} args=$args pid=$pid\n',
+        mode: FileMode.append,
+        flush: true,
+      );
+    } catch (_) {
+      // ignore — diagnostic only
+    }
+  }
+
   // ignore: avoid_print
   print('[main:entry] args=$args');
   stderr.writeln('[main:entry/stderr] args=$args');
