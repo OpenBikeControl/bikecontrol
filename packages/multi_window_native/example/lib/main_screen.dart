@@ -10,19 +10,18 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> with WindowListener {
-
   final TextEditingController _controller = TextEditingController();
   String? _listenerId;
   ThemeMode _themeMode = ThemeMode.light;
 
   Future<void> createNewWindow() async {
     await MultiWindowNative.createWindow([
-      'secondScreen', 
-      '{}',    
-      _themeMode.name, 
+      'secondScreen',
+      '{}',
+      _themeMode.name,
     ]);
   }
-  
+
   @override
   void initState() {
     super.initState();
@@ -31,27 +30,31 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     MultiWindowNative.registerListener("updateTheme", (call) async {
       debugPrint("inside main theme");
       setState(() {
-        _themeMode =
-            (call.arguments == "dark") ? ThemeMode.dark : ThemeMode.light;
+        _themeMode = (call.arguments == "dark")
+            ? ThemeMode.dark
+            : ThemeMode.light;
       });
     });
 
-    _listenerId =  MultiWindowNative.registerListener("updateText", (call)async{
+    _listenerId = MultiWindowNative.registerListener("updateText", (
+      call,
+    ) async {
       setState(() {
         _controller.text = call.arguments as String;
       });
-  }
-    );
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await WidgetsBinding.instance.endOfFrame;
-      await  MultiWindowNative.notifyUiRendered();
+      await MultiWindowNative.notifyUiRendered();
     });
   }
 
-
   @override
   void dispose() {
-    MultiWindowNative.unregisterListener(methodName:  "updateText", id: _listenerId!);
+    MultiWindowNative.unregisterListener(
+      methodName: "updateText",
+      id: _listenerId!,
+    );
     windowManager.removeListener(this);
     super.dispose();
   }
@@ -59,7 +62,10 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   @override
   Future<void> onWindowClose() async {
     debugPrint("Window to be dleted");
-    await MultiWindowNative.closeWindow(isMainWindow: true, windowId: (await windowManager.getId()).toString());
+    await MultiWindowNative.closeWindow(
+      isMainWindow: true,
+      windowId: (await windowManager.getId()).toString(),
+    );
   }
 
   Future<void> _toggleTheme() async {
@@ -84,7 +90,9 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
               curve: Curves.easeInOut,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: _themeMode == ThemeMode.dark ? Colors.grey[900] : Colors.grey[300],
+                color: _themeMode == ThemeMode.dark
+                    ? Colors.grey[900]
+                    : Colors.grey[300],
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -117,10 +125,16 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                         ElevatedButton(
                           onPressed: () async {
                             final text = _controller.text;
-                            await MultiWindowNative.notifyAllWindows("updateText", text);
+                            await MultiWindowNative.notifyAllWindows(
+                              "updateText",
+                              text,
+                            );
                           },
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 20,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -135,7 +149,10 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                       icon: const Icon(Icons.open_in_new),
                       label: const Text('Open New Window'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -145,12 +162,17 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                     ElevatedButton(
                       onPressed: _toggleTheme,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text("Switch to ${_themeMode.name == 'light' ? "Dark" : "Light"} Theme"),
+                      child: Text(
+                        "Switch to ${_themeMode.name == 'light' ? "Dark" : "Light"} Theme",
+                      ),
                     ),
                   ],
                 ),

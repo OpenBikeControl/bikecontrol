@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <set>
 
 class MultiWindowNativePlugin : public flutter::Plugin {
  public:
@@ -30,6 +31,11 @@ class MultiWindowNativePlugin : public flutter::Plugin {
   // Broadcast API
   static void BroadcastToAll(const std::string& method, const flutter::EncodableValue& args);
 
+  // Window title management
+  static std::string GenerateUniqueTitle(const std::string& baseTitle);
+  static void RegisterWindowTitle(const std::string& title);
+  static void UnregisterWindowTitle(const std::string& title);
+
   // Public access to messengers for testing
   static const std::vector<flutter::BinaryMessenger*>& GetMessengers() { return messengers_; }
   
@@ -44,6 +50,7 @@ class MultiWindowNativePlugin : public flutter::Plugin {
 
  private:
   static std::vector<flutter::BinaryMessenger*> messengers_;
+  static std::set<std::string> registered_window_titles_;
   static std::function<void(std::vector<std::string>)> on_create_window_;
   static std::function<void(bool isMainWindow, const std::string& windowId)> on_close_window_;
   static std::function<void(const std::string& windowId)> _set_window_id_;

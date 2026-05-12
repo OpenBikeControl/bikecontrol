@@ -9,44 +9,52 @@ class SecondScreen extends StatefulWidget {
   State<SecondScreen> createState() => _SecondScreenState();
 }
 
-class _SecondScreenState extends State<SecondScreen> with WindowListener{
-
+class _SecondScreenState extends State<SecondScreen> with WindowListener {
   String _text = "";
   String? _listenerId;
   late String _themeListenerId;
   ThemeMode _themeMode = ThemeMode.light;
-  
+
   @override
   void initState() {
     super.initState();
     windowManager.addListener(this);
-     // Register listener and store the returned ID
-    _listenerId =  MultiWindowNative.registerListener("updateText", (call) async {
+    // Register listener and store the returned ID
+    _listenerId = MultiWindowNative.registerListener("updateText", (
+      call,
+    ) async {
       setState(() {
         _text = call.arguments as String;
       });
-    },);
-    _themeListenerId =
-        MultiWindowNative.registerListener("updateTheme", (call) async {
-             debugPrint("inside second theme");
+    });
+    _themeListenerId = MultiWindowNative.registerListener("updateTheme", (
+      call,
+    ) async {
+      debugPrint("inside second theme");
       setState(() {
-        _themeMode =
-            (call.arguments == "dark") ? ThemeMode.dark : ThemeMode.light;
+        _themeMode = (call.arguments == "dark")
+            ? ThemeMode.dark
+            : ThemeMode.light;
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await WidgetsBinding.instance.endOfFrame;
-      await  MultiWindowNative.notifyUiRendered();
+      await MultiWindowNative.notifyUiRendered();
     });
   }
 
   @override
   void dispose() {
     if (_listenerId != null) {
-      MultiWindowNative.unregisterListener(methodName:  "updateText",id:  _listenerId!);
+      MultiWindowNative.unregisterListener(
+        methodName: "updateText",
+        id: _listenerId!,
+      );
     }
     MultiWindowNative.unregisterListener(
-        methodName: "updateTheme", id: _themeListenerId);
+      methodName: "updateTheme",
+      id: _themeListenerId,
+    );
     windowManager.removeListener(this);
     super.dispose();
   }
@@ -54,7 +62,10 @@ class _SecondScreenState extends State<SecondScreen> with WindowListener{
   @override
   Future<void> onWindowClose() async {
     debugPrint("Window to be dleted ${await windowManager.getId()}");
-    await MultiWindowNative.closeWindow(isMainWindow: false, windowId: (await windowManager.getId()).toString());
+    await MultiWindowNative.closeWindow(
+      isMainWindow: false,
+      windowId: (await windowManager.getId()).toString(),
+    );
   }
 
   @override
@@ -73,7 +84,9 @@ class _SecondScreenState extends State<SecondScreen> with WindowListener{
             curve: Curves.easeInOut,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: _themeMode == ThemeMode.dark ? Colors.grey[900] : Colors.grey[200],
+              color: _themeMode == ThemeMode.dark
+                  ? Colors.grey[900]
+                  : Colors.grey[200],
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -88,16 +101,23 @@ class _SecondScreenState extends State<SecondScreen> with WindowListener{
               children: [
                 Text(
                   _text.isEmpty ? "No updates yet" : "{$_text}",
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
-                  onPressed: () => debugPrint("Button clicked in secondary window"),
+                  onPressed: () =>
+                      debugPrint("Button clicked in secondary window"),
                   icon: const Icon(Icons.refresh),
                   label: const Text("Refresh"),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

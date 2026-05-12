@@ -1280,7 +1280,7 @@ packages:
       path: "packages/multi_window_native"
       relative: true
     source: path
-    version: "1.0.4"
+    version: "1.0.5"
   nested:
     dependency: transitive
     description:

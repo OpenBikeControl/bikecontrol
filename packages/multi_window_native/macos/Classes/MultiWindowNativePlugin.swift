@@ -14,6 +14,9 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
     private  var secondaryWindowControllers: [SecondaryWindowControllers] = []
     private  var mainWindow: NSWindow?
     private static let channelName = "com.coditas.multi_window_native/pluginChannel"
+    
+    // Track window titles for unique title generation
+    private var registeredWindowTitles: Set<String> = []
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger)
@@ -36,6 +39,30 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
     public func handle(_ call: FlutterMethodCall,result: @escaping FlutterResult) {
         print("Inside handle")
         switch call.method {
+        case "generateUniqueTitle":
+            guard let baseTitle = call.arguments as? String else {
+                result(FlutterError(code: "ARG_ERROR", message: "Expected String", details: nil))
+                return
+            }
+            let uniqueTitle = generateUniqueTitle(baseTitle: baseTitle)
+            result(uniqueTitle)
+            return
+        case "registerWindowTitle":
+            guard let title = call.arguments as? String else {
+                result(FlutterError(code: "ARG_ERROR", message: "Expected String", details: nil))
+                return
+            }
+            registeredWindowTitles.insert(title)
+            result(true)
+            return
+        case "unregisterWindowTitle":
+            guard let title = call.arguments as? String else {
+                result(FlutterError(code: "ARG_ERROR", message: "Expected String", details: nil))
+                return
+            }
+            registeredWindowTitles.remove(title)
+            result(true)
+            return
         case "notifyUiReady":
             DispatchQueue.main.async {
             if let (window, _) = self.secondaryWindowControllers.last {
@@ -43,11 +70,8 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             }
                 result(true)
             }
+            return
         case "createWindow":
-            // guard let args = call.arguments as? [String] else {
-            //     result(FlutterError(code: "ARG_ERROR", message: "Expected [String]", details: nil))
-            //     return
-            // }
             guard let args = call.arguments as? [String: Any] else {
                 result(FlutterError(code: "ARG_ERROR", message: "Expected dictionary", details: nil))
                 return
@@ -60,19 +84,36 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
                 args["argsJson"] as? String ?? ""
             ]
             createNewWindow(with: argsList) { success in result(success) }
+            return
         case "closeWindow":
             print("Inside close of handle")
             if let mainWindow = NSApp.mainWindow {
                 self.closeWindow(mainWindow)
             }
           result(true)
+          return
         case "getMessengerCount":
             result(Self.messengers.count)
+            return
         default:
             // Broadcast other calls to all windows
             broadcastToAllWindows(method: call.method, arguments: call.arguments)
             result(true)
     }
+    }
+    
+    // Generate unique window title
+    private func generateUniqueTitle(baseTitle: String) -> String {
+        var suffix = 1
+        var newTitle = "\(baseTitle) \(suffix)"
+        
+        // Check if title already exists and increment suffix
+        while registeredWindowTitles.contains(newTitle) {
+            suffix += 1
+            newTitle = "\(baseTitle) \(suffix)"
+        }
+        
+        return newTitle
     }
     
     
@@ -83,17 +124,38 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
         channel.setMethodCallHandler { [weak self] call, result in
          guard let self = self else { return }
         switch call.method {
+            case "generateUniqueTitle":
+                guard let baseTitle = call.arguments as? String else {
+                    result(FlutterError(code: "ARG_ERROR", message: "Expected String", details: nil))
+                    return
+                }
+                let uniqueTitle = self.generateUniqueTitle(baseTitle: baseTitle)
+                result(uniqueTitle)
+                return
+            case "registerWindowTitle":
+                guard let title = call.arguments as? String else {
+                    result(FlutterError(code: "ARG_ERROR", message: "Expected String", details: nil))
+                    return
+                }
+                self.registeredWindowTitles.insert(title)
+                result(true)
+                return
+            case "unregisterWindowTitle":
+                guard let title = call.arguments as? String else {
+                    result(FlutterError(code: "ARG_ERROR", message: "Expected String", details: nil))
+                    return
+                }
+                self.registeredWindowTitles.remove(title)
+                result(true)
+                return
             case "notifyUiReady":
             // Now safe to show window
                 DispatchQueue.main.async {
                 controller.view.window?.makeKeyAndOrderFront(nil)
                 result(true)
                 }
+                return
             case "createWindow":
-                // guard let args = call.arguments as? [String] else {
-                // result(FlutterError(code: "ARG_ERROR", message: "Expected [String]", details: nil))
-                // return
-                // }
                 guard let args = call.arguments as? [String: Any] else {
                     result(FlutterError(code: "ARG_ERROR", message: "Expected dictionary", details: nil))
                     return
@@ -106,12 +168,15 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
                     args["argsJson"] as? String ?? ""
                 ]
                 self.createNewWindow(with: argsList) { success in result(success) }
+                return
             case "closeWindow":
                 print("Inside close of secondary \(controller.view.window!)")
                 self.closeWindow(controller.view.window!)
                 result(true)
+                return
             case "getMessengerCount":
                 result(Self.messengers.count)
+                return
             default:
                 // Broadcast to all windows for EVERY other method
                 self.broadcastToAllWindows(method: call.method, arguments: call.arguments)
@@ -143,20 +208,19 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
 
              // ⚡ Call the callback to register all plugins
             MultiWindowNativePlugin.onEngineCreatedCallback?(engine)
-
-            // Use an NSPanel (non-activating, .nonactivatingPanel style)
-            // instead of NSWindow so the secondary window:
-            //   - Sits above fullscreened apps with `.fullScreenAuxiliary`
-            //   - Doesn't steal focus when shown
+            
+            // Use an NSPanel (.nonactivatingPanel + .utilityWindow) instead
+            // of a regular NSWindow so the secondary window:
+            //   - Sits above fullscreened apps via `.fullScreenAuxiliary`
+            //   - Doesn't steal focus when shown (.nonactivatingPanel)
             //   - Stays visible across Spaces via `.canJoinAllSpaces`
             //
-            // The level is set to `.screenSaver` — the highest standard
-            // user-space level — so trainer apps (Zwift / MyWhoosh /
-            // Rouvy) in native fullscreen don't sit above it.
+            // `.screenSaver` is the highest standard user-space window
+            // level, so trainer apps (Zwift / MyWhoosh / Rouvy) running
+            // in native fullscreen don't sit above it.
             //
-            // The initial size is intentionally small. Consumers can
-            // resize via `window_manager.setSize(...)` after the engine
-            // boots. Without this, NSPanel defaults to the contentRect.
+            // Initial size is intentionally small; consumers can resize
+            // via `window_manager.setSize(...)` after the engine boots.
             let contentRect = NSMakeRect(0, 0, 220, 140)
             let styleMask: NSWindow.StyleMask = [
                 .titled,
@@ -187,9 +251,12 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             newWindow.delegate = self
 
             registerMessenger(engine.binaryMessenger, controller: controller)
-
+           
             newWindow.contentViewController = controller
             secondaryWindowControllers.append((newWindow, controller))
+            
+            // Ensure the render pipeline is properly initialized
+            controller.engine.viewController?.view.setNeedsDisplay(controller.view.bounds)
     }
     
     // Close a window (handles both main and secondary windows)
@@ -217,11 +284,16 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
                 let messenger = engine.binaryMessenger
                 let window = secondaryWindowControllers[index].window
                 
-                engine.viewController = nil
-                window.delegate = nil
-                window.contentViewController = nil
-                engine.shutDownEngine()
-                Self.messengers.removeAll(where: { $0 === messenger })
+                // Allow Flutter's onWindowClose to execute before shutting down
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    engine.viewController = nil
+                    window.delegate = nil
+                    window.contentViewController = nil
+                    engine.shutDownEngine()
+                    Self.messengers.removeAll(where: { $0 === messenger })
+                }
+                
+                // Close window immediately for visual feedback
                 window.close()
                 secondaryWindowControllers.remove(at: index)
             }
@@ -230,7 +302,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
     
     // Broadcast method calls to all window messengers
     private func broadcastToAllWindows(method: String, arguments: Any?) {
-        print("messen=gers: total \(Self.messengers.count)")
+        print("Broadcasting to \(Self.messengers.count) messengers")
         for messenger in Self.messengers {
             let channel = FlutterMethodChannel(name: "com.coditas.multi_window_native/pluginChannel", binaryMessenger: messenger) // Fix: Use Self.channelName
             channel.invokeMethod(method, arguments: arguments)
@@ -242,6 +314,28 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
         if let window = notification.object as? NSWindow {
             closeWindow(window)
         }
+    }
+    
+    // Handle window becoming active/focused
+    public func windowDidBecomeKey(_ notification: Notification) {
+        guard let win = notification.object as? NSWindow else { return }
+        guard let controller = win.contentViewController as? FlutterViewController else { return }
+        
+        // Notify Flutter engine that window is now active
+        // This ensures the render pipeline resumes properly
+        print("Window became key: \(win)")
+        controller.engine.viewController?.view.setNeedsDisplay(controller.view.bounds)
+    }
+    
+    // Handle dock icon click when windows are hidden
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag {
+            for window in NSApp.windows where !window.isVisible {
+                window.makeKeyAndOrderFront(nil)
+            }
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        return true
     }
     
     // Prevent app from terminating after last window closes

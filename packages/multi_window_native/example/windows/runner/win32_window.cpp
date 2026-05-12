@@ -4,6 +4,7 @@
 #include <flutter_windows.h>
 
 #include "resource.h"
+#include <windowsx.h>
 
 namespace {
 
@@ -210,6 +211,24 @@ Win32Window::MessageHandler(HWND hwnd,
     case WM_ACTIVATE:
       if (child_content_ != nullptr) {
         SetFocus(child_content_);
+      }
+      // When window is activated (brought to foreground), force redraw
+      // This prevents the window from appearing frozen when returning from background
+      if (LOWORD(wparam) != WA_INACTIVE) {
+        // Window is being activated (not deactivated)
+        // Force an immediate paint to ensure the window updates
+        InvalidateRect(hwnd, nullptr, FALSE);
+        if (child_content_ != nullptr) {
+          InvalidateRect(child_content_, nullptr, FALSE);
+        }
+      }
+      return 0;
+
+    case WM_SETFOCUS:
+      // Window gained focus - ensure it's responsive
+      if (child_content_ != nullptr) {
+        SetFocus(child_content_);
+        InvalidateRect(child_content_, nullptr, FALSE);
       }
       return 0;
 

@@ -1,6 +1,7 @@
 #include "multi_window_native_plugin.h"
 
 std::vector<flutter::BinaryMessenger*> MultiWindowNativePlugin::messengers_;
+std::set<std::string> MultiWindowNativePlugin::registered_window_titles_;
 std::function<void(std::vector<std::string>)> MultiWindowNativePlugin::on_create_window_;
 std::function<void(bool isMainWindow, const std::string& windowId)> MultiWindowNativePlugin::on_close_window_;
 std::function<void(const std::string& windowId)> MultiWindowNativePlugin::_set_window_id_;
@@ -15,7 +16,34 @@ void MultiWindowNativePlugin::RegisterWithRegistrar(flutter::PluginRegistrarWind
   channel->SetMethodCallHandler(
       [](const flutter::MethodCall<flutter::EncodableValue>& call,
          std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-        if (call.method_name() == "createWindow") {
+        if (call.method_name() == "generateUniqueTitle") {
+          const auto* args = std::get_if<std::string>(call.arguments());
+          if (!args) {
+            result->Error("ARG_ERROR", "Expected String");
+            return;
+          }
+          std::string uniqueTitle = MultiWindowNativePlugin::GenerateUniqueTitle(*args);
+          result->Success(flutter::EncodableValue(uniqueTitle));
+          return;
+        } else if (call.method_name() == "registerWindowTitle") {
+          const auto* args = std::get_if<std::string>(call.arguments());
+          if (!args) {
+            result->Error("ARG_ERROR", "Expected String");
+            return;
+          }
+          MultiWindowNativePlugin::RegisterWindowTitle(*args);
+          result->Success(flutter::EncodableValue(true));
+          return;
+        } else if (call.method_name() == "unregisterWindowTitle") {
+          const auto* args = std::get_if<std::string>(call.arguments());
+          if (!args) {
+            result->Error("ARG_ERROR", "Expected String");
+            return;
+          }
+          MultiWindowNativePlugin::UnregisterWindowTitle(*args);
+          result->Success(flutter::EncodableValue(true));
+          return;
+        } else if (call.method_name() == "createWindow") {
           if (MultiWindowNativePlugin::on_create_window_) {
             const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
             if (!args) {
@@ -33,6 +61,7 @@ void MultiWindowNativePlugin::RegisterWithRegistrar(flutter::PluginRegistrarWind
             MultiWindowNativePlugin::on_create_window_(str_args);
           }
           result->Success(flutter::EncodableValue(true));
+          return;
         } else if (call.method_name() == "closeWindow") {
           const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
             if (!args) {
@@ -52,9 +81,11 @@ void MultiWindowNativePlugin::RegisterWithRegistrar(flutter::PluginRegistrarWind
             }
           }
           result->Success(flutter::EncodableValue(true));
+          return;
         } else if (call.method_name() == "getMessengerCount") {
           result->Success(flutter::EncodableValue(
-                    static_cast<int>(MultiWindowNativePlugin::messengers_.size())));                    
+                    static_cast<int>(MultiWindowNativePlugin::messengers_.size())));
+          return;
         } else if (call.method_name() == "setWindowId") {
            const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
             if (!args) {
@@ -71,9 +102,11 @@ void MultiWindowNativePlugin::RegisterWithRegistrar(flutter::PluginRegistrarWind
           }
           result->Success(flutter::EncodableValue(
                   static_cast<int>(MultiWindowNativePlugin::messengers_.size())));
+          return;
         }  else if (call.method_name() == "notifyUiReady"){
           // no-op for now
           result->Success(flutter::EncodableValue(true));
+          return;
         }
         else {
           // broadcast
@@ -113,6 +146,27 @@ void MultiWindowNativePlugin::UnregisterMessenger(flutter::BinaryMessenger* mess
 
 void MultiWindowNativePlugin::ClearMessengers() {
   messengers_.clear();
+}
+
+std::string MultiWindowNativePlugin::GenerateUniqueTitle(const std::string& baseTitle) {
+  int suffix = 1;
+  std::string newTitle = baseTitle + " " + std::to_string(suffix);
+  
+  // Check if title already exists and increment suffix
+  while (registered_window_titles_.find(newTitle) != registered_window_titles_.end()) {
+    suffix++;
+    newTitle = baseTitle + " " + std::to_string(suffix);
+  }
+  
+  return newTitle;
+}
+
+void MultiWindowNativePlugin::RegisterWindowTitle(const std::string& title) {
+  registered_window_titles_.insert(title);
+}
+
+void MultiWindowNativePlugin::UnregisterWindowTitle(const std::string& title) {
+  registered_window_titles_.erase(title);
 }
 
 void MultiWindowNativePlugin::BroadcastToAll(const std::string& method,

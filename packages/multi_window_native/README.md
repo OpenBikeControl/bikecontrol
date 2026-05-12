@@ -6,17 +6,22 @@ This package requires the use of window manager to handle multiple windows indiv
 
 ✨ Features
 
-1. Create new secondary Flutter windows.
+1. **Multi-Platform Support**: Native implementation for both macOS and Windows.
 
-2. Broadcast messages between windows using method channels.
+2. **Create Multiple Windows**: Create new secondary Flutter windows with custom routes and themes.
 
-3. Pass theme & route arguments when creating windows.
+3. **Inter-Window Communication**: Broadcast messages between windows using method channels.
 
-4. Listen for updates via Dart-side listeners (registerListener / unregisterListener).
+4. **Window Title Management**: Generate unique window titles automatically.
 
-5. Automatically registers plugins for each new window engine.
 
-6. Native macOS and Windows implementation with seamless Dart integration.
+5. **Theme & Route Arguments**: Pass theme and route arguments when creating windows.
+
+6. **Dart-Side Listeners**: Listen for updates via `registerListener` / `unregisterListener`.
+
+7. **Automatic Plugin Registration**: Automatically registers plugins for each new window engine.
+
+8. **Robust Lifecycle Management**: Proper window cleanup and engine shutdown.
 
 🚀 Installation
 
@@ -24,7 +29,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-multi_window_native: ^1.0.0
+multi_window_native: ^1.0.5
 ```
 
 Then run:
@@ -35,31 +40,31 @@ flutter pub get
 
 🖼️ Screenshots
 
-In Windows - 
 ![Main window](https://raw.githubusercontent.com/Swatimishra8/multi_window_native/develop/example/assets/images/main_window.png)
 *Main window with multi-window support*
 
 ![Secondary window](https://raw.githubusercontent.com/Swatimishra8/multi_window_native/develop/example/assets/images/new_window.png)
 *Example of a secondary window opened by the plugin*
 
-In Macos - 
+🛠️ Setup
 
-![Main window](https://raw.githubusercontent.com/Swatimishra8/multi_window_native/develop/example/assets/images/main_window_mac.png)
-*Main window with multi-window support*
-
-![Secondary window](https://raw.githubusercontent.com/Swatimishra8/multi_window_native/develop/example/assets/images/second_window_mac.png)
-*Example of a secondary window opened by the plugin*
-
-Theme changes- 
-![Both windows](https://raw.githubusercontent.com/Swatimishra8/multi_window_native/develop/example/assets/images/theme_change_mac.png)
-
-🛠️ Setup (macOS)
+### macOS
 
 No extra setup required. The plugin will automatically:
 
-Register plugins for newly created window engines.
+- Register plugins for newly created window engines.
+- Keep track of all FlutterBinaryMessenger instances for broadcasting.
+- Handle window focus and activation events.
+- Manage dock icon clicks to restore hidden windows.
 
-Keep track of all FlutterBinaryMessenger instances for broadcasting.
+### Windows
+
+No extra setup required. The plugin will automatically:
+
+- Register plugins for newly created window engines.
+- Manage window messengers for cross-window communication.
+- Handle window activation and focus to prevent freezing.
+- Support custom window styling (optional).
 
 📖 Usage
 
@@ -142,25 +147,55 @@ void dispose() {
 
 📊 API Reference
 
-createWindow(List<String> args): Creates a new Flutter window with route, arguments, and theme.
+### Window Management
 
-closeWindow(): Closes the current window.
+**`createWindow(List<String> args)`**: Creates a new Flutter window with route, arguments, and theme.
 
-notifyUiRendered(): Informs native that the window is ready to display.
+**`closeWindow()`**: Closes the current window.
 
-notifyAllWindows(String method, dynamic arguments): Broadcasts a method call to all windows.
+**`notifyUiRendered()`**: Informs native that the window is ready to display.
 
-registerListener(String method, MethodCallHandler handler): Registers a listener for method calls from native. Returns an id.
+### Window Title Management (New in v1.1.0)
 
-unregisterListener({required String methodName, required String id}): Unregisters a specific listener by method and id.
+**`generateUniqueTitle(String baseTitle)`**: Generates a unique window title by appending a numeric suffix.
+
+**`registerWindowTitle(String title)`**: Registers a window title as used.
+
+**`unregisterWindowTitle(String title)`**: Unregisters a window title when window closes.
+
+### Communication
+
+**`notifyAllWindows(String method, dynamic arguments)`**: Broadcasts a method call to all windows.
+
+**`registerListener(String method, MethodCallHandler handler)`**: Registers a listener for method calls from native. Returns an id.
+
+**`unregisterListener({required String methodName, required String id})`**: Unregisters a specific listener by method and id.
+
+**`getMessengerCount()`**: Returns the number of active window messengers.
 
 📌 Notes
 
-Supports macOS and Windows both.
+- **Platform Support**: Fully supports macOS and Windows with native implementations.
 
-Linux support may be added in future releases.
+- **Linux Support**: May be added in future releases.
 
-Each secondary window runs its own Flutter engine.
+- **Multiple Engines**: Each secondary window runs its own Flutter engine.
+
+- **Focus Management**: Automatic handling of window activation and focus events to prevent UI freezing.
+
+- **Window Lifecycle**: Proper cleanup and shutdown of engines when windows close.
+
+- **Custom Styling**: Windows version supports custom borderless windows with draggable title bars.
+
+- **Performance**: Optimized messenger tracking and broadcasting for efficient inter-window communication.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📞 Support
+
+For issues, feature requests, or questions, please file an issue on the [GitHub repository](https://github.com/Swatimishra8/multi_window_native/issues).
 
 📄 License
 

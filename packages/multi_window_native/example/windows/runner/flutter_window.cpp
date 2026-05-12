@@ -31,13 +31,14 @@ bool FlutterWindow::OnCreate() {
   flutter_controller_ = std::make_unique<flutter::FlutterViewController>(
       frame.right - frame.left, frame.bottom - frame.top, project_);
   // Ensure that basic setup of the controller was successful.
-  if (!flutter_controller_->engine() || !flutter_controller_->view()) {
+  //newly added
+  if (!flutter_controller_ || !flutter_controller_->view()) {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
-  flutter_controller_->engine()->SetNextFrameCallback([&]() {
+  flutter_controller_->engine()->SetNextFrameCallback([this]() { //newly added
     this->Show();
   });
 
@@ -54,7 +55,7 @@ void FlutterWindow::OnDestroy() {
   if (on_close_callback_ && flutter_controller_) {
     on_close_callback_(flutter_controller_.get());
   }
-  flutter_controller_ = nullptr; //plugin chnges
+  flutter_controller_ = nullptr;
   Win32Window::OnDestroy();
 }
 
@@ -72,9 +73,21 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     }
   }
 
+  // Handle window focus events to prevent freezing
   switch (message) {
-    case WM_FONTCHANGE:
-      flutter_controller_->engine()->ReloadSystemFonts();
+    case WM_ACTIVATE:
+      if (flutter_controller_ && LOWORD(wparam) != WA_INACTIVE) {
+        // Window is being activated - force Flutter to redraw
+        // This ensures the render pipeline resumes properly
+        flutter_controller_->ForceRedraw();
+      }
+      break;
+      
+    case WM_SETFOCUS:
+      if (flutter_controller_) {
+        // Window gained focus - ensure Flutter redraws
+        flutter_controller_->ForceRedraw();
+      }
       break;
   }
 
