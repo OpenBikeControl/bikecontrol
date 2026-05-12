@@ -44,6 +44,15 @@ const String kTrainerOverlayRoute = 'trainer-overlay';
 
 @pragma('vm:entry-point')
 Future<void> main(List<String> args) async {
+  // First thing — runs before anything else can fail. If this print is
+  // missing from the sub-window's console, the engine never invoked Dart
+  // main() at all (entry-point resolution / snapshot issue).
+  // Using stderr directly (not debugPrint) so it bypasses any buffering or
+  // isolate-binding quirks.
+  // ignore: avoid_print
+  print('[main:entry] args=$args');
+  stderr.writeln('[main:entry/stderr] args=$args');
+
   // setup crash reporting
 
   // Catch errors that happen in other isolates

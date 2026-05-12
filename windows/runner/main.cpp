@@ -113,6 +113,7 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
               << std::endl;
     return;
   }
+  std::cerr << "[multi_window_native] FlutterViewController created" << std::endl;
 
   MultiWindowNativePlugin::RegisterMessenger(controller->engine()->messenger());
 
@@ -123,11 +124,14 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
     std::cerr << "[multi_window_native] failed to create Win32 window" << std::endl;
     return;
   }
+  std::cerr << "[multi_window_native] Win32 window created" << std::endl;
 
   RegisterPlugins(controller->engine());
+  std::cerr << "[multi_window_native] RegisterPlugins done" << std::endl;
 
   window->SetQuitOnClose(false);
   window->SetChildContent(controller->view()->GetNativeWindow());
+  std::cerr << "[multi_window_native] SetChildContent done" << std::endl;
 
   HWND hwnd = GetAncestor(controller->view()->GetNativeWindow(), GA_ROOT);
   if (hwnd != nullptr) {
