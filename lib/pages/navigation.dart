@@ -39,16 +39,22 @@ class _NavigationState extends State<Navigation> {
 
     if (core.settings.getOverlayEnabled()) {
       // Check whether a smart trainer is already connected (re-mount case).
+      var shown = false;
       for (final d in core.connection.proxyDevices) {
-        if (_tryAutoShowOverlayFor(d)) return;
-      }
-      // Otherwise wait for the next connect event from a smart trainer.
-      _overlayAutoShowSub = core.connection.connectionStream.listen((d) {
         if (_tryAutoShowOverlayFor(d)) {
-          _overlayAutoShowSub?.cancel();
-          _overlayAutoShowSub = null;
+          shown = true;
+          break;
         }
-      });
+      }
+      if (!shown) {
+        // Otherwise wait for the next connect event from a smart trainer.
+        _overlayAutoShowSub = core.connection.connectionStream.listen((d) {
+          if (_tryAutoShowOverlayFor(d)) {
+            _overlayAutoShowSub?.cancel();
+            _overlayAutoShowSub = null;
+          }
+        });
+      }
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,7 +85,17 @@ class _NavigationState extends State<Navigation> {
     final controller = TrainerOverlayService.forCurrentPlatform();
     if (controller.isShowing.value) return true;
 
-    controller.show(def, core.settings.getOverlayFields());
+    controller.show(
+      def,
+      core.settings.getOverlayFields(),
+      // The emulator rebinds a new FitnessBikeDefinition each time a trainer
+      // app connects, so capturing `def` here would freeze action handling
+      // against a stale instance.
+      liveDef: () {
+        final live = device.emulator.activeDefinition;
+        return live is FitnessBikeDefinition ? live : null;
+      },
+    );
     return true;
   }
 

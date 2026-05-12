@@ -86,12 +86,24 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             createNewWindow(with: argsList) { success in result(success) }
             return
         case "closeWindow":
-            print("Inside close of handle")
-            if let mainWindow = NSApp.mainWindow {
+            // The Dart side calls `closeWindow(isMainWindow: false, windowId: ...)`
+            // to dismiss a specific secondary window. The package historically
+            // ignored those args and slammed `NSApp.mainWindow` instead, which
+            // either terminated the app or no-op'd silently depending on
+            // whether `NSApp.mainWindow` was set yet — so the overlay window
+            // never actually closed from the main side.
+            if let args = call.arguments as? [String: Any],
+               let isMain = args["isMainWindow"] as? Bool, !isMain {
+                // We don't track windowId per secondary, but for our usage
+                // there's at most one secondary at a time. Close them all.
+                for (window, _) in self.secondaryWindowControllers {
+                    self.closeWindow(window)
+                }
+            } else if let mainWindow = NSApp.mainWindow {
                 self.closeWindow(mainWindow)
             }
-          result(true)
-          return
+            result(true)
+            return
         case "getMessengerCount":
             result(Self.messengers.count)
             return

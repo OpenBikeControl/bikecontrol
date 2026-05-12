@@ -24,6 +24,7 @@ class IosOverlayController implements TrainerOverlayController {
   String? _activityId;
 
   FitnessBikeDefinition? _def;
+  LiveDefinitionLookup? _liveDef;
   Listenable? _bound;
   Set<OverlayField> _fields = {OverlayField.power, OverlayField.cadence};
 
@@ -40,13 +41,19 @@ class IosOverlayController implements TrainerOverlayController {
   ValueListenable<bool> get isShowing => _showing;
 
   @override
-  Future<OverlayShowResult> show(FitnessBikeDefinition def, Set<OverlayField> fields) async {
+  Future<OverlayShowResult> show(
+    FitnessBikeDefinition def,
+    Set<OverlayField> fields, {
+    LiveDefinitionLookup? liveDef,
+  }) async {
     try {
       await _la.init(appGroupId: _appGroupId);
-    } catch (e) {
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.ios.init');
       return OverlayShowResult.fail(OverlayShowFailure.systemDisabled, message: 'Live Activities init failed: $e');
     }
     _def = def;
+    _liveDef = liveDef;
     _fields = fields;
     _bind();
     _installActionHandler();
@@ -66,12 +73,7 @@ class IosOverlayController implements TrainerOverlayController {
       // activity by THAT id, so we must store the returned value.
       _activityId = result;
     } catch (e, s) {
-      if (kDebugMode) {
-        // print stack trace
-        debugPrint('Live Activities create failed: $e');
-        debugPrintStack(stackTrace: s);
-        print((e as PlatformException).stacktrace);
-      }
+      recordError(e, s, context: 'overlay.ios.createActivity');
       return OverlayShowResult.fail(OverlayShowFailure.systemDisabled, message: 'Live Activity create failed: $e');
     }
 
@@ -84,6 +86,7 @@ class IosOverlayController implements TrainerOverlayController {
     _bound?.removeListener(_onChange);
     _bound = null;
     _def = null;
+    _liveDef = null;
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -91,7 +94,9 @@ class IosOverlayController implements TrainerOverlayController {
     if (id != null) {
       try {
         await _la.endActivity(id);
-      } catch (_) {}
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.ios.endActivity');
+      }
       _activityId = null;
     }
     _showing.value = false;
@@ -182,8 +187,7 @@ class IosOverlayController implements TrainerOverlayController {
     try {
       await _la.updateActivity(id, _toMap(s));
     } catch (error, stack) {
-      print('Live Activities update failed, ending activity, error: $e');
-      recordError(error, stack, context: 'ios overlay');
+      recordError(error, stack, context: 'overlay.ios.updateActivity');
     }
   }
 
@@ -196,16 +200,19 @@ class IosOverlayController implements TrainerOverlayController {
     _actionHandlerInstalled = true;
     _actionChannel.setMethodCallHandler((call) async {
       if (call.method != 'action') return null;
-      final def = _def;
-      if (def == null) return null;
+      // Re-resolve the live FitnessBikeDefinition each call — see comment
+      // on LiveDefinitionLookup; the trainer emulator rebinds a fresh def
+      // on every transport restart.
+      final live = _liveDef?.call() ?? _def;
+      if (live == null) return null;
       final action = call.arguments;
       if (action is! String) return null;
       switch (action) {
         case 'primaryDecrement':
-          _adjustPrimary(def, increment: false);
+          _adjustPrimary(live, increment: false);
           break;
         case 'primaryIncrement':
-          _adjustPrimary(def, increment: true);
+          _adjustPrimary(live, increment: true);
           break;
       }
       return null;

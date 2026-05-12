@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/foundation.dart';
@@ -58,7 +59,9 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
         visibleOnFullScreen: true,
       );
     }
-  } catch (_) {}
+  } catch (e, s) {
+    recordError(e, s, context: 'overlay.window.setup');
+  }
 
   final state = ValueNotifier<TrainerOverlayState>(_emptyState());
 
@@ -72,20 +75,30 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
       // When BikeControl loses focus and regains it on the MAIN window, the
       // overlay sub-window's engine stops scheduling frames automatically.
       WidgetsBinding.instance.scheduleForcedFrame();
-    } catch (e) {
-      if (kDebugMode) debugPrint('overlay state decode failed: $e');
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.state.decode');
     }
   });
 
-  // Restore the persisted position if main sends it as part of the args.
+  // Restore the persisted position if main sent one. The plugin's positional
+  // ordering of Dart entrypoint args differs between macOS (routeName, theme,
+  // argsJson) and Windows (map-iteration order), so locate the JSON payload
+  // by content rather than by index.
   Offset? initialPosition;
-  if (args.length > 1) {
+  for (var i = 1; i < args.length; i++) {
+    final raw = args[i];
+    if (!raw.startsWith('{')) continue;
     try {
-      final m = jsonDecode(args[1]) as Map<String, dynamic>;
+      final m = jsonDecode(raw) as Map<String, dynamic>;
       final x = (m['x'] as num?)?.toDouble();
       final y = (m['y'] as num?)?.toDouble();
-      if (x != null && y != null) initialPosition = Offset(x, y);
-    } catch (_) {}
+      if (x != null && y != null) {
+        initialPosition = Offset(x, y);
+        break;
+      }
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.position.decode');
+    }
   }
   if (initialPosition != null) {
     await wm.windowManager.setPosition(initialPosition);
@@ -103,7 +116,9 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
             'windowId': windowId,
             'action': 'toggleMode',
           });
-        } catch (_) {}
+        } catch (e, s) {
+          recordError(e, s, context: 'overlay.action.toggleMode');
+        }
       },
       onPrimaryDecrement: () {
         try {
@@ -111,7 +126,9 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
             'windowId': windowId,
             'action': 'primaryDecrement',
           });
-        } catch (_) {}
+        } catch (e, s) {
+          recordError(e, s, context: 'overlay.action.primaryDecrement');
+        }
       },
       onPrimaryIncrement: () {
         try {
@@ -119,7 +136,9 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
             'windowId': windowId,
             'action': 'primaryIncrement',
           });
-        } catch (_) {}
+        } catch (e, s) {
+          recordError(e, s, context: 'overlay.action.primaryIncrement');
+        }
       },
     ),
   );
@@ -151,7 +170,9 @@ class _OverlayWindowListener extends wm.WindowListener {
           'x': pos.dx,
           'y': pos.dy,
         });
-      } catch (_) {}
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.window.moved');
+      }
     }();
   }
 
@@ -166,22 +187,30 @@ class _OverlayWindowListener extends wm.WindowListener {
         await MultiWindowNative.notifyAllWindows(kOverlayClosedMethod, {
           'windowId': _windowId,
         });
-      } catch (_) {}
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.window.close.notifyClosed');
+      }
       try {
         MultiWindowNative.unregisterListener(
           methodName: kStateMethod,
           id: _stateListenerId,
         );
-      } catch (_) {}
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.window.close.unregisterListener');
+      }
       try {
         wm.windowManager.removeListener(this);
-      } catch (_) {}
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.window.close.removeListener');
+      }
       try {
         await MultiWindowNative.closeWindow(
           isMainWindow: false,
           windowId: _windowId.toString(),
         );
-      } catch (_) {}
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.window.close.closeWindow');
+      }
     }();
   }
 }

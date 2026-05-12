@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
@@ -22,6 +23,7 @@ class DesktopOverlayController implements TrainerOverlayController {
   ValueListenable<bool> get isShowing => _showing;
 
   FitnessBikeDefinition? _def;
+  LiveDefinitionLookup? _liveDef;
   Listenable? _bound;
   Set<OverlayField> _fields = {OverlayField.power, OverlayField.cadence};
 
@@ -45,7 +47,11 @@ class DesktopOverlayController implements TrainerOverlayController {
 
   @override
   Future<OverlayShowResult> show(
-      FitnessBikeDefinition def, Set<OverlayField> fields) async {
+    FitnessBikeDefinition def,
+    Set<OverlayField> fields, {
+    LiveDefinitionLookup? liveDef,
+  }) async {
+    _liveDef = liveDef;
     if (_showing.value) return const OverlayShowResult.ok();
     return _showOverlay(def, fields);
   }
@@ -82,7 +88,8 @@ class DesktopOverlayController implements TrainerOverlayController {
         argsJson,
         'light',
       ]);
-    } catch (e) {
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.controller.createWindow');
       _unregisterListeners();
       return OverlayShowResult.fail(
         OverlayShowFailure.unknown,
@@ -103,6 +110,7 @@ class DesktopOverlayController implements TrainerOverlayController {
     _bound?.removeListener(_onChange);
     _bound = null;
     _def = null;
+    _liveDef = null;
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -114,7 +122,9 @@ class DesktopOverlayController implements TrainerOverlayController {
           isMainWindow: false,
           windowId: id.toString(),
         );
-      } catch (_) {}
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.controller.hide.closeWindow');
+      }
       _overlayWindowId = null;
     }
 
@@ -132,7 +142,9 @@ class DesktopOverlayController implements TrainerOverlayController {
           final m = _asMap(call.arguments);
           final wid = (m['windowId'] as num?)?.toInt();
           if (wid != null) _overlayWindowId = wid;
-        } catch (_) {}
+        } catch (e, s) {
+          recordError(e, s, context: 'overlay.controller.ready.decode');
+        }
         // The sub-engine has just registered its kStateMethod listener.
         // Push the current state now — the original `_push(force: true)`
         // from show() races the engine boot and is dropped.
@@ -148,22 +160,29 @@ class DesktopOverlayController implements TrainerOverlayController {
           final m = _asMap(call.arguments);
           final action = m['action'];
           if (action is! String) return;
+          // Re-resolve the live definition on every action — the trainer
+          // emulator rebinds a new `FitnessBikeDefinition` whenever its
+          // transport restarts (e.g. when a trainer app connects), so the
+          // `def` captured at show() time can already be stale.
+          final live = _liveDef?.call() ?? def;
           switch (action) {
             case 'toggleMode':
-              if (def.trainerMode.value == TrainerMode.ergMode) {
-                def.exitErgMode();
+              if (live.trainerMode.value == TrainerMode.ergMode) {
+                live.exitErgMode();
               } else {
-                def.setManualErgPower(def.ergTargetPower.value ?? 150);
+                live.setManualErgPower(live.ergTargetPower.value ?? 150);
               }
               break;
             case 'primaryDecrement':
-              _adjustPrimary(def, increment: false);
+              _adjustPrimary(live, increment: false);
               break;
             case 'primaryIncrement':
-              _adjustPrimary(def, increment: true);
+              _adjustPrimary(live, increment: true);
               break;
           }
-        } catch (_) {}
+        } catch (e, s) {
+          recordError(e, s, context: 'overlay.controller.action.dispatch');
+        }
       }),
     ));
 
@@ -179,7 +198,9 @@ class DesktopOverlayController implements TrainerOverlayController {
               (m['y'] as num).toDouble(),
             ),
           );
-        } catch (_) {}
+        } catch (e, s) {
+          recordError(e, s, context: 'overlay.controller.positionChanged');
+        }
       }),
     ));
 
@@ -201,6 +222,7 @@ class DesktopOverlayController implements TrainerOverlayController {
     _bound?.removeListener(_onChange);
     _bound = null;
     _def = null;
+    _liveDef = null;
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -222,7 +244,9 @@ class DesktopOverlayController implements TrainerOverlayController {
         kStateMethod,
         jsonEncode(s.toJson()),
       );
-    } catch (_) {}
+    } catch (e, stack) {
+      recordError(e, stack, context: 'overlay.controller.state.push');
+    }
   }
 
   // ---------------------------------------------------------------------------
