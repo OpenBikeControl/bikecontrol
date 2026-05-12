@@ -51,8 +51,12 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   try {
     await wm.windowManager.setAlwaysOnTop(true);
     debugPrint('[overlay-run] setAlwaysOnTop done');
+    // multi_window_native creates macOS sub-windows hard-coded at 1000x1000
+    // with minSize 800x900. Lower the minimum first, then resize down.
     await wm.windowManager.setMinimumSize(const Size(180, 100));
     debugPrint('[overlay-run] setMinimumSize done');
+    await wm.windowManager.setSize(const Size(220, 140));
+    debugPrint('[overlay-run] setSize done');
     await wm.windowManager.setHasShadow(false);
     debugPrint('[overlay-run] setHasShadow done');
     if (Platform.isMacOS) {
