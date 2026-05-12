@@ -16,6 +16,7 @@ import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:multi_window_native/multi_window_native.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart' as wm;
@@ -52,6 +53,22 @@ Future<void> main(List<String> args) async {
   // ignore: avoid_print
   print('[main:entry] args=$args');
   stderr.writeln('[main:entry/stderr] args=$args');
+
+  // Ping the native side via a MethodChannel. This requires
+  // `WidgetsFlutterBinding.ensureInitialized()` to have set up the channel
+  // plumbing, but invokeMethod is async and the binding initializes
+  // synchronously when first touched. The C++ runner registers a handler
+  // for this channel name on each sub-engine and prints a confirmation.
+  // If the native log shows "sub-engine PING received" but the Dart prints
+  // don't appear in the console, Dart IS running — print output is just
+  // going somewhere we can't see.
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await const MethodChannel('bike_control/sub_engine_ping')
+        .invokeMethod('ping');
+  } catch (e) {
+    // ignore — only matters for the diagnostic
+  }
 
   // setup crash reporting
 
