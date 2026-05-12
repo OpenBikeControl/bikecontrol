@@ -823,5 +823,26 @@
       "disconnectLabel": {"type": "String"}
     }
   },
-  "overlayFieldControls": "Pulsanti cambio / watt"
+  "overlayFieldControls": "Pulsanti cambio / watt",
+  "connectingToDevice": "Connessione a: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Connessione riuscita: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Connessione fallita: {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Impossibile connettersi a {device}: timeout",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Ricerca dispositivi…",
+  "disconnectingAllDevices": "Disconnessione di tutti i dispositivi"
 }

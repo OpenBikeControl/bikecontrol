@@ -980,5 +980,26 @@
       "appName": {"type": "String"},
       "disconnectLabel": {"type": "String"}
     }
-  }
+  },
+  "connectingToDevice": "Connecting to: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Connection succeeded: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Connection failed: {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Unable to connect to {device}: Timeout",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Scanning for devices...",
+  "disconnectingAllDevices": "Disconnecting all devices"
 }

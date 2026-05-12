@@ -823,5 +823,26 @@
       "disconnectLabel": {"type": "String"}
     }
   },
-  "overlayFieldControls": "Schalt-/Watt-Tasten"
+  "overlayFieldControls": "Schalt-/Watt-Tasten",
+  "connectingToDevice": "Verbinde mit: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Verbindung erfolgreich: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Verbindung fehlgeschlagen: {device} – {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Verbindung zu {device} nicht möglich: Zeitüberschreitung",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Suche nach Geräten…",
+  "disconnectingAllDevices": "Trenne alle Geräte"
 }
