@@ -96,6 +96,9 @@ struct SecondaryWindowContext {
   std::string windowId;
   std::unique_ptr<Win32Window> window;
   std::unique_ptr<flutter::FlutterViewController> controller;
+  // The handler-owning MethodChannel must outlive the engine that uses it.
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
+      plugin_channel;
 };
 
 static std::vector<std::unique_ptr<SecondaryWindowContext>> g_secondary_windows;
@@ -119,7 +122,8 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
     return;
   }
 
-  MultiWindowNativePlugin::RegisterMessenger(controller->engine()->messenger());
+  auto* sub_messenger = controller->engine()->messenger();
+  MultiWindowNativePlugin::RegisterMessenger(sub_messenger);
 
   auto window = std::make_unique<Win32Window>();
   Win32Window::Point origin(50, 50);
@@ -129,16 +133,55 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
     return;
   }
 
-  // Selective plugin registration: only register window_manager and
-  // multi_window_native on the sub-engine. Calling RegisterPlugins() here
-  // deadlocks the sub-engine before Dart main() runs — BikeControl has ~20
-  // Windows plugins; several own process-singleton OS resources already held
-  // by the main engine (windows_iap, media_key_detector_windows,
-  // bluetooth_low_energy_windows, etc.).
+  // Selective plugin registration: only register window_manager on the
+  // sub-engine. Calling RegisterPlugins() here deadlocks the sub-engine
+  // before Dart main() runs — BikeControl has ~20 Windows plugins; several
+  // own process-singleton OS resources already held by the main engine
+  // (windows_iap, media_key_detector_windows, bluetooth_low_energy_windows,
+  // etc.).
   WindowManagerPluginRegisterWithRegistrar(
       controller->engine()->GetRegistrarForPlugin("WindowManagerPlugin"));
-  MultiWindowNativePluginRegisterWithRegistrar(
-      controller->engine()->GetRegistrarForPlugin("MultiWindowNativePlugin"));
+
+  // DO NOT call `MultiWindowNativePluginRegisterWithRegistrar(...)` here.
+  // That symbol comes from the plugin DLL, which has its OWN copy of the
+  // `MultiWindowNativePlugin` class statics. Our `RegisterMessenger` /
+  // `BroadcastToAll` calls in this runner link to the runner-compiled copy
+  // of those statics, so the DLL's `messengers_` would stay empty and
+  // broadcasts from the sub-window would iterate an empty list.
+  //
+  // Instead, wire the channel handler ourselves on the sub-engine —
+  // identical to SetMainWindowMethodHandler. Both engines then route
+  // through the runner's single copy of MultiWindowNativePlugin::messengers_.
+  auto sub_channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      sub_messenger, "com.coditas.multi_window_native/pluginChannel",
+      &flutter::StandardMethodCodec::GetInstance());
+  sub_channel->SetMethodCallHandler(
+      [](const flutter::MethodCall<flutter::EncodableValue>& call,
+         std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+        const auto& method = call.method_name();
+        if (method == "setWindowId") {
+          const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
+          if (args) {
+            auto it = args->find(flutter::EncodableValue("windowId"));
+            if (it != args->end()) {
+              if (auto p = std::get_if<std::string>(&it->second)) {
+                if (MultiWindowNativePlugin::HasWindowIdCallback()) {
+                  MultiWindowNativePlugin::CallSetWindowId(*p);
+                }
+              }
+            }
+          }
+          result->Success(flutter::EncodableValue(true));
+        } else if (method == "notifyUiReady") {
+          result->Success(flutter::EncodableValue(true));
+        } else {
+          // Any other call (e.g. notifyAllWindows from this sub-window's
+          // Dart) is a broadcast — fan out to every registered messenger
+          // using the RUNNER's copy of the static list.
+          MultiWindowNativePlugin::BroadcastToAll(method, *call.arguments());
+          result->Success(flutter::EncodableValue(true));
+        }
+      });
 
   window->SetQuitOnClose(false);
   window->SetChildContent(controller->view()->GetNativeWindow());
@@ -165,6 +208,7 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
   auto ctx = std::make_unique<SecondaryWindowContext>();
   ctx->window = std::move(window);
   ctx->controller = std::move(controller);
+  ctx->plugin_channel = std::move(sub_channel);
   g_secondary_windows.push_back(std::move(ctx));
 }
 
