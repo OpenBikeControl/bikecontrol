@@ -114,23 +114,25 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
       }
     },
     onPrimaryDecrement: () {
+      debugPrint('[overlay-sub] − tap, broadcasting primaryDecrement');
       try {
         MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
           'windowId': windowId,
           'action': 'primaryDecrement',
         });
       } catch (e) {
-        if (kDebugMode) debugPrint('overlay action send failed (primaryDecrement): $e');
+        debugPrint('[overlay-sub] action send failed (primaryDecrement): $e');
       }
     },
     onPrimaryIncrement: () {
+      debugPrint('[overlay-sub] + tap, broadcasting primaryIncrement');
       try {
         MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
           'windowId': windowId,
           'action': 'primaryIncrement',
         });
       } catch (e) {
-        if (kDebugMode) debugPrint('overlay action send failed (primaryIncrement): $e');
+        debugPrint('[overlay-sub] action send failed (primaryIncrement): $e');
       }
     },
   ));
@@ -229,15 +231,16 @@ class _OverlayApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // macOS supports real window transparency via NSWindow alpha (window_manager
+    // sets it in `setVisibleOnAllWorkspaces` flow). Windows can't do real
+    // transparency without WS_EX_LAYERED, so keep a dark fill there.
+    final backgroundColor = !kIsWeb && Platform.isWindows
+        ? const Color(0xFF111114)
+        : const Color(0x00000000);
     return ShadcnApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        // Explicit opaque dark surface. Using `Theme.of(context).colorScheme.background`
-        // resolves to near-white under shadcn's light theme, which made the
-        // entire sub-window look blank on Windows. A fixed dark colour also
-        // saves us from relying on platform transparency (which Win32 doesn't
-        // implement without WS_EX_LAYERED).
-        backgroundColor: const Color(0xFF111114),
+        backgroundColor: backgroundColor,
         child: Center(
           child: TrainerOverlayView(
             state: state,
