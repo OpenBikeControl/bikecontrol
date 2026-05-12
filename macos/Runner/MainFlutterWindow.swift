@@ -47,7 +47,12 @@ class MainFlutterWindow: NSPanel {
           guard window != self,
                 let vc = window.contentViewController as? FlutterViewController,
                 vc.engine == engine else { continue }
-          window.level = .statusBar
+          // `.statusBar` (25) wasn't enough — trainer apps in fullscreen
+          // (Zwift / MyWhoosh / Rouvy) ended up above. `.screenSaver`
+          // (1000) is the highest standard user-space level; combined
+          // with `.fullScreenAuxiliary` it lets the overlay sit above
+          // even a fullscreened native macOS app.
+          window.level = .screenSaver
           window.collectionBehavior = [
             .canJoinAllSpaces,
             .fullScreenAuxiliary,
@@ -59,7 +64,7 @@ class MainFlutterWindow: NSPanel {
           // visually behind the main panel until something else forces a
           // restack (minimising and restoring main, for instance).
           window.orderFront(nil)
-          NSLog("[trainer-overlay] sub-window elevated to .statusBar")
+          NSLog("[trainer-overlay] sub-window elevated to .screenSaver")
           return
         }
         if attempts < 30 {
