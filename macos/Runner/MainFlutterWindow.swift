@@ -3,7 +3,7 @@ import FlutterMacOS
 import multi_window_native
 import window_manager
 
-class MainFlutterWindow: NSWindow {
+class MainFlutterWindow: NSPanel {
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
