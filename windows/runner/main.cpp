@@ -137,6 +137,17 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
     SetForegroundWindow(hwnd);
   }
 
+  // Kick the engine the same way FlutterWindow::OnCreate does. Without this,
+  // the sub-window's engine starts at its construction size (220x100) and
+  // never re-paints on subsequent resizes — producing the "white box that
+  // doesn't follow the window" symptom.
+  auto* raw_controller = controller.get();
+  Win32Window* raw_window = window.get();
+  raw_controller->engine()->SetNextFrameCallback([raw_window]() {
+    raw_window->Show();
+  });
+  raw_controller->ForceRedraw();
+
   auto ctx = std::make_unique<SecondaryWindowContext>();
   ctx->window = std::move(window);
   ctx->controller = std::move(controller);
