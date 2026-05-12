@@ -823,5 +823,26 @@
       "disconnectLabel": {"type": "String"}
     }
   },
-  "overlayFieldControls": "Przyciski biegów / mocy"
+  "overlayFieldControls": "Przyciski biegów / mocy",
+  "connectingToDevice": "Łączenie z: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Połączenie udane: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Połączenie nie powiodło się: {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Nie można połączyć z {device}: Przekroczono limit czasu",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Skanowanie urządzeń...",
+  "disconnectingAllDevices": "Rozłączanie wszystkich urządzeń"
 }

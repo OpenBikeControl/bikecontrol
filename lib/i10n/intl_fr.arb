@@ -824,5 +824,26 @@
       "disconnectLabel": {"type": "String"}
     }
   },
-  "overlayFieldControls": "Boutons de vitesses / watts"
+  "overlayFieldControls": "Boutons de vitesses / watts",
+  "connectingToDevice": "Connexion à : {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Connexion réussie : {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Échec de la connexion : {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Impossible de se connecter à {device} : délai dépassé",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Recherche d'appareils…",
+  "disconnectingAllDevices": "Déconnexion de tous les appareils"
 }

@@ -823,5 +823,26 @@
       "disconnectLabel": {"type": "String"}
     }
   },
-  "overlayFieldControls": "Botones de cambio / vatios"
+  "overlayFieldControls": "Botones de cambio / vatios",
+  "connectingToDevice": "Conectando a: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Conexión exitosa: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Conexión fallida: {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "No se pudo conectar a {device}: Tiempo de espera agotado",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Buscando dispositivos...",
+  "disconnectingAllDevices": "Desconectando todos los dispositivos"
 }

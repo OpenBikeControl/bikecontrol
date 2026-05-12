@@ -212,7 +212,7 @@ class Connection {
       return;
     }
     isScanning.value = true;
-    _actionStreams.add(LogNotification('Scanning for devices...'));
+    _actionStreams.add(LogNotification(AppLocalizations.current.scanningForDevicesShort));
 
     if (screenshotMode) {
       return;
@@ -327,7 +327,7 @@ class Connection {
       _actionStreams.add(
         AlertNotification(
           LogLevel.LOGLEVEL_ERROR,
-          'Error starting MyWhoosh "Link" server. Please make sure the "MyWhoosh Link" app is not already running on this device.',
+          AppLocalizations.current.errorStartingMyWhooshLink,
         ),
       );
     });
@@ -376,7 +376,9 @@ class Connection {
 
       final willConnect = device is! ProxyDevice || device.shouldAutoConnect;
       if (willConnect) {
-        _actionStreams.add(AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'));
+        _actionStreams.add(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connectingToDevice(device.toString())),
+        );
       }
       _connect(device)
           .then((_) {
@@ -384,7 +386,10 @@ class Connection {
 
             if (willConnect) {
               _actionStreams.add(
-                AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
+                AlertNotification(
+                  LogLevel.LOGLEVEL_INFO,
+                  AppLocalizations.current.connectionSucceeded(device.toString()),
+                ),
               );
             }
             if (_connectionQueue.isNotEmpty) {
@@ -396,11 +401,17 @@ class Connection {
             _handlingConnectionQueue = false;
             if (e is TimeoutException) {
               _actionStreams.add(
-                AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Unable to connect to ${device.toString()}: Timeout'),
+                AlertNotification(
+                  LogLevel.LOGLEVEL_WARNING,
+                  AppLocalizations.current.unableToConnectToDeviceTimeout(device.toString()),
+                ),
               );
             } else {
               _actionStreams.add(
-                AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Connection failed: ${device.toString()} - $e'),
+                AlertNotification(
+                  LogLevel.LOGLEVEL_ERROR,
+                  AppLocalizations.current.connectionFailed(device.toString(), e.toString()),
+                ),
               );
             }
             if (_connectionQueue.isNotEmpty) {
@@ -543,7 +554,7 @@ class Connection {
 
   Future<void> disconnectAll() async {
     _cancelAllInactivityTimers();
-    _actionStreams.add(LogNotification('Disconnecting all devices'));
+    _actionStreams.add(LogNotification(AppLocalizations.current.disconnectingAllDevices));
     for (var device in bluetoothDevices) {
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
