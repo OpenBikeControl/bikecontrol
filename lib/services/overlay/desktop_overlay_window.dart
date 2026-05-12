@@ -33,28 +33,27 @@ const String kOverlayClosedMethod = 'trainerOverlay.closed';
 ///   its windowId
 /// - broadcasts `kOverlayPositionMethod` whenever the user drags the window
 Future<void> runDesktopOverlayWindow(int windowId, List<String> args) async {
-  // Configure the secondary window itself.
-  await wm.windowManager.waitUntilReadyToShow(
-    const wm.WindowOptions(
-      size: Size(220, 100),
-      minimumSize: Size(180, 100),
-      backgroundColor: Colors.transparent,
-      skipTaskbar: false,
-      titleBarStyle: wm.TitleBarStyle.hidden,
-      alwaysOnTop: true,
-    ),
-    () async {
-      await wm.windowManager.setHasShadow(false);
-      await wm.windowManager.setResizable(true);
-      if (Platform.isMacOS) {
-        await wm.windowManager.setVisibleOnAllWorkspaces(
-          true,
-          visibleOnFullScreen: true,
-        );
-      }
-      await wm.windowManager.show();
-    },
-  );
+  // Apply individual window settings rather than going through
+  // `waitUntilReadyToShow(WindowOptions(...))`. WindowOptions tries to do
+  // several things at once (size + titleBarStyle + backgroundColor + ...);
+  // on Windows that wedges the sub-window's render surface — Win32 doesn't
+  // support a transparent background without `WS_EX_LAYERED`, and toggling
+  // `TitleBarStyle.hidden` mid-startup rewrites window styles in ways the
+  // engine's view doesn't recover from. Apply settings one at a time
+  // post-engine-boot, matching the package example's pattern.
+  try {
+    await wm.windowManager.setAlwaysOnTop(true);
+    await wm.windowManager.setMinimumSize(const Size(180, 100));
+    await wm.windowManager.setHasShadow(false);
+    if (Platform.isMacOS) {
+      await wm.windowManager.setVisibleOnAllWorkspaces(
+        true,
+        visibleOnFullScreen: true,
+      );
+    }
+  } catch (e) {
+    if (kDebugMode) debugPrint('overlay window setup failed: $e');
+  }
 
   final state = ValueNotifier<TrainerOverlayState>(_emptyState());
 
