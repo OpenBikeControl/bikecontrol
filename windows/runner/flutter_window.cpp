@@ -3,13 +3,16 @@
 #include <optional>
 
 #include "flutter/generated_plugin_registrant.h"
-#include <desktop_multi_window/desktop_multi_window_plugin.h>
-#include <window_manager/window_manager_plugin.h>
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
 FlutterWindow::~FlutterWindow() {}
+
+void FlutterWindow::SetOnCloseCallback(
+    std::function<void(flutter::FlutterViewController*)> callback) {
+  on_close_callback_ = std::move(callback);
+}
 
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
@@ -27,30 +30,6 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
-
-  // Selectively register ONLY the plugins the trainer overlay sub-window
-  // actually needs.
-  //
-  // Calling `RegisterPlugins` (which calls every plugin's RegisterWith) on
-  // the secondary engine reliably deadlocks the sub-engine's boot before
-  // Dart `main()` runs — confirmed by toggling registration on/off as a
-  // diagnostic. Likely culprits are plugins that own process-singleton
-  // Windows resources already held by the main engine (windows_iap,
-  // media_key_detector_windows, bluetooth_low_energy_windows, etc.).
-  //
-  // The overlay uses only:
-  //   - desktop_multi_window (WindowMethodChannel to talk to main)
-  //   - window_manager       (set window styling, position, alwaysOnTop)
-  DesktopMultiWindowSetWindowCreatedCallback([](void *controller) {
-    auto *fvc =
-        reinterpret_cast<flutter::FlutterViewController *>(controller);
-    auto *registry = fvc->engine();
-    WindowManagerPluginRegisterWithRegistrar(
-        registry->GetRegistrarForPlugin("WindowManagerPlugin"));
-    DesktopMultiWindowPluginRegisterWithRegistrar(
-        registry->GetRegistrarForPlugin("DesktopMultiWindowPlugin"));
-  });
-
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -66,9 +45,10 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
-  if (flutter_controller_) {
-    flutter_controller_ = nullptr;
+  if (on_close_callback_ && flutter_controller_) {
+    on_close_callback_(flutter_controller_.get());
   }
+  flutter_controller_ = nullptr;
 
   Win32Window::OnDestroy();
 }

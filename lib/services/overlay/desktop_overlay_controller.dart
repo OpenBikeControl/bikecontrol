@@ -1,22 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'dart:ui';
 
 import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart' as dmw;
 import 'package:flutter/foundation.dart';
 import 'package:multi_window_native/multi_window_native.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
 /// Desktop trainer overlay controller.
 ///
-/// On **Windows** it uses `desktop_multi_window` (WindowController.create /
-/// WindowMethodChannel). On **macOS** it uses `multi_window_native`
-/// (MultiWindowNative.createWindow / notifyAllWindows / registerListener).
+/// Uses `multi_window_native` (MultiWindowNative.createWindow /
+/// notifyAllWindows / registerListener) on both macOS and Windows.
 class DesktopOverlayController implements TrainerOverlayController {
   static const _minPushIntervalMs = 100; // ~10 Hz
 
@@ -33,27 +30,14 @@ class DesktopOverlayController implements TrainerOverlayController {
   DateTime _lastPushAt = DateTime.fromMillisecondsSinceEpoch(0);
 
   // ---------------------------------------------------------------------------
-  // Windows state (desktop_multi_window)
+  // State (multi_window_native)
   // ---------------------------------------------------------------------------
 
-  /// Sub-window controller on Windows. Null until the overlay is shown.
-  dmw.WindowController? _dmwWindow;
-
-  /// Channel to communicate with the overlay sub-window on Windows.
-  final _dmwChannel = dmw.WindowMethodChannel(
-    kOverlayChannel,
-    mode: dmw.ChannelMode.bidirectional,
-  );
-
-  // ---------------------------------------------------------------------------
-  // macOS state (multi_window_native)
-  // ---------------------------------------------------------------------------
-
-  /// Sub-window id reported back via [kOverlayReadyMethod] on macOS.
+  /// Sub-window id reported back via [kOverlayReadyMethod].
   int? _overlayWindowId;
 
   /// Listener ids returned by `registerListener`, used to clean up on hide.
-  final List<({String method, String id})> _macListenerIds = [];
+  final List<({String method, String id})> _listenerIds = [];
 
   // ---------------------------------------------------------------------------
   // TrainerOverlayController interface
@@ -63,21 +47,12 @@ class DesktopOverlayController implements TrainerOverlayController {
   Future<OverlayShowResult> show(
       FitnessBikeDefinition def, Set<OverlayField> fields) async {
     if (_showing.value) return const OverlayShowResult.ok();
-
-    if (Platform.isWindows) {
-      return _showWindows(def, fields);
-    } else {
-      return _showMacOS(def, fields);
-    }
+    return _showOverlay(def, fields);
   }
 
   @override
   Future<void> hide() async {
-    if (Platform.isWindows) {
-      await _hideWindows();
-    } else {
-      await _hideMacOS();
-    }
+    await _hideOverlay();
   }
 
   @override
@@ -87,118 +62,12 @@ class DesktopOverlayController implements TrainerOverlayController {
   }
 
   // ---------------------------------------------------------------------------
-  // Windows implementation
+  // Implementation (multi_window_native)
   // ---------------------------------------------------------------------------
 
-  Future<OverlayShowResult> _showWindows(
+  Future<OverlayShowResult> _showOverlay(
       FitnessBikeDefinition def, Set<OverlayField> fields) async {
-    // Register the main-window side of the shared channel BEFORE creating the
-    // sub-window so that any calls from the overlay land here immediately.
-    _registerWindowsHandlers(def);
-
-    final saved = core.settings.getOverlayPosition();
-    final argsJson = jsonEncode({
-      'role': 'trainer-overlay',
-      if (saved != null) ...{'x': saved.dx, 'y': saved.dy},
-    });
-
-    try {
-      final controller = await dmw.WindowController.create(
-        dmw.WindowConfiguration(
-          arguments: argsJson,
-          hiddenAtLaunch: true,
-        ),
-      );
-      _dmwWindow = controller;
-      await controller.show();
-    } catch (e) {
-      _unregisterWindowsHandlers();
-      return OverlayShowResult.fail(
-        OverlayShowFailure.unknown,
-        message: 'Failed to open overlay window: $e',
-      );
-    }
-
-    _def = def;
-    _fields = fields;
-    _bind();
-    _showing.value = true;
-    _push(force: true);
-    return const OverlayShowResult.ok();
-  }
-
-  Future<void> _hideWindows() async {
-    _bound?.removeListener(_onChange);
-    _bound = null;
-    _def = null;
-    _pushDebounce?.cancel();
-    _pushDebounce = null;
-    _lastPushed = null;
-
-    final w = _dmwWindow;
-    if (w != null) {
-      try {
-        await w.invokeMethod<void>('close');
-      } catch (_) {}
-      _dmwWindow = null;
-    }
-
-    _unregisterWindowsHandlers();
-    _showing.value = false;
-  }
-
-  void _registerWindowsHandlers(FitnessBikeDefinition def) {
-    _dmwChannel.setMethodCallHandler((call) async {
-      switch (call.method) {
-        case 'toggleMode':
-          if (def.trainerMode.value == TrainerMode.ergMode) {
-            def.exitErgMode();
-          } else {
-            def.setManualErgPower(def.ergTargetPower.value ?? 150);
-          }
-          return null;
-        case 'primaryDecrement':
-          _adjustPrimary(def, increment: false);
-          return null;
-        case 'primaryIncrement':
-          _adjustPrimary(def, increment: true);
-          return null;
-        case 'positionChanged':
-          try {
-            final m = Map<String, dynamic>.from(call.arguments as Map);
-            await core.settings.setOverlayPosition(Offset(
-              (m['x'] as num).toDouble(),
-              (m['y'] as num).toDouble(),
-            ));
-          } catch (_) {}
-          return null;
-        default:
-          return null;
-      }
-    });
-  }
-
-  void _unregisterWindowsHandlers() {
-    try {
-      _dmwChannel.setMethodCallHandler(null);
-    } catch (_) {}
-  }
-
-  Future<void> _pushWindows(TrainerOverlayState s) async {
-    final w = _dmwWindow;
-    if (w == null) return;
-    try {
-      await w.invokeMethod<void>('state', jsonEncode(s.toJson()));
-    } catch (_) {}
-  }
-
-  // ---------------------------------------------------------------------------
-  // macOS implementation (multi_window_native)
-  // ---------------------------------------------------------------------------
-
-  Future<OverlayShowResult> _showMacOS(
-      FitnessBikeDefinition def, Set<OverlayField> fields) async {
-    _registerMacOSListeners(def);
+    _registerListeners(def);
 
     final saved = core.settings.getOverlayPosition();
     final argsJson = jsonEncode({
@@ -214,7 +83,7 @@ class DesktopOverlayController implements TrainerOverlayController {
         'light',
       ]);
     } catch (e) {
-      _unregisterMacOSListeners();
+      _unregisterListeners();
       return OverlayShowResult.fail(
         OverlayShowFailure.unknown,
         message: 'Failed to open overlay window: $e',
@@ -230,7 +99,7 @@ class DesktopOverlayController implements TrainerOverlayController {
     return const OverlayShowResult.ok();
   }
 
-  Future<void> _hideMacOS() async {
+  Future<void> _hideOverlay() async {
     _bound?.removeListener(_onChange);
     _bound = null;
     _def = null;
@@ -249,14 +118,14 @@ class DesktopOverlayController implements TrainerOverlayController {
       _overlayWindowId = null;
     }
 
-    _unregisterMacOSListeners();
+    _unregisterListeners();
     _showing.value = false;
   }
 
-  void _registerMacOSListeners(FitnessBikeDefinition def) {
-    _unregisterMacOSListeners();
+  void _registerListeners(FitnessBikeDefinition def) {
+    _unregisterListeners();
 
-    _macListenerIds.add((
+    _listenerIds.add((
       method: kOverlayReadyMethod,
       id: MultiWindowNative.registerListener(kOverlayReadyMethod, (call) async {
         try {
@@ -271,7 +140,7 @@ class DesktopOverlayController implements TrainerOverlayController {
       }),
     ));
 
-    _macListenerIds.add((
+    _listenerIds.add((
       method: kOverlayActionMethod,
       id: MultiWindowNative.registerListener(kOverlayActionMethod,
           (call) async {
@@ -298,7 +167,7 @@ class DesktopOverlayController implements TrainerOverlayController {
       }),
     ));
 
-    _macListenerIds.add((
+    _listenerIds.add((
       method: kOverlayPositionMethod,
       id: MultiWindowNative.registerListener(kOverlayPositionMethod,
           (call) async {
@@ -314,20 +183,20 @@ class DesktopOverlayController implements TrainerOverlayController {
       }),
     ));
 
-    _macListenerIds.add((
+    _listenerIds.add((
       method: kOverlayClosedMethod,
       id: MultiWindowNative.registerListener(kOverlayClosedMethod,
           (call) async {
         // The sub-window closed itself (user clicked the traffic-light close
         // button). Clean up local state without trying to close it again.
-        _cleanupAfterMacOSClose();
+        _cleanupAfterClose();
       }),
     ));
   }
 
-  /// Cleanup that mirrors `_hideMacOS()` but skips `MultiWindowNative.closeWindow`
+  /// Cleanup that mirrors `_hideOverlay()` but skips `MultiWindowNative.closeWindow`
   /// — used when the sub-window closed itself.
-  void _cleanupAfterMacOSClose() {
+  void _cleanupAfterClose() {
     if (!_showing.value) return;
     _bound?.removeListener(_onChange);
     _bound = null;
@@ -336,18 +205,18 @@ class DesktopOverlayController implements TrainerOverlayController {
     _pushDebounce = null;
     _lastPushed = null;
     _overlayWindowId = null;
-    _unregisterMacOSListeners();
+    _unregisterListeners();
     _showing.value = false;
   }
 
-  void _unregisterMacOSListeners() {
-    for (final e in _macListenerIds) {
+  void _unregisterListeners() {
+    for (final e in _listenerIds) {
       MultiWindowNative.unregisterListener(methodName: e.method, id: e.id);
     }
-    _macListenerIds.clear();
+    _listenerIds.clear();
   }
 
-  Future<void> _pushMacOS(TrainerOverlayState s) async {
+  Future<void> _pushOverlay(TrainerOverlayState s) async {
     try {
       await MultiWindowNative.notifyAllWindows(
         kStateMethod,
@@ -427,11 +296,6 @@ class DesktopOverlayController implements TrainerOverlayController {
     if (!force && s == _lastPushed) return;
     _lastPushed = s;
     _lastPushAt = DateTime.now();
-
-    if (Platform.isWindows) {
-      await _pushWindows(s);
-    } else {
-      await _pushMacOS(s);
-    }
+    await _pushOverlay(s);
   }
 }
