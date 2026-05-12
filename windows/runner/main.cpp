@@ -100,7 +100,11 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
             << args.size() << " arg(s)" << std::endl;
 
   flutter::DartProject project(L"data");
-  project.set_dart_entrypoint("main");
+  // Don't explicitly set the entry point to "main" — that's the engine's
+  // default, and naming it explicitly seems to wedge resolution in the
+  // sub-engine (Dart main() never runs even though the engine reports
+  // success). The Flutter team's guidance is to only call this for NON-main
+  // entry points.
   project.set_dart_entrypoint_arguments(args);
 
   // 220x100 here matches the desktop overlay's intended frame; window_manager
