@@ -13,12 +13,10 @@ class MainFlutterWindow: NSWindow {
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     MultiWindowNativePlugin.onEngineCreatedCallback = { engine in
-      // Selectively register only the two plugins the trainer overlay
-      // sub-window actually needs. Registering all plugins via
-      // RegisterGeneratedPlugins on the sub-engine can deadlock or conflict
-      // with process-singleton resources already held by the main engine.
-      WindowManagerPlugin.register(with: engine.registrar(forPlugin: "WindowManagerPlugin")!)
-      MultiWindowNativePlugin.register(with: engine.registrar(forPlugin: "MultiWindowNativePlugin")!)
+      // Re-register every plugin on each new sub-window engine so the
+      // overlay window has access to window_manager, etc.
+      RegisterGeneratedPlugins(registry: engine)
+
 
       // Promote sub-windows (currently only the trainer overlay) so they sit
       // above fullscreened trainer apps (Zwift / MyWhoosh / Rouvy on their

@@ -67,8 +67,7 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
 
   final state = ValueNotifier<TrainerOverlayState>(_emptyState());
 
-  final stateListenerId = MultiWindowNative.registerListener(kStateMethod,
-      (call) async {
+  final stateListenerId = MultiWindowNative.registerListener(kStateMethod, (call) async {
     try {
       final raw = call.arguments;
       final Map<String, dynamic> json = raw is String
@@ -101,41 +100,43 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   wm.windowManager.addListener(overlayListener);
 
   debugPrint('[overlay-run] about to runApp');
-  runApp(_OverlayApp(
-    state: state,
-    onModeToggle: () {
-      try {
-        MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
-          'windowId': windowId,
-          'action': 'toggleMode',
-        });
-      } catch (e) {
-        if (kDebugMode) debugPrint('overlay action send failed (toggleMode): $e');
-      }
-    },
-    onPrimaryDecrement: () {
-      debugPrint('[overlay-sub] − tap, broadcasting primaryDecrement');
-      try {
-        MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
-          'windowId': windowId,
-          'action': 'primaryDecrement',
-        });
-      } catch (e) {
-        debugPrint('[overlay-sub] action send failed (primaryDecrement): $e');
-      }
-    },
-    onPrimaryIncrement: () {
-      debugPrint('[overlay-sub] + tap, broadcasting primaryIncrement');
-      try {
-        MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
-          'windowId': windowId,
-          'action': 'primaryIncrement',
-        });
-      } catch (e) {
-        debugPrint('[overlay-sub] action send failed (primaryIncrement): $e');
-      }
-    },
-  ));
+  runApp(
+    _OverlayApp(
+      state: state,
+      onModeToggle: () {
+        try {
+          MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
+            'windowId': windowId,
+            'action': 'toggleMode',
+          });
+        } catch (e) {
+          if (kDebugMode) debugPrint('overlay action send failed (toggleMode): $e');
+        }
+      },
+      onPrimaryDecrement: () {
+        debugPrint('[overlay-sub] − tap, broadcasting primaryDecrement');
+        try {
+          MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
+            'windowId': windowId,
+            'action': 'primaryDecrement',
+          });
+        } catch (e) {
+          debugPrint('[overlay-sub] action send failed (primaryDecrement): $e');
+        }
+      },
+      onPrimaryIncrement: () {
+        debugPrint('[overlay-sub] + tap, broadcasting primaryIncrement');
+        try {
+          MultiWindowNative.notifyAllWindows(kOverlayActionMethod, {
+            'windowId': windowId,
+            'action': 'primaryIncrement',
+          });
+        } catch (e) {
+          debugPrint('[overlay-sub] action send failed (primaryIncrement): $e');
+        }
+      },
+    ),
+  );
   debugPrint('[overlay-run] runApp returned');
 
   // Tell main we're alive.
@@ -234,9 +235,7 @@ class _OverlayApp extends StatelessWidget {
     // macOS supports real window transparency via NSWindow alpha (window_manager
     // sets it in `setVisibleOnAllWorkspaces` flow). Windows can't do real
     // transparency without WS_EX_LAYERED, so keep a dark fill there.
-    final backgroundColor = !kIsWeb && Platform.isWindows
-        ? const Color(0xFF111114)
-        : const Color(0x00000000);
+    final backgroundColor = const Color(0xFFFFFFFF);
     return ShadcnApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
