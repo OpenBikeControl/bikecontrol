@@ -210,18 +210,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ),
                 if (core.logic.showObpActions) ...[
                   ColoredTitle(text: context.i18n.openBikeControlActions),
-                  if (core.logic.obpConnectedApp == null)
-                    Warning(
-                      children: [
-                        Text(
-                          core.logic.obpConnectedApp == null
-                              ? 'Please connect to ${core.settings.getTrainerApp()?.name}, first.'
-                              : context.i18n.appIdActions(core.logic.obpConnectedApp!.appId),
-                        ),
-                      ],
-                    )
-                  else
-                    ..._buildTrainerConnectionActions(core.logic.obpConnectedApp!.supportedActions),
+                  ..._buildObpControllerButtonActions(core.logic.obpSupportedButtons),
                 ],
 
                 if (core.logic.showMyWhooshLink && (Platform.isIOS || core.settings.getMyWhooshLinkEnabled())) ...[
@@ -778,6 +767,67 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ? Text(action.alternativeTitle!)
                 : null,
             isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
+            onPressed: () {
+              if (action.possibleValues?.isNotEmpty == true) {
+                showDropdown(
+                  context: context,
+                  builder: (c) => DropdownMenu(
+                    children: action.possibleValues!.map(
+                      (ingame) {
+                        return MenuButton(
+                          child: Text(ingame.toString()),
+                          onPressed: (_) {
+                            _keyPair.touchPosition = Offset.zero;
+                            _keyPair.physicalKey = null;
+                            _keyPair.logicalKey = null;
+                            _keyPair.androidAction = null;
+                            _keyPair.androidIntentAction = null;
+                            _keyPair.command = null;
+                            _keyPair.screenshotPath = null;
+                            _keyPair.inGameAction = action;
+                            _keyPair.inGameActionValue = ingame;
+                            widget.onUpdate();
+                            setState(() {});
+                          },
+                        );
+                      },
+                    ).toList(),
+                  ),
+                );
+              } else {
+                _keyPair.touchPosition = Offset.zero;
+                _keyPair.physicalKey = null;
+                _keyPair.logicalKey = null;
+                _keyPair.androidAction = null;
+                _keyPair.androidIntentAction = null;
+                _keyPair.command = null;
+                _keyPair.screenshotPath = null;
+                _keyPair.inGameAction = action;
+                _keyPair.inGameActionValue = null;
+                widget.onUpdate();
+                setState(() {});
+              }
+            },
+          );
+        },
+      );
+    }).toList();
+  }
+
+  List<Widget> _buildObpControllerButtonActions(List<ControllerButton> buttons) {
+    return buttons.where((b) => b.action != null).map((button) {
+      final action = button.action!;
+      return Builder(
+        builder: (context) {
+          return SelectableCard(
+            icon: button.icon ?? action.icon,
+            title: Text(button.name),
+            subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
+                ? Text(_keyPair.inGameActionValue!.toString())
+                : action.alternativeTitle != null
+                ? Text(action.alternativeTitle!)
+                : null,
+            isActive: _keyPair.inGameAction == action,
             onPressed: () {
               if (action.possibleValues?.isNotEmpty == true) {
                 showDropdown(

@@ -1,11 +1,10 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
+import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/logviewer.dart';
@@ -16,12 +15,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:purchases_flutter/purchases_flutter.dart' show Purchases;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../bluetooth/devices/zwift/zwift_clickv2.dart';
 import '../utils/iap/iap_manager.dart';
 
 List<Widget> buildMenuButtons(BuildContext context) {
@@ -98,9 +98,7 @@ List<Widget> buildMenuButtons(BuildContext context) {
 Future<String> debugText() async {
   final userId = IAPManager.instance.isUsingRevenueCat ? (await Purchases.appUserID) : null;
   final proxies = core.connection.proxyDevices;
-  final proxyBlock = proxies.isEmpty
-      ? '-'
-      : proxies.map(_describeProxyDevice).join('\n  ');
+  final proxyBlock = proxies.isEmpty ? '-' : proxies.map(_describeProxyDevice).join('\n  ');
   return '''
 
 ---
@@ -187,6 +185,25 @@ class BKMenuButton extends StatelessWidget {
                       ..rssi = -51
                       ..batteryLevel = 81,
                   ]);
+                  /*final service = TrainerOverlayService.forCurrentPlatform();
+                  final fitness = FitnessBikeDefinition(
+                    connectedDevice: BleDevice(deviceId: 'das', name: 'name'),
+                    connectedDeviceServices: [],
+                    data: ValueNotifier('_value'),
+                  );
+                  service.show(
+                    fitness,
+                    {
+                      OverlayField.gearRatio,
+                      OverlayField.power,
+                      OverlayField.cadence,
+                      OverlayField.controls,
+                    },
+                  );
+                  Future.delayed(Duration(seconds: 10), () {
+                    fitness.data.value = DateTime.now().toIso8601String();
+                    fitness.shiftUp();
+                  });*/
                 },
               ),
               MenuButton(
