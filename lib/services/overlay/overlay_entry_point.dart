@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -46,9 +46,9 @@ class _OverlayAppState extends State<_OverlayApp> {
       // we just dispatched to the main isolate.
       if (json.containsKey('action')) return;
       _state.value = TrainerOverlayState.fromJson(json);
-    } catch (e) {
+    } catch (e, s) {
       // Keep last known state on decode failure.
-      if (kDebugMode) debugPrint('overlay decode failed: $e');
+      recordError(e, s, context: 'overlay.android.state.decode');
     }
   }
 
@@ -81,16 +81,16 @@ class _OverlayAppState extends State<_OverlayApp> {
             onPrimaryDecrement: () {
               _overlayActionsChannel
                   .invokeMethod('push', 'primaryDecrement')
-                  .catchError((Object e) {
-                if (kDebugMode) debugPrint('[overlay] decrement push failed: $e');
+                  .catchError((Object e, StackTrace s) {
+                recordError(e, s, context: 'overlay.android.push.primaryDecrement');
                 return null;
               });
             },
             onPrimaryIncrement: () {
               _overlayActionsChannel
                   .invokeMethod('push', 'primaryIncrement')
-                  .catchError((Object e) {
-                if (kDebugMode) debugPrint('[overlay] increment push failed: $e');
+                  .catchError((Object e, StackTrace s) {
+                recordError(e, s, context: 'overlay.android.push.primaryIncrement');
                 return null;
               });
             },

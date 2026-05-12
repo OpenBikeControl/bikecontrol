@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bike_control/main.dart' show recordError;
 // Importing the entry point ensures it is compiled into the app binary.
 // `@pragma('vm:entry-point')` only prevents tree-shaking once a file is
 // compiled; without an import the secondary engine cannot find `overlayMain`
@@ -25,6 +26,7 @@ class AndroidOverlayController implements TrainerOverlayController {
   static const _minPushIntervalMs = 100; // ~10 Hz
   final ValueNotifier<bool> _showing = ValueNotifier(false);
   FitnessBikeDefinition? _def;
+  LiveDefinitionLookup? _liveDef;
   Listenable? _bound;
   Set<OverlayField> _fields = {OverlayField.power, OverlayField.cadence};
 
@@ -43,7 +45,11 @@ class AndroidOverlayController implements TrainerOverlayController {
   ValueListenable<bool> get isShowing => _showing;
 
   @override
-  Future<OverlayShowResult> show(FitnessBikeDefinition def, Set<OverlayField> fields) async {
+  Future<OverlayShowResult> show(
+    FitnessBikeDefinition def,
+    Set<OverlayField> fields, {
+    LiveDefinitionLookup? liveDef,
+  }) async {
     final granted = await FlutterOverlayWindow.isPermissionGranted();
     if (!granted) {
       final ok = await FlutterOverlayWindow.requestPermission();
@@ -53,6 +59,7 @@ class AndroidOverlayController implements TrainerOverlayController {
     }
 
     _def = def;
+    _liveDef = liveDef;
     _fields = fields;
     _bind();
     _installMainHandler();
@@ -95,13 +102,24 @@ class AndroidOverlayController implements TrainerOverlayController {
   }
 
   Future<void> _installOverlayHandlerWithRetry() async {
+    Object? lastError;
+    StackTrace? lastStack;
     for (var i = 0; i < 10; i++) {
       try {
         final ok = await _overlayActionsChannel
             .invokeMethod<bool>('installOverlayHandler');
         if (ok == true) return;
-      } catch (_) {}
+      } catch (e, s) {
+        // Expected to fail until the overlay engine is in the FlutterEngineCache;
+        // only surface the final attempt's failure.
+        lastError = e;
+        lastStack = s;
+      }
       await Future.delayed(const Duration(milliseconds: 100));
+    }
+    if (lastError != null) {
+      recordError(lastError, lastStack,
+          context: 'overlay.android.installHandler');
     }
   }
 
@@ -110,6 +128,7 @@ class AndroidOverlayController implements TrainerOverlayController {
     _bound?.removeListener(_onChange);
     _bound = null;
     _def = null;
+    _liveDef = null;
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -121,7 +140,9 @@ class AndroidOverlayController implements TrainerOverlayController {
     // forget to clear it.
     try {
       await _overlayActionsChannel.invokeMethod('uninstallOverlayHandler');
-    } catch (_) {}
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.android.uninstallHandler');
+    }
     _showing.value = false;
   }
 
@@ -133,16 +154,19 @@ class AndroidOverlayController implements TrainerOverlayController {
     _mainHandlerInstalled = true;
     _overlayActionsChannel.setMethodCallHandler((call) async {
       if (call.method != 'action') return null;
-      final def = _def;
-      if (def == null) return null; // overlay hidden — drop
+      // Re-resolve the live FitnessBikeDefinition each call — see comment
+      // on LiveDefinitionLookup; the trainer emulator rebinds a fresh def
+      // on every transport restart.
+      final live = _liveDef?.call() ?? _def;
+      if (live == null) return null; // overlay hidden — drop
       final action = call.arguments;
       if (action is! String) return null;
       switch (action) {
         case 'primaryDecrement':
-          _adjustPrimary(def, increment: false);
+          _adjustPrimary(live, increment: false);
           break;
         case 'primaryIncrement':
-          _adjustPrimary(def, increment: true);
+          _adjustPrimary(live, increment: true);
           break;
       }
       return null;
