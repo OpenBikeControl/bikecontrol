@@ -104,9 +104,6 @@ struct SecondaryWindowContext {
 static std::vector<std::unique_ptr<SecondaryWindowContext>> g_secondary_windows;
 
 static void CreateNewWindow(const std::vector<std::string>& args) {
-  std::cerr << "[multi_window_native] CreateNewWindow with "
-            << args.size() << " arg(s)" << std::endl;
-
   flutter::DartProject project(L"data");
   project.set_dart_entrypoint("main");
   project.set_dart_entrypoint_arguments(args);

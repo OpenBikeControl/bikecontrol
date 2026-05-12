@@ -144,7 +144,6 @@ class DesktopOverlayController implements TrainerOverlayController {
       method: kOverlayActionMethod,
       id: MultiWindowNative.registerListener(kOverlayActionMethod,
           (call) async {
-        debugPrint('[overlay-main] action received: ${call.arguments}');
         try {
           final m = _asMap(call.arguments);
           final action = m['action'];
@@ -164,9 +163,7 @@ class DesktopOverlayController implements TrainerOverlayController {
               _adjustPrimary(def, increment: true);
               break;
           }
-        } catch (e) {
-          debugPrint('[overlay-main] action dispatch failed: $e');
-        }
+        } catch (_) {}
       }),
     ));
 
