@@ -27,12 +27,24 @@ bool FlutterWindow::OnCreate() {
   }
   RegisterPlugins(flutter_controller_->engine());
 
-  // Make sure the trainer-overlay sub-window's engine also gets every plugin
-  // registered; without this the WindowMethodChannel from the parent is dead
-  // and `desktop_overlay_window.dart` never receives state updates.
+  // DIAGNOSTIC: do NOT call RegisterPlugins on the secondary engine.
+  // Several of BikeControl's Windows plugins (windows_iap, smtc_windows,
+  // media_key_detector_windows, bluetooth_low_energy_windows, ...) own
+  // process-singleton OS resources already held by this main engine. A
+  // second RegisterWithRegistrar pass on a second engine may not error but
+  // can deadlock the engine's boot before Dart main() runs — matching the
+  // symptom seen here with BOTH desktop_multi_window and multi_window_native.
+  //
+  // With plugin registration skipped, the trainer overlay sub-window won't
+  // have access to most plugins, but it doesn't need them — it only needs
+  // the desktop_multi_window plugin (to receive WindowMethodChannel calls
+  // from the parent) and window_manager (for position/size). Selectively
+  // register only those if the diagnostic confirms the theory.
   DesktopMultiWindowSetWindowCreatedCallback([](void *controller) {
-    auto *fvc = reinterpret_cast<flutter::FlutterViewController *>(controller);
-    RegisterPlugins(fvc->engine());
+    (void)controller;
+    // Intentionally empty for the moment. If Dart main() now runs in the
+    // sub-window, we'll add per-plugin registration here for the handful
+    // the overlay actually uses.
   });
 
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
