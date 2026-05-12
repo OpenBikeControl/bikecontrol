@@ -14,12 +14,6 @@ add_executable(${BINARY_NAME} WIN32
   "${FLUTTER_MANAGED_DIR}/generated_plugin_registrant.cc"
   "Runner.rc"
   "runner.exe.manifest"
-  # multi_window_native: the plugin DLL doesn't export its
-  # MultiWindowNativePlugin C++ symbols, so the runner needs its own copy
-  # compiled in to call SetCreateWindowCallback / SetCloseWindowCallback /
-  # etc. directly. The runner's MethodChannel handler then overrides the
-  # plugin DLL's handler for the same channel.
-  "${CMAKE_SOURCE_DIR}/flutter/ephemeral/.plugin_symlinks/multi_window_native/windows/multi_window_native_plugin.cpp"
 )
 
 # Apply the standard set of build settings. This can be removed for applications
@@ -38,13 +32,9 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
-target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app flutter_wrapper_plugin)
+target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
-# Pick up multi_window_native_plugin.h for the runner's main.cpp.
-target_include_directories(${BINARY_NAME} PRIVATE
-  "${CMAKE_SOURCE_DIR}/flutter/ephemeral/.plugin_symlinks/multi_window_native/windows"
-  "${CMAKE_SOURCE_DIR}/flutter/ephemeral/.plugin_symlinks/multi_window_native/windows/include")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)

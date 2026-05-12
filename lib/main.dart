@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -14,6 +15,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart' as dmw;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:flutter/services.dart' show MethodChannel;
@@ -88,25 +90,47 @@ Future<void> main(List<String> args) async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // When multi_window_native spawns a sub-window engine it re-runs main()
-      // in that engine with the route name as the first arg. Detect this
-      // before doing any heavy bootstrap.
-      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows) &&
+      // Detect sub-window engine and dispatch to the overlay entry point before
+      // doing any heavy bootstrap. The detection mechanism differs per platform:
+      //
+      //   Windows: desktop_multi_window re-runs main() in the sub-engine.
+      //            WindowController.fromCurrentEngine() exposes the JSON args.
+      //
+      //   macOS: multi_window_native re-runs main() with kTrainerOverlayRoute
+      //          as the first positional arg.
+      if (!kIsWeb && Platform.isWindows) {
+        debugPrint('[overlay-main/win] checking sub-window args=$args');
+        final self = await dmw.WindowController.fromCurrentEngine();
+        final rawArgs = self.arguments;
+        if (rawArgs.isNotEmpty) {
+          try {
+            final argsMap = jsonDecode(rawArgs) as Map<String, dynamic>;
+            if (argsMap['role'] == 'trainer-overlay') {
+              debugPrint('[overlay-main/win] role=trainer-overlay, starting overlay');
+              await runDesktopOverlayWindow(0, args, dmwSelf: self);
+              debugPrint('[overlay-main/win] runDesktopOverlayWindow returned');
+              return;
+            }
+          } catch (_) {
+            // Not a JSON sub-window argument — continue as main window.
+          }
+        }
+      } else if (!kIsWeb && Platform.isMacOS &&
           args.contains(kTrainerOverlayRoute)) {
         // Diagnostic prints — these land on the console attached to the
         // Flutter app and tell us exactly where the sub-window's Dart main
         // gets stuck.
-        debugPrint('[overlay-main] start, args=$args');
+        debugPrint('[overlay-main/mac] start, args=$args');
         await wm.windowManager.ensureInitialized();
-        debugPrint('[overlay-main] wm.ensureInitialized done');
+        debugPrint('[overlay-main/mac] wm.ensureInitialized done');
         await wm.windowManager.waitUntilReadyToShow();
-        debugPrint('[overlay-main] wm.waitUntilReadyToShow done');
+        debugPrint('[overlay-main/mac] wm.waitUntilReadyToShow done');
         final windowId = await wm.windowManager.getId();
-        debugPrint('[overlay-main] windowId=$windowId');
+        debugPrint('[overlay-main/mac] windowId=$windowId');
         MultiWindowNative.init(windowId);
-        debugPrint('[overlay-main] MultiWindowNative.init done');
+        debugPrint('[overlay-main/mac] MultiWindowNative.init done');
         await runDesktopOverlayWindow(windowId, args);
-        debugPrint('[overlay-main] runDesktopOverlayWindow returned');
+        debugPrint('[overlay-main/mac] runDesktopOverlayWindow returned');
         return;
       }
 
@@ -132,10 +156,9 @@ Future<void> main(List<String> args) async {
         await core.shiftingConfigs.init();
       }
 
-      // Initialise multi_window_native for the main window so it can register
-      // a listener and broadcast to sub-windows. This is a no-op on platforms
-      // where the plugin isn't available.
-      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+      // Initialise multi_window_native for the main window (macOS only).
+      // On Windows the overlay uses desktop_multi_window instead.
+      if (!kIsWeb && Platform.isMacOS) {
         try {
           await wm.windowManager.ensureInitialized();
           final mainWindowId = await wm.windowManager.getId();

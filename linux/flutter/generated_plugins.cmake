@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   bluetooth_low_energy_linux
+  desktop_multi_window
   file_selector_linux
   flutter_screen_capture
   flutter_secure_storage_linux
