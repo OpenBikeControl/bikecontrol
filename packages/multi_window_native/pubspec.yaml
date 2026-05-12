@@ -1,0 +1,28 @@
+name: multi_window_native
+description: "A Flutter plugin for creating and managing multiple native desktop windows with cross-window communication."
+version: 1.0.4
+# homepage: https://github.com/Swatimishra8/multi_window_native
+repository: https://github.com/Swatimishra8/multi_window_native
+
+environment:
+  sdk: '>=3.8.1 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+  window_manager: ^0.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      macos:
+        pluginClass: MultiWindowNativePlugin
+      windows:
+        pluginClass: MultiWindowNativePlugin

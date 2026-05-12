@@ -1277,10 +1277,9 @@ packages:
   multi_window_native:
     dependency: "direct main"
     description:
-      name: multi_window_native
-      sha256: f515640436811b102afbc32f9a1fc4dfd7a7311f7331024a50d614594aafb52b
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/multi_window_native"
+      relative: true
+    source: path
     version: "1.0.4"
   nested:
     dependency: transitive
