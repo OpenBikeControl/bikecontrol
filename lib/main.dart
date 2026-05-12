@@ -67,11 +67,20 @@ Future<void> main(List<String> args) async {
       // before doing any heavy bootstrap.
       if (!kIsWeb && (Platform.isMacOS || Platform.isWindows) &&
           args.contains(kTrainerOverlayRoute)) {
+        // Diagnostic prints — these land on the console attached to the
+        // Flutter app and tell us exactly where the sub-window's Dart main
+        // gets stuck.
+        debugPrint('[overlay-main] start, args=$args');
         await wm.windowManager.ensureInitialized();
+        debugPrint('[overlay-main] wm.ensureInitialized done');
         await wm.windowManager.waitUntilReadyToShow();
+        debugPrint('[overlay-main] wm.waitUntilReadyToShow done');
         final windowId = await wm.windowManager.getId();
+        debugPrint('[overlay-main] windowId=$windowId');
         MultiWindowNative.init(windowId);
+        debugPrint('[overlay-main] MultiWindowNative.init done');
         await runDesktopOverlayWindow(windowId, args);
+        debugPrint('[overlay-main] runDesktopOverlayWindow returned');
         return;
       }
 
