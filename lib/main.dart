@@ -16,7 +16,9 @@ import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:multi_window_native/multi_window_native.dart';
+import 'package:multi_window_native/multi_window_native_method_channel.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart' as wm;
 
@@ -135,6 +137,17 @@ Future<void> main(List<String> args) async {
           await wm.windowManager.ensureInitialized();
           final mainWindowId = await wm.windowManager.getId();
           MultiWindowNative.init(mainWindowId);
+
+          // Diagnostic: spy on every incoming method call on the
+          // multi_window_native channel. If broadcasts from the sub-window
+          // never log here, BroadcastToAll on the C++ side isn't actually
+          // delivering to main's Dart side.
+          const spyChannel =
+              MethodChannel('com.coditas.multi_window_native/pluginChannel');
+          spyChannel.setMethodCallHandler((call) async {
+            debugPrint('[main:wm-spy] received ${call.method}: ${call.arguments}');
+            return MethodChannelMultiWindowNative.handleMethodCall(call);
+          });
         } catch (e, s) {
           recordError(e, s, context: 'MultiWindowNative.init(main)');
         }
