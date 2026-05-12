@@ -103,27 +103,10 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
   project.set_dart_entrypoint("main");
   project.set_dart_entrypoint_arguments(args);
 
-  // Match FlutterWindow::OnCreate's order: Win32 window first, then the
-  // FlutterViewController sized to the actual client area. The example
-  // does it the other way around but the engine then comes up unparented
-  // (its view HWND is a top-level WS_POPUP), and reparenting after the
-  // fact can leave the render surface in a state where it never paints.
-  auto window = std::make_unique<Win32Window>();
-  Win32Window::Point origin(50, 50);
-  Win32Window::Size size(220, 100);
-  if (!window->Create(L"BikeControl Overlay", origin, size)) {
-    std::cerr << "[multi_window_native] failed to create Win32 window" << std::endl;
-    return;
-  }
-
-  HWND host_hwnd = window->GetHandle();
-  RECT client_rect{};
-  GetClientRect(host_hwnd, &client_rect);
-  const int client_w = client_rect.right - client_rect.left;
-  const int client_h = client_rect.bottom - client_rect.top;
-
+  // 220x100 here matches the desktop overlay's intended frame; window_manager
+  // resizes itself in `runDesktopOverlayWindow` anyway.
   auto controller = std::make_unique<flutter::FlutterViewController>(
-      client_w, client_h, project);
+      220, 100, project);
 
   if (!controller->engine() || !controller->view()) {
     std::cerr << "[multi_window_native] failed to create FlutterViewController"
@@ -132,21 +115,38 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
   }
 
   MultiWindowNativePlugin::RegisterMessenger(controller->engine()->messenger());
+
+  auto window = std::make_unique<Win32Window>();
+  Win32Window::Point origin(50, 50);
+  Win32Window::Size size(220, 100);
+  if (!window->Create(L"BikeControl Overlay", origin, size)) {
+    std::cerr << "[multi_window_native] failed to create Win32 window" << std::endl;
+    return;
+  }
+
   RegisterPlugins(controller->engine());
 
   window->SetQuitOnClose(false);
   window->SetChildContent(controller->view()->GetNativeWindow());
 
-  // Defer ShowWindow to NextFrameCallback — same as FlutterWindow::OnCreate.
-  // Calling ShowWindow before the engine signals it has rendered the first
-  // frame can present an unpainted surface and leave the engine in a
-  // "frame already presented, nothing to redraw" state.
+  HWND hwnd = GetAncestor(controller->view()->GetNativeWindow(), GA_ROOT);
+  if (hwnd != nullptr) {
+    SetWindowTextW(hwnd, L"BikeControl Overlay");
+    ShowWindow(hwnd, SW_SHOWNORMAL);
+    UpdateWindow(hwnd);
+    SetForegroundWindow(hwnd);
+  }
+
+  // Kick the engine the same way FlutterWindow::OnCreate does. Without this,
+  // the sub-window's engine starts at its construction size (220x100) and
+  // never re-paints on subsequent resizes — producing the "white box that
+  // doesn't follow the window" symptom.
+  auto* raw_controller = controller.get();
   Win32Window* raw_window = window.get();
-  controller->engine()->SetNextFrameCallback([raw_window]() {
+  raw_controller->engine()->SetNextFrameCallback([raw_window]() {
     raw_window->Show();
-    SetForegroundWindow(raw_window->GetHandle());
   });
-  controller->ForceRedraw();
+  raw_controller->ForceRedraw();
 
   auto ctx = std::make_unique<SecondaryWindowContext>();
   ctx->window = std::move(window);
