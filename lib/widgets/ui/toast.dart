@@ -49,7 +49,10 @@ void buildToast({
                     overlay.close();
                     onClose?.call();
                   },
-                  child: Text(closeTitle),
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: 100),
+                    child: Text(closeTitle),
+                  ),
                 ),
           trailingAlignment: Alignment.center,
         ),
