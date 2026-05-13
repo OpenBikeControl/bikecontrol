@@ -1,3 +1,11 @@
+### 5.5.0 (13-06-2026)
+
+**Features**:
+- on macOS, Windows, and Android you can now show the Smart Trainer gear & more on top of your trainer app, when using the virtual shifting functionality introduced in 5.4.0
+- on iOS the gears can be shown as part of the Dynamic Island / Live Activity functionality
+- new Cadence filter setting to suppress sensor spikes that cause resistance pulses
+- improve handling of sensor data in Virtual Shifting mode
+
 ### 5.4.0 (05-05-2026)
 
 You can now connect your smart trainer directly to BikeControl. Connect your trainer for:
@@ -52,9 +60,9 @@ https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership
 ****BikeControl Pro is now available - subscribe to the Pro version to support the project and get access to newly added features. *Everyone who has already purchased will keep all their functions*.
 
 Pro Features:
-- Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android and iOS) without additional charge
+- Cross Platform license: use the same subscription on all your devices (Windows, macOS, Android, and iOS) without additional charge
 - Synchronize and backup your keymap settings across devices
-- Individual actions for single, long and double clicks, e.g. hold a button to steer, double click to perform a specific action. This means your two button devices can now have up to 6 different actions!
+- Individual actions for single, long, and double clicks, e.g. hold a button to steer, double click to perform a specific action. This means your two button devices can now have up to 6 different actions!
 - Windows, iOS, macOS: start any command/Shortcut, e.g. capture a screenshot, screen video, open a specific app, ... the possibilities are endless!
 - Windows, macOS: new screenshot action to capture a screenshot of the current screen and save it to your specified folder
 - Android: Open Assistant
@@ -116,7 +124,7 @@ Your device can now act as Bluetooth keyboard, allowing you to send keyboard sho
 
 **Features**:
 - Onboarding for new users
-- support controlling music & volume for Windows, macOS and Android
+- support controlling music & volume for Windows, macOS, and Android
 - App is now available in Italian (thanks to Connect_Thanks2613)
 
 **Fixes**:
@@ -212,7 +220,7 @@ SwiftControl is now called BikeControl!
   - device pairing no longer required as mouse emulation is no longer needed  
   - BikeControl can now stay in the background
   - more devices can be controlled
-  - do more, such as define Emotes, Camera angles and steering
+  - do more, such as define Emotes, Camera angles, and steering
 
 ### 3.1.0 (2025-10-17) 
 - new app icon
@@ -303,7 +311,7 @@ SwiftControl is now called BikeControl!
 - long pressing a button will trigger the action again every 250ms
 
 ### 2.0.0 (2025-04-06)
-- You can now customize the actions (touches, mouse clicks or keyboard keys) for all buttons on all supported Zwift devices
+- You can now customize the actions (touches, mouse clicks, or keyboard keys) for all buttons on all supported Zwift devices
 - now shows the battery level of the connected devices
 - add more troubleshooting information
 
