@@ -14,7 +14,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
     private  var secondaryWindowControllers: [SecondaryWindowControllers] = []
     private  var mainWindow: NSWindow?
     private static let channelName = "com.coditas.multi_window_native/pluginChannel"
-    
+
     // Track window titles for unique title generation
     private var registeredWindowTitles: Set<String> = []
 
@@ -47,7 +47,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
         }
     }
 
-    
+
     // Handle method calls from Flutter (main window)
     public func handle(_ call: FlutterMethodCall,result: @escaping FlutterResult) {
         print("Inside handle")
@@ -137,22 +137,22 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             result(true)
     }
     }
-    
+
     // Generate unique window title
     private func generateUniqueTitle(baseTitle: String) -> String {
         var suffix = 1
         var newTitle = "\(baseTitle) \(suffix)"
-        
+
         // Check if title already exists and increment suffix
         while registeredWindowTitles.contains(newTitle) {
             suffix += 1
             newTitle = "\(baseTitle) \(suffix)"
         }
-        
+
         return newTitle
     }
-    
-    
+
+
     // Setup channel for newly created window (especially for secondary)
     private func setupChannelHandler(for messenger: FlutterBinaryMessenger, controller: FlutterViewController) {
         print("inide setup  \(controller)")
@@ -220,7 +220,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             }
         }
     }
-    
+
     // Register messenger for new window
     private func registerMessenger(_ messenger: FlutterBinaryMessenger, controller: FlutterViewController) {
         // Always (re-)wire the per-controller channel handler — the closure
@@ -235,7 +235,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             Self.messengers.append(messenger)
         }
     }
-    
+
     // Create a new secondary window
     private  func createNewWindow(with args: [String], completion: @escaping (Bool) -> Void) {
         print("Creating new window with args: \(args)")
@@ -249,7 +249,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
 
              // ⚡ Call the callback to register all plugins
             MultiWindowNativePlugin.onEngineCreatedCallback?(engine)
-            
+
             // Use an NSPanel (.nonactivatingPanel + .utilityWindow) instead
             // of a regular NSWindow so the secondary window:
             //   - Sits above fullscreened apps via `.fullScreenAuxiliary`
@@ -289,20 +289,20 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
                 .stationary,
                 .ignoresCycle,
             ]
-            newWindow.minSize = NSSize(width: 160, height: 80)
+            newWindow.minSize = NSSize(width: 180, height: 80)
             newWindow.isMovableByWindowBackground = true
             newWindow.center()
             newWindow.delegate = self
 
             registerMessenger(engine.binaryMessenger, controller: controller)
-           
+
             newWindow.contentViewController = controller
             secondaryWindowControllers.append((newWindow, controller))
-            
+
             // Ensure the render pipeline is properly initialized
             controller.engine.viewController?.view.setNeedsDisplay(controller.view.bounds)
     }
-    
+
     // Close a window (handles both main and secondary windows)
     private func closeWindow(_ win: NSWindow) {
         print("inside close")
@@ -310,7 +310,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             for (window, controller) in secondaryWindowControllers {
                 let engine = controller.engine
                 let messenger = engine.binaryMessenger
-                
+
                 engine.viewController = nil
                 window.delegate = nil
                 window.contentViewController = nil
@@ -327,7 +327,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
                 let engine = controller.engine
                 let messenger = engine.binaryMessenger
                 let window = secondaryWindowControllers[index].window
-                
+
                 // Allow Flutter's onWindowClose to execute before shutting down
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     engine.viewController = nil
@@ -336,14 +336,14 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
                     engine.shutDownEngine()
                     Self.messengers.removeAll(where: { $0 === messenger })
                 }
-                
+
                 // Close window immediately for visual feedback
                 window.close()
                 secondaryWindowControllers.remove(at: index)
             }
         }
     }
-    
+
     // Broadcast method calls to all window messengers
     private func broadcastToAllWindows(method: String, arguments: Any?) {
         print("Broadcasting to \(Self.messengers.count) messengers")
@@ -352,25 +352,25 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
             channel.invokeMethod(method, arguments: arguments)
         }
     }
-    
+
     // NSWindowDelegate method
     public func windowWillClose(_ notification: Notification) {
         if let window = notification.object as? NSWindow {
             closeWindow(window)
         }
     }
-    
+
     // Handle window becoming active/focused
     public func windowDidBecomeKey(_ notification: Notification) {
         guard let win = notification.object as? NSWindow else { return }
         guard let controller = win.contentViewController as? FlutterViewController else { return }
-        
+
         // Notify Flutter engine that window is now active
         // This ensures the render pipeline resumes properly
         print("Window became key: \(win)")
         controller.engine.viewController?.view.setNeedsDisplay(controller.view.bounds)
     }
-    
+
     // Handle dock icon click when windows are hidden
     public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag {
@@ -381,7 +381,7 @@ public class MultiWindowNativePlugin: NSObject, FlutterPlugin,  NSWindowDelegate
         }
         return true
     }
-    
+
     // Prevent app from terminating after last window closes
     // public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
     //     return true
