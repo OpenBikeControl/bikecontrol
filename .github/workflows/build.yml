@@ -74,6 +74,7 @@ jobs:
           DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_application_certificate.p12
           DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_installer_certificate.p12
           PP_PATH_IOS=$RUNNER_TEMP/build_pp_ios.mobileprovision
+          PP_PATH_LIVEACTIVITY_IOS=$RUNNER_TEMP/build_pp_liveactivity_ios.mobileprovision
           PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
           PP_PATH_MACOS=$RUNNER_TEMP/build_pp_macos.provisionprofile
           KEYCHAIN_PATH=$RUNNER_TEMP/pg-signing.keychain-db
@@ -82,6 +83,7 @@ jobs:
           echo -n "$DEVELOPER_ID_APPLICATION_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH
           echo -n "$DEVELOPER_ID_INSTALLER_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH
           echo -n "$APPSTORE_PROFILE_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS
+          echo -n "$APPSTORE_PROFILE_LIVEACTIVITY_BASE64" | base64 --decode -o $PP_PATH_LIVEACTIVITY_IOS
           echo -n "$APPSTORE_PROFILE_DEV_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS_DEV
           echo -n "$APPSTORE_PROFILE_MACOS_BASE64" | base64 --decode -o $PP_PATH_MACOS
           
@@ -100,6 +102,7 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH_IOS ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH_IOS_DEV ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH_LIVEACTIVITY_IOS ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: 🐦 Setup Shorebird
