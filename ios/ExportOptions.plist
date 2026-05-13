@@ -14,6 +14,8 @@
     <dict>
         <key>de.jonasbark.swiftcontrol.darwin</key>
         <string>ios app store</string>
+        <key>de.jonasbark.swiftcontrol.darwin.TrainerActivity</key>
+        <string>TrainerActivity app store</string>
     </dict>
 	<key>stripSwiftSymbols</key>
 	<true/>
