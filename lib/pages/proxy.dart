@@ -6,7 +6,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/smart_trainer_consent_dialog.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -64,6 +64,17 @@ class _DevicePageState extends State<ProxyPage> {
                           await showGoProDialog(context);
                           return;
                         }
+                        if (device.isSmartTrainer && !core.settings.getSmartTrainerConsent(device.trainerKey)) {
+                          final appName = core.settings.getTrainerApp()?.name ?? 'your trainer app';
+                          final confirmed = await showSmartTrainerConsentDialog(
+                            context,
+                            trainerName: device.trainerKey,
+                            appName: appName,
+                          );
+                          if (!confirmed) return;
+                          await core.settings.setSmartTrainerConsent(device.trainerKey, true);
+                          if (!context.mounted) return;
+                        }
                         final savedMode = core.settings.getRetrofitMode(
                           device.trainerKey,
                           fallback: device.defaultRetrofitMode,
@@ -92,18 +103,12 @@ class _DevicePageState extends State<ProxyPage> {
           valueListenable: core.connection.isScanning,
           builder: (context, scanning, _) {
             if (!scanning || core.connection.proxyDevices.isNotEmpty) return const SizedBox.shrink();
-            return Padding(
+            return Container(
+              alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 8,
-                children: [
-                  Text(
-                    context.i18n.lookingForSmartTrainers,
-                    style: TextStyle(fontSize: 12, color: cs.mutedForeground),
-                  ),
-                  SizedBox(width: 10, height: 10, child: SmallProgressIndicator(color: cs.mutedForeground)),
-                ],
+              child: Text(
+                context.i18n.lookingForSmartTrainers,
+                style: TextStyle(fontSize: 12, color: cs.mutedForeground),
               ),
             );
           },

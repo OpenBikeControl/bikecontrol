@@ -55,7 +55,7 @@ class ZwiftRide extends ZwiftDevice {
     aspectRatio: 575 / 288,
     // SVG depicts both Plays side-by-side; shape kept as dropBar only as a
     // sizing-bucket hint for [ControllerCanvas] (the painter is not used).
-    shape: ContourShape.dropBar,
+    shape: ContourShape.steeringPad,
     svgAsset: 'assets/contours/zwift_play_both.svg',
     positions: {
       // LEFT half — ZwiftPlay LEFT positions with x scaled by 0.5 so they

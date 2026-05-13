@@ -9,6 +9,11 @@ FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 
 FlutterWindow::~FlutterWindow() {}
 
+void FlutterWindow::SetOnCloseCallback(
+    std::function<void(flutter::FlutterViewController*)> callback) {
+  on_close_callback_ = std::move(callback);
+}
+
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
     return false;
@@ -40,9 +45,10 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
-  if (flutter_controller_) {
-    flutter_controller_ = nullptr;
+  if (on_close_callback_ && flutter_controller_) {
+    on_close_callback_(flutter_controller_.get());
   }
+  flutter_controller_ = nullptr;
 
   Win32Window::OnDestroy();
 }

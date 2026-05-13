@@ -311,6 +311,8 @@
   "moreInformation": "Plus d'informations",
   "mustChooseAllowOrDeny": "Tu dois choisir d'autoriser ou de refuser cette autorisation pour continuer.",
   "myWhooshDirectConnectAction": "Action «Link» de MyWhoosh",
+  "myWhooshGearHintTitle": "BikeControl gère tes vitesses",
+  "myWhooshGearHintBody": "Désactive le changement de vitesse virtuel dans les paramètres de MyWhoosh, ou masque l'interface des vitesses dans MyWhoosh. Sinon, les deux applications peuvent essayer de contrôler la résistance et tes changements de vitesse peuvent sembler incohérents.",
   "myWhooshDirectConnection": " par exemple en utilisant MyWhoosh «Link».",
   "myWhooshLinkConnected": "MyWhoosh « Link » connecté",
   "myWhooshLinkDescriptionLocal": "Connecte-toi directement à MyWhoosh via la méthode « Link ». Consulte les instructions pour vérifier la compatibilité de la connexion. L’application « MyWhoosh Link » ne doit pas être active simultanément.",
@@ -586,6 +588,9 @@
   "zwiftControllerDescription": "Permet à BikeControl de fonctionner comme une manette compatible avec Zwift.",
   "smartTrainer": "Smart Trainer",
   "provideFeedback": "Envoyer un avis",
+  "feedbackWorks": "Fonctionne",
+  "feedbackNoDifference": "Aucune différence",
+  "feedbackNotWorking": "Ne fonctionne pas",
   "virtualShiftingSettings": "Réglages Virtual Shifting",
   "yourTrainerApp": "ton appli d'entraînement",
   "proxyMode": "Proxy",
@@ -628,6 +633,8 @@
   "useGearCount": "Utiliser {count}",
   "gradeSmoothing": "Lissage de la pente",
   "gradeSmoothingDesc": "Atténue les changements brusques de pente",
+  "cadenceFilter": "Filtre de cadence",
+  "cadenceFilterDesc": "Supprime les pics du capteur qui provoquent des à-coups de résistance",
   "presetDefault": "Par défaut",
   "presetCompact": "Compact",
   "presetWide": "Large",
@@ -806,5 +813,39 @@
         "type": "String"
       }
     }
-  }
+  },
+  "smartTrainerConsentTitle": "Connexion à {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl va maintenant se connecter à ton Smart Trainer et prendre le contrôle du changement de vitesses virtuel. Tous les changements se feront directement dans BikeControl, et non plus via ton {appName}. Dans {appName}, tu te connecteras ensuite au home trainer virtuel BikeControl plutôt que directement à {trainerName}.\n\nPour revenir au comportement par défaut, clique sur le bouton « {disconnectLabel} » et reconnecte {appName} directement à ton {trainerName}.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
+  },
+  "overlayFieldControls": "Boutons de vitesses / watts",
+  "connectingToDevice": "Connexion à : {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Connexion réussie : {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Échec de la connexion : {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Impossible de se connecter à {device} : délai dépassé",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Recherche d'appareils…",
+  "disconnectingAllDevices": "Déconnexion de tous les appareils"
 }

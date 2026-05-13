@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
@@ -8,18 +9,18 @@ import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
-import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ProxyDeviceDetailsPage extends StatefulWidget {
@@ -95,21 +96,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 SizedBox(height: 12),
-                if (!screenshotMode)
-                  Button(
-                    style: ButtonStyle.primary(),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => SupportChatPage(
-                            telemetryBuilder: () async => TelemetrySnapshot.fromDevice(device: device),
-                          ),
-                        ),
-                      );
-                    },
-                    leading: const Icon(LucideIcons.messageSquare, size: 18),
-                    child: Text(context.i18n.chatWithSupport),
-                  ),
+                if (!screenshotMode) _provideFeedbackBox(),
                 SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
                   w,
@@ -118,11 +105,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
                 if (!screenshotMode) ...[
                   ConnectionCard(device: device),
-                  SizedBox(height: 12),
-                  if (_bridgeStatusRow() case final w?) ...[
-                    w,
-                    SizedBox(height: 12),
-                  ],
+                  SizedBox(height: 2),
                 ],
                 _gearSection(),
                 SizedBox(height: 20),
@@ -135,7 +118,8 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                       final remaining = core.bridgeUsageTracker.dailyLimit - used;
                       final clamped = remaining.isNegative ? Duration.zero : remaining;
                       return VirtualShiftingProNotice(
-                        trainerAppName: core.settings.getTrainerApp()?.name ?? AppLocalizations.of(context).yourTrainerApp,
+                        trainerAppName:
+                            core.settings.getTrainerApp()?.name ?? AppLocalizations.of(context).yourTrainerApp,
                         remainingToday: clamped,
                       );
                     },
@@ -152,6 +136,83 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _provideFeedbackBox() {
+    final cs = Theme.of(context).colorScheme;
+    final hasSubmitted = core.settings.getFeedbackSubmitted(widget.device.trainerKey);
+    return Card(
+      padding: const EdgeInsets.all(12),
+      fillColor: cs.secondary,
+      filled: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            context.i18n.provideFeedback,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Button(
+                  style: ButtonStyle.outline(),
+                  onPressed: () => _submitFeedback('feedbackWorks', context.i18n.feedbackWorks),
+                  leading: const Icon(LucideIcons.thumbsUp, size: 16),
+                  child: Text(context.i18n.feedbackWorks),
+                ),
+              ),
+              if (hasSubmitted) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Button(
+                    style: ButtonStyle.outline(),
+                    onPressed: () => _submitFeedback('feedbackNoDifference', context.i18n.feedbackNoDifference),
+                    leading: const Icon(LucideIcons.minus, size: 16),
+                    child: Text(context.i18n.feedbackNoDifference),
+                  ),
+                ),
+              ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Button(
+                  style: ButtonStyle.outline(),
+                  onPressed: () => _submitFeedback('feedbackNotWorking', context.i18n.feedbackNotWorking),
+                  leading: const Icon(LucideIcons.thumbsDown, size: 16),
+                  child: Text(context.i18n.feedbackNotWorking),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitFeedback(String key, String label) async {
+    final device = widget.device;
+    final base = buildProxyServicesFreetext(device);
+    final composed = (base == null || base.isEmpty) ? key : '$key\n\n$base';
+    await core.settings.setFeedbackSubmitted(device.trainerKey, true);
+    if (!mounted) return;
+    setState(() {});
+    final snapshot = TelemetrySnapshot.fromDevice(device: device, freetextOverride: composed);
+    final screenshot = await captureOverviewScreenshot(context: context);
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SupportChatPage(
+          telemetryBuilder: () async => snapshot,
+          diagnosticPreview: JsonEncoder.withIndent('  ').convert(snapshot.toJson()),
+          initialText: '$label\n',
+          initialAttachment: screenshot,
         ),
       ),
     );
@@ -182,44 +243,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// Bridge (trainer-app-side) connection status. Mirrors the row shown for
-  /// each proxy on the Overview page: green dot when the trainer app has
-  /// actually connected to our advertised bridge, muted otherwise. Hidden
-  /// while the bridge isn't started so the disconnected ConnectionCard remains
-  /// the obvious primary action.
-  Widget? _bridgeStatusRow() {
-    final emulator = widget.device.emulator;
-    if (!emulator.isStarted.value) return null;
-    final cs = Theme.of(context).colorScheme;
-    final connected = emulator.isConnected.value;
-    final mode = emulator.retrofitMode.value;
-    final IconData icon = switch (mode) {
-      RetrofitMode.bluetooth => LucideIcons.bluetooth,
-      RetrofitMode.wifi => LucideIcons.wifi,
-      RetrofitMode.proxy => LucideIcons.radioTower,
-    };
-    final advertisement = emulator.advertisementName;
-    final subtitle = AppLocalizations.of(context).chooseBikeControlInConnectionScreen.replaceAll(
-      screenshotMode ? '1337' : 'BikeControl',
-      advertisement,
-    );
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: cs.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.border),
-      ),
-      child: Basic(
-        leading: StatusIcon(icon: icon, status: connected, started: emulator.isStarted.value),
-        title: connected
-            ? Text('Bridge (${widget.device.toString()})').small.semiBold
-            : Text('Bridge (${widget.device.toString()})').small.muted,
-        subtitle: Text(subtitle).xSmall.textMuted,
       ),
     );
   }
@@ -255,6 +278,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         TrainerSettingsSection(definition: def, device: widget.device),
+        OverlaySettingsSection(definition: def, device: widget.device),
       ],
     );
   }

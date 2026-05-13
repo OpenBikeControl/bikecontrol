@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/ble.dart';
@@ -130,6 +131,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
                 isConnected.value = true;
                 connectedApp.value = appInfo;
                 supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
+                final trainerApp = core.settings.getTrainerApp();
+                if (trainerApp != null) {
+                  unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
+                }
                 core.connection.signalNotification(
                   AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
                 );

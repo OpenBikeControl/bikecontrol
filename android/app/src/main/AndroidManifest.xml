@@ -26,6 +26,11 @@
     <!-- to check if you have the latest version -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Required for trainer overlay display -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Android 14+: foreground service type declaration for overlay window service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <application
         android:label="BikeControl"
         android:allowBackup="false"
@@ -84,6 +89,16 @@
                 android:exported="false"
                 android:stopWithTask="false"
                 android:foregroundServiceType="connectedDevice"/>
+
+        <service
+            android:name="flutter.overlay.window.flutter_overlay_window.OverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <!-- Android 14+ requires a description of the special-use subtype -->
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="System overlay window for trainer gear and power display" />
+        </service>
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

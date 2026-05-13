@@ -311,6 +311,8 @@
   "moreInformation": "Más información",
   "mustChooseAllowOrDeny": "Debes elegir entre Permitir o Denegar este permiso para continuar.",
   "myWhooshDirectConnectAction": "Acción de MyWhoosh \"Link\"",
+  "myWhooshGearHintTitle": "BikeControl gestiona tus cambios",
+  "myWhooshGearHintBody": "Desactiva el cambio virtual en los ajustes de MyWhoosh u oculta la interfaz de cambios en MyWhoosh. De lo contrario, ambas aplicaciones pueden intentar controlar la resistencia y los cambios pueden sentirse inconsistentes.",
   "myWhooshDirectConnection": " por ejemplo, usando MyWhoosh \"Link\"",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" conectado",
   "myWhooshLinkDescriptionLocal": "Conectar directamente a MyWhoosh mediante el método MyWoosh \"Link\". Las acciones compatibles incluyen cambios de marcha, reacciones y dirección virtual, entre otras. La aplicación complementaria MyWhoosh Link NO debe estar ejecutándose simultáneamente.",
@@ -585,6 +587,9 @@
   "zwiftControllerDescription": "Hace que BikeControl actúe como un controlador compatible con Zwift.",
   "smartTrainer": "Smart Trainer",
   "provideFeedback": "Enviar opinión",
+  "feedbackWorks": "Funciona",
+  "feedbackNoDifference": "Sin diferencia",
+  "feedbackNotWorking": "No funciona",
   "virtualShiftingSettings": "Ajustes de Virtual Shifting",
   "yourTrainerApp": "tu app de entrenamiento",
   "proxyMode": "Proxy",
@@ -627,6 +632,8 @@
   "useGearCount": "Usar {count}",
   "gradeSmoothing": "Suavizado de pendiente",
   "gradeSmoothingDesc": "Promedia los cambios bruscos de pendiente",
+  "cadenceFilter": "Filtro de cadencia",
+  "cadenceFilterDesc": "Suprime picos del sensor que provocan tirones de resistencia",
   "presetDefault": "Predeterminado",
   "presetCompact": "Compacto",
   "presetWide": "Ancho",
@@ -805,5 +812,39 @@
         "type": "String"
       }
     }
-  }
+  },
+  "smartTrainerConsentTitle": "Conectando a {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl se conectará ahora a tu Smart Trainer y tomará el control del cambio de marchas virtual. Los cambios se realizarán directamente en BikeControl y ya no a través de tu {appName}. En {appName} te conectarás entonces al entrenador virtual de BikeControl, en lugar de directamente a {trainerName}.\n\nPara volver al comportamiento por defecto, haz clic en el botón «{disconnectLabel}» y vuelve a conectar {appName} directamente a tu {trainerName}.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
+  },
+  "overlayFieldControls": "Botones de cambio / vatios",
+  "connectingToDevice": "Conectando a: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Conexión exitosa: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Conexión fallida: {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "No se pudo conectar a {device}: Tiempo de espera agotado",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Buscando dispositivos...",
+  "disconnectingAllDevices": "Desconectando todos los dispositivos"
 }

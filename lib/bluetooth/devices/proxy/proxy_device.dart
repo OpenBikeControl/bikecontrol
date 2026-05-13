@@ -11,6 +11,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -116,6 +117,7 @@ class ProxyDevice extends BluetoothDevice {
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
+    def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setVirtualShiftingMode(cfg.mode);
     if (cfg.gearRatios != null) {
       def.setGearRatios(cfg.gearRatios!);
@@ -183,12 +185,15 @@ class ProxyDevice extends BluetoothDevice {
   /// created lazily per TCP client — the details page rehydrates on mount.
   String get trainerKey => scanResult.name ?? scanResult.deviceId;
 
-  /// Whether the underlying device looks like a smart trainer (FTMS-capable).
-  /// Power-meter-only or HR-only devices have no trainer commands to drive,
-  /// so Virtual Shifting is meaningless for them — they stay on Proxy.
-  bool get _isSmartTrainer => scanResult.services.any(
-    (s) => s.toLowerCase() == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase(),
-  );
+  /// Whether the underlying device looks like a smart trainer (FTMS-capable
+  /// or FE-C-over-BLE). Power-meter-only or HR-only devices have no trainer
+  /// commands to drive, so Virtual Shifting is meaningless for them — they
+  /// stay on Proxy.
+  bool get isSmartTrainer => scanResult.services.any((s) {
+    final lower = s.toLowerCase();
+    return lower == FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase() ||
+        lower == FitnessBikeDefinition.FEC_BLE_SERVICE_UUID.toLowerCase();
+  });
 
   /// Default connect mode when the user hasn't explicitly picked one. Smart
   /// trainers default to Virtual Shifting (transport resolved from the
@@ -196,7 +201,7 @@ class ProxyDevice extends BluetoothDevice {
   /// When VS is the conceptual default but no transport is enabled in
   /// Connection Settings, falls through to Proxy so the device still works.
   RetrofitMode get defaultRetrofitMode {
-    if (!_isSmartTrainer) return RetrofitMode.proxy;
+    if (!isSmartTrainer) return RetrofitMode.proxy;
     final transport = core.logic.preferredBridgeTransport(core.logic.enabledTrainerConnections);
     return switch (transport) {
       TrainerConnectionType.bluetooth => RetrofitMode.bluetooth,
@@ -219,12 +224,13 @@ class ProxyDevice extends BluetoothDevice {
   @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     if (isConnected) {
+      final units = unitSystemOf(context);
       if (screenshotMode) {
         final parts = <Widget>[];
         _addMetric(parts, context, 250, 'W', LucideIcons.zap);
         _addMetric(parts, context, 133, 'bpm', LucideIcons.heart);
         _addMetric(parts, context, 90, 'rpm', LucideIcons.rotateCw);
-        _addMetric(parts, context, 40, 'km/h', LucideIcons.gauge);
+        _addMetric(parts, context, units.fromKph(40).round(), units.speedSymbol, LucideIcons.gauge);
         return parts;
       }
       return [
@@ -240,7 +246,7 @@ class ProxyDevice extends BluetoothDevice {
               _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
               final speed = def.speedKph.value;
               if (speed != null) {
-                _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+                _addMetric(parts, context, units.fromKph(speed).round(), units.speedSymbol, LucideIcons.gauge);
               }
             } else if (def is FitnessBikeDefinition) {
               _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
@@ -248,7 +254,7 @@ class ProxyDevice extends BluetoothDevice {
               _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
               final speed = def.speedKph.value;
               if (speed != null) {
-                _addMetric(parts, context, speed.round(), 'km/h', LucideIcons.gauge);
+                _addMetric(parts, context, units.fromKph(speed).round(), units.speedSymbol, LucideIcons.gauge);
               }
               // Gear (sim / VS mode) or ERG target wattage (erg mode).
               if (def.trainerMode.value == TrainerMode.ergMode) {
@@ -366,7 +372,7 @@ class ProxyDevice extends BluetoothDevice {
         } else {
           final didChange = def.shiftUp();
           return didChange
-              ? NotHandled(l10n.trainerShiftedUp(def.currentGear.value))
+              ? Ignored(l10n.trainerShiftedUp(def.currentGear.value))
               : Ignored(l10n.trainerAlreadyHighestGear);
         }
       case InGameAction.shiftDown:
@@ -377,7 +383,7 @@ class ProxyDevice extends BluetoothDevice {
         } else {
           final didChange = def.shiftDown();
           return didChange
-              ? NotHandled(l10n.trainerShiftedDown(def.currentGear.value))
+              ? Ignored(l10n.trainerShiftedDown(def.currentGear.value))
               : Ignored(l10n.trainerAlreadyLowestGear);
         }
       case InGameAction.trainerSwitchMode:
@@ -400,17 +406,27 @@ class ProxyDevice extends BluetoothDevice {
     }
   }
 
+  /// Whether the auto-connect path is allowed to start this device on its own
+  /// (scan-time / app-launch). Requires an explicit prior connect intent
+  /// (`getAutoConnect`) and, for smart trainers, the one-time takeover-consent
+  /// flag set via the consent dialog.
+  bool get shouldAutoConnect {
+    if (!core.settings.getAutoConnect(trainerKey)) return false;
+    if (isSmartTrainer && !core.settings.getSmartTrainerConsent(trainerKey)) return false;
+    return true;
+  }
+
   @override
   Future<void> connect() async {
     // ProxyDevice intentionally skips the upstream auto-connect — BLE is only
     // opened once the user explicitly starts the emulator via startProxy().
     // If they connected previously and haven't since tapped Disconnect,
     // honour that intent by kicking off startProxy() here (fire-and-forget).
-    if (!isStarting.value && !emulator.isStarted.value && core.settings.getAutoConnect(trainerKey)) {
-      final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
-      emulator.setRetrofitMode(savedMode);
-      await startProxy();
-    }
+    if (isStarting.value || emulator.isStarted.value) return;
+    if (!shouldAutoConnect) return;
+    final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+    emulator.setRetrofitMode(savedMode);
+    await startProxy();
   }
 
   Future<void> startProxy() async {

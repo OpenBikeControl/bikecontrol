@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -177,12 +179,14 @@ class _ConnectionCardState extends State<ConnectionCard> {
     final hasTransport = _hasUsableTransport;
     return switch (m) {
       _ConnectMode.proxy => AppLocalizations.of(context).proxyModeHint,
-      _ConnectMode.virtualShiftingBluetooth => hasTransport
-          ? AppLocalizations.of(context).virtualShiftingBluetoothHint
-          : AppLocalizations.of(context).virtualShiftingTransportNeededHint,
-      _ConnectMode.virtualShiftingWifi => hasTransport
-          ? AppLocalizations.of(context).virtualShiftingWifiHint
-          : AppLocalizations.of(context).virtualShiftingTransportNeededHint,
+      _ConnectMode.virtualShiftingBluetooth =>
+        hasTransport
+            ? AppLocalizations.of(context).virtualShiftingBluetoothHint
+            : AppLocalizations.of(context).virtualShiftingTransportNeededHint,
+      _ConnectMode.virtualShiftingWifi =>
+        hasTransport
+            ? AppLocalizations.of(context).virtualShiftingWifiHint
+            : AppLocalizations.of(context).virtualShiftingTransportNeededHint,
     };
   }
 
@@ -312,33 +316,47 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   Widget _modePickerAccordion(RetrofitMode mode) {
-    final cs = Theme.of(context).colorScheme;
     return ComponentTheme<DividerTheme>(
       data: DividerTheme(
         color: Colors.transparent,
       ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 15.0),
-        child: Accordion(
-          items: [
-            AccordionItem(
-              trigger: AccordionTrigger(
-                child: Row(
-                  spacing: 10,
-                  children: [
-                    Icon(_modeIcon(mode), size: 16, color: cs.mutedForeground),
-                    Text(
-                      AppLocalizations.of(context).connectModeActive(mode.label),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-              content: _modePickerCompact(mode),
+      child: Accordion(
+        items: [
+          AccordionItem(
+            trigger: AccordionTrigger(
+              child: _bridgeStatusRow(mode),
             ),
-          ],
-        ),
+            content: _modePickerCompact(mode),
+          ),
+        ],
       ),
+    );
+  }
+
+  /// Bridge (trainer-app-side) connection status used as the accordion trigger.
+  /// Green dot when the trainer app has connected to our advertised bridge,
+  /// muted otherwise — same data the Overview row surfaces, just inlined here
+  /// so the collapsed accordion still tells the user whether something is
+  /// listening on the wire.
+  Widget _bridgeStatusRow(RetrofitMode mode) {
+    final emulator = widget.device.emulator;
+    final connected = emulator.isConnected.value;
+    final started = emulator.isStarted.value;
+    final IconData icon = switch (mode) {
+      RetrofitMode.bluetooth => LucideIcons.bluetooth,
+      RetrofitMode.wifi => LucideIcons.wifi,
+      RetrofitMode.proxy => LucideIcons.radioTower,
+    };
+    final advertisement = emulator.advertisementName;
+    final subtitle = AppLocalizations.of(context).chooseBikeControlInConnectionScreen.replaceAll(
+      screenshotMode ? '1337' : 'BikeControl',
+      advertisement,
+    );
+    final title = 'Bridge (${widget.device.toString()})';
+    return Basic(
+      leading: StatusIcon(icon: icon, status: connected, started: started),
+      title: connected ? Text(title).small.semiBold : Text(title).small.muted,
+      subtitle: Text(subtitle).xSmall.textMuted,
     );
   }
 

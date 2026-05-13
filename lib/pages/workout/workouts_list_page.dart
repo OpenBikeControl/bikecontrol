@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/workout/past_workout.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/units.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -141,7 +142,7 @@ class _WorkoutsListState extends State<WorkoutsList> {
 
     return [
       chip(LucideIcons.clock, _fmtDuration(s.activeDuration)),
-      if (s.distanceKm > 0) chip(LucideIcons.gauge, '${s.distanceKm.toStringAsFixed(1)} km'),
+      if (s.distanceKm > 0) chip(LucideIcons.gauge, s.distanceKm.asDistance(context, decimals: 1)),
       if (s.avgPowerW > 0) chip(LucideIcons.zap, '${s.avgPowerW} W'),
       if (s.avgHeartRateBpm > 0) chip(LucideIcons.heart, '${s.avgHeartRateBpm} bpm'),
     ];

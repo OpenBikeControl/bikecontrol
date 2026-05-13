@@ -1,12 +1,15 @@
 import 'dart:io' show Platform;
 
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/support_chat/widgets/support_attachment_view.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 /// Magic admin-message body that the backend sends to nudge a happy user
 /// toward leaving a store rating. The bubble swaps it for a localised
@@ -45,9 +48,7 @@ class SupportMessageBubble extends StatelessWidget {
     final alignment = isUser ? AxisAlignmentDirectional.end : AxisAlignmentDirectional.start;
     final bubbleColor = isUser ? cs.primary.withAlpha(38) : cs.secondary;
     final isRatingPrompt = !isUser && message.body == _kSuccessRatingToken;
-    final renderedBody = isRatingPrompt
-        ? context.i18n.successRatingMessage(_storeName())
-        : message.body;
+    final renderedBody = isRatingPrompt ? context.i18n.successRatingMessage(_storeName()) : message.body;
 
     return ChatBubble(
       alignment: alignment,
@@ -70,7 +71,16 @@ class SupportMessageBubble extends StatelessWidget {
               ),
             if (renderedBody.isNotEmpty) ...[
               if (showSenderLabel) const SizedBox(height: 4),
-              Text(renderedBody, style: const TextStyle(fontSize: 14)),
+              // Incoming (admin) messages can contain links the user is
+              // expected to follow — render them clickable. User-sent
+              // messages stay as plain Text since the sender already knows
+              // what they wrote.
+              isUser
+                  ? Text(renderedBody, style: const TextStyle(fontSize: 14))
+                  : _LinkifiedText(
+                      body: renderedBody,
+                      baseStyle: const TextStyle(fontSize: 14),
+                    ),
             ],
             if (isRatingPrompt) ...[
               const SizedBox(height: 8),
@@ -108,7 +118,7 @@ class SupportMessageBubble extends StatelessWidget {
                 ],
               ],
             ),
-            if (onReply != null && !isRatingPrompt) ...[
+            if (onReply != null && !isRatingPrompt && replyCount > 0) ...[
               const SizedBox(height: 4),
               Button.ghost(
                 onPressed: onReply,
@@ -157,5 +167,89 @@ class SupportMessageBubble extends StatelessWidget {
     final mm = local.minute.toString().padLeft(2, '0');
     if (isToday) return '$hh:$mm';
     return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} $hh:$mm';
+  }
+}
+
+/// Renders [body] as a single text run with any embedded `http(s)://` or
+/// `www.` URLs styled as tappable links that open in the system browser.
+/// Stateful so `TapGestureRecognizer`s can be disposed with the widget.
+class _LinkifiedText extends StatefulWidget {
+  final String body;
+  final TextStyle baseStyle;
+
+  const _LinkifiedText({required this.body, required this.baseStyle});
+
+  @override
+  State<_LinkifiedText> createState() => _LinkifiedTextState();
+}
+
+class _LinkifiedTextState extends State<_LinkifiedText> {
+  // Anchors on `http://`, `https://`, or `www.` and greedily consumes the
+  // run of URL-safe characters. The trailing-punctuation pass below trims
+  // common sentence punctuation (`.`, `,`, `)`, etc.) that the matcher
+  // would otherwise pull in.
+  static final RegExp _urlPattern = RegExp(
+    r'(?:https?:\/\/|www\.)[^\s<>()\[\]{}"]+',
+    caseSensitive: false,
+  );
+  static final RegExp _trailingPunct = RegExp(r'''[).,!?;:\]"'>]+$''');
+
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  @override
+  void dispose() {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers.clear();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final linkStyle = TextStyle(
+      color: cs.primary,
+      decoration: TextDecoration.underline,
+      decorationColor: cs.primary,
+    );
+    final spans = <InlineSpan>[];
+    var lastEnd = 0;
+    for (final m in _urlPattern.allMatches(widget.body)) {
+      if (m.start > lastEnd) {
+        spans.add(TextSpan(text: widget.body.substring(lastEnd, m.start)));
+      }
+      var url = m.group(0)!;
+      final tm = _trailingPunct.firstMatch(url);
+      String? suffix;
+      if (tm != null) {
+        suffix = url.substring(tm.start);
+        url = url.substring(0, tm.start);
+      }
+      final href = url.startsWith(RegExp('^www\\.', caseSensitive: false))
+          ? 'https://$url'
+          : url;
+      final recognizer = TapGestureRecognizer()..onTap = () => _launch(href);
+      _recognizers.add(recognizer);
+      spans.add(TextSpan(text: url, style: linkStyle, recognizer: recognizer));
+      if (suffix != null) spans.add(TextSpan(text: suffix));
+      lastEnd = m.end;
+    }
+    if (lastEnd < widget.body.length) {
+      spans.add(TextSpan(text: widget.body.substring(lastEnd)));
+    }
+    if (spans.length == 1 && spans.first is TextSpan && (spans.first as TextSpan).recognizer == null) {
+      // Plain text — bypass Text.rich for the common no-link case.
+      return Text(widget.body, style: widget.baseStyle);
+    }
+    return Text.rich(TextSpan(style: widget.baseStyle, children: spans));
+  }
+
+  Future<void> _launch(String url) async {
+    try {
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
+    } catch (e, s) {
+      recordError(e, s, context: 'support.chat.linkify.launch');
+    }
   }
 }

@@ -1,10 +1,15 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
+import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -19,51 +24,75 @@ class OpenBikeControlMdnsTile extends StatefulWidget {
 class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: core.obpMdnsEmulator.isStarted,
-      builder: (context, isStarted, _) {
-        return ValueListenableBuilder(
-          valueListenable: core.obpMdnsEmulator.connectedApp,
-          builder: (context, isConnected, _) {
-            return ConnectionMethod(
-              trainerConnection: core.obpMdnsEmulator,
-              isRecommended: true,
-              small: widget.small,
-              supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.obpMdns),
-              supportedActions: isConnected?.supportedActions,
-              isEnabled: core.settings.getObpMdnsEnabled(),
-              title: context.i18n.connectDirectlyOverNetwork,
-              instructionLink: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership',
-              description: isConnected != null
-                  ? context.i18n.connectedTo(
-                      "${isConnected.appId}:\n${isConnected.supportedActions.joinToString(transform: (s) => s.title)}",
-                    )
-                  : isStarted
-                  ? context.i18n.chooseBikeControlInConnectionScreen
-                  : context.i18n.letsAppConnectOverNetwork(core.settings.getTrainerApp()?.name ?? ''),
-              requirements: [],
-              onChange: (value) {
-                core.settings.setObpMdnsEnabled(value);
-                if (!value) {
-                  core.obpMdnsEmulator.stopServer();
-                } else if (value) {
-                  core.obpMdnsEmulator.startServer().catchError((e, s) {
-                    recordError(e, s, context: 'OBP mDNS Emulator');
-                    core.settings.setObpMdnsEnabled(false);
-                    core.connection.signalNotification(
-                      AlertNotification(
-                        LogLevel.LOGLEVEL_ERROR,
-                        "${context.i18n.errorStartingOpenBikeControlServer}:\n$e",
-                      ),
-                    );
-                  });
-                }
-                setState(() {});
+    return Column(
+      spacing: 8,
+      children: [
+        ValueListenableBuilder(
+          valueListenable: core.obpMdnsEmulator.isStarted,
+          builder: (context, isStarted, _) {
+            return ValueListenableBuilder(
+              valueListenable: core.obpMdnsEmulator.connectedApp,
+              builder: (context, isConnected, _) {
+                return ConnectionMethod(
+                  trainerConnection: core.obpMdnsEmulator,
+                  isRecommended: true,
+                  small: widget.small,
+                  supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.obpMdns),
+                  supportedActions: isConnected?.supportedActions,
+                  isEnabled: core.settings.getObpMdnsEnabled(),
+                  title: context.i18n.connectDirectlyOverNetwork,
+                  instructionLink: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership',
+                  description: isConnected != null
+                      ? context.i18n.connectedTo(
+                          "${isConnected.appId}:\n${isConnected.supportedActions.joinToString(transform: (s) => s.title)}",
+                        )
+                      : isStarted
+                      ? context.i18n.chooseBikeControlInConnectionScreen
+                      : context.i18n.letsAppConnectOverNetwork(core.settings.getTrainerApp()?.name ?? ''),
+                  requirements: [],
+                  onChange: (value) {
+                    core.settings.setObpMdnsEnabled(value);
+                    if (!value) {
+                      core.obpMdnsEmulator.stopServer();
+                    } else if (value) {
+                      core.obpMdnsEmulator.startServer().catchError((e, s) {
+                        recordError(e, s, context: 'OBP mDNS Emulator');
+                        core.settings.setObpMdnsEnabled(false);
+                        core.connection.signalNotification(
+                          AlertNotification(
+                            LogLevel.LOGLEVEL_ERROR,
+                            "${context.i18n.errorStartingOpenBikeControlServer}:\n$e",
+                          ),
+                        );
+                      });
+                    }
+                    setState(() {});
+                  },
+                );
               },
             );
           },
-        );
-      },
+        ),
+        if (core.settings.getLastTarget() == Target.thisDevice &&
+            core.settings.getTrainerApp() is MyWhoosh &&
+            defaultTargetPlatform == TargetPlatform.windows)
+          Warning(
+            important: false,
+            children: [
+              Text(
+                'On some Windows devices, connection cannot be established correctly. Click below for a workaround until it is fixed by MyWhoosh.',
+              ).small,
+              Button.outline(
+                child: Text('Workaround'),
+                onPressed: () => openDrawer(
+                  context: context,
+                  position: OverlayPosition.bottom,
+                  builder: (c) => MarkdownPage(assetPath: 'INSTRUCTIONS_WINDOWS_IPV6.md'),
+                ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }

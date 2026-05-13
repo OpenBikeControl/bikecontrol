@@ -18,6 +18,7 @@ import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/actions/remote.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -82,6 +83,10 @@ class Core {
       settings: settings,
       trainerConnections: logic.trainerConnections.map((t) => t.isConnected).toList(),
       isMobilePlatform: !kIsWeb && (Platform.isAndroid || Platform.isIOS),
+      isOnTrial: () {
+        final iap = IAPManager.instance;
+        return !iap.isProEnabled && !iap.isPurchased.value && !iap.isTrialExpired;
+      },
     );
   }
 
@@ -274,6 +279,20 @@ class CoreLogic {
 
   AppInfo? get obpConnectedApp =>
       core.obpMdnsEmulator.connectedApp.value ?? core.obpBluetoothEmulator.connectedApp.value;
+
+  /// Supported OBP buttons for the currently-selected trainer app.
+  /// Order: last-persisted list (overwritten on every AppInfo) → trainer-app
+  /// hard-coded defaults → empty when no trainer is selected.
+  List<ControllerButton> get obpSupportedButtons {
+    final trainerApp = core.settings.getTrainerApp();
+    if (trainerApp == null) return const [];
+    final stored = core.settings.getObpSupportedButtons(trainerApp.name);
+    if (stored != null && stored.isNotEmpty) return stored;
+    return trainerApp.defaultObpSupportedButtons;
+  }
+
+  List<InGameAction> get obpSupportedActions =>
+      obpSupportedButtons.mapNotNull((b) => b.action).toList();
 
   bool get emulatorEnabled =>
       screenshotMode ||

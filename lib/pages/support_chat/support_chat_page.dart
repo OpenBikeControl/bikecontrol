@@ -21,11 +21,19 @@ typedef TelemetryBuilder = Future<TelemetrySnapshot> Function();
 class SupportChatPage extends StatefulWidget {
   final TelemetryBuilder telemetryBuilder;
   final String? diagnosticPreview;
+  final String? initialText;
+
+  /// Optional attachment to pre-stage in the composer on first build
+  /// (e.g. an OverviewPage screenshot captured by the caller before
+  /// pushing this page). The user can still remove it before sending.
+  final StagedAttachment? initialAttachment;
 
   const SupportChatPage({
     super.key,
     required this.telemetryBuilder,
     this.diagnosticPreview,
+    this.initialText,
+    this.initialAttachment,
   });
 
   @override
@@ -242,6 +250,8 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
           sending: _sending,
           onSend: _send,
           diagnosticPreview: widget.diagnosticPreview,
+          initialText: widget.initialText,
+          initialAttachment: widget.initialAttachment,
         ),
       ],
     );

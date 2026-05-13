@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -13,16 +15,16 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show Offset;
 import 'package:path/path.dart' as path;
 import 'package:path_provider_windows/path_provider_windows.dart';
-import 'package:prop/prop.dart';
+import 'package:prop/prop.dart' hide Set;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_windows/shared_preferences_windows.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../main.dart';
-import '../actions/desktop.dart';
 import '../keymap/apps/custom_app.dart';
 import '../keymap/buttons.dart';
 
@@ -44,7 +46,7 @@ class Settings {
       }
       initializeActions(getLastTarget()?.connectionType ?? ConnectionType.unknown);
 
-      if (core.actionHandler is DesktopActions) {
+      if (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS) {
         // Must add this line.
         await windowManager.ensureInitialized();
       }
@@ -141,6 +143,16 @@ class Settings {
     await prefs.setString(_retrofitModeKey(trainerKey), mode.name);
   }
 
+  static String _feedbackSubmittedKey(String trainerKey) => 'feedback_submitted_$trainerKey';
+
+  bool getFeedbackSubmitted(String trainerKey) {
+    return prefs.getBool(_feedbackSubmittedKey(trainerKey)) ?? false;
+  }
+
+  Future<void> setFeedbackSubmitted(String trainerKey, bool submitted) async {
+    await prefs.setBool(_feedbackSubmittedKey(trainerKey), submitted);
+  }
+
   static String _autoConnectKey(String trainerKey) => 'auto_connect_$trainerKey';
 
   /// Whether the user wants this trainer to auto-start on scan. Set to true
@@ -152,6 +164,42 @@ class Settings {
 
   Future<void> setAutoConnect(String trainerKey, bool autoConnect) async {
     await prefs.setBool(_autoConnectKey(trainerKey), autoConnect);
+  }
+
+  static String _smartTrainerConsentKey(String trainerKey) => 'smart_trainer_consent_$trainerKey';
+
+  /// Whether the user has acknowledged the one-time explainer dialog the
+  /// first time they tap a smart trainer (BikeControl takes over Virtual
+  /// Shifting; the trainer app then connects to the virtual trainer instead).
+  /// Set to true only after they confirm via Continue.
+  bool getSmartTrainerConsent(String trainerKey) {
+    return prefs.getBool(_smartTrainerConsentKey(trainerKey)) ?? false;
+  }
+
+  Future<void> setSmartTrainerConsent(String trainerKey, bool consent) async {
+    await prefs.setBool(_smartTrainerConsentKey(trainerKey), consent);
+  }
+
+  static String _obpSupportedButtonsKey(String appName) => 'obp_supported_buttons_$appName';
+
+  /// Last-known OpenBikeControl supported buttons for [appName]. Set when a
+  /// trainer app sends an AppInfo over BLE/mDNS; used by the ButtonEditor so
+  /// the user can configure mappings even before connecting.
+  List<ControllerButton>? getObpSupportedButtons(String appName) {
+    final stored = prefs.getStringList(_obpSupportedButtonsKey(appName));
+    if (stored == null) return null;
+    return stored
+        .mapNotNull((s) => int.tryParse(s))
+        .mapNotNull((id) => OpenBikeProtocolParser.BUTTON_NAMES[id])
+        .toList();
+  }
+
+  Future<void> setObpSupportedButtons(String appName, List<ControllerButton> buttons) async {
+    await prefs.setStringList(
+      _obpSupportedButtonsKey(appName),
+      buttons.where((b) => b.identifier != null).map((b) => b.identifier!.toString()).toList(),
+    );
+    _triggerAutoSync();
   }
 
   Future<void> setKeyMap(SupportedApp app) async {
@@ -332,6 +380,14 @@ class Settings {
 
   Future<void> setMiuiWarningDismissed(bool dismissed) async {
     await prefs.setBool('miui_warning_dismissed', dismissed);
+  }
+
+  bool getMyWhooshGearHintDismissed() {
+    return prefs.getBool('mywhoosh_gear_hint_dismissed') ?? false;
+  }
+
+  Future<void> setMyWhooshGearHintDismissed(bool dismissed) async {
+    await prefs.setBool('mywhoosh_gear_hint_dismissed', dismissed);
   }
 
   /// Sticky flag: true once the user has opened a support chat at least once
@@ -554,6 +610,45 @@ class Settings {
     _syncDebounceTimer?.cancel();
     _syncService?.dispose();
     _syncService = null;
+  }
+
+  // ----- Trainer overlay -----
+
+  bool getOverlayEnabled() => prefs.getBool('overlay_enabled') ?? false;
+
+  Future<void> setOverlayEnabled(bool enabled) async {
+    await prefs.setBool('overlay_enabled', enabled);
+  }
+
+  /// Get overlay display fields (set of OverlayField enum values).
+  /// Defaults to {power, cadence}.
+  Set<OverlayField> getOverlayFields() {
+    final raw = prefs.getStringList('overlay_fields');
+    if (raw == null) {
+      return <OverlayField>{OverlayField.power, OverlayField.cadence};
+    }
+    final parsed = raw.map(OverlayField.fromName).whereType<OverlayField>().toSet();
+    return parsed;
+  }
+
+  /// Set overlay display fields.
+  Future<void> setOverlayFields(Set<OverlayField> fields) async {
+    await prefs.setStringList(
+      'overlay_fields',
+      fields.map((f) => f.name).toList(),
+    );
+  }
+
+  Offset? getOverlayPosition() {
+    final x = prefs.getDouble('overlay_position_x');
+    final y = prefs.getDouble('overlay_position_y');
+    if (x == null || y == null) return null;
+    return Offset(x, y);
+  }
+
+  Future<void> setOverlayPosition(Offset p) async {
+    await prefs.setDouble('overlay_position_x', p.dx);
+    await prefs.setDouble('overlay_position_y', p.dy);
   }
 
   Future<void> setShowExperimental(bool value) async {

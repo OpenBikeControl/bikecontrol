@@ -5,6 +5,8 @@ import 'dart:isolate';
 import 'package:app_links/app_links.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
+import 'package:bike_control/services/overlay/overlay_entry_point.dart' as overlay_entry;
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/actions/remote.dart';
@@ -14,7 +16,9 @@ import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
+import 'package:multi_window_native/multi_window_native.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:window_manager/window_manager.dart' as wm;
 
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
@@ -23,9 +27,23 @@ import 'utils/core.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
 
-void main() async {
-  // setup crash reporting
+/// Android overlay isolate entry point. Must live in this library because
+/// flutter_overlay_window's `DartEntrypoint(bundlePath, "overlayMain")` only
+/// resolves symbols in the default Dart library (the one with `main()`).
+/// `@pragma('vm:entry-point')` alone is not enough — the symbol also has to
+/// be findable by the 2-arg DartEntrypoint constructor.
+@pragma('vm:entry-point')
+void overlayMain() {
+  overlay_entry.runOverlayApp();
+}
 
+/// Convention used to identify the trainer-overlay sub-window. `main(args)`
+/// receives this as the first arg when `MultiWindowNative.createWindow`
+/// spawns a sub-process for the overlay.
+const String kTrainerOverlayRoute = 'trainer-overlay';
+
+@pragma('vm:entry-point')
+Future<void> main(List<String> args) async {
   // Catch errors that happen in other isolates
   if (!kIsWeb) {
     Isolate.current.addErrorListener(
@@ -40,6 +58,22 @@ void main() async {
 
   runZonedGuarded<Future<void>>(
     () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // Detect sub-window engine and dispatch to the overlay entry point before
+      // doing any heavy bootstrap. multi_window_native re-runs main() with
+      // kTrainerOverlayRoute as the first positional arg — this applies to
+      // both macOS and Windows now that we use multi_window_native on both.
+      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows) &&
+          args.contains(kTrainerOverlayRoute)) {
+        await wm.windowManager.ensureInitialized();
+        await wm.windowManager.waitUntilReadyToShow();
+        final windowId = await wm.windowManager.getId();
+        MultiWindowNative.init(windowId);
+        await runDesktopOverlayWindow(windowId, args);
+        return;
+      }
+
       // Catch Flutter framework errors (build/layout/paint)
       FlutterError.onError = (FlutterErrorDetails details) {
         _recordFlutterError(details);
@@ -54,14 +88,23 @@ void main() async {
         return true;
       };
 
-      WidgetsFlutterBinding.ensureInitialized();
-
       final error = await core.settings.init();
 
       if (error != null) {
         recordError(error, null, context: 'SettingsInit');
       } else {
         await core.shiftingConfigs.init();
+      }
+
+      // Initialise multi_window_native for the main window (macOS + Windows).
+      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows)) {
+        try {
+          await wm.windowManager.ensureInitialized();
+          final mainWindowId = await wm.windowManager.getId();
+          MultiWindowNative.init(mainWindowId);
+        } catch (e, s) {
+          recordError(e, s, context: 'MultiWindowNative.init(main)');
+        }
       }
 
       runApp(BikeControlApp(error: error));

@@ -358,7 +358,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                         },
                         child: Text(context.i18n.manageIgnoredDevices).small,
                       ),
-                    if (devices.isNotEmpty)
+                    if (devices.isNotEmpty || core.connection.proxyDevices.isNotEmpty)
                       Builder(
                         builder: (context) => IconButton.ghost(
                           icon: Icon(Icons.more_vert, size: 16),
@@ -701,7 +701,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             Divider(
               thickness: Theme.of(context).brightness == Brightness.dark ? 1.5 : 0.5,
             ),
-            const Gap(12),
             TrainerFeatures(withCard: false),
           ],
         ],

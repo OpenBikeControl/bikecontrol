@@ -311,6 +311,8 @@
   "moreInformation": "Więcej informacji",
   "mustChooseAllowOrDeny": "Aby kontynuować, musisz zezwolić lub odmówić tego uprawnienia.",
   "myWhooshDirectConnectAction": "Akcja „Link” MyWhoosh",
+  "myWhooshGearHintTitle": "BikeControl zarządza Twoimi biegami",
+  "myWhooshGearHintBody": "Wyłącz wirtualną zmianę biegów w ustawieniach MyWhoosh lub ukryj interfejs biegów w MyWhoosh. W przeciwnym razie obie aplikacje mogą próbować sterować oporem, a zmiany biegów mogą wydawać się niespójne.",
   "myWhooshDirectConnection": " np. za pomocą MyWhoosh „Link”",
   "myWhooshLinkConnected": "Połączono MyWhoosh „Link”",
   "myWhooshLinkDescriptionLocal": "Połącz się bezpośrednio z MyWhoosh za pomocą metody „Link”. Sprawdź instrukcje, aby upewnić się, że połączenie jest możliwe. Aplikacja „MyWhoosh Link” nie może być jednocześnie aktywna.",
@@ -585,6 +587,9 @@
   "zwiftControllerDescription": "Umożliwia BikeControl działanie jako kontroler kompatybilny ze Zwift.",
   "smartTrainer": "Smart Trainer",
   "provideFeedback": "Wyślij opinię",
+  "feedbackWorks": "Działa",
+  "feedbackNoDifference": "Bez różnicy",
+  "feedbackNotWorking": "Nie działa",
   "virtualShiftingSettings": "Ustawienia Virtual Shifting",
   "yourTrainerApp": "twoja aplikacja treningowa",
   "proxyMode": "Proxy",
@@ -627,6 +632,8 @@
   "useGearCount": "Użyj {count}",
   "gradeSmoothing": "Wygładzanie nachylenia",
   "gradeSmoothingDesc": "Uśrednia gwałtowne zmiany nachylenia",
+  "cadenceFilter": "Filtr kadencji",
+  "cadenceFilterDesc": "Tłumi skoki czujnika powodujące szarpnięcia oporu",
   "presetDefault": "Domyślny",
   "presetCompact": "Zwarty",
   "presetWide": "Szeroki",
@@ -805,5 +812,39 @@
         "type": "String"
       }
     }
-  }
+  },
+  "smartTrainerConsentTitle": "Łączenie z {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl połączy się teraz z Twoim Smart Trainerem i przejmie kontrolę nad wirtualnym przełączaniem biegów. Wszelkie zmiany biegów będą wykonywane bezpośrednio w BikeControl, a nie przez {appName}. W {appName} podłączysz się następnie do wirtualnego trenażera BikeControl zamiast bezpośrednio do {trainerName}.\n\nAby przywrócić domyślne zachowanie, kliknij przycisk „{disconnectLabel}” i ponownie połącz {appName} bezpośrednio z {trainerName}.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
+  },
+  "overlayFieldControls": "Przyciski biegów / mocy",
+  "connectingToDevice": "Łączenie z: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Połączenie udane: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Połączenie nie powiodło się: {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Nie można połączyć z {device}: Przekroczono limit czasu",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Skanowanie urządzeń...",
+  "disconnectingAllDevices": "Rozłączanie wszystkich urządzeń"
 }

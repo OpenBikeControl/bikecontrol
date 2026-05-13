@@ -12,6 +12,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gamepads_windows
   keypress_simulator_windows
   media_key_detector_windows
+  multi_window_native
   nsd_windows
   permission_handler_windows
   screen_retriever_windows

@@ -323,6 +323,8 @@
   "moreInformation": "More Information",
   "mustChooseAllowOrDeny": "You must choose to either Allow or Deny this permission to continue.",
   "myWhooshDirectConnectAction": "MyWhoosh \"Link\" Action",
+  "myWhooshGearHintTitle": "BikeControl handles your gearing",
+  "myWhooshGearHintBody": "Disable virtual shifting in MyWhoosh's settings, or hide the gear UI in MyWhoosh. Otherwise both apps may try to control resistance and your shifts can feel inconsistent.",
   "myWhooshDirectConnection": " e.g. by using MyWhoosh \"Link\"",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" connected",
   "myWhooshLinkDescriptionLocal": "Connect directly to MyWhoosh via the \"Link\" method. Check the instructions to ensure a connection is possible. The \"MyWhoosh Link\" app must not be active at the same time.",
@@ -361,6 +363,22 @@
   "notConnected": "Not connected",
   "notificationDescription": "This keeps the app alive in background and updates you when the connection to your devices changes.",
   "officiallySupported": "Officially supported",
+  "overlayDisabledIos": "Trainer overlay shows on Dynamic Island and the Lock Screen during a ride.",
+  "overlayEnabled": "Show overlay during ride",
+  "overlayFieldCadence": "Cadence",
+  "overlayFieldControls": "Shift / power buttons",
+  "overlayFieldErgTarget": "ERG target",
+  "overlayFieldGearRatio": "Gear ratio",
+  "overlayFieldPower": "Power",
+  "overlayFieldsLabel": "Fields to show",
+  "overlayGrantAndroidPermission": "Grant overlay permission",
+  "overlayHide": "Hide overlay",
+  "overlayLowPowerMode": "Live Activities are disabled (Low Power Mode or system setting).",
+  "overlayPermissionExplain": "Android needs permission to draw the overlay over your trainer app.",
+  "overlaySection": "Overlay",
+  "overlaySectionSubtitle": "Live gear display while you ride.",
+  "overlaySettings": "Overlay settings",
+  "overlayWindowsTip": "Run the trainer app in borderless-windowed mode for the overlay to stay visible.",
   "ok": "OK",
   "only": "Only",
   "openBikeControlActions": "OpenBikeControl actions",
@@ -622,6 +640,9 @@
   "zwiftControllerDescription": "Enables BikeControl to act as a Zwift-compatible controller.",
   "smartTrainer": "Smart Trainer",
   "provideFeedback": "Provide Feedback",
+  "feedbackWorks": "Works",
+  "feedbackNoDifference": "No difference",
+  "feedbackNotWorking": "Not working",
   "virtualShiftingSettings": "Virtual Shifting Settings",
   "yourTrainerApp": "your trainer app",
   "proxyMode": "Proxy",
@@ -705,6 +726,8 @@
   },
   "gradeSmoothing": "Grade Smoothing",
   "gradeSmoothingDesc": "Averages sudden slope changes",
+  "cadenceFilter": "Cadence Filter",
+  "cadenceFilterDesc": "Suppresses sensor spikes that cause resistance pulses",
   "presetDefault": "Default",
   "presetCompact": "Compact",
   "presetWide": "Wide",
@@ -947,5 +970,38 @@
   "trainerIntensityDecreased": "Intensity -5%",
   "successRatingMessage": "Thank you for using BikeControl! Please consider rating BikeControl in the {store} — it helps a lot!",
   "@successRatingMessage": {"placeholders": {"store": {"type": "String"}}},
-  "rateBikeControl": "Rate BikeControl"
+  "rateBikeControl": "Rate BikeControl",
+  "smartTrainerConsentTitle": "Connecting to {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {"trainerName": {"type": "String"}}
+  },
+  "smartTrainerConsentMessage": "BikeControl will now connect to your Smart Trainer and take over control over Virtual Shifting. Any shifting will happen directly in BikeControl, and no longer through your {appName}. In {appName} you will then connect to the BikeControl virtual trainer, instead of directly to {trainerName}.\n\nTo revert to the default behavior, click on the \"{disconnectLabel}\" button and connect {appName} directly to your {trainerName} again.",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {"type": "String"},
+      "appName": {"type": "String"},
+      "disconnectLabel": {"type": "String"}
+    }
+  },
+  "connectingToDevice": "Connecting to: {device}",
+  "@connectingToDevice": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionSucceeded": "Connection succeeded: {device}",
+  "@connectionSucceeded": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "connectionFailed": "Connection failed: {device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {"type": "String"},
+      "error": {"type": "String"}
+    }
+  },
+  "unableToConnectToDeviceTimeout": "Unable to connect to {device}: Timeout",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {"device": {"type": "String"}}
+  },
+  "scanningForDevicesShort": "Scanning for devices...",
+  "disconnectingAllDevices": "Disconnecting all devices"
 }

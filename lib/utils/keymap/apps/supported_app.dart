@@ -69,6 +69,11 @@ abstract class SupportedApp {
   /// (e.g. MyWhoosh → 30).
   int get virtualGearAmount => 24;
 
+  /// Default OpenBikeControl supported buttons used by the ButtonEditor
+  /// before (or without) a live OBP connection. Overridden by trainer-app
+  /// subclasses that ship a known-good list.
+  List<ControllerButton> get defaultObpSupportedButtons => const [];
+
   /// Whether this app supports the given connection method.
   /// Experimental methods are excluded unless the experimental setting is enabled.
   bool supports(AppConnectionMethod method) {
