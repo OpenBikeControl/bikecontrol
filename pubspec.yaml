@@ -121,6 +121,7 @@ flutter:
     - INSTRUCTIONS_ROUVY.md
     - INSTRUCTIONS_ZWIFT.md
     - INSTRUCTIONS_LOCAL.md
+    - INSTRUCTIONS_WINDOWS_IPV6.md
     - shorebird.yaml
     - assets/silence.mp3
     - assets/mywhoosh.png
