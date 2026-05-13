@@ -112,6 +112,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   GearHeroCard(definition: def, simOnly: true),
                   _vsModeCard(),
                   _gradeSmoothingCard(context),
+                  _cadenceFilterCard(context),
                 ],
                 _gearCountCard(context),
                 _heroCurve(context),
@@ -246,6 +247,24 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           onChanged: (v) async {
             def.setGradeSmoothingEnabled(v);
             await _updateActive((c) => c.copyWith(gradeSmoothing: v));
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _cadenceFilterCard(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: def.cadenceFilterEnabled,
+      builder: (context, enabled, _) => SettingTile(
+        icon: LucideIcons.filter,
+        title: AppLocalizations.of(context).cadenceFilter,
+        subtitle: AppLocalizations.of(context).cadenceFilterDesc,
+        trailing: Switch(
+          value: enabled,
+          onChanged: (v) async {
+            def.setCadenceFilterEnabled(v);
+            await _updateActive((c) => c.copyWith(cadenceFilterEnabled: v));
           },
         ),
       ),

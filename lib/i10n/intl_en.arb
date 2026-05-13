@@ -726,6 +726,8 @@
   },
   "gradeSmoothing": "Grade Smoothing",
   "gradeSmoothingDesc": "Averages sudden slope changes",
+  "cadenceFilter": "Cadence Filter",
+  "cadenceFilterDesc": "Suppresses sensor spikes that cause resistance pulses",
   "presetDefault": "Default",
   "presetCompact": "Compact",
   "presetWide": "Wide",

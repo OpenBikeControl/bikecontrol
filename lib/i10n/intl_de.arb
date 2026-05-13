@@ -632,6 +632,8 @@
   "useGearCount": "{count} verwenden",
   "gradeSmoothing": "Steigungsglättung",
   "gradeSmoothingDesc": "Mittelt plötzliche Steigungswechsel",
+  "cadenceFilter": "Trittfrequenz-Filter",
+  "cadenceFilterDesc": "Unterdrückt Sensor-Spitzen, die Widerstandsstöße verursachen",
   "presetDefault": "Standard",
   "presetCompact": "Kompakt",
   "presetWide": "Breit",
