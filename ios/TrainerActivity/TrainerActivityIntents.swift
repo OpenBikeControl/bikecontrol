@@ -4,6 +4,7 @@ import Foundation
 // Names matched in AppDelegate.swift's Darwin-notification observers.
 private let darwinDecrement = "de.jonasbark.swiftcontrol.overlay.action.decrement" as CFString
 private let darwinIncrement = "de.jonasbark.swiftcontrol.overlay.action.increment" as CFString
+private let darwinStop = "de.jonasbark.swiftcontrol.overlay.action.stop" as CFString
 
 private func postDarwin(_ name: CFString) {
     CFNotificationCenterPostNotification(
@@ -36,6 +37,20 @@ struct ShiftPrimaryIncrementIntent: LiveActivityIntent {
 
     func perform() async throws -> some IntentResult {
         postDarwin(darwinIncrement)
+        return .result()
+    }
+}
+
+/// Fired by the close button in the Dynamic Island. The main BikeControl
+/// process disconnects all trainer/controller devices and dismisses the
+/// Live Activity.
+@available(iOS 17.0, *)
+struct StopRideIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "End Ride"
+    static var openAppWhenRun: Bool = false
+
+    func perform() async throws -> some IntentResult {
+        postDarwin(darwinStop)
         return .result()
     }
 }

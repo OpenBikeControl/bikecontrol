@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:live_activities/live_activities.dart';
@@ -200,13 +201,21 @@ class IosOverlayController implements TrainerOverlayController {
     _actionHandlerInstalled = true;
     _actionChannel.setMethodCallHandler((call) async {
       if (call.method != 'action') return null;
+      final action = call.arguments;
+      if (action is! String) return null;
+
+      // Stop applies even when no def is bound (e.g. activity left around
+      // after a definition rebind) — handle it first.
+      if (action == 'stop') {
+        await _stopRide();
+        return null;
+      }
+
       // Re-resolve the live FitnessBikeDefinition each call — see comment
       // on LiveDefinitionLookup; the trainer emulator rebinds a fresh def
       // on every transport restart.
       final live = _liveDef?.call() ?? _def;
       if (live == null) return null;
-      final action = call.arguments;
-      if (action is! String) return null;
       switch (action) {
         case 'primaryDecrement':
           _adjustPrimary(live, increment: false);
@@ -217,6 +226,26 @@ class IosOverlayController implements TrainerOverlayController {
       }
       return null;
     });
+  }
+
+  /// Tear everything down when the user taps the close button in the
+  /// Dynamic Island: disconnect all BLE / gamepad / proxy devices, stop
+  /// scanning, hide the Live Activity, and flip the persisted
+  /// `overlay_enabled` flag off so auto-show doesn't immediately re-open
+  /// the activity on the next trainer reconnect.
+  Future<void> _stopRide() async {
+    try {
+      await core.connection.disconnectAll();
+      await core.connection.stop();
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.ios.stop.disconnect');
+    }
+    try {
+      await core.settings.setOverlayEnabled(false);
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.ios.stop.persistFlag');
+    }
+    await hide();
   }
 
   /// Shift a gear (SIM mode) or step the ERG target power by 5 W.

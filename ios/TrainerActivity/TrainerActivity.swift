@@ -103,7 +103,20 @@ struct TrainerActivity: Widget {
                         .contentTransition(.numericText())
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    modePill(s.mode)
+                    // The mode pill already shows in the bottom row, so the
+                    // trailing region is more useful as a stop / end-ride
+                    // button. Tapping it disconnects the trainer and tears
+                    // down the Live Activity on the Dart side.
+                    if #available(iOSApplicationExtension 17.0, *) {
+                        Button(intent: StopRideIntent()) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.9))
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        modePill(s.mode)
+                    }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     bottomRow(s)

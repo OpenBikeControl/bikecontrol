@@ -50,6 +50,7 @@ import UIKit
     let names: [CFString] = [
       "de.jonasbark.swiftcontrol.overlay.action.decrement" as CFString,
       "de.jonasbark.swiftcontrol.overlay.action.increment" as CFString,
+      "de.jonasbark.swiftcontrol.overlay.action.stop" as CFString,
     ]
 
     for name in names {
@@ -65,6 +66,8 @@ import UIKit
             action = "primaryDecrement"
           } else if nameString.hasSuffix("increment") {
             action = "primaryIncrement"
+          } else if nameString.hasSuffix("stop") {
+            action = "stop"
           } else {
             return
           }
