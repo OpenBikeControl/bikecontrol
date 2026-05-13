@@ -19,6 +19,7 @@ class TelemetrySnapshot {
   final String? trainerControlMode;
   final String? virtualShiftingMode;
   final bool? gradeSmoothing;
+  final bool? cadenceFilterEnabled;
   final List<double>? gearRatios;
   final String? appVersion;
   final String? appPlatform;
@@ -35,6 +36,7 @@ class TelemetrySnapshot {
     this.trainerControlMode,
     this.virtualShiftingMode,
     this.gradeSmoothing,
+    this.cadenceFilterEnabled,
     this.gearRatios,
     this.appVersion,
     this.appPlatform,
@@ -60,6 +62,7 @@ class TelemetrySnapshot {
       trainerControlMode: _controlMode(fitnessDef),
       virtualShiftingMode: fitnessDef != null ? _vsMode(cfg.mode) : null,
       gradeSmoothing: fitnessDef != null ? cfg.gradeSmoothing : null,
+      cadenceFilterEnabled: fitnessDef != null ? cfg.cadenceFilterEnabled : null,
       gearRatios: fitnessDef != null ? (cfg.gearRatios ?? FitnessBikeDefinition.defaultGearRatios) : null,
       appVersion: _appVersion(),
       appPlatform: _appPlatform(),
@@ -92,6 +95,7 @@ class TelemetrySnapshot {
     if (trainerControlMode != null) json['trainer_control_mode'] = trainerControlMode;
     if (virtualShiftingMode != null) json['virtual_shifting_mode'] = virtualShiftingMode;
     if (gradeSmoothing != null) json['grade_smoothing'] = gradeSmoothing;
+    if (cadenceFilterEnabled != null) json['cadence_filter_enabled'] = cadenceFilterEnabled;
     if (gearRatios != null && gearRatios!.isNotEmpty) json['gear_ratios'] = gearRatios;
     if (appVersion != null) json['app_version'] = appVersion;
     if (appPlatform != null) json['app_platform'] = appPlatform;
