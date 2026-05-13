@@ -13,6 +13,7 @@ import 'package:bike_control/pages/proxy_device_details/overlay_settings_section
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -203,6 +204,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     if (!mounted) return;
     setState(() {});
     final snapshot = TelemetrySnapshot.fromDevice(device: device, freetextOverride: composed);
+    final screenshot = await captureOverviewScreenshot(context: context);
     if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -210,6 +212,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           telemetryBuilder: () async => snapshot,
           diagnosticPreview: JsonEncoder.withIndent('  ').convert(snapshot.toJson()),
           initialText: '$label\n',
+          initialAttachment: screenshot,
         ),
       ),
     );

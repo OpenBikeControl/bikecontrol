@@ -1,6 +1,7 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
@@ -123,12 +124,14 @@ class _HelpButtonState extends State<HelpButton> {
                       trailing: _hasUnread ? const _UnreadDot() : null,
                       child: Text(context.i18n.chatWithSupport),
                       onPressed: (c) async {
+                        final screenshot = await captureOverviewScreenshot(context: context);
                         final captured = await debugText();
                         String? capturedFreetext = captured;
                         await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => SupportChatPage(
                               diagnosticPreview: captured,
+                              initialAttachment: screenshot,
                               telemetryBuilder: () async {
                                 if (capturedFreetext != null) {
                                   final snapshot = TelemetrySnapshot.general(
