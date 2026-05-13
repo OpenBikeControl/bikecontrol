@@ -123,8 +123,11 @@ struct TrainerActivity: Widget {
                         .environment(\.colorScheme, .dark)
                 }
             } compactLeading: {
-                Image(systemName: "gear")
-                    .foregroundStyle(.white)
+                Image("AppIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             } compactTrailing: {
                 Text(compactTrailing(s))
                     .font(.caption2.monospacedDigit())
@@ -173,9 +176,11 @@ struct TrainerActivity: Widget {
             }
         } else {
             HStack(spacing: 8) {
-                Image(systemName: "bicycle")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.7))
+                Image("AppIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
                 Spacer()
                 Text(s.primaryText)
                     .font(.system(size: 30, weight: .heavy))
