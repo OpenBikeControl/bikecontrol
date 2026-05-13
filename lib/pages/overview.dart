@@ -231,7 +231,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     if (entry.isError) {
       final alreadyShown = _latestError != null && _errorBannerController.value > 0;
 
-      if (_horizontalScrollController.page != 1 && _screenWidth < 800) {
+      if (_screenWidth < 800 && _horizontalScrollController.page != 1) {
         final fix = _errorFixAction(entry);
         buildToast(
           level: LogLevel.LOGLEVEL_WARNING,
@@ -259,7 +259,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   void _onAlert(AlertNotification notification) {
     final isInForeground = navigatorKey.currentState?.canPop() == false;
 
-    if (!isInForeground || (_horizontalScrollController.page != 1 && _screenWidth < 800)) {
+    if (!isInForeground || (_screenWidth < 800 && _horizontalScrollController.page != 1)) {
       buildToast(
         level: notification.level,
         title: notification.alertMessage,
