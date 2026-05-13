@@ -159,7 +159,9 @@ class _HelpButtonState extends State<HelpButton> {
             },
             leading: Padding(
               padding: EdgeInsets.only(
-                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
+                bottom: isMobile
+                    ? MediaQuery.viewPaddingOf(context).bottom / MediaQuery.devicePixelRatioOf(context)
+                    : 0,
               ),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -174,13 +176,17 @@ class _HelpButtonState extends State<HelpButton> {
                 ],
               ),
             ),
-            style: ButtonStyle.secondary().withBorderRadius(
-              borderRadius: border,
-              hoverBorderRadius: border,
-            ),
+            style: ButtonStyle.secondary()
+                .withBorderRadius(
+                  borderRadius: border,
+                  hoverBorderRadius: border,
+                )
+                .withBorder(border: Border.all(width: 0.3, color: Theme.of(context).colorScheme.mutedForeground)),
             child: Padding(
               padding: EdgeInsets.only(
-                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
+                bottom: isMobile
+                    ? MediaQuery.viewPaddingOf(context).bottom / MediaQuery.devicePixelRatioOf(context)
+                    : 0,
               ),
               child: Text(context.i18n.troubleshootingGuide),
             ),
