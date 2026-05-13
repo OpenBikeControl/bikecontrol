@@ -103,20 +103,7 @@ struct TrainerActivity: Widget {
                         .contentTransition(.numericText())
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    // The mode pill already shows in the bottom row, so the
-                    // trailing region is more useful as a stop / end-ride
-                    // button. Tapping it disconnects the trainer and tears
-                    // down the Live Activity on the Dart side.
-                    if #available(iOSApplicationExtension 17.0, *) {
-                        Button(intent: StopRideIntent()) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 22, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.9))
-                        }
-                        .buttonStyle(.plain)
-                    } else {
-                        modePill(s.mode)
-                    }
+                    modePill(s.mode)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     bottomRow(s)
@@ -194,7 +181,13 @@ struct TrainerActivity: Widget {
         }
     }
 
-    /// Row 2: SIM/ERG pill on the left, opted-in metrics on the right.
+    /// Row 2: SIM/ERG pill on the left, opted-in metrics in the middle,
+    /// stop / end-ride button on the right. The stop button is rendered
+    /// in this shared row so it shows up on both surfaces:
+    ///   - the lock-screen / banner layout
+    ///   - the expanded Dynamic Island
+    /// (The compact / minimal Dynamic Island layouts have no room for a
+    /// secondary control.)
     @ViewBuilder
     private func bottomRow(_ s: TrainerSnapshot) -> some View {
         HStack(spacing: 10) {
@@ -208,6 +201,14 @@ struct TrainerActivity: Widget {
             }
             if !s.isErg && s.showGearRatio {
                 metric(String(format: "×%.2f", s.gearRatio))
+            }
+            if #available(iOSApplicationExtension 17.0, *) {
+                Button(intent: StopRideIntent()) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                }
+                .buttonStyle(.plain)
             }
         }
         .font(.caption.monospacedDigit())
