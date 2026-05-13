@@ -21,6 +21,7 @@ class ShiftingConfig {
   final double bikeWeightKg;
   final double riderWeightKg;
   final bool gradeSmoothing;
+  final bool cadenceFilterEnabled;
   final int maxGear;
   final List<double>? gearRatios;
 
@@ -32,6 +33,7 @@ class ShiftingConfig {
     required this.bikeWeightKg,
     required this.riderWeightKg,
     required this.gradeSmoothing,
+    this.cadenceFilterEnabled = false,
     this.maxGear = maxGearDefault,
     this.gearRatios,
   });
@@ -50,6 +52,7 @@ class ShiftingConfig {
       bikeWeightKg: bikeWeightDefaultKg,
       riderWeightKg: riderWeightDefaultKg,
       gradeSmoothing: true,
+      cadenceFilterEnabled: false,
       maxGear: maxGear.clamp(maxGearMin, maxGearMax),
     );
   }
@@ -73,6 +76,7 @@ class ShiftingConfig {
       bikeWeightKg: bike.clamp(bikeWeightMinKg, bikeWeightMaxKg),
       riderWeightKg: rider.clamp(riderWeightMinKg, riderWeightMaxKg),
       gradeSmoothing: (json['gradeSmoothing'] as bool?) ?? true,
+      cadenceFilterEnabled: (json['cadenceFilterEnabled'] as bool?) ?? false,
       maxGear: rawMaxGear.clamp(maxGearMin, maxGearMax),
       gearRatios: (parsedRatios != null &&
               parsedRatios.isNotEmpty &&
@@ -90,6 +94,7 @@ class ShiftingConfig {
         'bikeWeightKg': bikeWeightKg,
         'riderWeightKg': riderWeightKg,
         'gradeSmoothing': gradeSmoothing,
+        'cadenceFilterEnabled': cadenceFilterEnabled,
         'maxGear': maxGear,
         if (gearRatios != null) 'gearRatios': gearRatios,
       };
@@ -102,6 +107,7 @@ class ShiftingConfig {
     double? bikeWeightKg,
     double? riderWeightKg,
     bool? gradeSmoothing,
+    bool? cadenceFilterEnabled,
     int? maxGear,
     List<double>? gearRatios,
     bool clearGearRatios = false,
@@ -121,6 +127,7 @@ class ShiftingConfig {
       bikeWeightKg: bikeWeightKg ?? this.bikeWeightKg,
       riderWeightKg: riderWeightKg ?? this.riderWeightKg,
       gradeSmoothing: gradeSmoothing ?? this.gradeSmoothing,
+      cadenceFilterEnabled: cadenceFilterEnabled ?? this.cadenceFilterEnabled,
       maxGear: resolvedMaxGear,
       gearRatios: ratiosMatchMaxGear ? resolvedRatios : null,
     );
@@ -137,6 +144,7 @@ class ShiftingConfig {
           bikeWeightKg == other.bikeWeightKg &&
           riderWeightKg == other.riderWeightKg &&
           gradeSmoothing == other.gradeSmoothing &&
+          cadenceFilterEnabled == other.cadenceFilterEnabled &&
           maxGear == other.maxGear &&
           listEquals(gearRatios, other.gearRatios));
 
@@ -149,6 +157,7 @@ class ShiftingConfig {
         bikeWeightKg,
         riderWeightKg,
         gradeSmoothing,
+        cadenceFilterEnabled,
         maxGear,
         gearRatios == null ? null : Object.hashAll(gearRatios!),
       );
