@@ -100,8 +100,8 @@ class _PaywallState extends State<Paywall> {
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.cloud_outlined,
-      label: AppLocalizations.current.paywall_synchronizeAndBackup,
+      icon: Icons.directions_bike_outlined,
+      label: AppLocalizations.current.proxyFeatureAddVirtualShifting,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),

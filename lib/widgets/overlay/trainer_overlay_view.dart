@@ -42,7 +42,7 @@ class TrainerOverlayView extends StatelessWidget {
       builder: (context, s, _) {
         return Container(
           constraints: useConstraints
-              ? BoxConstraints(maxWidth: s.fields.contains(OverlayField.controls) ? 210 : 160)
+              ? BoxConstraints(maxWidth: s.fields.contains(OverlayField.controls) ? 230 : 160)
               : null,
           decoration: useConstraints
               ? BoxDecoration(
