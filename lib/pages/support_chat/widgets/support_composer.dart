@@ -38,12 +38,18 @@ class SupportComposer extends StatefulWidget {
   /// typing immediately.
   final String? initialText;
 
+  /// Optional attachment to pre-stage on first build (e.g. an
+  /// OverviewPage screenshot captured before navigating to the chat).
+  /// The user can still remove it via the chip's X button before sending.
+  final StagedAttachment? initialAttachment;
+
   const SupportComposer({
     super.key,
     required this.sending,
     required this.onSend,
     this.diagnosticPreview,
     this.initialText,
+    this.initialAttachment,
   });
 
   @override
@@ -66,6 +72,7 @@ class _SupportComposerState extends State<SupportComposer> {
         if (mounted) _focusNode.requestFocus();
       });
     }
+    _attachment = widget.initialAttachment;
     _controller.addListener(() {
       if (mounted) setState(() {});
     });

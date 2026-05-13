@@ -11,6 +11,7 @@ import 'package:bike_control/pages/proxy.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/services/blog_service.dart';
+import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -473,11 +474,12 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       child: _buildActivityLog(),
     );
 
+    final Widget body;
     if (_screenWidth < 800) {
       // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
       final hPad = 12.0;
 
-      return Column(
+      body = Column(
         children: [
           Container(
             color: Theme.of(context).colorScheme.muted,
@@ -540,47 +542,49 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           ),
         ],
       );
-    }
-
-    // Desktop: two-column layout
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Gap(20),
-        Expanded(
-          child: SingleChildScrollView(
-            child: leftColumn,
-          ),
-        ),
-        const Gap(20),
-        Container(
-          height: double.infinity,
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
-            border: Border(
-              left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
-              bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+    } else {
+      // Desktop: two-column layout
+      body = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Gap(20),
+          Expanded(
+            child: SingleChildScrollView(
+              child: leftColumn,
             ),
           ),
-          constraints: BoxConstraints(maxWidth: min(500, MediaQuery.sizeOf(context).width * 0.4)),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(right: 20, top: 20, bottom: 20),
-                  child: activityColumn,
+          const Gap(20),
+          Container(
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
+              border: Border(
+                left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+                bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
+              ),
+            ),
+            constraints: BoxConstraints(maxWidth: min(500, MediaQuery.sizeOf(context).width * 0.4)),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(right: 20, top: 20, bottom: 20),
+                    child: activityColumn,
+                  ),
                 ),
-              ),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.only(right: 20, top: 8, bottom: 20),
-                child: BlogPostsWidget(maxPosts: 5),
-              ),
-            ],
+                Divider(),
+                Padding(
+                  padding: const EdgeInsets.only(right: 20, top: 8, bottom: 20),
+                  child: BlogPostsWidget(maxPosts: 5),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    }
+
+    return RepaintBoundary(key: overviewScreenshotKey, child: body);
   }
 
   late final PageController _horizontalScrollController = PageController();
@@ -701,7 +705,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             Divider(
               thickness: Theme.of(context).brightness == Brightness.dark ? 1.5 : 0.5,
             ),
-            const Gap(12),
             TrainerFeatures(withCard: false),
           ],
         ],

@@ -126,8 +126,8 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
           title: l10n.overlayEnabled,
           subtitle: isIos ? l10n.overlayDisabledIos : l10n.overlaySectionSubtitle,
           trailing: Switch(value: _enabled, onChanged: _toggle),
+          child: _enabled ? _fieldsCard(l10n) : null,
         ),
-        if (_enabled) _fieldsCard(l10n),
         if (!kIsWeb && Platform.isWindows && _enabled) _tipCard(l10n.overlayWindowsTip),
         if (isAndroid && !_androidPermissionGranted) _androidPermissionTile(l10n),
       ],
@@ -138,7 +138,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
     Widget row(OverlayField f, String label) {
       return Row(
         children: [
-          Expanded(child: Text(label)),
+          Expanded(child: Text(label).small),
           Switch(
             value: _fields.contains(f),
             onChanged: (v) => _toggleField(f, v),
@@ -146,21 +146,17 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
         ],
       );
     }
-    return SettingTile(
-      icon: LucideIcons.eye,
-      title: l10n.overlayFieldsLabel,
-      subtitle: l10n.overlaySectionSubtitle,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
-        children: [
-          row(OverlayField.power, l10n.overlayFieldPower),
-          row(OverlayField.cadence, l10n.overlayFieldCadence),
-          row(OverlayField.ergTarget, l10n.overlayFieldErgTarget),
-          row(OverlayField.gearRatio, l10n.overlayFieldGearRatio),
-          row(OverlayField.controls, l10n.overlayFieldControls),
-        ],
-      ),
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 6,
+      children: [
+        row(OverlayField.power, l10n.overlayFieldPower),
+        row(OverlayField.cadence, l10n.overlayFieldCadence),
+        row(OverlayField.ergTarget, l10n.overlayFieldErgTarget),
+        row(OverlayField.gearRatio, l10n.overlayFieldGearRatio),
+        row(OverlayField.controls, l10n.overlayFieldControls),
+      ],
     );
   }
 

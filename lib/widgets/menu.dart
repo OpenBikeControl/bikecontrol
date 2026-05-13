@@ -108,7 +108,7 @@ Target: ${core.settings.getLastTarget()?.name ?? '-'}
 Trainer App: ${core.settings.getTrainerApp()?.name ?? '-'}
 Connected Controllers: ${core.connection.devices.map((e) => e.toString()).join(', ')}
 Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title).join(', ')}
-Smart Trainers (Proxy):
+Smart Trainers:
   $proxyBlock
 Status: ${IAPManager.instance.getStatusMessage()}${userId != null ? ' (User ID: $userId)' : ''}
 Logs:
@@ -137,8 +137,8 @@ String _describeProxyDevice(ProxyDevice device) {
 
   final parts = <String>[
     device.scanResult.name ?? device.scanResult.deviceId,
-    'state=$state',
     'mode=$mode',
+    'state=$state',
     'def=$defKind',
   ];
   if (device.firmwareVersion != null) parts.add('fw=${device.firmwareVersion}');
