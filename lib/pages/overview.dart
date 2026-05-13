@@ -230,6 +230,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
     if (entry.isError) {
       final alreadyShown = _latestError != null && _errorBannerController.value > 0;
+
+      if (_horizontalScrollController.page != 1 && _screenWidth < 800) {
+        final fix = _errorFixAction(entry);
+        buildToast(
+          level: LogLevel.LOGLEVEL_WARNING,
+          title: result.message,
+          closeTitle: fix?.$1 ?? AppLocalizations.of(context).close,
+          onClose: fix?.$2,
+        );
+      }
       _latestError = entry;
       if (alreadyShown) {
         _errorShakeController.forward(from: 0);
@@ -249,7 +259,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   void _onAlert(AlertNotification notification) {
     final isInForeground = navigatorKey.currentState?.canPop() == false;
 
-    if (!isInForeground) {
+    if (!isInForeground || (_horizontalScrollController.page != 1 && _screenWidth < 800)) {
       buildToast(
         level: notification.level,
         title: notification.alertMessage,
@@ -933,7 +943,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         },
       ),
       ErrorType.noConnectionMethod || ErrorType.trainerNotConnected => (
-        'Open connection settings',
+        context.i18n.openConnectionSettings,
         () => _openTrainerConnectionSettings(),
       ),
       ErrorType.proRequired => (
