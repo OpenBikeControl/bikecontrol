@@ -632,6 +632,8 @@
   "useGearCount": "Użyj {count}",
   "gradeSmoothing": "Wygładzanie nachylenia",
   "gradeSmoothingDesc": "Uśrednia gwałtowne zmiany nachylenia",
+  "cadenceFilter": "Filtr kadencji",
+  "cadenceFilterDesc": "Tłumi skoki czujnika powodujące szarpnięcia oporu",
   "presetDefault": "Domyślny",
   "presetCompact": "Zwarty",
   "presetWide": "Szeroki",

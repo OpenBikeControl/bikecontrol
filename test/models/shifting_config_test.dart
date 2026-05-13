@@ -196,5 +196,41 @@ void main() {
       expect(cfg.bikeWeightKg, lessThanOrEqualTo(ShiftingConfig.bikeWeightMaxKg));
       expect(cfg.riderWeightKg, greaterThanOrEqualTo(ShiftingConfig.riderWeightMinKg));
     });
+
+    group('cadenceFilterEnabled field (#9)', () {
+      test('defaults to false', () {
+        final cfg = ShiftingConfig.defaults(trainerKey: 't');
+        expect(cfg.cadenceFilterEnabled, isFalse);
+      });
+
+      test('round-trips through toJson / fromJson', () {
+        final cfg = ShiftingConfig.defaults(trainerKey: 't').copyWith(
+          cadenceFilterEnabled: true,
+        );
+        final restored = ShiftingConfig.fromJson(cfg.toJson());
+        expect(restored.cadenceFilterEnabled, isTrue);
+        expect(restored, equals(cfg));
+      });
+
+      test('fromJson treats missing key as false', () {
+        final restored = ShiftingConfig.fromJson(<String, dynamic>{
+          'name': 'X',
+          'trainerKey': 't',
+          'isActive': true,
+          'mode': 'targetPower',
+          'bikeWeightKg': 10.0,
+          'riderWeightKg': 75.0,
+          'gradeSmoothing': true,
+          'maxGear': 24,
+        });
+        expect(restored.cadenceFilterEnabled, isFalse);
+      });
+
+      test('copyWith preserves and overrides the flag', () {
+        final cfg = ShiftingConfig.defaults(trainerKey: 't');
+        expect(cfg.copyWith().cadenceFilterEnabled, isFalse);
+        expect(cfg.copyWith(cadenceFilterEnabled: true).cadenceFilterEnabled, isTrue);
+      });
+    });
   });
 }

@@ -632,6 +632,8 @@
   "useGearCount": "Usa {count}",
   "gradeSmoothing": "Smussamento pendenza",
   "gradeSmoothingDesc": "Media i cambi di pendenza improvvisi",
+  "cadenceFilter": "Filtro cadenza",
+  "cadenceFilterDesc": "Sopprime i picchi del sensore che causano scatti di resistenza",
   "presetDefault": "Predefinito",
   "presetCompact": "Compatto",
   "presetWide": "Ampio",

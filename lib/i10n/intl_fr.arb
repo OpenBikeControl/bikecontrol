@@ -633,6 +633,8 @@
   "useGearCount": "Utiliser {count}",
   "gradeSmoothing": "Lissage de la pente",
   "gradeSmoothingDesc": "Atténue les changements brusques de pente",
+  "cadenceFilter": "Filtre de cadence",
+  "cadenceFilterDesc": "Supprime les pics du capteur qui provoquent des à-coups de résistance",
   "presetDefault": "Par défaut",
   "presetCompact": "Compact",
   "presetWide": "Large",

@@ -632,6 +632,8 @@
   "useGearCount": "Usar {count}",
   "gradeSmoothing": "Suavizado de pendiente",
   "gradeSmoothingDesc": "Promedia los cambios bruscos de pendiente",
+  "cadenceFilter": "Filtro de cadencia",
+  "cadenceFilterDesc": "Suprime picos del sensor que provocan tirones de resistencia",
   "presetDefault": "Predeterminado",
   "presetCompact": "Compacto",
   "presetWide": "Ancho",

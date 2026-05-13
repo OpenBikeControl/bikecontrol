@@ -78,4 +78,28 @@ void main() {
       expect(json.containsKey('trainer_ftms_target_setting_flags'), isFalse);
     });
   });
+
+  group('cadenceFilterEnabled telemetry (#9)', () {
+    test('serialises as snake_case cadence_filter_enabled when non-null', () {
+      final snap = TelemetrySnapshot(
+        gradeSmoothing: true,
+        cadenceFilterEnabled: true,
+      );
+      final json = snap.toJson();
+      expect(json['cadence_filter_enabled'], isTrue);
+    });
+
+    test('absent when cadenceFilterEnabled is null', () {
+      final snap = TelemetrySnapshot();
+      final json = snap.toJson();
+      expect(json.containsKey('cadence_filter_enabled'), isFalse);
+    });
+
+    test('serialises false explicitly (distinguishable from "not set")', () {
+      final snap = TelemetrySnapshot(cadenceFilterEnabled: false);
+      final json = snap.toJson();
+      expect(json.containsKey('cadence_filter_enabled'), isTrue);
+      expect(json['cadence_filter_enabled'], isFalse);
+    });
+  });
 }
