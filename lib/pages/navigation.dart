@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/overview.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
+import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/menu.dart';
@@ -132,36 +133,39 @@ class _NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      headers: [
-        Stack(
-          children: [
-            AppBar(
-              padding:
-                  const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
-                  (screenshotMode ? 2 : Theme.of(context).scaling),
-              title: AppTitle(),
-              backgroundColor: Theme.of(context).colorScheme.background,
-              trailing: buildMenuButtons(context),
-            ),
-            if (!_isMobile && !screenshotMode)
-              Container(
-                alignment: Alignment.topCenter,
-                child: HelpButton(isMobile: false),
+    return RepaintBoundary(
+      key: overviewScreenshotKey,
+      child: Scaffold(
+        headers: [
+          Stack(
+            children: [
+              AppBar(
+                padding:
+                    const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
+                    (screenshotMode ? 2 : Theme.of(context).scaling),
+                title: AppTitle(),
+                backgroundColor: Theme.of(context).colorScheme.background,
+                trailing: buildMenuButtons(context),
               ),
-          ],
-        ),
-        Divider(),
-      ],
-      footers: [
-        if (_isMobile)
-          Container(
-            alignment: Alignment.bottomCenter,
-            child: HelpButton(isMobile: true),
+              if (!_isMobile && !screenshotMode)
+                Container(
+                  alignment: Alignment.topCenter,
+                  child: HelpButton(isMobile: false),
+                ),
+            ],
           ),
-      ],
-      floatingFooter: true,
-      child: OverviewPage(isMobile: _isMobile),
+          Divider(),
+        ],
+        footers: [
+          if (_isMobile)
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: HelpButton(isMobile: true),
+            ),
+        ],
+        floatingFooter: true,
+        child: OverviewPage(isMobile: _isMobile),
+      ),
     );
   }
 }
