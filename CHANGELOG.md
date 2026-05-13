@@ -1,10 +1,15 @@
 ### 5.5.0 (13-06-2026)
 
 **Features**:
+Virtual Shifting overlay:
 - on macOS, Windows, and Android you can now show the Smart Trainer gear & more on top of your trainer app, when using the virtual shifting functionality introduced in 5.4.0
 - on iOS the gears can be shown as part of the Dynamic Island / Live Activity functionality
+
+Virtual Shifting:
+- Support for virtual shifting for devices without FTMS:
+  - FE-C over BLE devices (e.g. Tacx trainers)
+  - fix for Zwift ready Smart Trainers
 - new Cadence filter setting to suppress sensor spikes that cause resistance pulses
-- improve handling of sensor data in Virtual Shifting mode
 
 ### 5.4.0 (05-05-2026)
 
