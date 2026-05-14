@@ -2,7 +2,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -149,11 +148,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
 
                 Button.secondary(
                   onPressed: () {
-                    openDrawer(
-                      context: context,
-                      position: OverlayPosition.bottom,
-                      builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                    );
+                    launchUrlString('https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps');
                   },
                   leading: const Icon(Icons.help_outline_outlined),
                   child: Text(context.i18n.instructions),
