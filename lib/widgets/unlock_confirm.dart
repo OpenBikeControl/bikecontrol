@@ -45,9 +45,9 @@ class _UnlockConfirmState extends State<UnlockConfirm> with SingleTickerProvider
           child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60)),
         ),
         if (_secondsRemaining > 0)
-          Text(AppLocalizations.of(context).unlockAfterMinuteCheck).xSmall
+          Expanded(child: Text(AppLocalizations.of(context).unlockAfterMinuteCheck).xSmall)
         else
-          Text(AppLocalizations.of(context).unlockConfirmByButton).xSmall,
+          Expanded(child: Text(AppLocalizations.of(context).unlockConfirmByButton).xSmall),
       ],
     );
   }
