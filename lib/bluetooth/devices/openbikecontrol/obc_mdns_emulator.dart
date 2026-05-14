@@ -123,9 +123,10 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   Future<void> _createTcpServer() async {
     try {
       _server = await ServerSocket.bind(
-        InternetAddress.anyIPv4,
+        InternetAddress.anyIPv6,
         36867,
         shared: true,
+        v6Only: false,
       );
     } catch (e) {
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start server: $e'));
