@@ -1,0 +1,27 @@
+name: "Set up Flutter and generate translations"
+description: "Installs the Flutter SDK at the requested version and generates intl_utils translations"
+
+inputs:
+  flutter-version:
+    description: "Flutter SDK version to install (omit to use the channel's latest)"
+    required: false
+    default: ""
+  channel:
+    description: "Flutter channel"
+    required: false
+    default: "stable"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set Up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: ${{ inputs.channel }}
+        flutter-version: ${{ inputs.flutter-version }}
+
+    - name: Generate translation files
+      shell: bash
+      run: |
+        flutter pub global activate intl_utils
+        flutter pub global run intl_utils:generate

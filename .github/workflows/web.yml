@@ -29,15 +29,7 @@ jobs:
 
         #3 Setup Flutter
       - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
-      - name: Generate translation files
-
-        run: |
-          flutter pub global activate intl_utils;
-          flutter pub global run intl_utils:generate;
+        uses: ./.github/actions/setup-flutter
 
         #4 Install Dependencies
       - name: Install Dependencies
