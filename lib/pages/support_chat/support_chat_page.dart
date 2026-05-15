@@ -4,6 +4,7 @@ import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/pages/support_chat/support_thread_page.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_composer.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_message_group.dart';
+import 'package:bike_control/pages/support_chat/widgets/support_open_issues_banner.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
@@ -50,6 +51,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
   List<SupportMessage> _messages = [];
   final List<SupportMessage> _pendingMessages = [];
   bool _sending = false;
+  List<SupportIssue> _openIssues = const [];
 
   @override
   void initState() {
@@ -64,6 +66,17 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     });
     if (core.supabase.auth.currentSession != null) {
       _bootstrap();
+    }
+    _loadIssues();
+  }
+
+  Future<void> _loadIssues() async {
+    try {
+      final issues = await _service.fetchOpenIssues();
+      if (!mounted) return;
+      setState(() => _openIssues = issues);
+    } on SupportChatException {
+      // Silently ignore — issues list is supplementary content.
     }
   }
 
@@ -111,6 +124,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
   }
 
   Future<void> _refresh() async {
+    unawaited(_loadIssues());
     try {
       final fetched = await _service.fetchChat(skipLastSeen: false);
       if (!mounted) return;
@@ -209,7 +223,12 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         ),
         const Divider(),
       ],
-      child: _body(),
+      child: Column(
+        children: [
+          SupportOpenIssuesBanner(issues: _openIssues),
+          Expanded(child: _body()),
+        ],
+      ),
     );
   }
 

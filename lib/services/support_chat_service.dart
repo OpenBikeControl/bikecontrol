@@ -86,6 +86,22 @@ class SupportChatService {
     }
   }
 
+  Future<List<SupportIssue>> fetchOpenIssues() async {
+    try {
+      final response = await _supabase
+          .from('issues')
+          .select('id, title')
+          .eq('status', 'open')
+          .order('created_at', ascending: false);
+      return response
+          .whereType<Map>()
+          .map((e) => SupportIssue.fromJson(Map<String, dynamic>.from(e)))
+          .toList(growable: false);
+    } catch (_) {
+      throw const SupportChatException('Failed to load issues');
+    }
+  }
+
   Future<({SupportChat? chat, List<SupportMessage> messages})> fetchChat({required bool skipLastSeen}) async {
     final session = _requireSession();
     try {

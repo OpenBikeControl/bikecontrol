@@ -133,6 +133,21 @@ class SupportAttachmentUpload {
   };
 }
 
+@immutable
+class SupportIssue {
+  final String id;
+  final String title;
+
+  const SupportIssue({required this.id, required this.title});
+
+  factory SupportIssue.fromJson(Map<String, dynamic> json) {
+    return SupportIssue(
+      id: json['id'] as String,
+      title: (json['title'] as String?) ?? '',
+    );
+  }
+}
+
 DateTime? _parseDate(dynamic value) {
   if (value is String && value.isNotEmpty) {
     return DateTime.tryParse(value);
