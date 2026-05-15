@@ -895,6 +895,7 @@
   "feedbackQuestion": "Does it work?",
   "feedbackNoDifference": "No difference",
   "supportChat": "Support Chat",
+  "knownIssues": "Known issues",
   "chatWithSupport": "Chat with Support",
   "signInToChatWithSupport": "Sign in to chat with support",
   "signInToChatExplanation": "Your chat is tied to your BikeControl account so we can follow up on issues.",

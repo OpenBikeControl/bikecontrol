@@ -732,6 +732,7 @@
   "feedbackQuestion": "Ça fonctionne ?",
   "feedbackNoDifference": "Aucune différence",
   "supportChat": "Chat de support",
+  "knownIssues": "Problèmes connus",
   "chatWithSupport": "Discuter avec le support",
   "signInToChatWithSupport": "Connecte-toi pour discuter avec le support",
   "signInToChatExplanation": "Ton chat est lié à ton compte BikeControl pour qu'on puisse te recontacter.",
