@@ -1,5 +1,6 @@
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -10,7 +11,7 @@ class SupportOpenIssuesBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (issues.isEmpty) return const SizedBox.shrink();
+    if (issues.filter((e) => e.helpBlogSlug == null).isEmpty) return const SizedBox.shrink();
     final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
@@ -40,7 +41,7 @@ class SupportOpenIssuesBanner extends StatelessWidget {
               ],
             ),
           ),
-          for (final issue in issues)
+          for (final issue in issues.filter((e) => e.helpBlogSlug == null))
             Button.ghost(
               onPressed: () => launchUrlString(
                 'https://bikecontrol.app/issues/${issue.id}',
