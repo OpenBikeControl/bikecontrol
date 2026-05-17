@@ -120,9 +120,14 @@ class _HelpButtonState extends State<HelpButton> {
                       child: Text('GitHub'),
                     ),
                     MenuButton(
-                      leading: Icon(LucideIcons.messageCircle),
+                      leading: Icon(
+                        LucideIcons.messageCircle,
+                        color: _hasUnread ? Theme.of(context).colorScheme.destructive : null,
+                      ),
                       trailing: _hasUnread ? const _UnreadDot() : null,
-                      child: Text(context.i18n.chatWithSupport),
+                      child: _hasUnread
+                          ? Text(context.i18n.chatWithSupport).semiBold
+                          : Text(context.i18n.chatWithSupport),
                       onPressed: (c) async {
                         final screenshot = await captureOverviewScreenshot(context: context);
                         final captured = await debugText();
@@ -166,12 +171,15 @@ class _HelpButtonState extends State<HelpButton> {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  const Icon(LucideIcons.messageCircle),
+                  Icon(
+                    LucideIcons.messageCircle,
+                    color: _hasUnread ? Theme.of(context).colorScheme.destructive : null,
+                  ),
                   if (_hasUnread)
                     const Positioned(
-                      right: -4,
-                      top: -4,
-                      child: _UnreadDot(),
+                      right: -8,
+                      top: -8,
+                      child: _PulsingUnreadBadge(),
                     ),
                 ],
               ),
@@ -181,7 +189,14 @@ class _HelpButtonState extends State<HelpButton> {
                   borderRadius: border,
                   hoverBorderRadius: border,
                 )
-                .withBorder(border: Border.all(width: 0.3, color: Theme.of(context).colorScheme.mutedForeground)),
+                .withBorder(
+                  border: Border.all(
+                    width: _hasUnread ? 1.2 : 0.3,
+                    color: _hasUnread
+                        ? Theme.of(context).colorScheme.destructive
+                        : Theme.of(context).colorScheme.mutedForeground,
+                  ),
+                ),
             child: Padding(
               padding: EdgeInsets.only(
                 bottom: isMobile
@@ -203,11 +218,84 @@ class _UnreadDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 8,
-      height: 8,
+      width: 10,
+      height: 10,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.destructive,
         shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.background,
+          width: 1.5,
+        ),
+      ),
+    );
+  }
+}
+
+/// Animated unread indicator: a red dot with a halo ring that pulses outward.
+/// Used on the Help button's icon overlay so a new support reply is hard to miss.
+class _PulsingUnreadBadge extends StatefulWidget {
+  const _PulsingUnreadBadge();
+
+  @override
+  State<_PulsingUnreadBadge> createState() => _PulsingUnreadBadgeState();
+}
+
+class _PulsingUnreadBadgeState extends State<_PulsingUnreadBadge> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final destructive = Theme.of(context).colorScheme.destructive;
+    final scaleTween = Tween<double>(begin: 1.0, end: 2.6).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+    final opacityTween = Tween<double>(begin: 0.55, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    return IgnorePointer(
+      child: SizedBox(
+        width: 24,
+        height: 24,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (_, _) => Transform.scale(
+                scale: scaleTween.value,
+                child: Opacity(
+                  opacity: opacityTween.value,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: destructive,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const _UnreadDot(),
+          ],
+        ),
       ),
     );
   }
