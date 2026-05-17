@@ -88,11 +88,15 @@ class SupportChatService {
 
   Future<List<SupportIssue>> fetchOpenIssues() async {
     try {
-      final response = await _supabase
-          .from('issues')
-          .select('id, title')
-          .eq('status', 'open')
-          .order('created_at', ascending: false);
+      final trainerApp = core.settings.getTrainerApp();
+      var query = _supabase.from('issues').select('id, title').eq('is_public', true);
+      // trainer_apps is the per-issue scoping array; an empty array = applies to everyone.
+      if (trainerApp != null) {
+        query = query.or('trainer_apps.eq.{},trainer_apps.cs.{${trainerApp.name}}');
+      } else {
+        query = query.eq('trainer_apps', '{}');
+      }
+      final response = await query.order('created_at', ascending: false);
       return response
           .whereType<Map>()
           .map((e) => SupportIssue.fromJson(Map<String, dynamic>.from(e)))
