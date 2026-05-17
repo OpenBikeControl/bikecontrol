@@ -98,6 +98,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
       IntakeCategory.controller => _subcategoryValue != null ? 'device' : null,
       IntakeCategory.smartTrainer => _subcategoryValue != null ? 'issue' : null,
       IntakeCategory.account => _subcategoryValue != null ? 'issue' : null,
+      IntakeCategory.somethingElse => null,
     };
     return IntakeAnswers(
       category: category,
@@ -189,6 +190,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
       IntakeCategory.controller => i18n.supportIntakeCategoryController,
       IntakeCategory.smartTrainer => i18n.supportIntakeCategorySmartTrainer,
       IntakeCategory.account => i18n.supportIntakeCategoryAccount,
+      IntakeCategory.somethingElse => i18n.supportIntakeCategorySomethingElse,
     };
   }
 
@@ -270,6 +272,8 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
             onChanged: _setSubcategory,
           ),
         ];
+      case IntakeCategory.somethingElse:
+        return const [];
     }
   }
 
@@ -452,6 +456,7 @@ class SupportIntakeSummaryChip extends StatelessWidget {
       IntakeCategory.controller => i18n.supportIntakeCategoryController,
       IntakeCategory.smartTrainer => i18n.supportIntakeCategorySmartTrainer,
       IntakeCategory.account => i18n.supportIntakeCategoryAccount,
+      IntakeCategory.somethingElse => i18n.supportIntakeCategorySomethingElse,
     };
   }
 
