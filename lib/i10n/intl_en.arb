@@ -910,6 +910,7 @@
   "supportIntakeCategoryController": "Connection to a controller",
   "supportIntakeCategorySmartTrainer": "Connection to a smart trainer",
   "supportIntakeCategoryAccount": "Account / purchase",
+  "supportIntakeCategorySomethingElse": "Something else",
   "supportIntakeWhichApp": "Which trainer app?",
   "supportIntakeWhichAppPlaceholder": "Pick the app",
   "supportIntakeWhichController": "Which controller?",

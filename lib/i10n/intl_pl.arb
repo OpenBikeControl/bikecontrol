@@ -746,6 +746,7 @@
   "supportIntakeCategoryController": "Połączenie z kontrolerem",
   "supportIntakeCategorySmartTrainer": "Połączenie ze smart trenażerem",
   "supportIntakeCategoryAccount": "Konto / zakup",
+  "supportIntakeCategorySomethingElse": "Coś innego",
   "supportIntakeWhichApp": "Która aplikacja?",
   "supportIntakeWhichAppPlaceholder": "Wybierz aplikację",
   "supportIntakeWhichController": "Który kontroler?",

@@ -36,7 +36,8 @@ enum IntakeCategory {
   trainerApp('trainer_app'),
   controller('controller'),
   smartTrainer('smart_trainer'),
-  account('account');
+  account('account'),
+  somethingElse('something_else');
 
   final String id;
   const IntakeCategory(this.id);
