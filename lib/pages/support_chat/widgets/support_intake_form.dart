@@ -1,5 +1,6 @@
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -67,8 +68,15 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
   void _setCategory(IntakeCategory? next) {
     setState(() {
       _category = next;
-      _subcategoryValue = null;
       _symptom = null;
+      // Pre-fill the trainer-app branch from settings when available — the UI
+      // hides the "Which app?" dropdown in that case.
+      if (next == IntakeCategory.trainerApp) {
+        final preselected = core.settings.getTrainerApp();
+        _subcategoryValue = preselected?.name;
+      } else {
+        _subcategoryValue = null;
+      }
     });
     _refreshIssues();
   }
@@ -188,30 +196,47 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
     final category = _category!;
     switch (category) {
       case IntakeCategory.trainerApp:
+        // Skip the "Which app?" dropdown when the user has already chosen a
+        // trainer app in settings — _setCategory() pre-fills _subcategoryValue.
+        final preselectedApp = core.settings.getTrainerApp();
         return [
-          _label(context.i18n.supportIntakeWhichApp),
-          const Gap(4),
-          _stringSelect(
-            value: _subcategoryValue,
-            placeholder: context.i18n.supportIntakeWhichAppPlaceholder,
-            options: trainerAppOptions().map((o) => (id: o.id, label: o.label)).toList(),
-            onChanged: _setSubcategory,
-          ),
-          const Gap(12),
+          if (preselectedApp == null) ...[
+            _label(context.i18n.supportIntakeWhichApp),
+            const Gap(4),
+            _stringSelect(
+              value: _subcategoryValue,
+              placeholder: context.i18n.supportIntakeWhichAppPlaceholder,
+              options: trainerAppOptions().map((o) => (id: o.id, label: o.label)).toList(),
+              onChanged: _setSubcategory,
+            ),
+            const Gap(12),
+          ],
           _label(context.i18n.supportIntakeWhatHappens),
           const Gap(4),
           _symptomSelect(trainerAppSymptoms),
         ];
       case IntakeCategory.controller:
+        // Restrict to controllers the user actually has paired so the list
+        // is short and obvious. Fall back to the full catalogue when no
+        // controller is connected — the user may be reporting "controller
+        // won't pair at all" and still needs to pick one.
+        final connectedIds = core.connection.controllerDevices
+            .where((d) => d.isConnected)
+            .map(controllerOptionIdFor)
+            .whereType<String>()
+            .toSet();
+        final options = (connectedIds.isEmpty
+                ? controllerOptions
+                : controllerOptions.where((o) => connectedIds.contains(o.id) || o.id == 'other'))
+            .map((o) => (id: o.id, label: o.label))
+            .toList(growable: false);
         return [
           _label(context.i18n.supportIntakeWhichController),
           const Gap(4),
           _stringSelect(
             value: _subcategoryValue,
             placeholder: context.i18n.supportIntakeWhichControllerPlaceholder,
-            options: controllerOptions
-                .map((o) => (id: o.id, label: o.label))
-                .toList(growable: false),
+            options: options,
             onChanged: _setSubcategory,
           ),
           const Gap(12),

@@ -14,6 +14,22 @@
 /// slugs.
 library;
 
+import '../../bluetooth/devices/base_device.dart';
+import '../../bluetooth/devices/cycplus/cycplus_bc2.dart';
+import '../../bluetooth/devices/elite/elite_square.dart';
+import '../../bluetooth/devices/elite/elite_sterzo.dart';
+import '../../bluetooth/devices/gamepad/gamepad_device.dart';
+import '../../bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import '../../bluetooth/devices/hid/hid_device.dart';
+import '../../bluetooth/devices/shimano/shimano_di2.dart';
+import '../../bluetooth/devices/sram/sram_axs.dart';
+import '../../bluetooth/devices/thinkrider/thinkrider_vs200.dart';
+import '../../bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
+import '../../bluetooth/devices/zwift/constants.dart';
+import '../../bluetooth/devices/zwift/zwift_click.dart';
+import '../../bluetooth/devices/zwift/zwift_clickv2.dart';
+import '../../bluetooth/devices/zwift/zwift_play.dart';
+import '../../bluetooth/devices/zwift/zwift_ride.dart';
 import '../keymap/apps/supported_app.dart';
 
 enum IntakeCategory {
@@ -96,6 +112,33 @@ const accountSymptoms = <SymptomOption>[
   SymptomOption('refund_request', 'Refund request'),
   SymptomOption('other', 'Something else'),
 ];
+
+/// Map a paired device to its intake-form controller option id, so we can
+/// narrow the "Which controller?" dropdown to controllers the user actually
+/// has paired. Returns `null` when the device doesn't correspond to a
+/// controller option (e.g. a smart trainer proxy device).
+///
+/// `ZwiftClickV2 extends ZwiftRide` — keep the V2 check first.
+String? controllerOptionIdFor(BaseDevice device) {
+  if (device is ZwiftClickV2) return 'zwift_click_v2';
+  if (device is ZwiftClick) return 'zwift_click';
+  if (device is ZwiftPlay) {
+    return device.deviceType == ZwiftDeviceType.playLeft
+        ? 'zwift_play_left'
+        : 'zwift_play_right';
+  }
+  if (device is ZwiftRide) return 'zwift_ride';
+  if (device is ShimanoDi2) return 'shimano_di2';
+  if (device is SramAxs) return 'sram_axs';
+  if (device is WahooKickrBikeShift) return 'wahoo';
+  if (device is CycplusBc2) return 'cycplus';
+  if (device is EliteSquare || device is EliteSterzo) return 'elite';
+  if (device is ThinkRiderVs200) return 'thinkrider';
+  if (device is GamepadDevice) return 'gamepad';
+  if (device is HidDevice) return 'hid_keyboard';
+  if (device is GyroscopeSteering) return 'gyroscope';
+  return null;
+}
 
 /// Trainer-app dropdown ("Which app?") — pulled from `SupportedApp.supportedApps`
 /// so the IDs are the same display names already stored in
