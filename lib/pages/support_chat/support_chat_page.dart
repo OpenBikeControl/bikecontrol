@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/pages/support_chat/support_thread_page.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_composer.dart';
+import 'package:bike_control/pages/support_chat/widgets/support_intake_form.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_message_group.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_open_issues_banner.dart';
 import 'package:bike_control/services/support_chat_models.dart';
@@ -10,6 +11,7 @@ import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/material.dart' show BackButton, RefreshIndicator;
@@ -52,6 +54,9 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
   final List<SupportMessage> _pendingMessages = [];
   bool _sending = false;
   List<SupportIssue> _openIssues = const [];
+  IntakeAnswers? _intakeAnswers;
+  bool _intakeSent = false;
+  bool _editingIntake = false;
 
   @override
   void initState() {
@@ -172,17 +177,22 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         );
         attachments.add(upload);
       }
+      final intakePayload = (!_intakeSent && _intakeAnswers != null)
+          ? _intakeAnswers!.toJson()
+          : null;
       final sent = await _service.sendMessage(
         chatId: chat.id,
         body: body,
         attachments: attachments,
         telemetry: telemetry.toJson(),
+        intakeAnswers: intakePayload,
       );
       if (!mounted) return;
       setState(() {
         _pendingMessages.removeWhere((m) => m.id == placeholderId);
         _messages = [..._messages, sent];
         _sending = false;
+        if (intakePayload != null) _intakeSent = true;
       });
     } on SupportChatException catch (e) {
       if (!mounted) return;
@@ -262,16 +272,27 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         ),
       );
     }
+    final hasMessages = _messages.isNotEmpty || _pendingMessages.isNotEmpty;
+    // Gate the composer on a NEW chat (no messages yet) until the intake form
+    // is submitted. Once any message exists, the composer is always shown so
+    // existing conversations remain unaffected.
+    final showComposer = hasMessages || _intakeAnswers != null;
     return Column(
       children: [
         Expanded(child: _messageList()),
-        SupportComposer(
-          sending: _sending,
-          onSend: _send,
-          diagnosticPreview: widget.diagnosticPreview,
-          initialText: widget.initialText,
-          initialAttachment: widget.initialAttachment,
-        ),
+        if (showComposer && !_intakeSent && _intakeAnswers != null && !_editingIntake)
+          SupportIntakeSummaryChip(
+            answers: _intakeAnswers!,
+            onEdit: () => setState(() => _editingIntake = true),
+          ),
+        if (showComposer)
+          SupportComposer(
+            sending: _sending,
+            onSend: _send,
+            diagnosticPreview: widget.diagnosticPreview,
+            initialText: widget.initialText,
+            initialAttachment: widget.initialAttachment,
+          ),
       ],
     );
   }
@@ -289,6 +310,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
 
     if (rootMessages.isEmpty && _pendingMessages.isEmpty) {
       final cs = Theme.of(context).colorScheme;
+      final showForm = _intakeAnswers == null || _editingIntake;
       return RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
@@ -322,13 +344,25 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
               ],
             ),
             const SizedBox(height: 16),
-            Center(
-              child: Text(
-                context.i18n.supportChatEmpty,
-                style: TextStyle(color: cs.mutedForeground),
-                textAlign: TextAlign.center,
+            if (showForm)
+              SupportIntakeForm(
+                service: _service,
+                initial: _intakeAnswers,
+                onContinue: (answers) {
+                  setState(() {
+                    _intakeAnswers = answers;
+                    _editingIntake = false;
+                  });
+                },
+              )
+            else
+              Center(
+                child: Text(
+                  context.i18n.supportChatEmpty,
+                  style: TextStyle(color: cs.mutedForeground),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
           ],
         ),
       );

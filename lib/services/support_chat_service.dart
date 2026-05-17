@@ -86,15 +86,30 @@ class SupportChatService {
     }
   }
 
-  Future<List<SupportIssue>> fetchOpenIssues() async {
+  Future<List<SupportIssue>> fetchOpenIssues({
+    String? problemCategory,
+    Iterable<String> problemSubcategories = const [],
+  }) async {
     try {
       final trainerApp = core.settings.getTrainerApp();
-      var query = _supabase.from('issues').select('id, title').eq('is_public', true);
+      var query = _supabase
+          .from('issues')
+          .select('id, title, description, help_blog_slug, help_video_url')
+          .eq('is_public', true);
       // trainer_apps is the per-issue scoping array; an empty array = applies to everyone.
       if (trainerApp != null) {
         query = query.or('trainer_apps.eq.{},trainer_apps.cs.{${trainerApp.name}}');
       } else {
         query = query.eq('trainer_apps', '{}');
+      }
+      if (problemCategory != null) {
+        query = query.or('problem_categories.eq.{},problem_categories.cs.{$problemCategory}');
+      }
+      final subs = problemSubcategories.where((s) => s.isNotEmpty).toList(growable: false);
+      if (subs.isNotEmpty) {
+        // Build `{a,b}` literal carefully — slugs are snake_case ASCII, no quoting needed.
+        final subsList = subs.join(',');
+        query = query.or('problem_subcategories.eq.{},problem_subcategories.cs.{$subsList}');
       }
       final response = await query.order('created_at', ascending: false);
       return response
@@ -138,6 +153,7 @@ class SupportChatService {
     String? parentMessageId,
     List<SupportAttachmentUpload> attachments = const [],
     Map<String, dynamic> telemetry = const {},
+    Map<String, dynamic>? intakeAnswers,
   }) async {
     final session = _requireSession();
     final payload = <String, dynamic>{
@@ -145,6 +161,7 @@ class SupportChatService {
       'body': body.trim(),
       if (parentMessageId != null) 'parent_message_id': parentMessageId,
       if (attachments.isNotEmpty) 'attachment_paths': attachments.map((a) => a.toJson()).toList(growable: false),
+      if (intakeAnswers != null) 'intake_answers': intakeAnswers,
       ...telemetry,
     };
 

@@ -137,13 +137,25 @@ class SupportAttachmentUpload {
 class SupportIssue {
   final String id;
   final String title;
+  final String? description;
+  final String? helpBlogSlug;
+  final String? helpVideoUrl;
 
-  const SupportIssue({required this.id, required this.title});
+  const SupportIssue({
+    required this.id,
+    required this.title,
+    this.description,
+    this.helpBlogSlug,
+    this.helpVideoUrl,
+  });
 
   factory SupportIssue.fromJson(Map<String, dynamic> json) {
     return SupportIssue(
       id: json['id'] as String,
       title: (json['title'] as String?) ?? '',
+      description: json['description'] as String?,
+      helpBlogSlug: json['help_blog_slug'] as String?,
+      helpVideoUrl: json['help_video_url'] as String?,
     );
   }
 }
