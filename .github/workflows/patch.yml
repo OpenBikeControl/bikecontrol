@@ -87,7 +87,7 @@ jobs:
         with:
           platform: macos
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch Android
         if: inputs.build_android
@@ -95,7 +95,7 @@ jobs:
         with:
           platform: android
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch iOS
         if: inputs.build_ios
@@ -103,7 +103,17 @@ jobs:
         with:
           platform: ios
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+
+      - name: Zip Symbols
+        run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols.zip symbols/
+
+      - name: Upload Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Symbols
+          path: symbols.zip
 
   windows:
     name: Patch Windows
@@ -136,4 +146,16 @@ jobs:
         with:
           platform: windows
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs --  --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols --  --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+
+      - name: Zip Windows Symbols
+        shell: pwsh
+        run: |
+          7z a -p"${{ secrets.ZIP_PASSWORD }}" symbols-win.zip symbols-win/ build/windows/x64/runner/Release/*.pdb
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Windows Symbols
+          path: symbols-win.zip
