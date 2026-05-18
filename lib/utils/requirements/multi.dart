@@ -9,7 +9,6 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -58,7 +57,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
     final currentState = await UniversalBle.getBluetoothAvailabilityState();
     if (!kIsWeb && Platform.isIOS) {
       // on iOS we cannot programmatically enable Bluetooth, just open settings
-      await PeripheralManager().showAppSettings();
+      await openAppSettings();
     } else if (currentState == AvailabilityState.poweredOff) {
       if (Platform.isMacOS) {
         buildToast(title: name);
