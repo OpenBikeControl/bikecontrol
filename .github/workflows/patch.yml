@@ -146,7 +146,7 @@ jobs:
         with:
           platform: windows
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols --  --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols-win --  --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: Zip Windows Symbols
         shell: pwsh
