@@ -179,6 +179,15 @@ class Connection {
               "Error executing script for ${device.runtimeType} and char: $characteristicUuid: $e\n$backtrace",
             ),
           );
+          if (e is FormatException) {
+            final deviceType = device.runtimeType.toString();
+            await DeviceScriptService.instance.deleteScript(deviceType);
+            _actionStreams.add(
+              LogNotification(
+                "Deactivated custom script for ${device.runtimeType} due to invalid output format.",
+              ),
+            );
+          }
           if (kDebugMode) {
             print(e);
             print("backtrace: $backtrace");
