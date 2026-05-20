@@ -85,10 +85,19 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
       ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
       ftmsEmulator.isUnlocked.addListener(_isConnectedUpdate);
       ftmsEmulator.alreadyUnlocked.addListener(_isConnectedUpdate);
-      ftmsEmulator.startServer().then((_) {}).catchError((e, s) {
-        recordError(e, s, context: 'Emulator');
-        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
-      });
+      // The standalone emulator may not yet know about this Click — when the
+      // Click was attached to a trainer's emulator at connect-time,
+      // ZwiftClickV2 deliberately skips setScanResult on the standalone.
+      // Seed it here so startServer() doesn't throw "Scan result not set".
+      if (ftmsEmulator.scanResult == null) {
+        ftmsEmulator.setScanResult(widget.device.scanResult);
+      }
+      if (!ftmsEmulator.isStarted.value) {
+        ftmsEmulator.startServer().then((_) {}).catchError((e, s) {
+          recordError(e, s, context: 'Emulator');
+          core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+        });
+      }
     }
   }
 

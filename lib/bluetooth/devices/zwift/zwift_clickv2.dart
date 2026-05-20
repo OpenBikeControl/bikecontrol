@@ -128,7 +128,9 @@ class ZwiftClickV2 extends ZwiftRide {
       isStarted: ftmsEmulator.isStarted,
       connectionDate: ftmsEmulator.connectionDate ?? DateTime.now(),
     );
-    await _currentEmulator.attachDefinition(_clickDef!);
+    await _currentEmulator.attachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
+      recordError(e, s, context: 'ZwiftClickV2.handleServices');
+    });
     if (identical(_currentEmulator, ftmsEmulator) && !_currentEmulator.isStarted.value) {
       await _currentEmulator.startServer();
     }
@@ -332,7 +334,9 @@ class ZwiftClickV2 extends ZwiftRide {
       return;
     }
 
-    await _currentEmulator.detachDefinition(clickDef);
+    await _currentEmulator.detachDefinition(clickDef).catchError((Object e, StackTrace s) {
+      recordError(e, s, context: 'ZwiftClickV2.rebindDetach');
+    });
     // If we're leaving the standalone for a trainer's emulator, stop the
     // standalone so we don't leak a second peripheral.
     if (identical(_currentEmulator, ftmsEmulator) && !identical(target, ftmsEmulator)) {
@@ -343,7 +347,9 @@ class ZwiftClickV2 extends ZwiftRide {
       _currentEmulator.setScanResult(scanResult);
       _currentEmulator.handleServices(services);
     }
-    await _currentEmulator.attachDefinition(clickDef);
+    await _currentEmulator.attachDefinition(clickDef).catchError((Object e, StackTrace s) {
+      recordError(e, s, context: 'ZwiftClickV2.rebindAttach');
+    });
     if (identical(_currentEmulator, ftmsEmulator) && !_currentEmulator.isStarted.value) {
       await _currentEmulator.startServer();
     }
@@ -354,7 +360,9 @@ class ZwiftClickV2 extends ZwiftRide {
     EmulatorRegistry.instance.sharedTrainerEmulator.removeListener(_onSharedTrainerChangedListener);
     final clickDef = _clickDef;
     if (clickDef != null) {
-      await _currentEmulator.detachDefinition(clickDef);
+      await _currentEmulator.detachDefinition(clickDef).catchError((Object e, StackTrace s) {
+        recordError(e, s, context: 'ZwiftClickV2.disconnect');
+      });
       _clickDef = null;
     }
     await super.disconnect();
