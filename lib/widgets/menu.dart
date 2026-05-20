@@ -132,7 +132,7 @@ String _describeProxyDevice(ProxyDevice device) {
       ? 'bridged'
       : 'started';
   final mode = emulator.retrofitMode.value.name;
-  final def = emulator.activeDefinition;
+  final def = emulator.fitnessBike;
   final defKind = def == null ? 'none' : def.runtimeType.toString();
 
   final parts = <String>[
@@ -143,7 +143,7 @@ String _describeProxyDevice(ProxyDevice device) {
   ];
   if (device.firmwareVersion != null) parts.add('fw=${device.firmwareVersion}');
   if (device.manufacturerName != null) parts.add('mfg=${device.manufacturerName}');
-  if (def is FitnessBikeDefinition) {
+  if (def != null) {
     parts.add('gear=${def.currentGear.value}/${def.maxGear}');
     parts.add('trainerMode=${def.trainerMode.value.name}');
   }
