@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/emulator_registry.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -59,6 +60,7 @@ class ProxyDevice extends BluetoothDevice {
     emulator.trainerName = () => core.settings.getTrainerApp()?.name ?? 'BikeControl';
     emulator.isConnected.addListener(_syncBridgeTracking);
     emulator.retrofitMode.addListener(_syncBridgeTracking);
+    EmulatorRegistry.instance.sharedTrainerEmulator.value = emulator;
   }
 
   void _syncBridgeTracking() {
@@ -454,6 +456,11 @@ class ProxyDevice extends BluetoothDevice {
     _bridgeBudgetSub?.cancel();
     _bridgeBudgetSub = null;
     core.bridgeUsageTracker.stopSession();
+    // Guard against clearing a newer ProxyDevice's registration if two
+    // ProxyDevices were ever connected in sequence.
+    if (identical(EmulatorRegistry.instance.sharedTrainerEmulator.value, emulator)) {
+      EmulatorRegistry.instance.sharedTrainerEmulator.value = null;
+    }
     emulator.stop();
     return super.disconnect();
   }
