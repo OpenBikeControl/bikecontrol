@@ -247,16 +247,34 @@ class ProxyDevice extends BluetoothDevice {
   @override
   Future<void> handleServices(List<BleService> services) async {
     _services = services;
-    _proxyEmulator.setScanResult(scanResult);
-    _proxyEmulator.handleServices(services);
+    final mode = _retrofitModeN.value;
 
     try {
-      await _proxyEmulator.startServer();
+      if (mode == RetrofitMode.proxy) {
+        _proxyEmulator.setScanResult(scanResult);
+        _proxyEmulator.handleServices(services);
+        await _proxyEmulator.startServer();
+      } else {
+        // VS modes (wifi / bluetooth): the FBD lives in the shared
+        // ftmsEmulator. setScanResult / handleServices on the shared one
+        // give it this trainer's identity for mDNS advertising.
+        _configureSharedEmulator();
+        ftmsEmulator.setScanResult(scanResult);
+        ftmsEmulator.handleServices(services);
+        ftmsEmulator.setRetrofitMode(mode);
+        if (!ftmsEmulator.isStarted.value) {
+          await ftmsEmulator.startServer();
+        } else if (ftmsEmulator.retrofitMode.value != mode) {
+          await ftmsEmulator.switchRetrofitMode(mode);
+        }
+        _fbd = ftmsEmulator.fitnessBike;
+      }
+
       applyTrainerSettings();
       // Read the trainer's FTMS Feature map proactively so the UI can gate
       // virtual-shifting options and the feedback payload can report it. Runs
       // off the critical path — failures just leave trainerFeature null.
-      final def = _proxyEmulator.fitnessBike;
+      final def = emulator.fitnessBike;
       if (def != null) unawaited(def.probeTrainerFeatures());
       onChange.value = 'Connected to ${scanResult.name}';
 
@@ -264,9 +282,19 @@ class ProxyDevice extends BluetoothDevice {
         _announceBridgeTrialOver();
       }
     } catch (e) {
-      core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start emulator: $e'));
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start emulator: $e'),
+      );
       onChange.value = 'Failed to start emulator: $e';
-      _proxyEmulator.stop();
+      if (mode == RetrofitMode.proxy) {
+        _proxyEmulator.stop();
+      } else if (_fbd != null) {
+        await ftmsEmulator.detachDefinition(_fbd!).catchError((_) {});
+        _fbd = null;
+        if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
+          ftmsEmulator.stop();
+        }
+      }
       disconnect();
     }
   }
