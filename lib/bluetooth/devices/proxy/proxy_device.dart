@@ -163,8 +163,8 @@ class ProxyDevice extends BluetoothDevice {
       // Read the trainer's FTMS Feature map proactively so the UI can gate
       // virtual-shifting options and the feedback payload can report it. Runs
       // off the critical path — failures just leave trainerFeature null.
-      final def = emulator.activeDefinition;
-      if (def is FitnessBikeDefinition) unawaited(def.probeTrainerFeatures());
+      final def = emulator.fitnessBike;
+      if (def != null) unawaited(def.probeTrainerFeatures());
       onChange.value = 'Connected to ${scanResult.name}';
 
       if (_isBridgeTrialOver) {
@@ -211,8 +211,8 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   void applyTrainerSettings() {
-    final def = emulator.activeDefinition;
-    if (def is! FitnessBikeDefinition) return;
+    final def = emulator.fitnessBike;
+    if (def == null) return;
     _seedFitnessBikeDefinition(def);
   }
 
@@ -238,27 +238,28 @@ class ProxyDevice extends BluetoothDevice {
           valueListenable: emulator.data,
           builder: (context, value, _) {
             if (value.isEmpty) return Text('Waiting for connection...').xSmall.muted;
-            final def = emulator.activeDefinition;
+            final proxyDef = emulator.composite.firstOfType<ProxyBikeDefinition>();
+            final fitnessDef = emulator.fitnessBike;
             final parts = <Widget>[];
-            if (def is ProxyBikeDefinition) {
-              _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
-              _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
-              _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
-              final speed = def.speedKph.value;
+            if (proxyDef != null) {
+              _addMetric(parts, context, proxyDef.powerW.value, 'W', LucideIcons.zap);
+              _addMetric(parts, context, proxyDef.heartRateBpm.value, 'bpm', LucideIcons.heart);
+              _addMetric(parts, context, proxyDef.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
+              final speed = proxyDef.speedKph.value;
               if (speed != null) {
                 _addMetric(parts, context, units.fromKph(speed).round(), units.speedSymbol, LucideIcons.gauge);
               }
-            } else if (def is FitnessBikeDefinition) {
-              _addMetric(parts, context, def.powerW.value, 'W', LucideIcons.zap);
-              _addMetric(parts, context, def.heartRateBpm.value, 'bpm', LucideIcons.heart);
-              _addMetric(parts, context, def.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
-              final speed = def.speedKph.value;
+            } else if (fitnessDef != null) {
+              _addMetric(parts, context, fitnessDef.powerW.value, 'W', LucideIcons.zap);
+              _addMetric(parts, context, fitnessDef.heartRateBpm.value, 'bpm', LucideIcons.heart);
+              _addMetric(parts, context, fitnessDef.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
+              final speed = fitnessDef.speedKph.value;
               if (speed != null) {
                 _addMetric(parts, context, units.fromKph(speed).round(), units.speedSymbol, LucideIcons.gauge);
               }
               // Gear (sim / VS mode) or ERG target wattage (erg mode).
-              if (def.trainerMode.value == TrainerMode.ergMode) {
-                final watts = def.ergTargetPower.value;
+              if (fitnessDef.trainerMode.value == TrainerMode.ergMode) {
+                final watts = fitnessDef.ergTargetPower.value;
                 if (watts != null) {
                   _addTextMetric(parts, context, 'ERG $watts W', LucideIcons.target);
                 }
@@ -266,7 +267,7 @@ class ProxyDevice extends BluetoothDevice {
                 _addTextMetric(
                   parts,
                   context,
-                  'Gear ${def.currentGear.value}/${def.maxGear}',
+                  'Gear ${fitnessDef.currentGear.value}/${fitnessDef.maxGear}',
                   LucideIcons.settings2,
                 );
               }
@@ -358,8 +359,8 @@ class ProxyDevice extends BluetoothDevice {
 
   ActionResult handleTrainerAction(InGameAction action) {
     final l10n = AppLocalizations.current;
-    final def = emulator.activeDefinition;
-    if (def is! FitnessBikeDefinition) {
+    final def = emulator.fitnessBike;
+    if (def == null) {
       // Internal-only diagnostic; not user-visible toast copy.
       return NotHandled('No active FitnessBikeDefinition');
     }

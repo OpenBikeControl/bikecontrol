@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:prop/emulators/definitions/composite_ble_definition.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
 
@@ -19,7 +20,17 @@ class TrainerMetrics {
   });
 
   /// Returns null when [definition] is not a supported bike definition.
+  ///
+  /// Accepts a [CompositeBleDefinition] and extracts the first supported child,
+  /// so callers can pass [DirconEmulator.activeDefinition] directly.
   static TrainerMetrics? fromDefinition(Object? definition) {
+    if (definition is CompositeBleDefinition) {
+      final fbd = definition.firstOfType<FitnessBikeDefinition>();
+      if (fbd != null) return fromDefinition(fbd);
+      final proxy = definition.firstOfType<ProxyBikeDefinition>();
+      if (proxy != null) return fromDefinition(proxy);
+      return null;
+    }
     if (definition is FitnessBikeDefinition) {
       return TrainerMetrics(
         powerW: definition.powerW,

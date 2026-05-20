@@ -5,7 +5,6 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
-import 'package:prop/prop.dart' hide TrainerMode;
 
 /// Telemetry payload attached to each support chat message.
 ///
@@ -50,8 +49,7 @@ class TelemetrySnapshot {
     required ProxyDevice device,
     String? freetextOverride,
   }) {
-    final def = device.emulator.activeDefinition;
-    final fitnessDef = def is FitnessBikeDefinition ? def : null;
+    final fitnessDef = device.emulator.fitnessBike;
     final cfg = core.shiftingConfigs.activeFor(device.trainerKey);
 
     return TelemetrySnapshot(

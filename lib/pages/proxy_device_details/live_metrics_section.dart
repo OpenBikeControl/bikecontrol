@@ -3,7 +3,6 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:flutter/foundation.dart';
-import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -12,21 +11,22 @@ class LiveMetricsSection extends StatelessWidget {
   const LiveMetricsSection({super.key, required this.device});
 
   _LiveMetrics? _metrics() {
-    final def = device.emulator.activeDefinition;
-    if (def is ProxyBikeDefinition) {
+    final proxyDef = device.emulator.composite.firstOfType<ProxyBikeDefinition>();
+    if (proxyDef != null) {
       return _LiveMetrics(
-        power: def.powerW,
-        heartRate: def.heartRateBpm,
-        cadence: def.cadenceRpm,
-        speed: def.speedKph,
+        power: proxyDef.powerW,
+        heartRate: proxyDef.heartRateBpm,
+        cadence: proxyDef.cadenceRpm,
+        speed: proxyDef.speedKph,
       );
     }
-    if (def is FitnessBikeDefinition) {
+    final fitnessDef = device.emulator.fitnessBike;
+    if (fitnessDef != null) {
       return _LiveMetrics(
-        power: def.powerW,
-        heartRate: def.heartRateBpm,
-        cadence: def.cadenceRpm,
-        speed: def.speedKph,
+        power: fitnessDef.powerW,
+        heartRate: fitnessDef.heartRateBpm,
+        cadence: fitnessDef.cadenceRpm,
+        speed: fitnessDef.speedKph,
       );
     }
     return null;

@@ -404,7 +404,7 @@ Future<void> main() async {
           home: BikeControlApp(
             customChild: GearRatiosEditorPage(
               device: proxy,
-              definition: proxy.emulator.activeDefinition as FitnessBikeDefinition,
+              definition: proxy.emulator.fitnessBike!,
             ),
           ),
         ),

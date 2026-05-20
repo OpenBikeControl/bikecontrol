@@ -15,7 +15,6 @@ import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:version/version.dart';
 
@@ -80,8 +79,8 @@ class _NavigationState extends State<Navigation> {
   bool _tryAutoShowOverlayFor(BaseDevice device) {
     if (device is! ProxyDevice) return false;
     if (!device.isSmartTrainer || !device.isConnected) return false;
-    final def = device.emulator.activeDefinition;
-    if (def is! FitnessBikeDefinition) return false;
+    final def = device.emulator.fitnessBike;
+    if (def == null) return false;
 
     final controller = TrainerOverlayService.forCurrentPlatform();
     if (controller.isShowing.value) return true;
@@ -92,10 +91,7 @@ class _NavigationState extends State<Navigation> {
       // The emulator rebinds a new FitnessBikeDefinition each time a trainer
       // app connects, so capturing `def` here would freeze action handling
       // against a stale instance.
-      liveDef: () {
-        final live = device.emulator.activeDefinition;
-        return live is FitnessBikeDefinition ? live : null;
-      },
+      liveDef: () => device.emulator.fitnessBike,
     );
     return true;
   }

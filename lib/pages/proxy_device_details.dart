@@ -110,7 +110,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 _gearSection(),
                 SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
-                    widget.device.emulator.activeDefinition is FitnessBikeDefinition &&
+                    widget.device.emulator.fitnessBike != null &&
                     !screenshotMode) ...[
                   ValueListenableBuilder<Duration>(
                     valueListenable: core.bridgeUsageTracker.usedTodayListenable,
@@ -261,14 +261,14 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   }
 
   Widget _gearSection() {
-    final def = widget.device.emulator.activeDefinition;
-    if (def is! FitnessBikeDefinition) return const SizedBox.shrink();
+    final def = widget.device.emulator.fitnessBike;
+    if (def == null) return const SizedBox.shrink();
     return GearHeroCard(definition: def);
   }
 
   Widget _settingsSection() {
-    final def = widget.device.emulator.activeDefinition;
-    if (def is! FitnessBikeDefinition) return const SizedBox.shrink();
+    final def = widget.device.emulator.fitnessBike;
+    if (def == null) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10,
