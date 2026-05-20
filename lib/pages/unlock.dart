@@ -1,7 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -79,25 +78,9 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         core.settings.setObpMdnsEnabled(false);
       }
 
-      ftmsEmulator.isUnlocked.value = false;
-      ftmsEmulator.alreadyUnlocked.value = false;
-      ftmsEmulator.waiting.value = false;
       ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
       ftmsEmulator.isUnlocked.addListener(_isConnectedUpdate);
       ftmsEmulator.alreadyUnlocked.addListener(_isConnectedUpdate);
-      // The standalone emulator may not yet know about this Click — when the
-      // Click was attached to a trainer's emulator at connect-time,
-      // ZwiftClickV2 deliberately skips setScanResult on the standalone.
-      // Seed it here so startServer() doesn't throw "Scan result not set".
-      if (ftmsEmulator.scanResult == null) {
-        ftmsEmulator.setScanResult(widget.device.scanResult);
-      }
-      if (!ftmsEmulator.isStarted.value) {
-        ftmsEmulator.startServer().then((_) {}).catchError((e, s) {
-          recordError(e, s, context: 'Emulator');
-          core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
-        });
-      }
     }
   }
 
@@ -108,7 +91,6 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
       ftmsEmulator.isConnected.removeListener(_isConnectedUpdate);
       ftmsEmulator.isUnlocked.removeListener(_isConnectedUpdate);
       ftmsEmulator.alreadyUnlocked.removeListener(_isConnectedUpdate);
-      ftmsEmulator.stop();
 
       if (_wasZwiftMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.startServer();

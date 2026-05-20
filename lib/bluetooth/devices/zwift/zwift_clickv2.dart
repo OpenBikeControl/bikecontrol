@@ -23,7 +23,6 @@ final DirconEmulator ftmsEmulator = DirconEmulator();
 class ZwiftClickV2 extends ZwiftRide {
   DirconEmulator _currentEmulator = ftmsEmulator;
   ZwiftClickDefinition? _clickDef;
-  List<BleService>? _cachedServices;
   late final VoidCallback _onSharedTrainerChangedListener = _onSharedTrainerChanged;
 
   ZwiftClickV2(super.scanResult)
@@ -43,9 +42,10 @@ class ZwiftClickV2 extends ZwiftRide {
         ],
       ) {
     _currentEmulator = EmulatorRegistry.instance.resolveFor(standalone: ftmsEmulator);
-    if (identical(_currentEmulator, ftmsEmulator)) {
-      _currentEmulator.setScanResult(scanResult);
-    }
+    // The standalone ftmsEmulator always owns the Click as its "primary device"
+    // for unlock-UI purposes (connectionDate, scanResult display), regardless of
+    // which emulator hosts the ZwiftClickDefinition right now.
+    ftmsEmulator.setScanResult(scanResult);
     EmulatorRegistry.instance.sharedTrainerEmulator.addListener(_onSharedTrainerChangedListener);
   }
 
@@ -108,15 +108,17 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    _cachedServices = services;
-    // Click's BLE info lives inside the ZwiftClickDefinition (services /
-    // device args). The emulator-level scanResult / services fields belong
-    // to the EMULATOR's primary device — the trainer for trainer's
-    // emulator, the Click for the standalone. Don't overwrite the
-    // trainer's identity here.
-    if (identical(_currentEmulator, ftmsEmulator)) {
-      _currentEmulator.handleServices(services);
-    }
+    // The standalone owns the Click's BLE identity for the unlock UI. Always
+    // seed it — never call setScanResult/handleServices on the trainer's
+    // emulator (that would corrupt its mDNS advertisement).
+    ftmsEmulator.handleServices(services);
+
+    // Clear stale unlock-state notifiers so a reconnect doesn't show
+    // leftover "already unlocked" / "waiting" from a previous attempt.
+    ftmsEmulator.isUnlocked.value = false;
+    ftmsEmulator.alreadyUnlocked.value = false;
+    ftmsEmulator.waiting.value = false;
+
     _clickDef = ZwiftClickDefinition(
       services: services,
       device: scanResult,
@@ -128,12 +130,19 @@ class ZwiftClickV2 extends ZwiftRide {
       isStarted: ftmsEmulator.isStarted,
       connectionDate: ftmsEmulator.connectionDate ?? DateTime.now(),
     );
+
     await _currentEmulator.attachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
       recordError(e, s, context: 'ZwiftClickV2.handleServices');
     });
+
+    // Start the standalone advertisement only when no trainer is hosting
+    // the Click def. When a trainer is connected, ProxyDevice already
+    // started the trainer's emulator which now advertises both services
+    // via the composite.
     if (identical(_currentEmulator, ftmsEmulator) && !_currentEmulator.isStarted.value) {
       await _currentEmulator.startServer();
     }
+
     await super.handleServices(services);
   }
 
@@ -327,9 +336,7 @@ class ZwiftClickV2 extends ZwiftRide {
     final target = EmulatorRegistry.instance.resolveFor(standalone: ftmsEmulator);
     if (identical(target, _currentEmulator)) return;
     final clickDef = _clickDef;
-    final services = _cachedServices;
-    if (clickDef == null || services == null) {
-      // We haven't attached yet — just remember the new target.
+    if (clickDef == null) {
       _currentEmulator = target;
       return;
     }
@@ -337,19 +344,19 @@ class ZwiftClickV2 extends ZwiftRide {
     await _currentEmulator.detachDefinition(clickDef).catchError((Object e, StackTrace s) {
       recordError(e, s, context: 'ZwiftClickV2.rebindDetach');
     });
-    // If we're leaving the standalone for a trainer's emulator, stop the
-    // standalone so we don't leak a second peripheral.
+
+    // Leaving the standalone for a trainer's emulator: stop the standalone
+    // so we don't keep a second peripheral advertising.
     if (identical(_currentEmulator, ftmsEmulator) && !identical(target, ftmsEmulator)) {
       _currentEmulator.stop();
     }
+
     _currentEmulator = target;
-    if (identical(_currentEmulator, ftmsEmulator)) {
-      _currentEmulator.setScanResult(scanResult);
-      _currentEmulator.handleServices(services);
-    }
     await _currentEmulator.attachDefinition(clickDef).catchError((Object e, StackTrace s) {
       recordError(e, s, context: 'ZwiftClickV2.rebindAttach');
     });
+
+    // Coming back from a trainer's emulator to the standalone — start it.
     if (identical(_currentEmulator, ftmsEmulator) && !_currentEmulator.isStarted.value) {
       await _currentEmulator.startServer();
     }
@@ -358,12 +365,16 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   Future<void> disconnect() async {
     EmulatorRegistry.instance.sharedTrainerEmulator.removeListener(_onSharedTrainerChangedListener);
-    final clickDef = _clickDef;
-    if (clickDef != null) {
-      await _currentEmulator.detachDefinition(clickDef).catchError((Object e, StackTrace s) {
+    if (_clickDef != null) {
+      await _currentEmulator.detachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
         recordError(e, s, context: 'ZwiftClickV2.disconnect');
       });
       _clickDef = null;
+    }
+    // If we were running the standalone for this Click, stop it now — the
+    // unlock page no longer does this.
+    if (identical(_currentEmulator, ftmsEmulator) && ftmsEmulator.isStarted.value) {
+      ftmsEmulator.stop();
     }
     await super.disconnect();
   }
