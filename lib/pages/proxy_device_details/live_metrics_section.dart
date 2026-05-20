@@ -20,7 +20,7 @@ class LiveMetricsSection extends StatelessWidget {
         speed: proxyDef.speedKph,
       );
     }
-    final fitnessDef = device.emulator.fitnessBike;
+    final fitnessDef = device.fitnessBike;
     if (fitnessDef != null) {
       return _LiveMetrics(
         power: fitnessDef.powerW,
