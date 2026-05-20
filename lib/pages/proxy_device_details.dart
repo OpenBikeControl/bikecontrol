@@ -39,10 +39,10 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   @override
   void initState() {
     super.initState();
-    widget.device.emulator.isStarted.addListener(_onEmulatorStateChanged);
+    widget.device.isStartedListenable.addListener(_onEmulatorStateChanged);
     widget.device.onChange.addListener(_onEmulatorStateChanged);
-    widget.device.emulator.isConnected.addListener(_onEmulatorStateChanged);
-    widget.device.emulator.retrofitMode.addListener(_onEmulatorStateChanged);
+    widget.device.isConnectedListenable.addListener(_onEmulatorStateChanged);
+    widget.device.retrofitMode.addListener(_onEmulatorStateChanged);
     _connectionSub = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
     });
@@ -51,10 +51,10 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   @override
   void dispose() {
     _connectionSub.cancel();
-    widget.device.emulator.isStarted.removeListener(_onEmulatorStateChanged);
+    widget.device.isStartedListenable.removeListener(_onEmulatorStateChanged);
     widget.device.onChange.removeListener(_onEmulatorStateChanged);
-    widget.device.emulator.isConnected.removeListener(_onEmulatorStateChanged);
-    widget.device.emulator.retrofitMode.removeListener(_onEmulatorStateChanged);
+    widget.device.isConnectedListenable.removeListener(_onEmulatorStateChanged);
+    widget.device.retrofitMode.removeListener(_onEmulatorStateChanged);
     super.dispose();
   }
 
@@ -110,7 +110,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 _gearSection(),
                 SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
-                    widget.device.emulator.fitnessBike != null &&
+                    widget.device.fitnessBike != null &&
                     !screenshotMode) ...[
                   ValueListenableBuilder<Duration>(
                     valueListenable: core.bridgeUsageTracker.usedTodayListenable,
@@ -261,13 +261,13 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   }
 
   Widget _gearSection() {
-    final def = widget.device.emulator.fitnessBike;
+    final def = widget.device.fitnessBike;
     if (def == null) return const SizedBox.shrink();
     return GearHeroCard(definition: def);
   }
 
   Widget _settingsSection() {
-    final def = widget.device.emulator.fitnessBike;
+    final def = widget.device.fitnessBike;
     if (def == null) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

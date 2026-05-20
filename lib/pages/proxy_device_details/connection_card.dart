@@ -192,13 +192,15 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   @override
   Widget build(BuildContext context) {
-    final emulator = widget.device.emulator;
     return ValueListenableBuilder<bool>(
       valueListenable: widget.device.isStarting,
       builder: (context, starting, _) {
         return ValueListenableBuilder<bool>(
-          valueListenable: emulator.isStarted,
+          // Use the stable ProxyDevice wrapper so this stays live across
+          // proxy ↔ VS emulator swaps.
+          valueListenable: widget.device.isStartedListenable,
           builder: (context, started, _) {
+            final emulator = widget.device.emulator;
             if (starting && !started) {
               return _connectingCard(emulator);
             }
@@ -288,7 +290,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                 final ok = await _ensureBluetoothAdvertisePermissions();
                 if (!ok) return;
               }
-              emulator.setRetrofitMode(next);
+              widget.device.setRetrofitMode(next);
               await core.settings.setRetrofitMode(widget.device.trainerKey, next);
               await core.settings.setAutoConnect(widget.device.trainerKey, true);
               await widget.device.startProxy();
@@ -305,7 +307,9 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   Widget _connectedCard(DirconEmulator emulator) {
     return ValueListenableBuilder<RetrofitMode>(
-      valueListenable: emulator.retrofitMode,
+      // Use the stable ProxyDevice wrapper so this stays live across
+      // proxy ↔ VS emulator swaps.
+      valueListenable: widget.device.retrofitMode,
       builder: (context, mode, _) {
         if (_useAccordion) {
           return _modePickerAccordion(mode);
@@ -389,7 +393,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                 // synchronously via ProxyDevice.onFitnessBikeDefinitionCreated,
                 // so by the time switchRetrofitMode returns the new transport
                 // is already running against the user's active ShiftingConfig.
-                await widget.device.emulator.switchRetrofitMode(next);
+                await widget.device.switchRetrofitMode(next);
               } catch (e) {
                 if (kDebugMode) print('switchRetrofitMode failed: $e');
               }

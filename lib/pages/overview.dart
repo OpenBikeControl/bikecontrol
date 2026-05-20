@@ -148,7 +148,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
     for (final proxy in core.connection.proxyDevices) {
       proxy.isStarting.addListener(_onProxyStateChanged);
-      proxy.emulator.isConnected.addListener(_onProxyStateChanged);
+      proxy.isConnectedListenable.addListener(_onProxyStateChanged);
     }
 
     WidgetsBinding.instance.addObserver(this);
@@ -304,7 +304,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _actionListener.cancel();
     for (final proxy in core.connection.proxyDevices) {
       proxy.isStarting.removeListener(_onProxyStateChanged);
-      proxy.emulator.isConnected.removeListener(_onProxyStateChanged);
+      proxy.isConnectedListenable.removeListener(_onProxyStateChanged);
     }
     _connectionListener.cancel();
     super.dispose();
@@ -724,16 +724,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   Widget _buildBridgeConnectionRow(ProxyDevice device) {
     return ValueListenableBuilder<RetrofitMode>(
-      valueListenable: device.emulator.retrofitMode,
+      valueListenable: device.retrofitMode,
       builder: (context, mode, _) {
         // Proxy mode mirrors raw FTMS over WiFi — surface a wifi icon, not the
         // bridge-specific bluetooth/cog visuals.
         final IconData icon = device.icon;
         return ValueListenableBuilder<bool>(
-          valueListenable: device.emulator.isConnected,
+          valueListenable: device.isConnectedListenable,
           builder: (context, connected, _) {
             return ValueListenableBuilder<bool>(
-              valueListenable: device.emulator.isStarted,
+              valueListenable: device.isStartedListenable,
               builder: (context, starting, _) {
                 final title = 'Bridge (${device.toString()})';
                 return SizedBox(

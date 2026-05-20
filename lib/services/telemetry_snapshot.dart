@@ -49,7 +49,7 @@ class TelemetrySnapshot {
     required ProxyDevice device,
     String? freetextOverride,
   }) {
-    final fitnessDef = device.emulator.fitnessBike;
+    final fitnessDef = device.fitnessBike;
     final cfg = core.shiftingConfigs.activeFor(device.trainerKey);
 
     return TelemetrySnapshot(

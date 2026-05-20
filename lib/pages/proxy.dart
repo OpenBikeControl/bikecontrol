@@ -59,7 +59,7 @@ class _DevicePageState extends State<ProxyPage> {
                   ),
                   child: Button.ghost(
                     onPressed: () async {
-                      if (!device.emulator.isStarted.value && !device.isStarting.value) {
+                      if (!device.isStartedListenable.value && !device.isStarting.value) {
                         if (IAPManager.instance.isTrialExpired) {
                           await showGoProDialog(context);
                           return;
@@ -79,7 +79,7 @@ class _DevicePageState extends State<ProxyPage> {
                           device.trainerKey,
                           fallback: device.defaultRetrofitMode,
                         );
-                        device.emulator.setRetrofitMode(savedMode);
+                        device.setRetrofitMode(savedMode);
                         await core.settings.setAutoConnect(device.trainerKey, true);
                         // Fire-and-forget — details page opens immediately and
                         // renders a "Connecting…" state via device.isStarting.

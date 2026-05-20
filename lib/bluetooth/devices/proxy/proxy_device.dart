@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:flutter/foundation.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -15,10 +15,8 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:prop/emulators/ble_definition.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
-import 'package:prop/emulators/definitions/zwift_click_definition.dart';
 import 'package:prop/prop.dart' hide TrainerMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -30,7 +28,15 @@ class ProxyDevice extends BluetoothDevice {
     FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID, // Fitness Machine
   ];
 
-  final DirconEmulator emulator = DirconEmulator();
+  /// Per-instance emulator used exclusively in proxy mode. Each proxy-mode
+  /// trainer needs its own mDNS identity / peripheral so they are independent.
+  final DirconEmulator _proxyEmulator = DirconEmulator();
+
+  /// Active emulator for this device. In proxy mode → own per-instance
+  /// emulator; in VS modes → shared global [ftmsEmulator].
+  DirconEmulator get emulator =>
+      _retrofitModeN.value == RetrofitMode.proxy ? _proxyEmulator : ftmsEmulator;
+
   final ValueChangeNotifier<String> onChange = ValueChangeNotifier('');
 
   /// True while the initial BLE connect + service discovery for this proxy is
@@ -39,13 +45,52 @@ class ProxyDevice extends BluetoothDevice {
   /// state between tap and first successful start should watch this instead.
   final ValueNotifier<bool> isStarting = ValueNotifier(false);
 
+  // ── Stable state wrappers ─────────────────────────────────────────────────
+  // These mirror whichever emulator is currently active. Because the active
+  // emulator can change on a mode swap, the UI should bind to these
+  // ProxyDevice-level listenables instead of directly to emulator.X, so
+  // bindings survive mode transitions.
+
+  final ValueNotifier<RetrofitMode> _retrofitModeN = ValueNotifier(RetrofitMode.proxy);
+
+  /// The current retrofit mode. Stays stable across emulator swaps.
+  ValueListenable<RetrofitMode> get retrofitMode => _retrofitModeN;
+
+  final ValueNotifier<bool> _isStartedN = ValueNotifier(false);
+
+  /// Whether the active emulator has started. Stable across mode swaps.
+  ValueListenable<bool> get isStartedListenable => _isStartedN;
+
+  final ValueNotifier<bool> _isConnectedN = ValueNotifier(false);
+
+  /// Whether a trainer app is connected via the active emulator. Stable across
+  /// mode swaps.
+  ValueListenable<bool> get isConnectedListenable => _isConnectedN;
+
+  final ValueNotifier<String?> _localAddressN = ValueNotifier(null);
+
+  /// Local IPv4 address currently advertised, if any. Stable across mode swaps.
+  ValueListenable<String?> get localAddress => _localAddressN;
+
+  /// The [FitnessBikeDefinition] for this trainer while in VS mode. Attached
+  /// to [ftmsEmulator]'s composite while VS is active; null in proxy mode.
+  FitnessBikeDefinition? _fbd;
+  FitnessBikeDefinition? get fitnessBike => _fbd;
+
+  /// Services captured at [handleServices] time — needed to reconstruct the
+  /// [FitnessBikeDefinition] when entering VS mode.
+  List<BleService>? _services;
+
+  /// Which emulator we currently have listeners registered on. Used by
+  /// [_bindToActiveEmulator] to remove stale listeners.
+  DirconEmulator? _currentlyListening;
+
   StreamSubscription<void>? _bridgeBudgetSub;
 
   /// Latest [FitnessBikeDefinition] handed to us via
-  /// [DirconEmulator.onFitnessBikeDefinitionCreated]. The emulator builds a
-  /// fresh definition each time the transport starts, so this reference is
-  /// rebound on every session — read it through [_isTrainerActive] to gate
-  /// the bridge-usage timer on real trainer activity.
+  /// [DirconEmulator.onFitnessBikeDefinitionCreated]. In VS mode this is the
+  /// same as [_fbd]. Kept separate so the bridge-usage tracker can read live
+  /// trainer activity via [_isTrainerActive].
   FitnessBikeDefinition? _currentFbd;
 
   ProxyDevice(super.scanResult)
@@ -54,34 +99,66 @@ class ProxyDevice extends BluetoothDevice {
         icon: _iconFor(scanResult),
         isBeta: true,
       ) {
-    emulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
-    emulator.isTrial = () {
-      return !IAPManager.instance.isProEnabledForCurrentDevice;
-    };
-    emulator.shouldAdvertise = () => !_isBridgeTrialOver;
-    emulator.trainerName = () => core.settings.getTrainerApp()?.name ?? 'BikeControl';
-    emulator.isConnected.addListener(_syncBridgeTracking);
-    emulator.retrofitMode.addListener(_syncBridgeTracking);
-    emulator.companionProvider = _resolveCompanions;
+    _configureProxyEmulator();
+    _bindToActiveEmulator();
   }
 
-  List<BleDefinition> _resolveCompanions() {
-    return [
-      for (final d in core.connection.devices)
-        if (d is ZwiftClickV2 && d.clickDef != null) d.clickDef!,
-    ];
+  void _configureProxyEmulator() {
+    _proxyEmulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
+    _proxyEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+    _proxyEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
+    _proxyEmulator.trainerName = () => core.settings.getTrainerApp()?.name ?? 'BikeControl';
   }
+
+  void _configureSharedEmulator() {
+    ftmsEmulator.onFitnessBikeDefinitionCreated = _seedFitnessBikeDefinition;
+    ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+    ftmsEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
+    ftmsEmulator.trainerName = () => core.settings.getTrainerApp()?.name ?? 'BikeControl';
+  }
+
+  /// Mirror the active emulator's state notifiers into our stable wrappers.
+  /// Removes listeners from the previous emulator (if any) before re-binding.
+  void _bindToActiveEmulator() {
+    final prev = _currentlyListening;
+    if (prev != null) {
+      prev.isStarted.removeListener(_mirrorIsStarted);
+      prev.isConnected.removeListener(_mirrorIsConnected);
+      prev.localAddress.removeListener(_mirrorLocalAddress);
+      prev.retrofitMode.removeListener(_mirrorRetrofitMode);
+      prev.isConnected.removeListener(_syncBridgeTracking);
+      prev.retrofitMode.removeListener(_syncBridgeTracking);
+    }
+
+    final active = emulator;
+    _currentlyListening = active;
+    active.isStarted.addListener(_mirrorIsStarted);
+    active.isConnected.addListener(_mirrorIsConnected);
+    active.localAddress.addListener(_mirrorLocalAddress);
+    active.retrofitMode.addListener(_mirrorRetrofitMode);
+    active.isConnected.addListener(_syncBridgeTracking);
+    active.retrofitMode.addListener(_syncBridgeTracking);
+
+    // Immediately mirror current values.
+    _mirrorIsStarted();
+    _mirrorIsConnected();
+    _mirrorLocalAddress();
+    _mirrorRetrofitMode();
+  }
+
+  void _mirrorIsStarted() => _isStartedN.value = emulator.isStarted.value;
+  void _mirrorIsConnected() => _isConnectedN.value = emulator.isConnected.value;
+  void _mirrorLocalAddress() => _localAddressN.value = emulator.localAddress.value;
+  void _mirrorRetrofitMode() => _retrofitModeN.value = emulator.retrofitMode.value;
 
   void _syncBridgeTracking() {
-    final isBridgeSession = emulator.isConnected.value && emulator.retrofitMode.value != RetrofitMode.proxy;
+    final isBridgeSession =
+        _isConnectedN.value && _retrofitModeN.value != RetrofitMode.proxy;
     final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
     if (isBridgeSession && !isPro) {
       if (core.bridgeUsageTracker.isExhausted) {
         // Already at the daily limit — pause advertising so no new clients can
         // discover us, but keep the transport pipeline + upstream BLE alive.
-        // Deferred via microtask: we may be inside a notifyListeners chain of
-        // emulator.isConnected that led us here, so we must not call any
-        // synchronous dispose/teardown on the same call stack.
         scheduleMicrotask(() => unawaited(emulator.pauseAdvertising()));
         return;
       }
@@ -99,7 +176,7 @@ class ProxyDevice extends BluetoothDevice {
   /// bluetooth) but the non-Pro user has already burned today's 20-minute
   /// budget. Proxy mode is unaffected.
   bool get _isBridgeTrialOver {
-    if (emulator.retrofitMode.value == RetrofitMode.proxy) return false;
+    if (_retrofitModeN.value == RetrofitMode.proxy) return false;
     if (IAPManager.instance.isProEnabledForCurrentDevice) return false;
     return core.bridgeUsageTracker.isExhausted;
   }
@@ -123,6 +200,10 @@ class ProxyDevice extends BluetoothDevice {
 
   void _seedFitnessBikeDefinition(FitnessBikeDefinition def) {
     _currentFbd = def;
+    // Also update _fbd when in VS mode (the shared emulator creates the FBD).
+    if (_retrofitModeN.value != RetrofitMode.proxy) {
+      _fbd = def;
+    }
     final cfg = core.shiftingConfigs.activeFor(trainerKey);
     def.setMaxGear(cfg.maxGear);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
@@ -165,16 +246,17 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    emulator.setScanResult(scanResult);
-    emulator.handleServices(services);
+    _services = services;
+    _proxyEmulator.setScanResult(scanResult);
+    _proxyEmulator.handleServices(services);
 
     try {
-      await emulator.startServer();
+      await _proxyEmulator.startServer();
       applyTrainerSettings();
       // Read the trainer's FTMS Feature map proactively so the UI can gate
       // virtual-shifting options and the feedback payload can report it. Runs
       // off the critical path — failures just leave trainerFeature null.
-      final def = emulator.fitnessBike;
+      final def = _proxyEmulator.fitnessBike;
       if (def != null) unawaited(def.probeTrainerFeatures());
       onChange.value = 'Connected to ${scanResult.name}';
 
@@ -184,7 +266,7 @@ class ProxyDevice extends BluetoothDevice {
     } catch (e) {
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start emulator: $e'));
       onChange.value = 'Failed to start emulator: $e';
-      emulator.stop();
+      _proxyEmulator.stop();
       disconnect();
     }
   }
@@ -434,10 +516,10 @@ class ProxyDevice extends BluetoothDevice {
     // opened once the user explicitly starts the emulator via startProxy().
     // If they connected previously and haven't since tapped Disconnect,
     // honour that intent by kicking off startProxy() here (fire-and-forget).
-    if (isStarting.value || emulator.isStarted.value) return;
+    if (isStarting.value || _proxyEmulator.isStarted.value) return;
     if (!shouldAutoConnect) return;
     final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
-    emulator.setRetrofitMode(savedMode);
+    setRetrofitMode(savedMode);
     await startProxy();
   }
 
@@ -458,25 +540,99 @@ class ProxyDevice extends BluetoothDevice {
     }
   }
 
+  /// Set the retrofit mode for this device. Updates the internal mode notifier
+  /// and configures the proxy emulator accordingly, but does NOT start the
+  /// emulator — call [startProxy] or [handleServices] to do that.
+  ///
+  /// For mode switches on an already-running emulator (e.g. swapping proxy ↔ VS
+  /// while connected) use [switchRetrofitMode] instead.
+  void setRetrofitMode(RetrofitMode mode) {
+    _retrofitModeN.value = mode;
+    _proxyEmulator.setRetrofitMode(mode);
+  }
+
+  /// Swap the retrofit transport without tearing down the upstream BLE
+  /// connection. Delegates to the appropriate emulator's [switchRetrofitMode].
+  /// For proxy ↔ VS transitions, migrates the FBD between emulators.
+  Future<void> switchRetrofitMode(RetrofitMode next) async {
+    final old = _retrofitModeN.value;
+    if (old == next) return;
+
+    if (old == RetrofitMode.proxy && next != RetrofitMode.proxy) {
+      // proxy → VS: stop per-instance emulator, attach FBD to shared
+      _proxyEmulator.stop();
+      _configureSharedEmulator();
+
+      if (_services != null) {
+        ftmsEmulator.setScanResult(scanResult);
+        ftmsEmulator.handleServices(_services!);
+      }
+
+      ftmsEmulator.setRetrofitMode(next);
+      _retrofitModeN.value = next;
+      _bindToActiveEmulator();
+
+      if (!ftmsEmulator.isStarted.value) {
+        await ftmsEmulator.startServer();
+      } else {
+        await ftmsEmulator.switchRetrofitMode(next);
+      }
+      // Capture the FBD that was created during startServer / mode switch
+      _fbd = ftmsEmulator.fitnessBike;
+    } else if (old != RetrofitMode.proxy && next == RetrofitMode.proxy) {
+      // VS → proxy: detach from shared, start per-instance
+      if (_fbd != null) {
+        await ftmsEmulator.detachDefinition(_fbd!).catchError((_) {});
+        _fbd = null;
+      }
+      if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
+        ftmsEmulator.stop();
+      }
+
+      if (_services != null) {
+        _proxyEmulator.setScanResult(scanResult);
+        _proxyEmulator.handleServices(_services!);
+      }
+      _proxyEmulator.setRetrofitMode(next);
+      _retrofitModeN.value = next;
+      _bindToActiveEmulator();
+
+      await _proxyEmulator.startServer();
+    } else {
+      // VS wifi ↔ VS bluetooth: just switch the shared emulator's mode
+      _retrofitModeN.value = next;
+      await ftmsEmulator.switchRetrofitMode(next);
+    }
+  }
+
   @override
   Future<void> disconnect() async {
-    emulator.isConnected.removeListener(_syncBridgeTracking);
-    emulator.retrofitMode.removeListener(_syncBridgeTracking);
+    // Remove listeners from the active emulator before teardown.
+    final active = _currentlyListening;
+    if (active != null) {
+      active.isStarted.removeListener(_mirrorIsStarted);
+      active.isConnected.removeListener(_mirrorIsConnected);
+      active.localAddress.removeListener(_mirrorLocalAddress);
+      active.retrofitMode.removeListener(_mirrorRetrofitMode);
+      active.isConnected.removeListener(_syncBridgeTracking);
+      active.retrofitMode.removeListener(_syncBridgeTracking);
+      _currentlyListening = null;
+    }
+
     _bridgeBudgetSub?.cancel();
     _bridgeBudgetSub = null;
     core.bridgeUsageTracker.stopSession();
-    // If we hosted a Click def, return it to the standalone so the click
-    // stays usable when the trainer goes away. The standalone may need to
-    // be started.
-    final hostedClickDef = emulator.composite.firstOfType<ZwiftClickDefinition>();
-    if (hostedClickDef != null) {
-      await emulator.detachDefinition(hostedClickDef).catchError((_) {});
-      await ftmsEmulator.attachDefinition(hostedClickDef).catchError((_) {});
-      if (!ftmsEmulator.isStarted.value) {
-        await ftmsEmulator.startServer().catchError((_) {});
-      }
+
+    // Detach FBD from shared emulator if we contributed one.
+    if (_fbd != null) {
+      await ftmsEmulator.detachDefinition(_fbd!).catchError((_) {});
+      _fbd = null;
     }
-    emulator.stop();
+    if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
+      ftmsEmulator.stop();
+    }
+
+    _proxyEmulator.stop();
     return super.disconnect();
   }
 }

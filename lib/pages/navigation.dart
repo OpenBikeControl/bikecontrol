@@ -79,7 +79,7 @@ class _NavigationState extends State<Navigation> {
   bool _tryAutoShowOverlayFor(BaseDevice device) {
     if (device is! ProxyDevice) return false;
     if (!device.isSmartTrainer || !device.isConnected) return false;
-    final def = device.emulator.fitnessBike;
+    final def = device.fitnessBike;
     if (def == null) return false;
 
     final controller = TrainerOverlayService.forCurrentPlatform();
@@ -88,10 +88,9 @@ class _NavigationState extends State<Navigation> {
     controller.show(
       def,
       core.settings.getOverlayFields(),
-      // The emulator rebinds a new FitnessBikeDefinition each time a trainer
-      // app connects, so capturing `def` here would freeze action handling
-      // against a stale instance.
-      liveDef: () => device.emulator.fitnessBike,
+      // ProxyDevice.fitnessBike always returns the current FBD regardless of
+      // which emulator is active, so this stays live across mode swaps.
+      liveDef: () => device.fitnessBike,
     );
     return true;
   }
