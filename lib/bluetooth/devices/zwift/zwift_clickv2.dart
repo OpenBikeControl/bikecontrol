@@ -24,6 +24,18 @@ class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickDefinition? _clickDef;
   ZwiftClickDefinition? get clickDef => _clickDef;
 
+  /// Unlock-flow state owned by the Click device itself, not the shared emulator.
+  final ValueNotifier<bool> isUnlocked = ValueNotifier(false);
+  final ValueNotifier<bool> alreadyUnlocked = ValueNotifier(false);
+  final ValueNotifier<bool> waiting = ValueNotifier(false);
+
+  /// Vendor message captured from ZWIFT_ASYNC notifications during the unlock
+  /// handshake. Persisted so reconnects can replay it to Zwift.
+  Uint8List? _vendorMessage;
+
+  /// When this device connected. Used by the unlock page to compute timeouts.
+  DateTime? connectionDate;
+
   ZwiftClickV2(super.scanResult)
     : super(
         isBeta: true,
@@ -40,9 +52,7 @@ class ZwiftClickV2 extends ZwiftRide {
           ZwiftButtons.shiftUpRight,
         ],
       ) {
-    // The standalone ftmsEmulator always owns the Click's BLE identity for
-    // unlock-UI purposes (connectionDate, scanResult display).
-    ftmsEmulator.setScanResult(scanResult);
+    connectionDate = DateTime.now();
   }
 
   @override
@@ -81,7 +91,10 @@ class ZwiftClickV2 extends ZwiftRide {
     return screenshotMode ? 'Controller' : "Zwift Click V2";
   }
 
-  bool get isUnlocked {
+  /// Whether the device was successfully unlocked within the last 24 hours,
+  /// according to persistent storage. Distinct from [isUnlocked] which holds
+  /// the live session-unlock notifier.
+  bool get isPersistedUnlocked {
     final lastUnlock = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (lastUnlock == null) {
       return false;
@@ -96,7 +109,7 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   Future<void> setupHandshake() async {
     final hasScript = await DeviceScriptService.instance.hasCustomScript(runtimeType.toString());
-    if (isUnlocked || hasScript) {
+    if (isPersistedUnlocked || hasScript) {
       super.setupHandshake();
       await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
     }
@@ -104,25 +117,22 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    // ftmsEmulator always owns the Click's BLE identity for unlock-UI purposes.
-    ftmsEmulator.handleServices(services);
-
     // Clear stale unlock-state notifiers so a reconnect doesn't show
     // leftover "already unlocked" / "waiting" from a previous attempt.
-    ftmsEmulator.isUnlocked.value = false;
-    ftmsEmulator.alreadyUnlocked.value = false;
-    ftmsEmulator.waiting.value = false;
+    isUnlocked.value = false;
+    alreadyUnlocked.value = false;
+    waiting.value = false;
 
     _clickDef = ZwiftClickDefinition(
       services: services,
       device: scanResult,
       data: ftmsEmulator.data,
-      vendorMessage: null,
-      isUnlocked: ftmsEmulator.isUnlocked,
-      alreadyUnlocked: ftmsEmulator.alreadyUnlocked,
-      waiting: ftmsEmulator.waiting,
+      vendorMessage: _vendorMessage,
+      isUnlocked: isUnlocked,
+      alreadyUnlocked: alreadyUnlocked,
+      waiting: waiting,
       isStarted: ftmsEmulator.isStarted,
-      connectionDate: ftmsEmulator.connectionDate ?? DateTime.now(),
+      connectionDate: connectionDate ?? DateTime.now(),
     );
 
     // Attach the click def to the shared emulator. If a trainer is already
@@ -144,6 +154,15 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
+    // Capture the vendor challenge message from the Click so it can be
+    // replayed to Zwift on reconnect (unlock handshake recovery).
+    if (characteristic.toUpperCase() == FtmsMdnsConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID &&
+        bytes.length >= 2 &&
+        Opcode.valueOf(bytes[0]) == Opcode.VENDOR_MESSAGE &&
+        bytes[1] == 0x03) {
+      _vendorMessage = Uint8List.fromList(bytes);
+    }
+
     // All click traffic goes to ftmsEmulator — it's the single shared emulator
     // for VS mode and the standalone emulator for the click-alone path.
     final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
@@ -169,7 +188,7 @@ class ZwiftClickV2 extends ZwiftRide {
   List<Widget> showAdditionalInformation(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (!isConnected || screenshotMode) return [];
-    if (isUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
+    if (isPersistedUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
       return [
         Warning(
           important: false,
@@ -206,7 +225,7 @@ class ZwiftClickV2 extends ZwiftRide {
           ],
         ),
       ];
-    } else if (isUnlocked && lastUnlockDate != null) {
+    } else if (isPersistedUnlocked && lastUnlockDate != null) {
       return [
         Warning(
           important: false,
