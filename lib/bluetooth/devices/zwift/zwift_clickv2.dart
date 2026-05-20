@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/emulator_registry.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -12,6 +13,7 @@ import 'package:bike_control/widgets/unlock_confirm.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:prop/emulators/definitions/zwift_click_definition.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -19,6 +21,11 @@ import 'package:universal_ble/universal_ble.dart';
 final DirconEmulator ftmsEmulator = DirconEmulator();
 
 class ZwiftClickV2 extends ZwiftRide {
+  DirconEmulator _currentEmulator = ftmsEmulator;
+  ZwiftClickDefinition? _clickDef;
+  List<BleService>? _cachedServices;
+  late final VoidCallback _onSharedTrainerChangedListener = _onSharedTrainerChanged;
+
   ZwiftClickV2(super.scanResult)
     : super(
         isBeta: true,
@@ -35,7 +42,9 @@ class ZwiftClickV2 extends ZwiftRide {
           ZwiftButtons.shiftUpRight,
         ],
       ) {
-    ftmsEmulator.setScanResult(scanResult);
+    _currentEmulator = EmulatorRegistry.instance.resolveFor(standalone: ftmsEmulator);
+    _currentEmulator.setScanResult(scanResult);
+    EmulatorRegistry.instance.sharedTrainerEmulator.addListener(_onSharedTrainerChangedListener);
   }
 
   @override
@@ -97,13 +106,29 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    ftmsEmulator.handleServices(services);
+    _cachedServices = services;
+    _currentEmulator.handleServices(services);
+    _clickDef = ZwiftClickDefinition(
+      services: services,
+      device: scanResult,
+      data: ftmsEmulator.data,
+      vendorMessage: null,
+      isUnlocked: ftmsEmulator.isUnlocked,
+      alreadyUnlocked: ftmsEmulator.alreadyUnlocked,
+      waiting: ftmsEmulator.waiting,
+      isStarted: ftmsEmulator.isStarted,
+      connectionDate: ftmsEmulator.connectionDate ?? DateTime.now(),
+    );
+    await _currentEmulator.attachDefinition(_clickDef!);
+    if (identical(_currentEmulator, ftmsEmulator) && !_currentEmulator.isStarted.value) {
+      await _currentEmulator.startServer();
+    }
     await super.handleServices(services);
   }
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
+    final processed = _currentEmulator.processCharacteristic(characteristic, bytes);
     if (!processed) {
       await super.processCharacteristic(characteristic, bytes);
     } else {
@@ -285,5 +310,42 @@ class ZwiftClickV2 extends ZwiftRide {
         ],
       ),
     ];
+  }
+
+  Future<void> _onSharedTrainerChanged() async {
+    final target = EmulatorRegistry.instance.resolveFor(standalone: ftmsEmulator);
+    if (identical(target, _currentEmulator)) return;
+    final clickDef = _clickDef;
+    final services = _cachedServices;
+    if (clickDef == null || services == null) {
+      // We haven't attached yet — just remember the new target.
+      _currentEmulator = target;
+      return;
+    }
+
+    await _currentEmulator.detachDefinition(clickDef);
+    // If we're leaving the standalone for a trainer's emulator, stop the
+    // standalone so we don't leak a second peripheral.
+    if (identical(_currentEmulator, ftmsEmulator) && !identical(target, ftmsEmulator)) {
+      _currentEmulator.stop();
+    }
+    _currentEmulator = target;
+    _currentEmulator.setScanResult(scanResult);
+    _currentEmulator.handleServices(services);
+    await _currentEmulator.attachDefinition(clickDef);
+    if (identical(_currentEmulator, ftmsEmulator) && !_currentEmulator.isStarted.value) {
+      await _currentEmulator.startServer();
+    }
+  }
+
+  @override
+  Future<void> disconnect() async {
+    EmulatorRegistry.instance.sharedTrainerEmulator.removeListener(_onSharedTrainerChangedListener);
+    final clickDef = _clickDef;
+    if (clickDef != null) {
+      await _currentEmulator.detachDefinition(clickDef);
+      _clickDef = null;
+    }
+    await super.disconnect();
   }
 }
