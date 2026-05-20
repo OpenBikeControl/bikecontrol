@@ -670,10 +670,10 @@ packages:
     dependency: transitive
     description:
       name: font_awesome_flutter
-      sha256: b9011df3a1fa02993630b8fb83526368cf2206a711259830325bab2f1d2a4eb0
+      sha256: "09dcde8ab90ffae1a7d65ff2ef96fc62a17ad9d0ce7c127b317ded676b0d5935"
       url: "https://pub.dev"
     source: hosted
-    version: "10.12.0"
+    version: "11.0.0"
   fuchsia_remote_debug_protocol:
     dependency: transitive
     description: flutter
@@ -1254,10 +1254,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
+      sha256: "1741988757a65eb6b36abe716829688cf01910bbf91c34354ff7ec1c3de2b349"
       url: "https://pub.dev"
     source: hosted
-    version: "1.17.0"
+    version: "1.18.0"
   mime:
     dependency: transitive
     description:
@@ -1789,10 +1789,10 @@ packages:
     dependency: "direct main"
     description:
       name: sign_in_button
-      sha256: "7bcd5e3ca5f80578da6a92b8749badf4003cf4dc578b5cb737b9082871354ff8"
+      sha256: "537f5dd0e18ef4503c48a3309cfd888bc4a72b275286ac6c5aaf9b91bc2522ca"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.1"
+    version: "5.0.0"
   sign_in_with_apple:
     dependency: "direct main"
     description:
@@ -1930,10 +1930,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: "8161c84903fd860b26bfdefb7963b3f0b68fee7adea0f59ef805ecca346f0c7a"
+      sha256: "949a932224383300f01be9221c39180316445ecb8e7547f70a41a35bf421fb9e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.10"
+    version: "0.7.11"
   time:
     dependency: transitive
     description:
