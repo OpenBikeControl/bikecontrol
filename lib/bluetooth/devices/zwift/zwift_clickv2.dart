@@ -43,7 +43,9 @@ class ZwiftClickV2 extends ZwiftRide {
         ],
       ) {
     _currentEmulator = EmulatorRegistry.instance.resolveFor(standalone: ftmsEmulator);
-    _currentEmulator.setScanResult(scanResult);
+    if (identical(_currentEmulator, ftmsEmulator)) {
+      _currentEmulator.setScanResult(scanResult);
+    }
     EmulatorRegistry.instance.sharedTrainerEmulator.addListener(_onSharedTrainerChangedListener);
   }
 
@@ -107,7 +109,14 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   Future<void> handleServices(List<BleService> services) async {
     _cachedServices = services;
-    _currentEmulator.handleServices(services);
+    // Click's BLE info lives inside the ZwiftClickDefinition (services /
+    // device args). The emulator-level scanResult / services fields belong
+    // to the EMULATOR's primary device — the trainer for trainer's
+    // emulator, the Click for the standalone. Don't overwrite the
+    // trainer's identity here.
+    if (identical(_currentEmulator, ftmsEmulator)) {
+      _currentEmulator.handleServices(services);
+    }
     _clickDef = ZwiftClickDefinition(
       services: services,
       device: scanResult,
@@ -330,8 +339,10 @@ class ZwiftClickV2 extends ZwiftRide {
       _currentEmulator.stop();
     }
     _currentEmulator = target;
-    _currentEmulator.setScanResult(scanResult);
-    _currentEmulator.handleServices(services);
+    if (identical(_currentEmulator, ftmsEmulator)) {
+      _currentEmulator.setScanResult(scanResult);
+      _currentEmulator.handleServices(services);
+    }
     await _currentEmulator.attachDefinition(clickDef);
     if (identical(_currentEmulator, ftmsEmulator) && !_currentEmulator.isStarted.value) {
       await _currentEmulator.startServer();
