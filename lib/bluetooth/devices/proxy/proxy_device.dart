@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
-import 'package:bike_control/bluetooth/devices/zwift/emulator_registry.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -15,8 +15,10 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:prop/emulators/ble_definition.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
+import 'package:prop/emulators/definitions/zwift_click_definition.dart';
 import 'package:prop/prop.dart' hide TrainerMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -60,7 +62,14 @@ class ProxyDevice extends BluetoothDevice {
     emulator.trainerName = () => core.settings.getTrainerApp()?.name ?? 'BikeControl';
     emulator.isConnected.addListener(_syncBridgeTracking);
     emulator.retrofitMode.addListener(_syncBridgeTracking);
-    EmulatorRegistry.instance.sharedTrainerEmulator.value = emulator;
+    emulator.companionProvider = _resolveCompanions;
+  }
+
+  List<BleDefinition> _resolveCompanions() {
+    return [
+      for (final d in core.connection.devices)
+        if (d is ZwiftClickV2 && d.clickDef != null) d.clickDef!,
+    ];
   }
 
   void _syncBridgeTracking() {
@@ -450,16 +459,22 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   @override
-  Future<void> disconnect() {
+  Future<void> disconnect() async {
     emulator.isConnected.removeListener(_syncBridgeTracking);
     emulator.retrofitMode.removeListener(_syncBridgeTracking);
     _bridgeBudgetSub?.cancel();
     _bridgeBudgetSub = null;
     core.bridgeUsageTracker.stopSession();
-    // Guard against clearing a newer ProxyDevice's registration if two
-    // ProxyDevices were ever connected in sequence.
-    if (identical(EmulatorRegistry.instance.sharedTrainerEmulator.value, emulator)) {
-      EmulatorRegistry.instance.sharedTrainerEmulator.value = null;
+    // If we hosted a Click def, return it to the standalone so the click
+    // stays usable when the trainer goes away. The standalone may need to
+    // be started.
+    final hostedClickDef = emulator.composite.firstOfType<ZwiftClickDefinition>();
+    if (hostedClickDef != null) {
+      await emulator.detachDefinition(hostedClickDef).catchError((_) {});
+      await ftmsEmulator.attachDefinition(hostedClickDef).catchError((_) {});
+      if (!ftmsEmulator.isStarted.value) {
+        await ftmsEmulator.startServer().catchError((_) {});
+      }
     }
     emulator.stop();
     return super.disconnect();
