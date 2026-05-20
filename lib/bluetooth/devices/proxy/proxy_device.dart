@@ -101,6 +101,9 @@ class ProxyDevice extends BluetoothDevice {
         isBeta: true,
       ) {
     _proxyEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
+    _proxyEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
+    _proxyEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+    _proxyEmulator.deviceName = () => scanResult.name;
     _bindToActiveEmulator();
   }
 
@@ -206,25 +209,10 @@ class ProxyDevice extends BluetoothDevice {
     return name == 'Rouvy' || name == 'Zwift';
   }
 
-  /// The advertisement name to use for the trainer app connection.
-  /// Mirrors the logic previously inside DirconEmulator.advertisementName.
-  String get advertisementName => _trainerAdvertisementName();
-
-  String _trainerAdvertisementName() {
-    final trainerApp = core.settings.getTrainerApp()?.name;
-    if (trainerApp == 'Rouvy' &&
-        scanResult.services.contains(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID)) {
-      // Important to activate Virtual Shifting in Rouvy
-      return 'Zwift Hub';
-    }
-    if (!IAPManager.instance.isProEnabledForCurrentDevice) {
-      return 'BikeControl - 20 min trial';
-    }
-    if (scanResult.name != null) {
-      return '${scanResult.name} - BikeControl';
-    }
-    return 'BikeControl';
-  }
+  /// Mirrors `emulator.advertisementName`. Exposed on ProxyDevice for the UI
+  /// so it doesn't have to dereference through the contextual `emulator`
+  /// getter.
+  String get advertisementName => emulator.advertisementName;
 
   Map<String, Uint8List> _trainerMdnsTxt() => {
     'mac-address': Uint8List.fromList(scanResult.deviceId.codeUnits),
@@ -285,18 +273,19 @@ class ProxyDevice extends BluetoothDevice {
         await _proxyEmulator.attachDefinition(_proxyDef!);
         await _proxyEmulator.startServer(
           mode: RetrofitMode.proxy,
-          advertisementName: _trainerAdvertisementName(),
           mdnsTxt: _trainerMdnsTxt(),
         );
       } else {
         // VS modes (wifi / bluetooth): the FBD lives in the shared ftmsEmulator.
         ftmsEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
+        ftmsEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
+        ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+        ftmsEmulator.deviceName = () => scanResult.name;
         _fbd = fbd;
         _currentFbd = fbd;
         await ftmsEmulator.attachDefinition(_fbd!);
         await ftmsEmulator.startServer(
           mode: mode,
-          advertisementName: _trainerAdvertisementName(),
           mdnsTxt: _trainerMdnsTxt(),
         );
       }
@@ -640,6 +629,9 @@ class ProxyDevice extends BluetoothDevice {
 
       _retrofitModeN.value = next;
       ftmsEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
+      ftmsEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
+      ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+      ftmsEmulator.deviceName = () => scanResult.name;
       _bindToActiveEmulator();
 
       if (_fbd != null) {
@@ -648,7 +640,6 @@ class ProxyDevice extends BluetoothDevice {
 
       await ftmsEmulator.startServer(
         mode: next,
-        advertisementName: _trainerAdvertisementName(),
         mdnsTxt: _trainerMdnsTxt(),
       );
     } else if (old != RetrofitMode.proxy && next == RetrofitMode.proxy) {
@@ -678,7 +669,6 @@ class ProxyDevice extends BluetoothDevice {
       }
       await _proxyEmulator.startServer(
         mode: RetrofitMode.proxy,
-        advertisementName: _trainerAdvertisementName(),
         mdnsTxt: _trainerMdnsTxt(),
       );
     } else {
@@ -686,7 +676,6 @@ class ProxyDevice extends BluetoothDevice {
       _retrofitModeN.value = next;
       await ftmsEmulator.startServer(
         mode: next,
-        advertisementName: _trainerAdvertisementName(),
         mdnsTxt: _trainerMdnsTxt(),
       );
     }
