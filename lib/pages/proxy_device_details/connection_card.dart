@@ -225,7 +225,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
           const SmallProgressIndicator(),
           Expanded(
             child: Text(
-              AppLocalizations.of(context).connectingInMode(emulator.retrofitMode.value.label),
+              AppLocalizations.of(context).connectingInMode(widget.device.retrofitMode.value.label),
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: cs.foreground),
             ),
           ),
@@ -351,7 +351,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
       RetrofitMode.wifi => LucideIcons.wifi,
       RetrofitMode.proxy => LucideIcons.radioTower,
     };
-    final advertisement = emulator.advertisementName;
+    final advertisement = widget.device.advertisementName;
     final subtitle = AppLocalizations.of(context).chooseBikeControlInConnectionScreen.replaceAll(
       screenshotMode ? '1337' : 'BikeControl',
       advertisement,
@@ -389,10 +389,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
               await core.settings.setRetrofitMode(widget.device.trainerKey, next);
               setState(() => _pendingMode = next);
               try {
-                // The emulator seeds any freshly-created FitnessBikeDefinition
-                // synchronously via ProxyDevice.onFitnessBikeDefinitionCreated,
-                // so by the time switchRetrofitMode returns the new transport
-                // is already running against the user's active ShiftingConfig.
+                // ProxyDevice._buildDefinitions seeds the FitnessBikeDefinition
+                // before attaching, so by the time switchRetrofitMode returns
+                // the new transport is already running against the user's active
+                // ShiftingConfig.
                 await widget.device.switchRetrofitMode(next);
               } catch (e) {
                 if (kDebugMode) print('switchRetrofitMode failed: $e');

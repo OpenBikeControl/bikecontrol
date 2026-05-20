@@ -131,7 +131,7 @@ String _describeProxyDevice(ProxyDevice device) {
       : emulator.isConnected.value
       ? 'bridged'
       : 'started';
-  final mode = emulator.retrofitMode.value.name;
+  final mode = device.retrofitMode.value.name;
   final def = emulator.fitnessBike;
   final defKind = def == null ? 'none' : def.runtimeType.toString();
 

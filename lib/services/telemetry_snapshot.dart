@@ -141,7 +141,7 @@ bool _isStandardService(String uuid) {
 /// [debugText] so the support payload and the standalone debug text both
 /// surface the same BLE topology.
 String? buildProxyServicesFreetext(ProxyDevice device) {
-  final services = device.emulator.services;
+  final services = device.services;
   if (services == null || services.isEmpty) return null;
   final filtered = services.where((s) => !_isStandardService(s.uuid)).toList();
   if (filtered.isEmpty) return null;

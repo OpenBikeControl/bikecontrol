@@ -744,7 +744,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     subtitle: Text(
                       context.i18n.chooseBikeControlInConnectionScreen.replaceAll(
                         screenshotMode ? '1337' : 'BikeControl',
-                        device.emulator.advertisementName,
+                        device.advertisementName,
                       ),
                     ).xSmall.textMuted,
                   ),

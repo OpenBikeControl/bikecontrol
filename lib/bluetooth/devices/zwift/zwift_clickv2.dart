@@ -142,13 +142,6 @@ class ZwiftClickV2 extends ZwiftRide {
       recordError(e, s, context: 'ZwiftClickV2.attachClickDef');
     });
 
-    if (!ftmsEmulator.isStarted.value) {
-      ftmsEmulator.setRetrofitMode(RetrofitMode.wifi);
-      await ftmsEmulator.startServer().catchError((Object e, StackTrace s) {
-        recordError(e, s, context: 'ZwiftClickV2.startServer');
-      });
-    }
-
     await super.handleServices(services);
   }
 
