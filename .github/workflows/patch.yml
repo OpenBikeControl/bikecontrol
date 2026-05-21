@@ -29,8 +29,19 @@ env:
   FLUTTER_VERSION: 3.38.5
 
 jobs:
+  guard:
+    name: Reject main branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if dispatched from main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "::error::Patch workflow must not be run from the main branch. Dispatch it from a release branch instead."
+          exit 1
+
   build:
     name: Patch iOS, Android & macOS
+    needs: guard
     runs-on: macos-26
 
     permissions:
@@ -119,6 +130,7 @@ jobs:
 
   windows:
     name: Patch Windows
+    needs: guard
     if: inputs.build_windows
     runs-on: windows-latest
 
