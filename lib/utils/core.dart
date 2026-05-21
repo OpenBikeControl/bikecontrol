@@ -247,7 +247,7 @@ class CoreLogic {
 
   bool get showZwiftMsdnEmulator {
     final app = core.settings.getTrainerApp();
-    return app != null && app.supports(AppConnectionMethod.zwiftMdns);
+    return app != null && (app.supports(AppConnectionMethod.zwiftMdns) || app.supports(AppConnectionMethod.rouvyMdns));
   }
 
   bool get showObpMdnsEmulator {

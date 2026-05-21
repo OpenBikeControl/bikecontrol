@@ -9,7 +9,7 @@ import '../keymap.dart';
 class Rouvy extends SupportedApp {
   @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
-    (AppConnectionMethod.zwiftMdns, ConnectionSupport.supported),
+    (AppConnectionMethod.rouvyMdns, ConnectionSupport.supported),
     (AppConnectionMethod.zwiftBle, ConnectionSupport.supported),
   ];
 
