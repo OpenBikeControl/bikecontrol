@@ -21,18 +21,19 @@ class ZwiftMdnsTile extends StatefulWidget {
 class _ZwiftTileState extends State<ZwiftMdnsTile> {
   @override
   Widget build(BuildContext context) {
+    final trainerConnection = core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator;
     return ValueListenableBuilder(
-      valueListenable: core.zwiftMdnsEmulator.isConnected,
+      valueListenable: trainerConnection.isConnected,
       builder: (context, isConnected, _) {
         return ValueListenableBuilder(
-          valueListenable: core.zwiftMdnsEmulator.isStarted,
+          valueListenable: trainerConnection.isStarted,
           builder: (context, isStarted, _) {
             return StatefulBuilder(
               builder: (context, setState) {
                 final isRouvy = core.settings.getTrainerApp() is Rouvy;
                 return ConnectionMethod(
                   small: widget.small,
-                  trainerConnection: core.zwiftMdnsEmulator,
+                  trainerConnection: trainerConnection,
                   isRecommended: true,
                   supportLevel: core.settings.getTrainerApp()?.supportLevel(AppConnectionMethod.zwiftMdns),
                   isEnabled: core.settings.getZwiftMdnsEmulatorEnabled(),
@@ -49,16 +50,30 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
                   instructionLink: 'INSTRUCTIONS_ZWIFT.md',
                   onChange: (start) {
                     core.settings.setZwiftMdnsEmulatorEnabled(start);
-                    if (start) {
-                      core.zwiftMdnsEmulator.startServer().catchError((e, s) {
-                        recordError(e, s, context: 'Zwift mDNS Emulator');
-                        core.settings.setZwiftMdnsEmulatorEnabled(false);
-                        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
-                        setState(() {});
-                        widget.onUpdate();
-                      });
+                    if (isRouvy) {
+                      if (start) {
+                        core.rouvyMdnsEmulator.startServer().catchError((e, s) {
+                          recordError(e, s, context: 'Zwift mDNS Emulator');
+                          core.settings.setZwiftMdnsEmulatorEnabled(false);
+                          core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+                          setState(() {});
+                          widget.onUpdate();
+                        });
+                      } else {
+                        core.rouvyMdnsEmulator.stop();
+                      }
                     } else {
-                      core.zwiftMdnsEmulator.stop();
+                      if (start) {
+                        core.zwiftMdnsEmulator.startServer().catchError((e, s) {
+                          recordError(e, s, context: 'Zwift mDNS Emulator');
+                          core.settings.setZwiftMdnsEmulatorEnabled(false);
+                          core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+                          setState(() {});
+                          widget.onUpdate();
+                        });
+                      } else {
+                        core.zwiftMdnsEmulator.stop();
+                      }
                     }
                     setState(() {});
                   },

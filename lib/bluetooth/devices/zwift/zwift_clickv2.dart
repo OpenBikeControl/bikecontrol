@@ -6,6 +6,7 @@ import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -123,24 +124,26 @@ class ZwiftClickV2 extends ZwiftRide {
     alreadyUnlocked.value = false;
     waiting.value = false;
 
-    _clickDef = ZwiftClickDefinition(
-      services: services,
-      device: scanResult,
-      data: ftmsEmulator.data,
-      vendorMessage: _vendorMessage,
-      isUnlocked: isUnlocked,
-      alreadyUnlocked: alreadyUnlocked,
-      waiting: waiting,
-      isStarted: ftmsEmulator.isStarted,
-      connectionDate: connectionDate ?? DateTime.now(),
-    );
+    if (core.settings.getTrainerApp() is Zwift) {
+      _clickDef = ZwiftClickDefinition(
+        services: services,
+        device: scanResult,
+        data: ftmsEmulator.data,
+        vendorMessage: _vendorMessage,
+        isUnlocked: isUnlocked,
+        alreadyUnlocked: alreadyUnlocked,
+        waiting: waiting,
+        isStarted: ftmsEmulator.isStarted,
+        connectionDate: connectionDate ?? DateTime.now(),
+      );
 
-    // Attach the click def to the shared emulator. If a trainer is already
-    // running in VS mode its FBD will already be in the composite; if not the
-    // emulator starts standalone so Zwift sees the Click right away.
-    await ftmsEmulator.attachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
-      recordError(e, s, context: 'ZwiftClickV2.attachClickDef');
-    });
+      // Attach the click def to the shared emulator. If a trainer is already
+      // running in VS mode its FBD will already be in the composite; if not the
+      // emulator starts standalone so Zwift sees the Click right away.
+      await ftmsEmulator.attachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
+        recordError(e, s, context: 'ZwiftClickV2.attachClickDef');
+      });
+    }
 
     await super.handleServices(services);
   }

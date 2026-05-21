@@ -133,6 +133,11 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                           core.zwiftEmulator.stopAdvertising();
                         }
                       }
+                      if (selectedApp.supports(AppConnectionMethod.rouvyMdns)) {
+                        if (core.rouvyMdnsEmulator.isStarted.value) {
+                          core.rouvyMdnsEmulator.stop();
+                        }
+                      }
                       if (core.obpMdnsEmulator.isStarted.value) {
                         core.obpMdnsEmulator.stopServer();
                       }

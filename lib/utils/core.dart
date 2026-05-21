@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:bike_control/bluetooth/devices/shimano/di2_emulator.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
-import 'package:bike_control/bluetooth/devices/shimano/di2_emulator.dart';
+import 'package:bike_control/bluetooth/devices/zwift/rouvy_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
@@ -38,6 +39,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/connection.dart';
 import '../bluetooth/devices/mywhoosh/link.dart';
+import 'keymap/apps/rouvy.dart';
 import 'media_key_handler.dart';
 import 'requirements/multi.dart';
 import 'requirements/platform.dart';
@@ -66,6 +68,7 @@ class Core {
 
   late final zwiftEmulator = ZwiftEmulator();
   late final zwiftMdnsEmulator = FtmsMdnsEmulator();
+  late final rouvyMdnsEmulator = RouvyMdnsEmulator();
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final local = Local();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
@@ -291,8 +294,7 @@ class CoreLogic {
     return trainerApp.defaultObpSupportedButtons;
   }
 
-  List<InGameAction> get obpSupportedActions =>
-      obpSupportedButtons.mapNotNull((b) => b.action).toList();
+  List<InGameAction> get obpSupportedActions => obpSupportedButtons.mapNotNull((b) => b.action).toList();
 
   bool get emulatorEnabled =>
       screenshotMode ||
@@ -340,7 +342,7 @@ class CoreLogic {
     if (core.settings.getLocalEnabled()) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
-    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
     if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
@@ -351,7 +353,7 @@ class CoreLogic {
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
-    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
     if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
@@ -363,7 +365,7 @@ class CoreLogic {
     if (core.settings.getLocalEnabled() && showLocalControl) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
-    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
     if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
@@ -394,7 +396,7 @@ class CoreLogic {
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
-    if (isZwiftMdnsEnabled) core.zwiftMdnsEmulator,
+    if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
     if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
@@ -405,7 +407,7 @@ class CoreLogic {
     if (showObpBluetoothEmulator) core.obpBluetoothEmulator,
     if (showMyWhooshLink) core.whooshLink,
     if (showZwiftBleEmulator) core.zwiftEmulator,
-    if (showZwiftMsdnEmulator) core.zwiftMdnsEmulator,
+    if (showZwiftMsdnEmulator) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
     if (showDi2Ble) core.di2Emulator,
     if (showRemote) core.remotePairing,
     if (showRemote) core.remoteKeyboardPairing,
@@ -442,14 +444,24 @@ class CoreLogic {
         );
       });
     }
-    if (isZwiftMdnsEnabled && !core.zwiftMdnsEmulator.isStarted.value) {
-      core.zwiftMdnsEmulator.startServer().catchError((e, s) {
-        recordError(e, s, context: 'Zwift mDNS Emulator');
-        core.settings.setZwiftMdnsEmulatorEnabled(false);
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
-        );
-      });
+    if (isZwiftMdnsEnabled) {
+      if (core.settings.getTrainerApp() is Rouvy && !core.rouvyMdnsEmulator.isStarted.value) {
+        core.rouvyMdnsEmulator.startServer().catchError((e, s) {
+          recordError(e, s, context: 'Rouvy mDNS Emulator');
+          core.settings.setZwiftMdnsEmulatorEnabled(false);
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Rouvy mDNS Emulator: $e'),
+          );
+        });
+      } else if (!core.zwiftMdnsEmulator.isStarted.value) {
+        core.zwiftMdnsEmulator.startServer().catchError((e, s) {
+          recordError(e, s, context: 'Zwift mDNS Emulator');
+          core.settings.setZwiftMdnsEmulatorEnabled(false);
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Zwift mDNS Emulator: $e'),
+          );
+        });
+      }
     }
 
     if (isObpMdnsEnabled && isMyWhooshLinkEnabled) {
