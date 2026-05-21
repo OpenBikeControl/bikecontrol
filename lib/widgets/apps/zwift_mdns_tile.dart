@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -46,7 +47,9 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
                       ? context.i18n
                             .waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? '')
                             .replaceAll('KICKR BIKE PRO', 'BikeControl')
-                      : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
+                      : context.i18n
+                            .waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? '')
+                            .replaceAll('KICKR BIKE PRO', ftmsEmulator.advertisementName),
                   instructionLink: 'INSTRUCTIONS_ZWIFT.md',
                   onChange: (start) {
                     core.settings.setZwiftMdnsEmulatorEnabled(start);

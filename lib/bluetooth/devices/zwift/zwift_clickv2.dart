@@ -13,6 +13,7 @@ import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:bike_control/widgets/unlock_confirm.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:prop/emulators/definitions/zwift_click_definition.dart';
 import 'package:prop/prop.dart';
@@ -152,18 +153,23 @@ class ZwiftClickV2 extends ZwiftRide {
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     // Capture the vendor challenge message from the Click so it can be
     // replayed to Zwift on reconnect (unlock handshake recovery).
+
+    final opCode = bytes.isNotEmpty ? Opcode.valueOf(bytes[0]) : null;
+
     if (characteristic.toUpperCase() == FtmsMdnsConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID &&
         bytes.length >= 2 &&
-        Opcode.valueOf(bytes[0]) == Opcode.VENDOR_MESSAGE &&
+        opCode == Opcode.VENDOR_MESSAGE &&
         bytes[1] == 0x03) {
       _vendorMessage = Uint8List.fromList(bytes);
     }
 
-    // All click traffic goes to ftmsEmulator — it's the single shared emulator
-    // for VS mode and the standalone emulator for the click-alone path.
-    final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
-    if (!processed || true) {
-      await super.processCharacteristic(characteristic, bytes);
+    if (opCode == Opcode.CONTROLLER_NOTIFICATION) {
+      super.processCharacteristic(characteristic, bytes);
+    } else {
+      final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
+      if (!processed) {
+        await super.processCharacteristic(characteristic, bytes);
+      }
     }
     if (bytes.startsWith(startCommand)) {
       initializationTime = DateTime.now();

@@ -9,7 +9,9 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
@@ -92,6 +94,8 @@ class ProxyDevice extends BluetoothDevice {
   /// mode this is the same as [_fbd]. Kept separate so the bridge-usage
   /// tracker can read live trainer activity via [_isTrainerActive].
   FitnessBikeDefinition? _currentFbd;
+
+  ZwiftEmulatorDefinition? _zwiftControllerEmulator;
 
   ProxyDevice(super.scanResult)
     : super(
@@ -193,6 +197,8 @@ class ProxyDevice extends BluetoothDevice {
       data: _proxyEmulator.data,
     );
 
+    _zwiftControllerEmulator = ZwiftEmulatorDefinition(device: device);
+
     final fbd = FitnessBikeDefinition(
       connectedDevice: scanResult,
       connectedDeviceServices: services,
@@ -204,8 +210,8 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   bool get _shouldAdvertiseZwift {
-    final name = core.settings.getTrainerApp()?.name;
-    return name == 'Rouvy' || name == 'Zwift';
+    final trainerApp = core.settings.getTrainerApp();
+    return trainerApp is Rouvy || trainerApp is Zwift;
   }
 
   /// Mirrors `emulator.advertisementName`. Exposed on ProxyDevice for the UI
@@ -281,6 +287,9 @@ class ProxyDevice extends BluetoothDevice {
         _fbd = fbd;
         _currentFbd = fbd;
         await ftmsEmulator.attachDefinition(_fbd!);
+        if (_zwiftControllerEmulator != null && core.settings.getTrainerApp() is Zwift) {
+          await ftmsEmulator.attachDefinition(_zwiftControllerEmulator!);
+        }
         await ftmsEmulator.startServer(
           mode: mode,
           mdnsTxt: _trainerMdnsTxt(),
@@ -633,6 +642,10 @@ class ProxyDevice extends BluetoothDevice {
         await ftmsEmulator.attachDefinition(_fbd!);
       }
 
+      if (_zwiftControllerEmulator != null && core.settings.getTrainerApp() is Zwift) {
+        await ftmsEmulator.attachDefinition(_zwiftControllerEmulator!);
+      }
+
       await ftmsEmulator.startServer(
         mode: next,
         mdnsTxt: _trainerMdnsTxt(),
@@ -698,6 +711,12 @@ class ProxyDevice extends BluetoothDevice {
       await ftmsEmulator.detachDefinition(_fbd!).catchError((_) {});
       _fbd = null;
     }
+
+    if (_zwiftControllerEmulator != null) {
+      await ftmsEmulator.detachDefinition(_zwiftControllerEmulator!).catchError((_) {});
+      _zwiftControllerEmulator = null;
+    }
+
     if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
       ftmsEmulator.stop();
     }
@@ -705,6 +724,7 @@ class ProxyDevice extends BluetoothDevice {
     if (_proxyDef != null) {
       await _proxyEmulator.detachDefinition(_proxyDef!).catchError((_) {});
     }
+
     _proxyEmulator.stop();
     return super.disconnect();
   }
