@@ -1,5 +1,4 @@
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -15,7 +14,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
 
 class FtmsMdnsEmulator extends TrainerConnection {
-  late final DirconEmulator clickEmulator = ftmsEmulator; // ClickEmulator();
+  late final ClickEmulator clickEmulator = ClickEmulator();
   var lastMessageId = 0;
 
   FtmsMdnsEmulator()
@@ -54,16 +53,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
   Future<void> startServer() async {
     final isRouvy = core.settings.getTrainerApp() is Rouvy;
-    //return clickEmulator.startServer(isRouvy, name: isRouvy ? 'BikeControl' : null);
-    return clickEmulator.startServer(
-      mode: RetrofitMode.wifi,
-      mdnsTxt: {
-        'mac-address': Uint8List.fromList('95E042B7-1337-039E-C35F-C7095776F2D3'.codeUnits),
-        'serial-number': Uint8List.fromList(
-          '95E042B7-1337-039E-C35F-C7095776F2D3'.replaceAll('-', '').substring(0, '244700181'.length).codeUnits,
-        ),
-      },
-    );
+    return clickEmulator.startServer(isRouvy, name: isRouvy ? 'BikeControl' : null);
   }
 
   void stop() {
@@ -101,16 +91,14 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
       final bytes = status.writeToBuffer();
 
-      clickEmulator.composite.sendCharacteristicNotification('00000002-19CA-4651-86E5-FA29DCDD09D1', [
-        Opcode.CONTROLLER_NOTIFICATION.value,
+      clickEmulator.writeNotification([
         ...bytes,
       ]);
     }
 
     if (isKeyUp) {
       final bytes = [0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F];
-      clickEmulator.composite.sendCharacteristicNotification('00000002-19CA-4651-86E5-FA29DCDD09D1', [
-        Opcode.CONTROLLER_NOTIFICATION.value,
+      clickEmulator.writeNotification([
         ...bytes,
       ]);
     }
