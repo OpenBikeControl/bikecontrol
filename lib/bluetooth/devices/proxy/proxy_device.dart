@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
-import 'package:flutter/foundation.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -14,6 +13,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerC
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
@@ -34,8 +34,7 @@ class ProxyDevice extends BluetoothDevice {
 
   /// Active emulator for this device. In proxy mode → own per-instance
   /// emulator; in VS modes → shared global [ftmsEmulator].
-  DirconEmulator get emulator =>
-      _retrofitModeN.value == RetrofitMode.proxy ? _proxyEmulator : ftmsEmulator;
+  DirconEmulator get emulator => _retrofitModeN.value == RetrofitMode.proxy ? _proxyEmulator : ftmsEmulator;
 
   final ValueChangeNotifier<String> onChange = ValueChangeNotifier('');
 
@@ -101,10 +100,11 @@ class ProxyDevice extends BluetoothDevice {
         isBeta: true,
       ) {
     _proxyEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
-    _proxyEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
-    _proxyEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
     _proxyEmulator.deviceName = () => scanResult.name;
     _bindToActiveEmulator();
+    // Rebind when the mode flips so the wrappers track the new active
+    // emulator (e.g. setRetrofitMode swapping proxy ↔ VS before connect).
+    _retrofitModeN.addListener(_bindToActiveEmulator);
   }
 
   /// Mirror the active emulator's state notifiers into our stable wrappers.
@@ -136,8 +136,7 @@ class ProxyDevice extends BluetoothDevice {
   void _mirrorLocalAddress() => _localAddressN.value = emulator.localAddress.value;
 
   void _syncBridgeTracking() {
-    final isBridgeSession =
-        _isConnectedN.value && _retrofitModeN.value != RetrofitMode.proxy;
+    final isBridgeSession = _isConnectedN.value && _retrofitModeN.value != RetrofitMode.proxy;
     final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
     if (isBridgeSession && !isPro) {
       if (core.bridgeUsageTracker.isExhausted) {
@@ -215,7 +214,7 @@ class ProxyDevice extends BluetoothDevice {
   String get advertisementName => emulator.advertisementName;
 
   Map<String, Uint8List> _trainerMdnsTxt() => {
-    'mac-address': Uint8List.fromList(scanResult.deviceId.codeUnits),
+    'mac-address': Uint8List.fromList('95E042B7-1337-039E-C35F-C7095776F2D3'.codeUnits),
     'serial-number': Uint8List.fromList(
       scanResult.deviceId.replaceAll('-', '').substring(0, '244700181'.length).codeUnits,
     ),
@@ -278,8 +277,6 @@ class ProxyDevice extends BluetoothDevice {
       } else {
         // VS modes (wifi / bluetooth): the FBD lives in the shared ftmsEmulator.
         ftmsEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
-        ftmsEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
-        ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
         ftmsEmulator.deviceName = () => scanResult.name;
         _fbd = fbd;
         _currentFbd = fbd;
@@ -629,8 +626,6 @@ class ProxyDevice extends BluetoothDevice {
 
       _retrofitModeN.value = next;
       ftmsEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
-      ftmsEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
-      ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
       ftmsEmulator.deviceName = () => scanResult.name;
       _bindToActiveEmulator();
 
@@ -684,6 +679,7 @@ class ProxyDevice extends BluetoothDevice {
   @override
   Future<void> disconnect() async {
     // Remove listeners from the active emulator before teardown.
+    _retrofitModeN.removeListener(_bindToActiveEmulator);
     final active = _currentlyListening;
     if (active != null) {
       active.isStarted.removeListener(_mirrorIsStarted);

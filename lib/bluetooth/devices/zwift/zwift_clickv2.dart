@@ -159,9 +159,10 @@ class ZwiftClickV2 extends ZwiftRide {
     // All click traffic goes to ftmsEmulator — it's the single shared emulator
     // for VS mode and the standalone emulator for the click-alone path.
     final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
-    if (!processed) {
+    if (!processed || true) {
       await super.processCharacteristic(characteristic, bytes);
-    } else if (bytes.startsWith(startCommand)) {
+    }
+    if (bytes.startsWith(startCommand)) {
       initializationTime = DateTime.now();
     }
   }

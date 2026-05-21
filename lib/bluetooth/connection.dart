@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -76,6 +77,9 @@ class Connection {
       // Load saved media key detection state
       core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings.getMediaKeyDetectionEnabled();
     }
+
+    ftmsEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
+    ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
 
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
