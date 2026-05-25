@@ -17,6 +17,7 @@ class ZwiftConstants {
   // Zwift Play = RC1
   static const RC1_LEFT_SIDE = 0x03;
   static const RC1_RIGHT_SIDE = 0x02;
+  static const RC1_FW2 = 0x0E;
 
   // Zwift Ride
   static const RIDE_RIGHT_SIDE = 0x07;
@@ -154,6 +155,7 @@ enum ZwiftDeviceType {
   clickV2Left,
   playLeft,
   playRight,
+  playFw2,
   rideRight,
   rideLeft;
 
@@ -179,6 +181,8 @@ enum ZwiftDeviceType {
         return ZwiftDeviceType.rideRight;
       case ZwiftConstants.RIDE_LEFT_SIDE:
         return ZwiftDeviceType.rideLeft;
+      case ZwiftConstants.RC1_FW2:
+        return ZwiftDeviceType.playFw2;
     }
     return null;
   }
