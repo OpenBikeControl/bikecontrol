@@ -127,14 +127,25 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 8,
                   children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeOut,
-                      width: _keyPair.buttons.first.color != null ? baseHeight : null,
-                      height: _keyPair.buttons.first.color != null ? baseHeight : null,
-                      padding: EdgeInsets.all(_bumped ? 0 : 6.0),
-                      constraints: BoxConstraints(maxWidth: 120),
-                      child: ButtonWidget(button: _keyPair.buttons.first),
+                    TweenAnimationBuilder<double>(
+                      // One-shot entrance: button pops in from 70% on drawer open.
+                      // No reverse — `tween.begin` is only consulted on first build.
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 320),
+                      curve: Curves.easeOutBack,
+                      builder: (context, t, child) => Opacity(
+                        opacity: t.clamp(0.0, 1.0),
+                        child: Transform.scale(scale: 0.7 + 0.3 * t, child: child),
+                      ),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOut,
+                        width: _keyPair.buttons.first.color != null ? baseHeight : null,
+                        height: _keyPair.buttons.first.color != null ? baseHeight : null,
+                        padding: EdgeInsets.all(_bumped ? 0 : 6.0),
+                        constraints: BoxConstraints(maxWidth: 120),
+                        child: ButtonWidget(button: _keyPair.buttons.first),
+                      ),
                     ),
                     Expanded(child: SizedBox()),
                     IconButton(
@@ -1294,6 +1305,9 @@ class SelectableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPro = IAPManager.instance.hasActiveSubscription;
 
+    // Button keeps a static neutral border at all times; the colored "active"
+    // ring is drawn as an overlay so AnimatedOpacity can cross-fade it in/out
+    // without shadcn's internal style swap snapping between two border colors.
     return Stack(
       children: [
         Button.outline(
@@ -1302,9 +1316,7 @@ class SelectableCard extends StatelessWidget {
                     variance: ButtonVariance.outline,
                   )
                   .withBorder(
-                    border: isActive
-                        ? Border.all(color: BKColor.main, width: 2)
-                        : Border.all(color: Theme.of(context).colorScheme.border, width: 2),
+                    border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
                     hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
                     focusBorder: Border.all(color: BKColor.main, width: 2),
                   )
@@ -1341,6 +1353,21 @@ class SelectableCard extends StatelessWidget {
               title: title,
               subtitle: value != null && isActive ? Text(value!) : subtitle,
               trailing: trailing,
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              opacity: isActive ? 1.0 : 0.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: BKColor.main, width: 2),
+                ),
+              ),
             ),
           ),
         ),

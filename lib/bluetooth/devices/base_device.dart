@@ -484,55 +484,63 @@ abstract class BaseDevice {
 
   Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
     final meta = showMetaInformation(context, showFull: showFull);
+    // Hero the entire header Row so the icon, title and meta fly together
+    // when navigating between the overview's compact card and the
+    // ControllerSettingsPage's expanded card — the same Row shape is rendered
+    // on both sides, just at a different width and with/without the trailing
+    // settings gear (which lands at destination).
     return Column(
       spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          spacing: 12,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StatusIcon(
-              icon: icon,
-              status: isConnected,
-              started: !isConnected && (this is! ProxyDevice || (this as ProxyDevice).isStarting.value),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                spacing: 4,
-                children: [
-                  Row(
-                    spacing: 6,
-                    children: [
-                      Text(
-                        toString(),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
-                      ),
-                      if (isBeta) BetaPill(),
-                      Expanded(child: SizedBox()),
-                      if (!showFull)
-                        Icon(
-                          LucideIcons.settings,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.mutedForeground,
-                        ),
-                    ],
-                  ),
-                  if (meta.isNotEmpty)
-                    Wrap(
-                      runSpacing: 6,
-                      spacing: 6,
-                      alignment: WrapAlignment.start,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      runAlignment: WrapAlignment.start,
-                      children: meta,
-                    ),
-                ],
+        Hero(
+          tag: 'device-header-$uniqueId',
+          child: Row(
+            spacing: 12,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StatusIcon(
+                icon: icon,
+                status: isConnected,
+                started: !isConnected && (this is! ProxyDevice || (this as ProxyDevice).isStarting.value),
               ),
-            ),
-          ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Row(
+                      spacing: 6,
+                      children: [
+                        Text(
+                          toString(),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                        ),
+                        if (isBeta) BetaPill(),
+                        Expanded(child: SizedBox()),
+                        if (!showFull)
+                          Icon(
+                            LucideIcons.settings,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          ),
+                      ],
+                    ),
+                    if (meta.isNotEmpty)
+                      Wrap(
+                        runSpacing: 6,
+                        spacing: 6,
+                        alignment: WrapAlignment.start,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        runAlignment: WrapAlignment.start,
+                        children: meta,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         if (footer != null) footer,
         ...showAdditionalInformation(context),
