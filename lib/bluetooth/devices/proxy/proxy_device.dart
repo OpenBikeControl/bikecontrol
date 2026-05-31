@@ -111,6 +111,15 @@ class ProxyDevice extends BluetoothDevice {
     _retrofitModeN.addListener(_bindToActiveEmulator);
   }
 
+  /// Restart the per-instance proxy emulator if it's running. Called when
+  /// something the advertisement depends on (the selected trainer app)
+  /// changes. No-op when not running or when this device is currently in a
+  /// VS mode — ftmsEmulator handles itself in that case.
+  Future<void> restartProxyEmulator() async {
+    if (_retrofitModeN.value != RetrofitMode.proxy) return;
+    await _proxyEmulator.restart();
+  }
+
   /// Mirror the active emulator's state notifiers into our stable wrappers.
   /// Removes listeners from the previous emulator (if any) before re-binding.
   void _bindToActiveEmulator() {

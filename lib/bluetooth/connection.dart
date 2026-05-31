@@ -81,6 +81,16 @@ class Connection {
     ftmsEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
     ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
 
+    // The advertised name depends on the selected trainer app (e.g. Rouvy →
+    // "Zwift Hub"). Restart the transport on every change so the new name
+    // shows up on the wire without the user reconnecting.
+    core.settings.trainerAppListenable.addListener(() {
+      unawaited(ftmsEmulator.restart());
+      for (final pd in proxyDevices) {
+        unawaited(pd.restartProxyEmulator());
+      }
+    });
+
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb) {

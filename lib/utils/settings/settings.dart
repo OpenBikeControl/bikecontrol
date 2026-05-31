@@ -37,6 +37,7 @@ class Settings {
     try {
       prefs = await SharedPreferences.getInstance();
       propPrefs.initialize(prefs);
+      trainerAppListenable.value = getTrainerApp();
       if (!screenshotMode) {
         try {
           await NotificationRequirement.setup();
@@ -116,8 +117,15 @@ class Settings {
     init();
   }
 
+  /// Fires whenever [setTrainerApp] is called. Consumers (the connection
+  /// layer, ProxyDevice) listen so they can restart the emulator with the
+  /// new advertised name — e.g. Rouvy needs "Zwift Hub" while other apps
+  /// expect the device-derived name.
+  final ValueNotifier<SupportedApp?> trainerAppListenable = ValueNotifier<SupportedApp?>(null);
+
   void setTrainerApp(SupportedApp app) {
     prefs.setString('trainer_app', app.name);
+    trainerAppListenable.value = app;
   }
 
   SupportedApp? getTrainerApp() {
