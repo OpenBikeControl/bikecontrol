@@ -868,5 +868,6 @@
     "placeholders": {"device": {"type": "String"}}
   },
   "scanningForDevicesShort": "Suche nach Geräten…",
-  "disconnectingAllDevices": "Trenne alle Geräte"
+  "disconnectingAllDevices": "Trenne alle Geräte",
+  "configureButtonMapping": "Tastenbelegung konfigurieren"
 }

@@ -868,5 +868,6 @@
     "placeholders": {"device": {"type": "String"}}
   },
   "scanningForDevicesShort": "Skanowanie urządzeń...",
-  "disconnectingAllDevices": "Rozłączanie wszystkich urządzeń"
+  "disconnectingAllDevices": "Rozłączanie wszystkich urządzeń",
+  "configureButtonMapping": "Konfiguruj przypisanie przycisków"
 }

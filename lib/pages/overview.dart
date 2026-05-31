@@ -584,7 +584,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               Divider(),
               Padding(
                 padding: const EdgeInsets.only(right: 20, top: 8, bottom: 20),
-                child: BlogPostsWidget(maxPosts: 5),
+                child: BlogPostsWidget(maxPosts: 4),
               ),
             ],
           ),

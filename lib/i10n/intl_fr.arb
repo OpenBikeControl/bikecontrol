@@ -869,5 +869,6 @@
     "placeholders": {"device": {"type": "String"}}
   },
   "scanningForDevicesShort": "Recherche d'appareils…",
-  "disconnectingAllDevices": "Déconnexion de tous les appareils"
+  "disconnectingAllDevices": "Déconnexion de tous les appareils",
+  "configureButtonMapping": "Configurer le mappage des boutons"
 }
