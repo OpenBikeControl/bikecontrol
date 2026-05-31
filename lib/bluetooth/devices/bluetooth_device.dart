@@ -14,6 +14,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play_fw2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -164,6 +165,7 @@ abstract class BluetoothDevice extends BaseDevice {
           ZwiftDeviceType.playRight => ZwiftPlay(scanResult, deviceType: type!),
           ZwiftDeviceType.playLeft => ZwiftPlay(scanResult, deviceType: type!),
           ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
+          ZwiftDeviceType.playFw2 => ZwiftPlayFw2(scanResult),
           //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
           ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
           //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
