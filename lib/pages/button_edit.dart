@@ -52,7 +52,7 @@ class ButtonEditPage extends StatefulWidget {
 class _ButtonEditPageState extends State<ButtonEditPage> {
   late KeyPair _keyPair;
   late final ScrollController _scrollController = ScrollController();
-  final double baseHeight = 46;
+  final double baseHeight = 66;
   bool _bumped = false;
 
   void _triggerBump() async {
@@ -140,8 +140,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 600),
                         curve: Curves.easeOut,
-                        width: _keyPair.buttons.first.color != null ? baseHeight : null,
-                        height: _keyPair.buttons.first.color != null ? baseHeight : null,
+                        width: baseHeight,
+                        height: baseHeight,
                         padding: EdgeInsets.all(_bumped ? 0 : 6.0),
                         constraints: BoxConstraints(maxWidth: 120),
                         child: ButtonWidget(button: _keyPair.buttons.first),

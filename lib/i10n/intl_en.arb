@@ -1025,5 +1025,6 @@
     "placeholders": {"device": {"type": "String"}}
   },
   "scanningForDevicesShort": "Scanning for devices...",
-  "disconnectingAllDevices": "Disconnecting all devices"
+  "disconnectingAllDevices": "Disconnecting all devices",
+  "configureButtonMapping": "Configure button mapping"
 }
