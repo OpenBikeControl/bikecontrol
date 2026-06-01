@@ -555,7 +555,10 @@ class Local extends TrainerConnection {
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
-    return NotHandled('');
+    return NotHandled(
+      '',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   @override

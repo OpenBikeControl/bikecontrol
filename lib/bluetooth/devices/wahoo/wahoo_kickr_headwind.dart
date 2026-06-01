@@ -118,18 +118,24 @@ class WahooKickrHeadwind extends BluetoothDevice {
 
   Future<ActionResult> handleKeypair(KeyPair keyPair, {required bool isKeyDown}) async {
     if (!isKeyDown) {
-      return NotHandled('');
+      return NotHandled(
+        '',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     try {
       if (keyPair.inGameAction == InGameAction.headwindSpeed) {
         final speed = keyPair.inGameActionValue ?? 0;
         await setSpeed(speed);
-        return Success('Headwind speed set to $speed%');
+        return Success(
+          'Headwind speed set to $speed%',
+          button: keyPair.buttons.firstOrNull,
+        );
       } else if (keyPair.inGameAction == InGameAction.headwindSpeedInc ||
-                 keyPair.inGameAction == InGameAction.headwindSpeedDec ||
-                 keyPair.inGameAction == InGameAction.headwindSpeedCyclicInc ||
-                 keyPair.inGameAction == InGameAction.headwindSpeedCyclicDec) {
+          keyPair.inGameAction == InGameAction.headwindSpeedDec ||
+          keyPair.inGameAction == InGameAction.headwindSpeedCyclicInc ||
+          keyPair.inGameAction == InGameAction.headwindSpeedCyclicDec) {
         final step = 25;
         int speed = 0;
         switch (keyPair.inGameAction) {
@@ -142,20 +148,35 @@ class WahooKickrHeadwind extends BluetoothDevice {
           case InGameAction.headwindSpeedCyclicDec:
             speed = _currentSpeed - step < 0 ? (_currentSpeed > 0 ? 0 : 100) : _currentSpeed - step;
           default:
-            return Error('Failed to control Headwind: Unknown action');
+            return Error(
+              'Failed to control Headwind: Unknown action',
+              button: keyPair.buttons.firstOrNull,
+            );
         }
         await setSpeed(speed);
         _currentSpeed = speed;
-        return Success('Headwind speed set to $speed%');
+        return Success(
+          'Headwind speed set to $speed%',
+          button: keyPair.buttons.firstOrNull,
+        );
       } else if (keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
         await setHeartRateMode();
-        return Success('Headwind set to Heart Rate mode');
+        return Success(
+          'Headwind set to Heart Rate mode',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
     } catch (e) {
-      return Error('Failed to control Headwind: $e');
+      return Error(
+        'Failed to control Headwind: $e',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
-    return NotHandled('');
+    return NotHandled(
+      '',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 }
 

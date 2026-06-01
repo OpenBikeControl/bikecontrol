@@ -521,48 +521,51 @@ class ProxyDevice extends BluetoothDevice {
     final def = emulator.fitnessBike;
     if (def == null) {
       // Internal-only diagnostic; not user-visible toast copy.
-      return NotHandled('No active FitnessBikeDefinition');
+      return NotHandled('No active FitnessBikeDefinition', button: null);
     }
     switch (action) {
       case InGameAction.shiftUp:
         if (def.trainerMode.value == TrainerMode.ergMode) {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current + 10);
-          return Success(l10n.trainerErgTarget(def.ergTargetPower.value ?? current));
+          return Success(
+            l10n.trainerErgTarget(def.ergTargetPower.value ?? current),
+            button: null,
+          );
         } else {
           final didChange = def.shiftUp();
           return didChange
-              ? Ignored(l10n.trainerShiftedUp(def.currentGear.value))
-              : Ignored(l10n.trainerAlreadyHighestGear);
+              ? Ignored(l10n.trainerShiftedUp(def.currentGear.value), button: null)
+              : Ignored(l10n.trainerAlreadyHighestGear, button: null);
         }
       case InGameAction.shiftDown:
         if (def.trainerMode.value == TrainerMode.ergMode) {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current - 10);
-          return Success(l10n.trainerErgTarget(def.ergTargetPower.value ?? current));
+          return Success(l10n.trainerErgTarget(def.ergTargetPower.value ?? current), button: null);
         } else {
           final didChange = def.shiftDown();
           return didChange
-              ? Ignored(l10n.trainerShiftedDown(def.currentGear.value))
-              : Ignored(l10n.trainerAlreadyLowestGear);
+              ? Ignored(l10n.trainerShiftedDown(def.currentGear.value), button: null)
+              : Ignored(l10n.trainerAlreadyLowestGear, button: null);
         }
       case InGameAction.trainerSwitchMode:
         if (def.trainerMode.value == TrainerMode.ergMode) {
           def.exitErgMode();
-          return Success(l10n.trainerSwitchedToSim);
+          return Success(l10n.trainerSwitchedToSim, button: null);
         } else {
           final current = def.ergTargetPower.value ?? 150;
           def.setManualErgPower(current);
-          return Success(l10n.trainerSwitchedToErg(current));
+          return Success(l10n.trainerSwitchedToErg(current), button: null);
         }
       case InGameAction.trainerIntensityUp:
         def.adjustIntensity(0.05);
-        return Success(l10n.trainerIntensityIncreased);
+        return Success(l10n.trainerIntensityIncreased, button: null);
       case InGameAction.trainerIntensityDown:
         def.adjustIntensity(-0.05);
-        return Success(l10n.trainerIntensityDecreased);
+        return Success(l10n.trainerIntensityDecreased, button: null);
       default:
-        return NotHandled('');
+        return NotHandled('', button: null);
     }
   }
 

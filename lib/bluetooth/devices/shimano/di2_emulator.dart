@@ -100,22 +100,29 @@ class Di2Emulator extends TrainerConnection {
     final action = keyPair.inGameAction;
     final index = _channelIndexByAction[action];
     if (index == null) {
-      return NotHandled('Action ${action?.name ?? '<none>'} not supported by Di2Emulator');
+      return NotHandled(
+        'Action ${action?.name ?? '<none>'} not supported by Di2Emulator',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
     if (_transporter == null) {
-      return NotHandled('Di2 emulator is not started');
+      return NotHandled(
+        'Di2 emulator is not started',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     if (isKeyDown) {
-      _channelStates[index] = keyPair.isLongPress
-          ? Di2ButtonState.longPress
-          : Di2ButtonState.shortPress;
+      _channelStates[index] = keyPair.isLongPress ? Di2ButtonState.longPress : Di2ButtonState.shortPress;
     }
     if (isKeyUp) {
       _channelStates[index] = Di2ButtonState.released;
     }
     _definition.sendChannelStates(List.of(_channelStates));
-    return Success('Sent ${action!.name}');
+    return Success(
+      'Sent ${action!.name}',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   @override

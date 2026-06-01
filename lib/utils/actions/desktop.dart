@@ -38,14 +38,20 @@ class DesktopActions extends BaseActions {
 
     if (keyPair.screenshotPath?.trim().isNotEmpty == true) {
       if (!isKeyDown) {
-        return Ignored('Screenshot capture only runs on key down');
+        return Ignored(
+          'Screenshot capture only runs on key down',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
 
       final screenshotDirectory = keyPair.screenshotPath!.trim();
       try {
         final capturedArea = await ScreenCapture().captureEntireScreen();
         if (capturedArea == null) {
-          return Error('Failed to capture screenshot');
+          return Error(
+            'Failed to capture screenshot',
+            button: keyPair.buttons.firstOrNull,
+          );
         }
 
         final directory = Directory(screenshotDirectory);
@@ -56,25 +62,40 @@ class DesktopActions extends BaseActions {
         final screenshotFile = File('${directory.path}$separator$fileName');
         screenshotFile.writeAsBytes(image_lib.encodeJpg(capturedArea.toImage()), flush: true);
         await IAPManager.instance.incrementCommandCount();
-        return Success('Screenshot saved: ${screenshotFile.path}');
+        return Success(
+          'Screenshot saved: ${screenshotFile.path}',
+          button: keyPair.buttons.firstOrNull,
+        );
       } catch (e) {
-        return Error('Failed to save screenshot: $e');
+        return Error(
+          'Failed to save screenshot: $e',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
     }
 
     if (keyPair.command?.trim().isNotEmpty == true) {
       if (!isKeyDown) {
-        return Ignored('Shortcut launch only runs on key down');
+        return Ignored(
+          'Shortcut launch only runs on key down',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
 
       final commandPath = keyPair.command!.trim();
       if (defaultTargetPlatform == TargetPlatform.macOS) {
         final launched = await launchUrlString('shortcuts://run-shortcut?name=$commandPath');
         if (!launched) {
-          return Error('Failed to launch shortcut: ${keyPair.command}');
+          return Error(
+            'Failed to launch shortcut: ${keyPair.command}',
+            button: keyPair.buttons.firstOrNull,
+          );
         }
         await IAPManager.instance.incrementCommandCount();
-        return Success('Shortcut launched: ${keyPair.command}');
+        return Success(
+          'Shortcut launched: ${keyPair.command}',
+          button: keyPair.buttons.firstOrNull,
+        );
       } else if (defaultTargetPlatform == TargetPlatform.windows) {
         try {
           final process = await Process.start(commandPath, const [], runInShell: true);
@@ -82,10 +103,16 @@ class DesktopActions extends BaseActions {
             core.connection.signalNotification(LogNotification('Command error: $line'));
           });
         } catch (e) {
-          return Error('Failed to run command: $e');
+          return Error(
+            'Failed to run command: $e',
+            button: keyPair.buttons.firstOrNull,
+          );
         }
         await IAPManager.instance.incrementCommandCount();
-        return Success('Command launched: $commandPath');
+        return Success(
+          'Command launched: $commandPath',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
     }
 
@@ -96,9 +123,15 @@ class DesktopActions extends BaseActions {
           await keyPressSimulator.simulateMediaKey(keyPair.physicalKey!);
           // Increment command count after successful execution
           await IAPManager.instance.incrementCommandCount();
-          return Success('Media key pressed: $keyPair');
+          return Success(
+            'Media key pressed: $keyPair',
+            button: keyPair.buttons.firstOrNull,
+          );
         } catch (e) {
-          return Error('Failed to simulate media key: $e');
+          return Error(
+            'Failed to simulate media key: $e',
+            button: keyPair.buttons.firstOrNull,
+          );
         }
       }
 
@@ -121,21 +154,30 @@ class DesktopActions extends BaseActions {
             packageName,
           );
 
-          return Success('Key clicked: $keyPair');
+          return Success(
+            'Key clicked: $keyPair',
+            button: keyPair.buttons.firstOrNull,
+          );
         } else if (isKeyDown) {
           await keyPressSimulator.simulateKeyDown(
             keyPair.physicalKey,
             keyPair.modifiers,
             core.settings.getTrainerApp()?.name,
           );
-          return Success('Key pressed: $keyPair');
+          return Success(
+            'Key pressed: $keyPair',
+            button: keyPair.buttons.firstOrNull,
+          );
         } else {
           await keyPressSimulator.simulateKeyUp(
             keyPair.physicalKey,
             keyPair.modifiers,
             core.settings.getTrainerApp()?.name,
           );
-          return Success('Key released: $keyPair');
+          return Success(
+            'Key released: $keyPair',
+            button: keyPair.buttons.firstOrNull,
+          );
         }
       } else {
         final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: null);
@@ -146,13 +188,22 @@ class DesktopActions extends BaseActions {
             await keyPressSimulator.simulateMouseClickDown(point);
             // slight move to register clicks on some apps, see issue #116
             await keyPressSimulator.simulateMouseClickUp(point);
-            return Success('Mouse clicked at: ${point.dx.toInt()} ${point.dy.toInt()}');
+            return Success(
+              'Mouse clicked at: ${point.dx.toInt()} ${point.dy.toInt()}',
+              button: keyPair.buttons.firstOrNull,
+            );
           } else if (isKeyDown) {
             await keyPressSimulator.simulateMouseClickDown(point);
-            return Success('Mouse down at: ${point.dx.toInt()} ${point.dy.toInt()}');
+            return Success(
+              'Mouse down at: ${point.dx.toInt()} ${point.dy.toInt()}',
+              button: keyPair.buttons.firstOrNull,
+            );
           } else {
             await keyPressSimulator.simulateMouseClickUp(point);
-            return Success('Mouse up at: ${point.dx.toInt()} ${point.dy.toInt()}');
+            return Success(
+              'Mouse up at: ${point.dx.toInt()} ${point.dy.toInt()}',
+              button: keyPair.buttons.firstOrNull,
+            );
           }
         }
       }
@@ -160,6 +211,7 @@ class DesktopActions extends BaseActions {
     return Error(
       AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
       type: ErrorType.noActionAssigned,
+      button: keyPair.buttons.firstOrNull,
     );
   }
 

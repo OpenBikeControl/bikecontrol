@@ -89,38 +89,59 @@ class AndroidActions extends BaseActions {
       });
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
-      return Success("Key pressed: ${keyPair.toString()}");
+      return Success(
+        "Key pressed: ${keyPair.toString()}",
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     if (keyPair.androidAction == AndroidSystemAction.assistant) {
       try {
         await _launchAssistant();
       } on PlatformException {
-        return Error('No assistant app available on this device');
+        return Error(
+          'No assistant app available on this device',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
     }
 
     if (keyPair.androidAction != null && keyPair.androidAction != AndroidSystemAction.assistant) {
       if (!core.settings.getLocalEnabled() || !core.logic.showLocalControl || !isKeyDown) {
-        return Ignored('Global action ignored');
+        return Ignored(
+          'Global action ignored',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       await accessibilityHandler.performGlobalAction(keyPair.androidAction!.globalAction!);
       await IAPManager.instance.incrementCommandCount();
-      return Success("Global action: ${keyPair.androidAction!.title}");
+      return Success(
+        "Global action: ${keyPair.androidAction!.title}",
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     final intentAction = keyPair.fullAndroidIntentAction;
     if (intentAction != null) {
       if (!isKeyDown) {
-        return Ignored('Custom intent ignored');
+        return Ignored(
+          'Custom intent ignored',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       try {
         await AndroidIntent(action: intentAction).sendBroadcast();
       } on PlatformException catch (e) {
-        return Error('Could not broadcast intent "$intentAction": ${e.message}');
+        return Error(
+          'Could not broadcast intent "$intentAction": ${e.message}',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       await IAPManager.instance.incrementCommandCount();
-      return Success("Custom intent broadcast: $intentAction");
+      return Success(
+        "Custom intent broadcast: $intentAction",
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     final point = await resolveTouchPosition(keyPair: keyPair, windowInfo: windowInfo);
@@ -128,7 +149,10 @@ class AndroidActions extends BaseActions {
       try {
         await accessibilityHandler.performTouch(point.dx, point.dy, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
       } on PlatformException catch (e) {
-        return Error("Accessibility Service not working. Follow instructions at https://dontkillmyapp.com/");
+        return Error(
+          "Accessibility Service not working. Follow instructions at https://dontkillmyapp.com/",
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
@@ -138,11 +162,13 @@ class AndroidActions extends BaseActions {
             : isKeyDown
             ? "down"
             : "up"}",
+        button: keyPair.buttons.firstOrNull,
       );
     }
     return Error(
       AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
       type: ErrorType.noActionAssigned,
+      button: keyPair.buttons.firstOrNull,
     );
   }
 

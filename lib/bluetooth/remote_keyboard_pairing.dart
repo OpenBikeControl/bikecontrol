@@ -259,15 +259,27 @@ class RemoteKeyboardPairing extends TrainerConnection {
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
     if (isKeyDown && isKeyUp) {
       await sendKeyPress(keyPair);
-      return Success('Key ${keyPair.toString()} press sent');
+      return Success(
+        'Key ${keyPair.toString()} press sent',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (isKeyDown) {
       await sendKeyDown(keyPair);
-      return Success('Key ${keyPair.toString()} down sent');
+      return Success(
+        'Key ${keyPair.toString()} down sent',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (isKeyUp) {
       await sendKeyUp();
-      return Success('Key ${keyPair.toString()} up sent');
+      return Success(
+        'Key ${keyPair.toString()} up sent',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
-    return NotHandled('Illegal combination');
+    return NotHandled(
+      'Illegal combination',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   /// USB HID Keyboard scan codes for common keys

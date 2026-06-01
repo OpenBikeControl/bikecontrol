@@ -55,10 +55,9 @@ class ButtonNotification extends BaseNotification {
 }
 
 class ActionNotification extends BaseNotification {
-  final ControllerButton button;
   final ActionResult result;
 
-  ActionNotification(this.result, {required this.button});
+  ActionNotification(this.result);
 
   @override
   String toString() {

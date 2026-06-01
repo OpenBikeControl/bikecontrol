@@ -81,7 +81,10 @@ class RouvyMdnsEmulator extends TrainerConnection {
     };
 
     if (button == null) {
-      return NotHandled('Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator');
+      return NotHandled(
+        'Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     if (isKeyDown) {
@@ -105,7 +108,10 @@ class RouvyMdnsEmulator extends TrainerConnection {
     if (kDebugMode) {
       print('Sent action up $isKeyUp vs down $isKeyDown ${keyPair.inGameAction!.title} to Zwift Emulator');
     }
-    return Success('Sent action ${isKeyDown ? 'down' : ''} ${isKeyUp ? 'up' : ''}: ${keyPair.inGameAction!.title}');
+    return Success(
+      'Sent action ${isKeyDown ? 'down' : ''} ${isKeyUp ? 'up' : ''}: ${keyPair.inGameAction!.title}',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   @override

@@ -136,8 +136,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       Logger.warn('Notification received: ${notification.runtimeType} - $notification');
       if (notification is ButtonNotification && notification.buttonsClicked.isNotEmpty) {
         _onButtonPressed(notification.device, notification.buttonsClicked.first);
-      } else if (notification is ActionNotification) {
-        _onActionResult(notification.result, notification.button);
+      } else if (notification is ActionNotification && notification.result.button != null) {
+        _onActionResult(notification.result, notification.result.button!);
       } else if (notification is AlertNotification) {
         _onAlert(notification);
       }

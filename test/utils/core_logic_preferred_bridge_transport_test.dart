@@ -21,7 +21,10 @@ class _FakeConnection extends TrainerConnection {
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async =>
-      NotHandled('');
+      NotHandled(
+        '',
+        button: keyPair.buttons.firstOrNull,
+      );
 
   @override
   Widget getTile({bool small = false}) => const SizedBox.shrink();
