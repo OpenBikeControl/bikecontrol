@@ -11,6 +11,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
@@ -826,11 +827,20 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   List<Widget> _buildObpControllerButtonActions(List<ControllerButton> buttons) {
-    return buttons.where((b) => b.action != null).map((button) {
+    final isMyWhooshTrainer = core.settings.getTrainerApp() is MyWhoosh;
+    final actionable = buttons.where((b) => b.action != null);
+    final Iterable<ControllerButton> ordered = isMyWhooshTrainer
+        ? [
+            ...actionable.where((b) => !_myWhooshPoorlySupportedObpActions.contains(b.action)),
+            ...actionable.where((b) => _myWhooshPoorlySupportedObpActions.contains(b.action)),
+          ]
+        : actionable;
+    return ordered.map((button) {
       final action = button.action!;
+      final showMyWhooshWarning = isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action);
       return Builder(
         builder: (context) {
-          return SelectableCard(
+          final card = SelectableCard(
             icon: button.icon ?? action.icon,
             title: Text(button.name),
             subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
@@ -881,10 +891,50 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
               }
             },
           );
+          if (!showMyWhooshWarning) {
+            return card;
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 4,
+            children: [
+              card,
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 4,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 12,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    Expanded(
+                      child: Text(context.i18n.notWellSupportedByMyWhoosh).xSmall.muted,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
         },
       );
     }).toList();
   }
+
+  static const Set<InGameAction> _myWhooshPoorlySupportedObpActions = {
+    InGameAction.gearSet,
+    InGameAction.up,
+    InGameAction.down,
+    InGameAction.navigateLeft,
+    InGameAction.navigateRight,
+    InGameAction.select,
+    InGameAction.back,
+    InGameAction.menu,
+    InGameAction.home,
+    InGameAction.cameraAngle,
+  };
 
   Future<void> _showCommandDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);

@@ -870,5 +870,6 @@
   },
   "scanningForDevicesShort": "Recherche d'appareils…",
   "disconnectingAllDevices": "Déconnexion de tous les appareils",
-  "configureButtonMapping": "Configurer le mappage des boutons"
+  "configureButtonMapping": "Configurer le mappage des boutons",
+  "notWellSupportedByMyWhoosh": "Remarque : cette action n'est pas encore bien prise en charge par MyWhoosh"
 }

@@ -869,5 +869,6 @@
   },
   "scanningForDevicesShort": "Suche nach Geräten…",
   "disconnectingAllDevices": "Trenne alle Geräte",
-  "configureButtonMapping": "Tastenbelegung konfigurieren"
+  "configureButtonMapping": "Tastenbelegung konfigurieren",
+  "notWellSupportedByMyWhoosh": "Hinweis: Diese Aktion wird von MyWhoosh noch nicht gut unterstützt"
 }

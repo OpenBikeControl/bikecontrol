@@ -869,5 +869,6 @@
   },
   "scanningForDevicesShort": "Skanowanie urządzeń...",
   "disconnectingAllDevices": "Rozłączanie wszystkich urządzeń",
-  "configureButtonMapping": "Konfiguruj przypisanie przycisków"
+  "configureButtonMapping": "Konfiguruj przypisanie przycisków",
+  "notWellSupportedByMyWhoosh": "Uwaga: ta akcja nie jest jeszcze dobrze obsługiwana przez MyWhoosh"
 }

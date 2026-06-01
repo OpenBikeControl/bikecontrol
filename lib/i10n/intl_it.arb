@@ -869,5 +869,6 @@
   },
   "scanningForDevicesShort": "Ricerca dispositivi…",
   "disconnectingAllDevices": "Disconnessione di tutti i dispositivi",
-  "configureButtonMapping": "Configura mappatura dei pulsanti"
+  "configureButtonMapping": "Configura mappatura dei pulsanti",
+  "notWellSupportedByMyWhoosh": "Nota: questa azione non è ancora ben supportata da MyWhoosh"
 }

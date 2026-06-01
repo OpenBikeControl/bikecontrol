@@ -1026,5 +1026,6 @@
   },
   "scanningForDevicesShort": "Scanning for devices...",
   "disconnectingAllDevices": "Disconnecting all devices",
-  "configureButtonMapping": "Configure button mapping"
+  "configureButtonMapping": "Configure button mapping",
+  "notWellSupportedByMyWhoosh": "Note: this action is not well supported by MyWhoosh, yet"
 }

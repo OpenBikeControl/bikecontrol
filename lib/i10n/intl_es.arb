@@ -869,5 +869,6 @@
   },
   "scanningForDevicesShort": "Buscando dispositivos...",
   "disconnectingAllDevices": "Desconectando todos los dispositivos",
-  "configureButtonMapping": "Configurar asignación de botones"
+  "configureButtonMapping": "Configurar asignación de botones",
+  "notWellSupportedByMyWhoosh": "Nota: esta acción todavía no está bien soportada por MyWhoosh"
 }
