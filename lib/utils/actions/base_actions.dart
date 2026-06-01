@@ -211,11 +211,12 @@ abstract class BaseActions {
           );
         }
       } else {
-        if (!isKeyDown)
+        if (!isKeyDown) {
           return Ignored(
             '',
             button: keyPair.buttons.firstOrNull ?? button,
           );
+        }
         await IAPManager.instance.incrementCommandCount();
         final result = proxy.handleTrainerAction(keyPair.inGameAction!);
         // Ignored e.g. when already in highest gear
