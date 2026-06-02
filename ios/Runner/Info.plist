@@ -52,6 +52,8 @@
 	<string>This app connects to your trainer app on your local network.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Access your accelerometer and gyroscope for steering support via your phone.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>BikeControl does not use the camera. This entry is required because the image picker plugin links camera APIs.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Access your photo library to store screenshots.</string>
 	<key>NSSupportsLiveActivities</key>
