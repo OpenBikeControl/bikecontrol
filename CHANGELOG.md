@@ -1,3 +1,11 @@
+### 5.6.0 (02-06-2026)
+
+- Zwift Play firmware 2.0.1 is now supported
+
+Connection overhaul:
+- Network connection to Zwift is now improved: only connect to a single device in Zwift, instead of two (one for the trainer and one for the controller).
+- lots of internal changes to make the connection process more reliable and robust. 
+
 ### 5.5.0 (14-05-2026)
 
 **Features**:
