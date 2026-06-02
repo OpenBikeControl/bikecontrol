@@ -5,7 +5,6 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
-import 'package:prop/prop.dart' hide TrainerMode;
 
 /// Telemetry payload attached to each support chat message.
 ///
@@ -50,8 +49,7 @@ class TelemetrySnapshot {
     required ProxyDevice device,
     String? freetextOverride,
   }) {
-    final def = device.emulator.activeDefinition;
-    final fitnessDef = def is FitnessBikeDefinition ? def : null;
+    final fitnessDef = device.fitnessBike;
     final cfg = core.shiftingConfigs.activeFor(device.trainerKey);
 
     return TelemetrySnapshot(
@@ -143,7 +141,7 @@ bool _isStandardService(String uuid) {
 /// [debugText] so the support payload and the standalone debug text both
 /// surface the same BLE topology.
 String? buildProxyServicesFreetext(ProxyDevice device) {
-  final services = device.emulator.services;
+  final services = device.services;
   if (services == null || services.isEmpty) return null;
   final filtered = services.where((s) => !_isStandardService(s.uuid)).toList();
   if (filtered.isEmpty) return null;

@@ -3,15 +3,19 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:bike_control/widgets/unlock_confirm.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:prop/emulators/definitions/zwift_click_definition.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -19,6 +23,21 @@ import 'package:universal_ble/universal_ble.dart';
 final DirconEmulator ftmsEmulator = DirconEmulator();
 
 class ZwiftClickV2 extends ZwiftRide {
+  ZwiftClickDefinition? _clickDef;
+  ZwiftClickDefinition? get clickDef => _clickDef;
+
+  /// Unlock-flow state owned by the Click device itself, not the shared emulator.
+  final ValueNotifier<bool> isUnlocked = ValueNotifier(false);
+  final ValueNotifier<bool> alreadyUnlocked = ValueNotifier(false);
+  final ValueNotifier<bool> waiting = ValueNotifier(false);
+
+  /// Vendor message captured from ZWIFT_ASYNC notifications during the unlock
+  /// handshake. Persisted so reconnects can replay it to Zwift.
+  Uint8List? _vendorMessage;
+
+  /// When this device connected. Used by the unlock page to compute timeouts.
+  DateTime? connectionDate;
+
   ZwiftClickV2(super.scanResult)
     : super(
         isBeta: true,
@@ -35,7 +54,7 @@ class ZwiftClickV2 extends ZwiftRide {
           ZwiftButtons.shiftUpRight,
         ],
       ) {
-    ftmsEmulator.setScanResult(scanResult);
+    connectionDate = DateTime.now();
   }
 
   @override
@@ -74,7 +93,10 @@ class ZwiftClickV2 extends ZwiftRide {
     return screenshotMode ? 'Controller' : "Zwift Click V2";
   }
 
-  bool get isUnlocked {
+  /// Whether the device was successfully unlocked within the last 24 hours,
+  /// according to persistent storage. Distinct from [isUnlocked] which holds
+  /// the live session-unlock notifier.
+  bool get isPersistedUnlocked {
     final lastUnlock = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (lastUnlock == null) {
       return false;
@@ -89,7 +111,7 @@ class ZwiftClickV2 extends ZwiftRide {
   @override
   Future<void> setupHandshake() async {
     final hasScript = await DeviceScriptService.instance.hasCustomScript(runtimeType.toString());
-    if (isUnlocked || hasScript) {
+    if (isPersistedUnlocked || hasScript) {
       super.setupHandshake();
       await sendCommandBuffer(Uint8List.fromList([0xFF, 0x04, 0x00]));
     }
@@ -97,19 +119,60 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   Future<void> handleServices(List<BleService> services) async {
-    ftmsEmulator.handleServices(services);
+    // Clear stale unlock-state notifiers so a reconnect doesn't show
+    // leftover "already unlocked" / "waiting" from a previous attempt.
+    isUnlocked.value = false;
+    alreadyUnlocked.value = false;
+    waiting.value = false;
+
+    if (core.settings.getTrainerApp() is Zwift) {
+      _clickDef = ZwiftClickDefinition(
+        services: services,
+        device: scanResult,
+        data: ftmsEmulator.data,
+        vendorMessage: _vendorMessage,
+        isUnlocked: isUnlocked,
+        alreadyUnlocked: alreadyUnlocked,
+        waiting: waiting,
+        isStarted: ftmsEmulator.isStarted,
+        connectionDate: connectionDate ?? DateTime.now(),
+      );
+
+      // Attach the click def to the shared emulator. If a trainer is already
+      // running in VS mode its FBD will already be in the composite; if not the
+      // emulator starts standalone so Zwift sees the Click right away.
+      await ftmsEmulator.attachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
+        recordError(e, s, context: 'ZwiftClickV2.attachClickDef');
+      });
+    }
+
     await super.handleServices(services);
   }
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
-    if (!processed) {
-      await super.processCharacteristic(characteristic, bytes);
+    // Capture the vendor challenge message from the Click so it can be
+    // replayed to Zwift on reconnect (unlock handshake recovery).
+
+    final opCode = bytes.isNotEmpty ? Opcode.valueOf(bytes[0]) : null;
+
+    if (characteristic.toUpperCase() == FtmsMdnsConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID &&
+        bytes.length >= 2 &&
+        opCode == Opcode.VENDOR_MESSAGE &&
+        bytes[1] == 0x03) {
+      _vendorMessage = Uint8List.fromList(bytes);
+    }
+
+    if (opCode == Opcode.CONTROLLER_NOTIFICATION) {
+      super.processCharacteristic(characteristic, bytes);
     } else {
-      if (bytes.startsWith(startCommand)) {
-        initializationTime = DateTime.now();
+      final processed = ftmsEmulator.processCharacteristic(characteristic, bytes);
+      if (!processed) {
+        await super.processCharacteristic(characteristic, bytes);
       }
+    }
+    if (bytes.startsWith(startCommand)) {
+      initializationTime = DateTime.now();
     }
   }
 
@@ -128,7 +191,7 @@ class ZwiftClickV2 extends ZwiftRide {
   List<Widget> showAdditionalInformation(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (!isConnected || screenshotMode) return [];
-    if (isUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
+    if (isPersistedUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
       return [
         Warning(
           important: false,
@@ -165,7 +228,7 @@ class ZwiftClickV2 extends ZwiftRide {
           ],
         ),
       ];
-    } else if (isUnlocked && lastUnlockDate != null) {
+    } else if (isPersistedUnlocked && lastUnlockDate != null) {
       return [
         Warning(
           important: false,
@@ -285,5 +348,24 @@ class ZwiftClickV2 extends ZwiftRide {
         ],
       ),
     ];
+  }
+
+  @override
+  Future<void> disconnect() async {
+    if (_clickDef != null) {
+      await ftmsEmulator.detachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
+        recordError(e, s, context: 'ZwiftClickV2.detach');
+      });
+      _clickDef = null;
+    }
+    // Stop the shared emulator if nothing else lives in its composite and no
+    // other Click is still connected.
+    final anotherClick = core.connection.devices.any(
+      (d) => d is ZwiftClickV2 && !identical(d, this),
+    );
+    if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value && !anotherClick) {
+      ftmsEmulator.stop();
+    }
+    await super.disconnect();
   }
 }

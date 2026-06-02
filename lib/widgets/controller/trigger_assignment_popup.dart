@@ -9,6 +9,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/controller/trigger_conflict_dialog.dart';
+import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -28,7 +29,7 @@ Future<void> showTriggerAssignmentPopup({
     consumeOutsideTaps: true,
     builder: (c) => DropdownMenu(
       children: [
-        MenuLabel(child: Text(button.displayName)),
+        MenuLabel(child: ButtonWidget(button: button, size: 42)),
         for (final trigger in ButtonTrigger.values)
           MenuButton(
             onPressed: (ctx) async {

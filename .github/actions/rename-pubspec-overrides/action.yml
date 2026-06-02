@@ -1,0 +1,14 @@
+name: "Rename pubspec_overrides_ci.yaml"
+description: "Renames pubspec_overrides_ci.yaml to pubspec_overrides.yaml if present (no-op otherwise)"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
+      shell: bash
+      run: |
+        if [ -f pubspec_overrides_ci.yaml ]; then
+            mv pubspec_overrides_ci.yaml pubspec_overrides.yaml
+        else
+            echo "No pubspec_overrides_ci.yaml found, skipping rename."
+        fi

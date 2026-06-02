@@ -265,13 +265,25 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
     );
 
     if (inGameAction == null) {
-      return Error('Invalid in-game action for key pair: $keyPair');
+      return Error(
+        'Invalid in-game action for key pair: $keyPair',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (_central == null) {
-      return Error('No central connected');
+      return Error(
+        'No central connected',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (connectedApp.value == null) {
-      return Error('No app info received from central');
+      return Error(
+        'No app info received from central',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (mappedButtons.isEmpty) {
-      return NotHandled('App does not support all buttons for action: ${inGameAction.title}');
+      return NotHandled(
+        'App does not support all buttons for action: ${inGameAction.title}',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     if (isKeyDown && isKeyUp) {
@@ -290,7 +302,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
       await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
     }
 
-    return Success('Buttons ${inGameAction.title} sent');
+    return Success(
+      'Buttons ${inGameAction.title} sent',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   @override

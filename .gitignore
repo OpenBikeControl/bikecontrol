@@ -15,6 +15,9 @@ migrate_working_dir/
 
 android/keystore.properties
 
+# Private design docs live in the prop submodule (prop/docs/), not here.
+/docs/
+
 # IntelliJ related
 *.iml
 *.ipr

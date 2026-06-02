@@ -105,11 +105,15 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       );
     });
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 8,
-      children: [
-        for (final devicePair in keyButtonMap.entries) ...[
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      alignment: Alignment.topCenter,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [
+          for (final devicePair in keyButtonMap.entries) ...[
           if (widget.filterDevice == null) ColoredTitle(text: devicePair.key.toString()),
           if (devicePair.value.isEmpty)
             Text(
@@ -135,6 +139,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                                 padding: const EdgeInsets.all(12.0),
                                 child: ButtonWidget(
                                   button: button,
+                                  heroTag: 'btn-${devicePair.key.uniqueId}-${button.name}',
                                 ),
                               ),
                               Expanded(
@@ -176,6 +181,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                                 child: IntrinsicHeight(
                                   child: ButtonWidget(
                                     button: button,
+                                    heroTag: 'btn-${devicePair.key.uniqueId}-${button.name}',
                                   ),
                                 ),
                               ),
@@ -214,7 +220,8 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
             ),
           ],
         ],
-      ],
+        ],
+      ),
     );
   }
 
@@ -271,27 +278,37 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           ),
         ),
         if (!isDisabled)
-          Row(
-            spacing: 6,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
-              if (hasAction || _isMobile)
-                Flexible(
-                  child: Text(
-                    actionText,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: _isMobile && !hasAction
-                        ? TextStyle(
-                            color: Theme.of(context).colorScheme.secondaryForeground.withAlpha(60),
-                            fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.normal,
-                          )
-                        : null,
-                  ).small,
-                ),
-            ],
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: SizeTransition(sizeFactor: anim, alignment: Alignment.centerLeft, child: child),
+            ),
+            child: Row(
+              key: ValueKey('$hasAction|${keyPair?.icon?.codePoint}|$actionText'),
+              spacing: 6,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
+                if (hasAction || _isMobile)
+                  Flexible(
+                    child: Text(
+                      actionText,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: _isMobile && !hasAction
+                          ? TextStyle(
+                              color: Theme.of(context).colorScheme.secondaryForeground.withAlpha(60),
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.normal,
+                            )
+                          : null,
+                    ).small,
+                  ),
+              ],
+            ),
           ),
 
         if (trigger == ButtonTrigger.longPress && !supportsLongPress && hasAction)

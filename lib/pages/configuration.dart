@@ -124,13 +124,20 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                           core.whooshLink.stopServer();
                         }
                       }
-                      if (!selectedApp!.supports(AppConnectionMethod.zwiftMdns) &&
-                          !selectedApp.supports(AppConnectionMethod.zwiftBle)) {
+                      if (!selectedApp!.supports(AppConnectionMethod.zwiftMdns)) {
                         if (core.zwiftMdnsEmulator.isStarted.value) {
                           core.zwiftMdnsEmulator.stop();
                         }
+                        // TODO restart mDNS when advertisementName changes
+                      }
+                      if (!selectedApp.supports(AppConnectionMethod.zwiftBle)) {
                         if (core.zwiftEmulator.isStarted.value) {
                           core.zwiftEmulator.stopAdvertising();
+                        }
+                      }
+                      if (!selectedApp.supports(AppConnectionMethod.rouvyMdns)) {
+                        if (core.rouvyMdnsEmulator.isStarted.value) {
+                          core.rouvyMdnsEmulator.stop();
                         }
                       }
                       if (core.obpMdnsEmulator.isStarted.value) {

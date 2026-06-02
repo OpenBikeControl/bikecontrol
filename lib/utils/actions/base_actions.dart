@@ -24,19 +24,20 @@ enum SupportedMode { keyboard, touch, media }
 
 sealed class ActionResult {
   final String message;
-  const ActionResult(this.message);
+  final ControllerButton? button;
+  const ActionResult(this.message, {required this.button});
 }
 
 class Success extends ActionResult {
-  const Success(super.message);
+  const Success(super.message, {required super.button});
 }
 
 class NotHandled extends ActionResult {
-  const NotHandled(super.message);
+  const NotHandled(super.message, {required super.button});
 }
 
 class Ignored extends ActionResult {
-  const Ignored(super.message);
+  const Ignored(super.message, {required super.button});
 }
 
 enum ErrorType {
@@ -52,7 +53,7 @@ enum ErrorType {
 
 class Error extends ActionResult {
   final ErrorType type;
-  const Error(super.message, {this.type = ErrorType.other});
+  const Error(super.message, {this.type = ErrorType.other, required super.button});
 }
 
 abstract class BaseActions {
@@ -130,6 +131,7 @@ abstract class BaseActions {
       return Error(
         AppLocalizations.current.couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet(button.name.splitByUpperCase()),
         type: ErrorType.noKeymapSet,
+        button: button,
       );
     }
 
@@ -138,6 +140,7 @@ abstract class BaseActions {
       return Error(
         AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
         type: ErrorType.noActionAssigned,
+        button: keyPair?.buttons.firstOrNull ?? button,
       );
     }
 
@@ -155,7 +158,11 @@ abstract class BaseActions {
         keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
       final headwind = core.connection.accessories.where((h) => h.isConnected).firstOrNull;
       if (headwind == null) {
-        return Error('No Headwind connected', type: ErrorType.headwindNotConnected);
+        return Error(
+          'No Headwind connected',
+          type: ErrorType.headwindNotConnected,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
       }
 
       // Increment command count after successful execution
@@ -165,18 +172,32 @@ abstract class BaseActions {
 
     // Handle workout pause/resume — local recorder, no trainer required.
     if (keyPair.inGameAction == InGameAction.workoutPauseResume) {
-      if (!isKeyDown) return Ignored('');
+      if (!isKeyDown) {
+        return Ignored(
+          '',
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
+      }
       final recorder = core.workoutRecorder;
       if (recorder.state.value == WorkoutState.recording) {
         recorder.pause();
         await IAPManager.instance.incrementCommandCount();
-        return Success(AppLocalizations.current.workoutPaused);
+        return Success(
+          AppLocalizations.current.workoutPaused,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
       } else if (recorder.state.value == WorkoutState.paused) {
         recorder.resume();
         await IAPManager.instance.incrementCommandCount();
-        return Success(AppLocalizations.current.workoutResumed);
+        return Success(
+          AppLocalizations.current.workoutResumed,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
       }
-      return Ignored(AppLocalizations.current.noActiveWorkout);
+      return Ignored(
+        AppLocalizations.current.noActiveWorkout,
+        button: keyPair.buttons.firstOrNull ?? button,
+      );
     }
 
     // Handle trainer-control actions
@@ -184,10 +205,18 @@ abstract class BaseActions {
       final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
       if (proxy == null) {
         if (trainerOnlyActions.contains(keyPair.inGameAction)) {
-          return Error(AppLocalizations.current.noProxyTrainerConnected);
+          return Error(
+            AppLocalizations.current.noProxyTrainerConnected,
+            button: keyPair.buttons.firstOrNull ?? button,
+          );
         }
       } else {
-        if (!isKeyDown) return Ignored('');
+        if (!isKeyDown) {
+          return Ignored(
+            '',
+            button: keyPair.buttons.firstOrNull ?? button,
+          );
+        }
         await IAPManager.instance.incrementCommandCount();
         final result = proxy.handleTrainerAction(keyPair.inGameAction!);
         // Ignored e.g. when already in highest gear
@@ -201,14 +230,22 @@ abstract class BaseActions {
 
     if (core.logic.hasNoConnectionMethod) {
       if (GyroscopeSteeringButtons.values.contains(button)) {
-        return Ignored('Too many messages from gyroscope steering');
+        return Ignored(
+          'Too many messages from gyroscope steering',
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
       } else {
-        return Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst, type: ErrorType.noConnectionMethod);
+        return Error(
+          AppLocalizations.current.pleaseSelectAConnectionMethodFirst,
+          type: ErrorType.noConnectionMethod,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
       }
     } else if (!(await core.logic.isTrainerConnected()) && !keyPair.doesNotNeedTrainerConnection) {
       return Error(
         AppLocalizations.current.noConnectionMethodIsConnectedOrActive,
         type: ErrorType.trainerNotConnected,
+        button: keyPair.buttons.firstOrNull ?? button,
       );
     }
 
@@ -242,7 +279,10 @@ abstract class BaseActions {
         return actions.firstOrNullWhere((e) => e is! NotHandled) ?? actions.first;
       }
     }
-    return NotHandled('');
+    return NotHandled(
+      '',
+      button: keyPair.buttons.firstOrNull ?? button,
+    );
   }
 
   ActionResult proGuard({
@@ -254,9 +294,17 @@ abstract class BaseActions {
       if (keyPair.isSpecialKey && IAPManager.instance.hasPurchasedBefore50RVC) {
         // it's okay to allow special keys for users who purchased before the subscription model, even without an active subscription, since they already paid for the pro features
       } else if (IAPManager.instance.isProEnabled) {
-        return Error(AppLocalizations.current.currentDeviceIsNotRegistered, type: ErrorType.deviceRegistrationNeeded);
+        return Error(
+          AppLocalizations.current.currentDeviceIsNotRegistered,
+          type: ErrorType.deviceRegistrationNeeded,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
       } else {
-        return Error(AppLocalizations.current.proSubscriptionRequiredForAction, type: ErrorType.proRequired);
+        return Error(
+          AppLocalizations.current.proSubscriptionRequiredForAction,
+          type: ErrorType.proRequired,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
       }
     }
 
@@ -270,11 +318,15 @@ abstract class BaseActions {
         return Error(
           AppLocalizations.current.proSubscriptionRequiredForAdditionalTriggers,
           type: ErrorType.proRequired,
+          button: keyPair.buttons.firstOrNull ?? button,
         );
       }
     }
 
-    return NotHandled('');
+    return NotHandled(
+      '',
+      button: keyPair.buttons.firstOrNull ?? button,
+    );
   }
 }
 
@@ -292,7 +344,11 @@ class StubActions extends BaseActions {
   }) async {
     performedActions.add(PerformedAction(button, isDown: isKeyDown, isUp: isKeyUp, trigger: trigger));
     return Future.value(
-      Error(AppLocalizations.current.pleaseSelectAConnectionMethodFirst, type: ErrorType.noConnectionMethod),
+      Error(
+        AppLocalizations.current.pleaseSelectAConnectionMethodFirst,
+        type: ErrorType.noConnectionMethod,
+        button: button,
+      ),
     );
   }
 

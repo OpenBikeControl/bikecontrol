@@ -8,11 +8,18 @@ class ButtonWidget extends StatelessWidget {
   final double size;
   final Keymap? keymap;
 
+  /// When set, wraps the button in a [Hero] with this tag so navigation
+  /// transitions can fly the same circular button between routes. Leave null
+  /// when this widget is rendered in popovers, drawers, or list rows that
+  /// don't participate in a route transition.
+  final Object? heroTag;
+
   const ButtonWidget({
     super.key,
     required this.button,
     this.size = 56,
     this.keymap,
+    this.heroTag,
   });
 
   List<KeyPair> get _assignedPairs {
@@ -41,27 +48,27 @@ class ButtonWidget extends StatelessWidget {
     final hasAssignment = _assignedPairs.isNotEmpty;
     final badgeSize = size * 0.44;
 
-    return SizedBox(
+    final core = SizedBox(
       width: size,
       height: size,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          Container(
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
             decoration: BoxDecoration(
               color: bg,
               shape: BoxShape.circle,
               border: Border.all(color: cs.border, width: 1.5),
-              boxShadow: hasAssignment
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.22),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: hasAssignment ? 0.22 : 0.0),
+                  blurRadius: hasAssignment ? 6 : 0,
+                  offset: Offset(0, hasAssignment ? 2 : 0),
+                ),
+              ],
             ),
           ),
           if (button.icon != null)
@@ -76,24 +83,36 @@ class ButtonWidget extends StatelessWidget {
                 color: onBg,
               ),
             ),
-          if (actionIcon != null)
-            Positioned(
-              top: -badgeSize * 0.15,
-              right: -badgeSize * 0.15,
-              child: Container(
-                width: badgeSize,
-                height: badgeSize,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: cs.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: cs.background, width: 1.5),
-                ),
-                child: Icon(actionIcon, size: badgeSize * 0.6, color: cs.primaryForeground),
-              ),
+          Positioned(
+            top: -badgeSize * 0.15,
+            right: -badgeSize * 0.15,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 240),
+              switchInCurve: Curves.elasticOut,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: FadeTransition(opacity: anim, child: child)),
+              child: actionIcon == null
+                  ? SizedBox(key: const ValueKey('no-badge'), width: badgeSize, height: badgeSize)
+                  : Container(
+                      key: ValueKey(actionIcon.codePoint),
+                      width: badgeSize,
+                      height: badgeSize,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: cs.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: cs.background, width: 1.5),
+                      ),
+                      child: Icon(actionIcon, size: badgeSize * 0.6, color: cs.primaryForeground),
+                    ),
             ),
+          ),
         ],
       ),
     );
+
+    if (heroTag == null) return core;
+    return Hero(tag: heroTag!, child: core);
   }
 }

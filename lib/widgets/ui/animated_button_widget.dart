@@ -66,6 +66,11 @@ class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget> with Single
 
   @override
   Widget build(BuildContext context) {
+    // Hero tag only set when this button maps 1:1 to a row in the destination
+    // route (KeymapExplanation). Requires both keymap+device — same condition
+    // that gates the popup, so the canvas button is interactive on the source
+    // side and has a uniquely-identifying device id available.
+    final canHero = widget.device != null && widget.keymap != null;
     // Inner ScaleTransition handles the pressGeneration pulse (fast in/out).
     final pressed = ScaleTransition(
       scale: Tween(begin: 1.0, end: 1.18).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut)),
@@ -73,6 +78,7 @@ class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget> with Single
         button: widget.button,
         size: widget.size,
         keymap: widget.keymap,
+        heroTag: canHero ? 'btn-${widget.device!.uniqueId}-${widget.button.name}' : null,
       ),
     );
     if (!_canOpenPopup) return pressed;

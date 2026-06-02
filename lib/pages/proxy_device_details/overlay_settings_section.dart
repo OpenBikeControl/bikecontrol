@@ -67,10 +67,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
       final res = await _controller.show(
         widget.definition,
         _fields,
-        liveDef: () {
-          final live = widget.device.emulator.activeDefinition;
-          return live is FitnessBikeDefinition ? live : null;
-        },
+        liveDef: () => widget.device.fitnessBike,
       );
       if (!mounted) return;
       // Permission state may have changed during show().

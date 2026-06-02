@@ -168,13 +168,22 @@ class WhooshLink extends TrainerConnection {
       InGameAction.steerRight,
     ];
     if (jsonObject != null && !isKeyDown && !supportsIsKeyUpActions.contains(keyPair.inGameAction)) {
-      return Ignored('No Action sent on key down for action: ${keyPair.inGameAction}');
+      return Ignored(
+        'No Action sent on key down for action: ${keyPair.inGameAction}',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
       _socket?.writeln(jsonString);
-      return Success('Sent action to MyWhoosh: ${keyPair.inGameAction} ${keyPair.inGameActionValue ?? ''}');
+      return Success(
+        'Sent action to MyWhoosh: ${keyPair.inGameAction} ${keyPair.inGameActionValue ?? ''}',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else {
-      return NotHandled('No action available for button: ${keyPair.inGameAction}');
+      return NotHandled(
+        'No action available for button: ${keyPair.inGameAction}',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
   }
 

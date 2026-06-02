@@ -11,6 +11,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
@@ -52,7 +53,7 @@ class ButtonEditPage extends StatefulWidget {
 class _ButtonEditPageState extends State<ButtonEditPage> {
   late KeyPair _keyPair;
   late final ScrollController _scrollController = ScrollController();
-  final double baseHeight = 46;
+  final double baseHeight = 66;
   bool _bumped = false;
 
   void _triggerBump() async {
@@ -127,14 +128,25 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 8,
                   children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeOut,
-                      width: _keyPair.buttons.first.color != null ? baseHeight : null,
-                      height: _keyPair.buttons.first.color != null ? baseHeight : null,
-                      padding: EdgeInsets.all(_bumped ? 0 : 6.0),
-                      constraints: BoxConstraints(maxWidth: 120),
-                      child: ButtonWidget(button: _keyPair.buttons.first),
+                    TweenAnimationBuilder<double>(
+                      // One-shot entrance: button pops in from 70% on drawer open.
+                      // No reverse — `tween.begin` is only consulted on first build.
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 320),
+                      curve: Curves.easeOutBack,
+                      builder: (context, t, child) => Opacity(
+                        opacity: t.clamp(0.0, 1.0),
+                        child: Transform.scale(scale: 0.7 + 0.3 * t, child: child),
+                      ),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOut,
+                        width: baseHeight,
+                        height: baseHeight,
+                        padding: EdgeInsets.all(_bumped ? 0 : 6.0),
+                        constraints: BoxConstraints(maxWidth: 120),
+                        child: ButtonWidget(button: _keyPair.buttons.first),
+                      ),
                     ),
                     Expanded(child: SizedBox()),
                     IconButton(
@@ -815,11 +827,20 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   List<Widget> _buildObpControllerButtonActions(List<ControllerButton> buttons) {
-    return buttons.where((b) => b.action != null).map((button) {
+    final isMyWhooshTrainer = core.settings.getTrainerApp() is MyWhoosh;
+    final actionable = buttons.where((b) => b.action != null);
+    final Iterable<ControllerButton> ordered = isMyWhooshTrainer
+        ? [
+            ...actionable.where((b) => !_myWhooshPoorlySupportedObpActions.contains(b.action)),
+            ...actionable.where((b) => _myWhooshPoorlySupportedObpActions.contains(b.action)),
+          ]
+        : actionable;
+    return ordered.map((button) {
       final action = button.action!;
+      final showMyWhooshWarning = isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action);
       return Builder(
         builder: (context) {
-          return SelectableCard(
+          final card = SelectableCard(
             icon: button.icon ?? action.icon,
             title: Text(button.name),
             subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
@@ -870,10 +891,50 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
               }
             },
           );
+          if (!showMyWhooshWarning) {
+            return card;
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 4,
+            children: [
+              card,
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 4,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 12,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    Expanded(
+                      child: Text(context.i18n.notWellSupportedByMyWhoosh).xSmall.muted,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
         },
       );
     }).toList();
   }
+
+  static const Set<InGameAction> _myWhooshPoorlySupportedObpActions = {
+    InGameAction.gearSet,
+    InGameAction.up,
+    InGameAction.down,
+    InGameAction.navigateLeft,
+    InGameAction.navigateRight,
+    InGameAction.select,
+    InGameAction.back,
+    InGameAction.menu,
+    InGameAction.home,
+    InGameAction.cameraAngle,
+  };
 
   Future<void> _showCommandDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
@@ -1294,6 +1355,9 @@ class SelectableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPro = IAPManager.instance.hasActiveSubscription;
 
+    // Button keeps a static neutral border at all times; the colored "active"
+    // ring is drawn as an overlay so AnimatedOpacity can cross-fade it in/out
+    // without shadcn's internal style swap snapping between two border colors.
     return Stack(
       children: [
         Button.outline(
@@ -1302,9 +1366,7 @@ class SelectableCard extends StatelessWidget {
                     variance: ButtonVariance.outline,
                   )
                   .withBorder(
-                    border: isActive
-                        ? Border.all(color: BKColor.main, width: 2)
-                        : Border.all(color: Theme.of(context).colorScheme.border, width: 2),
+                    border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
                     hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
                     focusBorder: Border.all(color: BKColor.main, width: 2),
                   )
@@ -1341,6 +1403,21 @@ class SelectableCard extends StatelessWidget {
               title: title,
               subtitle: value != null && isActive ? Text(value!) : subtitle,
               trailing: trailing,
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              opacity: isActive ? 1.0 : 0.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: BKColor.main, width: 2),
+                ),
+              ),
             ),
           ),
         ),

@@ -189,14 +189,26 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     );
 
     if (inGameAction == null) {
-      return Error('Invalid in-game action for key pair: $keyPair');
+      return Error(
+        'Invalid in-game action for key pair: $keyPair',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (_socket == null) {
       print('No client connected, cannot send button press');
-      return Error('No client connected');
+      return Error(
+        'No client connected',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (connectedApp.value == null) {
-      return Error('No app info received from central');
+      return Error(
+        'No app info received from central',
+        button: keyPair.buttons.firstOrNull,
+      );
     } else if (mappedButtons.isEmpty) {
-      return NotHandled('App does not support: ${inGameAction.title}');
+      return NotHandled(
+        'App does not support: ${inGameAction.title}',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     if (isKeyDown && isKeyUp) {
@@ -215,7 +227,10 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       _write(_socket!, responseData);
     }
 
-    return Success('Sent ${inGameAction.title} button press');
+    return Success(
+      'Sent ${inGameAction.title} button press',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   void _write(Socket socket, List<int> responseData) {

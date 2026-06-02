@@ -16,6 +16,7 @@ import 'my_whoosh.dart';
 enum AppConnectionMethod {
   zwiftBle,
   zwiftMdns,
+  rouvyMdns,
   obpBle,
   obpMdns,
   obpDirCon,

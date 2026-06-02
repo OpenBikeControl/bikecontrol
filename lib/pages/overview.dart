@@ -6,7 +6,6 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/proxy.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
@@ -19,6 +18,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/blog_posts_widget.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
+import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/review_banner.dart';
@@ -136,8 +136,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       Logger.warn('Notification received: ${notification.runtimeType} - $notification');
       if (notification is ButtonNotification && notification.buttonsClicked.isNotEmpty) {
         _onButtonPressed(notification.device, notification.buttonsClicked.first);
-      } else if (notification is ActionNotification) {
-        _onActionResult(notification.result, notification.button);
+      } else if (notification is ActionNotification && notification.result.button != null) {
+        _onActionResult(notification.result, notification.result.button!);
       } else if (notification is AlertNotification) {
         _onAlert(notification);
       }
@@ -148,7 +148,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
     for (final proxy in core.connection.proxyDevices) {
       proxy.isStarting.addListener(_onProxyStateChanged);
-      proxy.emulator.isConnected.addListener(_onProxyStateChanged);
+      proxy.isConnectedListenable.addListener(_onProxyStateChanged);
     }
 
     WidgetsBinding.instance.addObserver(this);
@@ -237,7 +237,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           level: LogLevel.LOGLEVEL_WARNING,
           title: result.message,
           closeTitle: fix?.$1 ?? AppLocalizations.of(context).close,
-          onClose: fix?.$2,
+          onClose: fix?.$2(context),
         );
       }
       _latestError = entry;
@@ -304,7 +304,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _actionListener.cancel();
     for (final proxy in core.connection.proxyDevices) {
       proxy.isStarting.removeListener(_onProxyStateChanged);
-      proxy.emulator.isConnected.removeListener(_onProxyStateChanged);
+      proxy.isConnectedListenable.removeListener(_onProxyStateChanged);
     }
     _connectionListener.cancel();
     super.dispose();
@@ -584,7 +584,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               Divider(),
               Padding(
                 padding: const EdgeInsets.only(right: 20, top: 8, bottom: 20),
-                child: BlogPostsWidget(maxPosts: 5),
+                child: BlogPostsWidget(maxPosts: 4),
               ),
             ],
           ),
@@ -596,12 +596,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   late final PageController _horizontalScrollController = PageController();
 
   // ── Controller card ───────────────────────────────────────────────
-
-  Future<void> _openControllerSettings(BaseDevice device) async {
-    await context.push(ControllerSettingsPage(device: device));
-    _clearErrorBanner();
-    setState(() {});
-  }
 
   Future<void> _openTrainerConnectionSettings() async {
     await context.push(const TrainerConnectionSettingsPage());
@@ -724,16 +718,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   Widget _buildBridgeConnectionRow(ProxyDevice device) {
     return ValueListenableBuilder<RetrofitMode>(
-      valueListenable: device.emulator.retrofitMode,
+      valueListenable: device.retrofitMode,
       builder: (context, mode, _) {
         // Proxy mode mirrors raw FTMS over WiFi — surface a wifi icon, not the
         // bridge-specific bluetooth/cog visuals.
         final IconData icon = device.icon;
         return ValueListenableBuilder<bool>(
-          valueListenable: device.emulator.isConnected,
+          valueListenable: device.isConnectedListenable,
           builder: (context, connected, _) {
             return ValueListenableBuilder<bool>(
-              valueListenable: device.emulator.isStarted,
+              valueListenable: device.isStartedListenable,
               builder: (context, starting, _) {
                 final title = 'Bridge (${device.toString()})';
                 return SizedBox(
@@ -744,7 +738,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                     subtitle: Text(
                       context.i18n.chooseBikeControlInConnectionScreen.replaceAll(
                         screenshotMode ? '1337' : 'BikeControl',
-                        device.emulator.advertisementName,
+                        device.advertisementName,
                       ),
                     ).xSmall.textMuted,
                   ),
@@ -902,9 +896,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             isError ? Text(actionText, style: TextStyle(color: Color(0xFFEF4444))).small : Text(actionText).small,
             if (errorFix != null) ...[
               Gap(4),
-              OutlineButton(
-                onPressed: errorFix.$2,
-                child: Text(errorFix.$1).xSmall,
+              Builder(
+                builder: (context) {
+                  return OutlineButton(
+                    onPressed: () {
+                      errorFix.$2(context);
+                    },
+                    child: Text(errorFix.$1).xSmall,
+                  );
+                },
               ),
             ],
             if (entry.onTap != null && entry.buttonTitle != null) ...[
@@ -921,7 +921,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     );
   }
 
-  (String, VoidCallback)? _errorFixAction(_ActivityEntry entry) {
+  (String, Function(BuildContext))? _errorFixAction(_ActivityEntry entry) {
     final result = entry.result;
     if (result is! Error) return null;
     final button = entry.button;
@@ -933,10 +933,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
     return switch (result.type) {
       ErrorType.noActionAssigned || ErrorType.noKeymapSet => (
-        'Configure button mapping',
-        () {
+        AppLocalizations.of(context).configureButtonMapping,
+        (context) {
           if (device != null) {
-            _openControllerSettings(device);
+            showTriggerAssignmentPopup(
+              context: context,
+              device: device,
+              button: button,
+              keymap: core.actionHandler.supportedApp!.keymap,
+              onUpdate: () {
+                _clearErrorBanner();
+                setState(() {});
+              },
+            );
           } else {
             _openTrainerConnectionSettings();
           }
@@ -944,20 +953,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       ),
       ErrorType.noConnectionMethod || ErrorType.trainerNotConnected => (
         context.i18n.openConnectionSettings,
-        () => _openTrainerConnectionSettings(),
+        (context) => _openTrainerConnectionSettings(),
       ),
       ErrorType.proRequired => (
         AppLocalizations.of(context).goPro,
-        () {}, // handled elsewhere
+        (context) {}, // handled elsewhere
       ),
       ErrorType.headwindNotConnected => (
         'Connect Headwind fan',
-        () {}, // no dedicated page
+        (context) {}, // no dedicated page
       ),
       ErrorType.other => null,
       ErrorType.deviceRegistrationNeeded => (
         'Register device',
-        () {
+        (context) {
           openDrawer(
             context: context,
             builder: (c) => SubscriptionPage(),

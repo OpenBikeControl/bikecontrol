@@ -14,6 +14,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play_fw2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -164,6 +165,7 @@ abstract class BluetoothDevice extends BaseDevice {
           ZwiftDeviceType.playRight => ZwiftPlay(scanResult, deviceType: type!),
           ZwiftDeviceType.playLeft => ZwiftPlay(scanResult, deviceType: type!),
           ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
+          ZwiftDeviceType.playFw2 => ZwiftPlayFw2(scanResult),
           //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
           ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
           //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
@@ -327,7 +329,10 @@ abstract class BluetoothDevice extends BaseDevice {
               color: foregroundColor,
             ),
           ),
-          if (firmwareVersion != null || rssi != null) const Gap(16),
+          // SizedBox (not Gap) because this lives in a `Wrap`, and Gap looks
+          // up a Flex/Scrollable ancestor for direction — which is absent
+          // when the parent device-header Row flies through a Hero overlay.
+          if (firmwareVersion != null || rssi != null) const SizedBox(width: 16),
         ],
         if (firmwareVersion != null &&
             (showFull || (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion))) ...[
@@ -350,7 +355,7 @@ abstract class BluetoothDevice extends BaseDevice {
               ' (${context.i18n.latestVersion((this as ZwiftDevice).latestFirmwareVersion!)})',
               style: TextStyle(color: foregroundColor, fontSize: fontSize),
             ),
-          if (rssi != null) const Gap(16),
+          if (rssi != null) const SizedBox(width: 16),
         ],
         if (rssi != null)
           StreamBuilder(

@@ -25,7 +25,10 @@ class RemoteActions extends BaseActions {
     final keyPair = supportedApp!.keymap.getKeyPair(button, trigger: trigger);
 
     if (keyPair == null || keyPair.hasNoAction) {
-      return Error(AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()));
+      return Error(
+        AppLocalizations.current.noActionAssignedForButton(button.name.splitByUpperCase()),
+        button: keyPair?.buttons.firstOrNull ?? button,
+      );
     }
 
     final guard = proGuard(button: button, trigger: trigger, keyPair: keyPair);
@@ -35,15 +38,24 @@ class RemoteActions extends BaseActions {
 
     if (defaultTargetPlatform == TargetPlatform.iOS && keyPair.command?.trim().isNotEmpty == true) {
       if (!isKeyDown) {
-        return Ignored('Shortcut launch only runs on key down');
+        return Ignored(
+          'Shortcut launch only runs on key down',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       final shortcutName = Uri.encodeQueryComponent(keyPair.command!.trim());
       final launched = await launchUrlString('shortcuts://run-shortcut?name=$shortcutName');
       if (!launched) {
-        return Error('Failed to launch shortcut: ${keyPair.command}');
+        return Error(
+          'Failed to launch shortcut: ${keyPair.command}',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       await IAPManager.instance.incrementCommandCount();
-      return Success('Shortcut launched: ${keyPair.command}');
+      return Success(
+        'Shortcut launched: ${keyPair.command}',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     final superResult = await super.performAction(button, isKeyDown: isKeyDown, isKeyUp: isKeyUp, trigger: trigger);
@@ -52,21 +64,33 @@ class RemoteActions extends BaseActions {
     }
 
     if (!core.remotePairing.isConnected.value && !core.remoteKeyboardPairing.isConnected.value) {
-      return Error('Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device');
+      return Error(
+        'Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     if (core.remotePairing.isConnected.value) {
       if (keyPair.touchPosition == Offset.zero) {
-        return Error('Key $keyPair does not have a valid touch position');
+        return Error(
+          'Key $keyPair does not have a valid touch position',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       return core.remotePairing.sendAction(keyPair, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
     } else if (core.remoteKeyboardPairing.isConnected.value) {
       if (keyPair.physicalKey == null) {
-        return Error('Key $keyPair does not have a valid physical key for keyboard actions');
+        return Error(
+          'Key $keyPair does not have a valid physical key for keyboard actions',
+          button: keyPair.buttons.firstOrNull,
+        );
       }
       return core.remoteKeyboardPairing.sendAction(keyPair, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
     } else {
-      return Error('Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device');
+      return Error(
+        'Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
   }
 

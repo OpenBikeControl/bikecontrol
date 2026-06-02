@@ -1,8 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -37,7 +35,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
 
   void _isConnectedUpdate() {
     setState(() {});
-    if (ftmsEmulator.isUnlocked.value) {
+    if (widget.device.isUnlocked.value) {
       _close();
     }
   }
@@ -48,8 +46,8 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     _isInTrialPhase = !IAPManager.instance.isPurchased.value && IAPManager.instance.isTrialExpired;
 
     _ticker = createTicker((_) {
-      if (ftmsEmulator.waiting.value) {
-        final waitUntil = ftmsEmulator.connectionDate!.add(Duration(minutes: 1));
+      if (widget.device.waiting.value) {
+        final waitUntil = (widget.device.connectionDate ?? DateTime.now()).add(Duration(minutes: 1));
         final secondsUntil = waitUntil.difference(DateTime.now()).inSeconds;
 
         if (mounted) {
@@ -80,16 +78,9 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         core.settings.setObpMdnsEnabled(false);
       }
 
-      ftmsEmulator.isUnlocked.value = false;
-      ftmsEmulator.alreadyUnlocked.value = false;
-      ftmsEmulator.waiting.value = false;
       ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
-      ftmsEmulator.isUnlocked.addListener(_isConnectedUpdate);
-      ftmsEmulator.alreadyUnlocked.addListener(_isConnectedUpdate);
-      ftmsEmulator.startServer().then((_) {}).catchError((e, s) {
-        recordError(e, s, context: 'Emulator');
-        core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
-      });
+      widget.device.isUnlocked.addListener(_isConnectedUpdate);
+      widget.device.alreadyUnlocked.addListener(_isConnectedUpdate);
     }
   }
 
@@ -98,9 +89,8 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     _ticker.dispose();
     if (!_isInTrialPhase) {
       ftmsEmulator.isConnected.removeListener(_isConnectedUpdate);
-      ftmsEmulator.isUnlocked.removeListener(_isConnectedUpdate);
-      ftmsEmulator.alreadyUnlocked.removeListener(_isConnectedUpdate);
-      ftmsEmulator.stop();
+      widget.device.isUnlocked.removeListener(_isConnectedUpdate);
+      widget.device.alreadyUnlocked.removeListener(_isConnectedUpdate);
 
       if (_wasZwiftMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.startServer();
@@ -149,11 +139,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
 
                 Button.secondary(
                   onPressed: () {
-                    openDrawer(
-                      context: context,
-                      position: OverlayPosition.bottom,
-                      builder: (_) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
-                    );
+                    launchUrlString('https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps');
                   },
                   leading: const Icon(Icons.help_outline_outlined),
                   child: Text(context.i18n.instructions),
@@ -183,25 +169,25 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             ),
             SizedBox(height: 32),
             Text(AppLocalizations.of(context).unlock_bikecontrolAndZwiftNetwork).small,
-          ] else if (ftmsEmulator.alreadyUnlocked.value) ...[
+          ] else if (widget.device.alreadyUnlocked.value) ...[
             Text(AppLocalizations.of(context).unlock_yourZwiftClickMightBeUnlockedAlready),
             SizedBox(height: 8),
             Text(AppLocalizations.of(context).unlock_confirmByPressingAButtonOnYourDevice).small,
-          ] else if (!ftmsEmulator.isUnlocked.value)
+          ] else if (!widget.device.isUnlocked.value)
             Text(AppLocalizations.of(context).unlock_waitingForZwift)
           else
             Text('Zwift Click is unlocked! You can now close this page.'),
           SizedBox(height: 32),
           if (!_showManualSteps && !_isInTrialPhase) ...[
-            if (ftmsEmulator.waiting.value && _secondsRemaining >= 0)
+            if (widget.device.waiting.value && _secondsRemaining >= 0)
               Center(child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60), size: 20))
-            else if (ftmsEmulator.alreadyUnlocked.value)
+            else if (widget.device.alreadyUnlocked.value)
               Center(child: Icon(Icons.lock_clock))
             else
               SmallProgressIndicator(),
             SizedBox(height: 20),
           ],
-          if (!ftmsEmulator.isUnlocked.value && !_showManualSteps) ...[
+          if (!widget.device.isUnlocked.value && !_showManualSteps) ...[
             if (!_isInTrialPhase) ...[
               SizedBox(height: 32),
               Center(child: Text(AppLocalizations.of(context).unlock_notWorking).small),

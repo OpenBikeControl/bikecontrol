@@ -266,7 +266,10 @@ class RemotePairing extends TrainerConnection {
     await sendAbsMouseReport(1, point2.dx.toInt(), point2.dy.toInt());
     await sendAbsMouseReport(0, point2.dx.toInt(), point2.dy.toInt());
 
-    return Success('Mouse clicked at: ${point2.dx.toInt()} ${point2.dy.toInt()}');
+    return Success(
+      'Mouse clicked at: ${point2.dx.toInt()} ${point2.dy.toInt()}',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   Uint8List absMouseReport(int buttons3bit, int x, int y) {

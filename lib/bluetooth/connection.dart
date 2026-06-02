@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -76,6 +77,19 @@ class Connection {
       // Load saved media key detection state
       core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings.getMediaKeyDetectionEnabled();
     }
+
+    ftmsEmulator.trainerApp = () => core.settings.getTrainerApp()?.name;
+    ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+
+    // The advertised name depends on the selected trainer app (e.g. Rouvy →
+    // "Zwift Hub"). Restart the transport on every change so the new name
+    // shows up on the wire without the user reconnecting.
+    core.settings.trainerAppListenable.addListener(() {
+      unawaited(ftmsEmulator.restart());
+      for (final pd in proxyDevices) {
+        unawaited(pd.restartProxyEmulator());
+      }
+    });
 
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
@@ -179,6 +193,15 @@ class Connection {
               "Error executing script for ${device.runtimeType} and char: $characteristicUuid: $e\n$backtrace",
             ),
           );
+          if (e is FormatException) {
+            final deviceType = device.runtimeType.toString();
+            await DeviceScriptService.instance.deleteScript(deviceType);
+            _actionStreams.add(
+              LogNotification(
+                "Deactivated custom script for ${device.runtimeType} due to invalid output format.",
+              ),
+            );
+          }
           if (kDebugMode) {
             print(e);
             print("backtrace: $backtrace");

@@ -1,0 +1,22 @@
+name: "Decode Android keystore"
+description: "Writes the Android keystore and keystore.properties from base64-encoded secrets"
+
+inputs:
+  keystore-base64:
+    description: "Base64-encoded Android keystore"
+    required: true
+  keystore-properties:
+    description: "Contents of keystore.properties"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Decode Keystore
+      shell: bash
+      env:
+        KEYSTORE_BASE64: ${{ inputs.keystore-base64 }}
+        KEYSTORE_PROPERTIES: ${{ inputs.keystore-properties }}
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 --decode > android/android.keystore
+        echo "$KEYSTORE_PROPERTIES" > android/keystore.properties

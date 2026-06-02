@@ -356,7 +356,10 @@ class ZwiftEmulator extends TrainerConnection {
     };
 
     if (button == null) {
-      return NotHandled('Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator');
+      return NotHandled(
+        'Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator',
+        button: keyPair.buttons.firstOrNull,
+      );
     }
 
     final status = RideKeyPadStatus()
@@ -383,7 +386,10 @@ class ZwiftEmulator extends TrainerConnection {
       _peripheralManager.notifyCharacteristic(_central!, _asyncCharacteristic!, value: zero);
     }
 
-    return Success('Sent action: ${keyPair.inGameAction!.name}');
+    return Success(
+      'Sent action: ${keyPair.inGameAction!.name}',
+      button: keyPair.buttons.firstOrNull,
+    );
   }
 
   void cleanup() {

@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       build_windows:
-        description: 'Build for Windows'
+        description: 'Patch for Windows'
         required: false
         default: true
         type: boolean
       build_android:
-        description: 'Build for Android'
+        description: 'Patch for Android'
         required: false
         default: true
         type: boolean
       build_ios:
-        description: 'Build for iOS'
+        description: 'Patch for iOS'
         required: false
         default: true
         type: boolean
@@ -29,8 +29,19 @@ env:
   FLUTTER_VERSION: 3.38.5
 
 jobs:
+  guard:
+    name: Reject main branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if dispatched from main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "::error::Patch workflow must not be run from the main branch. Dispatch it from a release branch instead."
+          exit 1
+
   build:
     name: Patch iOS, Android & macOS
+    needs: guard
     runs-on: macos-26
 
     permissions:
@@ -46,13 +57,8 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
-        run: |
-          if [ -f pubspec_overrides_ci.yaml ]; then
-              mv pubspec_overrides_ci.yaml pubspec_overrides.yaml
-          else 
-              echo "No pubspec_overrides_ci.yaml found, skipping rename."
-          fi
+      - name: Rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
+        uses: ./.github/actions/rename-pubspec-overrides
 
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
@@ -60,64 +66,31 @@ jobs:
           cache: true
 
       - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
-      - name: Generate translation files
-        run: |
-          flutter pub global activate intl_utils;
-          flutter pub global run intl_utils:generate;
-
       - name: Install certificates
-        if: inputs.build_ios
-        env:
-          DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
-          DEVELOPER_ID_INSTALLER_P12_BASE64_MAC: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APPSTORE_PROFILE_IOS_BASE64: ${{ secrets.APPSTORE_PROFILE_IOS_BASE64 }}
-          APPSTORE_PROFILE_MACOS_BASE64: ${{ secrets.APPSTORE_PROFILE_MACOS_BASE64 }}
-          APPSTORE_PROFILE_DEV_IOS_BASE64: ${{ secrets.APPSTORE_PROFILE_DEV_IOS_BASE64 }}
-        run: |
-          # create variables
-          DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_application_certificate.p12
-          DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH=$RUNNER_TEMP/build_developerID_installer_certificate.p12
-          PP_PATH_IOS=$RUNNER_TEMP/build_pp_ios.mobileprovision
-          PP_PATH_IOS_DEV=$RUNNER_TEMP/build_pp_ios_dev.mobileprovision
-          PP_PATH_MACOS=$RUNNER_TEMP/build_pp_macos.provisionprofile
-          KEYCHAIN_PATH=$RUNNER_TEMP/pg-signing.keychain-db
-          
-          # import certificate and provisioning profile from secrets
-          echo -n "$DEVELOPER_ID_APPLICATION_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH
-          echo -n "$DEVELOPER_ID_INSTALLER_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH
-          echo -n "$APPSTORE_PROFILE_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS
-          echo -n "$APPSTORE_PROFILE_DEV_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS_DEV
-          echo -n "$APPSTORE_PROFILE_MACOS_BASE64" | base64 --decode -o $PP_PATH_MACOS
-          
-          # create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          # security default-keychain -s $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          
-          # import certificate to keychain
-          security import $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH_IOS ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH_IOS_DEV ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH_MACOS ~/Library/MobileDevice/Provisioning\ Profiles
+        if: inputs.build_mac || inputs.build_ios
+        uses: ./.github/actions/install-certificates
+        with:
+          developer-id-application-p12-base64: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
+          developer-id-installer-p12-base64: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
+          p12-password: ${{ secrets.P12_PASSWORD }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+          appstore-profile-ios-base64: ${{ secrets.APPSTORE_PROFILE_IOS_BASE64 }}
+          appstore-profile-macos-base64: ${{ secrets.APPSTORE_PROFILE_MACOS_BASE64 }}
+          appstore-profile-dev-ios-base64: ${{ secrets.APPSTORE_PROFILE_DEV_IOS_BASE64 }}
+          appstore-profile-liveactivity-base64: ${{ secrets.APPSTORE_PROFILE_LIVEACTIVITY_BASE64 }}
+          appstore-profile-liveactivity-debug-base64: ${{ secrets.APPSTORE_PROFILE_LIVEACTIVITY_DEBUG_BASE64 }}
+
 
       - name: Decode Keystore
         if: inputs.build_android
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/android.keystore;
-          echo "${{ secrets.KEYSTORE_PROPERTIES }}" > android/keystore.properties;
+        uses: ./.github/actions/decode-keystore
+        with:
+          keystore-base64: ${{ secrets.KEYSTORE_BASE64 }}
+          keystore-properties: ${{ secrets.KEYSTORE_PROPERTIES }}
 
       - name: 🚀 Shorebird Patch macOS
         if: false # patch doesn't work: https://github.com/OpenBikeControl/bikecontrol/issues/143
@@ -125,7 +98,7 @@ jobs:
         with:
           platform: macos
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch Android
         if: inputs.build_android
@@ -133,7 +106,7 @@ jobs:
         with:
           platform: android
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
 
       - name: 🚀 Shorebird Patch iOS
         if: inputs.build_ios
@@ -141,10 +114,23 @@ jobs:
         with:
           platform: ios
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+
+      - name: Zip Symbols
+        if: inputs.build_android || inputs.build_ios || inputs.build_mac
+        run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols.zip symbols/
+
+      - name: Upload Symbols
+        if: inputs.build_android || inputs.build_ios || inputs.build_mac
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Symbols
+          path: symbols.zip
 
   windows:
     name: Patch Windows
+    needs: guard
     if: inputs.build_windows
     runs-on: windows-latest
 
@@ -156,14 +142,8 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
-        shell: pwsh
-        run: |
-          if (Test-Path pubspec_overrides_ci.yaml) {
-              Rename-Item -Path pubspec_overrides_ci.yaml -NewName pubspec_overrides.yaml
-          } else {
-              Write-Output "No pubspec_overrides_ci.yaml found, skipping rename."
-          }
+      - name: Rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
+        uses: ./.github/actions/rename-pubspec-overrides
 
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
@@ -171,19 +151,25 @@ jobs:
           cache: true
 
       - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
+        uses: ./.github/actions/setup-flutter
         with:
-          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
-
-      - name: Generate translation files
-        run: |
-          flutter pub global activate intl_utils;
-          flutter pub global run intl_utils:generate;
 
       - name: 🚀 Shorebird Patch Windows
         uses: shorebirdtech/shorebird-patch@v1
         with:
           platform: windows
           release-version: ${{ inputs.release_version }}
-          args: '--allow-asset-diffs --allow-native-diffs --  --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+          args: '--allow-asset-diffs --allow-native-diffs --split-debug-info=symbols-win --  --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+
+      - name: Zip Windows Symbols
+        shell: pwsh
+        run: |
+          7z a -p"${{ secrets.ZIP_PASSWORD }}" symbols-win.zip symbols-win/ build/windows/x64/runner/Release/*.pdb
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Windows Symbols
+          path: symbols-win.zip
