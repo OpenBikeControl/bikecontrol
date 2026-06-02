@@ -219,9 +219,8 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   }
 
   Widget? _ftmsMissingWarning() {
-    final services = widget.device.scanResult.services.map((s) => s.toLowerCase()).toSet();
-    final ftms = FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID.toLowerCase();
-    if (services.contains(ftms)) return null;
+    final supportsVS = widget.device.fitnessBike?.supportsVirtualShiftingMode(VirtualShiftingMode.targetPower) == true;
+    if (supportsVS) return null;
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
