@@ -12,6 +12,7 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../main.dart';
 import '../widgets/ui/small_progress_indicator.dart';
 
 class UnlockPage extends StatefulWidget {
@@ -84,6 +85,21 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
         widget.device.isUnlocked.addListener(_isConnectedUpdate);
         widget.device.alreadyUnlocked.addListener(_isConnectedUpdate);
+
+        if (!ftmsEmulator.isStarted.value) {
+          ftmsEmulator
+              .startServer(
+                mode: RetrofitMode.proxy,
+                mdnsTxt: {
+                  'serial-number': Uint8List.fromList('244700181'.codeUnits),
+                },
+              )
+              .then((_) {})
+              .catchError((e, s) {
+                recordError(e, s, context: 'Emulator');
+                core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
+              });
+        }
       });
     }
   }
