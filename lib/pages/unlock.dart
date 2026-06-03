@@ -6,7 +6,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/scheduler/ticker.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -69,18 +69,22 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     _wasZwiftMdnsEmulatorActive = core.zwiftMdnsEmulator.isStarted.value;
     _wasObpMdnsEmulatorActive = core.obpMdnsEmulator.isStarted.value;
     if (!_isInTrialPhase) {
-      if (_wasZwiftMdnsEmulatorActive) {
-        core.zwiftMdnsEmulator.stop();
-        core.settings.setZwiftMdnsEmulatorEnabled(false);
-      }
-      if (_wasObpMdnsEmulatorActive) {
-        core.obpMdnsEmulator.stopServer();
-        core.settings.setObpMdnsEnabled(false);
-      }
+      // only after first frame:
 
-      ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
-      widget.device.isUnlocked.addListener(_isConnectedUpdate);
-      widget.device.alreadyUnlocked.addListener(_isConnectedUpdate);
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (_wasZwiftMdnsEmulatorActive) {
+          core.zwiftMdnsEmulator.stop();
+          core.settings.setZwiftMdnsEmulatorEnabled(false);
+        }
+        if (_wasObpMdnsEmulatorActive) {
+          core.obpMdnsEmulator.stopServer();
+          core.settings.setObpMdnsEnabled(false);
+        }
+
+        ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
+        widget.device.isUnlocked.addListener(_isConnectedUpdate);
+        widget.device.alreadyUnlocked.addListener(_isConnectedUpdate);
+      });
     }
   }
 
