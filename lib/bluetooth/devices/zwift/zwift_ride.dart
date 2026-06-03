@@ -81,6 +81,9 @@ class ZwiftRide extends ZwiftDevice {
       ZwiftButtons.shiftUpRight: const Offset(0.97, 0.32),
       ZwiftButtons.shiftDownRight: const Offset(0.97, 0.55),
       ZwiftButtons.powerUpRight: const Offset(0.93, 0.88),
+      // Play Firmware 2
+      ZwiftButtons.sideButtonLeft: const Offset(0.04, 0.26),
+      ZwiftButtons.sideButtonRight: const Offset(0.98, 0.26),
     },
   );
 
