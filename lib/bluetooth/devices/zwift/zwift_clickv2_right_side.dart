@@ -58,7 +58,7 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
     return [
-      Text(context.i18n.unlock_rightSideNeedsNoUnlock).small.normal,
+      Text(context.i18n.unlock_rightSideNeedsNoUnlock).xSmall.normal,
     ];
   }
 }
