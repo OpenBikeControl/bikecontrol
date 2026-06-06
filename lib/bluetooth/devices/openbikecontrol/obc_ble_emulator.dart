@@ -109,7 +109,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
           );
         });
 
-        Uint8List? firstAppInfoMessage;
+        List<Uint8List> firstAppInfoMessages = [];
 
         _peripheralManager.characteristicWriteRequested.forEach((eventArgs) async {
           final characteristic = eventArgs.characteristic;
@@ -125,9 +125,8 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
                 // use this fallback if first message is incomplete (e.g. TrainingPeaks on macOS)
 
                 AppInfo appInfo = OpenBikeProtocolParser.parseAppInfo(
-                  Uint8List.fromList([...?firstAppInfoMessage, ...value]),
+                  Uint8List.fromList([...firstAppInfoMessages.flatten(), ...value]),
                 );
-                firstAppInfoMessage = null;
                 isConnected.value = true;
                 connectedApp.value = appInfo;
                 supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
@@ -141,10 +140,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
                 core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
               } catch (e) {
                 core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
-                if (firstAppInfoMessage == null) {
-                  firstAppInfoMessage = value;
-                  return;
-                }
+                firstAppInfoMessages.add(value);
               }
               break;
             default:
