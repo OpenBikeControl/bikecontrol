@@ -153,6 +153,7 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} redémarre et se reconnectera dans quelques secondes",
   "deviceLimitReached": "Limite d'appareils atteinte pour {platform}. Révoquez les autres appareils pour en enregistrer un nouveau.",
   "devicesActive": "{active} actif",
   "disconnectAndForget": "Déconnecte et oublie",
@@ -545,8 +546,14 @@
   "unlock_deviceIsCurrentlyLocked": "L'appareil est actuellement verrouillé.",
   "unlock_isnowunlocked": "{device} est maintenant déverrouillé",
   "unlock_markAsUnlocked": "Marquer comme déverrouillé",
+  "unlock_mode": "Mode de déverrouillage",
+  "unlock_modeRestart": "Redémarrer l'appareil toutes les minutes",
+  "unlock_modeRestartDescription": "La manette gauche se reconnectera automatiquement toutes les 60 secondes, ce qui entraîne une brève interruption.",
+  "unlock_modeZwift": "Déverrouiller avec Zwift",
+  "unlock_modeZwiftDescription": "Toutes les 24 heures, l'appareil doit être déverrouillé avec Zwift.",
   "unlock_notWorking": "Ça ne fonctionne pas ?",
   "unlock_openZwift": "Ouvrez Zwift (et non l'application Companion) sur cet appareil ou un autre.",
+  "unlock_rightSideNeedsNoUnlock": "Tu peux utiliser cette manette sans la manette gauche, car celle-ci ne nécessite ni déverrouillage ni redémarrage.",
   "unlock_unlockManually": "Déverrouiller manuellement",
   "unlock_unlockNow": "Déverrouiller maintenant",
   "unlock_unlockedUntilAroundDate": "Déverrouillé jusqu'à environ {date}",

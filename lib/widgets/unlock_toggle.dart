@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:prop/devices/click_logic.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -27,7 +28,7 @@ class _UnlockToggleState extends State<UnlockToggle> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        Text('Unlock mode').small.semiBold,
+        Text(context.i18n.unlock_mode).small.semiBold,
         Select<bool>(
           value: _unlockWithZwift,
           popup: SelectPopup(
@@ -38,10 +39,8 @@ class _UnlockToggleState extends State<UnlockToggle> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Restart device every minute').bold,
-                      Text(
-                        '''The left controller will automatically reconnect every 60 seconds, resulting in a short downtime.''',
-                      ).xSmall.muted,
+                      Text(context.i18n.unlock_modeRestart).bold,
+                      Text(context.i18n.unlock_modeRestartDescription).xSmall.muted,
                     ],
                   ),
                 ),
@@ -50,10 +49,8 @@ class _UnlockToggleState extends State<UnlockToggle> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Unlock using Zwift').bold,
-                      Text(
-                        '''Every 24 hours the device needs to be unlocked using Zwift.''',
-                      ).xSmall.muted,
+                      Text(context.i18n.unlock_modeZwift).bold,
+                      Text(context.i18n.unlock_modeZwiftDescription).xSmall.muted,
                     ],
                   ),
                 ),
@@ -63,15 +60,10 @@ class _UnlockToggleState extends State<UnlockToggle> {
           itemBuilder: (context, value) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value ? 'Unlock using Zwift' : 'Restart device every minute'),
-              if (value)
-                Text(
-                  '''Every 24 hours the device needs to be unlocked using Zwift.''',
-                ).xSmall.normal.muted,
-              if (!value)
-                Text(
-                  '''The left controller will automatically reconnect every 60 seconds, resulting in a short downtime.''',
-                ).xSmall.normal.muted,
+              Text(value ? context.i18n.unlock_modeZwift : context.i18n.unlock_modeRestart),
+              Text(
+                value ? context.i18n.unlock_modeZwiftDescription : context.i18n.unlock_modeRestartDescription,
+              ).xSmall.normal.muted,
             ],
           ),
           onChanged: (unlockWithZwift) async {

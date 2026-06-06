@@ -91,6 +91,17 @@ class Connection {
       }
     });
 
+    // Inform the user when ClickLogic restarts a device on purpose — its
+    // entry greys out for a few seconds, so explain why.
+    ClickLogic.onResetSent = (deviceId) {
+      final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      if (device != null) {
+        _actionStreams.add(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.deviceIsRestarting(device.toString())),
+        );
+      }
+    };
+
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb) {
@@ -374,6 +385,15 @@ class Connection {
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
 
+    // A device kept in the list during an automatic reset cycle reappeared in
+    // the scan: its fresh instance is filtered out above (same id), so queue
+    // the existing instance for reconnection instead.
+    final resetDevices = dev
+        .mapNotNull((d) => devices.firstOrNullWhere((e) => e == d))
+        .where((e) => e.isResetting && !e.isConnected && !_connectionQueue.contains(e))
+        .toList();
+    _connectionQueue.addAll(resetDevices);
+
     _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
@@ -398,7 +418,10 @@ class Connection {
       final device = _connectionQueue.removeAt(0);
 
       final willConnect = device is! ProxyDevice || device.shouldAutoConnect;
-      if (willConnect) {
+      // Reconnections after an automatic reset happen every minute — keep
+      // them silent. Captured here because the flag clears during handshake.
+      final notify = willConnect && !device.isResetting;
+      if (notify) {
         _actionStreams.add(
           AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connectingToDevice(device.toString())),
         );
@@ -407,7 +430,7 @@ class Connection {
           .then((_) {
             _handlingConnectionQueue = false;
 
-            if (willConnect) {
+            if (notify) {
               _actionStreams.add(
                 AlertNotification(
                   LogLevel.LOGLEVEL_INFO,
@@ -467,7 +490,10 @@ class Connection {
       final connectionStateSubscription = device.device.connectionStream.listen((state) {
         device.isConnected = state;
         _connectionStreams.add(device);
-        if (!state) {
+        // An automatic reset cycle (ClickLogic) reboots the device every
+        // minute — don't spam connect/disconnect notifications for it.
+        final isSilentReset = device.isResetting;
+        if (!state && !isSilentReset) {
           _actionStreams.add(
             AlertNotification(
               state ? LogLevel.LOGLEVEL_INFO : LogLevel.LOGLEVEL_WARNING,
@@ -475,15 +501,17 @@ class Connection {
             ),
           );
         }
-        core.flutterLocalNotificationsPlugin.show(
-          1338,
-          '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
-          !state ? AppLocalizations.current.tryingToConnectAgain : null,
-          NotificationDetails(
-            android: AndroidNotificationDetails('Connection', 'Connection Status'),
-            iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
-          ),
-        );
+        if (!isSilentReset) {
+          core.flutterLocalNotificationsPlugin.show(
+            1338,
+            '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+            !state ? AppLocalizations.current.tryingToConnectAgain : null,
+            NotificationDetails(
+              android: AndroidNotificationDetails('Connection', 'Connection Status'),
+              iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+            ),
+          );
+        }
         if (!device.isConnected) {
           disconnect(device, forget: false, persistForget: false);
           // try reconnect
@@ -557,9 +585,13 @@ class Connection {
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
 
-      // Remove device from the list
-      devices.remove(device);
-      hasDevices.value = devices.isNotEmpty;
+      // Remove device from the list — unless it is rebooting due to an
+      // automatic reset and will be back in a few seconds: keep its entry
+      // visible (greyed out) instead of letting it disappear.
+      if (forget || !device.isResetting) {
+        devices.remove(device);
+        hasDevices.value = devices.isNotEmpty;
+      }
     } else if (device is GyroscopeSteering || device is HidDevice) {
       // Clean up subscriptions
       _streamSubscriptions[device]?.cancel();

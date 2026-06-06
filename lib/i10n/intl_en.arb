@@ -165,6 +165,14 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} is restarting and will reconnect in a few seconds",
+  "@deviceIsRestarting": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "deviceLimitReached": "Device limit reached for {platform}. Revoke other devices to register a new one.",
   "devicesActive": "{active} active",
   "disconnectAndForget": "Disconnect & forget",
@@ -589,8 +597,14 @@
   "unlock_deviceIsCurrentlyLocked": "Device is currently locked",
   "unlock_isnowunlocked": "{device} is now unlocked",
   "unlock_markAsUnlocked": "Mark as Unlocked",
+  "unlock_mode": "Unlock mode",
+  "unlock_modeRestart": "Restart device every minute",
+  "unlock_modeRestartDescription": "The left controller will automatically reconnect every 60 seconds, resulting in a short downtime.",
+  "unlock_modeZwift": "Unlock using Zwift",
+  "unlock_modeZwiftDescription": "Every 24 hours the device needs to be unlocked using Zwift.",
   "unlock_notWorking": "Not working?",
   "unlock_openZwift": "Open Zwift (not the Companion) on this or another device",
+  "unlock_rightSideNeedsNoUnlock": "You could use this controller without the left controller, as this one needs no unlocking or restarts.",
   "unlock_unlockManually": "Unlock manually",
   "unlock_unlockNow": "Unlock now",
   "unlock_unlockedUntilAroundDate": "Unlocked until around {date}",

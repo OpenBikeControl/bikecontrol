@@ -153,6 +153,7 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} si sta riavviando e si riconnetterà tra qualche secondo",
   "deviceLimitReached": "Limite di dispositivi raggiunto per {platform}. Revoca altri dispositivi per registrarne uno nuovo.",
   "devicesActive": "{active} attivo",
   "disconnectAndForget": "Disconnettiti e dimentica",
@@ -544,8 +545,14 @@
   "unlock_deviceIsCurrentlyLocked": "Il dispositivo è attualmente bloccato",
   "unlock_isnowunlocked": "{device} è ora sbloccato",
   "unlock_markAsUnlocked": "Segna come sbloccato",
+  "unlock_mode": "Modalità di sblocco",
+  "unlock_modeRestart": "Riavvia il dispositivo ogni minuto",
+  "unlock_modeRestartDescription": "Il controller sinistro si riconnetterà automaticamente ogni 60 secondi, causando una breve interruzione.",
+  "unlock_modeZwift": "Sblocca con Zwift",
+  "unlock_modeZwiftDescription": "Ogni 24 ore il dispositivo deve essere sbloccato con Zwift.",
   "unlock_notWorking": "Non funziona?",
   "unlock_openZwift": "Apri Zwift (non il Companion) su questo o un altro dispositivo",
+  "unlock_rightSideNeedsNoUnlock": "Puoi usare questo controller senza il controller sinistro, poiché questo non richiede sblocchi o riavvii.",
   "unlock_unlockManually": "Sblocca manualmente",
   "unlock_unlockNow": "Sblocca ora",
   "unlock_unlockedUntilAroundDate": "Sbloccato fino a circa {date}",

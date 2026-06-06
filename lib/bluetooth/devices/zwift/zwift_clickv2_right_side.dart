@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -57,9 +58,7 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
     return [
-      Text(
-        'You could use this controller without the left controller, as this one needs no unlocking or restarts.',
-      ).small.normal,
+      Text(context.i18n.unlock_rightSideNeedsNoUnlock).small.normal,
     ];
   }
 }

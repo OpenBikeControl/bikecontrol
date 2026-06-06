@@ -153,6 +153,7 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} wird neu gestartet und verbindet sich in wenigen Sekunden wieder",
   "deviceLimitReached": "Gerätelimit erreicht für {platform}. Um ein neues Gerät zu registrieren, müssen andere Geräte widerrufen werden.",
   "devicesActive": "{active} aktiv",
   "disconnectAndForget": "Trennen und Vergessen",
@@ -544,8 +545,14 @@
   "unlock_deviceIsCurrentlyLocked": "Das Gerät ist derzeit gesperrt.",
   "unlock_isnowunlocked": "{device} ist jetzt freigeschaltet",
   "unlock_markAsUnlocked": "Als entsperrt markieren",
+  "unlock_mode": "Entsperrmodus",
+  "unlock_modeRestart": "Gerät jede Minute neu starten",
+  "unlock_modeRestartDescription": "Der linke Controller verbindet sich alle 60 Sekunden automatisch neu, was zu einer kurzen Unterbrechung führt.",
+  "unlock_modeZwift": "Mit Zwift entsperren",
+  "unlock_modeZwiftDescription": "Alle 24 Stunden muss das Gerät mit Zwift entsperrt werden.",
   "unlock_notWorking": "Funktioniert nicht?",
   "unlock_openZwift": "Öffne Zwift (nicht die Companion-App) auf diesem oder einem anderen Gerät.",
+  "unlock_rightSideNeedsNoUnlock": "Du kannst diesen Controller auch ohne den linken Controller verwenden, da dieser weder entsperrt noch neu gestartet werden muss.",
   "unlock_unlockManually": "Manuelles Entsperren",
   "unlock_unlockNow": "Jetzt freischalten",
   "unlock_unlockedUntilAroundDate": "Entsperrt bis etwa {date}",

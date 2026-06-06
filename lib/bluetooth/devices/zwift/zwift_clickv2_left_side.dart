@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/unlock_toggle.dart';
 import 'package:flutter/foundation.dart';
@@ -23,6 +24,9 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;
 
   @override
+  bool get isResetting => ClickLogic.isResetting(device.deviceId);
+
+  @override
   ControllerLayout get controllerLayout => ControllerLayout(
     aspectRatio: 215 / 252.9,
     shape: ContourShape.pill,
@@ -43,6 +47,9 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
 
   @override
   Future<void> setupHandshake() async {
+    // The device is back online, so a ClickLogic-initiated reset (if any) is
+    // over — un-mute its entry and notifications again.
+    ClickLogic.clearResetting(device.deviceId);
     await sendCommandBuffer(Uint8List.fromList(startCommand));
     if (!core.settings.getUnlockWithZwift()) {
       await ClickLogic.setupHandshake(services!, device.deviceId, isRight: false);
@@ -55,6 +62,12 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
       ClickLogic.processData(bytes, services: services!, deviceId: device.deviceId);
     }
     super.processData(bytes);
+  }
+
+  @override
+  List<ControllerButton> processClickNotification(Uint8List message) {
+    final buttons = super.processClickNotification(message);
+    return buttons.where((button) => availableButtons.contains(button)).toList();
   }
 
   @override

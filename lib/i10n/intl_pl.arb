@@ -153,6 +153,7 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} uruchamia się ponownie i połączy się znów za kilka sekund",
   "deviceLimitReached": "Osiągnięto limit urządzeń {platform}. Anuluj inne urządzenia, aby zarejestrować nowe.",
   "devicesActive": "{active} aktywny",
   "disconnectAndForget": "Odłącz się i zapomnij",
@@ -544,8 +545,14 @@
   "unlock_deviceIsCurrentlyLocked": "Urządzenie jest obecnie zablokowane",
   "unlock_isnowunlocked": "{device} jest teraz odblokowany",
   "unlock_markAsUnlocked": "Oznacz jako odblokowane",
+  "unlock_mode": "Tryb odblokowania",
+  "unlock_modeRestart": "Uruchamiaj ponownie urządzenie co minutę",
+  "unlock_modeRestartDescription": "Lewy kontroler będzie automatycznie łączyć się ponownie co 60 sekund, co powoduje krótką przerwę.",
+  "unlock_modeZwift": "Odblokuj za pomocą Zwift",
+  "unlock_modeZwiftDescription": "Co 24 godziny urządzenie musi zostać odblokowane za pomocą Zwift.",
   "unlock_notWorking": "Nie działa?",
   "unlock_openZwift": "Otwórz aplikację Zwift (nie Companion) na tym lub innym urządzeniu",
+  "unlock_rightSideNeedsNoUnlock": "Możesz używać tego kontrolera bez lewego kontrolera, ponieważ ten nie wymaga odblokowywania ani ponownych uruchomień.",
   "unlock_unlockManually": "Odblokuj ręcznie",
   "unlock_unlockNow": "Odblokuj teraz",
   "unlock_unlockedUntilAroundDate": "Odblokowane do około {date}",

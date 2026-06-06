@@ -82,19 +82,29 @@ class _DevicePageState extends State<DevicePage> {
   }
 
   Widget _buildDeviceCard(BaseDevice device) {
+    // Grey out (and mute) the entry while the device reboots due to an
+    // automatic reset — it reconnects on its own within a few seconds.
+    final muted = device.isResetting;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(bottom: 12.0),
       key: widget.cardKeys[device.uniqueId],
-      child: Button.ghost(
-        onPressed: () async {
-          await context.push(ControllerSettingsPage(device: device));
-          widget.onUpdate();
-        },
-        child: device.showInformation(
-          context,
-          showFull: false,
-          footer: widget.footerBuilder(device),
+      child: AnimatedOpacity(
+        opacity: muted ? 0.4 : 1,
+        duration: const Duration(milliseconds: 300),
+        child: IgnorePointer(
+          ignoring: muted,
+          child: Button.ghost(
+            onPressed: () async {
+              await context.push(ControllerSettingsPage(device: device));
+              widget.onUpdate();
+            },
+            child: device.showInformation(
+              context,
+              showFull: false,
+              footer: widget.footerBuilder(device),
+            ),
+          ),
         ),
       ),
     );
