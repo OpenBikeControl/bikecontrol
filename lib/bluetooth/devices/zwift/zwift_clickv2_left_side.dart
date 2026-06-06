@@ -42,7 +42,7 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
 
   @override
   String toString() {
-    return "Zwift Click V2 (left side)";
+    return "Zwift Click V2 (left)";
   }
 
   @override

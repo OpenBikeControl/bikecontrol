@@ -63,7 +63,7 @@ class _DevicePageState extends State<DevicePage> {
     final devices = core.connection.controllerDevices;
     final leftSide = devices.whereType<ZwiftClickV2LeftSide>().firstOrNull;
     final rightSide = devices.whereType<ZwiftClickV2RightSide>().firstOrNull;
-    if (leftSide == null || rightSide == null) {
+    if (leftSide == null || rightSide == null || widget.isMobile) {
       return devices.map((device) => [device]).toList();
     }
     final groups = <List<BaseDevice>>[];
