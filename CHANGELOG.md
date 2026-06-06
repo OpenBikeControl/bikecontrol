@@ -1,4 +1,4 @@
-### 5.7.0 (06-06-2026)
+### 6.0.0 (06-06-2026)
  
 TrainingPeaks has now partnered with BikeControl, supporting a whooping number of 28 mappable controller actions!
 

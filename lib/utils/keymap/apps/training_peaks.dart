@@ -12,7 +12,7 @@ class TrainingPeaks extends SupportedApp {
   @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.obpBle, ConnectionSupport.supported),
-    (AppConnectionMethod.obpDirCon, ConnectionSupport.experimental),
+    (AppConnectionMethod.obpDirCon, ConnectionSupport.supported),
   ];
 
   @override
