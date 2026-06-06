@@ -12,12 +12,15 @@ import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play_fw2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -160,6 +163,7 @@ abstract class BluetoothDevice extends BaseDevice {
       if (data == null || data.isEmpty) {
       } else {
         final type = ZwiftDeviceType.fromManufacturerData(data.first);
+        final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
         device = switch (type) {
           ZwiftDeviceType.click => ZwiftClick(scanResult),
           ZwiftDeviceType.playRight => ZwiftPlay(scanResult, deviceType: type!),
@@ -167,8 +171,8 @@ abstract class BluetoothDevice extends BaseDevice {
           ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
           ZwiftDeviceType.playFw2 => ZwiftPlayFw2(scanResult),
           //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
-          ZwiftDeviceType.clickV2Left => ZwiftClickV2(scanResult),
-          //DeviceType.clickV2Right => ZwiftClickV2(scanResult), // see comment above
+          ZwiftDeviceType.clickV2Left => isPro ? ZwiftClickV2LeftSide(scanResult) : ZwiftClickV2(scanResult),
+          ZwiftDeviceType.clickV2Right => isPro ? ZwiftClickV2RightSide(scanResult) : null,
           _ => null,
         };
       }

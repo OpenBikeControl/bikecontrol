@@ -37,21 +37,23 @@ class ZwiftClickV2 extends ZwiftRide {
   /// When this device connected. Used by the unlock page to compute timeouts.
   DateTime? connectionDate;
 
-  ZwiftClickV2(super.scanResult)
+  ZwiftClickV2(super.scanResult, {List<ControllerButton>? availableButtons})
     : super(
         isBeta: true,
-        availableButtons: [
-          ZwiftButtons.navigationLeft,
-          ZwiftButtons.navigationRight,
-          ZwiftButtons.navigationUp,
-          ZwiftButtons.navigationDown,
-          ZwiftButtons.a,
-          ZwiftButtons.b,
-          ZwiftButtons.y,
-          ZwiftButtons.z,
-          ZwiftButtons.shiftUpLeft,
-          ZwiftButtons.shiftUpRight,
-        ],
+        availableButtons:
+            availableButtons ??
+            [
+              ZwiftButtons.navigationLeft,
+              ZwiftButtons.navigationRight,
+              ZwiftButtons.navigationUp,
+              ZwiftButtons.navigationDown,
+              ZwiftButtons.a,
+              ZwiftButtons.b,
+              ZwiftButtons.y,
+              ZwiftButtons.z,
+              ZwiftButtons.shiftUpLeft,
+              ZwiftButtons.shiftUpRight,
+            ],
       ) {
     connectionDate = DateTime.now();
   }
@@ -334,15 +336,6 @@ class ZwiftClickV2 extends ZwiftRide {
               ),
             ],
           ),
-          if (kDebugMode)
-            Button(
-              onPressed: () {
-                sendCommand(Opcode.RESET, null);
-              },
-              leading: const Icon(Icons.translate_sharp),
-              style: ButtonStyle.primary(size: ButtonSize.small),
-              child: Text('Reset'),
-            ),
         ],
       ),
     ];

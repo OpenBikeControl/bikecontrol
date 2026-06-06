@@ -249,7 +249,7 @@ class ZwiftRide extends ZwiftDevice {
 
   Future<void> sendCommandBuffer(Uint8List buffer) async {
     if (kDebugMode) {
-      print("Sending ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
+      Logger.info("Sending ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
     await UniversalBle.write(
       device.deviceId,

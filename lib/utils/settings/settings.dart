@@ -666,4 +666,12 @@ class Settings {
   bool getShowExperimental() {
     return prefs.getBool('show_experimental') ?? false;
   }
+
+  bool getUnlockWithZwift() {
+    return prefs.getBool('unlock_mode') ?? false;
+  }
+
+  Future<void> setUnlockWithZwift(bool value) async {
+    await prefs.setBool('unlock_mode', value);
+  }
 }
