@@ -3,6 +3,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:prop/devices/click_logic.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class UnlockToggle extends StatefulWidget {
   final ZwiftClickV2LeftSide device;
@@ -28,7 +29,17 @@ class _UnlockToggleState extends State<UnlockToggle> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        Text(context.i18n.unlock_mode).small.semiBold,
+        Row(
+          children: [
+            Text(context.i18n.unlock_mode).small.semiBold,
+            IconButton.link(
+              icon: Icon(Icons.help_outline),
+              onPressed: () {
+                launchUrlString('https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps');
+              },
+            ),
+          ],
+        ),
         Select<bool>(
           value: _unlockWithZwift,
           popup: SelectPopup(

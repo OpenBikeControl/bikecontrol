@@ -1,5 +1,7 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/foundation.dart';
@@ -57,8 +59,13 @@ class ZwiftClickV2RightSide extends ZwiftRide {
 
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
-    return [
-      Text(context.i18n.unlock_rightSideNeedsNoUnlock).xSmall.normal,
-    ];
+    if (core.connection.devices.whereType<ZwiftClickV2LeftSide>().isNotEmpty) {
+      return [
+        SizedBox(),
+        Text(context.i18n.unlock_rightSideNeedsNoUnlock).xSmall.normal,
+      ];
+    } else {
+      return [];
+    }
   }
 }
