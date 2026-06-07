@@ -237,7 +237,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           level: LogLevel.LOGLEVEL_WARNING,
           title: result.message,
           closeTitle: fix?.$1 ?? AppLocalizations.of(context).close,
-          onClose: fix?.$2(context),
+          onClose: fix?.$2 != null
+              ? () {
+                  fix?.$2(context);
+                }
+              : null,
         );
       }
       _latestError = entry;
