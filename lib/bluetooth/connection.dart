@@ -8,6 +8,7 @@ import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -61,6 +62,7 @@ class Connection {
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
 
   Timer? _gamePadSearchTimer;
+  WifiTrainerScanner? _wifiTrainerScanner;
 
   /// Per-device inactivity timers.  When a timer fires the device is
   /// automatically disconnected to save its battery (see issue #329).
@@ -271,6 +273,7 @@ class Connection {
     );
 
     if (!kIsWeb) {
+      _startWifiTrainerDiscovery();
       _gamePadSearchTimer = Timer.periodic(Duration(seconds: 3), (_) {
         Gamepads.list().then((list) {
           final pads = list.map((pad) => GamepadDevice(pad.name.isEmpty ? 'Gamepad' : pad.name, id: pad.id)).toList();
@@ -290,6 +293,36 @@ class Connection {
     } else {
       isScanning.value = false;
     }
+  }
+
+  /// Browse the LAN for DirCon trainers (always on while scanning; the
+  /// scanner excludes BikeControl's own advertisements). Failures — e.g. the
+  /// user denied the Local Network permission — are logged and never affect
+  /// BLE scanning.
+  void _startWifiTrainerDiscovery() {
+    _wifiTrainerScanner ??= WifiTrainerScanner(
+      onFound: (trainer) {
+        _actionStreams.add(LogNotification('Found WiFi trainer: ${trainer.syntheticDevice.name}'));
+        addDevices([ProxyDevice.wifi(trainer.syntheticDevice, host: trainer.host, port: trainer.port)]);
+      },
+      onLost: (deviceId) {
+        final device = proxyDevices.firstOrNullWhere((d) => d.scanResult.deviceId == deviceId);
+        // A connected device stays — the live TCP connection is the source
+        // of truth; mDNS visibility can flap.
+        if (device != null && !device.isConnected && !device.isStarting.value) {
+          devices.remove(device);
+          _streamSubscriptions[device]?.cancel();
+          _streamSubscriptions.remove(device);
+          _connectionSubscriptions[device]?.cancel();
+          _connectionSubscriptions.remove(device);
+          hasDevices.value = devices.isNotEmpty;
+          signalChange(device);
+        }
+      },
+    );
+    _wifiTrainerScanner!.start().catchError((Object e) {
+      _actionStreams.add(LogNotification('WiFi trainer discovery unavailable: $e'));
+    });
   }
 
   Future<void> _runCustomDeviceScript({
@@ -629,6 +662,7 @@ class Connection {
     if (isBtEnabled) {
       UniversalBle.stopScan();
     }
+    _wifiTrainerScanner?.stop();
     isScanning.value = false;
     _lastScanResult.clear();
     _androidNotificationsSetup = false;
