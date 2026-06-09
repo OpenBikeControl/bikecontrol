@@ -18,11 +18,13 @@ import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:prop/prop.dart';
+import 'package:prop/utils/self_advertisement_registry.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
   ServerSocket? _server;
   Registration? _mdnsRegistration;
+  ({String name, int port})? _registeredEntry;
 
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(null);
 
@@ -81,7 +83,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
           txt: _useDirCon
               ? {
                   'ble-service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
-                  'mac-address': Uint8List.fromList('00:11:22:33:44:55'.codeUnits),
+                  'mac-address': Uint8List.fromList(BikeControlMdnsMarkers.obcMacAddress.codeUnits),
                   'serial-number': Uint8List.fromList('1234567890'.codeUnits),
                 }
               : {
@@ -94,6 +96,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
                 },
         ),
       );
+      _registeredEntry = (name: 'BikeControl', port: 36867);
+      SelfAdvertisementRegistry.instance.add(name: 'BikeControl', port: 36867);
       print('Service: ${_mdnsRegistration!.id} at ${localIP.address}:$_mdnsRegistration');
       print('Server started - advertising service!');
     } catch (e, s) {
@@ -109,6 +113,11 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     if (_mdnsRegistration != null) {
       unregister(_mdnsRegistration!);
       _mdnsRegistration = null;
+    }
+    final entry = _registeredEntry;
+    if (entry != null) {
+      SelfAdvertisementRegistry.instance.remove(name: entry.name, port: entry.port);
+      _registeredEntry = null;
     }
     isStarted.value = false;
     isConnected.value = false;

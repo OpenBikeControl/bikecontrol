@@ -66,9 +66,9 @@ class FtmsMdnsEmulator extends TrainerConnection {
       return ftmsEmulator.startServer(
         mode: RetrofitMode.wifi,
         mdnsTxt: {
-          'mac-address': Uint8List.fromList('95E042B7-1337-039E-C35F-C7095776F2D3'.codeUnits),
+          'mac-address': Uint8List.fromList(BikeControlMdnsMarkers.macAddress.codeUnits),
           'serial-number': Uint8List.fromList(
-            '95E042B7-1337-039E-C35F-C7095776F2D3'.replaceAll('-', '').substring(0, '244700181'.length).codeUnits,
+            BikeControlMdnsMarkers.macAddress.replaceAll('-', '').substring(0, '244700181'.length).codeUnits,
           ),
         },
       );
