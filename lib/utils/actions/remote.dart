@@ -63,14 +63,7 @@ class RemoteActions extends BaseActions {
       return superResult;
     }
 
-    if (!core.remotePairing.isConnected.value && !core.remoteKeyboardPairing.isConnected.value) {
-      return Error(
-        'Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device',
-        button: keyPair.buttons.firstOrNull,
-      );
-    }
-
-    if (core.remotePairing.isConnected.value) {
+    if (core.remotePairing.isStarted.value && core.remotePairing.isConnected.value) {
       if (keyPair.touchPosition == Offset.zero) {
         return Error(
           'Key $keyPair does not have a valid touch position',
@@ -78,7 +71,7 @@ class RemoteActions extends BaseActions {
         );
       }
       return core.remotePairing.sendAction(keyPair, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
-    } else if (core.remoteKeyboardPairing.isConnected.value) {
+    } else if (core.remoteKeyboardPairing.isStarted.value && core.remoteKeyboardPairing.isConnected.value) {
       if (keyPair.physicalKey == null) {
         return Error(
           'Key $keyPair does not have a valid physical key for keyboard actions',
@@ -86,11 +79,13 @@ class RemoteActions extends BaseActions {
         );
       }
       return core.remoteKeyboardPairing.sendAction(keyPair, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
-    } else {
+    } else if (core.remoteKeyboardPairing.isStarted.value || core.remotePairing.isStarted.value) {
       return Error(
         'Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device',
         button: keyPair.buttons.firstOrNull,
       );
+    } else {
+      return NotHandled('No connection method active', button: keyPair.buttons.firstOrNull);
     }
   }
 
