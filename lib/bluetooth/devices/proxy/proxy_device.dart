@@ -17,9 +17,12 @@ import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:prop/dircon/dircon_trainer_transport.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
 import 'package:prop/prop.dart' hide TrainerMode;
+import 'package:prop/transports/ble_trainer_transport.dart';
+import 'package:prop/transports/trainer_transport.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -97,12 +100,38 @@ class ProxyDevice extends BluetoothDevice {
 
   ZwiftEmulatorDefinition? _zwiftControllerEmulator;
 
+  /// Upstream transport to the real trainer — BLE by default, DirCon for
+  /// WiFi-discovered trainers.
+  final TrainerTransport transport;
+
+  bool get isWifiUpstream => transport is DirconTrainerTransport;
+
+  StreamSubscription<({String characteristic, Uint8List value})>? _transportNotificationSub;
+
   ProxyDevice(super.scanResult)
-    : super(
+    : transport = BleTrainerTransport(scanResult.deviceId),
+      super(
         availableButtons: const [],
         icon: _iconFor(scanResult),
         isBeta: true,
       ) {
+    _initEmulator();
+  }
+
+  /// A trainer discovered over mDNS/DirCon. [scanResult] is the synthetic
+  /// BleDevice built by WifiTrainerScanner (deviceId `dircon://<name>`,
+  /// services from the ad's TXT record).
+  ProxyDevice.wifi(super.scanResult, {required String host, required int port})
+    : transport = DirconTrainerTransport(id: scanResult.deviceId, host: host, port: port),
+      super(
+        availableButtons: const [],
+        icon: _iconFor(scanResult),
+        isBeta: true,
+      ) {
+    _initEmulator();
+  }
+
+  void _initEmulator() {
     _proxyEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
     _proxyEmulator.deviceName = () => scanResult.name;
     _bindToActiveEmulator();
@@ -204,6 +233,7 @@ class ProxyDevice extends BluetoothDevice {
       services: services,
       device: scanResult,
       data: _proxyEmulator.data,
+      transport: transport,
     );
 
     _zwiftControllerEmulator = ZwiftEmulatorDefinition(device: device);
@@ -213,6 +243,7 @@ class ProxyDevice extends BluetoothDevice {
       connectedDeviceServices: services,
       data: ftmsEmulator.data,
       shouldAdvertiseZwift: shouldAdvertiseZwift,
+      transport: transport,
     );
     _seedFitnessBikeDefinition(fbd);
     return fbd;
@@ -229,7 +260,7 @@ class ProxyDevice extends BluetoothDevice {
   String get advertisementName => emulator.advertisementName;
 
   Map<String, Uint8List> _trainerMdnsTxt() => {
-    'mac-address': Uint8List.fromList('95E042B7-1337-039E-C35F-C7095776F2D3'.codeUnits),
+    'mac-address': Uint8List.fromList(BikeControlMdnsMarkers.macAddress.codeUnits),
     'serial-number': Uint8List.fromList(
       scanResult.deviceId.replaceAll('-', '').substring(0, '244700181'.length).codeUnits,
     ),
@@ -401,6 +432,7 @@ class ProxyDevice extends BluetoothDevice {
             final fitnessDef = emulator.fitnessBike;
             final parts = <Widget>[];
             if (proxyDef != null) {
+              if (isWifiUpstream) _addTextMetric(parts, context, 'WiFi', LucideIcons.wifi);
               _addMetric(parts, context, proxyDef.powerW.value, 'W', LucideIcons.zap);
               _addMetric(parts, context, proxyDef.heartRateBpm.value, 'bpm', LucideIcons.heart);
               _addMetric(parts, context, proxyDef.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
@@ -409,6 +441,7 @@ class ProxyDevice extends BluetoothDevice {
                 _addMetric(parts, context, units.fromKph(speed).round(), units.speedSymbol, LucideIcons.gauge);
               }
             } else if (fitnessDef != null) {
+              if (isWifiUpstream) _addTextMetric(parts, context, 'WiFi', LucideIcons.wifi);
               _addMetric(parts, context, fitnessDef.powerW.value, 'W', LucideIcons.zap);
               _addMetric(parts, context, fitnessDef.heartRateBpm.value, 'bpm', LucideIcons.heart);
               _addMetric(parts, context, fitnessDef.cadenceRpm.value, 'rpm', LucideIcons.rotateCw);
@@ -467,6 +500,18 @@ class ProxyDevice extends BluetoothDevice {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(l10n.proxyConnectFor(name), style: muted),
+        if (isWifiUpstream)
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(LucideIcons.wifi, size: 11, color: cs.mutedForeground),
+                const Gap(6),
+                Text('WiFi', style: muted),
+              ],
+            ),
+          ),
         const Gap(2),
         for (final (icon, label) in features)
           Padding(
@@ -592,6 +637,55 @@ class ProxyDevice extends BluetoothDevice {
     await startProxy();
   }
 
+  // ── Upstream seams: route through the TrainerTransport ──────────────────
+  // For BLE, BleTrainerTransport performs verbatim the calls BluetoothDevice
+  // used to make inline, so behavior is unchanged. For WiFi, the same connect
+  // flow (services discovery, device-info reads, handleServices) runs over
+  // DirCon.
+
+  @override
+  Future<void> connectUpstream() async {
+    if (isWifiUpstream) {
+      transport.onDisconnected = _onWifiDisconnected;
+    }
+    await transport.connect();
+    _transportNotificationSub?.cancel();
+    _transportNotificationSub = transport.notifications.listen((n) {
+      processCharacteristic(n.characteristic, n.value).catchError((Object e) {
+        core.connection.signalNotification(LogNotification('Error processing DirCon data: $e'));
+      });
+    });
+    if (isWifiUpstream) {
+      // No UniversalBle.onConnectionChange for WiFi — flip state ourselves.
+      isConnected = true;
+      core.connection.signalChange(this);
+    }
+  }
+
+  @override
+  Future<List<BleService>> discoverUpstreamServices() => transport.discoverServices();
+
+  @override
+  Future<Uint8List> readUpstream(String serviceUuid, String characteristicUuid) =>
+      transport.read(serviceUuid, characteristicUuid);
+
+  @override
+  Future<void> disconnectUpstream() => transport.disconnect();
+
+  void _onWifiDisconnected() {
+    if (!isConnected) return;
+    isConnected = false;
+    core.connection.signalNotification(
+      AlertNotification(
+        LogLevel.LOGLEVEL_WARNING,
+        '$this ${AppLocalizations.current.disconnected.decapitalize()}',
+      ),
+    );
+    unawaited(core.connection.disconnect(this, forget: false, persistForget: false));
+    // Mirrors the BLE connectionStream listener: rediscovery re-adds us.
+    core.connection.performScanning();
+  }
+
   Future<void> startProxy() async {
     if (IAPManager.instance.isTrialExpired) {
       // 5-day trial over, user hasn't purchased — silently refuse the connect.
@@ -640,6 +734,7 @@ class ProxyDevice extends BluetoothDevice {
           connectedDeviceServices: services!,
           data: ftmsEmulator.data,
           shouldAdvertiseZwift: _shouldAdvertiseZwift,
+          transport: transport,
         );
         _currentFbd = _fbd;
         _seedFitnessBikeDefinition(_fbd!);
@@ -678,6 +773,7 @@ class ProxyDevice extends BluetoothDevice {
           services: services!,
           device: scanResult,
           data: _proxyEmulator.data,
+          transport: transport,
         );
       }
 
@@ -703,6 +799,9 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Future<void> disconnect() async {
+    _transportNotificationSub?.cancel();
+    _transportNotificationSub = null;
+    transport.onDisconnected = null;
     // Remove listeners from the active emulator before teardown.
     _retrofitModeN.removeListener(_bindToActiveEmulator);
     final active = _currentlyListening;

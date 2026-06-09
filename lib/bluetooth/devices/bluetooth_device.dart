@@ -203,22 +203,13 @@ abstract class BluetoothDevice extends BaseDevice {
   @override
   Future<void> connect() async {
     try {
-      await UniversalBle.connect(device.deviceId);
+      await connectUpstream();
     } catch (e) {
       isConnected = false;
       rethrow;
     }
 
-    if (!kIsWeb) {
-      try {
-        await UniversalBle.requestMtu(device.deviceId, 517);
-      } catch (e) {
-        // not critical, just log it
-        debugPrint('Failed to request MTU: $e');
-      }
-    }
-
-    services = await UniversalBle.discoverServices(device.deviceId);
+    services = await discoverUpstreamServices();
 
     final deviceInformationService = services!.firstOrNullWhere(
       (service) => service.uuid == BleUuid.DEVICE_INFORMATION_SERVICE_UUID.toLowerCase(),
@@ -229,11 +220,7 @@ abstract class BluetoothDevice extends BaseDevice {
       );
       if (characteristic == null) return null;
       try {
-        final data = await UniversalBle.read(
-          device.deviceId,
-          service!.uuid,
-          characteristic.uuid,
-        );
+        final data = await readUpstream(service!.uuid, characteristic.uuid);
         final decoded = String.fromCharCodes(data).trim();
         return decoded.isEmpty ? null : decoded;
       } catch (_) {
@@ -276,11 +263,7 @@ abstract class BluetoothDevice extends BaseDevice {
       (c) => c.uuid == BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL.toLowerCase(),
     );
     if (batteryCharacteristic != null) {
-      final batteryData = await UniversalBle.read(
-        device.deviceId,
-        batteryService!.uuid,
-        batteryCharacteristic.uuid,
-      );
+      final batteryData = await readUpstream(batteryService!.uuid, batteryCharacteristic.uuid);
       if (batteryData.isNotEmpty) {
         batteryLevel = batteryData.first;
         core.connection.signalChange(this);
@@ -293,10 +276,38 @@ abstract class BluetoothDevice extends BaseDevice {
   Future<void> handleServices(List<BleService> services);
   Future<void> processCharacteristic(String characteristic, Uint8List bytes);
 
+  // ── Upstream I/O seams ────────────────────────────────────────────────
+  // ProxyDevice overrides these to route through its TrainerTransport so a
+  // WiFi (DirCon) trainer reuses this whole connect flow. The defaults are
+  // verbatim the previous inline UniversalBle calls.
+
+  @protected
+  Future<void> connectUpstream() async {
+    await UniversalBle.connect(device.deviceId);
+    if (!kIsWeb) {
+      try {
+        await UniversalBle.requestMtu(device.deviceId, 517);
+      } catch (e) {
+        // not critical, just log it
+        debugPrint('Failed to request MTU: $e');
+      }
+    }
+  }
+
+  @protected
+  Future<List<BleService>> discoverUpstreamServices() => UniversalBle.discoverServices(device.deviceId);
+
+  @protected
+  Future<Uint8List> readUpstream(String serviceUuid, String characteristicUuid) =>
+      UniversalBle.read(device.deviceId, serviceUuid, characteristicUuid);
+
+  @protected
+  Future<void> disconnectUpstream() => UniversalBle.disconnect(device.deviceId);
+
   @override
   Future<void> disconnect() async {
     services?.clear();
-    await UniversalBle.disconnect(device.deviceId);
+    await disconnectUpstream();
     super.disconnect();
   }
 
