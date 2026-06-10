@@ -747,10 +747,10 @@ packages:
     dependency: transitive
     description:
       name: gamepads_windows
-      sha256: "64285cc35c86748627bb29d486c4c7c631b0d11fe8128c89658946d9c2b32c1c"
+      sha256: "650b68a4bc5d729abf12f0d2d3a53c05e4070a288c7e5575edfd485774550d8c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.3.0+1"
   gap:
     dependency: transitive
     description:
@@ -1914,10 +1914,10 @@ packages:
     dependency: transitive
     description:
       name: synchronized
-      sha256: "63896c27e81b28f8cb4e69ead0d3e8f03f1d1e5fc531a3e579cabed6a2c7c9e5"
+      sha256: "93b153dcb6a26dcddee6ca087dd634b53e38c10b5aa163e8e49501a776456153"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.0+1"
+    version: "3.4.1"
   term_glyph:
     dependency: transitive
     description:
@@ -2263,5 +2263,5 @@ packages:
     source: hosted
     version: "2.1.0"
 sdks:
-  dart: ">=3.11.0 <4.0.0"
+  dart: ">=3.12.0 <4.0.0"
   flutter: ">=3.41.0"

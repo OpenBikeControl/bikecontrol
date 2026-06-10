@@ -50,6 +50,7 @@ class WifiTrainerScanner {
       return;
     }
     _localAddresses = await _listLocalAddresses();
+    nsd.disableServiceTypeValidation(true);
     final discovery = await nsd.startDiscovery(serviceType, autoResolve: true);
     discovery.addServiceListener(handleService);
     _discovery = discovery;
@@ -116,12 +117,9 @@ class WifiTrainerScanner {
     var services = <String>[];
     final raw = service.txt?['ble-service-uuids'];
     if (raw != null) {
-      services = String.fromCharCodes(raw)
-          .split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .map(_normalizeUuid)
-          .toList();
+      services = String.fromCharCodes(
+        raw,
+      ).split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).map(_normalizeUuid).toList();
     }
     if (services.isEmpty) {
       // A DirCon ad without service hints is still a trainer — assume FTMS.

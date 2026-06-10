@@ -320,8 +320,9 @@ class Connection {
         }
       },
     );
-    _wifiTrainerScanner!.start().catchError((Object e) {
+    _wifiTrainerScanner!.start().catchError((Object e, s) {
       _actionStreams.add(LogNotification('WiFi trainer discovery unavailable: $e'));
+      recordError(e, s, context: 'Wifi Trainer Discovery');
     });
   }
 

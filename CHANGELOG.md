@@ -1,3 +1,7 @@
+### 6.1.0 (unreleased)
+**Features**:
+- WiFi enabled Smart Trainers are now supported
+
 ### 6.0.0 (06-06-2026)
  
 TrainingPeaks has now partnered with BikeControl, supporting a whooping number of 28 mappable controller actions!
