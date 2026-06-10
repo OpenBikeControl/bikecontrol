@@ -18,9 +18,6 @@ PODS:
     - FlutterMacOS
   - sign_in_with_apple (0.0.1):
     - FlutterMacOS
-  - universal_ble (0.0.1):
-    - Flutter
-    - FlutterMacOS
 
 DEPENDENCIES:
   - flutter_screen_capture (from `Flutter/ephemeral/.symlinks/plugins/flutter_screen_capture/macos`)
@@ -33,7 +30,6 @@ DEPENDENCIES:
   - nsd_macos (from `Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
-  - universal_ble (from `Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin`)
 
 EXTERNAL SOURCES:
   flutter_screen_capture:
@@ -56,8 +52,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   sign_in_with_apple:
     :path: Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos
-  universal_ble:
-    :path: Flutter/ephemeral/.symlinks/plugins/universal_ble/darwin
 
 SPEC CHECKSUMS:
   flutter_screen_capture: d089a2204161f1a0f9afb6fbb992a47f3db05f45
@@ -70,7 +64,6 @@ SPEC CHECKSUMS:
   nsd_macos: a472240e770b92f6c6df1022403aa29c90d012e3
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   sign_in_with_apple: 6673c03c9e3643f6c8d33601943fbfa9ae99f94e
-  universal_ble: ff19787898040d721109c6324472e5dd4bc86adc
 
 PODFILE CHECKSUM: 0fb45929fd801f111c1e68cc98ccc2d06ac5e49e
 
