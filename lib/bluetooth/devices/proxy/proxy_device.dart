@@ -134,11 +134,28 @@ class ProxyDevice extends BluetoothDevice {
   void _initEmulator() {
     _proxyEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
     _proxyEmulator.deviceName = () => scanResult.name;
-    _bindToActiveEmulator();
-    // Rebind when the mode flips so the wrappers track the new active
-    // emulator (e.g. setRetrofitMode swapping proxy ↔ VS before connect).
-    _retrofitModeN.addListener(_bindToActiveEmulator);
+    _rebindEmulatorState();
   }
+
+  /// (Re)establish the retrofit-mode listener and the active-emulator state
+  /// mirrors into our stable wrappers. Run on construction and on every
+  /// (re)connect: an in-place disconnect ("No connection") detaches these (see
+  /// [disconnect]) and the same ProxyDevice instance is reused on reconnect, so
+  /// without re-binding here the UI wrappers (isStartedListenable /
+  /// isConnectedListenable) would never track the new session — the emulator
+  /// connects but the card stays stuck on "connecting".
+  void _rebindEmulatorState() {
+    // removeListener first so re-running this never double-subscribes (the
+    // first connect already added it in the constructor).
+    _retrofitModeN.removeListener(_bindToActiveEmulator);
+    _retrofitModeN.addListener(_bindToActiveEmulator);
+    _bindToActiveEmulator();
+  }
+
+  /// Test seam for [_rebindEmulatorState] — [startProxy] performs a real BLE
+  /// connect, so unit tests exercise the reconnect rebinding through this.
+  @visibleForTesting
+  void debugRebindEmulatorState() => _rebindEmulatorState();
 
   /// Restart the per-instance proxy emulator if it's running. Called when
   /// something the advertisement depends on (the selected trainer app)
@@ -354,14 +371,18 @@ class ProxyDevice extends BluetoothDevice {
       onChange.value = 'Failed to start emulator: $e';
       if (mode == RetrofitMode.proxy) {
         if (_proxyDef != null) {
-          await _proxyEmulator.detachDefinition(_proxyDef!).catchError((_) {});
+          await _proxyEmulator.detachDefinition(_proxyDef!).catchError((Object e, StackTrace s) {
+            debugPrint('ProxyDevice: detach proxy def after start failure failed: $e\n$s');
+          });
         }
-        _proxyEmulator.stop();
+        await _proxyEmulator.stop();
       } else if (_fbd != null) {
-        await ftmsEmulator.detachDefinition(_fbd!).catchError((_) {});
+        await ftmsEmulator.detachDefinition(_fbd!).catchError((Object e, StackTrace s) {
+          debugPrint('ProxyDevice: detach FBD after start failure failed: $e\n$s');
+        });
         _fbd = null;
         if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
-          ftmsEmulator.stop();
+          await ftmsEmulator.stop();
         }
       }
       disconnect();
@@ -683,6 +704,11 @@ class ProxyDevice extends BluetoothDevice {
       await core.settings.setAutoConnect(trainerKey, false);
       return;
     }
+    // A prior in-place disconnect ("No connection") detached the emulator-state
+    // bindings; re-establish them before connecting so isStartedListenable /
+    // isConnectedListenable mirror this new session. No-op binding refresh on a
+    // first connect.
+    _rebindEmulatorState();
     isStarting.value = true;
     try {
       await super.connect();
@@ -711,9 +737,11 @@ class ProxyDevice extends BluetoothDevice {
     if (old == RetrofitMode.proxy && next != RetrofitMode.proxy) {
       // proxy → VS: stop per-instance emulator, attach FBD to shared
       if (_proxyDef != null) {
-        await _proxyEmulator.detachDefinition(_proxyDef!).catchError((_) {});
+        await _proxyEmulator.detachDefinition(_proxyDef!).catchError((Object e, StackTrace s) {
+          debugPrint('ProxyDevice: detach proxy def on proxy→VS switch failed: $e\n$s');
+        });
       }
-      _proxyEmulator.stop();
+      await _proxyEmulator.stop();
 
       // Rebuild FBD for VS mode if services have been discovered.
       if (services != null) {
@@ -748,11 +776,13 @@ class ProxyDevice extends BluetoothDevice {
     } else if (old != RetrofitMode.proxy && next == RetrofitMode.proxy) {
       // VS → proxy: detach from shared, start per-instance
       if (_fbd != null) {
-        await ftmsEmulator.detachDefinition(_fbd!).catchError((_) {});
+        await ftmsEmulator.detachDefinition(_fbd!).catchError((Object e, StackTrace s) {
+          debugPrint('ProxyDevice: detach FBD on VS→proxy switch failed: $e\n$s');
+        });
         _fbd = null;
       }
       if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
-        ftmsEmulator.stop();
+        await ftmsEmulator.stop();
       }
 
       // Rebuild proxy def if services have been discovered.
@@ -807,24 +837,33 @@ class ProxyDevice extends BluetoothDevice {
 
     // Detach FBD from shared emulator if we contributed one.
     if (_fbd != null) {
-      await ftmsEmulator.detachDefinition(_fbd!).catchError((_) {});
+      await ftmsEmulator.detachDefinition(_fbd!).catchError((Object e, StackTrace s) {
+        debugPrint('ProxyDevice: detach FBD on disconnect failed: $e\n$s');
+      });
       _fbd = null;
     }
 
     if (_zwiftControllerEmulator != null) {
-      await ftmsEmulator.detachDefinition(_zwiftControllerEmulator!).catchError((_) {});
+      await ftmsEmulator.detachDefinition(_zwiftControllerEmulator!).catchError((Object e, StackTrace s) {
+        debugPrint('ProxyDevice: detach Zwift controller on disconnect failed: $e\n$s');
+      });
       _zwiftControllerEmulator = null;
     }
 
+    // Await the stop so the shared emulator's mDNS/TCP advertising is fully torn
+    // down before we report the device disconnected — otherwise a Virtual
+    // Shifting → No connection switch can leave BikeControl advertising.
     if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
-      ftmsEmulator.stop();
+      await ftmsEmulator.stop();
     }
 
     if (_proxyDef != null) {
-      await _proxyEmulator.detachDefinition(_proxyDef!).catchError((_) {});
+      await _proxyEmulator.detachDefinition(_proxyDef!).catchError((Object e, StackTrace s) {
+        debugPrint('ProxyDevice: detach proxy definition on disconnect failed: $e\n$s');
+      });
     }
 
-    _proxyEmulator.stop();
+    await _proxyEmulator.stop();
 
     // The stable wrappers are normally driven by the active emulator's
     // listeners, which we just detached above — so the emulator stops won't

@@ -102,7 +102,13 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 ],
 
                 if (!screenshotMode) ...[
-                  ConnectionCard(device: device),
+                  // Stable keys keep these persistent stateful cards from being
+                  // remounted when conditional siblings (FTMS warning above;
+                  // gear/settings/VS-notice below) appear/disappear on
+                  // (dis)connect — an unkeyed widget trapped between two
+                  // toggling siblings lands in the reconciliation middle and is
+                  // re-inflated, which would reset ConnectionCard's accordion.
+                  ConnectionCard(key: const ValueKey('connection-card'), device: device),
                   SizedBox(height: 2),
                 ],
                 if (!screenshotMode) _provideFeedbackBox(),
@@ -126,9 +132,9 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   ),
                   SizedBox(height: 26),
                 ],
-                LiveMetricsSection(device: device),
+                LiveMetricsSection(key: const ValueKey('live-metrics'), device: device),
                 SizedBox(height: 20),
-                MiniWorkoutCard(device: device),
+                MiniWorkoutCard(key: const ValueKey('mini-workout'), device: device),
                 SizedBox(height: 20),
                 _settingsSection(),
                 SizedBox(height: 32),
@@ -220,7 +226,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
   Widget? _ftmsMissingWarning() {
     final supportsVS = widget.device.fitnessBike?.supportsVirtualShiftingMode(VirtualShiftingMode.targetPower) == true;
-    if (supportsVS || !widget.device.isConnected) return null;
+    if (supportsVS || !widget.device.isConnected || widget.device.isStarting.value) return null;
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,

@@ -13,7 +13,6 @@ import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/smart_trainer_consent_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -199,20 +198,21 @@ class _ConnectionCardState extends State<ConnectionCard> {
           // proxy ↔ VS emulator swaps.
           valueListenable: widget.device.isStartedListenable,
           builder: (context, started, _) {
-            if (starting && !started) {
-              return _connectingCard();
-            }
             return ValueListenableBuilder<RetrofitMode>(
               valueListenable: widget.device.retrofitMode,
               builder: (context, mode, _) {
+                // While connecting/switching we keep the bridge accordion mounted
+                // and surface progress inline (a spinner in the status icon),
+                // rather than swapping the whole card for a placeholder.
+                final bool connecting = starting && !started;
                 final bool connected = widget.device.isConnected || started;
-                final _ConnectSelection selection = !connected
+                final _ConnectSelection selection = (!connected && !connecting)
                     ? _ConnectSelection.none
                     : switch (mode) {
                         RetrofitMode.proxy => _ConnectSelection.proxy,
                         RetrofitMode.wifi || RetrofitMode.bluetooth => _ConnectSelection.virtualShifting,
                       };
-                return _modePickerAccordion(selection, mode, expanded: _expanded);
+                return _modePickerAccordion(selection, mode, connecting: connecting, expanded: _expanded);
               },
             );
           },
@@ -234,29 +234,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
     );
   }
 
-  Widget _connectingCard() {
-    final cs = Theme.of(context).colorScheme;
-    return _card(
-      bg: cs.card,
-      border: cs.border,
-      child: Row(
-        spacing: 12,
-        children: [
-          const SmallProgressIndicator(),
-          Expanded(
-            child: Text(
-              AppLocalizations.of(context).connectingInMode(widget.device.retrofitMode.value.label),
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: cs.foreground),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _modePickerAccordion(
     _ConnectSelection selection,
     RetrofitMode mode, {
+    required bool connecting,
     required bool expanded,
   }) {
     return ComponentTheme<DividerTheme>(
@@ -265,7 +246,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
         items: [
           AccordionItem(
             expanded: expanded,
-            trigger: AccordionTrigger(child: _bridgeStatusRow(mode)),
+            trigger: AccordionTrigger(child: _bridgeStatusRow(mode, selection, connecting)),
             content: _modePicker(selection, mode),
           ),
         ],
@@ -275,8 +256,8 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   /// Bridge (trainer-app-side) connection status used as the accordion trigger.
   /// Green dot when the trainer app has connected to our advertised bridge,
-  /// muted otherwise.
-  Widget _bridgeStatusRow(RetrofitMode mode) {
+  /// a spinner while connecting/switching, muted otherwise.
+  Widget _bridgeStatusRow(RetrofitMode mode, _ConnectSelection selection, bool connecting) {
     final emulator = widget.device.emulator;
     final connected = emulator.isConnected.value;
     final started = emulator.isStarted.value;
@@ -285,14 +266,18 @@ class _ConnectionCardState extends State<ConnectionCard> {
       RetrofitMode.wifi => LucideIcons.wifi,
       RetrofitMode.proxy => LucideIcons.radioTower,
     };
-    final advertisement = widget.device.advertisementName;
-    final subtitle = AppLocalizations.of(context).chooseBikeControlInConnectionScreen.replaceAll(
-      screenshotMode ? '1337' : 'BikeControl',
-      advertisement,
-    );
+    final l10n = AppLocalizations.of(context);
+    // "No connection" selected → nothing is advertising, so the
+    // "Choose BikeControl …" instruction doesn't apply; say "Not connected".
+    final String subtitle = selection == _ConnectSelection.none
+        ? l10n.notConnected
+        : l10n.chooseBikeControlInConnectionScreen.replaceAll(
+            screenshotMode ? '1337' : 'BikeControl',
+            widget.device.advertisementName,
+          );
     final title = 'Bridge (${widget.device.toString()})';
     return Basic(
-      leading: StatusIcon(icon: icon, status: connected, started: started),
+      leading: StatusIcon(icon: icon, status: connected, started: started || connecting),
       title: connected ? Text(title).small.semiBold : Text(title).small.muted,
       subtitle: Text(subtitle).xSmall.textMuted,
     );

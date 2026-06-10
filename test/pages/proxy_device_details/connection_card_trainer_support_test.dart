@@ -92,6 +92,29 @@ Future<void> main() async {
     );
   });
 
+  testWidgets('disconnected bridge row shows "Not connected", not the connect instruction', (tester) async {
+    await pumpCard(tester, powerMeter());
+
+    // While disconnected ("No connection" selected) the bridge isn't advertising,
+    // so the "Choose BikeControl in the connection screen" instruction is wrong —
+    // it must read "Not connected" instead.
+    expect(find.text('Not connected'), findsOneWidget);
+    expect(find.textContaining('Choose BikeControl in the connection screen'), findsNothing);
+  });
+
+  testWidgets('connecting keeps the bridge accordion and shows no "Connecting in … mode" card', (tester) async {
+    final device = smartTrainer();
+    await pumpCard(tester, device);
+
+    device.isStarting.value = true;
+    await tester.pump();
+
+    // The bridge accordion view must remain — progress is shown inline (a spinner
+    // in the status icon), not by swapping the whole card for a placeholder.
+    expect(find.byType(AccordionItem), findsOneWidget);
+    expect(find.textContaining('Connecting in'), findsNothing);
+  });
+
   testWidgets('accordion stays expanded after connecting from the picker', (tester) async {
     final device = smartTrainer();
     await pumpCard(tester, device);
@@ -110,6 +133,59 @@ Future<void> main() async {
     // Connected, but the picker must remain expanded (not collapse to the
     // bridge-status summary) — it was opened by the user to connect.
     expect(tester.widget<AccordionItem>(find.byType(AccordionItem)).expanded, isTrue);
+  });
+
+  // Reproduces the proxy_device_details Column reconciliation: on (dis)connect,
+  // conditional widgets toggle both ABOVE (FTMS warning) and BELOW (gear /
+  // settings / VS-notice) the ConnectionCard in the same frame. A widget
+  // trapped between two toggling siblings lands in the *middle* of the child
+  // list, which Flutter deactivates and re-inflates (no key to match) — so the
+  // card is remounted and its accordion collapses. A stable key prevents this.
+  Widget reflowHarness({required Key? cardKey, required ValueNotifier<bool> connected, required ProxyDevice device}) {
+    return ShadcnApp(
+      localizationsDelegates: const [AppLocalizations.delegate],
+      supportedLocales: AppLocalizations.delegate.supportedLocales,
+      home: Scaffold(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: connected,
+          builder: (context, c, _) => Column(
+            children: [
+              if (c) const Text('warning-above'),
+              ConnectionCard(key: cardKey, device: device),
+              if (c) const Text('notice-below'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  testWidgets('unkeyed ConnectionCard trapped between toggling siblings is remounted (the bug)', (tester) async {
+    final connected = ValueNotifier(true);
+    await tester.pumpWidget(reflowHarness(cardKey: null, connected: connected, device: powerMeter()));
+    await tester.pump();
+    final before = tester.state(find.byType(ConnectionCard));
+
+    connected.value = false; // both the above and below siblings vanish at once
+    await tester.pump();
+    final after = tester.state(find.byType(ConnectionCard));
+
+    expect(identical(before, after), isFalse);
+  });
+
+  testWidgets('keyed ConnectionCard is reused across the reflow → accordion state survives (the fix)', (tester) async {
+    final connected = ValueNotifier(true);
+    await tester.pumpWidget(
+      reflowHarness(cardKey: const ValueKey('connection-card'), connected: connected, device: powerMeter()),
+    );
+    await tester.pump();
+    final before = tester.state(find.byType(ConnectionCard));
+
+    connected.value = false;
+    await tester.pump();
+    final after = tester.state(find.byType(ConnectionCard));
+
+    expect(identical(before, after), isTrue);
   });
 
   testWidgets('selecting a connection mode on a smart trainer shows the consent dialog', (tester) async {

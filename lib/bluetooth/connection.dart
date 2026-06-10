@@ -139,7 +139,7 @@ class Connection {
 
           if (scanResult != null) {
             _actionStreams.add(
-              LogNotification('Found new device: ${kIsWeb ? scanResult.toString() : scanResult.runtimeType}'),
+              LogNotification('Found new device: ${scanResult.toString()}'),
             );
             addDevices([scanResult]);
           } else {
