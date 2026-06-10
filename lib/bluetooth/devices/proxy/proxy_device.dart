@@ -157,11 +157,11 @@ class ProxyDevice extends BluetoothDevice {
   @visibleForTesting
   void debugRebindEmulatorState() => _rebindEmulatorState();
 
-  /// Await [detach], logging (not rethrowing) any failure so a teardown or mode
-  /// switch keeps going. [context] names the operation for the log line.
+  /// Await [detach], recording (not rethrowing) any failure so a teardown or
+  /// mode switch keeps going. [context] names the operation in the report.
   Future<void> _detachLogged(Future<void> detach, String context) {
     return detach.catchError((Object e, StackTrace s) {
-      debugPrint('ProxyDevice: $context failed: $e\n$s');
+      recordError(e, s, context: 'ProxyDevice: $context');
     });
   }
 
