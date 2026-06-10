@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNotification, LogNotification;
+import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -14,20 +16,18 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/title.dart';
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState, ButtonState;
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
+import 'package:universal_ble/universal_ble.dart';
 
 class OpenBikeControlBluetoothEmulator extends TrainerConnection {
-  late final _peripheralManager = PeripheralManager();
+  final _server = PeripheralServer();
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
-  Central? _central;
-
-  late GATTCharacteristic _buttonCharacteristic;
+  String? _currentDeviceId;
 
   OpenBikeControlBluetoothEmulator()
     : super(
@@ -39,218 +39,158 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   Future<void> startServer() async {
     isStarted.value = true;
 
-    _peripheralManager.stateChanged.forEach((state) {
-      print('Peripheral manager state: ${state.state}');
+    _server.onConnectionChanged((deviceId, connected) {
+      print('Peripheral connection state: ${connected ? "connected" : "disconnected"} of $deviceId');
+      if (!connected) {
+        if (connectedApp.value != null) {
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
+          );
+        }
+        isConnected.value = false;
+        connectedApp.value = null;
+        _currentDeviceId = null;
+      }
     });
 
-    if (!kIsWeb && Platform.isAndroid) {
-      _peripheralManager.connectionStateChanged.forEach((state) {
-        print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
-        if (state.state == ConnectionState.connected) {
-        } else if (state.state == ConnectionState.disconnected) {
-          if (connectedApp.value != null) {
-            core.connection.signalNotification(
-              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
-            );
-          }
-          isConnected.value = false;
-          connectedApp.value = null;
-          _central = null;
-        }
-      });
-    }
-
-    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn && core.settings.getObpBleEnabled()) {
-      print('Waiting for peripheral manager to be powered on...');
+    while (!(await _server.isReady) && core.settings.getObpBleEnabled()) {
+      print('Waiting for peripheral manager to be ready...');
       await Future.delayed(Duration(seconds: 1));
     }
-
-    _buttonCharacteristic = GATTCharacteristic.mutable(
-      uuid: UUID.fromString(OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID),
-      descriptors: [],
-      properties: [
-        GATTCharacteristicProperty.notify,
-      ],
-      permissions: [],
-    );
 
     if (!_isServiceAdded) {
       await Future.delayed(Duration(seconds: 1));
 
       if (!_isSubscribedToEvents) {
         _isSubscribedToEvents = true;
-        _peripheralManager.characteristicReadRequested.forEach((eventArgs) async {
-          print('Read request for characteristic: ${eventArgs.characteristic.uuid}');
 
-          switch (eventArgs.characteristic.uuid.toString().toUpperCase()) {
-            case BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL:
-              await _peripheralManager.respondReadRequestWithValue(
-                eventArgs.request,
-                value: Uint8List.fromList([100]),
-              );
-              return;
-            default:
-              print('Unhandled read request for characteristic: ${eventArgs.characteristic.uuid}');
-          }
-
-          final request = eventArgs.request;
-          final trimmedValue = Uint8List.fromList([]);
-          await _peripheralManager.respondReadRequestWithValue(
-            request,
-            value: trimmedValue,
-          );
-          // You can respond to read requests here if needed
+        _server.onSubscriptionChanged((deviceId, characteristicId, isSubscribed) {
+          if (isSubscribed) _currentDeviceId = deviceId;
+          print('Notify state changed for $characteristicId: $isSubscribed');
         });
 
-        _peripheralManager.characteristicNotifyStateChanged.forEach((char) {
-          _central = char.central;
-          print(
-            'Notify state changed for characteristic: ${char.characteristic.uuid}: ${char.state}',
-          );
+        _server.setReadHandler(BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL, (
+          deviceId,
+          characteristicId,
+          offset,
+          value,
+        ) {
+          return PeripheralReadRequestResult(value: Uint8List.fromList([100]));
         });
 
-        List<Uint8List> firstAppInfoMessages = [];
-
-        _peripheralManager.characteristicWriteRequested.forEach((eventArgs) async {
-          final characteristic = eventArgs.characteristic;
-          final request = eventArgs.request;
-          final value = request.value;
+        Uint8List? firstAppInfoMessage;
+        _server.setWriteHandler(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID, (
+          deviceId,
+          characteristicId,
+          offset,
+          value,
+        ) {
+          if (value == null) return PeripheralWriteRequestResult();
           if (kDebugMode) {
-            print('Write request for characteristic: ${characteristic.uuid}: ${bytesToReadableHex(value)}');
+            print('Write request for characteristic: $characteristicId: ${bytesToReadableHex(value)}');
           }
-
-          switch (eventArgs.characteristic.uuid.toString().toLowerCase()) {
-            case OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID:
-              try {
-                // use this fallback if first message is incomplete (e.g. TrainingPeaks on macOS)
-
-                AppInfo appInfo = OpenBikeProtocolParser.parseAppInfo(
-                  Uint8List.fromList([...firstAppInfoMessages.flatten(), ...value]),
-                );
-                isConnected.value = true;
-                connectedApp.value = appInfo;
-                supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
-                final trainerApp = core.settings.getTrainerApp();
-                if (trainerApp != null) {
-                  unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
-                }
-                core.connection.signalNotification(
-                  AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
-                );
-                core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
-              } catch (e) {
-                core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
-                firstAppInfoMessages.add(value);
-              }
-              break;
-            default:
-              print('Unhandled write request for characteristic: ${eventArgs.characteristic.uuid}');
+          try {
+            // use this fallback if first message is incomplete (e.g. TrainingPeaks on macOS)
+            AppInfo appInfo = OpenBikeProtocolParser.parseAppInfo(
+              Uint8List.fromList([...?firstAppInfoMessage, ...value]),
+            );
+            firstAppInfoMessage = null;
+            isConnected.value = true;
+            _currentDeviceId = deviceId;
+            connectedApp.value = appInfo;
+            supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
+            final trainerApp = core.settings.getTrainerApp();
+            if (trainerApp != null) {
+              unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
+            }
+            core.connection.signalNotification(
+              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+            );
+            core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
+          } catch (e) {
+            core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
+            if (firstAppInfoMessage == null) {
+              firstAppInfoMessage = value;
+            }
           }
-
-          await _peripheralManager.respondWriteRequest(request);
+          return PeripheralWriteRequestResult();
         });
       }
 
       if (!Platform.isWindows) {
         // Device Information
-        await _peripheralManager.addService(
-          GATTService(
-            uuid: UUID.fromString('180A'),
-            isPrimary: true,
+        await _server.addService(
+          BlePeripheralService(
+            uuid: '180A',
             characteristics: [
-              GATTCharacteristic.immutable(
-                uuid: UUID.fromString('2A29'),
-                value: Uint8List.fromList('BikeControl'.codeUnits),
-                descriptors: [],
-              ),
-              GATTCharacteristic.immutable(
-                uuid: UUID.fromString('2A25'),
-                value: Uint8List.fromList('1337'.codeUnits),
-                descriptors: [],
-              ),
-              GATTCharacteristic.immutable(
-                uuid: UUID.fromString('2A27'),
-                value: Uint8List.fromList('1.0'.codeUnits),
-                descriptors: [],
-              ),
-              GATTCharacteristic.immutable(
-                uuid: UUID.fromString('2A26'),
-                value: Uint8List.fromList((packageInfoValue?.version ?? '1.0.0').codeUnits),
-                descriptors: [],
-              ),
+              _immutableChar('2A29', 'BikeControl'),
+              _immutableChar('2A25', '1337'),
+              _immutableChar('2A27', '1.0'),
+              _immutableChar('2A26', packageInfoValue?.version ?? '1.0.0'),
             ],
-            includedServices: [],
           ),
         );
       }
       // Battery Service
-      await _peripheralManager.addService(
-        GATTService(
-          uuid: UUID.fromString('180F'),
-          isPrimary: true,
+      await _server.addService(
+        BlePeripheralService(
+          uuid: '180F',
           characteristics: [
-            GATTCharacteristic.mutable(
-              uuid: UUID.fromString('2A19'),
-              descriptors: [],
-              properties: [
-                GATTCharacteristicProperty.read,
-                GATTCharacteristicProperty.notify,
-              ],
-              permissions: [
-                GATTCharacteristicPermission.read,
-              ],
+            BlePeripheralCharacteristic(
+              uuid: '2A19',
+              properties: [CharacteristicProperty.read, CharacteristicProperty.notify],
+              permissions: [PeripheralAttributePermission.readable],
             ),
           ],
-          includedServices: [],
         ),
       );
 
-      // Unknown Service
-      await _peripheralManager.addService(
-        GATTService(
-          uuid: UUID.fromString(OpenBikeControlConstants.SERVICE_UUID),
-          isPrimary: true,
+      // OpenBikeControl Service
+      await _server.addService(
+        BlePeripheralService(
+          uuid: OpenBikeControlConstants.SERVICE_UUID,
           characteristics: [
-            _buttonCharacteristic,
-            GATTCharacteristic.mutable(
-              uuid: UUID.fromString(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID),
-              descriptors: [],
-              properties: [
-                GATTCharacteristicProperty.writeWithoutResponse,
-                GATTCharacteristicProperty.write,
-              ],
-              permissions: [
-                GATTCharacteristicPermission.read,
-                GATTCharacteristicPermission.write,
-              ],
+            BlePeripheralCharacteristic(
+              uuid: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+              properties: [CharacteristicProperty.notify],
+              permissions: [],
+            ),
+            BlePeripheralCharacteristic(
+              uuid: OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
+              properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
+              permissions: [PeripheralAttributePermission.readable, PeripheralAttributePermission.writeable],
             ),
           ],
-          includedServices: [],
         ),
       );
       _isServiceAdded = true;
     }
 
-    final advertisement = Advertisement(
-      name: 'BikeControl',
-      serviceUUIDs: [UUID.fromString(OpenBikeControlConstants.SERVICE_UUID)],
-    );
     print('Starting advertising with OpenBikeControl service...');
-
-    await _peripheralManager.startAdvertising(advertisement);
+    await _server.startAdvertising(
+      services: [OpenBikeControlConstants.SERVICE_UUID],
+      localName: 'BikeControl',
+    );
   }
 
   Future<void> stopServer() async {
     if (kDebugMode) {
       print('Stopping OpenBikeControl BLE server...');
     }
-    await _peripheralManager.removeAllServices();
+    await _server.clearServices();
     _isServiceAdded = false;
-    await _peripheralManager.stopAdvertising();
+    await _server.stopAdvertising();
     isStarted.value = false;
     isConnected.value = false;
     connectedApp.value = null;
   }
+
+  BlePeripheralCharacteristic _immutableChar(String uuid, String value) => BlePeripheralCharacteristic(
+    uuid: uuid,
+    properties: [CharacteristicProperty.read],
+    permissions: [PeripheralAttributePermission.readable],
+    value: Uint8List.fromList(value.codeUnits),
+  );
 
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
@@ -265,7 +205,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
         'Invalid in-game action for key pair: $keyPair',
         button: keyPair.buttons.firstOrNull,
       );
-    } else if (_central == null) {
+    } else if (_currentDeviceId == null) {
       return Error(
         'No central connected',
         button: keyPair.buttons.firstOrNull,
@@ -286,16 +226,28 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
       final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
         mappedButtons.map((b) => ButtonState(b, 1)).toList(),
       );
-      await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseDataDown);
+      await _server.notify(
+        characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+        value: responseDataDown,
+        deviceId: _currentDeviceId,
+      );
       final responseDataUp = OpenBikeProtocolParser.encodeButtonState(
         mappedButtons.map((b) => ButtonState(b, 0)).toList(),
       );
-      await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseDataUp);
+      await _server.notify(
+        characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+        value: responseDataUp,
+        deviceId: _currentDeviceId,
+      );
     } else {
       final responseData = OpenBikeProtocolParser.encodeButtonState(
         mappedButtons.map((b) => ButtonState(b, isKeyDown ? 1 : 0)).toList(),
       );
-      await _peripheralManager.notifyCharacteristic(_central!, _buttonCharacteristic, value: responseData);
+      await _server.notify(
+        characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+        value: responseData,
+        deviceId: _currentDeviceId,
+      );
     }
 
     return Success(

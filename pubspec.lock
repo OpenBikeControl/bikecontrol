@@ -136,54 +136,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.3"
-  bluetooth_low_energy:
-    dependency: "direct main"
-    description:
-      name: bluetooth_low_energy
-      sha256: ac70d6f95c54df943b40d58b0be6cce1ed49ae8b76219d03386cb6c56e06ba5a
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.1"
-  bluetooth_low_energy_android:
-    dependency: transitive
-    description:
-      name: bluetooth_low_energy_android
-      sha256: "1a1ad8aa3016b6ae843eeaa86c0f4eab7eda6669c06066a6da2494ffe6350853"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.1"
-  bluetooth_low_energy_darwin:
-    dependency: transitive
-    description:
-      name: bluetooth_low_energy_darwin
-      sha256: "63243add2f57ad201f09d42878a31bad6e5b93291c6ae3c36de24b5213178a0d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.1"
-  bluetooth_low_energy_linux:
-    dependency: transitive
-    description:
-      name: bluetooth_low_energy_linux
-      sha256: "95ae6d4f598595af61b73a32e1dc7a49d95081526c0c6b17205e852332845a5a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.1"
-  bluetooth_low_energy_platform_interface:
-    dependency: transitive
-    description:
-      name: bluetooth_low_energy_platform_interface
-      sha256: "430a137fe0a662e2dd632390aa6e020a1c91335a5821ae07dacc9f319f9e590a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.1"
-  bluetooth_low_energy_windows:
-    dependency: transitive
-    description:
-      name: bluetooth_low_energy_windows
-      sha256: a235b4e368f8e45ad1712c8c1c9a138b4edb2ff98a2f1fbf3208fffeb9a27e3a
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.1"
   bluez:
     dependency: transitive
     description:
@@ -1970,11 +1922,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "8bffbde35b0ce8acc6b73699df5e4617ad52462d"
+      ref: changes
+      resolved-ref: "771fcb740d12c4305077aa793e5f41a5b39ebbc5"
       url: "https://github.com/jonasbark/universal_ble.git"
     source: git
-    version: "0.21.1"
+    version: "2.0.0"
   url_launcher:
     dependency: "direct main"
     description:

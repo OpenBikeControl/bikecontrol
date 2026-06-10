@@ -165,7 +165,7 @@ class Connection {
       }
     };
 
-    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) async {
+    UniversalBle.onValueChange = (deviceId, characteristicUuid, value, timestamp) async {
       final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
       if (device == null) {
         _actionStreams.add(LogNotification('Device not found: $deviceId'));
