@@ -6,7 +6,6 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
-import 'package:bike_control/widgets/smart_trainer_consent_dialog.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -59,21 +58,17 @@ class _DevicePageState extends State<ProxyPage> {
                   ),
                   child: Button.ghost(
                     onPressed: () async {
-                      if (!device.isStartedListenable.value && !device.isStarting.value) {
+                      // Smart trainers no longer auto-connect on tap — the
+                      // details page's ConnectionCard drives connect and the
+                      // takeover-consent dialog via select-to-act. Non-smart
+                      // proxy devices (power-meter / HR only) have just the
+                      // Proxy mode, so keep the tap-to-connect convenience.
+                      if (!device.isSmartTrainer &&
+                          !device.isStartedListenable.value &&
+                          !device.isStarting.value) {
                         if (IAPManager.instance.isTrialExpired) {
                           await showGoProDialog(context);
                           return;
-                        }
-                        if (device.isSmartTrainer && !core.settings.getSmartTrainerConsent(device.trainerKey)) {
-                          final appName = core.settings.getTrainerApp()?.name ?? 'your trainer app';
-                          final confirmed = await showSmartTrainerConsentDialog(
-                            context,
-                            trainerName: device.trainerKey,
-                            appName: appName,
-                          );
-                          if (!confirmed) return;
-                          await core.settings.setSmartTrainerConsent(device.trainerKey, true);
-                          if (!context.mounted) return;
                         }
                         final savedMode = core.settings.getRetrofitMode(
                           device.trainerKey,

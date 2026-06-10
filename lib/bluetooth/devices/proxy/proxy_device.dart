@@ -500,18 +500,6 @@ class ProxyDevice extends BluetoothDevice {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(l10n.proxyConnectFor(name), style: muted),
-        if (isWifiUpstream)
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(LucideIcons.wifi, size: 11, color: cs.mutedForeground),
-                const Gap(6),
-                Text('WiFi', style: muted),
-              ],
-            ),
-          ),
         const Gap(2),
         for (final (icon, label) in features)
           Padding(
@@ -837,6 +825,16 @@ class ProxyDevice extends BluetoothDevice {
     }
 
     _proxyEmulator.stop();
+
+    // The stable wrappers are normally driven by the active emulator's
+    // listeners, which we just detached above — so the emulator stops won't
+    // propagate. Reset them explicitly so isStartedListenable /
+    // isConnectedListenable report the disconnected state. The in-card
+    // "No connection" entry disconnects in place (without popping the details
+    // page) and relies on this to fall back to the disconnected picker.
+    _isStartedN.value = false;
+    _isConnectedN.value = false;
+
     return super.disconnect();
   }
 }

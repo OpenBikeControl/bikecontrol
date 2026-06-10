@@ -174,6 +174,10 @@ class IAPManager {
 
   /// Check if the trial has expired.
   bool get isTrialExpired {
+    // Before IAP is initialized there is no trial to have expired yet, and the
+    // pro/subscription checks below reach into Supabase which isn't wired up
+    // until startup completes. Mirror isProEnabledForCurrentDevice's guard.
+    if (!_isInitialized) return false;
     if (isProEnabled) {
       return false;
     }

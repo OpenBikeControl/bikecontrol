@@ -665,6 +665,16 @@
   "virtualShiftingBluetoothHint": "Adds or adjusts virtual shifting and creates a Bluetooth-advertised trainer.",
   "virtualShiftingWifiHint": "Adds or adjusts virtual shifting and creates a WiFi-advertised trainer.",
   "virtualShiftingTransportNeededHint": "Enable a Bluetooth or WiFi Trainer Connection to use Virtual Shifting.",
+  "virtualShiftingHint": "Adds or adjusts virtual shifting and advertises BikeControl as a trainer.",
+  "noConnection": "No connection",
+  "noConnectionHint": "Let {trainerApp} handle virtual shifting, if supported",
+  "@noConnectionHint": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
   "connectModeLabel": "CONNECT MODE",
   "connectingInMode": "Connecting in {mode} mode…",
   "@connectingInMode": {

@@ -96,8 +96,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 SizedBox(height: 12),
-                if (!screenshotMode) _provideFeedbackBox(),
-                SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
                   w,
                   SizedBox(height: 12),
@@ -107,6 +105,8 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   ConnectionCard(device: device),
                   SizedBox(height: 2),
                 ],
+                if (!screenshotMode) _provideFeedbackBox(),
+                SizedBox(height: 12),
                 _gearSection(),
                 SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
