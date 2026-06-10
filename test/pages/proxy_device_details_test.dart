@@ -19,9 +19,7 @@ Future<void> main() async {
     core.actionHandler = StubActions();
   });
 
-  testWidgets('renders header with Smart Trainer title', (tester) async {
-    final device = ProxyDevice(BleDevice(deviceId: 'x', name: 'Wahoo KICKR'));
-
+  Future<void> pumpPage(WidgetTester tester, ProxyDevice device) async {
     await tester.pumpWidget(
       ShadcnApp(
         localizationsDelegates: const [AppLocalizations.delegate],
@@ -30,6 +28,12 @@ Future<void> main() async {
       ),
     );
     await tester.pump();
+  }
+
+  testWidgets('renders header with Smart Trainer title', (tester) async {
+    final device = ProxyDevice(BleDevice(deviceId: 'x', name: 'Wahoo KICKR'));
+
+    await pumpPage(tester, device);
 
     expect(find.text('Smart Trainer'), findsOneWidget);
     expect(find.text('Disconnect'), findsOneWidget);
@@ -39,14 +43,7 @@ Future<void> main() async {
   testWidgets('FTMS warning appearing does not remount ConnectionCard (accordion survives)', (tester) async {
     final device = ProxyDevice(BleDevice(deviceId: 'x', name: 'Wahoo KICKR'));
 
-    await tester.pumpWidget(
-      ShadcnApp(
-        localizationsDelegates: const [AppLocalizations.delegate],
-        supportedLocales: AppLocalizations.delegate.supportedLocales,
-        home: ProxyDeviceDetailsPage(device: device),
-      ),
-    );
-    await tester.pump();
+    await pumpPage(tester, device);
 
     // Disconnected → no FTMS warning above the ConnectionCard.
     expect(find.textContaining('does not advertise the FTMS service'), findsNothing);
@@ -77,14 +74,7 @@ Future<void> main() async {
     // Element (and accordion state) across the reflow.
     final device = ProxyDevice(BleDevice(deviceId: 'x', name: 'Wahoo KICKR'));
 
-    await tester.pumpWidget(
-      ShadcnApp(
-        localizationsDelegates: const [AppLocalizations.delegate],
-        supportedLocales: AppLocalizations.delegate.supportedLocales,
-        home: ProxyDeviceDetailsPage(device: device),
-      ),
-    );
-    await tester.pump();
+    await pumpPage(tester, device);
 
     expect(tester.widget(find.byType(ConnectionCard)).key, const ValueKey('connection-card'));
   });

@@ -157,6 +157,22 @@ class ProxyDevice extends BluetoothDevice {
   @visibleForTesting
   void debugRebindEmulatorState() => _rebindEmulatorState();
 
+  /// Await [detach], logging (not rethrowing) any failure so a teardown or mode
+  /// switch keeps going. [context] names the operation for the log line.
+  Future<void> _detachLogged(Future<void> detach, String context) {
+    return detach.catchError((Object e, StackTrace s) {
+      debugPrint('ProxyDevice: $context failed: $e\n$s');
+    });
+  }
+
+  /// Stop the shared FTMS emulator once this device's definitions are detached
+  /// and nothing else is using it.
+  Future<void> _stopFtmsEmulatorIfUnused() async {
+    if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
+      await ftmsEmulator.stop();
+    }
+  }
+
   /// Restart the per-instance proxy emulator if it's running. Called when
   /// something the advertisement depends on (the selected trainer app)
   /// changes. No-op when not running or when this device is currently in a
@@ -371,19 +387,13 @@ class ProxyDevice extends BluetoothDevice {
       onChange.value = 'Failed to start emulator: $e';
       if (mode == RetrofitMode.proxy) {
         if (_proxyDef != null) {
-          await _proxyEmulator.detachDefinition(_proxyDef!).catchError((Object e, StackTrace s) {
-            debugPrint('ProxyDevice: detach proxy def after start failure failed: $e\n$s');
-          });
+          await _detachLogged(_proxyEmulator.detachDefinition(_proxyDef!), 'detach proxy def after start failure');
         }
         await _proxyEmulator.stop();
       } else if (_fbd != null) {
-        await ftmsEmulator.detachDefinition(_fbd!).catchError((Object e, StackTrace s) {
-          debugPrint('ProxyDevice: detach FBD after start failure failed: $e\n$s');
-        });
+        await _detachLogged(ftmsEmulator.detachDefinition(_fbd!), 'detach FBD after start failure');
         _fbd = null;
-        if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
-          await ftmsEmulator.stop();
-        }
+        await _stopFtmsEmulatorIfUnused();
       }
       disconnect();
     }
@@ -737,9 +747,7 @@ class ProxyDevice extends BluetoothDevice {
     if (old == RetrofitMode.proxy && next != RetrofitMode.proxy) {
       // proxy → VS: stop per-instance emulator, attach FBD to shared
       if (_proxyDef != null) {
-        await _proxyEmulator.detachDefinition(_proxyDef!).catchError((Object e, StackTrace s) {
-          debugPrint('ProxyDevice: detach proxy def on proxy→VS switch failed: $e\n$s');
-        });
+        await _detachLogged(_proxyEmulator.detachDefinition(_proxyDef!), 'detach proxy def on proxy→VS switch');
       }
       await _proxyEmulator.stop();
 
@@ -776,14 +784,10 @@ class ProxyDevice extends BluetoothDevice {
     } else if (old != RetrofitMode.proxy && next == RetrofitMode.proxy) {
       // VS → proxy: detach from shared, start per-instance
       if (_fbd != null) {
-        await ftmsEmulator.detachDefinition(_fbd!).catchError((Object e, StackTrace s) {
-          debugPrint('ProxyDevice: detach FBD on VS→proxy switch failed: $e\n$s');
-        });
+        await _detachLogged(ftmsEmulator.detachDefinition(_fbd!), 'detach FBD on VS→proxy switch');
         _fbd = null;
       }
-      if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
-        await ftmsEmulator.stop();
-      }
+      await _stopFtmsEmulatorIfUnused();
 
       // Rebuild proxy def if services have been discovered.
       if (services != null) {
@@ -837,30 +841,25 @@ class ProxyDevice extends BluetoothDevice {
 
     // Detach FBD from shared emulator if we contributed one.
     if (_fbd != null) {
-      await ftmsEmulator.detachDefinition(_fbd!).catchError((Object e, StackTrace s) {
-        debugPrint('ProxyDevice: detach FBD on disconnect failed: $e\n$s');
-      });
+      await _detachLogged(ftmsEmulator.detachDefinition(_fbd!), 'detach FBD on disconnect');
       _fbd = null;
     }
 
     if (_zwiftControllerEmulator != null) {
-      await ftmsEmulator.detachDefinition(_zwiftControllerEmulator!).catchError((Object e, StackTrace s) {
-        debugPrint('ProxyDevice: detach Zwift controller on disconnect failed: $e\n$s');
-      });
+      await _detachLogged(
+        ftmsEmulator.detachDefinition(_zwiftControllerEmulator!),
+        'detach Zwift controller on disconnect',
+      );
       _zwiftControllerEmulator = null;
     }
 
     // Await the stop so the shared emulator's mDNS/TCP advertising is fully torn
     // down before we report the device disconnected — otherwise a Virtual
     // Shifting → No connection switch can leave BikeControl advertising.
-    if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
-      await ftmsEmulator.stop();
-    }
+    await _stopFtmsEmulatorIfUnused();
 
     if (_proxyDef != null) {
-      await _proxyEmulator.detachDefinition(_proxyDef!).catchError((Object e, StackTrace s) {
-        debugPrint('ProxyDevice: detach proxy definition on disconnect failed: $e\n$s');
-      });
+      await _detachLogged(_proxyEmulator.detachDefinition(_proxyDef!), 'detach proxy definition on disconnect');
     }
 
     await _proxyEmulator.stop();
