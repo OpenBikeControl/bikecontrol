@@ -88,5 +88,32 @@ void main() {
       device.debugRebindEmulatorState();
       expect(device.isStartedListenable.value, isTrue);
     });
+
+    test('in-place disconnect keeps the device registered; a normal disconnect removes it', () async {
+      final inPlace = ProxyDevice(BleDevice(
+        deviceId: 'a',
+        name: 'KICKR A',
+        services: const ['00001826-0000-1000-8000-00805f9b34fb'],
+      ));
+      final normal = ProxyDevice(BleDevice(
+        deviceId: 'b',
+        name: 'KICKR B',
+        services: const ['00001826-0000-1000-8000-00805f9b34fb'],
+      ));
+      core.connection.devices
+        ..clear()
+        ..addAll([inPlace, normal]);
+
+      // "No connection" disconnects in place — the device must stay in the
+      // registry so the open details page can reconnect the same object.
+      // Without it the page's reference is orphaned and reconnect logs
+      // "Device not found".
+      await core.connection.disconnect(inPlace, forget: false, persistForget: false, keepInList: true);
+      expect(core.connection.devices, contains(inPlace));
+
+      // The Disconnect button (which also pops the page) removes it as before.
+      await core.connection.disconnect(normal, forget: false, persistForget: false);
+      expect(core.connection.devices, isNot(contains(normal)));
+    });
   });
 }

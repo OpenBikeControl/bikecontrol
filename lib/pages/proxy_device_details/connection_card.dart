@@ -120,7 +120,9 @@ class _ConnectionCardState extends State<ConnectionCard> {
     if (selection == _ConnectSelection.none) {
       if (connected) {
         await core.settings.setAutoConnect(device.trainerKey, false);
-        await core.connection.disconnect(device, forget: false, persistForget: false);
+        // Disconnect in place: keep this device registered (and on the page) so
+        // the user can pick Virtual Shifting / Proxy again on the same object.
+        await core.connection.disconnect(device, forget: false, persistForget: false, keepInList: true);
       }
       return;
     }

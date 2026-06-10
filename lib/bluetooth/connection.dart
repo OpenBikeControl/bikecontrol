@@ -595,7 +595,12 @@ class Connection {
     _connectionStreams.add(baseDevice);
   }
 
-  Future<void> disconnect(BaseDevice device, {required bool persistForget, required bool forget}) async {
+  Future<void> disconnect(
+    BaseDevice device, {
+    required bool persistForget,
+    required bool forget,
+    bool keepInList = false,
+  }) async {
     _cancelInactivityTimer(device);
 
     if (device.isConnected) {
@@ -608,7 +613,11 @@ class Connection {
         await core.settings.addIgnoredDevice(device.device.deviceId, device.toString());
         _actionStreams.add(LogNotification('Device ignored: ${device.toString()}'));
       }
-      if (!forget) {
+      // For an in-place disconnect (the "No connection" picker entry) keep the
+      // scan result so the scanner doesn't churn a fresh duplicate while the
+      // user stays on the details page — the same device object must remain
+      // reconnectable.
+      if (!forget && !keepInList) {
         // allow reconnection
         _lastScanResult.removeWhere((d) => d.deviceId == device.device.deviceId);
       }
@@ -620,9 +629,12 @@ class Connection {
       _connectionSubscriptions.remove(device);
 
       // Remove device from the list — unless it is rebooting due to an
-      // automatic reset and will be back in a few seconds: keep its entry
-      // visible (greyed out) instead of letting it disappear.
-      if (forget || !device.isResetting) {
+      // automatic reset and will be back in a few seconds, or this is an
+      // in-place disconnect (keepInList) where the open details page still
+      // holds this exact object and must be able to reconnect it. Dropping it
+      // here would orphan that reference: rediscovery builds a *new* device,
+      // and the page's stale one fails to reconnect ("Device not found").
+      if (!keepInList && (forget || !device.isResetting)) {
         devices.remove(device);
         hasDevices.value = devices.isNotEmpty;
       }
