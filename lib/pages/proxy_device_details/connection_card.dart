@@ -166,7 +166,12 @@ class _ConnectionCardState extends State<ConnectionCard> {
       device.setRetrofitMode(next);
       await core.settings.setRetrofitMode(device.trainerKey, next);
       await core.settings.setAutoConnect(device.trainerKey, true);
-      await device.startProxy();
+      // Route through the connection manager (not device.startProxy directly) so
+      // the action / connection-state listeners are re-attached. After an
+      // in-place "No connection" disconnect those listeners are gone, and a bare
+      // startProxy reconnects BLE but never flips isConnected — the connect
+      // appears to hang.
+      await core.connection.connectDevice(device);
     }
   }
 

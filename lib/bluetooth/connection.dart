@@ -501,6 +501,16 @@ class Connection {
     }
   }
 
+  /// Connect a device that is already in the list — used by the in-place
+  /// picker ("No connection" -> Virtual Shifting / Proxy on the same object).
+  ///
+  /// Routes through the same [_connect] path the auto-connect queue uses so the
+  /// action / connection-state listeners are (re)attached. A bare
+  /// [ProxyDevice.startProxy] would reconnect the BLE upstream but leave
+  /// `isConnected` stuck — the listener that flips it is torn down on
+  /// disconnect and only [_connect] re-establishes it.
+  Future<void> connectDevice(BaseDevice device) => _connect(device);
+
   Future<void> _connect(BaseDevice device) async {
     // Cancel any stale subscriptions from a previous connect attempt so a retry
     // doesn't stack listeners on the same device's streams.
