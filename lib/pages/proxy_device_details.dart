@@ -220,7 +220,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
   Widget? _ftmsMissingWarning() {
     final supportsVS = widget.device.fitnessBike?.supportsVirtualShiftingMode(VirtualShiftingMode.targetPower) == true;
-    if (supportsVS) return null;
+    if (supportsVS || !widget.device.isConnected) return null;
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,

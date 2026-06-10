@@ -53,6 +53,20 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
       }
     });
 
+    _server.onAdvertisingStateChanged((state, error) {
+      if (kDebugMode) {
+        print('OpenBikeControl advertising state: ${state.name}${error != null ? ' — $error' : ''}');
+      }
+      if (state == PeripheralAdvertisingState.error) {
+        core.connection.signalNotification(
+          AlertNotification(
+            LogLevel.LOGLEVEL_WARNING,
+            'OpenBikeControl failed to advertise${error != null ? ': $error' : ''}',
+          ),
+        );
+      }
+    });
+
     while (!(await _server.isReady) && core.settings.getObpBleEnabled()) {
       print('Waiting for peripheral manager to be ready...');
       await Future.delayed(Duration(seconds: 1));

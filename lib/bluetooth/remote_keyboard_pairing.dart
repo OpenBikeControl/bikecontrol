@@ -64,6 +64,20 @@ class RemoteKeyboardPairing extends TrainerConnection {
       }
     });
 
+    _server.onAdvertisingStateChanged((state, error) {
+      if (kDebugMode) {
+        print('Remote keyboard advertising state: ${state.name}${error != null ? ' — $error' : ''}');
+      }
+      if (state == PeripheralAdvertisingState.error) {
+        core.connection.signalNotification(
+          AlertNotification(
+            LogLevel.LOGLEVEL_WARNING,
+            'Remote keyboard failed to advertise${error != null ? ': $error' : ''}',
+          ),
+        );
+      }
+    });
+
     if (!kIsWeb && Platform.isAndroid) {
       final status = await Permission.bluetoothAdvertise.request();
       if (!status.isGranted) {

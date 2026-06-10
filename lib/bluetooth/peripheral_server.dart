@@ -71,7 +71,13 @@ class PeripheralServer {
   Future<void> startAdvertising({
     required List<String> services,
     String? localName,
-  }) => UniversalBlePeripheral.startAdvertising(services: services, localName: localName);
+  }) => UniversalBlePeripheral.startAdvertising(
+    services: services,
+    localName: localName,
+    platformConfig: PeripheralPlatformConfig(
+      android: PeripheralAndroidOptions(addManufacturerDataInScanResponse: true),
+    ),
+  );
 
   Future<void> stopAdvertising() => UniversalBlePeripheral.stopAdvertising();
 
