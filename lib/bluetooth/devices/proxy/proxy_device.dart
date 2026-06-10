@@ -316,7 +316,8 @@ class ProxyDevice extends BluetoothDevice {
       if (_isBridgeTrialOver) {
         _announceBridgeTrialOver();
       }
-    } catch (e) {
+    } catch (e, s) {
+      recordError(e, s, context: 'Emulator start');
       core.connection.signalNotification(
         AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start emulator: $e'),
       );
