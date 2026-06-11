@@ -188,6 +188,18 @@ class Settings {
     await prefs.setBool(_smartTrainerConsentKey(trainerKey), consent);
   }
 
+  static const String _virtualShiftingIntroSeenKey = 'virtual_shifting_intro_seen';
+
+  /// Whether the user has seen the one-time Virtual Shifting beta intro shown
+  /// the first time the Smart Trainer page is opened. Global (not per-trainer).
+  bool getVirtualShiftingIntroSeen() {
+    return prefs.getBool(_virtualShiftingIntroSeenKey) ?? false;
+  }
+
+  Future<void> setVirtualShiftingIntroSeen(bool seen) async {
+    await prefs.setBool(_virtualShiftingIntroSeenKey, seen);
+  }
+
   static String _obpSupportedButtonsKey(String appName) => 'obp_supported_buttons_$appName';
 
   /// Last-known OpenBikeControl supported buttons for [appName]. Set when a

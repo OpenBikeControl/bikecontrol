@@ -1041,5 +1041,15 @@
   "scanningForDevicesShort": "Scanning for devices...",
   "disconnectingAllDevices": "Disconnecting all devices",
   "configureButtonMapping": "Configure button mapping",
-  "notWellSupportedByMyWhoosh": "Note: this action is not well supported by MyWhoosh, yet"
+  "notWellSupportedByMyWhoosh": "Note: this action is not well supported by MyWhoosh, yet",
+  "vsIntroTitle": "Virtual Shifting",
+  "vsIntroSubtitle": "Shift gears on any smart trainer, right inside BikeControl.",
+  "vsIntroSupportedTitle": "Works with dozens of trainers",
+  "vsIntroSupportedBody": "Many smart trainers already work great — though some may not work perfectly just yet, and the list keeps growing.",
+  "vsIntroBetaTitle": "Still in beta",
+  "vsIntroBetaBody": "Virtual Shifting customization in BikeControl is a new feature, so you might run into the occasional rough edge.",
+  "vsIntroFeedbackTitle": "We've got your back",
+  "vsIntroFeedbackBody": "We love your feedback and are always happy to help get your setup dialed in just right.",
+  "vsIntroSupportedTrainersCta": "See supported trainers",
+  "vsIntroGotIt": "Got it"
 }
