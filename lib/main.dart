@@ -17,6 +17,7 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:multi_window_native/multi_window_native.dart';
+import 'package:prop/mdns/service_advertiser.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart' as wm;
 
@@ -72,6 +73,16 @@ Future<void> main(List<String> args) async {
         MultiWindowNative.init(windowId);
         await runDesktopOverlayWindow(windowId, args);
         return;
+      }
+
+      // Desktop advertises mDNS via the in-process responder (dedicated
+      // hostname with a single A record) instead of the OS responder, which
+      // attaches every host address — including IPv6 link-locals that
+      // Mono-based trainer apps (TrainingPeaks) cannot connect to ("No route
+      // to host"). Mobile stays on the OS responder: iOS lacks the multicast
+      // entitlement and Android would need a MulticastLock.
+      if (!kIsWeb) {
+        ServiceAdvertiser.instance = ServiceAdvertiser.platformDefault();
       }
 
       // Catch Flutter framework errors (build/layout/paint)

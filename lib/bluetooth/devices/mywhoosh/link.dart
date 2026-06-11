@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:prop/utils/resilient_tcp_server.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -15,8 +16,7 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class WhooshLink extends TrainerConnection {
-  Socket? _socket;
-  ServerSocket? _server;
+  ResilientTcpServer? _server;
 
   WhooshLink()
     : super(
@@ -35,8 +35,8 @@ class WhooshLink extends TrainerConnection {
       );
 
   void stopServer() async {
-    await _socket?.close();
-    await _server?.close();
+    await _server?.stop();
+    _server = null;
     isConnected.value = false;
     isStarted.value = false;
     if (kDebugMode) {
@@ -46,14 +46,43 @@ class WhooshLink extends TrainerConnection {
 
   Future<void> startServer() async {
     isStarted.value = true;
+    // MyWhoosh Link is a fixed-port contract (21587): the MyWhoosh app
+    // connects to this exact port, so there is NO port fallback here — a
+    // blocked port must fail loudly (the caller surfaces the error).
+    final server = ResilientTcpServer(
+      preferredPort: 21587,
+      onClientConnected: (socket) {
+        if (kDebugMode) {
+          print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
+        }
+        SharedLogic.keepAlive();
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.myWhooshLinkConnected),
+        );
+        isConnected.value = true;
+      },
+      onData: (socket, data) {
+        try {
+          if (kDebugMode) {
+            // TODO we could check if virtual shifting is enabled
+            final message = utf8.decode(data);
+            print('Received message: $message');
+          }
+        } catch (_) {}
+      },
+      onClientDisconnected: () {
+        if (kDebugMode) {
+          print('Client disconnected');
+        }
+        SharedLogic.stopKeepAlive();
+        isConnected.value = false;
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'MyWhoosh Link disconnected'),
+        );
+      },
+    );
     try {
-      // Create and bind server socket
-      _server = await ServerSocket.bind(
-        InternetAddress.anyIPv6,
-        21587,
-        shared: true,
-        v6Only: false,
-      );
+      await server.start();
     } catch (e) {
       if (kDebugMode) {
         print('Failed to start server: $e');
@@ -62,46 +91,10 @@ class WhooshLink extends TrainerConnection {
       isStarted.value = false;
       rethrow;
     }
+    _server = server;
     if (kDebugMode) {
-      print('Server started on port ${_server!.port}');
+      print('Server started on port ${server.boundPort}');
     }
-
-    // Accept connection
-    _server!.listen(
-      (Socket socket) async {
-        if (kDebugMode) {
-          print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
-        }
-
-        SharedLogic.keepAlive();
-        _socket = socket;
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.myWhooshLinkConnected),
-        );
-        isConnected.value = true;
-        // Listen for data from the client
-        socket.listen(
-          (List<int> data) {
-            try {
-              if (kDebugMode) {
-                // TODO we could check if virtual shifting is enabled
-                final message = utf8.decode(data);
-                print('Received message: $message');
-              }
-            } catch (_) {}
-          },
-          onDone: () {
-            print('Client disconnected: $socket');
-
-            SharedLogic.stopKeepAlive();
-            isConnected.value = false;
-            core.connection.signalNotification(
-              AlertNotification(LogLevel.LOGLEVEL_WARNING, 'MyWhoosh Link disconnected'),
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -174,7 +167,7 @@ class WhooshLink extends TrainerConnection {
       );
     } else if (jsonObject != null) {
       final jsonString = jsonEncode(jsonObject);
-      _socket?.writeln(jsonString);
+      _server?.client?.writeln(jsonString);
       return Success(
         'Sent action to MyWhoosh: ${keyPair.inGameAction} ${keyPair.inGameActionValue ?? ''}',
         button: keyPair.buttons.firstOrNull,
