@@ -5,6 +5,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 const _supportedTrainersUrl = 'https://bikecontrol.app/virtual-shifting';
+const _moreInfoUrl = 'https://bikecontrol.app/blog/bikecontrol-5-4-smart-trainers-virtual-shifting';
 
 /// One-time, full-screen explainer shown the first time the user opens the
 /// Smart Trainer page: Virtual Shifting is in beta, works on dozens of
@@ -100,6 +101,11 @@ class VirtualShiftingIntroPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: 10,
               children: [
+                Button.text(
+                  onPressed: () =>
+                      launchUrlString(_moreInfoUrl, mode: LaunchMode.externalApplication),
+                  child: Text(l10n.moreInformation),
+                ),
                 PrimaryButton(
                   onPressed: () => Navigator.of(context).maybePop(),
                   child: Text(l10n.vsIntroGotIt),
