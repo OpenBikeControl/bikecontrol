@@ -20,6 +20,7 @@ import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:prop/prop.dart';
 import 'package:prop/utils/self_advertisement_registry.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
+import 'package:prop/utils/network_address.dart';
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
   ServerSocket? _server;
@@ -46,20 +47,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     print('Starting mDNS server...');
     isStarted.value = true;
 
-    // Get local IP
-    final interfaces = await NetworkInterface.list();
-    InternetAddress? localIP;
-
-    for (final interface in interfaces) {
-      for (final addr in interface.addresses) {
-        if (addr.type == InternetAddressType.IPv4 && !addr.isLoopback) {
-          localIP = addr;
-          break;
-        }
-      }
-      if (localIP != null) break;
-    }
-
+    // Policy-based pick: prefer the real LAN interface over VPN tunnels /
+    // virtualization bridges / link-local adapters.
+    final localIP = await AdvertisedAddressPicker.pick();
     if (localIP == null) {
       throw 'Could not find network interface';
     }
