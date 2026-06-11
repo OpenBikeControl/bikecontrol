@@ -11,6 +11,7 @@ import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dar
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/proxy_device_details/virtual_shifting_intro_page.dart';
 import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
@@ -45,6 +46,18 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     widget.device.retrofitMode.addListener(_onEmulatorStateChanged);
     _connectionSub = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
+    });
+    _maybeShowVirtualShiftingIntro();
+  }
+
+  /// Show the one-time Virtual Shifting beta intro the first time this page is
+  /// opened. The flag is set as soon as it's shown so it appears exactly once.
+  void _maybeShowVirtualShiftingIntro() {
+    if (screenshotMode || core.settings.getVirtualShiftingIntroSeen()) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      core.settings.setVirtualShiftingIntroSeen(true);
+      showVirtualShiftingIntro(context);
     });
   }
 

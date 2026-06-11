@@ -877,5 +877,15 @@
   "scanningForDevicesShort": "Buscando dispositivos...",
   "disconnectingAllDevices": "Desconectando todos los dispositivos",
   "configureButtonMapping": "Configurar asignación de botones",
-  "notWellSupportedByMyWhoosh": "Nota: esta acción todavía no está bien soportada por MyWhoosh"
+  "notWellSupportedByMyWhoosh": "Nota: esta acción todavía no está bien soportada por MyWhoosh",
+  "vsIntroTitle": "Virtual Shifting",
+  "vsIntroSubtitle": "Cambia de marcha en cualquier Smart Trainer, directamente en BikeControl.",
+  "vsIntroSupportedTitle": "Funciona con decenas de Smart Trainers",
+  "vsIntroSupportedBody": "Muchos Smart Trainers ya funcionan de maravilla, aunque algunos puede que aún no funcionen a la perfección, y la lista sigue creciendo.",
+  "vsIntroBetaTitle": "Aún en beta",
+  "vsIntroBetaBody": "La personalización de Virtual Shifting en BikeControl es una función nueva, así que puede que encuentres algún que otro problema.",
+  "vsIntroFeedbackTitle": "Estamos aquí para ayudarte",
+  "vsIntroFeedbackBody": "Nos encantan tus comentarios y siempre estaremos encantados de ayudarte a dejar tu configuración perfecta.",
+  "vsIntroSupportedTrainersCta": "Ver Smart Trainers compatibles",
+  "vsIntroGotIt": "Entendido"
 }
