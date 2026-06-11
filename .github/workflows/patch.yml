@@ -132,7 +132,12 @@ jobs:
     name: Patch Windows
     needs: guard
     if: inputs.build_windows
-    runs-on: windows-latest
+    # Pinned to match build.yml: patches must use the same toolchain as the
+    # release build, and windows-latest now ships VS 2026 whose MSVC turns the
+    # STL1011 experimental-coroutine deprecation (hit by the C++/WinRT code in
+    # bluetooth_low_energy_windows / permission_handler_windows) into a hard
+    # compile error.
+    runs-on: windows-2025
 
     steps:
       #1 Checkout Repository
