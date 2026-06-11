@@ -15,14 +15,14 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:nsd/nsd.dart';
+import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
   ServerSocket? _server;
-  Registration? _mdnsRegistration;
+  ServiceAdvertisement? _mdnsRegistration;
 
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(null);
 
@@ -64,20 +64,14 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
     await _createTcpServer();
 
-    if (kDebugMode) {
-      enableLogging(LogTopic.calls);
-      enableLogging(LogTopic.errors);
-    }
-    disableServiceTypeValidation(true);
-
     try {
       // Create service
-      _mdnsRegistration = await register(
-        Service(
+      _mdnsRegistration = await ServiceAdvertiser.instance.register(
+        AdvertisedService(
           name: 'BikeControl',
           type: _useDirCon ? '_wahoo-fitness-tnp._tcp' : '_openbikecontrol._tcp',
           port: 36867,
-          addresses: [localIP],
+          address: localIP,
           txt: _useDirCon
               ? {
                   'ble-service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
@@ -94,8 +88,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
                 },
         ),
       );
-      print('Service: ${_mdnsRegistration!.id} at ${localIP.address}:$_mdnsRegistration');
-      print('Server started - advertising service!');
+      print('Server started - advertising service at ${localIP.address}:36867!');
     } catch (e, s) {
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start mDNS server: $e'));
       rethrow;
@@ -106,9 +99,14 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     if (kDebugMode) {
       print('Stopping OpenBikeControl mDNS server...');
     }
-    if (_mdnsRegistration != null) {
-      unregister(_mdnsRegistration!);
-      _mdnsRegistration = null;
+    final reg = _mdnsRegistration;
+    _mdnsRegistration = null;
+    if (reg != null) {
+      try {
+        await reg.unregister();
+      } catch (e, s) {
+        debugPrint('ObcMdnsEmulator: mDNS unregister failed: $e\n$s');
+      }
     }
     isStarted.value = false;
     isConnected.value = false;
