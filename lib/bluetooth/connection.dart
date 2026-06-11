@@ -68,6 +68,14 @@ class Connection {
   /// automatically disconnected to save its battery (see issue #329).
   final Map<BaseDevice, Timer> _inactivityTimers = {};
 
+  /// Devices whose in-place ("No connection") disconnect is currently in
+  /// flight. UniversalBle.disconnect resolves only after the platform's
+  /// disconnect event has fired — while our connectionStream listener is
+  /// still attached. Without this guard that listener re-enters [disconnect]
+  /// WITHOUT keepInList and drops the device from the registry, orphaning the
+  /// object the open details page still holds.
+  final _inPlaceDisconnects = <BaseDevice>{};
+
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
@@ -556,7 +564,7 @@ class Connection {
             ),
           );
         }
-        if (!device.isConnected) {
+        if (!device.isConnected && !_inPlaceDisconnects.contains(device)) {
           disconnect(device, forget: false, persistForget: false);
           // try reconnect
           performScanning();
@@ -613,8 +621,13 @@ class Connection {
   }) async {
     _cancelInactivityTimer(device);
 
-    if (device.isConnected) {
-      await device.disconnect();
+    if (keepInList) _inPlaceDisconnects.add(device);
+    try {
+      if (device.isConnected) {
+        await device.disconnect();
+      }
+    } finally {
+      if (keepInList) _inPlaceDisconnects.remove(device);
     }
 
     if (device is BluetoothDevice) {
