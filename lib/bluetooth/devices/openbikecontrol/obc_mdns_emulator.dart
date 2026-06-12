@@ -18,9 +18,18 @@ import 'package:flutter/foundation.dart';
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:prop/prop.dart';
+import 'package:prop/utils/network_address.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
+  /// Zwift (and other LAN exercise devices) drop the DirCon connection after
+  /// ~30s without any traffic — see issue #367. While a client is connected we
+  /// re-emit a neutral button-state notification well inside that window so the
+  /// connection survives idle stretches (no pedalling, no button presses).
+  /// This mirrors qdomyos-zwift, whose DirconManager pushes a notification on a
+  /// fixed timer regardless of whether the data changed.
+  static const Duration keepAliveInterval = Duration(seconds: 5);
+
   ServerSocket? _server;
   ServiceAdvertisement? _mdnsRegistration;
 
@@ -28,8 +37,14 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
   Socket? _socket;
   NetworkTransporter? _dirCon;
+  Timer? _keepAliveTimer;
 
   StreamSubscription<Socket>? _streamSubscription;
+
+  /// Test seam: when set, overrides the [NetworkTransporter] built for an
+  /// incoming DirCon client. Production callers must leave this `null`.
+  @visibleForTesting
+  NetworkTransporter Function(Socket socket)? transporterFactory;
 
   OpenBikeControlMdnsEmulator()
     : super(
@@ -44,20 +59,11 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     print('Starting mDNS server...');
     isStarted.value = true;
 
-    // Get local IP
-    final interfaces = await NetworkInterface.list();
-    InternetAddress? localIP;
-
-    for (final interface in interfaces) {
-      for (final addr in interface.addresses) {
-        if (addr.type == InternetAddressType.IPv4 && !addr.isLoopback) {
-          localIP = addr;
-          break;
-        }
-      }
-      if (localIP != null) break;
-    }
-
+    // Policy-based pick: prefer the real LAN interface over VPN tunnels /
+    // virtualization bridges / cellular CLAT / link-local adapters —
+    // "first non-loopback IPv4" advertised unreachable addresses (e.g.
+    // Android's 192.0.0.8 CLAT dummy address).
+    final localIP = await AdvertisedAddressPicker.pick();
     if (localIP == null) {
       throw 'Could not find network interface';
     }
@@ -110,6 +116,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     }
     isStarted.value = false;
     isConnected.value = false;
+    _stopKeepAlive();
     await _streamSubscription?.cancel();
     _socket?.destroy();
     _socket = null;
@@ -136,20 +143,13 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
     // Accept connection
     _streamSubscription = _server!.listen(
-      (Socket socket) async {
-        SharedLogic.keepAlive();
-        _socket = socket;
-
+      (Socket socket) {
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
         }
 
-        if (_useDirCon) {
-          _dirCon = NetworkTransporter(
-            socket: socket,
-            definition: ObcBikeDefinition(onMessageCallback: this),
-          );
-        }
+        final dirCon = _useDirCon ? _makeDirConTransporter(socket) : null;
+        beginSession(socket: socket, dirCon: dirCon);
 
         // Listen for data from the client
         socket.listen(
@@ -157,25 +157,69 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
             if (kDebugMode) {
               print('Received message: ${bytesToHex(data)}');
             }
-            if (_dirCon != null) {
-              _dirCon!.handleIncomingData(data);
+            if (dirCon != null) {
+              dirCon.handleIncomingData(data);
               return;
             }
             onMessage(data);
           },
           onDone: () {
-            _dirCon = null;
-            SharedLogic.stopKeepAlive();
             core.connection.signalNotification(
               AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
             );
-            isConnected.value = false;
-            connectedApp.value = null;
-            _socket = null;
+            endSession();
           },
         );
       },
     );
+  }
+
+  NetworkTransporter _makeDirConTransporter(Socket socket) {
+    final factory = transporterFactory;
+    if (factory != null) return factory(socket);
+    return NetworkTransporter(socket: socket, definition: ObcBikeDefinition(onMessageCallback: this));
+  }
+
+  /// Begins a client session: records the active transport and starts pushing
+  /// keepalives. Exposed for tests so the keepalive can be exercised without a
+  /// real socket or mDNS registration.
+  @visibleForTesting
+  void beginSession({Socket? socket, NetworkTransporter? dirCon}) {
+    SharedLogic.keepAlive();
+    _socket = socket;
+    _dirCon = dirCon;
+    _startKeepAlive();
+  }
+
+  /// Tears the session down: stops keepalives and clears connection state.
+  @visibleForTesting
+  void endSession() {
+    _stopKeepAlive();
+    _dirCon = null;
+    isConnected.value = false;
+    connectedApp.value = null;
+    _socket = null;
+    SharedLogic.stopKeepAlive();
+  }
+
+  void _startKeepAlive() {
+    _keepAliveTimer?.cancel();
+    _keepAliveTimer = Timer.periodic(keepAliveInterval, (_) => sendKeepAlive());
+  }
+
+  void _stopKeepAlive() {
+    _keepAliveTimer?.cancel();
+    _keepAliveTimer = null;
+  }
+
+  /// Re-emits the neutral "nothing pressed" button state to keep the connection
+  /// from being torn down for inactivity. An empty button-state frame is a
+  /// no-op for the receiver — it never registers a phantom press — but the
+  /// bytes on the wire reset the peer's inactivity watchdog.
+  @visibleForTesting
+  void sendKeepAlive() {
+    if (_dirCon == null && _socket == null) return;
+    _write(OpenBikeProtocolParser.encodeButtonState(const []));
   }
 
   @override
@@ -213,16 +257,16 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
         mappedButtons.map((b) => ButtonState(b, 1)).toList(),
       );
-      _write(_socket!, responseDataDown);
+      _write(responseDataDown);
       final responseDataUp = OpenBikeProtocolParser.encodeButtonState(
         mappedButtons.map((b) => ButtonState(b, 0)).toList(),
       );
-      _write(_socket!, responseDataUp);
+      _write(responseDataUp);
     } else {
       final responseData = OpenBikeProtocolParser.encodeButtonState(
         mappedButtons.map((b) => ButtonState(b, isKeyDown ? 1 : 0)).toList(),
       );
-      _write(_socket!, responseData);
+      _write(responseData);
     }
 
     return Success(
@@ -231,15 +275,15 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     );
   }
 
-  void _write(Socket socket, List<int> responseData) {
+  void _write(List<int> responseData) {
     debugPrint('Sending response: ${bytesToHex(responseData)}');
-    if (_dirCon != null) {
-      _dirCon!.sendCharacteristicNotification(OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID, responseData);
+    final dirCon = _dirCon;
+    if (dirCon != null) {
+      dirCon.sendCharacteristicNotification(OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID, responseData);
       return;
-    } else {
-      socket.add(responseData);
-      //socket.flush();
     }
+    _socket?.add(responseData);
+    //_socket?.flush();
   }
 
   @override
