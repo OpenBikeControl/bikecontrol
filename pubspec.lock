@@ -504,6 +504,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.8"
+  flutter_multicast_lock:
+    dependency: transitive
+    description:
+      name: flutter_multicast_lock
+      sha256: "148ff4a5e3f3231fc0fdb049fa2c4769e9222d4774c1404633907803375a59b3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   flutter_overlay_window:
     dependency: "direct main"
     description:

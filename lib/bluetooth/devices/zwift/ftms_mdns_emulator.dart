@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/bluetooth/devices/zwift/controller_keep_alive.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -16,11 +17,20 @@ import 'package:prop/prop.dart' hide RideButtonMask;
 import 'package:universal_ble/universal_ble.dart';
 
 class FtmsMdnsEmulator extends TrainerConnection {
+  /// Zwift Click/Ride controller characteristic we push button notifications on.
+  static const _controllerCharacteristicUuid = '00000002-19CA-4651-86E5-FA29DCDD09D1';
+
   var lastMessageId = 0;
 
   late final ZwiftEmulatorDefinition def = ZwiftEmulatorDefinition(
     device: BleDevice(deviceId: 'deviceId', name: 'name'),
   );
+
+  /// Keeps the LAN connection alive while a client is connected by re-emitting
+  /// the neutral controller state — Zwift drops a wired controller after ~30s
+  /// of inactivity (issue #367).
+  @visibleForTesting
+  late final ControllerKeepAlive keepAlive = ControllerKeepAlive(onTick: sendKeepAlive);
 
   FtmsMdnsEmulator()
     : super(
@@ -44,6 +54,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
     });
     ftmsEmulator.isConnected.addListener(() {
       isConnected.value = ftmsEmulator.isConnected.value;
+      updateKeepAlive(isConnected.value);
       if (isConnected.value) {
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connected),
@@ -54,6 +65,27 @@ class FtmsMdnsEmulator extends TrainerConnection {
         );
       }
     });
+  }
+
+  /// Runs the keepalive while [connected], stops it otherwise.
+  @visibleForTesting
+  void updateKeepAlive(bool connected) {
+    if (connected) {
+      keepAlive.start();
+    } else {
+      keepAlive.stop();
+    }
+  }
+
+  /// Re-emits the released controller state so Zwift keeps the connection open
+  /// during idle stretches. Sent on the same characteristic as a key-up, so the
+  /// game treats it as "nothing pressed".
+  @visibleForTesting
+  void sendKeepAlive() {
+    ftmsEmulator.composite.sendCharacteristicNotification(
+      _controllerCharacteristicUuid,
+      [Opcode.CONTROLLER_NOTIFICATION.value, ...kZwiftControllerReleasedState],
+    );
   }
 
   Future<void> startServer() async {
@@ -76,6 +108,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
   }
 
   void stop() {
+    keepAlive.stop();
     if (ftmsEmulator.composite.children.length == 1) {
       // only this emulator is attached, safe to stop the server
       ftmsEmulator.stop();
@@ -116,17 +149,16 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
       final bytes = status.writeToBuffer();
 
-      ftmsEmulator.composite.sendCharacteristicNotification('00000002-19CA-4651-86E5-FA29DCDD09D1', [
+      ftmsEmulator.composite.sendCharacteristicNotification(_controllerCharacteristicUuid, [
         Opcode.CONTROLLER_NOTIFICATION.value,
         ...bytes,
       ]);
     }
 
     if (isKeyUp) {
-      final bytes = [0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F];
-      ftmsEmulator.composite.sendCharacteristicNotification('00000002-19CA-4651-86E5-FA29DCDD09D1', [
+      ftmsEmulator.composite.sendCharacteristicNotification(_controllerCharacteristicUuid, [
         Opcode.CONTROLLER_NOTIFICATION.value,
-        ...bytes,
+        ...kZwiftControllerReleasedState,
       ]);
     }
     if (kDebugMode) {

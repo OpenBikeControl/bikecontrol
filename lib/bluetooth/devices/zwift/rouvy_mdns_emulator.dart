@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/bluetooth/devices/zwift/controller_keep_alive.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -14,11 +15,18 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
 
 class RouvyMdnsEmulator extends TrainerConnection {
-  late final ClickEmulator clickEmulator = ClickEmulator();
+  final ClickEmulator clickEmulator;
   var lastMessageId = 0;
 
-  RouvyMdnsEmulator()
-    : super(
+  /// Keeps the LAN connection alive while a client is connected by re-emitting
+  /// the neutral controller state — Rouvy/Zwift drop a wired controller after
+  /// ~30s of inactivity (issue #367).
+  @visibleForTesting
+  late final ControllerKeepAlive keepAlive = ControllerKeepAlive(onTick: sendKeepAlive);
+
+  RouvyMdnsEmulator({ClickEmulator? clickEmulator})
+    : clickEmulator = clickEmulator ?? ClickEmulator(),
+      super(
         title: AppLocalizations.current.connectDirectlyOverNetwork,
         type: ConnectionMethodType.network,
         supportedActions: [
@@ -34,11 +42,12 @@ class RouvyMdnsEmulator extends TrainerConnection {
           InGameAction.rideOnBomb,
         ],
       ) {
-    clickEmulator.isStarted.addListener(() {
-      isStarted.value = clickEmulator.isStarted.value;
+    this.clickEmulator.isStarted.addListener(() {
+      isStarted.value = this.clickEmulator.isStarted.value;
     });
-    clickEmulator.isConnected.addListener(() {
-      isConnected.value = clickEmulator.isConnected.value;
+    this.clickEmulator.isConnected.addListener(() {
+      isConnected.value = this.clickEmulator.isConnected.value;
+      updateKeepAlive(isConnected.value);
       if (isConnected.value) {
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connected),
@@ -51,12 +60,30 @@ class RouvyMdnsEmulator extends TrainerConnection {
     });
   }
 
+  /// Runs the keepalive while [connected], stops it otherwise.
+  @visibleForTesting
+  void updateKeepAlive(bool connected) {
+    if (connected) {
+      keepAlive.start();
+    } else {
+      keepAlive.stop();
+    }
+  }
+
+  /// Re-emits the released controller state so the connection survives idle
+  /// stretches. Same frame a key-up sends, so it registers no button press.
+  @visibleForTesting
+  void sendKeepAlive() {
+    clickEmulator.writeNotification(kZwiftControllerReleasedState);
+  }
+
   Future<void> startServer() async {
     final isRouvy = core.settings.getTrainerApp() is Rouvy;
     return clickEmulator.startServer(isRouvy, name: isRouvy ? 'BikeControl' : null);
   }
 
   void stop() {
+    keepAlive.stop();
     clickEmulator.stop();
   }
 
@@ -100,10 +127,7 @@ class RouvyMdnsEmulator extends TrainerConnection {
     }
 
     if (isKeyUp) {
-      final bytes = [0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F];
-      clickEmulator.writeNotification([
-        ...bytes,
-      ]);
+      clickEmulator.writeNotification(kZwiftControllerReleasedState);
     }
     if (kDebugMode) {
       print('Sent action up $isKeyUp vs down $isKeyDown ${keyPair.inGameAction!.title} to Zwift Emulator');

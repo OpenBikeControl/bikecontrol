@@ -47,7 +47,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     isStarted.value = true;
 
     // Policy-based pick: prefer the real LAN interface over VPN tunnels /
-    // virtualization bridges / link-local adapters.
+    // virtualization bridges / cellular CLAT / link-local adapters —
+    // "first non-loopback IPv4" advertised unreachable addresses (e.g.
+    // Android's 192.0.0.8 CLAT dummy address).
     final localIP = await AdvertisedAddressPicker.pick();
     if (localIP == null) {
       throw 'Could not find network interface';

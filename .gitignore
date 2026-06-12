@@ -58,3 +58,4 @@ service-account.json
 lib/generated
 pubspec_overrides.yaml
 .run
+test/failures
