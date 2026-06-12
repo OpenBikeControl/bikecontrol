@@ -22,16 +22,18 @@ Future<bool> showGoProDialog(BuildContext context) async {
             Text('Pro Feature'),
           ],
         ),
-        content: Text(AppLocalizations.of(context).thisFeatureIsOnlyAvailableWithPro),
+        content: Text(AppLocalizations.of(c).thisFeatureIsOnlyAvailableWithPro),
         actions: [
           Button.secondary(
             onPressed: () => Navigator.of(c).pop(false),
-            child: Text(context.i18n.cancel),
+            child: Text(c.i18n.cancel),
           ),
           LoadingWidget(
             futureCallback: () async {
-              await iapManager.purchaseSubscription(context);
-              Navigator.of(c).pop(true);
+              await iapManager.purchaseSubscription(c);
+              if (c.mounted) {
+                Navigator.of(c).pop(true);
+              }
             },
             renderChild: (isLoading, tap) => PrimaryButton(
               onPressed: tap,
@@ -40,7 +42,7 @@ Future<bool> showGoProDialog(BuildContext context) async {
                 children: [
                   isLoading ? SmallProgressIndicator() : Icon(Icons.workspace_premium, size: 16),
                   const SizedBox(width: 8),
-                  Text(context.i18n.goPro),
+                  Text(c.i18n.goPro),
                 ],
               ),
             ),
