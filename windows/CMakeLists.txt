@@ -32,6 +32,14 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# VS 2026's MSVC STL turns the STL1011 "experimental coroutines are
+# deprecated" warning into a hard compile error. The C++/WinRT code in some
+# plugins (bluetooth_low_energy_windows, permission_handler_windows) still
+# builds with /await + <experimental/coroutine>; Microsoft's documented
+# escape hatch keeps them compiling until the plugins move to C++20
+# coroutines. Inherited by all plugin subprojects.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
