@@ -75,12 +75,13 @@ Future<void> main(List<String> args) async {
         return;
       }
 
-      // Desktop advertises mDNS via the in-process responder (dedicated
-      // hostname with a single A record) instead of the OS responder, which
-      // attaches every host address — including IPv6 link-locals that
-      // Mono-based trainer apps (TrainingPeaks) cannot connect to ("No route
-      // to host"). Mobile stays on the OS responder: iOS lacks the multicast
-      // entitlement and Android would need a MulticastLock.
+      // Desktop and Android advertise mDNS via the in-process responder
+      // (dedicated hostname with a single A record) instead of the OS
+      // responder, which attaches every host address — including IPv6
+      // link-locals that Mono-based trainer apps (TrainingPeaks) cannot
+      // connect to ("No route to host"). On Android the responder's socket
+      // acquires a WifiManager multicast lock so queries are received. iOS
+      // stays on the OS responder (no multicast-networking entitlement).
       if (!kIsWeb) {
         ServiceAdvertiser.instance = ServiceAdvertiser.platformDefault();
       }
