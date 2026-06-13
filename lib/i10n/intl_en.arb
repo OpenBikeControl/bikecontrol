@@ -358,6 +358,13 @@
   "no": "No",
   "noActionAssigned": "No action assigned",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
+  "trainerAppNotConnectedForButton": "Could not perform {button}: {app} is not connected",
+  "@trainerAppNotConnectedForButton": {
+    "placeholders": {
+      "button": {"type": "Object"},
+      "app": {"type": "Object"}
+    }
+  },
   "noActiveWorkout": "No active workout",
   "noProxyTrainerConnected": "No smart trainer connected",
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",

@@ -241,7 +241,12 @@ abstract class BaseActions {
           button: keyPair.buttons.firstOrNull ?? button,
         );
       }
-    } else if (!(await core.logic.isTrainerConnected()) && !keyPair.doesNotNeedTrainerConnection) {
+    } else if (!(await core.logic.isTrainerConnected()) &&
+        !keyPair.doesNotNeedTrainerConnection &&
+        // A pure trainer-app action (e.g. a virtual-shifting gear change) flows
+        // on to the delivery attempt below, which produces a message naming the
+        // trainer app instead of this generic one.
+        !keyPair.isTrainerAppActionOnly) {
       return Error(
         AppLocalizations.current.noConnectionMethodIsConnectedOrActive,
         type: ErrorType.trainerNotConnected,
@@ -250,9 +255,27 @@ abstract class BaseActions {
     }
 
     final directConnectHandled = await _handleDirectConnect(keyPair, button, isKeyUp: isKeyUp, isKeyDown: isKeyDown);
-    if (directConnectHandled is NotHandled && directConnectHandled.message.isNotEmpty) {
-      core.connection.signalNotification(LogNotification(directConnectHandled.message));
-    } else if (directConnectHandled is! NotHandled) {
+    if (directConnectHandled is NotHandled) {
+      // A pure trainer-app action reached here unhandled: no connected trainer
+      // app accepted it (the trainer app was closed or disconnected) and it has
+      // no keyboard/touch fallback. Without this it would fall through to the
+      // platform keyboard path and be misreported as "no action assigned"
+      // whenever local control is enabled — note `local` is itself a
+      // "connected" connection that never handles in-game actions (issue #367).
+      if (keyPair.isTrainerAppActionOnly) {
+        return Error(
+          AppLocalizations.current.trainerAppNotConnectedForButton(
+            button.name.splitByUpperCase(),
+            supportedApp!.name,
+          ),
+          type: ErrorType.trainerNotConnected,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
+      }
+      if (directConnectHandled.message.isNotEmpty) {
+        core.connection.signalNotification(LogNotification(directConnectHandled.message));
+      }
+    } else {
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
     }
