@@ -339,6 +339,7 @@
   "no": "Non",
   "noActionAssigned": "Aucune action assignée",
   "noActionAssignedForButton": "Impossible d'effectuer {button}: Aucune action assignée",
+  "trainerAppNotConnectedForButton": "Impossible d'effectuer {button} : {app} n'est pas connecté",
   "noActiveWorkout": "Aucune séance active",
   "noProxyTrainerConnected": "Aucun home trainer connecté",
   "noConnectionMethodIsConnectedOrActive": "Aucune méthode de connexion n'est établie ou active.",

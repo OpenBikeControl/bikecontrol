@@ -339,6 +339,7 @@
   "no": "No",
   "noActionAssigned": "Sin acción asignada",
   "noActionAssignedForButton": "No se pudo ejecutar {button}: no hay ninguna acción asignada",
+  "trainerAppNotConnectedForButton": "No se pudo ejecutar {button}: {app} no está conectado",
   "noActiveWorkout": "Sin entrenamiento activo",
   "noProxyTrainerConnected": "No hay un smart trainer conectado",
   "noConnectionMethodIsConnectedOrActive": "No hay ningún método de conexión conectado ni activo.",
