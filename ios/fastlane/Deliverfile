@@ -1,0 +1,18 @@
+# Defaults for `deliver` (App Store Connect metadata).
+# These keep the lanes focused on the localized store texts only.
+
+app_identifier "de.jonasbark.swiftcontrol.darwin"
+platform "ios"
+
+# Never touch the binary or the screenshots from these lanes.
+skip_binary_upload true
+skip_screenshots true
+
+# Only sync the existing editable version's metadata; don't create or bump a
+# version and don't auto-submit for review.
+skip_app_version_update true
+submit_for_review false
+run_precheck_before_submit false
+
+# Don't ask for interactive HTML preview confirmation in CI.
+force true

@@ -1,0 +1,5 @@
+• Zwift Play Firmware 2.0.1 wird jetzt unterstützt
+
+Überarbeitung der Verbindung:
+• Die Netzwerkverbindung zu Zwift wurde verbessert: Es wird nur noch ein Gerät in Zwift verbunden statt zwei.
+• Viele interne Änderungen für eine zuverlässigere und stabilere Verbindung.

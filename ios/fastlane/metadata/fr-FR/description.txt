@@ -1,0 +1,18 @@
+Avec la prise en charge officielle de MyWhoosh, Rouvy et TrainingPeaks
+
+Avec BikeControl (anciennement SwiftControl), vous pilotez votre application d'entraînement préférée à l'aide de vos boutons matériels. Selon votre configuration, vous pouvez :
+
+▶ Passage de vitesses virtuel
+▶ Diriger / tourner
+▶ Ajuster l'intensité de l'entraînement
+▶ Contrôler la musique sur votre appareil
+▶ Plus ? Tout ce que vous pouvez faire au clavier, à la souris ou au toucher, vous pouvez le faire avec BikeControl
+
+
+Confidentialité et sécurité :
+▶ BikeControl accède uniquement à votre écran pour exécuter les gestes que vous configurez
+▶ Aucune autre fonction d'accessibilité ni information personnelle n'est consultée
+▶ Toutes les configurations de gestes restent sur votre appareil
+▶ L'application ne se connecte à aucun service externe pour les fonctions d'accessibilité
+
+Conditions d'utilisation : https://bikecontrol.app/terms-of-use

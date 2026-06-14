@@ -1,0 +1,67 @@
+Con BikeControl (precedentemente noto come SwiftControl) puoi controllare la tua app di allenamento preferita utilizzando Zwift® Click, Zwift® Ride, Zwift® Play, Elite Square Smart Frame®, Elite Sterzo Sterzo Smart®, Wahoo Kickr Bike Shift®, telecomandi Bluetooth e gamepad. Ecco cosa puoi fare, a seconda della configurazione:
+
+▶ Cambio virtuale
+▶ Sterzo/sterzo
+▶ Regolazione dell'intensità dell'allenamento
+▶ Controllo della musica sul dispositivo
+▶ Aggiunta del cambio virtuale alle app di allenamento che non lo supportano nativamente
+▶ Regolazione di tutti i parametri relativi al cambio virtuale: numero di marce, rapporti, ecc.
+▶ Altro? Se puoi farlo tramite tastiera, mouse o touch, puoi farlo con BikeControl
+
+Open Source
+L'app è open source ed è disponibile all'indirizzo https://github.com/OpenBikeControl/bikecontrol/
+
+App supportate
+▶ MyWhoosh
+▶ Zwift
+▶ Rouvy
+▶ TrainingPeaks
+▶ Biketerra.com
+▶ Qualsiasi altra app: puoi personalizzare i punti di contatto (Android) o le scorciatoie da tastiera (Desktop)
+
+Dispositivi supportati
+▶ Zwift© Click
+▶ Zwift© Click v2 (principalmente, vedi problema n. 68)
+▶ Zwift© Ride
+▶ Zwift© Play
+▶ Shimano Di2
+▶ SRAM AXS / eTap
+▶ Thinkrider VS200 Virtual Shifter
+▶ Wahoo Kickr Bike Shift
+▶ Wahoo Kickr Bike Pro
+▶ Cambio virtuale CYCPLUS BC2
+▶ Elite Sterzo Smart (per il supporto alla sterzata)
+▶ Elite Square Smart Frame (beta)
+▶ Gamepad
+▶ Dispositivi BLE HID e dispositivi Bluetooth HID classici
+▶ Input da tastiera
+▶ Utilizza il tuo telefono sul manubrio per sterzare usando i sensori del telefono
+▶ Stiamo lavorando alla creazione di un'alternativa economica basata su uno standard aperto, supportato da tutte le principali app per rulli
+
+Utilizzo dell'API AccessibilityService
+Avviso importante: questa app utilizza FACOLTATIVAMENTE l'API AccessibilityService di Android per consentire il controllo delle applicazioni di allenamento tramite i dispositivi Zwift.
+
+Perché AccessibilityService:
+▶ Per simulare gesti touch sullo schermo che controllano le app di allenamento
+▶ Per rilevare quale finestra dell'app di allenamento è attualmente attiva
+▶ Per consentire un controllo fluido di app come MyWhoosh, IndieVelo, Biketerra.com e altre
+
+Come utilizziamo AccessibilityService:
+▶ Quando premi i pulsanti sui tuoi dispositivi Zwift Click, Zwift Ride o Zwift Play, BikeControl li traduce in gesti touch in posizioni specifiche dello schermo
+▶ Il servizio monitora quale finestra dell'app di allenamento è attiva per garantire che i gesti vengano inviati all'applicazione corretta
+▶ NESSUN dato personale viene consultato, raccolto o trasmesso tramite questo servizio
+▶ Il servizio esegue solo le azioni touch specifiche che configuri all'interno dell'app
+
+Privacy e sicurezza:
+▶ BikeControl accede allo schermo solo per eseguire i gesti che configuri
+▶ Non vengono consultate altre funzionalità di accessibilità o informazioni personali
+▶ Tutte le configurazioni dei gesti rimangono sul tuo dispositivo
+▶ L'app non si connette a servizi esterni per le funzioni di accessibilità
+
+Questa app non è affiliata né approvata da Zwift, Inc., Wahoo o Elite.
+
+Autorizzazioni richieste
+▶ Bluetooth: per connettersi ai dispositivi Zwift
+▶ AccessibilityService (facoltativo): per simulare i gesti touch per il controllo delle app di allenamento
+▶ Notifiche: per mantenere l'app in esecuzione in background
+▶ Posizione (Android 11 e versioni precedenti): necessaria per la scansione Bluetooth sulle versioni precedenti di Android

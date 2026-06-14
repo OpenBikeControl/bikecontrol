@@ -1,0 +1,134 @@
+name: "Store Metadata"
+
+# Manage the localized App Store / Google Play store listings via fastlane.
+#  - "download": pull the live listing from the stores into the txt files in
+#                this repo and commit the result back to the branch.
+#  - "upload":   push the txt files in this repo to the stores (texts only,
+#                never the binary, screenshots or release notes).
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Which store(s) to sync"
+        required: true
+        default: both
+        type: choice
+        options: [both, android, ios]
+      action:
+        description: "download (store -> repo) or upload (repo -> store)"
+        required: true
+        default: download
+        type: choice
+        options: [download, upload]
+      play_track:
+        description: "Google Play track to read/write metadata for"
+        required: false
+        default: production
+        type: string
+
+jobs:
+  android:
+    if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
+    name: Android (Google Play)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      PLAY_TRACK: ${{ inputs.play_track }}
+      SUPPLY_JSON_KEY_FILE: fastlane/service-account.json
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Write Google Play service account key
+        run: printf '%s' '${{ secrets.SERVICE_ACCOUNT_JSON }}' > android/fastlane/service-account.json
+
+      - name: Download metadata from Google Play
+        if: ${{ inputs.action == 'download' }}
+        working-directory: android
+        run: bundle exec fastlane download_metadata
+
+      - name: Upload metadata to Google Play
+        if: ${{ inputs.action == 'upload' }}
+        working-directory: android
+        run: bundle exec fastlane upload_metadata
+
+      - name: Clean up credentials
+        if: ${{ always() }}
+        run: rm -f android/fastlane/service-account.json
+
+      - name: Commit downloaded metadata
+        if: ${{ inputs.action == 'download' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain android/fastlane/metadata)" ]; then
+            git add android/fastlane/metadata
+            git commit -m "chore: sync Google Play metadata from store"
+            git push origin "HEAD:${{ github.ref_name }}"
+          else
+            echo "No metadata changes to commit."
+          fi
+
+  ios:
+    if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
+    name: iOS (App Store)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+      APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Write App Store Connect API key
+        env:
+          API_KEY_BASE64: ${{ secrets.APPSTORE_API_KEY_FILE_BASE64 }}
+        run: |
+          mkdir -p private_keys
+          printf '%s' "$API_KEY_BASE64" | base64 -d > "private_keys/AuthKey_${APPSTORE_API_KEY}.p8"
+
+      - name: Download metadata from App Store
+        if: ${{ inputs.action == 'download' }}
+        working-directory: ios
+        run: bundle exec fastlane download_metadata
+
+      - name: Upload metadata to App Store
+        if: ${{ inputs.action == 'upload' }}
+        working-directory: ios
+        run: bundle exec fastlane upload_metadata
+
+      - name: Clean up credentials
+        if: ${{ always() }}
+        run: rm -rf private_keys
+
+      - name: Commit downloaded metadata
+        if: ${{ inputs.action == 'download' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain ios/fastlane/metadata)" ]; then
+            git add ios/fastlane/metadata
+            git commit -m "chore: sync App Store metadata from store"
+            git push origin "HEAD:${{ github.ref_name }}"
+          else
+            echo "No metadata changes to commit."
+          fi

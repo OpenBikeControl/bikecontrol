@@ -1,0 +1,2 @@
+json_key_file(ENV["SUPPLY_JSON_KEY_FILE"] || "fastlane/service-account.json")
+package_name("de.jonasbark.swiftcontrol")

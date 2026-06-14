@@ -1,0 +1,18 @@
+Con compatibilidad oficial con MyWhoosh, Rouvy y TrainingPeaks
+
+Con BikeControl (antes SwiftControl) puedes controlar tu aplicación de entrenamiento favorita usando tus dispositivos de botones. Según tu configuración, puedes:
+
+▶ Cambio de marchas virtual
+▶ Dirección / giro
+▶ Ajustar la intensidad del entrenamiento
+▶ Controlar la música de tu dispositivo
+▶ ¿Más? Todo lo que puedas hacer con teclado, ratón o pantalla táctil, lo puedes hacer con BikeControl
+
+
+Privacidad y seguridad:
+▶ BikeControl solo accede a tu pantalla para realizar los gestos que configures
+▶ No se accede a ninguna otra función de accesibilidad ni a información personal
+▶ Todas las configuraciones de gestos permanecen en tu dispositivo
+▶ La app no se conecta a servicios externos para las funciones de accesibilidad
+
+Condiciones de uso: https://bikecontrol.app/terms-of-use

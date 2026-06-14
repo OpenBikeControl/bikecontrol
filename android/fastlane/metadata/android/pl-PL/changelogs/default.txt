@@ -1,0 +1,5 @@
+• Oprogramowanie Zwift Play 2.0.1 jest teraz obsługiwane
+
+Przebudowa połączenia:
+• Połączenie sieciowe ze Zwift zostało usprawnione: teraz łączy się tylko jedno urządzenie w Zwift zamiast dwóch.
+• Wiele zmian wewnętrznych dla bardziej niezawodnego i stabilnego połączenia.

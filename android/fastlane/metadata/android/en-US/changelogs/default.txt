@@ -1,0 +1,5 @@
+• Zwift Play firmware 2.0.1 is now supported
+
+Connection overhaul:
+• Network connection to Zwift is improved: only connect to a single device in Zwift instead of two.
+• Many internal changes for a more reliable and robust connection.

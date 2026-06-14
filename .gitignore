@@ -57,3 +57,11 @@ service-account.json
 .env
 lib/generated
 pubspec_overrides.yaml
+
+# fastlane (App Store / Play Store metadata management)
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/asc_api_key.json
+**/fastlane/screenshots/**/*.png
+**/fastlane/test_output
+private_keys/
