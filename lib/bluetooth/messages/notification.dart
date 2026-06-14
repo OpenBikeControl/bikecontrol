@@ -1,7 +1,9 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodType;
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -71,7 +73,36 @@ class AlertNotification extends LogNotification {
   final VoidCallback? onTap;
   final String? buttonTitle;
 
-  AlertNotification(this.level, this.alertMessage, {this.onTap, this.buttonTitle}) : super(alertMessage);
+  /// Transport this alert relates to, used to pick the activity-log icon
+  /// (WiFi vs Bluetooth). Null for alerts unrelated to a trainer connection.
+  final ConnectionMethodType? connectionType;
+
+  AlertNotification(
+    this.level,
+    this.alertMessage, {
+    this.onTap,
+    this.buttonTitle,
+    this.connectionType,
+  }) : super(alertMessage);
+
+  /// Builds the `<app> connected/disconnected` alert shown when a trainer app
+  /// attaches to or leaves one of our emulators. Names the app when [appName]
+  /// is known and tags the alert with [type] so the activity log shows the
+  /// matching transport icon.
+  factory AlertNotification.connection({
+    required bool connected,
+    required ConnectionMethodType type,
+    String? appName,
+  }) {
+    final l10n = AppLocalizations.current;
+    final String message;
+    if (connected) {
+      message = appName != null ? l10n.connectedTo(appName) : l10n.connected;
+    } else {
+      message = appName != null ? l10n.disconnectedFrom(appName) : l10n.disconnected;
+    }
+    return AlertNotification(LogLevel.LOGLEVEL_INFO, message, connectionType: type);
+  }
 
   @override
   String toString() {

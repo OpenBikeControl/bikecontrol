@@ -72,7 +72,11 @@ class ZwiftEmulator extends TrainerConnection {
         _currentDeviceId = null;
         isConnected.value = false;
         core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.disconnected),
+          AlertNotification.connection(
+            connected: false,
+            type: type,
+            appName: core.settings.getTrainerApp()?.name,
+          ),
         );
         onUpdate();
       }
@@ -139,7 +143,11 @@ class ZwiftEmulator extends TrainerConnection {
           isConnected.value = true;
 
           core.connection.signalNotification(
-            AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connected),
+            AlertNotification.connection(
+              connected: true,
+              type: type,
+              appName: core.settings.getTrainerApp()?.name,
+            ),
           );
 
           if (value == null) return PeripheralWriteRequestResult();

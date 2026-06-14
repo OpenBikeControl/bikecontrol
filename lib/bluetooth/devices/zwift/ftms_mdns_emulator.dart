@@ -55,15 +55,13 @@ class FtmsMdnsEmulator extends TrainerConnection {
     ftmsEmulator.isConnected.addListener(() {
       isConnected.value = ftmsEmulator.isConnected.value;
       updateKeepAlive(isConnected.value);
-      if (isConnected.value) {
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connected),
-        );
-      } else {
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.disconnected),
-        );
-      }
+      core.connection.signalNotification(
+        AlertNotification.connection(
+          connected: isConnected.value,
+          type: type,
+          appName: core.settings.getTrainerApp()?.name,
+        ),
+      );
     });
   }
 

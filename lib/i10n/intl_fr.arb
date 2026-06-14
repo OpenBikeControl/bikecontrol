@@ -160,6 +160,14 @@
   "disconnectAndForgetForThisSession": "Déconnecter",
   "disconnectDevices": "Déconnecter les appareils",
   "disconnected": "Déconnecté",
+  "disconnectedFrom": "Déconnecté de {appId}",
+  "@disconnectedFrom": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
   "donateByBuyingFromPlayStore": "en achetant l'application sur le Play Store",
   "donateViaCreditCard": "par carte bancaire, Google Pay, Apple Pay et autres",
   "donateViaPaypal": "via PayPal",

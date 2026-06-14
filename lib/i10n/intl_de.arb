@@ -160,6 +160,14 @@
   "disconnectAndForgetForThisSession": "Trennen",
   "disconnectDevices": "Geräte trennen",
   "disconnected": "Getrennt",
+  "disconnectedFrom": "Von {appId} getrennt",
+  "@disconnectedFrom": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
   "donateByBuyingFromPlayStore": "App im Play Store kaufen",
   "donateViaCreditCard": "per Kreditkarte, Google Pay, Apple Pay und anderen Zahlungsarten",
   "donateViaPaypal": "via PayPal",
