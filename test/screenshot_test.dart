@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/controller_settings.dart';
@@ -19,7 +20,7 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:golden_screenshot/golden_screenshot.dart';
+import 'package:golden_screenshot/golden_screenshot.dart' hide testGoldens;
 import 'package:integration_test/integration_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -41,6 +42,32 @@ enum DeviceType {
   noFrame,
 }
 
+/// Drop-in for golden_screenshot's [testGoldens] that leaves
+/// [debugDisableShadows] = false at teardown.
+///
+/// These screenshot tests run under the live
+/// [IntegrationTestWidgetsFlutterBinding] (needed for the real-async Supabase /
+/// settings bootstrap in [main]), whose painting-vars invariant requires
+/// debugDisableShadows == false. golden_screenshot's own testGoldens resets it
+/// to true — correct only for the automated binding — which trips that
+/// invariant. Shadows stay enabled during capture, so the goldens are identical.
+void testGoldens(
+  String description,
+  WidgetTesterCallback callback, {
+  // Mirrors golden_screenshot's internal kAllowedDiffPercent default.
+  double allowedDiffPercent = 0.1,
+}) {
+  testWidgets(description, (tester) async {
+    debugDisableShadows = false;
+    tester.useFuzzyComparator(allowedDiffPercent: allowedDiffPercent);
+    try {
+      await callback(tester);
+    } finally {
+      debugDisableShadows = false;
+    }
+  });
+}
+
 Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   PackageInfo.setMockInitialValues(
@@ -55,6 +82,11 @@ Future<void> main() async {
   IAPManager.instance.isPurchased.value = true;
 
   screenshotMode = true;
+
+  // Some setup (e.g. core.whooshLink) reads AppLocalizations.current before any
+  // app widget has loaded the delegate, so load it up front. Without this, a
+  // single test run in isolation throws "No instance of AppLocalizations".
+  await AppLocalizations.load(const Locale('en'));
 
   await core.settings.init();
   await core.settings.reset();
