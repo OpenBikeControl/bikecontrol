@@ -56,6 +56,10 @@ jobs:
         working-directory: android
         run: bundle exec fastlane download_metadata
 
+      - name: Prepare screenshots
+        if: ${{ inputs.action == 'upload' }}
+        run: scripts/prepare_store_screenshots.sh
+
       - name: Upload metadata to Google Play
         if: ${{ inputs.action == 'upload' }}
         working-directory: android
@@ -110,6 +114,10 @@ jobs:
         if: ${{ inputs.action == 'download' }}
         working-directory: ios
         run: bundle exec fastlane download_metadata
+
+      - name: Prepare screenshots
+        if: ${{ inputs.action == 'upload' }}
+        run: scripts/prepare_store_screenshots.sh
 
       - name: Upload metadata to App Store
         if: ${{ inputs.action == 'upload' }}

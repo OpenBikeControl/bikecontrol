@@ -62,6 +62,9 @@ pubspec_overrides.yaml
 **/fastlane/report.xml
 **/fastlane/Preview.html
 **/fastlane/asc_api_key.json
-**/fastlane/screenshots/**/*.png
 **/fastlane/test_output
 private_keys/
+# Store screenshots are generated from ./screenshots by
+# scripts/prepare_store_screenshots.sh, so they are not committed.
+ios/fastlane/screenshots/
+android/fastlane/metadata/android/*/images/

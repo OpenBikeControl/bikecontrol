@@ -11,7 +11,7 @@ JSON_KEY     = ENV["SUPPLY_JSON_KEY_FILE"] || "fastlane/service-account.json"
 METADATA     = "./fastlane/metadata/android"
 
 platform :android do
-  desc "Upload the localized store listing texts to Google Play (no binary, no changelogs)"
+  desc "Upload the localized store listing texts & screenshots to Google Play (no binary, no changelogs)"
   lane :upload_metadata do
     upload_to_play_store(
       package_name: PACKAGE_NAME,
@@ -20,8 +20,10 @@ platform :android do
       track: ENV["PLAY_TRACK"] || "production",
       skip_upload_apk: true,
       skip_upload_aab: true,
+      # Feature graphic / icon are not managed here, only the localized
+      # screenshots prepared by scripts/prepare_store_screenshots.sh.
       skip_upload_images: true,
-      skip_upload_screenshots: true,
+      skip_upload_screenshots: false,
       # Release notes ("what's new") are handled per-release by the build
       # workflow, so we don't overwrite them when syncing the listing.
       skip_upload_changelogs: true,

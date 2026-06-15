@@ -20,14 +20,17 @@ def asc_api_key
 end
 
 platform :ios do
-  desc "Upload the localized App Store listing texts (no binary, no screenshots)"
+  desc "Upload the localized App Store listing texts & screenshots (no binary)"
   lane :upload_metadata do
     deliver(
       api_key: asc_api_key,
       app_identifier: APP_IDENTIFIER,
       metadata_path: METADATA,
+      screenshots_path: "./fastlane/screenshots",
       skip_binary_upload: true,
-      skip_screenshots: true,
+      # Screenshots are prepared by scripts/prepare_store_screenshots.sh.
+      skip_screenshots: false,
+      overwrite_screenshots: true,
       skip_app_version_update: true,
       submit_for_review: false,
       run_precheck_before_submit: false,
