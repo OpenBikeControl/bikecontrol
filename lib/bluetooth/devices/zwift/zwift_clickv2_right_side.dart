@@ -3,8 +3,10 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dar
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/new_unlock_method_toggle.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -99,15 +101,19 @@ class ZwiftClickV2RightSide extends ZwiftRide {
     // Read localised text before the awaits below remove this card.
     final confirmation = context.i18n.unlock_rightSideOnlyConfigured;
 
-    // Ignore (don't just disconnect) the left side, otherwise the active scan
-    // reconnects it within seconds. Ignoring is persistent and reversible from
-    // the Ignored Devices list.
+    // Remap the keymap while both sides are still connected: if this has to fork
+    // a built-in profile into a custom copy, the copy should keep every
+    // connected controller's existing mappings (the left side's included).
+    configureRightSideShiftingKeymap();
+
+    // Then ignore (don't just disconnect) the left side, otherwise the active
+    // scan reconnects it within seconds. Ignoring is persistent and reversible
+    // from the Ignored Devices list.
     final leftSides = core.connection.devices.whereType<ZwiftClickV2LeftSide>().toList();
     for (final left in leftSides) {
       await core.connection.disconnect(left, forget: true, persistForget: true);
     }
 
-    _configureRightSideShiftingKeymap();
     buildToast(title: confirmation);
   }
 
@@ -115,10 +121,20 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   /// both directions: ＋ (shiftUpRight) shifts up, B shifts down. B loses its
   /// default "back"/Escape binding so it becomes a dedicated down-shift.
   ///
-  /// This edits the currently active app's keymap; for a built-in app the
-  /// change applies for the session (built-in keymaps reset to their template
-  /// defaults on restart), for a custom profile it is persisted.
-  void _configureRightSideShiftingKeymap() {
+  /// Built-in app keymaps are code-defined templates that reset to their
+  /// defaults on restart, and [Settings.setKeyMap] only persists key pairs for
+  /// custom profiles. So, mirroring the button editor, a built-in profile is
+  /// first forked into a custom copy (`"App (Copy)"`) which the remap then edits
+  /// and persists — otherwise the change would be lost on the next launch.
+  @visibleForTesting
+  void configureRightSideShiftingKeymap() {
+    final app = core.actionHandler.supportedApp;
+    if (app == null) return;
+
+    if (app is! CustomApp) {
+      KeymapManager().duplicateSync(app.name, '${app.name} (Copy)');
+    }
+
     final keymap = core.actionHandler.supportedApp?.keymap;
     if (keymap == null) return;
 
@@ -132,9 +148,10 @@ class ZwiftClickV2RightSide extends ZwiftRide {
     shiftDown.modifiers = [];
 
     keymap.signalUpdate();
-    final app = core.actionHandler.supportedApp;
-    if (app != null) {
-      core.settings.setKeyMap(app);
+
+    final activeApp = core.actionHandler.supportedApp;
+    if (activeApp != null) {
+      core.settings.setKeyMap(activeApp);
     }
   }
 }
