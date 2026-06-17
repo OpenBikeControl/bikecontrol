@@ -63,7 +63,7 @@ class ZwiftClickV2 extends ZwiftRide {
   List<int> get startCommand => ZwiftConstants.RIDE_ON + ZwiftConstants.RESPONSE_START_CLICK_V2;
 
   @override
-  String get latestFirmwareVersion => '1.1.0';
+  String get latestFirmwareVersion => '1.2.0';
 
   @override
   bool get canVibrate => false;

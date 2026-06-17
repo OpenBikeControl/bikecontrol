@@ -991,7 +991,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   Widget _buildErrorBanner() {
     final entry = _latestError;
-    if (entry == null && _errorBannerController.value == 0) {
+    if ((entry == null && _errorBannerController.value == 0) || _screenWidth > 800) {
       return const SizedBox.shrink();
     }
 
