@@ -3,7 +3,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
-import 'package:bike_control/widgets/new_unlock_method_toggle.dart';
 import 'package:bike_control/widgets/unlock_toggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -75,7 +74,6 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
   List<Widget> showAdditionalInformation(BuildContext context) {
     return [
       UnlockToggle(device: this, children: unlockWarnings(context)),
-      const NewUnlockMethodToggle(),
     ];
   }
 }

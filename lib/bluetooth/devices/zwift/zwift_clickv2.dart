@@ -190,16 +190,29 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
-    return [
-      ...unlockWarnings(context),
-      const NewUnlockMethodToggle(),
-    ];
+    return unlockWarnings(context);
+  }
+
+  /// The new-unlock-method toggle lives in the detail page's "Preferences"
+  /// section (via [buildPreferences]) rather than [showAdditionalInformation],
+  /// so it shows only when the controller entry is opened, not on the compact
+  /// overview card.
+  @override
+  Widget? buildPreferences(BuildContext context) {
+    final superPreferences = super.buildPreferences(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12,
+      children: [
+        if (superPreferences != null) superPreferences,
+        const NewUnlockMethodToggle(),
+      ],
+    );
   }
 
   /// The unlock-status warning(s) for this Click. Split out from
   /// [showAdditionalInformation] so [ZwiftClickV2LeftSide] can wrap exactly
-  /// these in its unlock-mode toggle while keeping the new-method toggle
-  /// always visible.
+  /// these in its unlock-mode toggle.
   List<Widget> unlockWarnings(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (!isConnected || screenshotMode) return [];
@@ -344,7 +357,10 @@ class ZwiftClickV2 extends ZwiftRide {
               Row(
                 spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [iconBadge, Flexible(child: text)],
+                children: [
+                  iconBadge,
+                  Flexible(child: text),
+                ],
               ),
               action,
             ],
@@ -353,7 +369,11 @@ class ZwiftClickV2 extends ZwiftRide {
         return Row(
           spacing: 12,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [iconBadge, Flexible(child: text), action],
+          children: [
+            iconBadge,
+            Flexible(child: text),
+            action,
+          ],
         );
       },
     );

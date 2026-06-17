@@ -64,19 +64,32 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
     final hasLeftSide = core.connection.devices.whereType<ZwiftClickV2LeftSide>().isNotEmpty;
+    if (!hasLeftSide) return [];
     return [
-      const NewUnlockMethodToggle(),
-      if (hasLeftSide) ...[
-        Text(context.i18n.unlock_useRightSideOnlyDescription).xSmall.normal,
-        SizedBox(
-          width: double.infinity,
-          child: Button.outline(
-            onPressed: () => _useRightSideOnly(context),
-            child: Text(context.i18n.unlock_useRightSideOnly),
-          ),
+      Text(context.i18n.unlock_useRightSideOnlyDescription).xSmall.normal,
+      SizedBox(
+        width: double.infinity,
+        child: Button.outline(
+          onPressed: () => _useRightSideOnly(context),
+          child: Text(context.i18n.unlock_useRightSideOnly),
         ),
-      ],
+      ),
     ];
+  }
+
+  /// Detail page only: the new-unlock-method toggle lives under "Preferences"
+  /// so it doesn't show on the compact overview card.
+  @override
+  Widget? buildPreferences(BuildContext context) {
+    final superPreferences = super.buildPreferences(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12,
+      children: [
+        if (superPreferences != null) superPreferences,
+        const NewUnlockMethodToggle(),
+      ],
+    );
   }
 
   /// Switches to a "right side only" setup: the left controller (which needs
