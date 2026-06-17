@@ -21,6 +21,24 @@ import 'package:version/version.dart';
 class RevenueCatService {
   static const int trialDays = 5;
 
+  /// First build number shipped as a free download. Builds at or above this
+  /// number are no longer auto-granted the full version — they fall into the
+  /// existing trial/freemium path. Builds 77..[freeAgainFromBuild] - 1 remain
+  /// the paid era and keep the full version forever (Apple's
+  /// `originalApplicationVersion` is fixed at first download).
+  static const int freeAgainFromBuild = 138;
+
+  /// Whether an Apple `originalApplicationVersion` integer build number should
+  /// be treated as having purchased the full version.
+  ///
+  /// - `< 58` (macOS `< 61`): old paid era → purchased.
+  /// - `58..76`: legacy free + trial window → not purchased.
+  /// - `77..[freeAgainFromBuild] - 1`: current paid era → purchased.
+  /// - `>= freeAgainFromBuild`: free + trial again → not purchased.
+  @visibleForTesting
+  static bool isPurchasedBuild(int build, {required bool isMacOS}) =>
+      build < (isMacOS ? 61 : 58) || (build >= 77 && build < freeAgainFromBuild);
+
   static const String _trialStartDateKey = 'iap_trial_start_date';
   static const String _purchaseStatusKey = 'iap_purchase_status';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
