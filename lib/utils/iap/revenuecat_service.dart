@@ -157,7 +157,7 @@ class RevenueCatService {
       final commandCount = await _prefs.read(key: _dailyCommandCountKey) ?? '0';
       _dailyCommandCount = int.tryParse(commandCount);
 
-      if (!isTrialExpired && Platform.isAndroid) {
+      if (!isTrialExpired) {
         setDailyCommandLimit(80);
       }
       await setAttributes();
@@ -492,13 +492,12 @@ class RevenueCatService {
   /// Check if the user can execute a command
   bool get canExecuteCommand {
     if (isPurchasedNotifier.value) return true;
-    if (!isTrialExpired && !Platform.isAndroid) return true;
     return dailyCommandCount < getDailyCommandLimit();
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (isPurchasedNotifier.value || (!isTrialExpired && !Platform.isAndroid)) return -1; // Unlimited
+    if (isPurchasedNotifier.value) return -1; // Unlimited
     final remaining = getDailyCommandLimit() - dailyCommandCount;
     return remaining > 0 ? remaining : 0; // Never return negative
   }
