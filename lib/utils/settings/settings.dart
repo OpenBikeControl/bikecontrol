@@ -29,7 +29,18 @@ import '../keymap/apps/custom_app.dart';
 import '../keymap/buttons.dart';
 
 class Settings {
-  late SharedPreferences prefs;
+  late SharedPreferences _prefs;
+  bool _initialized = false;
+
+  /// Assigning [prefs] (from [init] in production or directly in tests) flips
+  /// [_initialized] so guards like [getUseNewUnlockMethod] know prefs are ready
+  /// and don't throw on the uninitialised `late` field.
+  SharedPreferences get prefs => _prefs;
+  set prefs(SharedPreferences value) {
+    _prefs = value;
+    _initialized = true;
+  }
+
   SettingsSyncService? _syncService;
   Timer? _syncDebounceTimer;
 
@@ -685,5 +696,21 @@ class Settings {
 
   Future<void> setUnlockWithZwift(bool value) async {
     await prefs.setBool('unlock_mode', value);
+  }
+
+  /// Whether a Zwift Click V2 connects as separate left/right controllers with
+  /// the new unlock handling (the right side needs no unlocking). When false,
+  /// both sides fall back to the single legacy [ZwiftClickV2]. Defaults to true.
+  ///
+  /// Guarded against an uninitialised [prefs] because device detection
+  /// ([BluetoothDevice.fromScanResult]) can run before [init] — e.g. in unit
+  /// tests — and must never throw. Mirrors [IAPManager]'s initialisation guard.
+  bool getUseNewUnlockMethod() {
+    if (!_initialized) return true;
+    return prefs.getBool('use_new_unlock_method') ?? true;
+  }
+
+  Future<void> setUseNewUnlockMethod(bool value) async {
+    await prefs.setBool('use_new_unlock_method', value);
   }
 }

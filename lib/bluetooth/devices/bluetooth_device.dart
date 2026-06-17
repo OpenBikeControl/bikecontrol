@@ -20,7 +20,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_play_fw2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -163,7 +162,10 @@ abstract class BluetoothDevice extends BaseDevice {
       if (data == null || data.isEmpty) {
       } else {
         final type = ZwiftDeviceType.fromManufacturerData(data.first);
-        final isPro = IAPManager.instance.isProEnabledForCurrentDevice;
+        // The split left/right controllers (with the new unlock handling) are
+        // available to everyone now; a single toggle picks them over the
+        // legacy unified [ZwiftClickV2]. Defaults on.
+        final useNewUnlock = core.settings.getUseNewUnlockMethod();
         device = switch (type) {
           ZwiftDeviceType.click => ZwiftClick(scanResult),
           ZwiftDeviceType.playRight => ZwiftPlay(scanResult, deviceType: type!),
@@ -171,8 +173,8 @@ abstract class BluetoothDevice extends BaseDevice {
           ZwiftDeviceType.rideLeft => ZwiftRide(scanResult),
           ZwiftDeviceType.playFw2 => ZwiftPlayFw2(scanResult),
           //DeviceType.rideRight => ZwiftRide(scanResult), // see comment above
-          ZwiftDeviceType.clickV2Left => isPro ? ZwiftClickV2LeftSide(scanResult) : ZwiftClickV2(scanResult),
-          ZwiftDeviceType.clickV2Right => isPro ? ZwiftClickV2RightSide(scanResult) : null,
+          ZwiftDeviceType.clickV2Left => useNewUnlock ? ZwiftClickV2LeftSide(scanResult) : ZwiftClickV2(scanResult),
+          ZwiftDeviceType.clickV2Right => useNewUnlock ? ZwiftClickV2RightSide(scanResult) : null,
           _ => null,
         };
       }

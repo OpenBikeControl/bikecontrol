@@ -8,6 +8,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
+import 'package:bike_control/widgets/new_unlock_method_toggle.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:bike_control/widgets/unlock_confirm.dart';
 import 'package:dartx/dartx.dart';
@@ -189,6 +190,17 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
+    return [
+      ...unlockWarnings(context),
+      const NewUnlockMethodToggle(),
+    ];
+  }
+
+  /// The unlock-status warning(s) for this Click. Split out from
+  /// [showAdditionalInformation] so [ZwiftClickV2LeftSide] can wrap exactly
+  /// these in its unlock-mode toggle while keeping the new-method toggle
+  /// always visible.
+  List<Widget> unlockWarnings(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId);
     if (!isConnected || screenshotMode) return [];
     if (isPersistedUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
@@ -196,33 +208,13 @@ class ZwiftClickV2 extends ZwiftRide {
         Warning(
           important: false,
           children: [
-            Row(
-              spacing: 12,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.gray,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: Icon(Icons.lock_open_rounded, color: Colors.white),
-                ),
-                Flexible(
-                  child: Text(
-                    'Likely unlocked until ${DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1)))}',
-                  ).xSmall,
-                ),
-                Button.outline(
-                  child: Text('Unlock again'),
-                  onPressed: () {
-                    openDrawer(
-                      context: context,
-                      position: OverlayPosition.bottom,
-                      builder: (_) => UnlockPage(device: this),
-                    );
-                  },
-                ),
-              ],
+            _unlockStatusLine(
+              iconColor: Colors.gray,
+              icon: Icons.lock_open_rounded,
+              text: Text(
+                'Likely unlocked until ${DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1)))}',
+              ).xSmall,
+              action: _unlockAgainButton(context),
             ),
             if (initializationTime != null) UnlockConfirm(device: this),
           ],
@@ -233,35 +225,15 @@ class ZwiftClickV2 extends ZwiftRide {
         Warning(
           important: false,
           children: [
-            Row(
-              spacing: 12,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: Icon(Icons.lock_open_rounded, color: Colors.white),
+            _unlockStatusLine(
+              iconColor: Colors.green,
+              icon: Icons.lock_open_rounded,
+              text: Text(
+                AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
+                  DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1))),
                 ),
-                Flexible(
-                  child: Text(
-                    AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
-                      DateFormat('EEEE, HH:MM').format(lastUnlockDate.add(const Duration(days: 1))),
-                    ),
-                  ).xSmall,
-                ),
-                Button.outline(
-                  child: Text('Unlock again'),
-                  onPressed: () {
-                    openDrawer(
-                      context: context,
-                      position: OverlayPosition.bottom,
-                      builder: (_) => UnlockPage(device: this),
-                    );
-                  },
-                ),
-              ],
+              ).xSmall,
+              action: _unlockAgainButton(context),
             ),
             if (kDebugMode) ...[
               Button(
@@ -281,64 +253,110 @@ class ZwiftClickV2 extends ZwiftRide {
       Warning(
         important: false,
         children: [
-          Row(
-            spacing: 8,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Icon(Icons.lock_rounded, color: Colors.white),
-              ),
-              Flexible(
-                child: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall,
-              ),
-              Builder(
-                builder: (context) {
-                  return Button(
-                    onPressed: () {
-                      showDropdown(
-                        context: context,
-                        builder: (c) => DropdownMenu(
-                          children: [
-                            MenuButton(
-                              leading: const Icon(Icons.check),
-                              onPressed: (c) {
-                                propPrefs.setZwiftClickV2LastUnlock(scanResult.deviceId, DateTime.now());
-                                propPrefs.setNotSureIfUnlocked(scanResult.deviceId, true);
-                                super.setupHandshake();
-                              },
-                              child: Text(context.i18n.unlock_markAsUnlocked),
-                            ),
-                            MenuDivider(),
-                            MenuButton(
-                              onPressed: (c) {
-                                openDrawer(
-                                  context: context,
-                                  position: OverlayPosition.bottom,
-                                  builder: (_) => UnlockPage(device: this),
-                                );
-                              },
-                              leading: const Icon(Icons.lock_open_rounded),
-                              child: Text(AppLocalizations.of(context).unlock_unlockNow),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    leading: const Icon(Icons.lock_open_rounded),
-                    style: ButtonStyle.outline(size: ButtonSize.small),
-                    child: Text(AppLocalizations.of(context).unlock_unlockNow),
-                  );
-                },
-              ),
-            ],
+          _unlockStatusLine(
+            iconColor: Colors.red,
+            icon: Icons.lock_rounded,
+            text: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall,
+            action: Builder(
+              builder: (context) {
+                return Button(
+                  onPressed: () {
+                    showDropdown(
+                      context: context,
+                      builder: (c) => DropdownMenu(
+                        children: [
+                          MenuButton(
+                            leading: const Icon(Icons.check),
+                            onPressed: (c) {
+                              propPrefs.setZwiftClickV2LastUnlock(scanResult.deviceId, DateTime.now());
+                              propPrefs.setNotSureIfUnlocked(scanResult.deviceId, true);
+                              super.setupHandshake();
+                            },
+                            child: Text(context.i18n.unlock_markAsUnlocked),
+                          ),
+                          MenuDivider(),
+                          MenuButton(
+                            onPressed: (c) {
+                              openDrawer(
+                                context: context,
+                                position: OverlayPosition.bottom,
+                                builder: (_) => UnlockPage(device: this),
+                              );
+                            },
+                            leading: const Icon(Icons.lock_open_rounded),
+                            child: Text(AppLocalizations.of(context).unlock_unlockNow),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  leading: const Icon(Icons.lock_open_rounded),
+                  style: ButtonStyle.outline(size: ButtonSize.small),
+                  child: Text(AppLocalizations.of(context).unlock_unlockNow),
+                );
+              },
+            ),
           ),
         ],
       ),
     ];
+  }
+
+  Button _unlockAgainButton(BuildContext context) {
+    return Button.outline(
+      child: Text('Unlock again'),
+      onPressed: () {
+        openDrawer(
+          context: context,
+          position: OverlayPosition.bottom,
+          builder: (_) => UnlockPage(device: this),
+        );
+      },
+    );
+  }
+
+  /// One unlock-status line: a status icon badge, a short message and a trailing
+  /// action. On a narrow card — e.g. the left and right sides shown side by side
+  /// — the action drops below the text instead of being squeezed into an
+  /// unreadable sliver, which previously pushed the "Unlock again" button up out
+  /// of line with the wrapped text.
+  Widget _unlockStatusLine({
+    required Color iconColor,
+    required IconData icon,
+    required Widget text,
+    required Widget action,
+  }) {
+    final iconBadge = Container(
+      decoration: BoxDecoration(
+        color: iconColor,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Icon(icon, color: Colors.white),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 380) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [iconBadge, Flexible(child: text)],
+              ),
+              action,
+            ],
+          );
+        }
+        return Row(
+          spacing: 12,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [iconBadge, Flexible(child: text), action],
+        );
+      },
+    );
   }
 
   @override
