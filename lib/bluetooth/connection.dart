@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/inactivity_disconnector.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
@@ -64,9 +65,9 @@ class Connection {
   Timer? _gamePadSearchTimer;
   WifiTrainerScanner? _wifiTrainerScanner;
 
-  /// Per-device inactivity timers.  When a timer fires the device is
-  /// automatically disconnected to save its battery (see issue #329).
-  final Map<BaseDevice, Timer> _inactivityTimers = {};
+  /// Auto-disconnects idle BLE controllers to save battery (issue #329).
+  /// Created in [initialize] once `core` is ready.
+  InactivityDisconnector? _inactivityDisconnector;
 
   /// Devices whose in-place ("No connection") disconnect is currently in
   /// flight. UniversalBle.disconnect resolves only after the platform's
@@ -81,6 +82,32 @@ class Connection {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
       lastLogEntries = lastLogEntries.takeLast(kIsWeb ? 1000 : 60).toList();
     });
+
+    _inactivityDisconnector = InactivityDisconnector(
+      isTrainerAppConnected: () => core.logic.connectedNonLocalTrainerConnections.isNotEmpty,
+      isOnlyLocalActive: () =>
+          core.logic.enabledNonLocalTrainerConnections.isEmpty && core.settings.getLocalEnabled(),
+      hasEligibleControllers: () =>
+          controllerDevices.whereType<BluetoothDevice>().any((d) => d.isConnected),
+      onTimeout: _onInactivityTimeout,
+    );
+
+    // A trainer app attaching/leaving any non-Local connection method drives
+    // the battery saver. These emulator singletons live for the app lifetime,
+    // so the listeners never need removing.
+    for (final connection in [
+      core.zwiftEmulator,
+      core.zwiftMdnsEmulator,
+      core.rouvyMdnsEmulator,
+      core.obpMdnsEmulator,
+      core.obpBluetoothEmulator,
+      core.di2Emulator,
+      core.whooshLink,
+      core.remotePairing,
+      core.remoteKeyboardPairing,
+    ]) {
+      connection.isConnected.addListener(() => _inactivityDisconnector?.onTrainerConnectionChanged());
+    }
 
     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) {
       core.mediaKeyHandler.initialize();
@@ -527,13 +554,9 @@ class Connection {
 
     final actionSubscription = device.actionStream.listen((data) {
       _actionStreams.add(data);
-      // Reset the inactivity timer whenever a button is pressed on this
-      // device – we deliberately only react to ButtonNotification so that
-      // internal log / action messages don't keep the timer alive.
-      // Only BLE devices benefit from inactivity disconnect (battery-powered
-      // controllers); gamepads, HID, and gyroscope devices are excluded.
-      if (data is ButtonNotification && device is BluetoothDevice) {
-        _resetInactivityTimer(device);
+      // Any button press counts as activity and slides the inactivity timer.
+      if (data is ButtonNotification) {
+        _inactivityDisconnector?.onButtonActivity();
       }
     });
     _streamSubscriptions[device] = actionSubscription;
@@ -581,10 +604,8 @@ class Connection {
 
       core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
 
-      // Start the inactivity timer for BLE devices to save their battery.
-      if (device is BluetoothDevice && device is! ProxyDevice) {
-        _resetInactivityTimer(device);
-      }
+      // Let the battery saver re-evaluate now that a device connected.
+      _inactivityDisconnector?.onDeviceConnectionChanged();
 
       if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
         _androidNotificationsSetup = true;
@@ -619,8 +640,6 @@ class Connection {
     required bool forget,
     bool keepInList = false,
   }) async {
-    _cancelInactivityTimer(device);
-
     if (keepInList) _inPlaceDisconnects.add(device);
     try {
       if (device.isConnected) {
@@ -674,10 +693,10 @@ class Connection {
     }
 
     signalChange(device);
+    _inactivityDisconnector?.onDeviceConnectionChanged();
   }
 
   Future<void> disconnectAll() async {
-    _cancelAllInactivityTimers();
     _actionStreams.add(LogNotification(AppLocalizations.current.disconnectingAllDevices));
     for (var device in bluetoothDevices) {
       _streamSubscriptions[device]?.cancel();
@@ -691,6 +710,7 @@ class Connection {
     _gamePadSearchTimer?.cancel();
     _lastScanResult.clear();
     hasDevices.value = false;
+    _inactivityDisconnector?.onDeviceConnectionChanged();
   }
 
   Future<void> stop() async {
@@ -704,60 +724,60 @@ class Connection {
     _androidNotificationsSetup = false;
   }
 
-  // ── Per-device inactivity timeout (issue #329) ─────────────────────
+  // ── Inactivity / battery-saver disconnect (issue #329) ─────────────────────
 
-  /// Devices are automatically disconnected after this period of inactivity
-  /// to preserve their battery.
-  static const _inactivityTimeout = Duration(minutes: 45);
+  /// Called by [_inactivityDisconnector] when the idle timeout elapses.
+  /// Disconnects every connected BLE controller (battery-powered; ProxyDevice
+  /// and accessories excluded), then surfaces an in-app alert with a Reconnect
+  /// action and an OS push notification. [timeout] is the elapsed window, used
+  /// for the human-readable message.
+  void _onInactivityTimeout(Duration timeout) {
+    final controllers = controllerDevices.whereType<BluetoothDevice>().where((d) => d.isConnected).toList();
+    if (controllers.isEmpty) return;
 
-  /// Start (or restart) the inactivity timer for [device].
-  void _resetInactivityTimer(BaseDevice device) {
-    _inactivityTimers[device]?.cancel();
-
-    if (true) {
-      // not stable - reactivate some other time
-      return;
-    }
-
-    _inactivityTimers[device] = Timer(_inactivityTimeout, () {
-      // Always clean up the map entry – the timer has already fired.
-      _inactivityTimers.remove(device);
-      if (!device.isConnected) return;
-      _actionStreams.add(
-        AlertNotification(
-          LogLevel.LOGLEVEL_WARNING,
-          '${device.toString()} disconnected after ${_inactivityTimeout.inMinutes} minutes of inactivity',
-          buttonTitle: 'Reconnect',
-          onTap: () {
-            _connect(device).catchError((Object error, StackTrace stackTrace) {
-              _actionStreams.add(
-                LogNotification('Failed to reconnect ${device.toString()} after inactivity timeout: $error'),
-              );
-            });
-          },
-        ),
-      );
+    for (final device in controllers) {
       unawaited(
         disconnect(device, forget: true, persistForget: false).catchError((Object error, StackTrace stackTrace) {
           _actionStreams.add(
-            LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error'),
+            LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error\n$stackTrace'),
           );
         }),
       );
-    });
-  }
-
-  /// Cancel the inactivity timer for [device].
-  void _cancelInactivityTimer(BaseDevice device) {
-    _inactivityTimers[device]?.cancel();
-    _inactivityTimers.remove(device);
-  }
-
-  /// Cancel every inactivity timer.
-  void _cancelAllInactivityTimers() {
-    for (final timer in _inactivityTimers.values) {
-      timer.cancel();
     }
-    _inactivityTimers.clear();
+
+    _actionStreams.add(
+      AlertNotification(
+        LogLevel.LOGLEVEL_WARNING,
+        AppLocalizations.current.controllersDisconnectedInactivity(timeout.inMinutes),
+        buttonTitle: AppLocalizations.current.reconnect,
+        onTap: () {
+          for (final device in controllers) {
+            // disconnect(forget: true) drops the controller from the registry;
+            // restore it so the reconnect lands back in the device list.
+            if (!devices.contains(device)) {
+              devices.add(device);
+              hasDevices.value = true;
+            }
+            _connect(device).catchError((Object error, StackTrace stackTrace) {
+              _actionStreams.add(
+                LogNotification('Failed to reconnect ${device.toString()} after inactivity timeout: $error\n$stackTrace'),
+              );
+            });
+          }
+        },
+      ),
+    );
+
+    if (!kIsWeb) {
+      core.flutterLocalNotificationsPlugin.show(
+        1339,
+        AppLocalizations.current.batterySaverTitle,
+        AppLocalizations.current.controllersDisconnectedInactivity(timeout.inMinutes),
+        NotificationDetails(
+          android: AndroidNotificationDetails('BatterySaver', 'Battery Saver'),
+          iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+        ),
+      );
+    }
   }
 }
