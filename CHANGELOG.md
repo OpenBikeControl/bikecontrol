@@ -3,6 +3,7 @@
 - WiFi enabled Smart Trainers are now supported
 - Zwift Click V2: the new unlock handling (separate left and right controllers, with the right side needing no unlocking) is now available to everyone, not just Pro users. A new "Use new unlock method" setting (on by default) lets you switch back to the classic single controller at any time.
 - Zwift Click V2: when both sides are connected you can now switch to using the right side only – it needs no unlocking, and its buttons cover gear shifting (+ shifts up, B shifts down). The left side is disconnected and can be re-enabled anytime under Ignored devices.
+- BikeControl is now free on iOS and macOS, matching Android: new users get a 5-day trial, then a free tier with a daily command limit (Pro removes the limit). Anyone who already purchased keeps the full version.
 
 **Fixes**:
 - Controllers are no longer disconnected while a trainer app is connected. To save battery they now disconnect only after the trainer app has been gone for 5 minutes with no activity (30 minutes when only Local control is used), with an in-app alert and a notification.
