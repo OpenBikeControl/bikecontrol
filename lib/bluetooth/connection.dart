@@ -554,7 +554,10 @@ class Connection {
 
     final actionSubscription = device.actionStream.listen((data) {
       _actionStreams.add(data);
-      // Any button press counts as activity and slides the inactivity timer.
+      // Any button press — from a BLE controller or any other input device —
+      // counts as rider activity and slides the inactivity timer. The timer only
+      // arms while a BLE controller is connected (see hasEligibleControllers), so
+      // non-BLE button activity simply keeps a co-connected controller alive.
       if (data is ButtonNotification) {
         _inactivityDisconnector?.onButtonActivity();
       }
@@ -750,21 +753,11 @@ class Connection {
         LogLevel.LOGLEVEL_WARNING,
         AppLocalizations.current.controllersDisconnectedInactivity(timeout.inMinutes),
         buttonTitle: AppLocalizations.current.reconnect,
-        onTap: () {
-          for (final device in controllers) {
-            // disconnect(forget: true) drops the controller from the registry;
-            // restore it so the reconnect lands back in the device list.
-            if (!devices.contains(device)) {
-              devices.add(device);
-              hasDevices.value = true;
-            }
-            _connect(device).catchError((Object error, StackTrace stackTrace) {
-              _actionStreams.add(
-                LogNotification('Failed to reconnect ${device.toString()} after inactivity timeout: $error\n$stackTrace'),
-              );
-            });
-          }
-        },
+        // Route reconnection through the connection queue so BLE connects are
+        // serialized (Windows fails on parallel connects) and ignored-device
+        // filtering applies. disconnect(persistForget: false) above did not add
+        // these to the ignore list, so they are eligible to be re-added.
+        onTap: () => addDevices(controllers),
       ),
     );
 
