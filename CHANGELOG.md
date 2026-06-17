@@ -2,6 +2,9 @@
 **Features**:
 - WiFi enabled Smart Trainers are now supported
 
+**Fixes**:
+- Controllers are no longer disconnected while a trainer app is connected. To save battery they now disconnect only after the trainer app has been gone for 5 minutes with no activity (30 minutes when only Local control is used), with an in-app alert and a notification.
+
 ### 6.0.0 (06-06-2026)
  
 TrainingPeaks has now partnered with BikeControl, supporting a whooping number of 28 mappable controller actions!
