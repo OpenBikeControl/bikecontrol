@@ -99,6 +99,16 @@
     }
   },
   "connection": "Connection",
+  "reconnect": "Reconnect",
+  "batterySaverTitle": "Battery saver",
+  "controllersDisconnectedInactivity": "Controllers disconnected after {minutes} minutes of inactivity to save battery",
+  "@controllersDisconnectedInactivity": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "continueAction": "Continue",
   "controlAppUsingModes": "Control {appName} using {modes}",
   "@controlAppUsingModes": {
@@ -620,6 +630,12 @@
   "unlock_notWorking": "Not working?",
   "unlock_openZwift": "Open Zwift (not the Companion) on this or another device",
   "unlock_rightSideNeedsNoUnlock": "You could use this controller without the left controller, as this one needs no unlocking or restarts.",
+  "unlock_newMethod": "Use new unlock method",
+  "unlock_newMethodDescription": "Connect the left and right sides as separate controllers. The right side needs no unlocking. Turn off to use a single combined controller.",
+  "unlock_newMethodReconnecting": "Applying… reconnecting your Zwift Click.",
+  "unlock_useRightSideOnly": "Use the right side only",
+  "unlock_useRightSideOnlyDescription": "The right side needs no unlocking. Drop the left side and let the right side handle shifting — + shifts up, B shifts down.",
+  "unlock_rightSideOnlyConfigured": "Done — using the right side only. Re-enable the left side anytime under Ignored devices.",
   "unlock_unlockManually": "Unlock manually",
   "unlock_unlockNow": "Unlock now",
   "unlock_unlockedUntilAroundDate": "Unlocked until around {date}",
