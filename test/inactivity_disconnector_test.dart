@@ -149,6 +149,43 @@ void main() {
       });
     });
 
+    test('30-min Local timer switches to 5-min grace when app connects then leaves', () {
+      fakeAsync((async) {
+        onlyLocalActive = true;
+        final d = build();
+        d.onDeviceConnectionChanged(); // arms 30-min local timer
+        async.elapse(const Duration(minutes: 15));
+        // app arrives
+        trainerAppConnected = true;
+        onlyLocalActive = false;
+        d.onTrainerConnectionChanged();
+        // app leaves: 5-min grace replaces the local timer
+        trainerAppConnected = false;
+        d.onTrainerConnectionChanged();
+        async.elapse(const Duration(minutes: 5));
+        expect(firedTimeouts, [const Duration(minutes: 5)]);
+        d.dispose();
+      });
+    });
+
+    test('controller dropping mid-grace clears it; reconnect does not resume', () {
+      fakeAsync((async) {
+        final d = build();
+        trainerAppConnected = true;
+        d.onTrainerConnectionChanged();
+        trainerAppConnected = false;
+        d.onTrainerConnectionChanged(); // grace armed (5 min)
+        async.elapse(const Duration(minutes: 2));
+        hasControllers = false;
+        d.onDeviceConnectionChanged(); // last controller gone -> grace cleared
+        hasControllers = true;
+        d.onDeviceConnectionChanged(); // new controller, but no app session -> no timer
+        async.elapse(const Duration(minutes: 10));
+        expect(firedTimeouts, isEmpty);
+        d.dispose();
+      });
+    });
+
     test('dispose cancels a pending timer', () {
       fakeAsync((async) {
         onlyLocalActive = true;

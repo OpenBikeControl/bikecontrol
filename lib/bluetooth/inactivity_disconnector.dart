@@ -38,6 +38,7 @@ class InactivityDisconnector {
   /// A trainer app's connection state changed. Detects the connected->left
   /// transition that arms the grace, and cancels it when an app (re)connects.
   void onTrainerConnectionChanged() {
+    if (_disposed) return;
     final connected = isTrainerAppConnected();
     if (connected) {
       _appWasConnected = true;
@@ -50,10 +51,16 @@ class InactivityDisconnector {
   }
 
   /// A controller connected or disconnected.
-  void onDeviceConnectionChanged() => _reevaluate();
+  void onDeviceConnectionChanged() {
+    if (_disposed) return;
+    _reevaluate();
+  }
 
   /// A button was pressed on a controller — slide (restart) the running timer.
-  void onButtonActivity() => _reevaluate(resetSliding: true);
+  void onButtonActivity() {
+    if (_disposed) return;
+    _reevaluate(resetSliding: true);
+  }
 
   void dispose() {
     _disposed = true;
@@ -94,7 +101,8 @@ class InactivityDisconnector {
   }
 
   void _fire() {
-    final duration = _currentDuration ?? graceTimeout;
+    assert(_currentDuration != null, '_fire called with no active duration');
+    final duration = _currentDuration!;
     _timer = null;
     _currentDuration = null;
     _graceArmed = false;
