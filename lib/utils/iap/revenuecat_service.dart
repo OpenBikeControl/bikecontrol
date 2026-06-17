@@ -219,7 +219,7 @@ class RevenueCatService {
         } else {
           final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
           isPurchasedNotifier.value =
-              purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58) || purchasedVersionAsInt >= 77;
+              isPurchasedBuild(purchasedVersionAsInt, isMacOS: Platform.isMacOS);
           hasPurchasedBefore50 = purchasedVersionAsInt < 114;
         }
       }
