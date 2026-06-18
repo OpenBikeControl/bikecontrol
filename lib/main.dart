@@ -29,6 +29,10 @@ import 'utils/core.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
 
+/// Locale to render in [screenshotMode]. Lets the screenshot test produce
+/// localized store screenshots; defaults to English when unset.
+Locale? screenshotLocale;
+
 /// Android overlay isolate entry point. Must live in this library because
 /// flutter_overlay_window's `DartEntrypoint(bundlePath, "overlayMain")` only
 /// resolves symbols in the default Dart library (the one with `main()`).
@@ -305,7 +309,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
           secondary: () => Color(0xFF3A3A3A),
         ),
       ),
-      locale: screenshotMode ? Locale('en') : null,
+      locale: screenshotMode ? (screenshotLocale ?? const Locale('en')) : null,
       theme: ThemeData(
         colorScheme: ColorSchemes.lightSlate.copyWith(
           mutedForeground: () => Color(0xFFA1A1AA),

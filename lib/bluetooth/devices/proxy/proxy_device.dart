@@ -81,6 +81,16 @@ class ProxyDevice extends BluetoothDevice {
   FitnessBikeDefinition? _fbd;
   FitnessBikeDefinition? get fitnessBike => _fbd;
 
+  /// Test-only: attach [fbd] as the active virtual-shifting definition without
+  /// starting any emulator/server. Lets the screenshot harness render the
+  /// virtual-shifting gear UI instead of the "trainer doesn't advertise FTMS"
+  /// warning (which shows whenever [fitnessBike] is null).
+  @visibleForTesting
+  void debugAttachFitnessBike(FitnessBikeDefinition fbd) {
+    _fbd = fbd;
+    _currentFbd = fbd;
+  }
+
   // Note: the base class [BluetoothDevice.services] field holds the discovered
   // BLE services and is used directly when rebuilding definitions on mode switch.
 

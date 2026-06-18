@@ -99,7 +99,7 @@ dev_dependencies:
   fake_async: any
   pubghost: ^1.0.7
   intl_utils: ^2.8.12
-  golden_screenshot: ^8.1.1
+  golden_screenshot: ^11.0.1
   flutter_lints: ^6.0.0
   msix: ^3.16.12
 

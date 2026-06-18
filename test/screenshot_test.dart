@@ -122,15 +122,12 @@ Future<void> main() async {
         ..isConnected = true
         ..rssi = -51;
 
-  proxy.emulator.debugSetTransporter(
-    NetworkTransporter(
-      definition: FitnessBikeDefinition(
-        connectedDevice: proxy.scanResult,
-        connectedDeviceServices: proxy.services!,
-        data: ValueNotifier(''),
-      )..setDebugValues(),
-    ),
-  );
+  final fbd = FitnessBikeDefinition(
+    connectedDevice: proxy.scanResult,
+    connectedDeviceServices: proxy.services!,
+    data: ValueNotifier(''),
+  )..setDebugValues();
+  proxy.emulator.debugSetTransporter(NetworkTransporter(definition: fbd));
 
   core.connection.addDevices([device, proxy]);
 
@@ -157,298 +154,195 @@ Future<void> main() async {
 
   debugDisableShadows = true;
 
-  testGoldens('Init', (WidgetTester tester) async {
-    screenshotMode = true;
-    IAPManager.instance.isPurchased.value = true;
-    await tester.loadAssets();
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'BikeControl connects to your favorite controller',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(),
-        ),
-      );
+  // Locales to render — one screenshot folder per language so the store
+  // listings get genuinely localized screenshots (instead of the English ones
+  // copied to every locale).
+  const screenshotLocales = ['en', 'de', 'es', 'fr', 'it', 'pl'];
 
-      await tester.pump();
+  // Marketing headline per scene, per locale. English is the source of truth;
+  // the other languages are drafts — review/adjust the copy as needed.
+  const titles = <String, Map<String, String>>{
+    'device': {
+      'en': 'Control any trainer with ANY controller',
+      'de': 'Steuere jeden Trainer mit JEDEM Controller',
+      'es': 'Controla cualquier rodillo con CUALQUIER mando',
+      'fr': 'Contrôlez n’importe quel home-trainer avec N’IMPORTE QUEL contrôleur',
+      'it': 'Controlla qualsiasi rullo con QUALSIASI controller',
+      'pl': 'Steruj każdym trenażerem DOWOLNYM kontrolerem',
+    },
+    'trainer': {
+      'en': 'Connect BikeControl to your trainer',
+      'de': 'Verbinde BikeControl mit deinem Trainer',
+      'es': 'Conecta BikeControl a tu rodillo',
+      'fr': 'Connectez BikeControl à votre home-trainer',
+      'it': 'Collega BikeControl al tuo rullo',
+      'pl': 'Połącz BikeControl ze swoim trenażerem',
+    },
+    'customization': {
+      'en': 'Customize every controller button',
+      'de': 'Passe jede Controller-Taste an',
+      'es': 'Personaliza cada botón del mando',
+      'fr': 'Personnalisez chaque bouton du contrôleur',
+      'it': 'Personalizza ogni pulsante del controller',
+      'pl': 'Dostosuj każdy przycisk kontrolera',
+    },
+    'companion': {
+      'en': 'Companion App mode with custom hotkeys',
+      'de': 'Companion-App-Modus mit eigenen Tastenkürzeln',
+      'es': 'Modo app complementaria con atajos personalizados',
+      'fr': 'Mode application compagnon avec raccourcis personnalisés',
+      'it': 'Modalità app companion con scorciatoie personalizzate',
+      'pl': 'Tryb aplikacji towarzyszącej z własnymi skrótami',
+    },
+    'virtualshifting': {
+      'en': 'Add or adjust Virtual Shifting functionality',
+      'de': 'Virtuelles Schalten hinzufügen oder anpassen',
+      'es': 'Añade o ajusta el cambio virtual',
+      'fr': 'Ajoutez ou réglez le passage de vitesses virtuel',
+      'it': 'Aggiungi o regola il cambio virtuale',
+      'pl': 'Dodaj lub dostosuj wirtualną zmianę biegów',
+    },
+    'virtualshifting-settings': {
+      'en': 'Full Control of Virtual Shifting',
+      'de': 'Volle Kontrolle über das virtuelle Schalten',
+      'es': 'Control total del cambio virtual',
+      'fr': 'Contrôle total du passage de vitesses virtuel',
+      'it': 'Controllo totale del cambio virtuale',
+      'pl': 'Pełna kontrola nad wirtualną zmianą biegów',
+    },
+  };
+
+  // Renders [scene] for every locale × device size and writes
+  // ../screenshots/<locale>/<scene>-<device>-<WxH>.png.
+  Future<void> shoot(
+    WidgetTester tester,
+    String scene,
+    Widget Function() homeBuilder, {
+    Future<void> Function(WidgetTester tester)? afterPump,
+  }) async {
+    final sceneTitles = titles[scene]!;
+    for (final loc in screenshotLocales) {
+      await AppLocalizations.load(Locale(loc));
+      screenshotLocale = Locale(loc);
+      for (final size in sizes) {
+        await tester.pumpWidget(
+          ScreenshotApp(
+            locale: Locale(loc),
+            device: ScreenshotDevice(
+              platform: size.platform,
+              resolution: size.size,
+              pixelRatio: 3,
+              goldenSubFolder: 'iphoneScreenshots/',
+              frameBuilder:
+                  ({
+                    required ScreenshotDevice device,
+                    required ScreenshotFrameColors? frameColors,
+                    required Widget child,
+                  }) => CustomFrame(
+                    platform: size.type,
+                    title: sceneTitles[loc] ?? sceneTitles['en']!,
+                    device: device,
+                    child: child,
+                  ),
+            ),
+            home: homeBuilder(),
+          ),
+        );
+
+        await tester.pump();
+        if (afterPump != null) await afterPump(tester);
+        // golden_screenshot v9+ only loads fonts found in the rendered widget
+        // tree, so load after the first pump (then re-render with them).
+        await tester.loadAssets();
+        await tester.pump();
+        await expectLater(
+          find.byType(ma.Scaffold),
+          matchesGoldenFile(
+            '../screenshots/$loc/$scene-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
+          ),
+        );
+      }
     }
-  });
+  }
 
   testGoldens('Device', (WidgetTester tester) async {
-    IAPManager.instance.isPurchased.value = true;
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'Control any trainer with ANY controller',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(),
-        ),
-      );
-
-      await tester.pump();
-
-      core.connection.signalNotification(
-        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'),
-      );
-      core.connection.signalNotification(
-        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
-      );
-
-      await tester.pump();
-      await expectLater(
-        find.byType(ma.Scaffold),
-        matchesGoldenFile(
-          '../screenshots/device-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
-        ),
-      );
-    }
+    await shoot(
+      tester,
+      'device',
+      () => BikeControlApp(),
+      afterPump: (tester) async {
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'),
+        );
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
+        );
+        await tester.pump();
+      },
+    );
   });
 
   testGoldens('Trainer', (WidgetTester tester) async {
-    IAPManager.instance.isPurchased.value = true;
     core.settings.setTrainerApp(BikeControl());
     core.settings.setKeyMap(BikeControl());
-    screenshotMode = true;
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'Connect BikeControl to your trainer',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(
-            customChild: TrainerConnectionSettingsPage(),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await expectLater(
-        find.byType(ma.Scaffold),
-        matchesGoldenFile(
-          '../screenshots/trainer-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
-        ),
-      );
-    }
+    await shoot(
+      tester,
+      'trainer',
+      () => BikeControlApp(customChild: TrainerConnectionSettingsPage()),
+    );
   });
 
   testGoldens('Customization', (WidgetTester tester) async {
-    IAPManager.instance.isPurchased.value = true;
     core.settings.setTrainerApp(keymap);
     core.settings.setKeyMap(keymap);
-    screenshotMode = true;
-
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'Customize every controller button',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(
-            customChild: ControllerSettingsPage(device: device),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await expectLater(
-        find.byType(ma.Scaffold),
-        matchesGoldenFile(
-          '../screenshots/customization-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
-        ),
-      );
-    }
+    await shoot(
+      tester,
+      'customization',
+      () => BikeControlApp(customChild: ControllerSettingsPage(device: device)),
+    );
   });
 
   testGoldens('Trainer Controls', (WidgetTester tester) async {
-    IAPManager.instance.isPurchased.value = true;
-    screenshotMode = true;
-
     core.settings.setTrainerApp(keymap);
     core.settings.setKeyMap(keymap);
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'Companion App mode with custom hotkeys',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(
-            customChild: ButtonSimulator(),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await expectLater(
-        find.byType(ma.Scaffold),
-        matchesGoldenFile(
-          '../screenshots/companion-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
-        ),
-      );
-    }
+    await shoot(
+      tester,
+      'companion',
+      () => BikeControlApp(customChild: ButtonSimulator()),
+    );
   });
 
   testGoldens('Virtual Shifting', (WidgetTester tester) async {
-    IAPManager.instance.isPurchased.value = true;
-    screenshotMode = true;
-
     core.settings.setTrainerApp(keymap);
     core.settings.setKeyMap(keymap);
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'Add or adjust Virtual Shifting functionality',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(
-            customChild: ProxyDeviceDetailsPage(device: proxy),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await expectLater(
-        find.byType(ma.Scaffold),
-        matchesGoldenFile(
-          '../screenshots/virtualshifting-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
-        ),
-      );
-    }
+    // Put the proxy into virtual-shifting mode so the page shows the gear UI
+    // instead of the "trainer doesn't advertise FTMS" warning.
+    proxy.debugAttachFitnessBike(fbd);
+    await shoot(
+      tester,
+      'virtualshifting',
+      () => BikeControlApp(customChild: ProxyDeviceDetailsPage(device: proxy)),
+    );
   });
 
   testGoldens('Virtual Shifting Settings', (WidgetTester tester) async {
-    IAPManager.instance.isPurchased.value = true;
-    screenshotMode = true;
-
     core.settings.setTrainerApp(Zwift());
     core.settings.setKeyMap(Zwift());
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
-    for (final size in sizes) {
-      await tester.pumpWidget(
-        ScreenshotApp(
-          device: ScreenshotDevice(
-            platform: size.platform,
-            resolution: size.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(
-                  platform: size.type,
-                  title: 'Full Control of Virtual Shifting',
-                  device: device,
-                  child: child,
-                ),
-          ),
-          home: BikeControlApp(
-            customChild: GearRatiosEditorPage(
-              device: proxy,
-              definition: proxy.emulator.fitnessBike!,
-            ),
-          ),
+    await shoot(
+      tester,
+      'virtualshifting-settings',
+      () => BikeControlApp(
+        customChild: GearRatiosEditorPage(
+          device: proxy,
+          definition: fbd,
         ),
-      );
-
-      await tester.pump();
-      await expectLater(
-        find.byType(ma.Scaffold),
-        matchesGoldenFile(
-          '../screenshots/virtualshifting-settings-${size.type.name}-${size.size.width.toInt()}x${size.size.height.toInt()}.png',
-        ),
-      );
-    }
+      ),
+    );
   });
 }

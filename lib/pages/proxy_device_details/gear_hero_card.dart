@@ -1,4 +1,5 @@
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
@@ -50,7 +51,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
       builder: (context, _) {
         final isErg = widget.definition.trainerMode.value == TrainerMode.ergMode;
         if (widget.simOnly && isErg) return const SizedBox.shrink();
-        final showMyWhooshHint = !isErg && !_myWhooshHintDismissed && _isMyWhooshActive;
+        final showMyWhooshHint = !isErg && !_myWhooshHintDismissed && _isMyWhooshActive && !screenshotMode;
         final tile = SettingTile(
           icon: LucideIcons.cog,
           title: AppLocalizations.of(context).trainerControl,
