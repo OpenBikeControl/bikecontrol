@@ -256,7 +256,9 @@ class IAPManager {
     } else if (isOutsideStoreWindowsBuild) {
       return AppLocalizations.current.trialExpired(dailyCommandLimit);
     } else if (!hasTrialStarted) {
-      return '${_revenueCatService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining} day trial available';
+      return AppLocalizations.current.trialDaysAvailable(
+        _revenueCatService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining ?? 0,
+      );
     } else if (!isTrialExpired) {
       return AppLocalizations.current.trialDaysRemaining(trialDaysRemaining);
     } else {

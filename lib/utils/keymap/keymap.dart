@@ -649,10 +649,11 @@ enum ButtonTrigger {
   longPress;
 
   String get title {
+    final l = AppLocalizations.current;
     return switch (this) {
-      ButtonTrigger.singleClick => 'Single Click',
-      ButtonTrigger.doubleClick => 'Double Click',
-      ButtonTrigger.longPress => 'Long Press',
+      ButtonTrigger.singleClick => l.triggerSingleClick,
+      ButtonTrigger.doubleClick => l.triggerDoubleClick,
+      ButtonTrigger.longPress => l.triggerLongPress,
     };
   }
 }

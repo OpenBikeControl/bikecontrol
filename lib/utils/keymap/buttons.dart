@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -75,7 +76,7 @@ enum InGameAction {
   dFlyChannel3('D-Fly Channel 3', icon: LucideIcons.circleDot),
   dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot);
 
-  final String title;
+  final String englishTitle;
   final bool isLongPress;
   final bool isOutsideTrainerApp;
   final IconData? icon;
@@ -83,7 +84,7 @@ enum InGameAction {
   final List<int>? possibleValues;
 
   const InGameAction(
-    this.title, {
+    this.englishTitle, {
     this.possibleValues,
     this.isOutsideTrainerApp = false,
     this.alternativeTitle,
@@ -91,10 +92,65 @@ enum InGameAction {
     this.isLongPress = false,
   });
 
-  @override
-  String toString() {
-    return title;
+  /// Localized label shown in the UI (falls back to [englishTitle]).
+  String get title {
+    final l = AppLocalizations.current;
+    return switch (this) {
+      InGameAction.shiftUp => l.actionShiftUp,
+      InGameAction.shiftDown => l.actionShiftDown,
+      InGameAction.uturn => l.actionUturn,
+      InGameAction.tuck => l.actionTuck,
+      InGameAction.steerLeft => l.actionSteerLeft,
+      InGameAction.steerRight => l.actionSteerRight,
+      InGameAction.cameraAngle => l.actionCameraAngle,
+      InGameAction.emote => l.actionEmote,
+      InGameAction.toggleUi => l.actionToggleUi,
+      InGameAction.navigateLeft => l.actionNavigateLeft,
+      InGameAction.navigateRight => l.actionNavigateRight,
+      InGameAction.increaseResistance => l.actionIncreaseResistance,
+      InGameAction.decreaseResistance => l.actionDecreaseResistance,
+      InGameAction.openActionBar => l.actionOpenActionBar,
+      InGameAction.usePowerUp => l.actionUsePowerUp,
+      InGameAction.select => l.actionSelect,
+      InGameAction.back => l.actionBack,
+      InGameAction.rideOnBomb => l.actionRideOnBomb,
+      InGameAction.kudos => l.actionKudos,
+      InGameAction.pause => l.actionPause,
+      InGameAction.headwindSpeed => l.actionHeadwindSpeed,
+      InGameAction.headwindSpeedInc => l.actionHeadwindSpeedInc,
+      InGameAction.headwindSpeedDec => l.actionHeadwindSpeedDec,
+      InGameAction.headwindSpeedCyclicInc => l.actionHeadwindSpeedCyclicInc,
+      InGameAction.headwindSpeedCyclicDec => l.actionHeadwindSpeedCyclicDec,
+      InGameAction.headwindHeartRateMode => l.actionHeadwindHeartRateMode,
+      InGameAction.up => l.actionUp,
+      InGameAction.down => l.actionDown,
+      InGameAction.home => l.actionHome,
+      InGameAction.menu => l.actionMenu,
+      InGameAction.gearSet => l.actionGearSet,
+      InGameAction.pushToTalk => l.actionPushToTalk,
+      InGameAction.skipInterval => l.actionSkipInterval,
+      InGameAction.previousInterval => l.actionPreviousInterval,
+      InGameAction.lap => l.actionLap,
+      InGameAction.resume => l.actionResume,
+      InGameAction.changeMode => l.actionChangeMode,
+      InGameAction.takeBreak => l.actionTakeBreak,
+      InGameAction.joinRider => l.actionJoinRider,
+      InGameAction.changeRoute => l.actionChangeRoute,
+      InGameAction.mapToggle => l.actionMapToggle,
+      InGameAction.spectateRider => l.actionSpectateRider,
+      InGameAction.trainerSwitchMode => l.actionTrainerSwitchMode,
+      InGameAction.trainerIntensityUp => l.actionTrainerIntensityUp,
+      InGameAction.trainerIntensityDown => l.actionTrainerIntensityDown,
+      InGameAction.workoutPauseResume => l.actionWorkoutPauseResume,
+      InGameAction.dFlyChannel1 => l.actionDFlyChannel1,
+      InGameAction.dFlyChannel2 => l.actionDFlyChannel2,
+      InGameAction.dFlyChannel3 => l.actionDFlyChannel3,
+      InGameAction.dFlyChannel4 => l.actionDFlyChannel4,
+    };
   }
+
+  @override
+  String toString() => englishTitle;
 }
 
 const trainerActions = [

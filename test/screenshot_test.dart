@@ -221,6 +221,9 @@ Future<void> main() async {
     Future<void> Function(WidgetTester tester)? afterPump,
   }) async {
     final sceneTitles = titles[scene]!;
+    // core.settings.reset() (in main) clears this, so re-assert the Base version
+    // is active — otherwise the overview shows the "N day trial available" banner.
+    IAPManager.instance.isPurchased.value = true;
     for (final loc in screenshotLocales) {
       await AppLocalizations.load(Locale(loc));
       screenshotLocale = Locale(loc);

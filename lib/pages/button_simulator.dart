@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -297,8 +298,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                         final actionGroups = {
                           if (supportedActions.contains(InGameAction.shiftUp) &&
                               supportedActions.contains(InGameAction.shiftDown))
-                            'Shifting': [InGameAction.shiftDown, InGameAction.shiftUp],
-                          'Other': supportedActions
+                            AppLocalizations.current.actionCategoryShifting: [
+                              InGameAction.shiftDown,
+                              InGameAction.shiftUp,
+                            ],
+                          AppLocalizations.current.actionCategoryOther: supportedActions
                               .where(
                                 (action) =>
                                     action != InGameAction.shiftUp &&
@@ -309,7 +313,10 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                               .toList(),
                           if (supportedActions.contains(InGameAction.steerLeft) &&
                               supportedActions.contains(InGameAction.steerRight))
-                            'Steering': [InGameAction.steerLeft, InGameAction.steerRight],
+                            AppLocalizations.current.actionCategorySteering: [
+                              InGameAction.steerLeft,
+                              InGameAction.steerRight,
+                            ],
                         };
 
                         return [
