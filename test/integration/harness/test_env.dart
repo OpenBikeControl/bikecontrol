@@ -114,6 +114,10 @@ class IntegrationEnv {
     // test's performScanning actually starts a fresh scan.
     await Future<void>.delayed(const Duration(milliseconds: 100));
     await core.connection.stop();
+    // Drops every device and clears the battery-saver auto-reconnect
+    // suppression so a controller a prior test parked for inactivity does not
+    // leak into the next test and silently block its (re)connect.
+    await core.connection.disconnectAll();
     core.connection.devices.clear();
     core.connection.hasDevices.value = false;
     core.connection.isScanning.value = false;

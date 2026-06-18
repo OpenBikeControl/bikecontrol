@@ -77,6 +77,14 @@ class Connection {
   /// object the open details page still holds.
   final _inPlaceDisconnects = <BaseDevice>{};
 
+  /// BLE ids of controllers disconnected by the inactivity battery saver. They
+  /// are deliberately NOT added to the ignore list (so the user can reconnect),
+  /// but must not be auto-reconnected when rediscovered (via scan results,
+  /// getSystemDevices or the disconnect listener's performScanning) — otherwise
+  /// they reconnect right after the battery-saver disconnect. Cleared on an
+  /// explicit reconnect or a successful (re)connect.
+  final _suppressedAutoReconnect = <String>{};
+
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
@@ -447,6 +455,11 @@ class Connection {
         if (ignoredDeviceIds.contains(device.device.deviceId)) {
           return false;
         }
+        // A controller the battery saver disconnected must not silently
+        // reconnect when rediscovered; only an explicit reconnect clears this.
+        if (_suppressedAutoReconnect.contains(device.device.deviceId)) {
+          return false;
+        }
       }
 
       return true;
@@ -544,7 +557,12 @@ class Connection {
   /// [ProxyDevice.startProxy] would reconnect the BLE upstream but leave
   /// `isConnected` stuck — the listener that flips it is torn down on
   /// disconnect and only [_connect] re-establishes it.
-  Future<void> connectDevice(BaseDevice device) => _connect(device);
+  Future<void> connectDevice(BaseDevice device) {
+    // An explicit reconnect (e.g. the device picker) clears any battery-saver
+    // suppression so the controller auto-reconnects normally again afterwards.
+    if (device is BluetoothDevice) _suppressedAutoReconnect.remove(device.device.deviceId);
+    return _connect(device);
+  }
 
   Future<void> _connect(BaseDevice device) async {
     // Cancel any stale subscriptions from a previous connect attempt so a retry
@@ -712,6 +730,9 @@ class Connection {
     }
     _gamePadSearchTimer?.cancel();
     _lastScanResult.clear();
+    // Everything is gone, so the battery-saver suppression is moot — a later
+    // rediscovery should auto-connect normally again.
+    _suppressedAutoReconnect.clear();
     hasDevices.value = false;
     _inactivityDisconnector?.onDeviceConnectionChanged();
   }
@@ -729,6 +750,12 @@ class Connection {
 
   // ── Inactivity / battery-saver disconnect (issue #329) ─────────────────────
 
+  /// Test seam: run the inactivity battery-saver disconnect directly instead of
+  /// waiting out the real idle timer.
+  @visibleForTesting
+  void debugTriggerInactivityTimeout([Duration timeout = const Duration(minutes: 30)]) =>
+      _onInactivityTimeout(timeout);
+
   /// Called by [_inactivityDisconnector] when the idle timeout elapses.
   /// Disconnects every connected BLE controller (battery-powered; ProxyDevice
   /// and accessories excluded), then surfaces an in-app alert with a Reconnect
@@ -739,6 +766,10 @@ class Connection {
     if (controllers.isEmpty) return;
 
     for (final device in controllers) {
+      // Suppress auto-reconnect so the rediscovery that follows the disconnect
+      // doesn't immediately bring the controller back (the whole point is to
+      // let its battery rest). The explicit Reconnect action below clears it.
+      _suppressedAutoReconnect.add(device.device.deviceId);
       unawaited(
         disconnect(device, forget: true, persistForget: false).catchError((Object error, StackTrace stackTrace) {
           _actionStreams.add(
@@ -757,7 +788,12 @@ class Connection {
         // serialized (Windows fails on parallel connects) and ignored-device
         // filtering applies. disconnect(persistForget: false) above did not add
         // these to the ignore list, so they are eligible to be re-added.
-        onTap: () => addDevices(controllers),
+        onTap: () {
+          for (final device in controllers) {
+            _suppressedAutoReconnect.remove(device.device.deviceId);
+          }
+          addDevices(controllers);
+        },
       ),
     );
 

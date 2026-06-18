@@ -1,6 +1,6 @@
-import 'dart:typed_data';
-
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
@@ -221,6 +221,70 @@ Future<void> main() async {
       );
       await Future<void>.delayed(const Duration(milliseconds: 100));
       expect(core.connection.devices, isEmpty);
+    });
+
+    test('a controller disconnected for inactivity is not auto-reconnected on rediscovery', () async {
+      final click = buildZwiftClick();
+      autoRespondToZwiftHandshake(env.ble, click);
+      env.ble.addPeripheral(click);
+
+      await core.connection.performScanning();
+      final device = await waitForDevice<ZwiftClick>();
+      await IntegrationEnv.waitFor(() => device.isConnected, description: 'connect');
+
+      // Battery-saver inactivity disconnect (the timeout path).
+      core.connection.debugTriggerInactivityTimeout();
+      await IntegrationEnv.waitFor(
+        () => core.connection.devices.whereType<ZwiftClick>().isEmpty,
+        description: 'controller removed after inactivity disconnect',
+      );
+
+      // The controller is still advertising/bonded, so it gets rediscovered
+      // (here a getSystemDevices-style re-add through addDevices). It must NOT
+      // auto-reconnect — that would defeat the battery saver.
+      core.connection.addDevices([BluetoothDevice.fromScanResult(click.scanResult)!]);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(
+        core.connection.devices.whereType<ZwiftClick>(),
+        isEmpty,
+        reason: 'controller auto-reconnected after the battery-saver disconnect',
+      );
+    });
+
+    test('the battery-saver Reconnect action clears the suppression and reconnects', () async {
+      final click = buildZwiftClick();
+      autoRespondToZwiftHandshake(env.ble, click);
+      env.ble.addPeripheral(click);
+
+      await core.connection.performScanning();
+      final device = await waitForDevice<ZwiftClick>();
+      await IntegrationEnv.waitFor(() => device.isConnected, description: 'connect');
+
+      // The only notification carrying an onTap is the battery-saver alert's
+      // Reconnect action — capture it so we can drive the real user path.
+      AlertNotification? reconnectAlert;
+      final sub = core.connection.actionStream.listen((n) {
+        if (n is AlertNotification && n.onTap != null) reconnectAlert = n;
+      });
+      addTearDown(sub.cancel);
+
+      core.connection.debugTriggerInactivityTimeout();
+      await IntegrationEnv.waitFor(
+        () => core.connection.devices.whereType<ZwiftClick>().isEmpty,
+        description: 'controller removed after inactivity disconnect',
+      );
+      await IntegrationEnv.waitFor(
+        () => reconnectAlert != null,
+        description: 'a battery-saver alert exposing a Reconnect action',
+      );
+
+      // Tapping Reconnect lifts the suppression and re-adds the controller, so
+      // it must come back instead of staying parked for battery.
+      reconnectAlert!.onTap!();
+      await IntegrationEnv.waitFor(
+        () => core.connection.devices.whereType<ZwiftClick>().any((d) => d.isConnected),
+        description: 'controller reconnects after tapping Reconnect',
+      );
     });
   });
 
