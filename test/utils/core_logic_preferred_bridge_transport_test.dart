@@ -10,11 +10,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class _FakeConnection extends TrainerConnection {
   final TrainerConnectionType? _transport;
   _FakeConnection({
-    required super.title,
+    required String title,
     required super.type,
     TrainerConnectionType? transport,
   }) : _transport = transport,
-       super(supportedActions: const []);
+       super(title: () => title, supportedActions: const []);
 
   @override
   TrainerConnectionType? get virtualShiftingTransport => _transport;

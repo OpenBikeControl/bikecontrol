@@ -531,7 +531,7 @@ class CoreLogic {
 class Local extends TrainerConnection {
   Local()
     : super(
-        title: ConnectionMethodType.local.name.capitalize(),
+        title: () => ConnectionMethodType.local.name.capitalize(),
         type: ConnectionMethodType.local,
         supportedActions: InGameAction.values,
       ) {

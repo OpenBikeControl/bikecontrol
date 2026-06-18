@@ -34,7 +34,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
   FtmsMdnsEmulator()
     : super(
-        title: AppLocalizations.current.connectDirectlyOverNetwork,
+        title: () => AppLocalizations.current.connectDirectlyOverNetwork,
         type: ConnectionMethodType.network,
         supportedActions: [
           InGameAction.shiftUp,

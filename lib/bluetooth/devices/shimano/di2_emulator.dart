@@ -44,7 +44,7 @@ class Di2Emulator extends TrainerConnection {
   Di2Emulator()
     : _definition = Di2Definition.standalone(data: ValueNotifier<String>('')),
       super(
-        title: AppLocalizations.current.connectUsingBluetooth,
+        title: () => AppLocalizations.current.connectUsingBluetooth,
         type: ConnectionMethodType.bluetooth,
         supportedActions: const [
           InGameAction.dFlyChannel1,

@@ -36,7 +36,7 @@ class ZwiftEmulator extends TrainerConnection {
 
   ZwiftEmulator()
     : super(
-        title: AppLocalizations.current.connectUsingBluetooth,
+        title: () => AppLocalizations.current.connectUsingBluetooth,
         type: ConnectionMethodType.bluetooth,
         supportedActions: [
           InGameAction.shiftUp,

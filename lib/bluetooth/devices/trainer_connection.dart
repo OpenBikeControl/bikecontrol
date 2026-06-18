@@ -8,14 +8,18 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 export 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodType, ConnectionMethodTypee;
 
 abstract class TrainerConnection {
-  final String title;
+  /// Re-evaluated on each access so the localized title follows the active
+  /// locale (the value isn't frozen at construction time).
+  final String Function() _titleBuilder;
+  String get title => _titleBuilder();
   final ConnectionMethodType type;
   List<InGameAction> supportedActions;
 
   final ValueNotifier<bool> isStarted = ValueNotifier(false);
   final ValueNotifier<bool> isConnected = ValueNotifier(false);
 
-  TrainerConnection({required this.title, required this.type, required this.supportedActions});
+  TrainerConnection({required String Function() title, required this.type, required this.supportedActions})
+    : _titleBuilder = title;
 
   /// Which Bridge (Virtual Shifting) transport this connection actually rides on.
   /// Used by [CoreLogic.preferredBridgeTransport] to decide whether a Virtual

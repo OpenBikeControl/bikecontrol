@@ -20,7 +20,7 @@ class WhooshLink extends TrainerConnection {
 
   WhooshLink()
     : super(
-        title: AppLocalizations.current.connectUsingMyWhooshLink,
+        title: () => AppLocalizations.current.connectUsingMyWhooshLink,
         type: ConnectionMethodType.network,
         supportedActions: [
           InGameAction.shiftUp,

@@ -33,7 +33,7 @@ class RemotePairing extends TrainerConnection {
 
   RemotePairing()
     : super(
-        title: AppLocalizations.current.enablePairingProcess,
+        title: () => AppLocalizations.current.enablePairingProcess,
         type: ConnectionMethodType.bluetooth,
         supportedActions: InGameAction.values,
       );

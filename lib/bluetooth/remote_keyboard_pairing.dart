@@ -32,7 +32,7 @@ class RemoteKeyboardPairing extends TrainerConnection {
 
   RemoteKeyboardPairing()
     : super(
-        title: AppLocalizations.current.actAsBluetoothKeyboard,
+        title: () => AppLocalizations.current.actAsBluetoothKeyboard,
         type: ConnectionMethodType.bluetooth,
         supportedActions: InGameAction.values,
       );

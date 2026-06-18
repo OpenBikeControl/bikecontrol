@@ -27,7 +27,7 @@ class RouvyMdnsEmulator extends TrainerConnection {
   RouvyMdnsEmulator({ClickEmulator? clickEmulator})
     : clickEmulator = clickEmulator ?? ClickEmulator(),
       super(
-        title: AppLocalizations.current.connectDirectlyOverNetwork,
+        title: () => AppLocalizations.current.connectDirectlyOverNetwork,
         type: ConnectionMethodType.network,
         supportedActions: [
           InGameAction.shiftUp,
