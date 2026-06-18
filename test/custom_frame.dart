@@ -23,6 +23,9 @@ class CustomFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderRadiusValue = 26.0;
+    final headerHeight =
+        [DeviceType.androidTablet, DeviceType.iPad, DeviceType.desktop].contains(platform) ? 120.0 : 170.0;
+    final logicalWidth = device.resolution.width / device.pixelRatio;
     return platform == DeviceType.noFrame
         ? Scaffold(body: child)
         : Scaffold(
@@ -37,20 +40,34 @@ class CustomFrame extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 54, horizontal: 16),
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                  // Title sits in the band above the device frame and shrinks to
+                  // fit, so long localized titles never overlap the frame.
+                  Positioned(
+                    top: 30,
+                    left: 16,
+                    right: 16,
+                    height: headerHeight - 38,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: SizedBox(
+                          width: logicalWidth - 32,
+                          child: Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                   Positioned(
-                    top: [DeviceType.androidTablet, DeviceType.iPad, DeviceType.desktop].contains(platform) ? 120 : 170,
+                    top: headerHeight,
                     left: 8,
                     right: 8,
                     bottom: -30,
