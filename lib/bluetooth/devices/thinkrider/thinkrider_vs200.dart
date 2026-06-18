@@ -12,7 +12,6 @@ class ThinkRiderVs200 extends BluetoothDevice {
   ThinkRiderVs200(super.scanResult)
     : super(
         availableButtons: ThinkRiderVs200Buttons.values,
-        isBeta: false,
         allowMultiple: true,
         supportsLongPress: false,
       );

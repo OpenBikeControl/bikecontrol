@@ -2,7 +2,7 @@ import 'package:bike_control/utils/settings/settings.dart';
 import 'package:flutter/foundation.dart';
 
 class ReviewPromptService {
-  static const int sessionThreshold = 3;
+  static const int sessionThreshold = 6;
   static const int snoozeSessions = 10;
 
   final Settings settings;

@@ -266,7 +266,7 @@ abstract class BaseActions {
         return Error(
           AppLocalizations.current.trainerAppNotConnectedForButton(
             button.name.splitByUpperCase(),
-            supportedApp!.name,
+            core.settings.getTrainerApp()?.name ?? supportedApp!.name,
           ),
           type: ErrorType.trainerNotConnected,
           button: keyPair.buttons.firstOrNull ?? button,

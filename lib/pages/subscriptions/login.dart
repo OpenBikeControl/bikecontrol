@@ -101,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-        if (!kIsWeb)
+        if (!kIsWeb && widget.pushed)
           Button.ghost(
             leading: const Icon(Icons.mail_outline, size: 16),
             onPressed: _openMailFallback,
@@ -111,9 +111,12 @@ class _LoginPageState extends State<LoginPage> {
           TextSpan(
             children: [
               TextSpan(
-                text: AppLocalizations.of(context).bySigningInYouAgreeToOur(
-                  AppLocalizations.of(context).privacyPolicy,
-                ).split(AppLocalizations.of(context).privacyPolicy).first,
+                text: AppLocalizations.of(context)
+                    .bySigningInYouAgreeToOur(
+                      AppLocalizations.of(context).privacyPolicy,
+                    )
+                    .split(AppLocalizations.of(context).privacyPolicy)
+                    .first,
               ),
               TextSpan(
                 text: AppLocalizations.of(context).privacyPolicy,
@@ -124,9 +127,12 @@ class _LoginPageState extends State<LoginPage> {
                   ..onTap = () => launchUrlString('https://bikecontrol.app/privacy-policy'),
               ),
               TextSpan(
-                text: AppLocalizations.of(context).bySigningInYouAgreeToOur(
-                  AppLocalizations.of(context).privacyPolicy,
-                ).split(AppLocalizations.of(context).privacyPolicy).last,
+                text: AppLocalizations.of(context)
+                    .bySigningInYouAgreeToOur(
+                      AppLocalizations.of(context).privacyPolicy,
+                    )
+                    .split(AppLocalizations.of(context).privacyPolicy)
+                    .last,
               ),
             ],
           ),
