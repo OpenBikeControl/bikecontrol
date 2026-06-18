@@ -39,6 +39,11 @@ platform :android do
 
   desc "Download the current Google Play listing into prop/store_metadata/android"
   lane :download_metadata do
+    require "fileutils"
+    # `supply init` refuses to overwrite existing metadata (it just prints
+    # "Metadata already exists ..." and downloads nothing), so clear the folder
+    # first to re-pull the current live listing.
+    FileUtils.rm_rf(METADATA)
     sh(
       "bundle", "exec", "fastlane", "supply", "init",
       "--json_key", JSON_KEY,

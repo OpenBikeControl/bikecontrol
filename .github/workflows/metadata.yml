@@ -3,8 +3,9 @@ name: "Store Metadata"
 # Manage the localized App Store / Google Play store listings via fastlane.
 # The listing text lives in the private `prop` submodule under
 # prop/store_metadata/, not in this public repo.
-#  - "download": pull the live listing from the stores into prop/store_metadata,
-#                push it to the prop repo, and bump the submodule pointer here.
+#  - "download": pull the live listing from the stores into prop/store_metadata
+#                and push it to the prop repo (branch 6.1). The app-repo
+#                submodule pointer is not auto-bumped; do that separately.
 #  - "upload":   push the txt files from prop/store_metadata to the stores
 #                (texts only, never the binary, screenshots or release notes).
 on:
@@ -75,7 +76,7 @@ jobs:
         if: ${{ always() }}
         run: rm -f android/fastlane/service-account.json
 
-      - name: Sync downloaded metadata to prop
+      - name: Push downloaded metadata to prop
         if: ${{ inputs.action == 'download' }}
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -83,20 +84,21 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           if [ -z "$(git -C prop status --porcelain store_metadata)" ]; then
-            echo "No metadata changes to commit."
+            echo "No metadata changes to push."
             exit 0
           fi
-          # The listing text lives in the prop submodule: commit & push it there
-          # (branch 6.1), then bump the submodule pointer in this repo.
           git -C prop remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/OpenBikeControl/prop.git"
           git -C prop add store_metadata
           git -C prop commit -m "chore: sync Google Play metadata from store"
-          git -C prop fetch origin 6.1
-          git -C prop rebase origin/6.1
-          git -C prop push origin HEAD:6.1
-          git add prop
-          git commit -m "chore: bump prop (Google Play metadata sync)"
-          git push origin "HEAD:${{ github.ref_name }}"
+          # Push to prop@6.1, rebasing onto the latest tip. The iOS job may push
+          # concurrently; paths are disjoint (android/ vs ios/) so retries converge.
+          for i in 1 2 3 4 5; do
+            git -C prop fetch -q origin 6.1
+            git -C prop rebase FETCH_HEAD || { git -C prop rebase --abort || true; echo "prop rebase conflict"; exit 1; }
+            git -C prop push origin HEAD:6.1 && exit 0
+            echo "prop push contended; retry $i"; sleep 4
+          done
+          echo "prop push failed after retries"; exit 1
 
   ios:
     if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
@@ -149,7 +151,7 @@ jobs:
         if: ${{ always() }}
         run: rm -rf private_keys
 
-      - name: Sync downloaded metadata to prop
+      - name: Push downloaded metadata to prop
         if: ${{ inputs.action == 'download' }}
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -157,17 +159,18 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           if [ -z "$(git -C prop status --porcelain store_metadata)" ]; then
-            echo "No metadata changes to commit."
+            echo "No metadata changes to push."
             exit 0
           fi
-          # The listing text lives in the prop submodule: commit & push it there
-          # (branch 6.1), then bump the submodule pointer in this repo.
           git -C prop remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/OpenBikeControl/prop.git"
           git -C prop add store_metadata
           git -C prop commit -m "chore: sync App Store metadata from store"
-          git -C prop fetch origin 6.1
-          git -C prop rebase origin/6.1
-          git -C prop push origin HEAD:6.1
-          git add prop
-          git commit -m "chore: bump prop (App Store metadata sync)"
-          git push origin "HEAD:${{ github.ref_name }}"
+          # Push to prop@6.1, rebasing onto the latest tip. The Android job may push
+          # concurrently; paths are disjoint (android/ vs ios/) so retries converge.
+          for i in 1 2 3 4 5; do
+            git -C prop fetch -q origin 6.1
+            git -C prop rebase FETCH_HEAD || { git -C prop rebase --abort || true; echo "prop rebase conflict"; exit 1; }
+            git -C prop push origin HEAD:6.1 && exit 0
+            echo "prop push contended; retry $i"; sleep 4
+          done
+          echo "prop push failed after retries"; exit 1
