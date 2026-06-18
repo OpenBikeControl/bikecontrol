@@ -59,3 +59,15 @@ lib/generated
 pubspec_overrides.yaml
 .run
 test/failures
+
+# fastlane (App Store / Play Store metadata management)
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/asc_api_key.json
+**/fastlane/test_output
+private_keys/
+# Store screenshots are generated from ./screenshots by
+# scripts/prepare_store_screenshots.sh, so they are not committed. iOS
+# screenshots stage here; Android ones stage under the metadata path in the prop
+# submodule (gitignored there). The listing text lives in prop/store_metadata/.
+ios/fastlane/screenshots/
