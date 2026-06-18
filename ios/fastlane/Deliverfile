@@ -4,9 +4,16 @@
 app_identifier "de.jonasbark.swiftcontrol.darwin"
 platform "ios"
 
-# Never touch the binary or the screenshots from these lanes.
+# Never touch the binary. Screenshots are skipped by default; the
+# upload_metadata lane re-enables them (skip_screenshots: false).
 skip_binary_upload true
 skip_screenshots true
+
+# When a lane does upload screenshots, replace the whole set rather than
+# appending to it, so stale shots from earlier runs don't pile up on App Store
+# Connect (which otherwise causes duplicates, "too many screenshots" skips and
+# scrambled ordering). Set here as the canonical default, not just inline.
+overwrite_screenshots true
 
 # Only sync the existing editable version's metadata; don't create or bump a
 # version and don't auto-submit for review.
