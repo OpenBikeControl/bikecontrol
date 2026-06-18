@@ -66,4 +66,22 @@ for loc in $IOS_LOCALES; do
   done
 done
 
-echo "Prepared store screenshots for Play Store (${ANDROID_LOCALES}) and App Store (${IOS_LOCALES})."
+# --- Mac App Store (deliver, platform osx) ---------------------------------
+# The macOS listing mirrors the iOS texts (the upload_metadata_macos lane points
+# deliver at the same metadata path). Screenshots use the desktop renders, which
+# are 2560x1600 — a valid Mac screenshot size that deliver maps to APP_DESKTOP.
+for loc in $IOS_LOCALES; do
+  lang="${loc%%-*}"          # de-DE -> de, it -> it
+  src="$SRC/$lang"
+  d="$ROOT/ios/fastlane/screenshots_macos/$loc"
+  rm -rf "$d"
+  mkdir -p "$d"
+  i=1
+  for scene in $SCENES; do
+    n=$(printf '%02d' "$i")
+    cp "$src/${scene}-desktop-2560x1600.png" "$d/${n}_${scene}_desktop.png"
+    i=$((i + 1))
+  done
+done
+
+echo "Prepared store screenshots for Play Store (${ANDROID_LOCALES}), App Store (${IOS_LOCALES}) and Mac App Store (${IOS_LOCALES})."

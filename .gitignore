@@ -71,3 +71,4 @@ private_keys/
 # screenshots stage here; Android ones stage under the metadata path in the prop
 # submodule (gitignored there). The listing text lives in prop/store_metadata/.
 ios/fastlane/screenshots/
+ios/fastlane/screenshots_macos/

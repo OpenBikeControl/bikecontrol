@@ -147,6 +147,13 @@ jobs:
         working-directory: ios
         run: bundle exec fastlane upload_metadata
 
+      # macOS shares the App Store record and reuses the iOS listing texts; only
+      # the (desktop) screenshots differ. Keep it in sync on every iOS upload.
+      - name: Upload metadata to Mac App Store
+        if: ${{ inputs.action == 'upload' }}
+        working-directory: ios
+        run: bundle exec fastlane upload_metadata_macos
+
       - name: Clean up credentials
         if: ${{ always() }}
         run: rm -rf private_keys
