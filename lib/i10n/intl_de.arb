@@ -55,7 +55,7 @@
   "actionCategoryShifting": "Schalten",
   "actionCategorySteering": "Lenken",
   "actionCategoryOther": "Sonstiges",
-  "trialDaysAvailable": "{days}-tägige Testversion verfügbar",
+  "trialDaysAvailable": "{days}-tägige Testversion",
   "@trialDaysAvailable": {
     "placeholders": {
       "days": {

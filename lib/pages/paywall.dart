@@ -735,7 +735,7 @@ class _PaywallState extends State<Paywall> {
                     AppLocalizations.of(context).fullVersion,
                     style: const TextStyle(
                       color: Color(0xFF07070A),
-                      fontSize: 24,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -743,7 +743,7 @@ class _PaywallState extends State<Paywall> {
                   Text(
                     _pricing.fullVersionSubtitle,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       color: Color(0xFF4E4E53),
                     ),
                   ),

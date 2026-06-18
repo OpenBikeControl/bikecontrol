@@ -30,7 +30,7 @@ Future<bool> showGoProDialog(BuildContext context) async {
           ),
           LoadingWidget(
             futureCallback: () async {
-              await iapManager.purchaseSubscription(c);
+              await iapManager.purchaseSubscription(context);
               if (c.mounted) {
                 Navigator.of(c).pop(true);
               }

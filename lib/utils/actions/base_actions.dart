@@ -218,7 +218,7 @@ abstract class BaseActions {
           );
         }
         await IAPManager.instance.incrementCommandCount();
-        final result = proxy.handleTrainerAction(keyPair.inGameAction!);
+        final result = proxy.handleTrainerAction(keyPair.buttons.firstOrNull ?? button, keyPair.inGameAction!);
         // Ignored e.g. when already in highest gear
         // Success when action was executed and the action should not be sent to connected trainer
         // NotHandled means the e.g. gear changes should still be sent to the trainer, so we continue with the regular flow

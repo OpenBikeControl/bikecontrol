@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -35,7 +36,7 @@ Future<void> main() async {
 
     test('trainerUp in sim mode shifts up', () {
       def.setTargetGear(5);
-      final result = device.handleTrainerAction(InGameAction.shiftUp);
+      final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.shiftUp);
       // Sim-mode shifts report Ignored (with the gear message) — the shift is
       // fully handled here and nothing must be forwarded to the trainer app.
       expect(result, isA<Ignored>());
@@ -44,35 +45,35 @@ Future<void> main() async {
 
     test('trainerUp in erg mode raises power', () {
       def.setManualErgPower(150);
-      final result = device.handleTrainerAction(InGameAction.shiftUp);
+      final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.shiftUp);
       expect(result, isA<Success>());
       expect(def.ergTargetPower.value, 160);
     });
 
     test('trainerDown in sim mode shifts down', () {
       def.setTargetGear(5);
-      final result = device.handleTrainerAction(InGameAction.shiftDown);
+      final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.shiftDown);
       expect(result, isA<Ignored>());
       expect(def.currentGear.value, 4);
     });
 
     test('trainerDown in erg mode lowers power', () {
       def.setManualErgPower(150);
-      final result = device.handleTrainerAction(InGameAction.shiftDown);
+      final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.shiftDown);
       expect(result, isA<Success>());
       expect(def.ergTargetPower.value, 140);
     });
 
     test('trainerSwitchMode toggles from sim to erg', () {
       def.exitErgMode(); // start in sim
-      final result = device.handleTrainerAction(InGameAction.trainerSwitchMode);
+      final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.trainerSwitchMode);
       expect(result, isA<Success>());
       expect(def.trainerMode.value, TrainerMode.ergMode);
     });
 
     test('trainerSwitchMode toggles from erg back to sim', () {
       def.setManualErgPower(150); // now in erg
-      final result = device.handleTrainerAction(InGameAction.trainerSwitchMode);
+      final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.trainerSwitchMode);
       expect(result, isA<Success>());
       expect(def.trainerMode.value, isNot(TrainerMode.ergMode));
     });
