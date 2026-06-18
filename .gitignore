@@ -65,6 +65,7 @@ pubspec_overrides.yaml
 **/fastlane/test_output
 private_keys/
 # Store screenshots are generated from ./screenshots by
-# scripts/prepare_store_screenshots.sh, so they are not committed.
+# scripts/prepare_store_screenshots.sh, so they are not committed. iOS
+# screenshots stage here; Android ones stage under the metadata path in the prop
+# submodule (gitignored there). The listing text lives in prop/store_metadata/.
 ios/fastlane/screenshots/
-android/fastlane/metadata/android/*/images/

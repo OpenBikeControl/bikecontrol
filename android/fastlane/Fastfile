@@ -1,14 +1,17 @@
 # Fastlane configuration for the Google Play Store listing (Android).
 #
-# Manages the localized store metadata (title, descriptions, ...) that lives
-# under android/fastlane/metadata/android/<locale>/. The app binary (AAB) is
-# still uploaded by the regular build workflow, so these lanes never touch it.
+# Manages the localized store metadata (title, descriptions, ...). The listing
+# text lives in the private `prop` submodule under
+# prop/store_metadata/android/<locale>/ so it is not exposed in the public repo.
+# The app binary (AAB) is still uploaded by the regular build workflow, so these
+# lanes never touch it.
 
 default_platform(:android)
 
 PACKAGE_NAME = "de.jonasbark.swiftcontrol"
 JSON_KEY     = ENV["SUPPLY_JSON_KEY_FILE"] || "fastlane/service-account.json"
-METADATA     = "./fastlane/metadata/android"
+# Relative to the android/ working directory: ../prop -> the repo-root submodule.
+METADATA     = "../prop/store_metadata/android"
 
 platform :android do
   desc "Upload the localized store listing texts & screenshots to Google Play (no binary, no changelogs)"
@@ -31,13 +34,13 @@ platform :android do
     )
   end
 
-  desc "Download the current Google Play listing into android/fastlane/metadata/android"
+  desc "Download the current Google Play listing into prop/store_metadata/android"
   lane :download_metadata do
     sh(
       "bundle", "exec", "fastlane", "supply", "init",
       "--json_key", JSON_KEY,
       "--package_name", PACKAGE_NAME,
-      "--metadata_path", "fastlane/metadata/android",
+      "--metadata_path", METADATA,
     )
   end
 end

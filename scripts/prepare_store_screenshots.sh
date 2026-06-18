@@ -30,8 +30,11 @@ fi
 # phoneScreenshots  <- android phone (1320x2868)
 # tenInchScreenshots <- android tablet (3840x2400)
 for loc in $ANDROID_LOCALES; do
-  phone="$ROOT/android/fastlane/metadata/android/$loc/images/phoneScreenshots"
-  ten="$ROOT/android/fastlane/metadata/android/$loc/images/tenInchScreenshots"
+  # Android images live under the metadata path, which is in the private prop
+  # submodule (prop/store_metadata/android/...); these image dirs are gitignored
+  # in prop.
+  phone="$ROOT/prop/store_metadata/android/$loc/images/phoneScreenshots"
+  ten="$ROOT/prop/store_metadata/android/$loc/images/tenInchScreenshots"
   rm -rf "$phone" "$ten"
   mkdir -p "$phone" "$ten"
   i=1

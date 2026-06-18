@@ -1,6 +1,0 @@
-TrainingPeaks has now partnered with BikeControl, supporting a whooping number of 28 mappable controller actions!
-
-Read more in our blog.
-
-**Features**:
-- Zwift Click V2: Pro users will now no longer require unlocking with Zwift every 24 hours – hooray! Once some feedback is collected, it will be available for Base users as well :)

@@ -1,10 +1,12 @@
 name: "Store Metadata"
 
 # Manage the localized App Store / Google Play store listings via fastlane.
-#  - "download": pull the live listing from the stores into the txt files in
-#                this repo and commit the result back to the branch.
-#  - "upload":   push the txt files in this repo to the stores (texts only,
-#                never the binary, screenshots or release notes).
+# The listing text lives in the private `prop` submodule under
+# prop/store_metadata/, not in this public repo.
+#  - "download": pull the live listing from the stores into prop/store_metadata,
+#                push it to the prop repo, and bump the submodule pointer here.
+#  - "upload":   push the txt files from prop/store_metadata to the stores
+#                (texts only, never the binary, screenshots or release notes).
 on:
   workflow_dispatch:
     inputs:
@@ -41,6 +43,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
+          # The listing text lives in the private prop submodule. PAT_TOKEN must
+          # have read+write access to OpenBikeControl/prop (it already fetches
+          # prop in build.yml).
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -69,18 +76,28 @@ jobs:
         if: ${{ always() }}
         run: rm -f android/fastlane/service-account.json
 
-      - name: Commit downloaded metadata
+      - name: Sync downloaded metadata to prop
         if: ${{ inputs.action == 'download' }}
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain android/fastlane/metadata)" ]; then
-            git add android/fastlane/metadata
-            git commit -m "chore: sync Google Play metadata from store"
-            git push origin "HEAD:${{ github.ref_name }}"
-          else
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -z "$(git -C prop status --porcelain store_metadata)" ]; then
             echo "No metadata changes to commit."
+            exit 0
           fi
+          # The listing text lives in the prop submodule: commit & push it there
+          # (branch 6.1), then bump the submodule pointer in this repo.
+          git -C prop remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/OpenBikeControl/prop.git"
+          git -C prop add store_metadata
+          git -C prop commit -m "chore: sync Google Play metadata from store"
+          git -C prop fetch origin 6.1
+          git -C prop rebase origin/6.1
+          git -C prop push origin HEAD:6.1
+          git add prop
+          git commit -m "chore: bump prop (Google Play metadata sync)"
+          git push origin "HEAD:${{ github.ref_name }}"
 
   ios:
     if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
@@ -96,6 +113,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
+          # The listing text lives in the private prop submodule. PAT_TOKEN must
+          # have read+write access to OpenBikeControl/prop (it already fetches
+          # prop in build.yml).
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -128,15 +150,25 @@ jobs:
         if: ${{ always() }}
         run: rm -rf private_keys
 
-      - name: Commit downloaded metadata
+      - name: Sync downloaded metadata to prop
         if: ${{ inputs.action == 'download' }}
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain ios/fastlane/metadata)" ]; then
-            git add ios/fastlane/metadata
-            git commit -m "chore: sync App Store metadata from store"
-            git push origin "HEAD:${{ github.ref_name }}"
-          else
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -z "$(git -C prop status --porcelain store_metadata)" ]; then
             echo "No metadata changes to commit."
+            exit 0
           fi
+          # The listing text lives in the prop submodule: commit & push it there
+          # (branch 6.1), then bump the submodule pointer in this repo.
+          git -C prop remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/OpenBikeControl/prop.git"
+          git -C prop add store_metadata
+          git -C prop commit -m "chore: sync App Store metadata from store"
+          git -C prop fetch origin 6.1
+          git -C prop rebase origin/6.1
+          git -C prop push origin HEAD:6.1
+          git add prop
+          git commit -m "chore: bump prop (App Store metadata sync)"
+          git push origin "HEAD:${{ github.ref_name }}"

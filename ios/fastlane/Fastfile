@@ -1,13 +1,16 @@
 # Fastlane configuration for the Apple App Store listing (iOS).
 #
 # Manages the localized App Store metadata (name, subtitle, description,
-# keywords, ...) under ios/fastlane/metadata/<locale>/. Authentication uses an
-# App Store Connect API key (the same key/issuer/.p8 the build workflow uses).
+# keywords, ...). The listing text lives in the private `prop` submodule under
+# prop/store_metadata/ios/<locale>/ so it is not exposed in the public repo.
+# Authentication uses an App Store Connect API key (the same key/issuer/.p8 the
+# build workflow uses).
 
 default_platform(:ios)
 
 APP_IDENTIFIER = "de.jonasbark.swiftcontrol.darwin"
-METADATA       = "./fastlane/metadata"
+# Relative to the ios/ working directory: ../prop -> the repo-root submodule.
+METADATA       = "../prop/store_metadata/ios"
 
 def asc_api_key
   app_store_connect_api_key(
@@ -38,7 +41,7 @@ platform :ios do
     )
   end
 
-  desc "Download the current App Store listing into ios/fastlane/metadata"
+  desc "Download the current App Store listing into prop/store_metadata/ios"
   lane :download_metadata do
     require "json"
     key = asc_api_key
@@ -48,7 +51,7 @@ platform :ios do
         "bundle", "exec", "fastlane", "deliver", "download_metadata",
         "--api_key_path", "fastlane/asc_api_key.json",
         "--app_identifier", APP_IDENTIFIER,
-        "--metadata_path", "fastlane/metadata",
+        "--metadata_path", METADATA,
         "--force", "true",
       )
     ensure
