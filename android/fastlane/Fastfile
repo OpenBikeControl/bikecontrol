@@ -8,10 +8,13 @@
 
 default_platform(:android)
 
+# fastlane chdir's into the fastlane/ folder before running a lane, so relative
+# paths resolve against android/fastlane/. Anchor everything at the repo root
+# instead (GITHUB_WORKSPACE in CI; two levels up from this file locally).
+ROOT         = ENV["GITHUB_WORKSPACE"] || File.expand_path("../..", __dir__)
 PACKAGE_NAME = "de.jonasbark.swiftcontrol"
-JSON_KEY     = ENV["SUPPLY_JSON_KEY_FILE"] || "fastlane/service-account.json"
-# Relative to the android/ working directory: ../prop -> the repo-root submodule.
-METADATA     = "../prop/store_metadata/android"
+JSON_KEY     = ENV["SUPPLY_JSON_KEY_FILE"] || File.join(ROOT, "android/fastlane/service-account.json")
+METADATA     = File.join(ROOT, "prop/store_metadata/android")   # private submodule
 
 platform :android do
   desc "Upload the localized store listing texts & screenshots to Google Play (no binary, no changelogs)"

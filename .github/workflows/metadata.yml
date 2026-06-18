@@ -37,7 +37,6 @@ jobs:
       contents: write
     env:
       PLAY_TRACK: ${{ inputs.play_track }}
-      SUPPLY_JSON_KEY_FILE: fastlane/service-account.json
     steps:
       - name: Checkout
         uses: actions/checkout@v4
