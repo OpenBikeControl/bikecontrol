@@ -153,12 +153,21 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} si sta riavviando e si riconnetterà tra qualche secondo",
   "deviceLimitReached": "Limite di dispositivi raggiunto per {platform}. Revoca altri dispositivi per registrarne uno nuovo.",
   "devicesActive": "{active} attivo",
   "disconnectAndForget": "Disconnettiti e dimentica",
   "disconnectAndForgetForThisSession": "Disconnettersi",
   "disconnectDevices": "Dispositivi disconnessi",
   "disconnected": "Disconnesso",
+  "disconnectedFrom": "Disconnesso da {appId}",
+  "@disconnectedFrom": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
   "donateByBuyingFromPlayStore": "acquistando l'app dal Play Store",
   "donateViaCreditCard": "tramite carta di credito, Google Pay, Apple Pay e altri",
   "donateViaPaypal": "tramite PayPal",
@@ -338,6 +347,7 @@
   "no": "No",
   "noActionAssigned": "Nessuna azione assegnata",
   "noActionAssignedForButton": "Non è stato possibile eseguire{button} : Nessuna azione assegnata",
+  "trainerAppNotConnectedForButton": "Non è stato possibile eseguire {button}: {app} non è connesso",
   "noActiveWorkout": "Nessun allenamento attivo",
   "noProxyTrainerConnected": "Nessuno smart trainer connesso",
   "noConnectionMethodIsConnectedOrActive": "Nessun metodo di connessione è connesso o attivo.",
@@ -544,8 +554,20 @@
   "unlock_deviceIsCurrentlyLocked": "Il dispositivo è attualmente bloccato",
   "unlock_isnowunlocked": "{device} è ora sbloccato",
   "unlock_markAsUnlocked": "Segna come sbloccato",
+  "unlock_mode": "Modalità di sblocco",
+  "unlock_modeRestart": "Riavvia il dispositivo ogni minuto",
+  "unlock_modeRestartDescription": "Il controller sinistro si riconnetterà automaticamente ogni 60 secondi, causando una breve interruzione.",
+  "unlock_modeZwift": "Sblocca con Zwift",
+  "unlock_modeZwiftDescription": "Ogni 24 ore il dispositivo deve essere sbloccato con Zwift.",
   "unlock_notWorking": "Non funziona?",
   "unlock_openZwift": "Apri Zwift (non il Companion) su questo o un altro dispositivo",
+  "unlock_rightSideNeedsNoUnlock": "Puoi usare questo controller senza il controller sinistro, poiché questo non richiede sblocchi o riavvii.",
+  "unlock_newMethod": "Usa il nuovo metodo di sblocco",
+  "unlock_newMethodDescription": "Collega il lato sinistro e destro come controller separati. Il lato destro non richiede alcuno sblocco. Disattiva per usare un unico controller combinato.",
+  "unlock_newMethodReconnecting": "Applicazione… riconnessione del tuo Zwift Click.",
+  "unlock_useRightSideOnly": "Usa solo il lato destro",
+  "unlock_useRightSideOnlyDescription": "Il lato destro non richiede alcuno sblocco. Scollega il lato sinistro e lascia che il destro gestisca il cambio: + sale, B scende.",
+  "unlock_rightSideOnlyConfigured": "Fatto: viene usato solo il lato destro. Puoi riattivare il lato sinistro in qualsiasi momento in Dispositivi ignorati.",
   "unlock_unlockManually": "Sblocca manualmente",
   "unlock_unlockNow": "Sblocca ora",
   "unlock_unlockedUntilAroundDate": "Sbloccato fino a circa {date}",
@@ -870,5 +892,15 @@
   "scanningForDevicesShort": "Ricerca dispositivi…",
   "disconnectingAllDevices": "Disconnessione di tutti i dispositivi",
   "configureButtonMapping": "Configura mappatura dei pulsanti",
-  "notWellSupportedByMyWhoosh": "Nota: questa azione non è ancora ben supportata da MyWhoosh"
+  "notWellSupportedByMyWhoosh": "Nota: questa azione non è ancora ben supportata da MyWhoosh",
+  "vsIntroTitle": "Virtual Shifting",
+  "vsIntroSubtitle": "Cambia marcia su qualsiasi Smart Trainer, direttamente in BikeControl.",
+  "vsIntroSupportedTitle": "Funziona con decine di Smart Trainer",
+  "vsIntroSupportedBody": "Molti Smart Trainer funzionano già alla grande, anche se alcuni potrebbero non funzionare ancora perfettamente, e la lista continua a crescere.",
+  "vsIntroBetaTitle": "Ancora in beta",
+  "vsIntroBetaBody": "La personalizzazione del Virtual Shifting in BikeControl è una funzione nuova, quindi potresti incontrare qualche piccolo intoppo.",
+  "vsIntroFeedbackTitle": "Siamo al tuo fianco",
+  "vsIntroFeedbackBody": "Adoriamo i tuoi feedback e siamo sempre felici di aiutarti a configurare tutto al meglio.",
+  "vsIntroSupportedTrainersCta": "Vedi gli Smart Trainer supportati",
+  "vsIntroGotIt": "Ho capito"
 }

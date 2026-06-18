@@ -17,6 +17,8 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:multi_window_native/multi_window_native.dart';
+import 'package:prop/mdns/service_advertiser.dart';
+import 'package:prop/utils/shared.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:window_manager/window_manager.dart' as wm;
 
@@ -44,6 +46,9 @@ const String kTrainerOverlayRoute = 'trainer-overlay';
 
 @pragma('vm:entry-point')
 Future<void> main(List<String> args) async {
+  // Route Logger.recordError (app + prop) into print/persist from the start.
+  installLoggerErrorListener();
+
   // Catch errors that happen in other isolates
   if (!kIsWeb) {
     Isolate.current.addErrorListener(
@@ -72,6 +77,17 @@ Future<void> main(List<String> args) async {
         MultiWindowNative.init(windowId);
         await runDesktopOverlayWindow(windowId, args);
         return;
+      }
+
+      // Desktop and Android advertise mDNS via the in-process responder
+      // (dedicated hostname with a single A record) instead of the OS
+      // responder, which attaches every host address — including IPv6
+      // link-locals that Mono-based trainer apps (TrainingPeaks) cannot
+      // connect to ("No route to host"). On Android the responder's socket
+      // acquires a WifiManager multicast lock so queries are received. iOS
+      // stays on the OS responder (no multicast-networking entitlement).
+      if (!kIsWeb) {
+        ServiceAdvertiser.instance = ServiceAdvertiser.platformDefault();
       }
 
       // Catch Flutter framework errors (build/layout/paint)
@@ -128,23 +144,44 @@ Future<void> _recordFlutterError(FlutterErrorDetails details) async {
   );
 }
 
+/// Record a handled error. Funnels through [Logger.recordError]; the listener
+/// installed by [installLoggerErrorListener] prints and persists the entry
+/// (which also feeds the debug log support chats attach).
 Future<void> recordError(
   Object error,
   StackTrace? stack, {
   required String context,
 }) async {
-  if (kDebugMode) {
-    print('Error in $context: $error');
-    if (stack != null) {
-      debugPrintStack(stackTrace: stack);
+  installLoggerErrorListener();
+  Logger.recordError(context, error, stack);
+}
+
+bool _loggerErrorListenerInstalled = false;
+
+/// Wire [Logger.onRecordError] to the app's error pipeline — every
+/// [Logger.recordError] (including calls from inside prop) prints in debug
+/// builds and runs [_persistCrash], which both persists the crash entry and
+/// feeds [Connection.lastLogEntries] — the "Logs:" section of the
+/// support-chat / feedback debug text. Idempotent.
+void installLoggerErrorListener() {
+  if (_loggerErrorListenerInstalled) return;
+  _loggerErrorListenerInstalled = true;
+  Logger.onRecordError = (String message, Object error, StackTrace? stack) {
+    if (kDebugMode) {
+      print('Error in $message: $error');
+      if (stack != null) {
+        debugPrintStack(stackTrace: stack);
+      }
     }
-  }
-  await _persistCrash(
-    type: 'dart',
-    error: error.toString(),
-    stack: stack,
-    information: 'Context: $context',
-  );
+    unawaited(
+      _persistCrash(
+        type: 'dart',
+        error: error.toString(),
+        stack: stack,
+        information: 'Context: $message',
+      ),
+    );
+  };
 }
 
 Future<void> _persistCrash({

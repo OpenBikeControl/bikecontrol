@@ -21,6 +21,24 @@ import 'package:version/version.dart';
 class RevenueCatService {
   static const int trialDays = 5;
 
+  /// First build number shipped as a free download. Builds at or above this
+  /// number are no longer auto-granted the full version — they fall into the
+  /// existing trial/freemium path. Builds 77..[freeAgainFromBuild] - 1 remain
+  /// the paid era and keep the full version forever (Apple's
+  /// `originalApplicationVersion` is fixed at first download).
+  static const int freeAgainFromBuild = 138;
+
+  /// Whether an Apple `originalApplicationVersion` integer build number should
+  /// be treated as having purchased the full version.
+  ///
+  /// - `< 58` (macOS `< 61`): old paid era → purchased.
+  /// - `58..76`: legacy free + trial window → not purchased.
+  /// - `77..[freeAgainFromBuild] - 1`: current paid era → purchased.
+  /// - `>= freeAgainFromBuild`: free + trial again → not purchased.
+  @visibleForTesting
+  static bool isPurchasedBuild(int build, {required bool isMacOS}) =>
+      build < (isMacOS ? 61 : 58) || (build >= 77 && build < freeAgainFromBuild);
+
   static const String _trialStartDateKey = 'iap_trial_start_date';
   static const String _purchaseStatusKey = 'iap_purchase_status';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
@@ -139,7 +157,7 @@ class RevenueCatService {
       final commandCount = await _prefs.read(key: _dailyCommandCountKey) ?? '0';
       _dailyCommandCount = int.tryParse(commandCount);
 
-      if (!isTrialExpired && Platform.isAndroid) {
+      if (!isTrialExpired) {
         setDailyCommandLimit(80);
       }
       await setAttributes();
@@ -201,7 +219,7 @@ class RevenueCatService {
         } else {
           final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
           isPurchasedNotifier.value =
-              purchasedVersionAsInt < (Platform.isMacOS ? 61 : 58) || purchasedVersionAsInt >= 77;
+              isPurchasedBuild(purchasedVersionAsInt, isMacOS: Platform.isMacOS);
           hasPurchasedBefore50 = purchasedVersionAsInt < 114;
         }
       }
@@ -474,13 +492,12 @@ class RevenueCatService {
   /// Check if the user can execute a command
   bool get canExecuteCommand {
     if (isPurchasedNotifier.value) return true;
-    if (!isTrialExpired && !Platform.isAndroid) return true;
     return dailyCommandCount < getDailyCommandLimit();
   }
 
   /// Get the number of commands remaining today (for free tier after trial)
   int get commandsRemainingToday {
-    if (isPurchasedNotifier.value || (!isTrialExpired && !Platform.isAndroid)) return -1; // Unlimited
+    if (isPurchasedNotifier.value) return -1; // Unlimited
     final remaining = getDailyCommandLimit() - dailyCommandCount;
     return remaining > 0 ? remaining : 0; // Never return negative
   }

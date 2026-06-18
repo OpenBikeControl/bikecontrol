@@ -6,8 +6,10 @@ import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/inactivity_disconnector.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
@@ -61,16 +63,51 @@ class Connection {
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
 
   Timer? _gamePadSearchTimer;
+  WifiTrainerScanner? _wifiTrainerScanner;
 
-  /// Per-device inactivity timers.  When a timer fires the device is
-  /// automatically disconnected to save its battery (see issue #329).
-  final Map<BaseDevice, Timer> _inactivityTimers = {};
+  /// Auto-disconnects idle BLE controllers to save battery (issue #329).
+  /// Created in [initialize] once `core` is ready.
+  InactivityDisconnector? _inactivityDisconnector;
+
+  /// Devices whose in-place ("No connection") disconnect is currently in
+  /// flight. UniversalBle.disconnect resolves only after the platform's
+  /// disconnect event has fired — while our connectionStream listener is
+  /// still attached. Without this guard that listener re-enters [disconnect]
+  /// WITHOUT keepInList and drops the device from the registry, orphaning the
+  /// object the open details page still holds.
+  final _inPlaceDisconnects = <BaseDevice>{};
 
   void initialize() {
     actionStream.listen((log) {
       lastLogEntries.add((date: DateTime.now(), entry: log.toString()));
       lastLogEntries = lastLogEntries.takeLast(kIsWeb ? 1000 : 60).toList();
     });
+
+    _inactivityDisconnector = InactivityDisconnector(
+      isTrainerAppConnected: () => core.logic.connectedNonLocalTrainerConnections.isNotEmpty,
+      isOnlyLocalActive: () =>
+          core.logic.enabledNonLocalTrainerConnections.isEmpty && core.settings.getLocalEnabled(),
+      hasEligibleControllers: () =>
+          controllerDevices.whereType<BluetoothDevice>().any((d) => d.isConnected),
+      onTimeout: _onInactivityTimeout,
+    );
+
+    // A trainer app attaching/leaving any non-Local connection method drives
+    // the battery saver. These emulator singletons live for the app lifetime,
+    // so the listeners never need removing.
+    for (final connection in [
+      core.zwiftEmulator,
+      core.zwiftMdnsEmulator,
+      core.rouvyMdnsEmulator,
+      core.obpMdnsEmulator,
+      core.obpBluetoothEmulator,
+      core.di2Emulator,
+      core.whooshLink,
+      core.remotePairing,
+      core.remoteKeyboardPairing,
+    ]) {
+      connection.isConnected.addListener(() => _inactivityDisconnector?.onTrainerConnectionChanged());
+    }
 
     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) {
       core.mediaKeyHandler.initialize();
@@ -90,6 +127,17 @@ class Connection {
         unawaited(pd.restartProxyEmulator());
       }
     });
+
+    // Inform the user when ClickLogic restarts a device on purpose — its
+    // entry greys out for a few seconds, so explain why.
+    ClickLogic.onResetSent = (deviceId) {
+      final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      if (device != null) {
+        _actionStreams.add(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.deviceIsRestarting(device.toString())),
+        );
+      }
+    };
 
     UniversalBle.onAvailabilityChange = (available) {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
@@ -126,7 +174,7 @@ class Connection {
 
           if (scanResult != null) {
             _actionStreams.add(
-              LogNotification('Found new device: ${kIsWeb ? scanResult.toString() : scanResult.runtimeType}'),
+              LogNotification('Found new device: ${scanResult.toString()}'),
             );
             addDevices([scanResult]);
           } else {
@@ -152,7 +200,7 @@ class Connection {
       }
     };
 
-    UniversalBle.onValueChange = (deviceId, characteristicUuid, value) async {
+    UniversalBle.onValueChange = (deviceId, characteristicUuid, value, timestamp) async {
       final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
       if (device == null) {
         _actionStreams.add(LogNotification('Device not found: $deviceId'));
@@ -260,6 +308,7 @@ class Connection {
     );
 
     if (!kIsWeb) {
+      _startWifiTrainerDiscovery();
       _gamePadSearchTimer = Timer.periodic(Duration(seconds: 3), (_) {
         Gamepads.list().then((list) {
           final pads = list.map((pad) => GamepadDevice(pad.name.isEmpty ? 'Gamepad' : pad.name, id: pad.id)).toList();
@@ -279,6 +328,37 @@ class Connection {
     } else {
       isScanning.value = false;
     }
+  }
+
+  /// Browse the LAN for DirCon trainers (always on while scanning; the
+  /// scanner excludes BikeControl's own advertisements). Failures — e.g. the
+  /// user denied the Local Network permission — are logged and never affect
+  /// BLE scanning.
+  void _startWifiTrainerDiscovery() {
+    _wifiTrainerScanner ??= WifiTrainerScanner(
+      onFound: (trainer) {
+        _actionStreams.add(LogNotification('Found WiFi trainer: ${trainer.syntheticDevice.name}'));
+        addDevices([ProxyDevice.wifi(trainer.syntheticDevice, host: trainer.host, port: trainer.port)]);
+      },
+      onLost: (deviceId) {
+        final device = proxyDevices.firstOrNullWhere((d) => d.scanResult.deviceId == deviceId);
+        // A connected device stays — the live TCP connection is the source
+        // of truth; mDNS visibility can flap.
+        if (device != null && !device.isConnected && !device.isStarting.value) {
+          devices.remove(device);
+          _streamSubscriptions[device]?.cancel();
+          _streamSubscriptions.remove(device);
+          _connectionSubscriptions[device]?.cancel();
+          _connectionSubscriptions.remove(device);
+          hasDevices.value = devices.isNotEmpty;
+          signalChange(device);
+        }
+      },
+    );
+    _wifiTrainerScanner!.start().catchError((Object e, s) {
+      _actionStreams.add(LogNotification('WiFi trainer discovery unavailable: $e'));
+      recordError(e, s, context: 'Wifi Trainer Discovery');
+    });
   }
 
   Future<void> _runCustomDeviceScript({
@@ -374,6 +454,15 @@ class Connection {
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
 
+    // A device kept in the list during an automatic reset cycle reappeared in
+    // the scan: its fresh instance is filtered out above (same id), so queue
+    // the existing instance for reconnection instead.
+    final resetDevices = dev
+        .mapNotNull((d) => devices.firstOrNullWhere((e) => e == d))
+        .where((e) => e.isResetting && !e.isConnected && !_connectionQueue.contains(e))
+        .toList();
+    _connectionQueue.addAll(resetDevices);
+
     _handleConnectionQueue();
 
     hasDevices.value = devices.isNotEmpty;
@@ -398,7 +487,10 @@ class Connection {
       final device = _connectionQueue.removeAt(0);
 
       final willConnect = device is! ProxyDevice || device.shouldAutoConnect;
-      if (willConnect) {
+      // Reconnections after an automatic reset happen every minute — keep
+      // them silent. Captured here because the flag clears during handshake.
+      final notify = willConnect && !device.isResetting;
+      if (notify) {
         _actionStreams.add(
           AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connectingToDevice(device.toString())),
         );
@@ -407,7 +499,7 @@ class Connection {
           .then((_) {
             _handlingConnectionQueue = false;
 
-            if (willConnect) {
+            if (notify) {
               _actionStreams.add(
                 AlertNotification(
                   LogLevel.LOGLEVEL_INFO,
@@ -444,6 +536,16 @@ class Connection {
     }
   }
 
+  /// Connect a device that is already in the list — used by the in-place
+  /// picker ("No connection" -> Virtual Shifting / Proxy on the same object).
+  ///
+  /// Routes through the same [_connect] path the auto-connect queue uses so the
+  /// action / connection-state listeners are (re)attached. A bare
+  /// [ProxyDevice.startProxy] would reconnect the BLE upstream but leave
+  /// `isConnected` stuck — the listener that flips it is torn down on
+  /// disconnect and only [_connect] re-establishes it.
+  Future<void> connectDevice(BaseDevice device) => _connect(device);
+
   Future<void> _connect(BaseDevice device) async {
     // Cancel any stale subscriptions from a previous connect attempt so a retry
     // doesn't stack listeners on the same device's streams.
@@ -452,13 +554,12 @@ class Connection {
 
     final actionSubscription = device.actionStream.listen((data) {
       _actionStreams.add(data);
-      // Reset the inactivity timer whenever a button is pressed on this
-      // device – we deliberately only react to ButtonNotification so that
-      // internal log / action messages don't keep the timer alive.
-      // Only BLE devices benefit from inactivity disconnect (battery-powered
-      // controllers); gamepads, HID, and gyroscope devices are excluded.
-      if (data is ButtonNotification && device is BluetoothDevice) {
-        _resetInactivityTimer(device);
+      // Any button press — from a BLE controller or any other input device —
+      // counts as rider activity and slides the inactivity timer. The timer only
+      // arms while a BLE controller is connected (see hasEligibleControllers), so
+      // non-BLE button activity simply keeps a co-connected controller alive.
+      if (data is ButtonNotification) {
+        _inactivityDisconnector?.onButtonActivity();
       }
     });
     _streamSubscriptions[device] = actionSubscription;
@@ -467,7 +568,10 @@ class Connection {
       final connectionStateSubscription = device.device.connectionStream.listen((state) {
         device.isConnected = state;
         _connectionStreams.add(device);
-        if (!state) {
+        // An automatic reset cycle (ClickLogic) reboots the device every
+        // minute — don't spam connect/disconnect notifications for it.
+        final isSilentReset = device.isResetting;
+        if (!state && !isSilentReset) {
           _actionStreams.add(
             AlertNotification(
               state ? LogLevel.LOGLEVEL_INFO : LogLevel.LOGLEVEL_WARNING,
@@ -475,16 +579,18 @@ class Connection {
             ),
           );
         }
-        core.flutterLocalNotificationsPlugin.show(
-          1338,
-          '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
-          !state ? AppLocalizations.current.tryingToConnectAgain : null,
-          NotificationDetails(
-            android: AndroidNotificationDetails('Connection', 'Connection Status'),
-            iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
-          ),
-        );
-        if (!device.isConnected) {
+        if (!isSilentReset) {
+          core.flutterLocalNotificationsPlugin.show(
+            1338,
+            '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+            !state ? AppLocalizations.current.tryingToConnectAgain : null,
+            NotificationDetails(
+              android: AndroidNotificationDetails('Connection', 'Connection Status'),
+              iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+            ),
+          );
+        }
+        if (!device.isConnected && !_inPlaceDisconnects.contains(device)) {
           disconnect(device, forget: false, persistForget: false);
           // try reconnect
           performScanning();
@@ -501,10 +607,8 @@ class Connection {
 
       core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
 
-      // Start the inactivity timer for BLE devices to save their battery.
-      if (device is BluetoothDevice && device is! ProxyDevice) {
-        _resetInactivityTimer(device);
-      }
+      // Let the battery saver re-evaluate now that a device connected.
+      _inactivityDisconnector?.onDeviceConnectionChanged();
 
       if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
         _androidNotificationsSetup = true;
@@ -533,11 +637,19 @@ class Connection {
     _connectionStreams.add(baseDevice);
   }
 
-  Future<void> disconnect(BaseDevice device, {required bool persistForget, required bool forget}) async {
-    _cancelInactivityTimer(device);
-
-    if (device.isConnected) {
-      await device.disconnect();
+  Future<void> disconnect(
+    BaseDevice device, {
+    required bool persistForget,
+    required bool forget,
+    bool keepInList = false,
+  }) async {
+    if (keepInList) _inPlaceDisconnects.add(device);
+    try {
+      if (device.isConnected) {
+        await device.disconnect();
+      }
+    } finally {
+      if (keepInList) _inPlaceDisconnects.remove(device);
     }
 
     if (device is BluetoothDevice) {
@@ -546,7 +658,11 @@ class Connection {
         await core.settings.addIgnoredDevice(device.device.deviceId, device.toString());
         _actionStreams.add(LogNotification('Device ignored: ${device.toString()}'));
       }
-      if (!forget) {
+      // For an in-place disconnect (the "No connection" picker entry) keep the
+      // scan result so the scanner doesn't churn a fresh duplicate while the
+      // user stays on the details page — the same device object must remain
+      // reconnectable.
+      if (!forget && !keepInList) {
         // allow reconnection
         _lastScanResult.removeWhere((d) => d.deviceId == device.device.deviceId);
       }
@@ -557,9 +673,16 @@ class Connection {
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
 
-      // Remove device from the list
-      devices.remove(device);
-      hasDevices.value = devices.isNotEmpty;
+      // Remove device from the list — unless it is rebooting due to an
+      // automatic reset and will be back in a few seconds, or this is an
+      // in-place disconnect (keepInList) where the open details page still
+      // holds this exact object and must be able to reconnect it. Dropping it
+      // here would orphan that reference: rediscovery builds a *new* device,
+      // and the page's stale one fails to reconnect ("Device not found").
+      if (!keepInList && (forget || !device.isResetting)) {
+        devices.remove(device);
+        hasDevices.value = devices.isNotEmpty;
+      }
     } else if (device is GyroscopeSteering || device is HidDevice) {
       // Clean up subscriptions
       _streamSubscriptions[device]?.cancel();
@@ -573,10 +696,10 @@ class Connection {
     }
 
     signalChange(device);
+    _inactivityDisconnector?.onDeviceConnectionChanged();
   }
 
   Future<void> disconnectAll() async {
-    _cancelAllInactivityTimers();
     _actionStreams.add(LogNotification(AppLocalizations.current.disconnectingAllDevices));
     for (var device in bluetoothDevices) {
       _streamSubscriptions[device]?.cancel();
@@ -590,6 +713,7 @@ class Connection {
     _gamePadSearchTimer?.cancel();
     _lastScanResult.clear();
     hasDevices.value = false;
+    _inactivityDisconnector?.onDeviceConnectionChanged();
   }
 
   Future<void> stop() async {
@@ -597,65 +721,56 @@ class Connection {
     if (isBtEnabled) {
       UniversalBle.stopScan();
     }
+    _wifiTrainerScanner?.stop();
     isScanning.value = false;
     _lastScanResult.clear();
     _androidNotificationsSetup = false;
   }
 
-  // ── Per-device inactivity timeout (issue #329) ─────────────────────
+  // ── Inactivity / battery-saver disconnect (issue #329) ─────────────────────
 
-  /// Devices are automatically disconnected after this period of inactivity
-  /// to preserve their battery.
-  static const _inactivityTimeout = Duration(minutes: 45);
+  /// Called by [_inactivityDisconnector] when the idle timeout elapses.
+  /// Disconnects every connected BLE controller (battery-powered; ProxyDevice
+  /// and accessories excluded), then surfaces an in-app alert with a Reconnect
+  /// action and an OS push notification. [timeout] is the elapsed window, used
+  /// for the human-readable message.
+  void _onInactivityTimeout(Duration timeout) {
+    final controllers = controllerDevices.whereType<BluetoothDevice>().where((d) => d.isConnected).toList();
+    if (controllers.isEmpty) return;
 
-  /// Start (or restart) the inactivity timer for [device].
-  void _resetInactivityTimer(BaseDevice device) {
-    _inactivityTimers[device]?.cancel();
-
-    if (true) {
-      // not stable - reactivate some other time
-      return;
-    }
-
-    _inactivityTimers[device] = Timer(_inactivityTimeout, () {
-      // Always clean up the map entry – the timer has already fired.
-      _inactivityTimers.remove(device);
-      if (!device.isConnected) return;
-      _actionStreams.add(
-        AlertNotification(
-          LogLevel.LOGLEVEL_WARNING,
-          '${device.toString()} disconnected after ${_inactivityTimeout.inMinutes} minutes of inactivity',
-          buttonTitle: 'Reconnect',
-          onTap: () {
-            _connect(device).catchError((Object error, StackTrace stackTrace) {
-              _actionStreams.add(
-                LogNotification('Failed to reconnect ${device.toString()} after inactivity timeout: $error'),
-              );
-            });
-          },
-        ),
-      );
+    for (final device in controllers) {
       unawaited(
         disconnect(device, forget: true, persistForget: false).catchError((Object error, StackTrace stackTrace) {
           _actionStreams.add(
-            LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error'),
+            LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error\n$stackTrace'),
           );
         }),
       );
-    });
-  }
-
-  /// Cancel the inactivity timer for [device].
-  void _cancelInactivityTimer(BaseDevice device) {
-    _inactivityTimers[device]?.cancel();
-    _inactivityTimers.remove(device);
-  }
-
-  /// Cancel every inactivity timer.
-  void _cancelAllInactivityTimers() {
-    for (final timer in _inactivityTimers.values) {
-      timer.cancel();
     }
-    _inactivityTimers.clear();
+
+    _actionStreams.add(
+      AlertNotification(
+        LogLevel.LOGLEVEL_WARNING,
+        AppLocalizations.current.controllersDisconnectedInactivity(timeout.inMinutes),
+        buttonTitle: AppLocalizations.current.reconnect,
+        // Route reconnection through the connection queue so BLE connects are
+        // serialized (Windows fails on parallel connects) and ignored-device
+        // filtering applies. disconnect(persistForget: false) above did not add
+        // these to the ignore list, so they are eligible to be re-added.
+        onTap: () => addDevices(controllers),
+      ),
+    );
+
+    if (!kIsWeb) {
+      core.flutterLocalNotificationsPlugin.show(
+        1339,
+        AppLocalizations.current.batterySaverTitle,
+        AppLocalizations.current.controllersDisconnectedInactivity(timeout.inMinutes),
+        NotificationDetails(
+          android: AndroidNotificationDetails('BatterySaver', 'Battery Saver'),
+          iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+        ),
+      );
+    }
   }
 }

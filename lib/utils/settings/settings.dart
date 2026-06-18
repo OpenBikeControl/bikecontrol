@@ -29,7 +29,18 @@ import '../keymap/apps/custom_app.dart';
 import '../keymap/buttons.dart';
 
 class Settings {
-  late SharedPreferences prefs;
+  late SharedPreferences _prefs;
+  bool _initialized = false;
+
+  /// Assigning [prefs] (from [init] in production or directly in tests) flips
+  /// [_initialized] so guards like [getUseNewUnlockMethod] know prefs are ready
+  /// and don't throw on the uninitialised `late` field.
+  SharedPreferences get prefs => _prefs;
+  set prefs(SharedPreferences value) {
+    _prefs = value;
+    _initialized = true;
+  }
+
   SettingsSyncService? _syncService;
   Timer? _syncDebounceTimer;
 
@@ -186,6 +197,18 @@ class Settings {
 
   Future<void> setSmartTrainerConsent(String trainerKey, bool consent) async {
     await prefs.setBool(_smartTrainerConsentKey(trainerKey), consent);
+  }
+
+  static const String _virtualShiftingIntroSeenKey = 'virtual_shifting_intro_seen';
+
+  /// Whether the user has seen the one-time Virtual Shifting beta intro shown
+  /// the first time the Smart Trainer page is opened. Global (not per-trainer).
+  bool getVirtualShiftingIntroSeen() {
+    return prefs.getBool(_virtualShiftingIntroSeenKey) ?? false;
+  }
+
+  Future<void> setVirtualShiftingIntroSeen(bool seen) async {
+    await prefs.setBool(_virtualShiftingIntroSeenKey, seen);
   }
 
   static String _obpSupportedButtonsKey(String appName) => 'obp_supported_buttons_$appName';
@@ -665,5 +688,29 @@ class Settings {
 
   bool getShowExperimental() {
     return prefs.getBool('show_experimental') ?? false;
+  }
+
+  bool getUnlockWithZwift() {
+    return prefs.getBool('unlock_mode') ?? false;
+  }
+
+  Future<void> setUnlockWithZwift(bool value) async {
+    await prefs.setBool('unlock_mode', value);
+  }
+
+  /// Whether a Zwift Click V2 connects as separate left/right controllers with
+  /// the new unlock handling (the right side needs no unlocking). When false,
+  /// both sides fall back to the single legacy [ZwiftClickV2]. Defaults to true.
+  ///
+  /// Guarded against an uninitialised [prefs] because device detection
+  /// ([BluetoothDevice.fromScanResult]) can run before [init] — e.g. in unit
+  /// tests — and must never throw. Mirrors [IAPManager]'s initialisation guard.
+  bool getUseNewUnlockMethod() {
+    if (!_initialized) return true;
+    return prefs.getBool('use_new_unlock_method') ?? true;
+  }
+
+  Future<void> setUseNewUnlockMethod(bool value) async {
+    await prefs.setBool('use_new_unlock_method', value);
   }
 }

@@ -99,6 +99,16 @@
     }
   },
   "connection": "Connection",
+  "reconnect": "Reconnect",
+  "batterySaverTitle": "Battery saver",
+  "controllersDisconnectedInactivity": "Controllers disconnected after {minutes} minutes of inactivity to save battery",
+  "@controllersDisconnectedInactivity": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "continueAction": "Continue",
   "controlAppUsingModes": "Control {appName} using {modes}",
   "@controlAppUsingModes": {
@@ -165,12 +175,28 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} is restarting and will reconnect in a few seconds",
+  "@deviceIsRestarting": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "deviceLimitReached": "Device limit reached for {platform}. Revoke other devices to register a new one.",
   "devicesActive": "{active} active",
   "disconnectAndForget": "Disconnect & forget",
   "disconnectAndForgetForThisSession": "Disconnect",
   "disconnectDevices": "Disconnect Devices",
   "disconnected": "Disconnected",
+  "disconnectedFrom": "Disconnected from {appId}",
+  "@disconnectedFrom": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
   "donateByBuyingFromPlayStore": "by buying the app from Play Store",
   "donateViaCreditCard": "via Credit Card, Google Pay, Apple Pay and others",
   "donateViaPaypal": "via PayPal",
@@ -350,6 +376,13 @@
   "no": "No",
   "noActionAssigned": "No action assigned",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
+  "trainerAppNotConnectedForButton": "Could not perform {button}: {app} is not connected",
+  "@trainerAppNotConnectedForButton": {
+    "placeholders": {
+      "button": {"type": "Object"},
+      "app": {"type": "Object"}
+    }
+  },
   "noActiveWorkout": "No active workout",
   "noProxyTrainerConnected": "No smart trainer connected",
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
@@ -589,8 +622,20 @@
   "unlock_deviceIsCurrentlyLocked": "Device is currently locked",
   "unlock_isnowunlocked": "{device} is now unlocked",
   "unlock_markAsUnlocked": "Mark as Unlocked",
+  "unlock_mode": "Unlock mode",
+  "unlock_modeRestart": "Restart device every minute",
+  "unlock_modeRestartDescription": "The left controller will automatically reconnect every 60 seconds, resulting in a short downtime.",
+  "unlock_modeZwift": "Unlock using Zwift",
+  "unlock_modeZwiftDescription": "Every 24 hours the device needs to be unlocked using Zwift.",
   "unlock_notWorking": "Not working?",
   "unlock_openZwift": "Open Zwift (not the Companion) on this or another device",
+  "unlock_rightSideNeedsNoUnlock": "You could use this controller without the left controller, as this one needs no unlocking or restarts.",
+  "unlock_newMethod": "Use new unlock method",
+  "unlock_newMethodDescription": "Connect the left and right sides as separate controllers. The right side needs no unlocking. Turn off to use a single combined controller.",
+  "unlock_newMethodReconnecting": "Applying… reconnecting your Zwift Click.",
+  "unlock_useRightSideOnly": "Use the right side only",
+  "unlock_useRightSideOnlyDescription": "The right side needs no unlocking. Drop the left side and let the right side handle shifting — + shifts up, B shifts down.",
+  "unlock_rightSideOnlyConfigured": "Done — using the right side only. Re-enable the left side anytime under Ignored devices.",
   "unlock_unlockManually": "Unlock manually",
   "unlock_unlockNow": "Unlock now",
   "unlock_unlockedUntilAroundDate": "Unlocked until around {date}",
@@ -651,6 +696,16 @@
   "virtualShiftingBluetoothHint": "Adds or adjusts virtual shifting and creates a Bluetooth-advertised trainer.",
   "virtualShiftingWifiHint": "Adds or adjusts virtual shifting and creates a WiFi-advertised trainer.",
   "virtualShiftingTransportNeededHint": "Enable a Bluetooth or WiFi Trainer Connection to use Virtual Shifting.",
+  "virtualShiftingHint": "Adds or adjusts virtual shifting and advertises BikeControl as a trainer.",
+  "noConnection": "No connection",
+  "noConnectionHint": "Let {trainerApp} handle virtual shifting, if supported",
+  "@noConnectionHint": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
   "connectModeLabel": "CONNECT MODE",
   "connectingInMode": "Connecting in {mode} mode…",
   "@connectingInMode": {
@@ -1027,5 +1082,15 @@
   "scanningForDevicesShort": "Scanning for devices...",
   "disconnectingAllDevices": "Disconnecting all devices",
   "configureButtonMapping": "Configure button mapping",
-  "notWellSupportedByMyWhoosh": "Note: this action is not well supported by MyWhoosh, yet"
+  "notWellSupportedByMyWhoosh": "Note: this action is not well supported by MyWhoosh, yet",
+  "vsIntroTitle": "Virtual Shifting",
+  "vsIntroSubtitle": "Shift gears on any smart trainer, right inside BikeControl.",
+  "vsIntroSupportedTitle": "Works with dozens of trainers",
+  "vsIntroSupportedBody": "Many smart trainers already work great — though some may not work perfectly just yet, and the list keeps growing.",
+  "vsIntroBetaTitle": "Still in beta",
+  "vsIntroBetaBody": "Virtual Shifting customization in BikeControl is a new feature, so you might run into the occasional rough edge.",
+  "vsIntroFeedbackTitle": "We've got your back",
+  "vsIntroFeedbackBody": "We love your feedback and are always happy to help get your setup dialed in just right.",
+  "vsIntroSupportedTrainersCta": "See supported trainers",
+  "vsIntroGotIt": "Got it"
 }

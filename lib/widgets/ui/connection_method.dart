@@ -25,6 +25,16 @@ enum ConnectionMethodType {
   const ConnectionMethodType({required this.icon});
 }
 
+extension ConnectionMethodTypeActivityIcon on ConnectionMethodType {
+  /// Lucide icon shown in the activity log for an alert tied to this transport,
+  /// so a connect/disconnect entry reflects how the trainer app is attached
+  /// (WiFi vs Bluetooth) rather than always showing Bluetooth.
+  IconData get activityIcon => switch (this) {
+    ConnectionMethodType.network => LucideIcons.wifi,
+    _ => LucideIcons.bluetooth,
+  };
+}
+
 class ConnectionMethod extends StatefulWidget {
   final TrainerConnection trainerConnection;
   final String title;

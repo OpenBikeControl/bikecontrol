@@ -340,6 +340,27 @@ class KeyPair {
       (screenshotPath == null || screenshotPath!.trim().isEmpty) &&
       (command == null || command!.trim().isEmpty);
 
+  /// True when the only thing this keypair does is send an in-game action to a
+  /// connected trainer app (e.g. a Zwift virtual-shifting gear change) — there
+  /// is no keyboard / touch / command / screenshot / Android fallback the host
+  /// could perform locally. Such an action does nothing while the trainer app
+  /// is disconnected, so the activity log should say so rather than the
+  /// misleading "no action assigned" (issue #367).
+  ///
+  /// `isOutsideTrainerApp` actions (headwind, trainer-control) are excluded:
+  /// they target a proxy / accessory and are handled — with their own errors —
+  /// before the trainer-app delivery path.
+  bool get isTrainerAppActionOnly =>
+      inGameAction != null &&
+      inGameAction!.isOutsideTrainerApp == false &&
+      logicalKey == null &&
+      physicalKey == null &&
+      touchPosition == Offset.zero &&
+      androidAction == null &&
+      (androidIntentAction == null || androidIntentAction!.trim().isEmpty) &&
+      (screenshotPath == null || screenshotPath!.trim().isEmpty) &&
+      (command == null || command!.trim().isEmpty);
+
   bool get hasActiveAction =>
       screenshotMode ||
       (physicalKey != null && (core.logic.showLocalControl && core.settings.getLocalEnabled()) ||

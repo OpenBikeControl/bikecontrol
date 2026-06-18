@@ -16,6 +16,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
+import '../bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
+import '../bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 
 typedef ControllerFooterBuilder = Widget Function(BaseDevice device);
 
@@ -54,34 +56,91 @@ class _DevicePageState extends State<DevicePage> {
     super.dispose();
   }
 
+  /// Groups controller devices for display: a Zwift Click V2 left/right pair
+  /// is rendered side by side in one group (left side first), every other
+  /// device gets its own group.
+  List<List<BaseDevice>> get _deviceGroups {
+    final devices = core.connection.controllerDevices;
+    final leftSide = devices.whereType<ZwiftClickV2LeftSide>().firstOrNull;
+    final rightSide = devices.whereType<ZwiftClickV2RightSide>().firstOrNull;
+    if (leftSide == null || rightSide == null || widget.isMobile) {
+      return devices.map((device) => [device]).toList();
+    }
+    final groups = <List<BaseDevice>>[];
+    var paired = false;
+    for (final device in devices) {
+      if (device == leftSide || device == rightSide) {
+        if (!paired) {
+          groups.add([leftSide, rightSide]);
+          paired = true;
+        }
+      } else {
+        groups.add([device]);
+      }
+    }
+    return groups;
+  }
+
+  Widget _buildDeviceCard(BaseDevice device) {
+    // Grey out (and mute) the entry while the device reboots due to an
+    // automatic reset — it reconnects on its own within a few seconds.
+    final muted = device.isResetting;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(bottom: 12.0),
+      key: widget.cardKeys[device.uniqueId],
+      child: AnimatedOpacity(
+        opacity: muted ? 0.4 : 1,
+        duration: const Duration(milliseconds: 300),
+        child: IgnorePointer(
+          ignoring: muted,
+          child: Button.ghost(
+            onPressed: () async {
+              await context.push(ControllerSettingsPage(device: device));
+              widget.onUpdate();
+            },
+            child: device.showInformation(
+              context,
+              showFull: false,
+              footer: widget.footerBuilder(device),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final deviceGroups = _deviceGroups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // leave it in for the extra scanning options
         ScanWidget(),
 
-        ...core.connection.controllerDevices
+        ...deviceGroups
             .mapIndexed(
-              (index, device) => [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  key: widget.cardKeys[device.uniqueId],
-                  child: Button.ghost(
-                    onPressed: () async {
-                      await context.push(ControllerSettingsPage(device: device));
-                      widget.onUpdate();
-                    },
-                    child: device.showInformation(
-                      context,
-                      showFull: false,
-                      footer: widget.footerBuilder(device),
+              (index, group) => [
+                if (group.length == 1)
+                  _buildDeviceCard(group.single)
+                else
+                  IntrinsicHeight(
+                    child: Row(
+                      spacing: 12,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: group
+                          .map<Widget>((device) => Expanded(child: _buildDeviceCard(device)))
+                          .joinSeparator(
+                            VerticalDivider(
+                              thickness: Theme.of(context).brightness == Brightness.dark ? 1 : 0.5,
+                              endIndent: 12,
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
-                ),
-                if (index != core.connection.controllerDevices.length - 1) ...[
+                if (index != deviceGroups.length - 1) ...[
                   Divider(
                     thickness: Theme.of(context).brightness == Brightness.dark ? 1 : 0.5,
                     indent: 20,

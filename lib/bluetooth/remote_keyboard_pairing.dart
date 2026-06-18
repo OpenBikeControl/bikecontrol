@@ -1,31 +1,34 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/keyboard_pair_widget.dart';
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:prop/prop.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' hide ConnectionState;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import '../utils/keymap/keymap.dart';
 
 class RemoteKeyboardPairing extends TrainerConnection {
   bool get isLoading => _isLoading;
 
-  late final _peripheralManager = PeripheralManager();
+  final _server = PeripheralServer();
   bool _isLoading = false;
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
 
-  Central? _central;
-  GATTCharacteristic? _inputReport;
+  String? _currentDeviceId;
+  static const _inputReportUuid = '2A4D';
+  static const _hidServiceUuid = '1812';
 
   RemoteKeyboardPairing()
     : super(
@@ -35,8 +38,8 @@ class RemoteKeyboardPairing extends TrainerConnection {
       );
 
   Future<void> reconnect() async {
-    await _peripheralManager.stopAdvertising();
-    await _peripheralManager.removeAllServices();
+    await _server.stopAdvertising();
+    await _server.clearServices();
     _isServiceAdded = false;
     startAdvertising().catchError((e) {
       core.settings.setRemoteControlEnabled(false);
@@ -50,23 +53,32 @@ class RemoteKeyboardPairing extends TrainerConnection {
     _isLoading = true;
     isStarted.value = true;
 
-    _peripheralManager.stateChanged.forEach((state) {
-      print('Peripheral manager state: ${state.state}');
+    _server.onConnectionChanged((deviceId, connected) {
+      print('Peripheral connection state: ${connected ? "connected" : "disconnected"} of $deviceId');
+      if (!connected) {
+        _currentDeviceId = null;
+        isConnected.value = false;
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.disconnected),
+        );
+      }
+    });
+
+    _server.onAdvertisingStateChanged((state, error) {
+      if (kDebugMode) {
+        print('Remote keyboard advertising state: ${state.name}${error != null ? ' — $error' : ''}');
+      }
+      if (state == PeripheralAdvertisingState.error) {
+        core.connection.signalNotification(
+          AlertNotification(
+            LogLevel.LOGLEVEL_WARNING,
+            'Remote keyboard failed to advertise${error != null ? ': $error' : ''}',
+          ),
+        );
+      }
     });
 
     if (!kIsWeb && Platform.isAndroid) {
-      _peripheralManager.connectionStateChanged.forEach((state) {
-        print('Peripheral connection state: ${state.state} of ${state.central.uuid}');
-        if (state.state == ConnectionState.connected) {
-        } else if (state.state == ConnectionState.disconnected) {
-          _central = null;
-          isConnected.value = false;
-          core.connection.signalNotification(
-            AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.disconnected),
-          );
-        }
-      });
-
       final status = await Permission.bluetoothAdvertise.request();
       if (!status.isGranted) {
         print('Bluetooth advertise permission not granted');
@@ -75,25 +87,13 @@ class RemoteKeyboardPairing extends TrainerConnection {
       }
     }
 
-    while (_peripheralManager.state != BluetoothLowEnergyState.poweredOn && core.settings.getRemoteControlEnabled()) {
-      print('Waiting for peripheral manager to be powered on...');
+    while (!(await _server.isReady) && core.settings.getRemoteControlEnabled()) {
+      print('Waiting for peripheral manager to be ready...');
       if (core.settings.getLastTarget() == Target.thisDevice) {
         return;
       }
       await Future.delayed(Duration(seconds: 1));
     }
-    final inputReport = GATTCharacteristic.mutable(
-      uuid: UUID.fromString('2A4D'),
-      permissions: [GATTCharacteristicPermission.read],
-      properties: [GATTCharacteristicProperty.notify, GATTCharacteristicProperty.read],
-      descriptors: [
-        GATTDescriptor.immutable(
-          // Report Reference: ID=1, Type=Input(1)
-          uuid: UUID.fromString('2908'),
-          value: Uint8List.fromList([0x01, 0x01]),
-        ),
-      ],
-    );
 
     if (!_isServiceAdded) {
       await Future.delayed(Duration(seconds: 1));
@@ -126,111 +126,108 @@ class RemoteKeyboardPairing extends TrainerConnection {
         0xC0, // End Collection
       ]);
 
-      // 1) Build characteristics
-      final hidInfo = GATTCharacteristic.immutable(
-        uuid: UUID.fromString('2A4A'),
+      // HID characteristics
+      final hidInfo = BlePeripheralCharacteristic(
+        uuid: '2A4A',
+        properties: [CharacteristicProperty.read],
+        permissions: [PeripheralAttributePermission.readable],
         value: Uint8List.fromList([0x11, 0x01, 0x00, 0x02]),
-        descriptors: [], // HID v1.11, country=0, flags=2
       );
 
-      final reportMap = GATTCharacteristic.immutable(
-        uuid: UUID.fromString('2A4B'),
-        //properties: [GATTCharacteristicProperty.read],
-        //permissions: [GATTCharacteristicPermission.read],
+      final reportMap = BlePeripheralCharacteristic(
+        uuid: '2A4B',
+        properties: [CharacteristicProperty.read],
+        permissions: [PeripheralAttributePermission.readable],
         value: reportMapDataAbsolute,
         descriptors: [
-          GATTDescriptor.immutable(uuid: UUID.fromString('2908'), value: Uint8List.fromList([0x0, 0x0])),
+          BlePeripheralDescriptor(uuid: '2908', value: Uint8List.fromList([0x0, 0x0])),
         ],
       );
 
-      final protocolMode = GATTCharacteristic.mutable(
-        uuid: UUID.fromString('2A4E'),
-        properties: [GATTCharacteristicProperty.read, GATTCharacteristicProperty.writeWithoutResponse],
-        permissions: [GATTCharacteristicPermission.read, GATTCharacteristicPermission.write],
-        descriptors: [],
+      final protocolMode = BlePeripheralCharacteristic(
+        uuid: '2A4E',
+        properties: [CharacteristicProperty.read, CharacteristicProperty.writeWithoutResponse],
+        permissions: [PeripheralAttributePermission.readable, PeripheralAttributePermission.writeable],
       );
 
-      final hidControlPoint = GATTCharacteristic.mutable(
-        uuid: UUID.fromString('2A4C'),
-        properties: [GATTCharacteristicProperty.writeWithoutResponse],
-        permissions: [GATTCharacteristicPermission.write],
-        descriptors: [],
+      final hidControlPoint = BlePeripheralCharacteristic(
+        uuid: '2A4C',
+        properties: [CharacteristicProperty.writeWithoutResponse],
+        permissions: [PeripheralAttributePermission.writeable],
       );
 
-      // 2) HID service
-      final hidService = GATTService(
-        uuid: UUID.fromString(Platform.isIOS ? '1812' : '00001812-0000-1000-8000-00805F9B34FB'),
-        isPrimary: true,
-        characteristics: [
-          hidInfo,
-          reportMap,
-          protocolMode,
-          hidControlPoint,
-          inputReport,
+      final inputReport = BlePeripheralCharacteristic(
+        uuid: _inputReportUuid,
+        permissions: [PeripheralAttributePermission.readable],
+        properties: [CharacteristicProperty.notify, CharacteristicProperty.read],
+        descriptors: [
+          // Report Reference: ID=1, Type=Input(1)
+          BlePeripheralDescriptor(uuid: '2908', value: Uint8List.fromList([0x01, 0x01])),
         ],
-        includedServices: [],
       );
 
       if (!_isSubscribedToEvents) {
         _isSubscribedToEvents = true;
-        _peripheralManager.characteristicReadRequested.forEach((char) {
-          print('Read request for characteristic: ${char}');
-          // You can respond to read requests here if needed
-        });
-
-        _peripheralManager.characteristicNotifyStateChanged.forEach((char) {
-          // Check if this is the input report characteristic (2A4D)
-          if (char.characteristic.uuid == inputReport.uuid) {
-            if (char.state) {
-              _central = char.central;
-              _inputReport = char.characteristic;
+        _server.onSubscriptionChanged((deviceId, characteristicId, isSubscribed) {
+          if (characteristicId.toLowerCase() == _inputReportUuid.toLowerCase()) {
+            if (isSubscribed) {
+              _currentDeviceId = deviceId;
               isConnected.value = true;
               print('Input report subscribed');
             } else {
-              _inputReport = null;
-              _central = null;
+              _currentDeviceId = null;
               isConnected.value = false;
               print('Input report unsubscribed');
             }
           }
-          print('Notify state changed for characteristic: ${char.characteristic.uuid}: ${char.state}');
+          print('Notify state changed for $characteristicId: $isSubscribed');
         });
       }
-      await _peripheralManager.addService(hidService);
 
-      // 3) Optional Battery service
-      await _peripheralManager.addService(
-        GATTService(
-          uuid: UUID.fromString('180F'),
-          isPrimary: true,
+      await _server.addService(
+        BlePeripheralService(
+          uuid: Platform.isIOS ? _hidServiceUuid : '00001812-0000-1000-8000-00805F9B34FB',
           characteristics: [
-            GATTCharacteristic.immutable(
-              uuid: UUID.fromString('2A19'),
+            hidInfo,
+            reportMap,
+            protocolMode,
+            hidControlPoint,
+            inputReport,
+          ],
+        ),
+      );
+
+      // Optional Battery service
+      await _server.addService(
+        BlePeripheralService(
+          uuid: '180F',
+          characteristics: [
+            BlePeripheralCharacteristic(
+              uuid: '2A19',
+              properties: [CharacteristicProperty.read],
+              permissions: [PeripheralAttributePermission.readable],
               value: Uint8List.fromList([100]),
-              descriptors: [],
             ),
           ],
-          includedServices: [],
         ),
       );
       _isServiceAdded = true;
     }
 
-    final advertisement = Advertisement(
-      name:
-          'BikeControl ${Platform.isIOS
-              ? 'iOS'
-              : Platform.isAndroid
-              ? 'Android'
-              : ''}',
-      serviceUUIDs: [UUID.fromString(Platform.isIOS ? '1812' : '00001812-0000-1000-8000-00805F9B34FB')],
-    );
     print('Starting advertising with Remote service...');
 
     try {
-      await _peripheralManager.startAdvertising(advertisement);
+      await _server.startAdvertising(
+        services: [Platform.isIOS ? _hidServiceUuid : '00001812-0000-1000-8000-00805F9B34FB'],
+        localName:
+            'BikeControl ${Platform.isIOS
+                ? 'iOS'
+                : Platform.isAndroid
+                ? 'Android'
+                : ''}',
+      );
     } catch (e) {
-      if (e.toString().contains("Advertising has already started")) {
+      if (e.toString().contains("Advertising has already started") || e.toString().contains("already")) {
         print('Advertising already started, ignoring error');
         return;
       } else {
@@ -241,17 +238,21 @@ class RemoteKeyboardPairing extends TrainerConnection {
   }
 
   Future<void> stopAdvertising() async {
-    await _peripheralManager.removeAllServices();
+    await _server.clearServices();
     _isServiceAdded = false;
-    await _peripheralManager.stopAdvertising();
+    await _server.stopAdvertising();
     isStarted.value = false;
     isConnected.value = false;
     _isLoading = false;
   }
 
   Future<void> notifyCharacteristic(Uint8List value) async {
-    if (_inputReport != null && _central != null) {
-      await _peripheralManager.notifyCharacteristic(_central!, _inputReport!, value: value);
+    if (_currentDeviceId != null) {
+      await _server.notify(
+        characteristicId: _inputReportUuid,
+        value: value,
+        deviceId: _currentDeviceId,
+      );
     }
   }
 

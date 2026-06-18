@@ -1,3 +1,18 @@
+### 6.1.0 (unreleased)
+**Features**:
+- WiFi enabled Smart Trainers are now supported
+- Zwift Click V2: the new unlock handling is now available to everyone. A new "Use new unlock method" setting lets you switch back to the classic single controller at any time.
+- To conserve battery, Bluetooth Controllers are disconnected after a few minutes when BikeControl is no longer connected to your trainer app (e.g. training session ended)
+
+### 6.0.0 (06-06-2026)
+ 
+TrainingPeaks has now partnered with BikeControl, supporting a whooping number of 28 mappable controller actions!
+
+Read more in our blog.
+
+**Features**:
+- Zwift Click V2: Pro users will now no longer require unlocking with Zwift every 24 hours – hooray! Once some feedback is collected, it will be available for Base users as well :) 
+
 ### 5.6.0 (02-06-2026)
 
 - Zwift Play firmware 2.0.1 is now supported

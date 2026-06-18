@@ -36,7 +36,9 @@ Future<void> main() async {
     test('trainerUp in sim mode shifts up', () {
       def.setTargetGear(5);
       final result = device.handleTrainerAction(InGameAction.shiftUp);
-      expect(result, isA<Success>());
+      // Sim-mode shifts report Ignored (with the gear message) — the shift is
+      // fully handled here and nothing must be forwarded to the trainer app.
+      expect(result, isA<Ignored>());
       expect(def.currentGear.value, 6);
     });
 
@@ -50,7 +52,7 @@ Future<void> main() async {
     test('trainerDown in sim mode shifts down', () {
       def.setTargetGear(5);
       final result = device.handleTrainerAction(InGameAction.shiftDown);
-      expect(result, isA<Success>());
+      expect(result, isA<Ignored>());
       expect(def.currentGear.value, 4);
     });
 

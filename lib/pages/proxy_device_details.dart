@@ -11,6 +11,7 @@ import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dar
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/proxy_device_details/virtual_shifting_intro_page.dart';
 import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
@@ -45,6 +46,18 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     widget.device.retrofitMode.addListener(_onEmulatorStateChanged);
     _connectionSub = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
+    });
+    _maybeShowVirtualShiftingIntro();
+  }
+
+  /// Show the one-time Virtual Shifting beta intro the first time this page is
+  /// opened. The flag is set as soon as it's shown so it appears exactly once.
+  void _maybeShowVirtualShiftingIntro() {
+    if (screenshotMode || core.settings.getVirtualShiftingIntroSeen()) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      core.settings.setVirtualShiftingIntroSeen(true);
+      showVirtualShiftingIntro(context);
     });
   }
 
@@ -96,17 +109,23 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
               children: [
                 _deviceCard(),
                 SizedBox(height: 12),
-                if (!screenshotMode) _provideFeedbackBox(),
-                SizedBox(height: 12),
                 if (_ftmsMissingWarning() case final w?) ...[
                   w,
                   SizedBox(height: 12),
                 ],
 
                 if (!screenshotMode) ...[
-                  ConnectionCard(device: device),
+                  // Stable keys keep these persistent stateful cards from being
+                  // remounted when conditional siblings (FTMS warning above;
+                  // gear/settings/VS-notice below) appear/disappear on
+                  // (dis)connect — an unkeyed widget trapped between two
+                  // toggling siblings lands in the reconciliation middle and is
+                  // re-inflated, which would reset ConnectionCard's accordion.
+                  ConnectionCard(key: const ValueKey('connection-card'), device: device),
                   SizedBox(height: 2),
                 ],
+                if (!screenshotMode) _provideFeedbackBox(),
+                SizedBox(height: 12),
                 _gearSection(),
                 SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
@@ -126,9 +145,9 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   ),
                   SizedBox(height: 26),
                 ],
-                LiveMetricsSection(device: device),
+                LiveMetricsSection(key: const ValueKey('live-metrics'), device: device),
                 SizedBox(height: 20),
-                MiniWorkoutCard(device: device),
+                MiniWorkoutCard(key: const ValueKey('mini-workout'), device: device),
                 SizedBox(height: 20),
                 _settingsSection(),
                 SizedBox(height: 32),
@@ -220,7 +239,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
   Widget? _ftmsMissingWarning() {
     final supportsVS = widget.device.fitnessBike?.supportsVirtualShiftingMode(VirtualShiftingMode.targetPower) == true;
-    if (supportsVS) return null;
+    if (supportsVS || !widget.device.isConnected || widget.device.isStarting.value) return null;
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,

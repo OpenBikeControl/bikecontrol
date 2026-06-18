@@ -59,6 +59,12 @@ abstract class BaseDevice {
 
   bool isConnected = false;
 
+  /// True while the device is rebooting because of an automatic reset (e.g.
+  /// ClickLogic's periodic reset) and is expected to reconnect on its own
+  /// shortly: keep its entry in the device list (greyed out) and suppress
+  /// connect/disconnect notifications for the cycle.
+  bool get isResetting => false;
+
   static const Duration _longPressTriggerDelay = Duration(milliseconds: 550);
   static const Duration _doubleClickDelay = Duration(milliseconds: 320);
   static const Duration _repeatInterval = Duration(milliseconds: 250);

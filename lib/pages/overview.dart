@@ -27,6 +27,7 @@ import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodTypeActivityIcon;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -49,6 +50,7 @@ class _ActivityEntry {
   final LogLevel? alertLevel;
   final String? buttonTitle;
   final VoidCallback? onTap;
+  final ConnectionMethodType? connectionType;
 
   _ActivityEntry({
     this.button,
@@ -58,6 +60,7 @@ class _ActivityEntry {
     this.alertLevel,
     this.buttonTitle,
     this.onTap,
+    this.connectionType,
   });
 
   bool get isAlert => alertMessage != null;
@@ -237,7 +240,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
           level: LogLevel.LOGLEVEL_WARNING,
           title: result.message,
           closeTitle: fix?.$1 ?? AppLocalizations.of(context).close,
-          onClose: fix?.$2(context),
+          onClose: fix?.$2 != null
+              ? () {
+                  fix?.$2(context);
+                }
+              : null,
         );
       }
       _latestError = entry;
@@ -274,6 +281,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       alertLevel: notification.level,
       buttonTitle: notification.buttonTitle,
       onTap: notification.onTap,
+      connectionType: notification.connectionType,
     );
     _insertActivityEntry(entry);
 
@@ -869,7 +877,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {
       leadingIcon = Icon(LucideIcons.triangleAlert, size: 16, color: const Color(0xFFF59E0B));
     } else if (entry.button == null) {
-      leadingIcon = Icon(LucideIcons.bluetooth, size: 16, color: Color(0xFF2563EB));
+      leadingIcon = Icon(
+        entry.connectionType?.activityIcon ?? LucideIcons.bluetooth,
+        size: 16,
+        color: Color(0xFF2563EB),
+      );
     } else {
       leadingIcon = Icon(LucideIcons.info, size: 16, color: Theme.of(context).colorScheme.mutedForeground);
     }
@@ -979,7 +991,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
   Widget _buildErrorBanner() {
     final entry = _latestError;
-    if (entry == null && _errorBannerController.value == 0) {
+    if ((entry == null && _errorBannerController.value == 0) || _screenWidth > 800) {
       return const SizedBox.shrink();
     }
 

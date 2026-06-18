@@ -153,12 +153,21 @@
       }
     }
   },
+  "deviceIsRestarting": "{device} redémarre et se reconnectera dans quelques secondes",
   "deviceLimitReached": "Limite d'appareils atteinte pour {platform}. Révoquez les autres appareils pour en enregistrer un nouveau.",
   "devicesActive": "{active} actif",
   "disconnectAndForget": "Déconnecte et oublie",
   "disconnectAndForgetForThisSession": "Déconnecter",
   "disconnectDevices": "Déconnecter les appareils",
   "disconnected": "Déconnecté",
+  "disconnectedFrom": "Déconnecté de {appId}",
+  "@disconnectedFrom": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
   "donateByBuyingFromPlayStore": "en achetant l'application sur le Play Store",
   "donateViaCreditCard": "par carte bancaire, Google Pay, Apple Pay et autres",
   "donateViaPaypal": "via PayPal",
@@ -338,6 +347,7 @@
   "no": "Non",
   "noActionAssigned": "Aucune action assignée",
   "noActionAssignedForButton": "Impossible d'effectuer {button}: Aucune action assignée",
+  "trainerAppNotConnectedForButton": "Impossible d'effectuer {button} : {app} n'est pas connecté",
   "noActiveWorkout": "Aucune séance active",
   "noProxyTrainerConnected": "Aucun home trainer connecté",
   "noConnectionMethodIsConnectedOrActive": "Aucune méthode de connexion n'est établie ou active.",
@@ -545,8 +555,20 @@
   "unlock_deviceIsCurrentlyLocked": "L'appareil est actuellement verrouillé.",
   "unlock_isnowunlocked": "{device} est maintenant déverrouillé",
   "unlock_markAsUnlocked": "Marquer comme déverrouillé",
+  "unlock_mode": "Mode de déverrouillage",
+  "unlock_modeRestart": "Redémarrer l'appareil toutes les minutes",
+  "unlock_modeRestartDescription": "La manette gauche se reconnectera automatiquement toutes les 60 secondes, ce qui entraîne une brève interruption.",
+  "unlock_modeZwift": "Déverrouiller avec Zwift",
+  "unlock_modeZwiftDescription": "Toutes les 24 heures, l'appareil doit être déverrouillé avec Zwift.",
   "unlock_notWorking": "Ça ne fonctionne pas ?",
   "unlock_openZwift": "Ouvrez Zwift (et non l'application Companion) sur cet appareil ou un autre.",
+  "unlock_rightSideNeedsNoUnlock": "Tu peux utiliser cette manette sans la manette gauche, car celle-ci ne nécessite ni déverrouillage ni redémarrage.",
+  "unlock_newMethod": "Utiliser la nouvelle méthode de déverrouillage",
+  "unlock_newMethodDescription": "Connecte les côtés gauche et droit comme des manettes distinctes. Le côté droit ne nécessite aucun déverrouillage. Désactive pour utiliser une seule manette combinée.",
+  "unlock_newMethodReconnecting": "Application… reconnexion de ton Zwift Click.",
+  "unlock_useRightSideOnly": "Utiliser uniquement le côté droit",
+  "unlock_useRightSideOnlyDescription": "Le côté droit ne nécessite aucun déverrouillage. Déconnecte le côté gauche et laisse le côté droit gérer les changements de vitesse : + monte, B descend.",
+  "unlock_rightSideOnlyConfigured": "Terminé — seul le côté droit est utilisé. Tu peux réactiver le côté gauche à tout moment dans Appareils ignorés.",
   "unlock_unlockManually": "Déverrouiller manuellement",
   "unlock_unlockNow": "Déverrouiller maintenant",
   "unlock_unlockedUntilAroundDate": "Déverrouillé jusqu'à environ {date}",
@@ -871,5 +893,15 @@
   "scanningForDevicesShort": "Recherche d'appareils…",
   "disconnectingAllDevices": "Déconnexion de tous les appareils",
   "configureButtonMapping": "Configurer le mappage des boutons",
-  "notWellSupportedByMyWhoosh": "Remarque : cette action n'est pas encore bien prise en charge par MyWhoosh"
+  "notWellSupportedByMyWhoosh": "Remarque : cette action n'est pas encore bien prise en charge par MyWhoosh",
+  "vsIntroTitle": "Virtual Shifting",
+  "vsIntroSubtitle": "Changez de vitesse sur n'importe quel Smart Trainer, directement dans BikeControl.",
+  "vsIntroSupportedTitle": "Compatible avec des dizaines de Smart Trainers",
+  "vsIntroSupportedBody": "De nombreux Smart Trainers fonctionnent déjà parfaitement, même si certains ne sont pas encore tout à fait au point, et la liste s'allonge sans cesse.",
+  "vsIntroBetaTitle": "Encore en bêta",
+  "vsIntroBetaBody": "La personnalisation du Virtual Shifting dans BikeControl est une nouvelle fonctionnalité, vous pourriez donc rencontrer quelques imperfections.",
+  "vsIntroFeedbackTitle": "Nous sommes là pour vous",
+  "vsIntroFeedbackBody": "Vos retours nous tiennent à cœur et nous sommes toujours ravis de vous aider à régler votre configuration aux petits oignons.",
+  "vsIntroSupportedTrainersCta": "Voir les Smart Trainers compatibles",
+  "vsIntroGotIt": "J'ai compris"
 }

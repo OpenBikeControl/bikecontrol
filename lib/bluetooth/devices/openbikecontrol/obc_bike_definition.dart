@@ -19,11 +19,11 @@ class ObcBikeDefinition extends BleDefinition {
         BleCharacteristic(
           OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
           [CharacteristicProperty.notify],
-        ),
+         []),
         BleCharacteristic(
           OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
           [CharacteristicProperty.writeWithoutResponse],
-        ),
+         []),
       ];
     }
     return [];

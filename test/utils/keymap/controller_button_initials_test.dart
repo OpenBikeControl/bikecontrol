@@ -3,15 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ControllerButton.initials', () {
-    test('multi-word camelCase → uppercase first letters', () {
-      expect(const ControllerButton('sideButtonLeft').initials, 'SBL');
-      expect(const ControllerButton('navigationUp').initials, 'NU');
-      expect(const ControllerButton('shiftDownRight').initials, 'SDR');
+    test('multi-word camelCase → first letters, directions as arrows', () {
+      expect(const ControllerButton('sideButtonLeft').initials, 'SB←');
+      expect(const ControllerButton('navigationUp').initials, 'N↑');
+      expect(const ControllerButton('shiftDownRight').initials, 'S↓→');
     });
 
     test('single-word name → single uppercase letter', () {
       expect(const ControllerButton('a').initials, 'A');
-      expect(const ControllerButton('paddleLeft').initials, 'PL');
+      expect(const ControllerButton('paddleLeft').initials, 'P←');
     });
   });
 }
