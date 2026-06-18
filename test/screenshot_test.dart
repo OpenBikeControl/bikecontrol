@@ -1,7 +1,6 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
@@ -26,7 +25,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
-import 'package:prop/protocol/zp.pbenum.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -73,7 +71,7 @@ Future<void> main() async {
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
-    version: '5.4.0',
+    version: '6.1.0',
     buildNumber: '1',
     buildSignature: '',
   );
@@ -269,20 +267,7 @@ Future<void> main() async {
   }
 
   testGoldens('Device', (WidgetTester tester) async {
-    await shoot(
-      tester,
-      'device',
-      () => BikeControlApp(),
-      afterPump: (tester) async {
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connecting to: ${device.toString()}'),
-        );
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connection finished: ${device.toString()}'),
-        );
-        await tester.pump();
-      },
-    );
+    await shoot(tester, 'device', () => BikeControlApp());
   });
 
   testGoldens('Trainer', (WidgetTester tester) async {

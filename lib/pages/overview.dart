@@ -266,7 +266,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   void _onAlert(AlertNotification notification) {
     final isInForeground = navigatorKey.currentState?.canPop() == false;
 
-    if (!isInForeground || (_screenWidth < 800 && _horizontalScrollController.page != 1)) {
+    if (!screenshotMode &&
+        (!isInForeground || (_screenWidth < 800 && _horizontalScrollController.page != 1))) {
       buildToast(
         level: notification.level,
         title: notification.alertMessage,
