@@ -1,4 +1,4 @@
-### 6.1.0 (unreleased)
+### 6.1.0 (19-06-2026)
 **Features**:
 - WiFi enabled Smart Trainers are now supported
 - Zwift Click V2: the new unlock handling is now available to everyone. A new "Use new unlock method" setting lets you switch back to the classic single controller at any time.
