@@ -73,8 +73,7 @@ Future<void> main(List<String> args) async {
       // doing any heavy bootstrap. multi_window_native re-runs main() with
       // kTrainerOverlayRoute as the first positional arg — this applies to
       // both macOS and Windows now that we use multi_window_native on both.
-      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows) &&
-          args.contains(kTrainerOverlayRoute)) {
+      if (!kIsWeb && (Platform.isMacOS || Platform.isWindows) && args.contains(kTrainerOverlayRoute)) {
         await wm.windowManager.ensureInitialized();
         await wm.windowManager.waitUntilReadyToShow();
         final windowId = await wm.windowManager.getId();
@@ -198,13 +197,19 @@ Future<void> _persistCrash({
     core.connection.signalNotification(LogNotification('App crashed $type: $error${stack != null ? '\n$stack' : ''}'));
 
     final timestamp = DateTime.now().toIso8601String();
+    String debugTextValue;
+    try {
+      debugTextValue = await debugText(includeDiscovery: false);
+    } catch (e, s) {
+      debugTextValue = 'Exception $e';
+    }
     final crashData = StringBuffer()
       ..writeln('--- $timestamp ---')
       ..writeln('Type: $type')
       ..writeln('Error: $error')
       ..writeln('Stack: ${stack ?? 'no stack'}')
       ..writeln('Info: ${information ?? ''}')
-      ..writeln(await debugText(includeDiscovery: false))
+      ..writeln(debugTextValue)
       ..writeln()
       ..writeln();
 

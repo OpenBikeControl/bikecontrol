@@ -5,17 +5,16 @@ import 'package:prop/utils/network_address.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 DebugDiagnostics _fixture() => const DebugDiagnostics(
-      advertised: [],
-      backend: 'nsd',
-      hostLabel: null,
-      holdsMulticastLock: false,
-      discovered: [],
-      discoveryRan: true,
-      addressReport: AddressPickReport(chosen: null, candidates: []),
-      servers: [],
-      permissions: PermissionsSnapshot(
-          bluetooth: 'granted', location: 'granted', localNetworkInferred: true),
-    );
+  advertised: [],
+  backend: 'nsd',
+  hostLabel: null,
+  holdsMulticastLock: false,
+  discovered: [],
+  discoveryRan: true,
+  addressReport: AddressPickReport(chosen: null, candidates: []),
+  servers: [],
+  permissions: PermissionsSnapshot(localNetworkInferred: true),
+);
 
 void main() {
   testWidgets('renders diagnostics text and fires refresh', (tester) async {
