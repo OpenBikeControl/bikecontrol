@@ -35,18 +35,14 @@ void main() {
       addressReport: AddressPickReport(
         chosen: InternetAddress('192.168.1.9'),
         candidates: const [
-          AddressCandidate(
-              interfaceName: 'en0', address: '192.168.1.9', score: 40, isVirtual: false),
-          AddressCandidate(
-              interfaceName: 'utun0', address: '10.2.0.2', score: -60, isVirtual: true),
+          AddressCandidate(interfaceName: 'en0', address: '192.168.1.9', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'utun0', address: '10.2.0.2', score: -60, isVirtual: true),
         ],
       ),
       servers: const [
         TcpServerInfo(label: 'OpenBikeControl', port: 36867, listening: true, hasClient: true),
       ],
       permissions: const PermissionsSnapshot(
-        bluetooth: 'granted',
-        location: 'granted',
         localNetworkInferred: true,
       ),
     );
@@ -61,7 +57,6 @@ void main() {
     expect(text, contains('en0/192.168.1.9 = 40 (advertised)'));
     expect(text, contains('utun0/10.2.0.2 = -60 (virtual)'));
     expect(text, contains('OpenBikeControl :36867 listening · 1 client'));
-    expect(text, contains('bluetooth=granted'));
     expect(text, contains('ios-local-network=inferred-ok'));
   });
 
@@ -75,8 +70,7 @@ void main() {
       discoveryRan: false,
       addressReport: const AddressPickReport(chosen: null, candidates: []),
       servers: const [],
-      permissions: const PermissionsSnapshot(
-          bluetooth: 'unavailable', location: 'unavailable', localNetworkInferred: null),
+      permissions: const PermissionsSnapshot(localNetworkInferred: null),
     );
 
     expect(diag.toText(), contains('Discovered on network:'));

@@ -3,7 +3,6 @@ import 'dart:io' show Platform;
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/mdns_discovery_scan.dart';
 import 'package:flutter/foundation.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/utils/advertised_service_registry.dart';
 import 'package:prop/utils/network_address.dart';
@@ -26,32 +25,16 @@ class TcpServerInfo {
 
 /// Status of the permissions whose denial silently breaks WiFi/BLE bridging.
 class PermissionsSnapshot {
-  final String bluetooth;
-  final String location;
-
   /// iOS Local Network can't be queried directly; inferred from whether a
   /// discovery scan returned anything. Null when no scan ran.
   final bool? localNetworkInferred;
 
   const PermissionsSnapshot({
-    required this.bluetooth,
-    required this.location,
     required this.localNetworkInferred,
   });
 
   static Future<PermissionsSnapshot> gather({bool? localNetworkInferred}) async {
-    Future<String> status(Permission permission) async {
-      try {
-        return (await permission.status).name;
-      } catch (e, s) {
-        recordError(e, s, context: 'PermissionsSnapshot.${permission.toString()}');
-        return 'unavailable';
-      }
-    }
-
     return PermissionsSnapshot(
-      bluetooth: await status(Permission.bluetoothConnect),
-      location: await status(Permission.locationWhenInUse),
       localNetworkInferred: localNetworkInferred,
     );
   }
@@ -98,12 +81,14 @@ class DebugDiagnostics {
     }
 
     final servers = ResilientTcpServer.activeServers
-        .map((s) => TcpServerInfo(
-              label: s.label,
-              port: s.isRunning ? s.boundPort : null,
-              listening: s.isRunning,
-              hasClient: s.hasClient,
-            ))
+        .map(
+          (s) => TcpServerInfo(
+            label: s.label,
+            port: s.isRunning ? s.boundPort : null,
+            listening: s.isRunning,
+            hasClient: s.hasClient,
+          ),
+        )
         .toList();
 
     var discovered = <DiscoveredMdnsService>[];
@@ -121,8 +106,7 @@ class DebugDiagnostics {
       // iOS is the only platform with a (non-queryable) "Local Network"
       // permission; infer it from whether discovery saw anything. Elsewhere an
       // empty scan just means no peers, so leave it unset.
-      localNetworkInferred:
-          (discoveryRan && !kIsWeb && Platform.isIOS) ? discovered.isNotEmpty : null,
+      localNetworkInferred: (discoveryRan && !kIsWeb && Platform.isIOS) ? discovered.isNotEmpty : null,
     );
 
     return DebugDiagnostics(
@@ -138,8 +122,7 @@ class DebugDiagnostics {
     );
   }
 
-  String _txt(Map<String, String> txt) =>
-      txt.entries.map((e) => '${e.key}=${e.value}').join(', ');
+  String _txt(Map<String, String> txt) => txt.entries.map((e) => '${e.key}=${e.value}').join(', ');
 
   String toText() {
     final b = StringBuffer();
@@ -186,13 +169,15 @@ class DebugDiagnostics {
       b.writeln('    (none)');
     } else {
       for (final s in servers) {
-        b.writeln('    ${s.label ?? 'tcp'} :${s.port ?? '-'} '
-            '${s.listening ? 'listening' : 'down'} · ${s.hasClient ? '1 client' : 'no client'}');
+        b.writeln(
+          '    ${s.label ?? 'tcp'} :${s.port ?? '-'} '
+          '${s.listening ? 'listening' : 'down'} · ${s.hasClient ? '1 client' : 'no client'}',
+        );
       }
     }
 
     b.writeln(
-      '  Permissions: bluetooth=${permissions.bluetooth} · location=${permissions.location}'
+      '  Permissions: '
       '${permissions.localNetworkInferred != null ? ' · ios-local-network=${permissions.localNetworkInferred! ? 'inferred-ok' : 'inferred-blocked'}' : ''}',
     );
 
