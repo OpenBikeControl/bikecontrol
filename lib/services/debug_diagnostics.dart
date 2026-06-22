@@ -122,7 +122,10 @@ class DebugDiagnostics {
     );
   }
 
-  String _txt(Map<String, String> txt) => txt.entries.map((e) => '${e.key}=${e.value}').join(', ');
+  String _txt(Map<String, String> txt) {
+    final entries = txt.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+    return entries.map((e) => '${e.key}=${e.value}').join(', ');
+  }
 
   String toText() {
     final b = StringBuffer();

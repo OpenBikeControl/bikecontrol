@@ -15,7 +15,7 @@ void main() {
           type: '_openbikecontrol._tcp',
           port: 36867,
           address: '192.168.1.9',
-          txt: {'name': 'BikeControl'},
+          txt: {'version': '0x01', 'name': 'BikeControl', 'id': '1337'},
         ),
       ],
       backend: 'responder',
@@ -51,6 +51,8 @@ void main() {
 
     expect(text, contains('Advertised by this device'));
     expect(text, contains('_openbikecontrol._tcp "BikeControl" 192.168.1.9:36867'));
+    // TXT entries are rendered alphabetically by key.
+    expect(text, contains('txt: id=1337, name=BikeControl, version=0x01'));
     expect(text, contains('host: bikecontrol-3f2a.local'));
     expect(text, contains('multicast-lock: held'));
     expect(text, contains('(this device)'));
