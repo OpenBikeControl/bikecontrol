@@ -121,6 +121,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   Future<void> _createTcpServer() async {
     final server = ResilientTcpServer(
       preferredPort: 36867,
+      label: 'OpenBikeControl',
       onClientConnected: (socket) {
         SharedLogic.keepAlive();
         if (kDebugMode) {

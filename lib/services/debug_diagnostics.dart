@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/mdns_discovery_scan.dart';
 import 'package:flutter/foundation.dart';
@@ -116,7 +118,11 @@ class DebugDiagnostics {
     }
 
     final permissions = await PermissionsSnapshot.gather(
-      localNetworkInferred: discoveryRan ? discovered.isNotEmpty : null,
+      // iOS is the only platform with a (non-queryable) "Local Network"
+      // permission; infer it from whether discovery saw anything. Elsewhere an
+      // empty scan just means no peers, so leave it unset.
+      localNetworkInferred:
+          (discoveryRan && !kIsWeb && Platform.isIOS) ? discovered.isNotEmpty : null,
     );
 
     return DebugDiagnostics(
