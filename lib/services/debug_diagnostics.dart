@@ -176,10 +176,12 @@ class DebugDiagnostics {
       }
     }
 
-    b.writeln(
-      '  Permissions: '
-      '${permissions.localNetworkInferred != null ? ' · ios-local-network=${permissions.localNetworkInferred! ? 'inferred-ok' : 'inferred-blocked'}' : ''}',
-    );
+    if (permissions.localNetworkInferred != null) {
+      b.writeln(
+        '  Permissions: ios-local-network='
+        '${permissions.localNetworkInferred! ? 'inferred-ok' : 'inferred-blocked'}',
+      );
+    }
 
     return b.toString().trimRight();
   }
