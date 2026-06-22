@@ -23,6 +23,8 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/devices/zwift/zwift_clickv2.dart';
 import '../utils/iap/iap_manager.dart';
+import 'package:bike_control/services/debug_diagnostics.dart';
+import 'package:bike_control/main.dart' show recordError;
 
 List<Widget> buildMenuButtons(BuildContext context) {
   final iap = IAPManager.instance;
@@ -95,10 +97,18 @@ List<Widget> buildMenuButtons(BuildContext context) {
   ];
 }
 
-Future<String> debugText() async {
+Future<String> debugText({bool includeDiscovery = true}) async {
   final userId = IAPManager.instance.isUsingRevenueCat ? (await Purchases.appUserID) : null;
   final proxies = core.connection.proxyDevices;
   final proxyBlock = proxies.isEmpty ? '-' : proxies.map(_describeProxyDevice).join('\n  ');
+  String diagnostics;
+  try {
+    final diag = await DebugDiagnostics.gather(includeDiscovery: includeDiscovery);
+    diagnostics = diag.toText();
+  } catch (e, s) {
+    recordError(e, s, context: 'debugText.diagnostics');
+    diagnostics = 'Diagnostics: (unavailable)';
+  }
   return '''
 
 ---
@@ -111,6 +121,7 @@ Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title)
 Smart Trainers:
   $proxyBlock
 Status: ${IAPManager.instance.getStatusMessage()}${userId != null ? ' (User ID: $userId)' : ''}
+$diagnostics
 Logs:
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';

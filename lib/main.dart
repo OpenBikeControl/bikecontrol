@@ -204,7 +204,7 @@ Future<void> _persistCrash({
       ..writeln('Error: $error')
       ..writeln('Stack: ${stack ?? 'no stack'}')
       ..writeln('Info: ${information ?? ''}')
-      ..writeln(await debugText())
+      ..writeln(await debugText(includeDiscovery: false))
       ..writeln()
       ..writeln();
 
