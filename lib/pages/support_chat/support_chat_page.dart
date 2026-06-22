@@ -23,7 +23,11 @@ typedef TelemetryBuilder = Future<TelemetrySnapshot> Function();
 
 class SupportChatPage extends StatefulWidget {
   final TelemetryBuilder telemetryBuilder;
-  final String? diagnosticPreview;
+
+  /// Resolves to the diagnostic-payload preview shown in the composer. Awaited
+  /// lazily (in [initState]) so opening the chat is instant while the
+  /// diagnostics gather in the background.
+  final Future<String>? diagnosticPreviewFuture;
   final String? initialText;
 
   /// Optional attachment to pre-stage in the composer on first build
@@ -34,7 +38,7 @@ class SupportChatPage extends StatefulWidget {
   const SupportChatPage({
     super.key,
     required this.telemetryBuilder,
-    this.diagnosticPreview,
+    this.diagnosticPreviewFuture,
     this.initialText,
     this.initialAttachment,
   });
@@ -57,6 +61,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
   IntakeAnswers? _intakeAnswers;
   bool _intakeSent = false;
   bool _editingIntake = false;
+  String? _diagnosticPreview;
 
   @override
   void initState() {
@@ -73,6 +78,9 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
       _bootstrap();
     }
     _loadIssues();
+    widget.diagnosticPreviewFuture?.then((preview) {
+      if (mounted) setState(() => _diagnosticPreview = preview);
+    });
   }
 
   Future<void> _loadIssues() async {
@@ -289,7 +297,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
           SupportComposer(
             sending: _sending,
             onSend: _send,
-            diagnosticPreview: widget.diagnosticPreview,
+            diagnosticPreview: _diagnosticPreview,
             initialText: widget.initialText,
             initialAttachment: widget.initialAttachment,
           ),

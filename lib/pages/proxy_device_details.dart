@@ -221,20 +221,23 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     await core.settings.setFeedbackSubmitted(device.trainerKey, true);
     if (!mounted) return;
     setState(() {});
-    // The full debugText already carries this trainer's services &
-    // characteristics (in its "Smart Trainers" block) plus the diagnostics
-    // and log buffer, so we attach it instead of just the services snippet.
-    final debug = await debugText();
-    if (!mounted) return;
-    final composed = '$key\n$debug';
-    final snapshot = TelemetrySnapshot.fromDevice(device: device, freetextOverride: composed);
     final screenshot = await captureOverviewScreenshot(context: context);
     if (!mounted) return;
+    // Build telemetry in the background so the chat opens immediately. The full
+    // debugText (gathered here) already carries this trainer's services &
+    // characteristics, the diagnostics block and the log buffer, so we attach it
+    // instead of just the services snippet. The page awaits this future lazily
+    // for the diagnostic preview and at send time.
+    final snapshotFuture = () async {
+      final debug = await debugText();
+      return TelemetrySnapshot.fromDevice(device: device, freetextOverride: '$key\n$debug');
+    }();
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SupportChatPage(
-          telemetryBuilder: () async => snapshot,
-          diagnosticPreview: JsonEncoder.withIndent('  ').convert(snapshot.toJson()),
+          telemetryBuilder: () => snapshotFuture,
+          diagnosticPreviewFuture:
+              snapshotFuture.then((s) => JsonEncoder.withIndent('  ').convert(s.toJson())),
           initialText: '$label\n',
           initialAttachment: screenshot,
         ),

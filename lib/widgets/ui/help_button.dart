@@ -130,25 +130,17 @@ class _HelpButtonState extends State<HelpButton> {
                           : Text(context.i18n.chatWithSupport),
                       onPressed: (c) async {
                         final screenshot = await captureOverviewScreenshot(context: context);
-                        final captured = await debugText();
-                        String? capturedFreetext = captured;
+                        // Gather diagnostics in the background so the chat opens
+                        // immediately; the page awaits this future lazily for the
+                        // preview and at send time (it resolves once and is reused).
+                        final debugFuture = debugText();
                         await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => SupportChatPage(
-                              diagnosticPreview: captured,
+                              diagnosticPreviewFuture: debugFuture,
                               initialAttachment: screenshot,
-                              telemetryBuilder: () async {
-                                if (capturedFreetext != null) {
-                                  final snapshot = TelemetrySnapshot.general(
-                                    freetext: capturedFreetext,
-                                  );
-                                  capturedFreetext = null;
-                                  return snapshot;
-                                }
-                                return TelemetrySnapshot.general(
-                                  freetext: await debugText(),
-                                );
-                              },
+                              telemetryBuilder: () async =>
+                                  TelemetrySnapshot.general(freetext: await debugFuture),
                             ),
                           ),
                         );
