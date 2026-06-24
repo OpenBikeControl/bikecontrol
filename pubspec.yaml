@@ -151,4 +151,4 @@ msix_config:
   logo_path: web/icons/Icon-512.png
   build_windows: false
   protocol_activation: https, bikecontrol
-  capabilities: internetClient,bluetooth,inputInjectionBrokered
+  capabilities: internetClient,bluetooth,inputInjectionBrokered,videosLibrary

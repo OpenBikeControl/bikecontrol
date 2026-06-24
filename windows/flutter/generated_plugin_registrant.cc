@@ -18,6 +18,7 @@
 #include <multi_window_native/multi_window_native_plugin.h>
 #include <nsd_windows/nsd_windows_plugin_c_api.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
+#include <screen_recorder/screen_recorder_plugin.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <universal_ble/universal_ble_plugin_c_api.h>
@@ -50,6 +51,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("NsdWindowsPluginCApi"));
   PermissionHandlerWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
+  ScreenRecorderPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ScreenRecorderPlugin"));
   ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ScreenRetrieverWindowsPluginCApi"));
   SharePlusWindowsPluginCApiRegisterWithRegistrar(

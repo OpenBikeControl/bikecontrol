@@ -15,6 +15,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   multi_window_native
   nsd_windows
   permission_handler_windows
+  screen_recorder
   screen_retriever_windows
   share_plus
   universal_ble

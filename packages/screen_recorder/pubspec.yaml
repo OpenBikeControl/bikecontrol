@@ -21,3 +21,5 @@ flutter:
     platforms:
       macos:
         pluginClass: ScreenRecorderPlugin
+      windows:
+        pluginClass: ScreenRecorderPlugin
