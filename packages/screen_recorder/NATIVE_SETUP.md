@@ -19,16 +19,16 @@ plugin compile here, Windows and the iOS extension target need your machines.
 
 ## iOS — remaining (manual Xcode + portal, can't be scripted)
 Identifiers (derived from the real app bundle id `de.jonasbark.swiftcontrol.darwin`):
-- App Group: `group.de.jonasbark.swiftcontrol.darwin`
+- App Group: **reuse the app's existing** `group.de.jonasbark.swiftcontrol.overlay` (already on Runner + TrainerActivityExtension; no new portal group needed)
 - Extension bundle id: `de.jonasbark.swiftcontrol.darwin.ScreenRecordBroadcast`
 
 Steps:
-1. **Apple Developer portal:** create App Group `group.de.jonasbark.swiftcontrol.darwin`; enable it on both the app and the extension identifiers.
-2. **Xcode:** File ▸ New ▸ Target ▸ Broadcast Upload Extension, name `ScreenRecordBroadcast`, bundle id `de.jonasbark.swiftcontrol.darwin.ScreenRecordBroadcast`, **uncheck** "Include UI Extension". Replace the generated `SampleHandler.swift` with the repo's `ios/ScreenRecordBroadcast/SampleHandler.swift` (and use the repo's `Info.plist`).
-3. **Signing & Capabilities:** add the App Groups capability (checked) to BOTH the Runner and the extension targets; set the team/provisioning on the extension.
-4. Verify the `preferredExtension` string in `packages/screen_recorder/ios/Classes/ScreenRecorderPlugin.swift` matches the extension bundle id.
-5. Device test: bind a key, tap **Start Broadcast** on the system sheet (one unavoidable tap), switch to a game, stop, confirm the mp4 lands in Photos.
-- **Known refinement:** `stop()` reads `lastRecordingPath` from the App Group right after posting the stop Darwin notification — the extension may not have finished writing yet, so it can return `nil` on the first call. Add a short poll (e.g. up to 2 s at 100 ms) for the path / a "finished" flag before returning. Verify timing on-device.
+1. **Xcode:** File ▸ New ▸ Target ▸ Broadcast Upload Extension, name `ScreenRecordBroadcast`, bundle id `de.jonasbark.swiftcontrol.darwin.ScreenRecordBroadcast`, **uncheck** "Include UI Extension". Replace the generated `SampleHandler.swift` with the repo's `ios/ScreenRecordBroadcast/SampleHandler.swift` (and use the repo's `Info.plist`).
+2. **App Group (the critical step):** in the extension target's **Signing & Capabilities**, add the **App Groups** capability and **check the existing** `group.de.jonasbark.swiftcontrol.overlay`. The Runner target already has it. If this is missing on the extension, `broadcastStarted` can't resolve its container — the recording cannot be stopped from the app or saved.
+3. **Signing:** set the team/provisioning on the extension target.
+4. Verify the `preferredExtension` string in `packages/screen_recorder/ios/Classes/ScreenRecorderPlugin.swift` matches the extension's bundle id.
+5. Device test: bind a key, tap **Start Broadcast** on the system sheet (one unavoidable tap), switch to a game, stop, confirm the broadcast ends and the mp4 lands in Photos. Watch Console.app (filter `SampleHandler`/`ScreenRecorderPlugin`) — you should see `posting stop notification` → `stop notification received -> finishBroadcastWithError` → `broadcastFinished`.
+- **Known follow-up (save handoff):** `stop()` reads `lastRecordingPath` from the App Group right after posting the stop notification, but the extension writes it in `broadcastFinished` (async) — so the path can come back `nil` on the first stop even when the recording itself stops fine. Add a short poll (e.g. up to 2 s at 100 ms) for the path before returning. Tackle this after confirming stop works.
 
 ## Windows — remaining (build + iterate, never compiled)
 1. `flutter build windows --debug` — expect compile iteration on C++/WinRT headers and `windowsapp.lib`.

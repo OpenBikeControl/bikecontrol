@@ -2,17 +2,19 @@ import Flutter
 import UIKit
 import ReplayKit
 
-// IMPORTANT: The App Group identifier below MUST be created in the Apple Developer portal
-// (Certificates, Identifiers & Profiles → App Groups) and enabled on BOTH the Runner target
-// AND the ScreenRecordBroadcast extension target in Signing & Capabilities.
+// IMPORTANT: This reuses the app's EXISTING App Group "group.de.jonasbark.swiftcontrol.overlay"
+// (already configured on the Runner target and in the portal). It must ALSO be enabled on the
+// ScreenRecordBroadcast extension target (Signing & Capabilities → App Groups → check the
+// existing group). Without it the extension can't resolve its shared container, and the
+// broadcast can be neither stopped nor saved.
 //
 // App bundle ID:        de.jonasbark.swiftcontrol.darwin
-// App Group (derived):  group.de.jonasbark.swiftcontrol.darwin
+// Shared App Group:     group.de.jonasbark.swiftcontrol.overlay
 // Extension bundle ID:  de.jonasbark.swiftcontrol.darwin.ScreenRecordBroadcast
 
 public class ScreenRecorderPlugin: NSObject, FlutterPlugin {
-  // Derived from the app bundle id: group.<APP_BUNDLE_ID>
-  static let appGroup = "group.de.jonasbark.swiftcontrol.darwin"
+  // Reuse the app's existing shared App Group (already on the Runner target).
+  static let appGroup = "group.de.jonasbark.swiftcontrol.overlay"
 
   // Darwin notification name used to signal the extension to stop.
   // Must match the string used in SampleHandler.swift.
@@ -41,6 +43,7 @@ public class ScreenRecorderPlugin: NSObject, FlutterPlugin {
     case "stop":
       // Clear intent and signal the extension to finish via Darwin notification.
       sharedDefaults()?.set(false, forKey: "recordingRequested")
+      NSLog("ScreenRecorderPlugin: posting stop notification %@", ScreenRecorderPlugin.stopNotificationName)
       CFNotificationCenterPostNotification(
         CFNotificationCenterGetDarwinNotifyCenter(),
         CFNotificationName(ScreenRecorderPlugin.stopNotificationName as CFString),
