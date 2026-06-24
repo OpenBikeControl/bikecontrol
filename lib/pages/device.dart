@@ -125,20 +125,36 @@ class _DevicePageState extends State<DevicePage> {
                 if (group.length == 1)
                   _buildDeviceCard(group.single)
                 else
-                  IntrinsicHeight(
-                    child: Row(
-                      spacing: 12,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: group
-                          .map<Widget>((device) => Expanded(child: _buildDeviceCard(device)))
-                          .joinSeparator(
-                            VerticalDivider(
-                              thickness: Theme.of(context).brightness == Brightness.dark ? 1 : 0.5,
-                              endIndent: 12,
+                  // A full-height VerticalDivider can't be used here: it demands
+                  // infinite height inside this scrollable Column, and wrapping in
+                  // IntrinsicHeight doesn't help because the card's ControllerCanvas
+                  // footer (LayoutBuilder/AspectRatio) can't answer intrinsic-height
+                  // queries. Draw the separator as a trailing border instead — no
+                  // intrinsics, no infinite height.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final (i, device) in group.indexed)
+                        Expanded(
+                          child: Container(
+                            decoration: i < group.length - 1
+                                ? BoxDecoration(
+                                    border: Border(
+                                      right: BorderSide(
+                                        color: Theme.of(context).colorScheme.border,
+                                        width: Theme.of(context).brightness == Brightness.dark ? 1 : 0.5,
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                            padding: EdgeInsets.only(
+                              left: i > 0 ? 12 : 0,
+                              right: i < group.length - 1 ? 12 : 0,
                             ),
-                          )
-                          .toList(),
-                    ),
+                            child: _buildDeviceCard(device),
+                          ),
+                        ),
+                    ],
                   ),
                 if (index != deviceGroups.length - 1) ...[
                   Divider(
