@@ -317,6 +317,8 @@ class ProxyDevice extends BluetoothDevice {
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setVirtualShiftingMode(cfg.mode);
+    def.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
+    def.setFrontShiftEnabled(cfg.frontShiftEnabled);
     if (cfg.gearRatios != null) {
       def.setGearRatios(cfg.gearRatios!);
     }
