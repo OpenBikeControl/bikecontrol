@@ -87,11 +87,13 @@ final class PipGearController: NSObject {
 
     private func attachLayer() -> Bool {
         guard let rootView = Self.keyRootView() else { return false }
+        // 1×1 and behind Flutter — effectively invisible. PiP renders from the
+        // enqueued sample buffers, not from this inline layer's size.
         let container = UIView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
         container.isUserInteractionEnabled = false
-        container.layer.addSublayer(displayLayer)
         displayLayer.frame = container.bounds
-        rootView.insertSubview(container, at: 0) // behind Flutter; effectively invisible
+        container.layer.addSublayer(displayLayer)
+        rootView.insertSubview(container, at: 0)
         hostView = container
         return true
     }
@@ -114,6 +116,10 @@ final class PipGearController: NSObject {
             kCVPixelBufferWidthKey as String: Int(renderSize.width),
             kCVPixelBufferHeightKey as String: Int(renderSize.height),
             kCVPixelBufferCGBitmapContextCompatibilityKey as String: true,
+            // REQUIRED: AVSampleBufferDisplayLayer can only present IOSurface-backed
+            // pixel buffers. Without this the layer accepts frames (status=.rendering,
+            // no error) but renders nothing — only its backgroundColor shows.
+            kCVPixelBufferIOSurfacePropertiesKey as String: [String: Any](),
         ]
         let status = CVPixelBufferPoolCreate(kCFAllocatorDefault, nil, attrs as CFDictionary, &pool)
         if status != kCVReturnSuccess {
@@ -203,8 +209,20 @@ final class PipGearController: NSObject {
             formatDescription: fmt,
             sampleTiming: &timing,
             sampleBufferOut: &sampleOut
-        ) == noErr else { return nil }
-        return sampleOut
+        ) == noErr, let sample = sampleOut else { return nil }
+
+        // Present each frame the instant it's enqueued, bypassing timebase
+        // scheduling (we run no control timebase) — correct for a live HUD feed.
+        if let attachments = CMSampleBufferGetSampleAttachmentsArray(sample, createIfNecessary: true),
+           CFArrayGetCount(attachments) > 0 {
+            let dict = unsafeBitCast(CFArrayGetValueAtIndex(attachments, 0), to: CFMutableDictionary.self)
+            CFDictionarySetValue(
+                dict,
+                Unmanaged.passUnretained(kCMSampleAttachmentKey_DisplayImmediately).toOpaque(),
+                Unmanaged.passUnretained(kCFBooleanTrue).toOpaque()
+            )
+        }
+        return sample
     }
 }
 
