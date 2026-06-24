@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -229,7 +230,18 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   void _onActionResult(ActionResult result, ControllerButton button) {
-    final entry = _ActivityEntry(button: button, time: DateTime.now(), result: result);
+    // A screen recording that saved a file to a real folder (desktop) gets an
+    // "open folder" action on its activity entry.
+    final savedPath = result is Success ? result.filePath : null;
+    final canOpenFolder =
+        savedPath != null && savedPath.isNotEmpty && !kIsWeb && (Platform.isMacOS || Platform.isWindows);
+    final entry = _ActivityEntry(
+      button: button,
+      time: DateTime.now(),
+      result: result,
+      buttonTitle: canOpenFolder ? AppLocalizations.of(context).openFolder : null,
+      onTap: canOpenFolder ? () => _openContainingFolder(savedPath) : null,
+    );
     _insertActivityEntry(entry);
 
     if (entry.isError) {
@@ -261,6 +273,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       });
     } else {
       setState(() {});
+    }
+  }
+
+  /// Reveals the folder containing a saved recording in Finder / Explorer.
+  Future<void> _openContainingFolder(String filePath) async {
+    try {
+      final folder = File(filePath).parent.path;
+      if (Platform.isMacOS) {
+        await Process.run('open', [folder]);
+      } else if (Platform.isWindows) {
+        await Process.run('explorer', [folder]);
+      }
+    } catch (e, s) {
+      recordError(e, s, context: 'open recording folder');
     }
   }
 

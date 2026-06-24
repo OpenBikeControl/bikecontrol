@@ -70,7 +70,7 @@
   "actionTrainerIntensityDown": "Rodillo: bajar intensidad",
   "actionWorkoutPauseResume": "Entrenamiento: pausar/reanudar",
   "actionScreenRecording": "Grabar pantalla",
-  "deviceActions": "Dispositivo",
+  "openFolder": "Abrir carpeta",
   "screenRecordingStarted": "Grabación de pantalla iniciada",
   "screenRecordingStopped": "Grabación de pantalla guardada",
   "screenRecordingFailed": "No se pudo iniciar la grabación de pantalla",

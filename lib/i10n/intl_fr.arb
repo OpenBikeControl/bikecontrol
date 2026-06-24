@@ -70,7 +70,7 @@
   "actionTrainerIntensityDown": "Home-trainer : réduire l’intensité",
   "actionWorkoutPauseResume": "Séance : pause/reprendre",
   "actionScreenRecording": "Enregistrer l'écran",
-  "deviceActions": "Appareil",
+  "openFolder": "Ouvrir le dossier",
   "screenRecordingStarted": "Enregistrement d'écran démarré",
   "screenRecordingStopped": "Enregistrement d'écran enregistré",
   "screenRecordingFailed": "Impossible de démarrer l'enregistrement d'écran",

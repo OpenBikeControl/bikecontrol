@@ -47,7 +47,7 @@
   "actionTrainerIntensityDown": "Trainer: Intensity Down",
   "actionWorkoutPauseResume": "Workout: Pause/Resume",
   "actionScreenRecording": "Record Screen",
-  "deviceActions": "Device",
+  "openFolder": "Open folder",
   "screenRecordingStarted": "Screen recording started",
   "screenRecordingStopped": "Screen recording saved",
   "screenRecordingFailed": "Could not start screen recording",

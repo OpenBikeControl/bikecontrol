@@ -588,35 +588,32 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ),
                 ],
 
-                if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) ...[
-                  SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.otherActions),
-                  SelectableCard(
-                    isProOnly: true,
-                    title: Text(Platform.isMacOS || Platform.isIOS ? 'Launch Shortcut' : 'Run Command'),
-                    icon: Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
-                    isActive: _keyPair.command?.trim().isNotEmpty == true,
-                    value: _keyPair.command,
-                    onPressed: () async {
-                      await _showCommandDialog(context);
-                    },
-                  ),
-                  if (Platform.isMacOS || Platform.isWindows)
-                    SelectableCard(
-                      isProOnly: true,
-                      title: Text(context.i18n.takeScreenshot),
-                      icon: Icons.image_outlined,
-                      isActive: _keyPair.screenshotPath?.trim().isNotEmpty == true,
-                      value: _keyPair.screenshotPath,
-                      onPressed: () async {
-                        await _showScreenshotDialog();
-                      },
-                    ),
-                ],
-
                 if (!kIsWeb) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.deviceActions),
+                  ColoredTitle(text: context.i18n.otherActions),
+                  if (Platform.isMacOS || Platform.isWindows || Platform.isIOS) ...[
+                    SelectableCard(
+                      isProOnly: true,
+                      title: Text(Platform.isMacOS || Platform.isIOS ? 'Launch Shortcut' : 'Run Command'),
+                      icon: Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
+                      isActive: _keyPair.command?.trim().isNotEmpty == true,
+                      value: _keyPair.command,
+                      onPressed: () async {
+                        await _showCommandDialog(context);
+                      },
+                    ),
+                    if (Platform.isMacOS || Platform.isWindows)
+                      SelectableCard(
+                        isProOnly: true,
+                        title: Text(context.i18n.takeScreenshot),
+                        icon: Icons.image_outlined,
+                        isActive: _keyPair.screenshotPath?.trim().isNotEmpty == true,
+                        value: _keyPair.screenshotPath,
+                        onPressed: () async {
+                          await _showScreenshotDialog();
+                        },
+                      ),
+                  ],
                   SelectableCard(
                     icon: LucideIcons.video,
                     title: Text(context.i18n.actionScreenRecording),

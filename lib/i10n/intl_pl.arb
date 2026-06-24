@@ -70,7 +70,7 @@
   "actionTrainerIntensityDown": "Trenażer: zmniejsz intensywność",
   "actionWorkoutPauseResume": "Trening: pauza/wznów",
   "actionScreenRecording": "Nagraj ekran",
-  "deviceActions": "Urządzenie",
+  "openFolder": "Otwórz folder",
   "screenRecordingStarted": "Rozpoczęto nagrywanie ekranu",
   "screenRecordingStopped": "Zapisano nagranie ekranu",
   "screenRecordingFailed": "Nie można rozpocząć nagrywania ekranu",
