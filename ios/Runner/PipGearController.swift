@@ -115,7 +115,10 @@ final class PipGearController: NSObject {
             kCVPixelBufferHeightKey as String: Int(renderSize.height),
             kCVPixelBufferCGBitmapContextCompatibilityKey as String: true,
         ]
-        CVPixelBufferPoolCreate(kCFAllocatorDefault, nil, attrs as CFDictionary, &pool)
+        let status = CVPixelBufferPoolCreate(kCFAllocatorDefault, nil, attrs as CFDictionary, &pool)
+        if status != kCVReturnSuccess {
+            NSLog("[PiP] CVPixelBufferPoolCreate failed: \(status)")
+        }
     }
 
     // MARK: - Frame pump
@@ -128,6 +131,11 @@ final class PipGearController: NSObject {
         pump = timer
     }
 
+    // MUST run on the main queue: `ImageRenderer.cgImage` (in makePixelBuffer) is
+    // @MainActor-isolated. The pump timer is scheduled on `.main` for this reason.
+    // If the pump is ever moved off-main to survive backgrounding, split rendering
+    // so the CGImage is produced on the main actor and only the finished
+    // CVPixelBuffer/CMSampleBuffer is enqueued off-main.
     private func renderTick() {
         guard let snapshot = snapshot else { return }
         let hash = snapshot.contentHash
