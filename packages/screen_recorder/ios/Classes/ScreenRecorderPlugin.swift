@@ -36,13 +36,18 @@ public class ScreenRecorderPlugin: NSObject, FlutterPlugin {
       // Broadcast is user-initiated via system sheet; no separate permission required.
       result(true)
     case "start":
+      // Clear any stale stop flag so a fresh recording isn't immediately stopped.
+      clearStopFlag()
+      sharedDefaults()?.removeObject(forKey: "lastRecordingPath")
       presentBroadcastPicker()
-      // Record intent in shared defaults; the extension reads it when it starts.
       sharedDefaults()?.set(true, forKey: "recordingRequested")
       result(true)
     case "stop":
-      // Clear intent and signal the extension to finish via Darwin notification.
       sharedDefaults()?.set(false, forKey: "recordingRequested")
+      // Primary stop: drop a flag file in the shared App Group container that the
+      // extension polls on every frame (reliable cross-process). Backup: a Darwin
+      // notification (immediate, but delivery to broadcast extensions is flaky).
+      writeStopFlag()
       NSLog("ScreenRecorderPlugin: posting stop notification %@", ScreenRecorderPlugin.stopNotificationName)
       CFNotificationCenterPostNotification(
         CFNotificationCenterGetDarwinNotifyCenter(),
@@ -58,6 +63,33 @@ public class ScreenRecorderPlugin: NSObject, FlutterPlugin {
 
   private func sharedDefaults() -> UserDefaults? {
     UserDefaults(suiteName: ScreenRecorderPlugin.appGroup)
+  }
+
+  private func appGroupContainer() -> URL? {
+    FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: ScreenRecorderPlugin.appGroup)
+  }
+
+  private func stopFlagURL() -> URL? {
+    appGroupContainer()?.appendingPathComponent("screen_recorder_stop")
+  }
+
+  private func clearStopFlag() {
+    if let url = stopFlagURL() { try? FileManager.default.removeItem(at: url) }
+  }
+
+  private func writeStopFlag() {
+    guard let container = appGroupContainer(), let stop = stopFlagURL() else {
+      NSLog("ScreenRecorderPlugin: WARNING no App Group container in app — is %@ enabled on the Runner target?",
+            ScreenRecorderPlugin.appGroup)
+      return
+    }
+    FileManager.default.createFile(atPath: stop.path, contents: Data())
+    // Heartbeat: the extension writes this file in broadcastStarted. If it's MISSING,
+    // the extension isn't sharing the App Group (capability not enabled on the extension
+    // target) or isn't running our SampleHandler — so it can never be stopped/saved.
+    let alive = FileManager.default.fileExists(atPath: container.appendingPathComponent("screen_recorder_active").path)
+    NSLog("ScreenRecorderPlugin: stop flag written; extension heartbeat = %@",
+          alive ? "ALIVE" : "MISSING (App Group not shared with extension, or extension not running our code)")
   }
 
   private func presentBroadcastPicker() {

@@ -27,6 +27,9 @@ class SampleHandler: RPBroadcastSampleHandler {
   private var videoInput: AVAssetWriterInput?
   private var sessionStarted = false
   private var outputURL: URL?
+  private var stopFlagURL: URL?
+  private var activeFlagURL: URL?
+  private var finishing = false
 
   override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
     NSLog("SampleHandler: broadcastStarted")
@@ -42,6 +45,13 @@ class SampleHandler: RPBroadcastSampleHandler {
         + "ScreenRecordBroadcast target. Stop still works, but nothing can be saved.", SampleHandler.appGroup)
       return
     }
+
+    // Cross-process stop flag (app drops this file; we poll it per frame) + a
+    // heartbeat file the app reads back to confirm the App Group is shared.
+    stopFlagURL = container.appendingPathComponent("screen_recorder_stop")
+    activeFlagURL = container.appendingPathComponent("screen_recorder_active")
+    if let stop = stopFlagURL { try? FileManager.default.removeItem(at: stop) }
+    if let active = activeFlagURL { FileManager.default.createFile(atPath: active.path, contents: Data()) }
 
     let timestamp = Int(Date().timeIntervalSince1970)
     let url = container.appendingPathComponent("BikeControl_\(timestamp).mp4")
@@ -82,10 +92,11 @@ class SampleHandler: RPBroadcastSampleHandler {
       CFNotificationCenterGetDarwinNotifyCenter(),
       Unmanaged.passUnretained(self).toOpaque(),
       { _, observer, _, _, _ in
-        NSLog("SampleHandler: stop notification received -> finishBroadcastWithError")
         guard let observer = observer else { return }
         let handler = Unmanaged<SampleHandler>.fromOpaque(observer).takeUnretainedValue()
-        // Finish with an error to terminate the broadcast; broadcastFinished() will then run.
+        guard !handler.finishing else { return }
+        handler.finishing = true
+        NSLog("SampleHandler: stop notification received -> finishBroadcastWithError")
         handler.finishBroadcastWithError(
           NSError(domain: "de.jonasbark.swiftcontrol.darwin", code: 0,
                   userInfo: [NSLocalizedDescriptionKey: "Recording stopped by app"]))
@@ -96,6 +107,16 @@ class SampleHandler: RPBroadcastSampleHandler {
   }
 
   override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
+    // Poll the app's stop flag every frame — reliable cross-process stop signal.
+    if !finishing, let stop = stopFlagURL, FileManager.default.fileExists(atPath: stop.path) {
+      finishing = true
+      NSLog("SampleHandler: stop flag detected -> finishBroadcastWithError")
+      finishBroadcastWithError(
+        NSError(domain: "de.jonasbark.swiftcontrol.darwin", code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "Recording stopped by app"]))
+      return
+    }
+
     guard sampleBufferType == .video,
           let writer = writer,
           let input = videoInput,
@@ -119,6 +140,10 @@ class SampleHandler: RPBroadcastSampleHandler {
       Unmanaged.passUnretained(self).toOpaque(),
       CFNotificationName(SampleHandler.stopNotificationName as CFString),
       nil)
+
+    // Clear the cross-process flags so the next recording starts clean.
+    if let active = activeFlagURL { try? FileManager.default.removeItem(at: active) }
+    if let stop = stopFlagURL { try? FileManager.default.removeItem(at: stop) }
 
     let group = DispatchGroup()
     group.enter()
