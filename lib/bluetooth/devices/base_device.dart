@@ -123,6 +123,7 @@ abstract class BaseDevice {
           _activeLongPressButtons.clear();
         }
         _previouslyPressedButtons = buttonsClicked.toSet();
+        if (await _maybeHandleFrontShiftCombo(buttonsClicked)) return;
         await performClick(buttonsClicked, trigger: ButtonTrigger.singleClick);
         return;
       }
@@ -572,6 +573,24 @@ abstract class BaseDevice {
       core.settings.setKeyMap(core.actionHandler.supportedApp!);
     }
     return button;
+  }
+
+  /// If [buttons] resolve to exactly {shiftUp, shiftDown} and the front-shift
+  /// combo is enabled, emit a single frontShift and suppress the rear shifts.
+  Future<bool> _maybeHandleFrontShiftCombo(List<ControllerButton> buttons) async {
+    if (!core.actionHandler.frontShiftComboEnabled) return false;
+    if (buttons.length < 2) return false;
+    final actions = buttons
+        .map((b) => core.actionHandler.supportedApp?.keymap
+            .getKeyPair(b, trigger: ButtonTrigger.singleClick)
+            ?.inGameAction)
+        .toSet();
+    if (actions.contains(InGameAction.shiftUp) && actions.contains(InGameAction.shiftDown)) {
+      final result = await core.actionHandler.performInGameAction(InGameAction.frontShift);
+      actionStreamInternal.add(ActionNotification(result));
+      return true;
+    }
+    return false;
   }
 
   void _showCommandLimitAlert() {
