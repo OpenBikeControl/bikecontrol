@@ -70,11 +70,6 @@ abstract class SupportedApp {
   /// (e.g. MyWhoosh → 30).
   int get virtualGearAmount => 24;
 
-  /// Whether this app performs its own front-chainring (SRAM-style) shift when
-  /// it receives a simultaneous both-shifter press. When true, the emulator
-  /// forwards the combo natively; when false, it approximates with N rear shifts.
-  bool get supportsNativeFrontShift => false;
-
   /// Default OpenBikeControl supported buttons used by the ButtonEditor
   /// before (or without) a live OBP connection. Overridden by trainer-app
   /// subclasses that ship a known-good list.

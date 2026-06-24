@@ -12,9 +12,6 @@ class Zwift extends SupportedApp {
     (AppConnectionMethod.zwiftBle, ConnectionSupport.beta),
   ];
 
-  @override
-  bool get supportsNativeFrontShift => true;
-
   Zwift()
     : super(
         name: 'Zwift',
