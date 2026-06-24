@@ -47,6 +47,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
         widget.definition.targetPowerW,
         widget.definition.currentGear,
         widget.definition.gearRatio,
+        widget.definition.frontRing,
       ]),
       builder: (context, _) {
         final isErg = widget.definition.trainerMode.value == TrainerMode.ergMode;
@@ -172,6 +173,13 @@ class _GearHeroCardState extends State<GearHeroCard> {
             color: cs.mutedForeground,
           ),
         ),
+        if (widget.definition.frontShiftEnabled)
+          Text(
+            widget.definition.frontRing.value == FrontRing.large
+                ? '${widget.definition.largeChainringTeeth}T'
+                : '${widget.definition.smallChainringTeeth}T',
+            style: TextStyle(fontSize: 13, color: cs.mutedForeground),
+          ),
       ],
     );
   }
