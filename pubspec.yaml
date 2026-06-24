@@ -46,6 +46,10 @@ dependencies:
   image_picker: ^1.1.2
   file_picker: ^10.3.10
   flutter_screen_capture: ^2.0.1
+  flutter_screen_recording: ^2.0.25
+  gal: ^2.3.1
+  screen_recorder:
+    path: packages/screen_recorder
   in_app_review: ^2.0.11
   flutter_secure_storage: ^10.0.0
   in_app_purchase: ^3.2.1
