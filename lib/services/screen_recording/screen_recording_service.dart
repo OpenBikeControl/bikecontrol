@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/services/screen_recording/backends/android_screen_recorder.dart';
 import 'package:bike_control/services/screen_recording/backends/native_channel_screen_recorder.dart';
 import 'package:bike_control/services/screen_recording/backends/unsupported_screen_recorder.dart';
 import 'package:flutter/foundation.dart';
@@ -104,6 +105,6 @@ ScreenRecorderBackend createScreenRecorderBackend() {
   if (Platform.isIOS || Platform.isMacOS || Platform.isWindows) {
     return NativeChannelScreenRecorder();
   }
-  // Android backend added later; Linux unsupported.
+  if (Platform.isAndroid) return AndroidScreenRecorder();
   return UnsupportedScreenRecorder();
 }
