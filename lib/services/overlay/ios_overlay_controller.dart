@@ -113,7 +113,11 @@ class IosOverlayController implements TrainerOverlayController {
     }
     _showing.value = false;
     if (_pipActive) {
-      await _pip.stop();
+      try {
+        await _pip.stop();
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.ios.pip.stop');
+      }
       _pipActive = false;
     }
   }
