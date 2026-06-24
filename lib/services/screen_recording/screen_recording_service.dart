@@ -79,7 +79,7 @@ class ScreenRecordingService {
     } catch (e, s) {
       _state.value = ScreenRecordingState.error;
       debugPrintStack(label: 'screen recording: $e', stackTrace: s);
-      return RecordingResult(ok: false, startedRecording: true, errorMessage: e.toString());
+      return RecordingResult(ok: false, startedRecording: false, errorMessage: e.toString());
     }
   }
 
@@ -97,9 +97,9 @@ class ScreenRecordingService {
   }
 }
 
-/// Selects the backend for the running platform. Android's real backend is
-/// added in a later task; until then Android falls back to unsupported so the
-/// app stays buildable.
+/// Selects the screen-recording backend for the running platform: Android
+/// (package-based), iOS/macOS/Windows (native channel — currently unsupported
+/// until native code lands), web/Linux unsupported.
 ScreenRecorderBackend createScreenRecorderBackend() {
   if (kIsWeb) return UnsupportedScreenRecorder();
   if (Platform.isIOS || Platform.isMacOS || Platform.isWindows) {
