@@ -1,6 +1,7 @@
 {
   "actionShiftUp": "Shift Up",
   "actionShiftDown": "Shift Down",
+  "actionFrontShift": "Front Shift (Chainring)",
   "actionUturn": "U-Turn",
   "actionTuck": "Tuck",
   "actionSteerLeft": "Steer Left",

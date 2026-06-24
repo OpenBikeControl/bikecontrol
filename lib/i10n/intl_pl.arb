@@ -24,6 +24,7 @@
   "@noConnectionHint": {"placeholders": {"trainerApp": {"type": "String"}}},
   "actionShiftUp": "Wyższy bieg",
   "actionShiftDown": "Niższy bieg",
+  "actionFrontShift": "Zmiana tarczy",
   "actionUturn": "Zawracanie",
   "actionTuck": "Pozycja aero",
   "actionSteerLeft": "Skręć w lewo",

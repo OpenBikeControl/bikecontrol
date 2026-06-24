@@ -24,6 +24,7 @@
   "@noConnectionHint": {"placeholders": {"trainerApp": {"type": "String"}}},
   "actionShiftUp": "Cambio su",
   "actionShiftDown": "Cambio giù",
+  "actionFrontShift": "Cambio corona",
   "actionUturn": "Inversione a U",
   "actionTuck": "Posizione aero",
   "actionSteerLeft": "Sterza a sinistra",

@@ -24,6 +24,7 @@
   "@noConnectionHint": {"placeholders": {"trainerApp": {"type": "String"}}},
   "actionShiftUp": "Monter les vitesses",
   "actionShiftDown": "Descendre les vitesses",
+  "actionFrontShift": "Changement de plateau",
   "actionUturn": "Demi-tour",
   "actionTuck": "Position aéro",
   "actionSteerLeft": "Tourner à gauche",

@@ -24,6 +24,7 @@
   "@noConnectionHint": {"placeholders": {"trainerApp": {"type": "String"}}},
   "actionShiftUp": "Subir marcha",
   "actionShiftDown": "Bajar marcha",
+  "actionFrontShift": "Cambio de plato",
   "actionUturn": "Cambio de sentido",
   "actionTuck": "Posición aerodinámica",
   "actionSteerLeft": "Girar a la izquierda",

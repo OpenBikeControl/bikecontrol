@@ -24,6 +24,7 @@
   "@noConnectionHint": {"placeholders": {"trainerApp": {"type": "String"}}},
   "actionShiftUp": "Hochschalten",
   "actionShiftDown": "Runterschalten",
+  "actionFrontShift": "Kettenblatt wechseln",
   "actionUturn": "Wende",
   "actionTuck": "Aero-Position",
   "actionSteerLeft": "Nach links lenken",
