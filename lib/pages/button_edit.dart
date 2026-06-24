@@ -614,6 +614,30 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                 ],
 
+                if (!kIsWeb) ...[
+                  SizedBox(height: 8),
+                  ColoredTitle(text: context.i18n.deviceActions),
+                  SelectableCard(
+                    icon: LucideIcons.video,
+                    title: Text(context.i18n.actionScreenRecording),
+                    isActive: _keyPair.inGameAction == InGameAction.screenRecording,
+                    onPressed: () {
+                      _keyPair.inGameAction = InGameAction.screenRecording;
+                      _keyPair.inGameActionValue = null;
+                      _keyPair.physicalKey = null;
+                      _keyPair.logicalKey = null;
+                      _keyPair.modifiers = [];
+                      _keyPair.touchPosition = Offset.zero;
+                      _keyPair.androidAction = null;
+                      _keyPair.androidIntentAction = null;
+                      _keyPair.command = null;
+                      _keyPair.screenshotPath = null;
+                      setState(() {});
+                      widget.onUpdate();
+                    },
+                  ),
+                ],
+
                 if (core.connection.accessories.isNotEmpty) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: context.i18n.accessoryActions),

@@ -10,6 +10,7 @@ import 'package:bike_control/pages/proxy.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/services/blog_service.dart';
+import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -349,6 +350,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   children: [
                     Expanded(
                       child: _buildSectionHeader(icon: Icons.gamepad, title: AppLocalizations.of(context).controllers),
+                    ),
+                    ValueListenableBuilder<ScreenRecordingState>(
+                      valueListenable: core.screenRecording.state,
+                      builder: (context, state, _) {
+                        if (state != ScreenRecordingState.recording) return const SizedBox.shrink();
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.fiber_manual_record, color: Colors.red, size: 12),
+                            const SizedBox(width: 4),
+                            Text(context.i18n.screenRecordingStarted).xSmall.muted,
+                          ],
+                        );
+                      },
                     ),
                     if (core.settings.getIgnoredDevices().isNotEmpty)
                       Button.text(
