@@ -113,6 +113,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   _vsModeCard(),
                   _gradeSmoothingCard(context),
                   _cadenceFilterCard(context),
+                  _frontShiftCard(context),
                 ],
                 _gearCountCard(context),
                 _heroCurve(context),
@@ -268,6 +269,81 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _frontShiftCard(BuildContext context) {
+    final config = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final enabled = config.frontShiftEnabled;
+    final small = config.smallChainringTeeth;
+    final large = config.largeChainringTeeth;
+    final factor = large / small;
+    final cs = Theme.of(context).colorScheme;
+    return SettingTile(
+      icon: LucideIcons.bike,
+      title: AppLocalizations.of(context).frontShiftEnableLabel,
+      subtitle: AppLocalizations.of(context).frontShiftEnableDesc,
+      trailing: Switch(
+        value: enabled,
+        onChanged: (v) async {
+          await _updateActive((c) => c.copyWith(frontShiftEnabled: v));
+        },
+      ),
+      child: enabled
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 12,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context).frontShiftSmallRingLabel,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    StepperControl(
+                      value: small.toDouble(),
+                      step: 1.0,
+                      min: ShiftingConfig.chainringTeethMin.toDouble(),
+                      max: ShiftingConfig.chainringTeethMax.toDouble(),
+                      format: (v) => v.toStringAsFixed(0),
+                      onChanged: (v) async {
+                        final next = v.toInt();
+                        await _updateActive((c) => c.copyWith(smallChainringTeeth: next));
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context).frontShiftLargeRingLabel,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    StepperControl(
+                      value: large.toDouble(),
+                      step: 1.0,
+                      min: small.toDouble(),
+                      max: ShiftingConfig.chainringTeethMax.toDouble(),
+                      format: (v) => v.toStringAsFixed(0),
+                      onChanged: (v) async {
+                        final next = v.toInt();
+                        await _updateActive((c) => c.copyWith(largeChainringTeeth: next));
+                      },
+                    ),
+                  ],
+                ),
+                Text(
+                  '${factor.toStringAsFixed(2)}×',
+                  style: TextStyle(fontSize: 12, color: cs.mutedForeground),
+                  textAlign: TextAlign.end,
+                ),
+              ],
+            )
+          : null,
     );
   }
 

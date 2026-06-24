@@ -993,5 +993,9 @@
   "vsIntroFeedbackTitle": "Jesteśmy do Twojej dyspozycji",
   "vsIntroFeedbackBody": "Uwielbiamy Twoją opinię i zawsze chętnie pomożemy idealnie skonfigurować Twój sprzęt.",
   "vsIntroSupportedTrainersCta": "Zobacz obsługiwane trenażery",
-  "vsIntroGotIt": "Rozumiem"
+  "vsIntroGotIt": "Rozumiem",
+  "frontShiftEnableLabel": "Przedni przerzutnik w stylu SRAM",
+  "frontShiftEnableDesc": "Symuluje zmianę tarczy przedniej w napędzie 2×",
+  "frontShiftSmallRingLabel": "Mała tarcza (zęby)",
+  "frontShiftLargeRingLabel": "Duża tarcza (zęby)"
 }

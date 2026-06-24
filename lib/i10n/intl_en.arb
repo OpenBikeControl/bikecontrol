@@ -1160,5 +1160,9 @@
   "vsIntroFeedbackTitle": "We've got your back",
   "vsIntroFeedbackBody": "We love your feedback and are always happy to help get your setup dialed in just right.",
   "vsIntroSupportedTrainersCta": "See supported trainers",
-  "vsIntroGotIt": "Got it"
+  "vsIntroGotIt": "Got it",
+  "frontShiftEnableLabel": "SRAM-style front shift",
+  "frontShiftEnableDesc": "Simulates 2× drivetrain front chainring switching",
+  "frontShiftSmallRingLabel": "Small chainring (teeth)",
+  "frontShiftLargeRingLabel": "Large chainring (teeth)"
 }
