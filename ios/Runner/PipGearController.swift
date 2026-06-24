@@ -126,17 +126,18 @@ final class PipGearController: NSObject {
     private func startPump() {
         let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(deadline: .now(), repeating: .milliseconds(Int(1000 / fps)))
-        timer.setEventHandler { [weak self] in self?.renderTick() }
+        timer.setEventHandler { [weak self] in Task { @MainActor in self?.renderTick() } }
         timer.resume()
         pump = timer
     }
 
-    // MUST run on the main queue: `ImageRenderer.cgImage` (in makePixelBuffer) is
-    // @MainActor-isolated. The pump timer is scheduled on `.main` for this reason.
-    // If the pump is ever moved off-main to survive backgrounding, split rendering
-    // so the CGImage is produced on the main actor and only the finished
-    // CVPixelBuffer/CMSampleBuffer is enqueued off-main.
-    private func renderTick() {
+    // Runs on the main actor: `ImageRenderer` (in makePixelBuffer) is
+    // @MainActor-isolated. The pump's DispatchSource timer fires on `.main`, then
+    // hops onto the main actor via `Task { @MainActor in }` (MainActor.assumeIsolated
+    // would be tidier but is iOS 17+; this feature targets iOS 16). If the pump is
+    // ever moved off-main to survive backgrounding, keep the CGImage render on the
+    // main actor and enqueue the finished CMSampleBuffer off-main.
+    @MainActor private func renderTick() {
         guard let snapshot = snapshot else { return }
         let hash = snapshot.contentHash
         // Skip identical frames, but always emit the first one.
@@ -149,7 +150,7 @@ final class PipGearController: NSObject {
         displayLayer.enqueue(sample)
     }
 
-    private func makePixelBuffer(for snapshot: GearSnapshot) -> CVPixelBuffer? {
+    @MainActor private func makePixelBuffer(for snapshot: GearSnapshot) -> CVPixelBuffer? {
         guard let pool = pool else { return nil }
         var pbOut: CVPixelBuffer?
         guard CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pool, &pbOut) == kCVReturnSuccess,
