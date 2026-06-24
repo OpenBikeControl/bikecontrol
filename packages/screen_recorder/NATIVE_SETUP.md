@@ -6,12 +6,12 @@ plugin compile here, Windows and the iOS extension target need your machines.
 
 ## Status
 
-| Platform | Backend | Verified |
-| --- | --- | --- |
-| Android | `flutter_screen_recording` + `gal` (in `lib/services/.../android_screen_recorder.dart`) | ✅ builds APK, tested |
-| macOS | ScreenCaptureKit → AVAssetWriter (`macos/Classes/`) | ✅ `flutter build macos` passes — runtime (TCC + capture) still needs a Mac |
-| iOS | ReplayKit broadcast: plugin picker bridge + Broadcast Upload Extension | ⚠️ plugin compiles (`flutter build ios` passes); **extension target needs Xcode wiring** |
-| Windows | Windows.Graphics.Capture + Media Foundation (`windows/`) | ❌ **never compiled — build on Windows and iterate** |
+| Platform | Backend                                                                                 | Verified                                                                                 |
+|----------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| Android  | `flutter_screen_recording` + `gal` (in `lib/services/.../android_screen_recorder.dart`) | ✅ builds APK, tested                                                                     |
+| macOS    | ScreenCaptureKit → AVAssetWriter (`macos/Classes/`)                                     | ✅ `flutter build macos` passes — runtime (TCC + capture) still needs a Mac               |
+| iOS      | ReplayKit broadcast: plugin picker bridge + Broadcast Upload Extension                  | ⚠️ plugin compiles (`flutter build ios` passes); **extension target needs Xcode wiring** |
+| Windows  | Windows.Graphics.Capture + Media Foundation (`windows/`)                                | ❌ **never compiled — build on Windows and iterate**                                      |
 
 ## macOS — remaining
 - Runtime test on a Mac: bind a key to "Record Screen", grant the Screen Recording TCC prompt (may need an app relaunch), record, confirm an mp4 in `~/Movies/BikeControl/`.
