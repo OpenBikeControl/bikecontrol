@@ -48,6 +48,7 @@
   "actionWorkoutPauseResume": "Workout: Pause/Resume",
   "actionScreenRecording": "Record Screen",
   "openFolder": "Open folder",
+  "openGallery": "Open gallery",
   "screenRecordingStarted": "Screen recording started",
   "screenRecordingStopped": "Screen recording saved",
   "screenRecordingFailed": "Could not start screen recording",

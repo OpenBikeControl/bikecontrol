@@ -71,6 +71,7 @@
   "actionWorkoutPauseResume": "Training: Pause/Fortsetzen",
   "actionScreenRecording": "Bildschirm aufnehmen",
   "openFolder": "Ordner öffnen",
+  "openGallery": "Galerie öffnen",
   "screenRecordingStarted": "Bildschirmaufnahme gestartet",
   "screenRecordingStopped": "Bildschirmaufnahme gespeichert",
   "screenRecordingFailed": "Bildschirmaufnahme konnte nicht gestartet werden",

@@ -33,6 +33,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionM
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:gal/gal.dart';
 import 'package:prop/prop.dart' show LogLevel, Logger, RetrofitMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -230,17 +231,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   void _onActionResult(ActionResult result, ControllerButton button) {
-    // A screen recording that saved a file to a real folder (desktop) gets an
-    // "open folder" action on its activity entry.
+    // A saved screen recording gets a "reveal" action on its activity entry:
+    // open the containing folder on desktop, or the gallery on mobile.
     final savedPath = result is Success ? result.filePath : null;
-    final canOpenFolder =
-        savedPath != null && savedPath.isNotEmpty && !kIsWeb && (Platform.isMacOS || Platform.isWindows);
+    final hasRecording = savedPath != null && savedPath.isNotEmpty && !kIsWeb;
+    final isDesktop = !kIsWeb && (Platform.isMacOS || Platform.isWindows);
     final entry = _ActivityEntry(
       button: button,
       time: DateTime.now(),
       result: result,
-      buttonTitle: canOpenFolder ? AppLocalizations.of(context).openFolder : null,
-      onTap: canOpenFolder ? () => _openContainingFolder(savedPath) : null,
+      buttonTitle: hasRecording
+          ? (isDesktop ? AppLocalizations.of(context).openFolder : AppLocalizations.of(context).openGallery)
+          : null,
+      onTap: hasRecording ? () => _openRecordingLocation(savedPath) : null,
     );
     _insertActivityEntry(entry);
 
@@ -276,17 +279,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
   }
 
-  /// Reveals the folder containing a saved recording in Finder / Explorer.
-  Future<void> _openContainingFolder(String filePath) async {
+  /// Reveals a saved recording: the containing folder in Finder / Explorer on
+  /// desktop, or the system gallery on mobile (where it was saved via `gal`).
+  Future<void> _openRecordingLocation(String filePath) async {
     try {
-      final folder = File(filePath).parent.path;
       if (Platform.isMacOS) {
-        await Process.run('open', [folder]);
+        await Process.run('open', [File(filePath).parent.path]);
       } else if (Platform.isWindows) {
-        await Process.run('explorer', [folder]);
+        await Process.run('explorer', [File(filePath).parent.path]);
+      } else {
+        await Gal.open();
       }
     } catch (e, s) {
-      recordError(e, s, context: 'open recording folder');
+      recordError(e, s, context: 'open recording location');
     }
   }
 

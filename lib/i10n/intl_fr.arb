@@ -71,6 +71,7 @@
   "actionWorkoutPauseResume": "Séance : pause/reprendre",
   "actionScreenRecording": "Enregistrer l'écran",
   "openFolder": "Ouvrir le dossier",
+  "openGallery": "Ouvrir la galerie",
   "screenRecordingStarted": "Enregistrement d'écran démarré",
   "screenRecordingStopped": "Enregistrement d'écran enregistré",
   "screenRecordingFailed": "Impossible de démarrer l'enregistrement d'écran",

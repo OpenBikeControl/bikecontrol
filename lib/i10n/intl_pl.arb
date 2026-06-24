@@ -71,6 +71,7 @@
   "actionWorkoutPauseResume": "Trening: pauza/wznów",
   "actionScreenRecording": "Nagraj ekran",
   "openFolder": "Otwórz folder",
+  "openGallery": "Otwórz galerię",
   "screenRecordingStarted": "Rozpoczęto nagrywanie ekranu",
   "screenRecordingStopped": "Zapisano nagranie ekranu",
   "screenRecordingFailed": "Nie można rozpocząć nagrywania ekranu",
