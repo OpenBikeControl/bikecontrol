@@ -18,12 +18,10 @@ final class ScreenCaptureRecorder: NSObject, SCStreamOutput, SCStreamDelegate {
       throw NSError(domain: "screen_recorder", code: 1, userInfo: [NSLocalizedDescriptionKey: "No display"])
     }
 
-    // Fix 1 (Retina): capture at native pixels using scaleFactor.
-    // TODO: scaleFactor — SCDisplay does not expose scaleFactor in this SDK version;
-    // use display.width/height (points) for now. On Retina displays this may capture
-    // at logical resolution rather than native pixel resolution.
-    let pixelWidth = display.width
-    let pixelHeight = display.height
+    // Fix 1 (Retina): capture at native pixels via CGDisplayMode.
+    let mode = CGDisplayCopyDisplayMode(display.displayID)
+    let pixelWidth = mode?.pixelWidth ?? display.width
+    let pixelHeight = mode?.pixelHeight ?? display.height
 
     let dir = FileManager.default.homeDirectoryForCurrentUser
       .appendingPathComponent("Movies/BikeControl", isDirectory: true)
