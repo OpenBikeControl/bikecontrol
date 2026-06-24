@@ -153,27 +153,7 @@ class IosOverlayController implements TrainerOverlayController {
     );
   }
 
-  // live_activities routes the map through NSUserDefaults in the App Group,
-  // which crashes on null values (NSInvalidArgumentException). Optional Swift
-  // fields (Int?) decode missing keys as nil via Codable, so omitting nulls
-  // yields the same ContentState.
-  Map<String, dynamic> _toMap(TrainerOverlayState s) {
-    final m = <String, dynamic>{
-      'gear': s.gear,
-      'maxGear': s.maxGear,
-      'mode': s.mode == TrainerMode.ergMode ? 'erg' : 'sim',
-      'showPower': s.fields.contains(OverlayField.power),
-      'showCadence': s.fields.contains(OverlayField.cadence),
-      'showErgTarget': s.fields.contains(OverlayField.ergTarget),
-      'showGearRatio': s.fields.contains(OverlayField.gearRatio),
-      'showControls': s.fields.contains(OverlayField.controls),
-      'gearRatio': s.gearRatio,
-    };
-    if (s.powerW != null) m['powerW'] = s.powerW;
-    if (s.cadenceRpm != null) m['cadenceRpm'] = s.cadenceRpm;
-    if (s.ergTargetW != null) m['ergTargetW'] = s.ergTargetW;
-    return m;
-  }
+  Map<String, dynamic> _toMap(TrainerOverlayState s) => overlayStateToActivityMap(s);
 
   Future<void> _push({bool force = false}) async {
     final id = _activityId;

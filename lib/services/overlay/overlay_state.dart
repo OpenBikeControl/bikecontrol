@@ -108,3 +108,26 @@ class TrainerOverlayState {
     return true;
   }
 }
+
+/// Serialize overlay state to the map shape consumed by the iOS Live Activity
+/// (via the live_activities plugin's App Group UserDefaults) AND by the PiP
+/// channel. Omits null optional metrics: the Live Activity path routes through
+/// NSUserDefaults which crashes on null values, and Swift's optional `Int?`
+/// fields decode missing keys as nil either way.
+Map<String, dynamic> overlayStateToActivityMap(TrainerOverlayState s) {
+  final m = <String, dynamic>{
+    'gear': s.gear,
+    'maxGear': s.maxGear,
+    'mode': s.mode == TrainerMode.ergMode ? 'erg' : 'sim',
+    'showPower': s.fields.contains(OverlayField.power),
+    'showCadence': s.fields.contains(OverlayField.cadence),
+    'showErgTarget': s.fields.contains(OverlayField.ergTarget),
+    'showGearRatio': s.fields.contains(OverlayField.gearRatio),
+    'showControls': s.fields.contains(OverlayField.controls),
+    'gearRatio': s.gearRatio,
+  };
+  if (s.powerW != null) m['powerW'] = s.powerW;
+  if (s.cadenceRpm != null) m['cadenceRpm'] = s.cadenceRpm;
+  if (s.ergTargetW != null) m['ergTargetW'] = s.ergTargetW;
+  return m;
+}
