@@ -14,6 +14,8 @@ PODS:
     - FlutterMacOS
   - nsd_macos (0.0.1):
     - FlutterMacOS
+  - screen_recorder (0.0.1):
+    - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
   - sign_in_with_apple (0.0.1):
@@ -28,6 +30,7 @@ DEPENDENCIES:
   - media_key_detector_macos (from `Flutter/ephemeral/.symlinks/plugins/media_key_detector_macos/macos`)
   - multi_window_native (from `Flutter/ephemeral/.symlinks/plugins/multi_window_native/macos`)
   - nsd_macos (from `Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos`)
+  - screen_recorder (from `Flutter/ephemeral/.symlinks/plugins/screen_recorder/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
 
@@ -48,6 +51,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/multi_window_native/macos
   nsd_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/nsd_macos/macos
+  screen_recorder:
+    :path: Flutter/ephemeral/.symlinks/plugins/screen_recorder/macos
   screen_retriever_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   sign_in_with_apple:
@@ -62,6 +67,7 @@ SPEC CHECKSUMS:
   media_key_detector_macos: f2fecf51b0cc30d6e2e4605410ae5602ff067ed8
   multi_window_native: 090b0376429681c0ea21fee77f0a33c437d36fed
   nsd_macos: a472240e770b92f6c6df1022403aa29c90d012e3
+  screen_recorder: b1a6a675694fd381a2aa66c56360a08416d70224
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   sign_in_with_apple: 6673c03c9e3643f6c8d33601943fbfa9ae99f94e
 

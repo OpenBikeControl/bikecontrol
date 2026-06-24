@@ -17,10 +17,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
-  # Native platform implementations (macos/windows/ios) are added in the
-  # follow-up native tasks; until then this is a Dart-only MethodChannel
-  # wrapper and `screen_recorder` calls throw MissingPluginException (caught
-  # by NativeChannelScreenRecorder → reported as "not supported"). Declaring
-  # platforms here without native code breaks macOS/Windows plugin registrants.
   plugin:
-    platforms: {}
+    platforms:
+      macos:
+        pluginClass: ScreenRecorderPlugin
