@@ -1,4 +1,3 @@
-import ActivityKit
 import Foundation
 
 /// Shared gear readout model. Compiled into BOTH the Runner app (for PiP) and
@@ -64,31 +63,6 @@ extension GearSnapshot {
             showErgTarget: m["showErgTarget"] as? Bool ?? false,
             showGearRatio: m["showGearRatio"] as? Bool ?? false,
             showControls: m["showControls"] as? Bool ?? false
-        )
-    }
-}
-
-@available(iOS 16.1, *)
-extension GearSnapshot {
-    /// Read the live_activities plugin's id-prefixed App Group keys (used by the
-    /// Lock-Screen / Dynamic Island widget). Replaces the extension's old
-    /// private `snapshot(for:)`.
-    static func fromLiveActivity(_ attrs: LiveActivitiesAppAttributes, defaults: UserDefaults) -> GearSnapshot {
-        func k(_ s: String) -> String { attrs.prefixedKey(s) }
-        func optInt(_ key: String) -> Int? { defaults.object(forKey: key) as? Int }
-        return GearSnapshot(
-            gear: defaults.integer(forKey: k("gear")),
-            maxGear: defaults.integer(forKey: k("maxGear")),
-            mode: defaults.string(forKey: k("mode")) ?? "sim",
-            powerW: optInt(k("powerW")),
-            cadenceRpm: optInt(k("cadenceRpm")),
-            ergTargetW: optInt(k("ergTargetW")),
-            gearRatio: defaults.double(forKey: k("gearRatio")),
-            showPower: defaults.bool(forKey: k("showPower")),
-            showCadence: defaults.bool(forKey: k("showCadence")),
-            showErgTarget: defaults.bool(forKey: k("showErgTarget")),
-            showGearRatio: defaults.bool(forKey: k("showGearRatio")),
-            showControls: defaults.bool(forKey: k("showControls"))
         )
     }
 }
