@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/overlay/ios_pip_controller.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
@@ -23,6 +24,8 @@ class IosOverlayController implements TrainerOverlayController {
   final ValueNotifier<bool> _showing = ValueNotifier(false);
   final LiveActivities _la = LiveActivities();
   String? _activityId;
+  final IosPipController _pip = IosPipController();
+  bool _pipActive = false;
 
   FitnessBikeDefinition? _def;
   LiveDefinitionLookup? _liveDef;
@@ -79,6 +82,14 @@ class IosOverlayController implements TrainerOverlayController {
     }
 
     _showing.value = true;
+    try {
+      if (await _pip.isSupported()) {
+        await _pip.start(_toMap(s));
+        _pipActive = true;
+      }
+    } catch (e, st) {
+      recordError(e, st, context: 'overlay.ios.pip.start');
+    }
     return const OverlayShowResult.ok();
   }
 
@@ -101,6 +112,10 @@ class IosOverlayController implements TrainerOverlayController {
       _activityId = null;
     }
     _showing.value = false;
+    if (_pipActive) {
+      await _pip.stop();
+      _pipActive = false;
+    }
   }
 
   @override
@@ -167,6 +182,9 @@ class IosOverlayController implements TrainerOverlayController {
     _lastPushAt = DateTime.now();
     try {
       await _la.updateActivity(id, _toMap(s));
+      if (_pipActive) {
+        await _pip.update(_toMap(s));
+      }
     } catch (error, stack) {
       recordError(error, stack, context: 'overlay.ios.updateActivity');
     }
