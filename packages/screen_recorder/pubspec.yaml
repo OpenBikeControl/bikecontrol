@@ -19,6 +19,8 @@ dev_dependencies:
 flutter:
   plugin:
     platforms:
+      ios:
+        pluginClass: ScreenRecorderPlugin
       macos:
         pluginClass: ScreenRecorderPlugin
       windows:

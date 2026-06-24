@@ -56,6 +56,8 @@
 	<string>BikeControl does not use the camera. This entry is required because the image picker plugin links camera APIs.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Access your photo library to store screenshots.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>BikeControl saves your screen recordings to your photo library.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
