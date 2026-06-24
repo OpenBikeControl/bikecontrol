@@ -27,6 +27,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
+  bool _recoveringAdvertising = false;
   String? _currentDeviceId;
 
   OpenBikeControlBluetoothEmulator()
@@ -53,11 +54,27 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
       }
     });
 
-    _server.onAdvertisingStateChanged((state, error) {
+    _server.onAdvertisingStateChanged((state, error) async {
       if (kDebugMode) {
         print('OpenBikeControl advertising state: ${state.name}${error != null ? ' — $error' : ''}');
       }
       if (state == PeripheralAdvertisingState.error) {
+        // The shared CBPeripheralManager (or a stale advertisement from a prior
+        // session that wasn't torn down cleanly) can already be advertising,
+        // making CoreBluetooth reject startAdvertising with "Advertising has
+        // already started." Recover by stopping and restarting our own service
+        // once — guarded so a persistent error can't loop.
+        final alreadyStarted = error?.toLowerCase().contains('already') ?? false;
+        if (alreadyStarted && !_recoveringAdvertising) {
+          _recoveringAdvertising = true;
+          try {
+            await _server.stopAdvertising();
+            await _startAdvertising();
+          } finally {
+            _recoveringAdvertising = false;
+          }
+          return;
+        }
         core.connection.signalNotification(
           AlertNotification(
             LogLevel.LOGLEVEL_WARNING,
@@ -92,7 +109,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
           return PeripheralReadRequestResult(value: Uint8List.fromList([100]));
         });
 
-        Uint8List? firstAppInfoMessage;
+        // Some apps (e.g. TrainingPeaks on macOS) split the app-info write
+        // across several BLE packets. Accumulate every fragment that fails to
+        // parse and retry the flattened buffer until it's complete — a single
+        // prior-fragment buffer only ever stitches two writes together.
+        final firstAppInfoMessages = <Uint8List>[];
         _server.setWriteHandler(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID, (
           deviceId,
           characteristicId,
@@ -104,11 +125,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
             print('Write request for characteristic: $characteristicId: ${bytesToReadableHex(value)}');
           }
           try {
-            // use this fallback if first message is incomplete (e.g. TrainingPeaks on macOS)
             AppInfo appInfo = OpenBikeProtocolParser.parseAppInfo(
-              Uint8List.fromList([...?firstAppInfoMessage, ...value]),
+              Uint8List.fromList([...firstAppInfoMessages.flatten(), ...value]),
             );
-            firstAppInfoMessage = null;
+            firstAppInfoMessages.clear();
             isConnected.value = true;
             _currentDeviceId = deviceId;
             connectedApp.value = appInfo;
@@ -123,9 +143,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
             core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
           } catch (e) {
             core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
-            if (firstAppInfoMessage == null) {
-              firstAppInfoMessage = value;
-            }
+            firstAppInfoMessages.add(value);
           }
           return PeripheralWriteRequestResult();
         });
@@ -181,11 +199,17 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
     }
 
     print('Starting advertising with OpenBikeControl service...');
-    await _server.startAdvertising(
-      services: [OpenBikeControlConstants.SERVICE_UUID],
-      localName: 'BikeControl',
-    );
+    // Drop any stale/foreign advertisement (e.g. left over from a previous
+    // session or another peripheral role) before claiming the shared manager.
+    // stopAdvertising is idempotent on Darwin, so this is safe when idle.
+    await _server.stopAdvertising();
+    await _startAdvertising();
   }
+
+  Future<void> _startAdvertising() => _server.startAdvertising(
+    services: [OpenBikeControlConstants.SERVICE_UUID],
+    localName: 'BikeControl',
+  );
 
   Future<void> stopServer() async {
     if (kDebugMode) {
