@@ -132,6 +132,7 @@ Future<void> main() async {
           InGameAction.frontShift,
         );
         expect(result, isA<Ignored>());
+        expect((result as Ignored).message, AppLocalizations.current.trainerFrontShiftNotEnabled);
         expect(def.frontRing.value, ringBefore);
       });
     });

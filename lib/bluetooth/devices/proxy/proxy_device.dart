@@ -645,6 +645,9 @@ class ProxyDevice extends BluetoothDevice {
         if (def.trainerMode.value == TrainerMode.ergMode) {
           return Ignored(l10n.trainerFrontShiftUnavailable, button: button);
         }
+        if (!def.frontShiftEnabled) {
+          return Ignored(l10n.trainerFrontShiftNotEnabled, button: button);
+        }
         final didToggle = def.toggleFrontChainring();
         if (!didToggle) {
           return Ignored(l10n.trainerFrontShiftUnavailable, button: button);

@@ -30,7 +30,10 @@ sealed class ActionResult {
 }
 
 class Success extends ActionResult {
-  const Success(super.message, {required super.button});
+  /// Saved file path for results that produced a file (e.g. a screen
+  /// recording). Lets the UI offer an "open folder" action.
+  final String? filePath;
+  const Success(super.message, {required super.button, this.filePath});
 }
 
 class NotHandled extends ActionResult {
@@ -281,6 +284,35 @@ abstract class BaseActions {
       }
       return Ignored(
         AppLocalizations.current.noActiveWorkout,
+        button: keyPair.buttons.firstOrNull ?? button,
+      );
+    }
+
+    // Handle screen recording — device-level toggle, works with no trainer.
+    if (keyPair.inGameAction == InGameAction.screenRecording) {
+      if (!isKeyDown) {
+        return Ignored('', button: keyPair.buttons.firstOrNull ?? button);
+      }
+      final svc = core.screenRecording;
+      if (!await svc.isAvailable) {
+        return Ignored(
+          AppLocalizations.current.screenRecordingNotSupported,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
+      }
+      final result = await svc.toggle();
+      if (result.ok) {
+        await IAPManager.instance.incrementCommandCount();
+        final stopped = !result.startedRecording;
+        return Success(
+          stopped ? AppLocalizations.current.screenRecordingStopped : AppLocalizations.current.screenRecordingStarted,
+          button: keyPair.buttons.firstOrNull ?? button,
+          // Carries the saved path so the activity log can offer "open folder".
+          filePath: stopped ? result.savedPath : null,
+        );
+      }
+      return Error(
+        AppLocalizations.current.screenRecordingFailed,
         button: keyPair.buttons.firstOrNull ?? button,
       );
     }
