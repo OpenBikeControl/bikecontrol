@@ -20,16 +20,29 @@ public class ScreenRecorderPlugin: NSObject, FlutterPlugin {
       result(CGRequestScreenCaptureAccess())
     case "start":
       if #available(macOS 12.3, *) {
+        // Fix 6 (double-start leak): guard against starting a second recorder
+        guard self.recorder == nil else { result(false); return }
         let rec = ScreenCaptureRecorder()
         self.recorder = rec
         Task {
-          do { try await rec.start(); result(true) }
-          catch { NSLog("screen_recorder start error: \(error)"); result(false) }
+          do {
+            try await rec.start()
+            // Fix 7 (main thread): call FlutterResult on the main thread
+            DispatchQueue.main.async { result(true) }
+          } catch {
+            NSLog("screen_recorder start error: \(error)")
+            DispatchQueue.main.async { result(false) }
+          }
         }
       } else { result(false) }
     case "stop":
       if #available(macOS 12.3, *), let rec = self.recorder as? ScreenCaptureRecorder {
-        Task { let path = await rec.stop(); self.recorder = nil; result(path) }
+        Task {
+          let path = await rec.stop()
+          self.recorder = nil
+          // Fix 7 (main thread): call FlutterResult on the main thread
+          DispatchQueue.main.async { result(path) }
+        }
       } else { result(nil) }
     default:
       result(FlutterMethodNotImplemented)
