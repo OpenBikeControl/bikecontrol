@@ -75,7 +75,10 @@ enum InGameAction {
   dFlyChannel1('D-Fly Channel 1', icon: LucideIcons.circleDot),
   dFlyChannel2('D-Fly Channel 2', icon: LucideIcons.circleDot),
   dFlyChannel3('D-Fly Channel 3', icon: LucideIcons.circleDot),
-  dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot);
+  dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot),
+
+  // device / system
+  screenRecording('Record Screen', icon: LucideIcons.video, isOutsideTrainerApp: true);
 
   final String englishTitle;
   final bool isLongPress;
@@ -148,6 +151,7 @@ enum InGameAction {
       InGameAction.dFlyChannel2 => l.actionDFlyChannel2,
       InGameAction.dFlyChannel3 => l.actionDFlyChannel3,
       InGameAction.dFlyChannel4 => l.actionDFlyChannel4,
+      InGameAction.screenRecording => l.actionScreenRecording,
     };
   }
 
