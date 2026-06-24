@@ -1,3 +1,7 @@
+### 6.2.0 (24-06-2026)
+**Features**:
+- SRAM-style front shifting: a new assignable "Front Shift (Chainring)" action toggles a virtual front chainring between your small and large rings, changing resistance by the exact chainring ratio while staying on the same rear cog. Pressing both shift buttons at once also triggers it (Zwift Ride and Click; Zwift Play via a short simultaneous-press window). Set your chainring sizes per trainer in the gear settings.
+
 ### 6.1.0 (19-06-2026)
 **Features**:
 - WiFi enabled Smart Trainers are now supported
