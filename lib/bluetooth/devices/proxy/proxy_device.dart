@@ -641,6 +641,20 @@ class ProxyDevice extends BluetoothDevice {
       case InGameAction.trainerIntensityDown:
         def.adjustIntensity(-0.05);
         return Success(l10n.trainerIntensityDecreased, button: button);
+      case InGameAction.frontShift:
+        if (def.trainerMode.value == TrainerMode.ergMode) {
+          return Ignored(l10n.trainerFrontShiftUnavailable, button: button);
+        }
+        final didToggle = def.toggleFrontChainring();
+        if (!didToggle) {
+          return Ignored(l10n.trainerFrontShiftUnavailable, button: button);
+        }
+        return Success(
+          def.frontRing.value == FrontRing.large
+              ? l10n.trainerFrontShiftedLarge
+              : l10n.trainerFrontShiftedSmall,
+          button: button,
+        );
       default:
         return NotHandled('', button: button);
     }
