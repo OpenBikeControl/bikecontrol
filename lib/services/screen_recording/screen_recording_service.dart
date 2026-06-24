@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:bike_control/services/screen_recording/backends/native_channel_screen_recorder.dart';
+import 'package:bike_control/services/screen_recording/backends/unsupported_screen_recorder.dart';
 import 'package:flutter/foundation.dart';
 
 enum ScreenRecordingState { idle, starting, recording, stopping, unsupported, error }
@@ -90,4 +94,16 @@ class ScreenRecordingService {
       return RecordingResult(ok: false, startedRecording: false, errorMessage: e.toString());
     }
   }
+}
+
+/// Selects the backend for the running platform. Android's real backend is
+/// added in a later task; until then Android falls back to unsupported so the
+/// app stays buildable.
+ScreenRecorderBackend createScreenRecorderBackend() {
+  if (kIsWeb) return UnsupportedScreenRecorder();
+  if (Platform.isIOS || Platform.isMacOS || Platform.isWindows) {
+    return NativeChannelScreenRecorder();
+  }
+  // Android backend added later; Linux unsupported.
+  return UnsupportedScreenRecorder();
 }

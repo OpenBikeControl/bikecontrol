@@ -13,6 +13,7 @@ import 'package:bike_control/bluetooth/remote_keyboard_pairing.dart';
 import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/review_prompt_service.dart';
+import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/services/workout/workout_repository.dart';
@@ -53,6 +54,7 @@ class Core {
   late final shiftingConfigs = ShiftingConfigsController(settings.prefs);
   final connection = Connection();
   late final workoutRecorder = WorkoutRecorder();
+  ScreenRecordingService screenRecording = ScreenRecordingService(backend: createScreenRecorderBackend());
   late final workoutRepository = WorkoutRepository();
 
   late final supabase = Supabase.instance.client;
