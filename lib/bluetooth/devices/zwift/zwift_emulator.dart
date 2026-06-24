@@ -49,6 +49,7 @@ class ZwiftEmulator extends TrainerConnection {
           InGameAction.select,
           InGameAction.back,
           InGameAction.rideOnBomb,
+          InGameAction.frontShift,
         ],
       );
 
@@ -298,6 +299,10 @@ class ZwiftEmulator extends TrainerConnection {
     final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
     var action = mapping?.entries.firstOrNullWhere((e) => e.value == keyPair.inGameAction) ?? keyPair.inGameAction;
 
+    if (action == InGameAction.frontShift) {
+      return _sendFrontShift(keyPair);
+    }
+
     final button = switch (action) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
       InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
@@ -350,6 +355,35 @@ class ZwiftEmulator extends TrainerConnection {
       'Sent action: ${keyPair.inGameAction!.name}',
       button: keyPair.buttons.firstOrNull,
     );
+  }
+
+  /// Forward a front-chainring shift to the connected app as the standard
+  /// Zwift Ride "both shifters" gesture — the same behavior for every app
+  /// (apps with native SRAM, e.g. Zwift, perform the front shift; others get
+  /// a normal controller gesture).
+  Future<ActionResult> _sendFrontShift(KeyPair keyPair) async {
+    // Both shift buttons pressed together. NOTE: the exact bit pair Zwift's
+    // SRAM detection expects is UNVERIFIED against a live Zwift session —
+    // confirm on-device and adjust if needed.
+    final combined =
+        RideButtonMask.SHFT_UP_R_BTN.mask | RideButtonMask.SHFT_UP_L_BTN.mask;
+    Logger.info('ZwiftEmulator: front-shift combo (SHFT_UP_R|SHFT_UP_L) — verify bitmask vs Zwift SRAM');
+    final status = RideKeyPadStatus()
+      ..buttonMap = (~combined) & 0xFFFFFFFF
+      ..analogPaddles.clear();
+    await _server.notify(
+      characteristicId: ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      value: Uint8List.fromList(
+          [Opcode.CONTROLLER_NOTIFICATION.value, ...status.writeToBuffer()]),
+      deviceId: _currentDeviceId,
+    );
+    await _server.notify(
+      characteristicId: ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      value: Uint8List.fromList(
+          [Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]),
+      deviceId: _currentDeviceId,
+    );
+    return Success('Sent front-shift combo', button: keyPair.buttons.firstOrNull);
   }
 
   void cleanup() {
