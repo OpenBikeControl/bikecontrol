@@ -83,7 +83,12 @@ class IosOverlayController implements TrainerOverlayController {
 
     _showing.value = true;
     try {
-      if (await _pip.isSupported()) {
+      // null pref = automatic device default (iPad / non-Dynamic-Island iPhones);
+      // an explicit true opts in everywhere PiP is capable (e.g. DI iPhones), an
+      // explicit false opts out. The Live Activity keeps running either way.
+      final pref = core.settings.getOverlayUsePip();
+      final usePip = pref == null ? await _pip.isSupported() : (pref && await _pip.isCapable());
+      if (usePip) {
         await _pip.start(_toMap(s));
         _pipActive = true;
       }

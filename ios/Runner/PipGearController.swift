@@ -45,10 +45,37 @@ final class PipGearController: NSObject {
         )
         let controller = AVPictureInPictureController(contentSource: source)
         controller.canStartPictureInPictureAutomaticallyFromInline = true
+        // It's a live gear HUD, not a video: disable the skip / scrub (next/prev)
+        // transport controls. (The central play/pause is system chrome with no
+        // public API to hide for sample-buffer PiP; tapping it is a harmless no-op.)
+        controller.requiresLinearPlayback = true
         controller.delegate = self
         pipController = controller
 
         startPump()
+
+        // iPad: there's screen room, so show the floating window right away
+        // (foreground) instead of waiting for the app to be backgrounded. On
+        // iPhone we rely on canStartPictureInPictureAutomaticallyFromInline.
+        if DeviceCapabilities.prefersForegroundPip {
+            scheduleForegroundStart(attempt: 0)
+        }
+    }
+
+    /// Poll until PiP becomes possible (a frame has been enqueued), then start it
+    /// in the foreground. Gives up after ~2.4s; background auto-start still covers
+    /// the normal case if foreground start never becomes possible.
+    private func scheduleForegroundStart(attempt: Int) {
+        guard attempt < 8 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self, let controller = self.pipController,
+                  !controller.isPictureInPictureActive else { return }
+            if controller.isPictureInPicturePossible {
+                controller.startPictureInPicture()
+            } else {
+                self.scheduleForegroundStart(attempt: attempt + 1)
+            }
+        }
     }
 
     func update(_ map: [String: Any]) {

@@ -56,6 +56,12 @@ import UIKit
           } else {
             result(false)
           }
+        case "isCapable":
+          if #available(iOS 16.0, *) {
+            result(DeviceCapabilities.isPipCapable)
+          } else {
+            result(false)
+          }
         case "start":
           if #available(iOS 16.0, *) {
             PipGearController.shared.start(initial: call.arguments as? [String: Any] ?? [:])

@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/services/overlay/ios_pip_controller.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
@@ -30,6 +31,9 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
   late bool _enabled;
   late Set<OverlayField> _fields;
   bool _androidPermissionGranted = false;
+  bool _pipCapable = false;
+  bool _pipAutoDefault = false;
+  bool? _pipPref;
 
   @override
   void initState() {
@@ -41,6 +45,35 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
     _fields = core.settings.getOverlayFields();
     _controller.isShowing.addListener(_syncFromController);
     _refreshAndroidPermission();
+    _pipPref = core.settings.getOverlayUsePip();
+    _loadPipCapability();
+  }
+
+  Future<void> _loadPipCapability() async {
+    if (kIsWeb || !Platform.isIOS) return;
+    final pip = IosPipController();
+    final capable = await pip.isCapable();
+    final auto = await pip.isSupported();
+    if (!mounted) return;
+    setState(() {
+      _pipCapable = capable;
+      _pipAutoDefault = auto;
+    });
+  }
+
+  Future<void> _togglePip(bool v) async {
+    await core.settings.setOverlayUsePip(v);
+    if (mounted) setState(() => _pipPref = v);
+    // Re-apply immediately if the overlay is already showing.
+    if (_enabled) {
+      await _controller.hide();
+      final res = await _controller.show(
+        widget.definition,
+        _fields,
+        liveDef: () => widget.device.fitnessBike,
+      );
+      if (mounted) setState(() => _enabled = res.ok);
+    }
   }
 
   Future<void> _refreshAndroidPermission() async {
@@ -125,6 +158,13 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
           trailing: Switch(value: _enabled, onChanged: _toggle),
           child: _enabled ? _fieldsCard(l10n) : null,
         ),
+        if (isIos && _pipCapable)
+          SettingTile(
+            icon: LucideIcons.appWindow,
+            title: l10n.overlayUsePip,
+            subtitle: l10n.overlayUsePipSubtitle,
+            trailing: Switch(value: _pipPref ?? _pipAutoDefault, onChanged: _togglePip),
+          ),
         if (!kIsWeb && Platform.isWindows && _enabled) _tipCard(l10n.overlayWindowsTip),
         if (isAndroid && !_androidPermissionGranted) _androidPermissionTile(l10n),
       ],

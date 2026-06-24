@@ -4,6 +4,8 @@
   "controllersDisconnectedInactivity": "Kontrolery rozłączone po {minutes} minutach bezczynności, aby oszczędzać baterię",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
   "overlayDisabledIos": "Podczas jazdy Overlay trenażera unosi się nad aplikacją treningową (lub na Dynamic Island w obsługiwanych iPhone'ach) oraz na ekranie blokady.",
+  "overlayUsePip": "Pływające okno (Picture-in-Picture)",
+  "overlayUsePipSubtitle": "Pokazuje bieg w pływającym oknie nad aplikacją treningową, oprócz ekranu blokady (i Dynamic Island, jeśli jest dostępna).",
   "overlayEnabled": "Pokaż Overlay podczas jazdy",
   "overlayFieldCadence": "Kadencja",
   "overlayFieldErgTarget": "Cel ERG",

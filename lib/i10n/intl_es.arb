@@ -4,6 +4,8 @@
   "controllersDisconnectedInactivity": "Mandos desconectados tras {minutes} minutos de inactividad para ahorrar batería",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
   "overlayDisabledIos": "Durante la sesión, el Overlay del rodillo flota sobre tu app de entrenamiento (o en la Dynamic Island en iPhones compatibles) y en la pantalla de bloqueo.",
+  "overlayUsePip": "Ventana flotante (Picture-in-Picture)",
+  "overlayUsePipSubtitle": "Muestra tu marcha en una ventana flotante sobre tu app de entrenamiento, además de en la pantalla de bloqueo (y en la Dynamic Island cuando esté disponible).",
   "overlayEnabled": "Mostrar el Overlay durante la sesión",
   "overlayFieldCadence": "Cadencia",
   "overlayFieldErgTarget": "Objetivo ERG",

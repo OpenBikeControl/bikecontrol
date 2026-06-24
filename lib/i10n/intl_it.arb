@@ -4,6 +4,8 @@
   "controllersDisconnectedInactivity": "Controller disconnessi dopo {minutes} minuti di inattività per risparmiare batteria",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
   "overlayDisabledIos": "Durante la sessione, l'Overlay del rullo galleggia sopra la tua app di allenamento (o sulla Dynamic Island sugli iPhone supportati) e sulla schermata di blocco.",
+  "overlayUsePip": "Finestra mobile (Picture-in-Picture)",
+  "overlayUsePipSubtitle": "Mostra la marcia in una finestra mobile sopra la tua app di allenamento, oltre alla schermata di blocco (e alla Dynamic Island se disponibile).",
   "overlayEnabled": "Mostra l'Overlay durante la sessione",
   "overlayFieldCadence": "Cadenza",
   "overlayFieldErgTarget": "Obiettivo ERG",

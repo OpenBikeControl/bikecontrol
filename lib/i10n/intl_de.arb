@@ -4,6 +4,8 @@
   "controllersDisconnectedInactivity": "Controller nach {minutes} Minuten Inaktivität getrennt, um Akku zu sparen",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
   "overlayDisabledIos": "Während der Fahrt schwebt das Trainer-Overlay über deiner Trainer-App – oder auf der Dynamic Island bei unterstützten iPhones – sowie auf dem Sperrbildschirm.",
+  "overlayUsePip": "Schwebendes Fenster (Bild-in-Bild)",
+  "overlayUsePipSubtitle": "Zeigt deinen Gang in einem schwebenden Fenster über deiner Trainer-App – zusätzlich zum Sperrbildschirm (und der Dynamic Island, sofern vorhanden).",
   "overlayEnabled": "Overlay während der Fahrt anzeigen",
   "overlayFieldCadence": "Trittfrequenz",
   "overlayFieldErgTarget": "ERG-Ziel",

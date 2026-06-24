@@ -15,13 +15,27 @@ enum DeviceCapabilities {
         return keyWindowTopInset() >= 51
     }
 
-    /// PiP is the chosen floating display on iPad and on iPhones WITHOUT a
-    /// Dynamic Island. Requires iOS 16+ (ImageRenderer) and device PiP support.
-    static var pipEligible: Bool {
+    /// Whether PiP is technically possible at all: iOS 16+ (ImageRenderer) and
+    /// the device supports PiP — regardless of the Dynamic Island. Drives the
+    /// opt-in toggle and honoring it on Dynamic-Island iPhones.
+    static var isPipCapable: Bool {
         guard #available(iOS 16.0, *) else { return false }
-        guard AVPictureInPictureController.isPictureInPictureSupported() else { return false }
+        return AVPictureInPictureController.isPictureInPictureSupported()
+    }
+
+    /// PiP is the AUTOMATIC floating display on iPad and on iPhones WITHOUT a
+    /// Dynamic Island (Dynamic-Island iPhones default to the Live Activity, but
+    /// can opt into PiP via settings).
+    static var pipEligible: Bool {
+        guard isPipCapable else { return false }
         if UIDevice.current.userInterfaceIdiom == .pad { return true }
         return !hasDynamicIsland
+    }
+
+    /// iPad has room to show the floating window immediately (foreground), rather
+    /// than only once BikeControl is backgrounded.
+    static var prefersForegroundPip: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad
     }
 
     private static func keyWindowTopInset() -> CGFloat {

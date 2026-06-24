@@ -7,13 +7,26 @@ import 'package:flutter/services.dart';
 class IosPipController {
   static const _channel = MethodChannel('bike_control/pip_ios');
 
-  /// True on iPad and non-Dynamic-Island iPhones (iOS 16+). False on
-  /// Dynamic-Island iPhones and where PiP is unsupported.
+  /// Automatic default: true on iPad and non-Dynamic-Island iPhones (iOS 16+).
+  /// False on Dynamic-Island iPhones (they default to the Live Activity) and
+  /// where PiP is unsupported.
   Future<bool> isSupported() async {
     try {
       return await _channel.invokeMethod<bool>('isSupported') ?? false;
     } catch (e, s) {
       recordError(e, s, context: 'pip.ios.isSupported');
+      return false;
+    }
+  }
+
+  /// Whether PiP is technically possible at all (iOS 16+ and device supports it),
+  /// regardless of the Dynamic Island. Used to honor the opt-in on DI iPhones and
+  /// to decide whether to show the setting.
+  Future<bool> isCapable() async {
+    try {
+      return await _channel.invokeMethod<bool>('isCapable') ?? false;
+    } catch (e, s) {
+      recordError(e, s, context: 'pip.ios.isCapable');
       return false;
     }
   }
