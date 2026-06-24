@@ -74,6 +74,7 @@ void main() {
     backend.permission = false;
     final result = await service.toggle();
     expect(result.ok, isFalse);
+    expect(result.startedRecording, isFalse);
     expect(backend.startCalls, 0);
     expect(service.state.value, ScreenRecordingState.idle);
   });
@@ -82,6 +83,27 @@ void main() {
     backend.available = false;
     final result = await service.toggle();
     expect(result.ok, isFalse);
+    expect(result.startedRecording, isFalse);
     expect(service.state.value, ScreenRecordingState.unsupported);
   });
+
+  test('toggle completes without throwing when backend start() throws', () async {
+    final throwingBackend = _ThrowingScreenRecorderBackend();
+    final throwingService = ScreenRecordingService(backend: throwingBackend);
+    final result = await throwingService.toggle();
+    expect(result.ok, isFalse);
+    expect(throwingService.state.value, ScreenRecordingState.error);
+  });
+}
+
+/// Backend whose start() always throws, to verify the never-throws contract.
+class _ThrowingScreenRecorderBackend implements ScreenRecorderBackend {
+  @override
+  Future<bool> isAvailable() async => true;
+  @override
+  Future<bool> ensurePermission() async => true;
+  @override
+  Future<bool> start() async => throw Exception('simulated backend crash');
+  @override
+  Future<String?> stop() async => null;
 }

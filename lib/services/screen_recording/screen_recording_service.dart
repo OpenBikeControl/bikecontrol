@@ -58,24 +58,36 @@ class ScreenRecordingService {
   }
 
   Future<RecordingResult> _start() async {
-    if (!await _backend.isAvailable()) {
-      _state.value = ScreenRecordingState.unsupported;
-      return const RecordingResult(ok: false, startedRecording: true);
+    try {
+      if (!await _backend.isAvailable()) {
+        _state.value = ScreenRecordingState.unsupported;
+        return const RecordingResult(ok: false, startedRecording: false);
+      }
+      _state.value = ScreenRecordingState.starting;
+      if (!await _backend.ensurePermission()) {
+        _state.value = ScreenRecordingState.idle;
+        return const RecordingResult(ok: false, startedRecording: false, errorMessage: 'permission denied');
+      }
+      final started = await _backend.start();
+      _state.value = started ? ScreenRecordingState.recording : ScreenRecordingState.idle;
+      return RecordingResult(ok: started, startedRecording: true);
+    } catch (e, s) {
+      _state.value = ScreenRecordingState.error;
+      debugPrintStack(label: 'screen recording: $e', stackTrace: s);
+      return RecordingResult(ok: false, startedRecording: true, errorMessage: e.toString());
     }
-    _state.value = ScreenRecordingState.starting;
-    if (!await _backend.ensurePermission()) {
-      _state.value = ScreenRecordingState.idle;
-      return const RecordingResult(ok: false, startedRecording: true, errorMessage: 'permission denied');
-    }
-    final started = await _backend.start();
-    _state.value = started ? ScreenRecordingState.recording : ScreenRecordingState.idle;
-    return RecordingResult(ok: started, startedRecording: true);
   }
 
   Future<RecordingResult> _stop() async {
-    _state.value = ScreenRecordingState.stopping;
-    final path = await _backend.stop();
-    _state.value = ScreenRecordingState.idle;
-    return RecordingResult(ok: true, startedRecording: false, savedPath: path);
+    try {
+      _state.value = ScreenRecordingState.stopping;
+      final path = await _backend.stop();
+      _state.value = ScreenRecordingState.idle;
+      return RecordingResult(ok: true, startedRecording: false, savedPath: path);
+    } catch (e, s) {
+      _state.value = ScreenRecordingState.error;
+      debugPrintStack(label: 'screen recording: $e', stackTrace: s);
+      return RecordingResult(ok: false, startedRecording: false, errorMessage: e.toString());
+    }
   }
 }
