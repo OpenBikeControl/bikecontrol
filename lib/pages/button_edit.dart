@@ -616,6 +616,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ],
                   SelectableCard(
                     icon: LucideIcons.video,
+                    isProOnly: true,
                     title: Text(context.i18n.actionScreenRecording),
                     isActive: _keyPair.inGameAction == InGameAction.screenRecording,
                     onPressed: () {

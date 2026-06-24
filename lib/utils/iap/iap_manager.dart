@@ -74,6 +74,14 @@ class IAPManager {
     return isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
   }
 
+  /// Test-only: force the Pro entitlement state so Pro-gated actions/UI can be
+  /// exercised without a live subscription or device registration.
+  @visibleForTesting
+  void setProForTesting({required bool enabled}) {
+    _isInitialized = true;
+    isLocalPro.value = enabled;
+  }
+
   bool get hasPurchasedBefore50RVC =>
       isPurchased.value &&
       ((_revenueCatService?.hasPurchasedBefore50 ?? false) || (_windowsIapService?.hasPurchasedBefore50 ?? false));

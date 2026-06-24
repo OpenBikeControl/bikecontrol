@@ -2,6 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
@@ -47,6 +48,8 @@ Future<void> main() async {
 
   setUp(() async {
     await env.resetState();
+    // Screen recording is a Pro action; enable Pro so proGuard lets the handler run.
+    IAPManager.instance.setProForTesting(enabled: true);
     backend = _FakeBackend();
     core.screenRecording = ScreenRecordingService(backend: backend);
 
@@ -83,5 +86,13 @@ Future<void> main() async {
     final result = await actions.performAction(button, isKeyDown: true, isKeyUp: false);
     expect(result, isA<Ignored>());
     expect(result.message, AppLocalizations.current.screenRecordingNotSupported);
+  });
+
+  test('non-Pro user is blocked by the Pro gate (recording never starts)', () async {
+    IAPManager.instance.setProForTesting(enabled: false);
+    final result = await actions.performAction(button, isKeyDown: true, isKeyUp: false);
+    expect(result, isA<Error>());
+    expect((result as Error).type, ErrorType.proRequired);
+    expect(backend.starts, 0);
   });
 }
