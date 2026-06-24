@@ -200,6 +200,36 @@ abstract class BaseActions {
       );
     }
 
+    // Handle screen recording — device-level toggle, works with no trainer.
+    if (keyPair.inGameAction == InGameAction.screenRecording) {
+      if (!isKeyDown) {
+        return Ignored('', button: keyPair.buttons.firstOrNull ?? button);
+      }
+      final svc = core.screenRecording;
+      if (!await svc.isAvailable) {
+        return Ignored(
+          AppLocalizations.current.screenRecordingNotSupported,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
+      }
+      final result = await svc.toggle();
+      if (result.ok) {
+        await IAPManager.instance.incrementCommandCount();
+        final stopped = !result.startedRecording;
+        final stoppedMsg = result.savedPath != null && result.savedPath!.isNotEmpty
+            ? '${AppLocalizations.current.screenRecordingStopped}: ${result.savedPath}'
+            : AppLocalizations.current.screenRecordingStopped;
+        return Success(
+          stopped ? stoppedMsg : AppLocalizations.current.screenRecordingStarted,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
+      }
+      return Error(
+        AppLocalizations.current.screenRecordingFailed,
+        button: keyPair.buttons.firstOrNull ?? button,
+      );
+    }
+
     // Handle trainer-control actions
     if (trainerActions.contains(keyPair.inGameAction)) {
       final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
