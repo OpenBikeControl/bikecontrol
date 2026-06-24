@@ -3,7 +3,7 @@
   "batterySaverTitle": "Risparmio batteria",
   "controllersDisconnectedInactivity": "Controller disconnessi dopo {minutes} minuti di inattività per risparmiare batteria",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
-  "overlayDisabledIos": "L'Overlay del rullo viene mostrato sulla Dynamic Island e sulla schermata di blocco durante la sessione.",
+  "overlayDisabledIos": "Durante la sessione, l'Overlay del rullo galleggia sopra la tua app di allenamento (o sulla Dynamic Island sugli iPhone supportati) e sulla schermata di blocco.",
   "overlayEnabled": "Mostra l'Overlay durante la sessione",
   "overlayFieldCadence": "Cadenza",
   "overlayFieldErgTarget": "Obiettivo ERG",

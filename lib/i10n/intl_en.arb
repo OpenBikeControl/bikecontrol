@@ -461,7 +461,7 @@
   "notConnected": "Not connected",
   "notificationDescription": "This keeps the app alive in background and updates you when the connection to your devices changes.",
   "officiallySupported": "Officially supported",
-  "overlayDisabledIos": "Trainer overlay shows on Dynamic Island and the Lock Screen during a ride.",
+  "overlayDisabledIos": "During a ride the trainer overlay floats over your trainer app — or the Dynamic Island on supported iPhones — and the Lock Screen.",
   "overlayEnabled": "Show overlay during ride",
   "overlayFieldCadence": "Cadence",
   "overlayFieldControls": "Shift / power buttons",

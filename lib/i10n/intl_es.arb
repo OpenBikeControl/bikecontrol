@@ -3,7 +3,7 @@
   "batterySaverTitle": "Ahorro de batería",
   "controllersDisconnectedInactivity": "Mandos desconectados tras {minutes} minutos de inactividad para ahorrar batería",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
-  "overlayDisabledIos": "El Overlay del rodillo se muestra en la Dynamic Island y en la pantalla de bloqueo durante la sesión.",
+  "overlayDisabledIos": "Durante la sesión, el Overlay del rodillo flota sobre tu app de entrenamiento (o en la Dynamic Island en iPhones compatibles) y en la pantalla de bloqueo.",
   "overlayEnabled": "Mostrar el Overlay durante la sesión",
   "overlayFieldCadence": "Cadencia",
   "overlayFieldErgTarget": "Objetivo ERG",

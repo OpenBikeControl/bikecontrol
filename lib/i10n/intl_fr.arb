@@ -3,7 +3,7 @@
   "batterySaverTitle": "Économiseur de batterie",
   "controllersDisconnectedInactivity": "Manettes déconnectées après {minutes} minutes d'inactivité pour économiser la batterie",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
-  "overlayDisabledIos": "L'Overlay du home-trainer s'affiche sur la Dynamic Island et l'écran verrouillé pendant la séance.",
+  "overlayDisabledIos": "Pendant la séance, l'Overlay du home-trainer flotte au-dessus de ton app d'entraînement (ou sur la Dynamic Island sur les iPhone compatibles) et sur l'écran verrouillé.",
   "overlayEnabled": "Afficher l'Overlay pendant la séance",
   "overlayFieldCadence": "Cadence",
   "overlayFieldErgTarget": "Cible ERG",

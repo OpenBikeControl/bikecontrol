@@ -3,7 +3,7 @@
   "batterySaverTitle": "Oszczędzanie baterii",
   "controllersDisconnectedInactivity": "Kontrolery rozłączone po {minutes} minutach bezczynności, aby oszczędzać baterię",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
-  "overlayDisabledIos": "Overlay trenażera jest wyświetlany na Dynamic Island i ekranie blokady podczas jazdy.",
+  "overlayDisabledIos": "Podczas jazdy Overlay trenażera unosi się nad aplikacją treningową (lub na Dynamic Island w obsługiwanych iPhone'ach) oraz na ekranie blokady.",
   "overlayEnabled": "Pokaż Overlay podczas jazdy",
   "overlayFieldCadence": "Kadencja",
   "overlayFieldErgTarget": "Cel ERG",

@@ -1,6 +1,7 @@
 ### 6.2.0 (24-06-2026)
 **Features**:
 - SRAM-style front shifting: a new assignable "Front Shift (Chainring)" action toggles a virtual front chainring between your small and large rings, changing resistance by the exact chainring ratio while staying on the same rear cog. Pressing both shift buttons at once also triggers it (Zwift Ride and Click; Zwift Play via a short simultaneous-press window). Set your chainring sizes per trainer in the gear settings.
+- Gear overlay on iPad: your current gear now appears in a floating Picture-in-Picture window over your trainer app during a ride, so it stays visible even while BikeControl is in the background. iPhones with a Dynamic Island keep using it; iPad and older iPhones get the new floating window.
 
 ### 6.1.0 (19-06-2026)
 **Features**:

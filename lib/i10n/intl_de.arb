@@ -3,7 +3,7 @@
   "batterySaverTitle": "Energiesparmodus",
   "controllersDisconnectedInactivity": "Controller nach {minutes} Minuten Inaktivität getrennt, um Akku zu sparen",
   "@controllersDisconnectedInactivity": {"placeholders": {"minutes": {"type": "int"}}},
-  "overlayDisabledIos": "Das Trainer-Overlay erscheint während der Fahrt auf der Dynamic Island und dem Sperrbildschirm.",
+  "overlayDisabledIos": "Während der Fahrt schwebt das Trainer-Overlay über deiner Trainer-App – oder auf der Dynamic Island bei unterstützten iPhones – sowie auf dem Sperrbildschirm.",
   "overlayEnabled": "Overlay während der Fahrt anzeigen",
   "overlayFieldCadence": "Trittfrequenz",
   "overlayFieldErgTarget": "ERG-Ziel",
