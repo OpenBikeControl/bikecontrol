@@ -238,13 +238,17 @@ bool CaptureRecorder::Start() {
         }
 
         // Copy row-by-row in case the GPU stride (RowPitch) > bytesPerRow.
-        // WGC surfaces are top-down; MF RGB32 also expects top-down.
-        // VERIFY on Windows: if the encoder produces an upside-down image,
-        // either set MF_MT_DEFAULT_STRIDE to a negative value on the input
-        // type, or reverse the row copy here.
+        //
+        // Orientation: WGC/D3D surfaces are top-down (row 0 = top), but the MF
+        // SinkWriter's RGB->NV12 conversion treats uncompressed RGB32 as
+        // bottom-up (legacy DIB convention) when no stride sign says otherwise.
+        // Feeding our top-down buffer straight through produced an upside-down
+        // recording. We cancel that fixed vertical flip by writing each source
+        // row into the mirrored destination row, i.e. handing MF a bottom-up
+        // buffer. Same number of memcpys, so no extra cost.
         const BYTE* pSrc = static_cast<const BYTE*>(mapped.pData);
         for (UINT row = 0; row < frameHeight; ++row) {
-          memcpy(pDst + row * bytesPerRow,
+          memcpy(pDst + (frameHeight - 1 - row) * bytesPerRow,
                  pSrc + row * mapped.RowPitch,
                  bytesPerRow);
         }
