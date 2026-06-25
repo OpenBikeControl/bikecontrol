@@ -8,6 +8,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/bluetooth/peripheral_advertising_recovery.dart';
 import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -25,7 +26,7 @@ import 'package:prop/prop.dart' hide RideButtonMask;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-class ZwiftEmulator extends TrainerConnection {
+class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery {
   bool get isLoading => _isLoading;
 
   final _server = PeripheralServer();
@@ -33,6 +34,9 @@ class ZwiftEmulator extends TrainerConnection {
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
   String? _currentDeviceId;
+
+  @override
+  PeripheralServer get advertisingServer => _server;
 
   ZwiftEmulator()
     : super(
@@ -83,11 +87,12 @@ class ZwiftEmulator extends TrainerConnection {
       }
     });
 
-    _server.onAdvertisingStateChanged((state, error) {
+    _server.onAdvertisingStateChanged((state, error) async {
       if (kDebugMode) {
         print('Zwift advertising state: ${state.name}${error != null ? ' — $error' : ''}');
       }
       if (state == PeripheralAdvertisingState.error) {
+        if (await recoverIfAlreadyAdvertising(error)) return;
         core.connection.signalNotification(
           AlertNotification(
             LogLevel.LOGLEVEL_WARNING,
@@ -251,7 +256,15 @@ class ZwiftEmulator extends TrainerConnection {
 
     print('Starting advertising with Zwift service...');
 
-    await _server.startAdvertising(
+    await restartAdvertising();
+    _isLoading = false;
+    onUpdate();
+  }
+
+  @override
+  Future<void> startServiceAdvertising() {
+    final isRouvy = core.settings.getTrainerApp() is Rouvy;
+    return _server.startAdvertising(
       services: [
         ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT,
         if (isRouvy) OpenBikeControlConstants.SERVICE_UUID,
@@ -262,8 +275,6 @@ class ZwiftEmulator extends TrainerConnection {
       // service UUIDs to the scan response there. Only Rouvy needs it.
       servicesInScanResponse: isRouvy,
     );
-    _isLoading = false;
-    onUpdate();
   }
 
   Future<void> stopAdvertising() async {

@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_d
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNotification, LogNotification;
+import 'package:bike_control/bluetooth/peripheral_advertising_recovery.dart';
 import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -22,13 +23,15 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 import 'package:universal_ble/universal_ble.dart';
 
-class OpenBikeControlBluetoothEmulator extends TrainerConnection {
+class OpenBikeControlBluetoothEmulator extends TrainerConnection with PeripheralAdvertisingRecovery {
   final _server = PeripheralServer();
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
-  bool _recoveringAdvertising = false;
   String? _currentDeviceId;
+
+  @override
+  PeripheralServer get advertisingServer => _server;
 
   OpenBikeControlBluetoothEmulator()
     : super(
@@ -59,22 +62,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
         print('OpenBikeControl advertising state: ${state.name}${error != null ? ' — $error' : ''}');
       }
       if (state == PeripheralAdvertisingState.error) {
-        // The shared CBPeripheralManager (or a stale advertisement from a prior
-        // session that wasn't torn down cleanly) can already be advertising,
-        // making CoreBluetooth reject startAdvertising with "Advertising has
-        // already started." Recover by stopping and restarting our own service
-        // once — guarded so a persistent error can't loop.
-        final alreadyStarted = error?.toLowerCase().contains('already') ?? false;
-        if (alreadyStarted && !_recoveringAdvertising) {
-          _recoveringAdvertising = true;
-          try {
-            await _server.stopAdvertising();
-            await _startAdvertising();
-          } finally {
-            _recoveringAdvertising = false;
-          }
-          return;
-        }
+        if (await recoverIfAlreadyAdvertising(error)) return;
         core.connection.signalNotification(
           AlertNotification(
             LogLevel.LOGLEVEL_WARNING,
@@ -202,11 +190,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
     // Drop any stale/foreign advertisement (e.g. left over from a previous
     // session or another peripheral role) before claiming the shared manager.
     // stopAdvertising is idempotent on Darwin, so this is safe when idle.
-    await _server.stopAdvertising();
-    await _startAdvertising();
+    await restartAdvertising();
   }
 
-  Future<void> _startAdvertising() => _server.startAdvertising(
+  @override
+  Future<void> startServiceAdvertising() => _server.startAdvertising(
     services: [OpenBikeControlConstants.SERVICE_UUID],
     localName: 'BikeControl',
   );
