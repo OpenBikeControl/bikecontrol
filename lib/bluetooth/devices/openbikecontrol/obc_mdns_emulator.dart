@@ -52,10 +52,15 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     // Android's 192.0.0.8 CLAT dummy address).
     final localIP = await AdvertisedAddressPicker.pick();
     if (localIP == null) {
+      isStarted.value = false;
       throw 'Could not find network interface';
     }
 
     await _createTcpServer();
+    // The port walks under contention (ResilientTcpServer's default fallback),
+    // so advertise the ACTUAL bound port — companion apps read it from the SRV
+    // record. Hardcoding 36867 here would point clients at the wrong port.
+    final boundPort = _server!.boundPort;
 
     try {
       // Create service
@@ -63,7 +68,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         AdvertisedService(
           name: 'BikeControl',
           type: _useDirCon ? '_wahoo-fitness-tnp._tcp' : '_openbikecontrol._tcp',
-          port: 36867,
+          port: boundPort,
           address: localIP,
           txt: _useDirCon
               ? {
@@ -81,10 +86,13 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
                 },
         ),
       );
-      _registeredEntry = (name: 'BikeControl', port: 36867);
-      SelfAdvertisementRegistry.instance.add(name: 'BikeControl', port: 36867);
-      print('Server started - advertising service at ${localIP.address}:36867!');
+      _registeredEntry = (name: 'BikeControl', port: boundPort);
+      SelfAdvertisementRegistry.instance.add(name: 'BikeControl', port: boundPort);
+      print('Server started - advertising service at ${localIP.address}:$boundPort!');
     } catch (e, s) {
+      // Keep the flag honest so the UI doesn't show a phantom-running server
+      // and the user can cleanly retry.
+      isStarted.value = false;
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start mDNS server: $e'));
       rethrow;
     }
@@ -115,9 +123,10 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     connectedApp.value = null;
   }
 
-  /// OpenBikeControl is a fixed-port protocol contract (36867): companion
-  /// apps may connect without reading the port from the advertisement, so
-  /// there is NO port fallback here — a blocked port must fail loudly.
+  /// Binds the OpenBikeControl TCP server. The preferred port is 36867 but it
+  /// walks to the next free port under contention (ResilientTcpServer's default
+  /// fallback); [startServer] advertises whichever port was actually bound, so
+  /// companion apps must read the port from the mDNS SRV record.
   Future<void> _createTcpServer() async {
     final server = ResilientTcpServer(
       preferredPort: 36867,
@@ -157,6 +166,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     try {
       await server.start();
     } catch (e) {
+      // A blocked fixed port (foreign holder) reaches here — reset the flag so
+      // the start is honestly reported as failed and can be retried.
+      isStarted.value = false;
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start server: $e'));
       rethrow;
     }
