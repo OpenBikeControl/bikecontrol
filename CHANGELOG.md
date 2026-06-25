@@ -1,8 +1,8 @@
-### 6.2.0 (24-06-2026)
+### 6.2.0 (unreleased)
 **Features**:
-- SRAM-style front shifting: a new assignable "Front Shift (Chainring)" action toggles a virtual front chainring between your small and large rings, changing resistance by the exact chainring ratio while staying on the same rear cog. Pressing both shift buttons at once also triggers it (Zwift Ride and Click; Zwift Play via a short simultaneous-press window). Set your chainring sizes per trainer in the gear settings.
-- Floating gear overlay (Picture-in-Picture): your current gear can now show in a floating window over your trainer app during a ride. It's automatic on iPad — shown right away, since there's screen room — and on iPhones without a Dynamic Island; iPhones with a Dynamic Island can switch it on in the overlay settings. The Lock Screen / Dynamic Island display stays available alongside it.
-- Screen recording: a new assignable "Record Screen" action starts and stops a screen recording from a controller button. On Android the clip is saved to your gallery; on macOS it's saved to a folder you can open straight from the activity log.
+- SRAM-style front shifting: a new assignable "Front Shift (Chainring)" action toggles a virtual front chainring between your small and large rings, changing resistance by the exact chainring ratio while staying on the same rear cog. Set your chainring sizes per trainer in the gear settings.
+- iOS / iPadOS: Floating gear overlay (Picture-in-Picture): your current gear can now show in a floating window over your trainer app during a ride.
+- Screen recording: a new assignable "Record Screen" action starts and stops a screen recording from a controller button.
 
 ### 6.1.0 (19-06-2026)
 **Features**:
