@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/ble.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/app_info_reassembler.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -98,10 +99,9 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
         });
 
         // Some apps (e.g. TrainingPeaks on macOS) split the app-info write
-        // across several BLE packets. Accumulate every fragment that fails to
-        // parse and retry the flattened buffer until it's complete — a single
-        // prior-fragment buffer only ever stitches two writes together.
-        final firstAppInfoMessages = <Uint8List>[];
+        // across several BLE packets; the reassembler accumulates fragments
+        // until the flattened buffer parses.
+        final appInfoReassembler = AppInfoReassembler();
         _server.setWriteHandler(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID, (
           deviceId,
           characteristicId,
@@ -112,27 +112,25 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
           if (kDebugMode) {
             print('Write request for characteristic: $characteristicId: ${bytesToReadableHex(value)}');
           }
-          try {
-            AppInfo appInfo = OpenBikeProtocolParser.parseAppInfo(
-              Uint8List.fromList([...firstAppInfoMessages.flatten(), ...value]),
-            );
-            firstAppInfoMessages.clear();
-            isConnected.value = true;
-            _currentDeviceId = deviceId;
-            connectedApp.value = appInfo;
-            supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
-            final trainerApp = core.settings.getTrainerApp();
-            if (trainerApp != null) {
-              unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
-            }
+          final appInfo = appInfoReassembler.offer(value);
+          if (appInfo == null) {
             core.connection.signalNotification(
-              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+              LogNotification('Error parsing App Info ${bytesToHex(value)}: ${appInfoReassembler.lastError}'),
             );
-            core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
-          } catch (e) {
-            core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
-            firstAppInfoMessages.add(value);
+            return PeripheralWriteRequestResult();
           }
+          isConnected.value = true;
+          _currentDeviceId = deviceId;
+          connectedApp.value = appInfo;
+          supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
+          final trainerApp = core.settings.getTrainerApp();
+          if (trainerApp != null) {
+            unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
+          }
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+          );
+          core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
           return PeripheralWriteRequestResult();
         });
       }
