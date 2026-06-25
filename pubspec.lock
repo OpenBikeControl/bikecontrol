@@ -1922,10 +1922,10 @@ packages:
     description:
       path: "."
       ref: changes
-      resolved-ref: "3beb8b6d18ac857fba578416857455d55aa788f9"
+      resolved-ref: "767ebddd95d324e57634a5e551867db31d22f379"
       url: "https://github.com/jonasbark/universal_ble.git"
     source: git
-    version: "2.0.4"
+    version: "2.1.0"
   url_launcher:
     dependency: "direct main"
     description:

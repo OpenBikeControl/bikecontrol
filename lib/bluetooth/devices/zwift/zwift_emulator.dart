@@ -257,6 +257,10 @@ class ZwiftEmulator extends TrainerConnection {
         if (isRouvy) OpenBikeControlConstants.SERVICE_UUID,
       ],
       localName: isRouvy ? 'BikeControl' : 'KICKR BIKE PRO 1337',
+      // The Rouvy variant adds a 128-bit UUID which, with the name, overflows
+      // the 31-byte primary advertisement (Android "Data too large"); move the
+      // service UUIDs to the scan response there. Only Rouvy needs it.
+      servicesInScanResponse: isRouvy,
     );
     _isLoading = false;
     onUpdate();
