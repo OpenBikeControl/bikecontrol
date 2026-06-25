@@ -51,6 +51,8 @@ class WhooshLink extends TrainerConnection {
     // blocked port must fail loudly (the caller surfaces the error).
     final server = ResilientTcpServer(
       preferredPort: 21587,
+      // Fixed-port contract (see above): never walk off 21587.
+      portAttempts: 1,
       onClientConnected: (socket) {
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
