@@ -163,9 +163,14 @@ bool CaptureRecorder::Start() {
         auto surface = frame.Surface();
         com_ptr<ID3D11Texture2D> frameTexture;
         {
-          // VERIFY on Windows: surface.as<>() may need the IID_PPV_ARGS form;
-          // alternatively use surface.try_as<> and check for null.
-          auto dxgiAccess = surface.as<IDirect3DDxgiInterfaceAccess>();
+          // IDirect3DDxgiInterfaceAccess lives in the ABI namespace
+          // ::Windows::Graphics::DirectX::Direct3D11 (declared by
+          // <windows.graphics.directx.direct3d11.interop.h>), NOT the winrt
+          // projection namespace brought in by `using namespace` above. It must
+          // be fully qualified with a leading :: so `using namespace winrt;`
+          // doesn't misroute it to a non-existent winrt::Windows::... type.
+          auto dxgiAccess = surface.as<
+              ::Windows::Graphics::DirectX::Direct3D11::IDirect3DDxgiInterfaceAccess>();
           HRESULT hr = dxgiAccess->GetInterface(IID_PPV_ARGS(frameTexture.put()));
           if (FAILED(hr)) return;
         }
