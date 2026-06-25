@@ -485,8 +485,15 @@ abstract class BaseDevice {
     return [];
   }
 
+  /// An optional small badge rendered immediately to the left of the Beta pill
+  /// in the device header. Smart trainers use it to show a transport icon when
+  /// the same trainer is discovered over both WiFi and Bluetooth, so the two
+  /// identically-named entries can be told apart. Returns null by default.
+  Widget? nameBadge(BuildContext context) => null;
+
   Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
     final meta = showMetaInformation(context, showFull: showFull);
+    final badge = nameBadge(context);
     // Hero the entire header Row so the icon, title and meta fly together
     // when navigating between the overview's compact card and the
     // ControllerSettingsPage's expanded card — the same Row shape is rendered
@@ -520,6 +527,7 @@ abstract class BaseDevice {
                           toString(),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
                         ),
+                        if (badge != null) badge,
                         if (isBeta) BetaPill(),
                         Expanded(child: SizedBox()),
                         if (!showFull)

@@ -456,6 +456,23 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   @override
+  Widget? nameBadge(BuildContext context) {
+    // The same physical trainer can be discovered over both WiFi (DirCon) and
+    // Bluetooth, producing two entries with an identical name. When that
+    // happens, show a transport icon so the duplicates can be told apart at a
+    // glance — WiFi on the DirCon entry, Bluetooth on the BLE one.
+    final hasDuplicateName = core.connection.proxyDevices.any(
+      (d) => d.uniqueId != uniqueId && d.name == name,
+    );
+    if (!hasDuplicateName) return null;
+    return Icon(
+      isWifiUpstream ? LucideIcons.wifi : LucideIcons.bluetooth,
+      size: 14,
+      color: Theme.of(context).colorScheme.mutedForeground,
+    );
+  }
+
+  @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     if (isConnected) {
       final units = unitSystemOf(context);
