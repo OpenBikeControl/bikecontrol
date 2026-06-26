@@ -42,122 +42,14 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         ColoredTitle(text: context.i18n.setupTrainer),
         Builder(
           builder: (context) {
-            final groupedByOfficial = SupportedApp.supportedApps.groupBy((e) => e.officialIntegration);
             return StatefulBuilder(
               builder: (c, setState) => Column(
                 spacing: 8,
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Select<SupportedApp>(
-                    constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-                    popupConstraints: BoxConstraints(maxWidth: 400, minWidth: 400, minHeight: 300),
-                    itemBuilder: (c, app) => Row(
-                      spacing: 8,
-                      children: [
-                        if (app.logoAsset != null)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: Image.asset(app.logoAsset!, width: 22, height: 22),
-                          ),
-                        Expanded(child: Text(screenshotMode ? 'Trainer app' : app.name)),
-                        if (app.supports(AppConnectionMethod.obpBle) ||
-                            app.supports(AppConnectionMethod.obpMdns) ||
-                            app.supports(AppConnectionMethod.obpDirCon))
-                          OpenBikeControlLogo(),
-                      ],
-                    ),
-                    popup: SelectPopup(
-                      items: SelectItemList(
-                        children: [
-                          if (groupedByOfficial.get(true)?.isNotEmpty == true)
-                            Container(
-                              color: Theme.of(context).colorScheme.accent,
-                              padding: const EdgeInsets.all(8.0),
-                              child: GradientText(AppLocalizations.of(context).officiallySupported).xSmall,
-                            ),
-                          ...groupedByOfficial.get(true)?.map((app) {
-                            final supportsObp =
-                                app.supports(AppConnectionMethod.obpBle) ||
-                                app.supports(AppConnectionMethod.obpMdns) ||
-                                app.supports(AppConnectionMethod.obpDirCon);
-                            return SelectItemButton(
-                              value: app,
-                              child: Row(
-                                spacing: 8,
-                                children: [
-                                  if (app.logoAsset != null)
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Image.asset(app.logoAsset!, width: 22, height: 22),
-                                    ),
-                                  Expanded(
-                                    child: app == core.settings.getTrainerApp()
-                                        ? Text(app.name).semiBold
-                                        : Text(app.name),
-                                  ),
-                                  if (supportsObp) OpenBikeControlLogo(),
-                                ],
-                              ),
-                            );
-                          }),
-                          if (groupedByOfficial.get(true)?.isNotEmpty == true)
-                            Container(
-                              color: Theme.of(context).colorScheme.accent,
-                              padding: const EdgeInsets.all(8.0),
-                              child: GradientText(AppLocalizations.of(context).otherTrainerApps).xSmall,
-                            ),
-                          ...groupedByOfficial.get(false)?.map((app) {
-                            return SelectItemButton(
-                              value: app,
-                              child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
-                            );
-                          }),
-                        ],
-                      ),
-                    ).call,
-                    placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
-                    value: core.settings.getTrainerApp(),
-                    onChanged: (selectedApp) async {
-                      if (selectedApp is! MyWhoosh) {
-                        if (core.whooshLink.isStarted.value) {
-                          core.whooshLink.stopServer();
-                        }
-                      }
-                      if (!selectedApp!.supports(AppConnectionMethod.zwiftMdns)) {
-                        if (core.zwiftMdnsEmulator.isStarted.value) {
-                          core.zwiftMdnsEmulator.stop();
-                        }
-                        // TODO restart mDNS when advertisementName changes
-                      }
-                      if (!selectedApp.supports(AppConnectionMethod.zwiftBle)) {
-                        if (core.zwiftEmulator.isStarted.value) {
-                          core.zwiftEmulator.stopAdvertising();
-                        }
-                      }
-                      if (!selectedApp.supports(AppConnectionMethod.rouvyMdns)) {
-                        if (core.rouvyMdnsEmulator.isStarted.value) {
-                          core.rouvyMdnsEmulator.stop();
-                        }
-                      }
-                      if (core.obpMdnsEmulator.isStarted.value) {
-                        core.obpMdnsEmulator.stopServer();
-                      }
-                      if (core.obpBluetoothEmulator.isStarted.value) {
-                        core.obpBluetoothEmulator.stopServer();
-                      }
-
-                      core.settings.setTrainerApp(selectedApp);
-                      if (core.actionHandler.supportedApp == null ||
-                          (core.actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
-                        core.actionHandler.init(selectedApp);
-                        core.settings.setKeyMap(selectedApp);
-                      }
-                      core.logic.startEnabledConnectionMethod();
-
-                      if (selectedApp is BikeControl) {
-                        core.settings.setLastTarget(Target.thisDevice);
-                      }
+                  TrainerAppSelect(
+                    onUpdate: () {
                       widget.onUpdate();
                       setState(() {});
                     },
@@ -270,5 +162,139 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
       core.settings.setLocalEnabled(true);
     }
     core.logic.startEnabledConnectionMethod();
+  }
+}
+
+/// The trainer-app picker: a [Select] over [SupportedApp.supportedApps] that
+/// reads/writes [core.settings.getTrainerApp]. Extracted from
+/// [ConfigurationPage] so it can be rendered standalone (e.g. golden
+/// snapshots). Behaviour is unchanged — it mutates the same `core.*`
+/// singletons and notifies via [onUpdate].
+class TrainerAppSelect extends StatelessWidget {
+  /// Called after the trainer app changes so the host can rebuild.
+  final VoidCallback onUpdate;
+
+  /// Forces the real trainer-app name to show in the closed control even when
+  /// [screenshotMode] is on (which otherwise replaces it with a generic
+  /// "Trainer app" label for the anonymized marketing screenshots). Used by the
+  /// MyWhoosh setup-guide snapshot, which needs the actual "MyWhoosh" name.
+  final bool showRealName;
+  const TrainerAppSelect({super.key, required this.onUpdate, this.showRealName = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final groupedByOfficial = SupportedApp.supportedApps.groupBy((e) => e.officialIntegration);
+    return Select<SupportedApp>(
+      constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
+      popupConstraints: BoxConstraints(maxWidth: 400, minWidth: 400, minHeight: 300),
+      itemBuilder: (c, app) => Row(
+        spacing: 8,
+        children: [
+          if (app.logoAsset != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(app.logoAsset!, width: 22, height: 22),
+            ),
+          Expanded(child: Text(screenshotMode && !showRealName ? 'Trainer app' : app.name)),
+          if (app.supports(AppConnectionMethod.obpBle) ||
+              app.supports(AppConnectionMethod.obpMdns) ||
+              app.supports(AppConnectionMethod.obpDirCon))
+            OpenBikeControlLogo(),
+        ],
+      ),
+      popup: SelectPopup(
+        items: SelectItemList(
+          children: [
+            if (groupedByOfficial.get(true)?.isNotEmpty == true)
+              Container(
+                color: Theme.of(context).colorScheme.accent,
+                padding: const EdgeInsets.all(8.0),
+                child: GradientText(AppLocalizations.of(context).officiallySupported).xSmall,
+              ),
+            ...groupedByOfficial.get(true)?.map((app) {
+              final supportsObp =
+                  app.supports(AppConnectionMethod.obpBle) ||
+                  app.supports(AppConnectionMethod.obpMdns) ||
+                  app.supports(AppConnectionMethod.obpDirCon);
+              return SelectItemButton(
+                value: app,
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    if (app.logoAsset != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.asset(app.logoAsset!, width: 22, height: 22),
+                      ),
+                    Expanded(
+                      child: app == core.settings.getTrainerApp()
+                          ? Text(app.name).semiBold
+                          : Text(app.name),
+                    ),
+                    if (supportsObp) OpenBikeControlLogo(),
+                  ],
+                ),
+              );
+            }),
+            if (groupedByOfficial.get(true)?.isNotEmpty == true)
+              Container(
+                color: Theme.of(context).colorScheme.accent,
+                padding: const EdgeInsets.all(8.0),
+                child: GradientText(AppLocalizations.of(context).otherTrainerApps).xSmall,
+              ),
+            ...groupedByOfficial.get(false)?.map((app) {
+              return SelectItemButton(
+                value: app,
+                child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
+              );
+            }),
+          ],
+        ),
+      ).call,
+      placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
+      value: core.settings.getTrainerApp(),
+      onChanged: (selectedApp) async {
+        if (selectedApp is! MyWhoosh) {
+          if (core.whooshLink.isStarted.value) {
+            core.whooshLink.stopServer();
+          }
+        }
+        if (!selectedApp!.supports(AppConnectionMethod.zwiftMdns)) {
+          if (core.zwiftMdnsEmulator.isStarted.value) {
+            core.zwiftMdnsEmulator.stop();
+          }
+          // TODO restart mDNS when advertisementName changes
+        }
+        if (!selectedApp.supports(AppConnectionMethod.zwiftBle)) {
+          if (core.zwiftEmulator.isStarted.value) {
+            core.zwiftEmulator.stopAdvertising();
+          }
+        }
+        if (!selectedApp.supports(AppConnectionMethod.rouvyMdns)) {
+          if (core.rouvyMdnsEmulator.isStarted.value) {
+            core.rouvyMdnsEmulator.stop();
+          }
+        }
+        if (core.obpMdnsEmulator.isStarted.value) {
+          core.obpMdnsEmulator.stopServer();
+        }
+        if (core.obpBluetoothEmulator.isStarted.value) {
+          core.obpBluetoothEmulator.stopServer();
+        }
+
+        core.settings.setTrainerApp(selectedApp);
+        if (core.actionHandler.supportedApp == null ||
+            (core.actionHandler.supportedApp is! CustomApp && selectedApp is! CustomApp)) {
+          core.actionHandler.init(selectedApp);
+          core.settings.setKeyMap(selectedApp);
+        }
+        core.logic.startEnabledConnectionMethod();
+
+        if (selectedApp is BikeControl) {
+          core.settings.setLastTarget(Target.thisDevice);
+        }
+        onUpdate();
+      },
+    );
   }
 }

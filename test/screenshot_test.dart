@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
+import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/front_shift_card.dart';
@@ -18,6 +19,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -445,6 +447,69 @@ Future<void> main() async {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: RepaintBoundary(key: k, child: FrontShiftCard(device: proxy)),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // --- MyWhoosh setup-guide widget snapshots (website setup guide) ---
+  // Tight single-widget captures of the two BikeControl controls the MyWhoosh
+  // setup guide walks through: the trainer-app picker (showing MyWhoosh) and the
+  // "Connect directly over Network" connection method. Rendered standalone inside
+  // a keyed RepaintBoundary so the golden captures ONLY the widget.
+
+  // The trainer-app picker with MyWhoosh selected. screenshotMode stays on (it
+  // suppresses the real BLE bootstrap) and TrainerAppSelect.showRealName forces
+  // the closed Select to show the real "MyWhoosh" name + logo instead of the
+  // generic "Trainer app" placeholder the marketing screenshots use.
+  testGoldens('mywhoosh-trainer-select', (WidgetTester tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    core.settings.setKeyMap(MyWhoosh());
+    const k = ValueKey('shot');
+    await shootOne(
+      tester,
+      'mywhoosh-trainer-select',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // The Network connection method (OpenBikeControl over mDNS), as shown for
+  // MyWhoosh, in its disabled/off state. The tile passes no requirements, so no
+  // real BLE is touched even though screenshotMode hides the "Recommended" badge.
+  testGoldens('mywhoosh-network-connection', (WidgetTester tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    core.settings.setKeyMap(MyWhoosh());
+    core.settings.setObpMdnsEnabled(false);
+    // Force the off / not-yet-connected state so the captured card is identical
+    // regardless of any emulator state a prior scene left behind (the shown
+    // description and height depend on isStarted/connectedApp).
+    core.obpMdnsEmulator.isStarted.value = false;
+    core.obpMdnsEmulator.connectedApp.value = null;
+    const k = ValueKey('shot');
+    await shootOne(
+      tester,
+      'mywhoosh-network-connection',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: OpenBikeControlMdnsTile(small: false),
+            ),
           ),
         ),
       ),
