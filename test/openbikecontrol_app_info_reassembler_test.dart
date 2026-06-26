@@ -94,4 +94,31 @@ void main() {
     expect(r.offer(fragment(complete, 2)[0]), isNull);
     expect(r.lastError, isA<ProtocolParseException>());
   });
+
+  test('reset() drops a half-received message so the next one parses clean', () {
+    final r = AppInfoReassembler();
+
+    // A central sends a partial app-info, then disconnects.
+    expect(r.offer(fragment(complete, 2)[0]), isNull);
+    expect(r.pendingFragments, 1);
+    r.reset(); // emulator calls this on disconnect
+    expect(r.pendingFragments, 0);
+
+    // A freshly-connected central's complete write must parse — without reset
+    // the stale prefix would poison it forever.
+    final info = r.offer(complete);
+    expect(info, isNotNull);
+    expect(info!.appId, 'TrainingPeaks');
+  });
+
+  test('bounds the buffer under a flood of unparseable writes', () {
+    final r = AppInfoReassembler();
+    final junk = Uint8List.fromList(List.filled(64, 0xFF)); // never a valid app-info
+
+    for (var i = 0; i < 100; i++) {
+      expect(r.offer(junk), isNull);
+    }
+    // 100 × 64B = 6400B if unbounded; the 512B cap keeps it small (no leak).
+    expect(r.pendingFragments, lessThanOrEqualTo(8));
+  });
 }

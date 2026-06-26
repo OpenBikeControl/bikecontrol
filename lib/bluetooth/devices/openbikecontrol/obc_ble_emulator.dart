@@ -30,6 +30,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
   String? _currentDeviceId;
+  final _appInfoReassembler = AppInfoReassembler();
 
   @override
   PeripheralServer get advertisingServer => _server;
@@ -55,6 +56,8 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
         isConnected.value = false;
         connectedApp.value = null;
         _currentDeviceId = null;
+        // Drop any half-received app-info so it can't poison the next central.
+        _appInfoReassembler.reset();
       }
     });
 
@@ -100,8 +103,8 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
 
         // Some apps (e.g. TrainingPeaks on macOS) split the app-info write
         // across several BLE packets; the reassembler accumulates fragments
-        // until the flattened buffer parses.
-        final appInfoReassembler = AppInfoReassembler();
+        // until the flattened buffer parses. It's a field so disconnect can
+        // reset it (see onConnectionChanged) and so it outlives this closure.
         _server.setWriteHandler(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID, (
           deviceId,
           characteristicId,
@@ -112,10 +115,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
           if (kDebugMode) {
             print('Write request for characteristic: $characteristicId: ${bytesToReadableHex(value)}');
           }
-          final appInfo = appInfoReassembler.offer(value);
+          final appInfo = _appInfoReassembler.offer(value);
           if (appInfo == null) {
             core.connection.signalNotification(
-              LogNotification('Error parsing App Info ${bytesToHex(value)}: ${appInfoReassembler.lastError}'),
+              LogNotification('Error parsing App Info ${bytesToHex(value)}: ${_appInfoReassembler.lastError}'),
             );
             return PeripheralWriteRequestResult();
           }

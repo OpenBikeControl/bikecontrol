@@ -16,6 +16,12 @@ import 'package:dartx/dartx.dart';
 /// fragment and dropped the middle one), so a message split across three or
 /// more packets never reassembled; this keeps all fragments until one parses.
 class AppInfoReassembler {
+  /// Upper bound on buffered bytes. A valid app-info is ~100 bytes (32B appId +
+  /// 32B version + headers + a handful of button ids), so anything past this is
+  /// a corrupt/stuck stream — drop the stale prefix instead of poisoning every
+  /// future parse and growing without bound.
+  static const int _maxBufferedBytes = 512;
+
   final List<Uint8List> _fragments = [];
 
   /// The error from the most recent incomplete [offer], for diagnostics/logging.
@@ -23,6 +29,13 @@ class AppInfoReassembler {
 
   /// Fragments currently buffered awaiting completion.
   int get pendingFragments => _fragments.length;
+
+  /// Drop any buffered fragments — call when the central disconnects so a
+  /// half-sent message can't bleed into the next connection.
+  void reset() {
+    _fragments.clear();
+    lastError = null;
+  }
 
   /// Offer the next write payload. Returns the parsed [AppInfo] once the
   /// accumulated buffer parses, or null while still incomplete.
@@ -37,6 +50,14 @@ class AppInfoReassembler {
     } catch (e) {
       lastError = e;
       _fragments.add(value);
+      // Bound the buffer: once the accumulation can no longer be any valid
+      // message, restart from this write so a stuck/corrupt stream recovers
+      // (and can't leak memory).
+      if (_fragments.fold<int>(0, (sum, f) => sum + f.length) > _maxBufferedBytes) {
+        _fragments
+          ..clear()
+          ..add(value);
+      }
       return null;
     }
   }
