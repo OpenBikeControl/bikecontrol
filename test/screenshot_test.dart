@@ -1,6 +1,16 @@
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
+import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/thinkrider/thinkrider_vs200.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
@@ -20,7 +30,9 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
+import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
+import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -133,6 +145,54 @@ Future<void> main() async {
   proxy.emulator.debugSetTransporter(NetworkTransporter(definition: fbd));
 
   core.connection.addDevices([device, proxy]);
+
+  // Connected instances of every controller we shoot a full connection-card
+  // golden for. Each is given a real advertised name (so the card header shows
+  // the actual product name) and the connected meta (battery/rssi/firmware) the
+  // overview list would display. `device` above is the Zwift Click v2 instance.
+  BleDevice scan(String name) => BleDevice(name: name, deviceId: '00:11:22:33:44:55');
+  // BLE controllers carry battery / rssi / firmware meta (defined on
+  // BluetoothDevice); set it so the card header shows the connected status line.
+  T connectedBle<T extends BluetoothDevice>(T d) {
+    d
+      ..firmwareVersion = '1.2.0'
+      ..isConnected = true
+      ..rssi = -51
+      ..batteryLevel = 81;
+    return d;
+  }
+
+  final zwiftClick = connectedBle(ZwiftClick(scan('Zwift Click')));
+  final zwiftRide = connectedBle(ZwiftRide(scan('Zwift Ride')));
+  final zwiftPlay = connectedBle(
+    ZwiftPlay(scan('Zwift Play'), deviceType: ZwiftDeviceType.playLeft),
+  );
+  final cycplusBc2 = connectedBle(CycplusBc2(scan('CYCPLUS BC2')));
+  final thinkriderVs200 = connectedBle(ThinkRiderVs200(scan('THINK VS200')));
+  final eliteSterzo = connectedBle(EliteSterzo(scan('STERZO')));
+  // GyroscopeSteering extends BaseDevice directly (no BLE), so it has no
+  // battery/rssi/firmware — just mark it connected.
+  final gyroSteering = GyroscopeSteering()..isConnected = true;
+
+  // All controllers must live in core.connection.devices so the MyWhoosh
+  // action handler (initialized below) seeds each button's default in-game
+  // action into the keymap — that's what renders the action badges.
+  core.connection.addDevices([
+    zwiftClick,
+    zwiftRide,
+    zwiftPlay,
+    cycplusBc2,
+    thinkriderVs200,
+    eliteSterzo,
+    gyroSteering,
+  ]);
+
+  // core.actionHandler is `late` (assigned in the app's main(), which the test
+  // harness never runs). Provide a StubActions and init it with MyWhoosh so
+  // core.actionHandler.supportedApp?.keymap is the populated MyWhoosh keymap the
+  // connected-Controllers footer passes to AnimatedButtonWidget.
+  core.actionHandler = StubActions();
+  core.actionHandler.init(MyWhoosh());
 
   final firstButton = ZwiftButtons.b.copyWith(sourceDeviceId: device.uniqueId);
   final keyEntry = keymap.keymap.getOrCreateKeyPair(firstButton, trigger: ButtonTrigger.longPress);
@@ -565,5 +625,127 @@ Future<void> main() async {
       ),
       capture: () => find.byKey(k),
     );
+  });
+
+  // --- Full connection card (connected-controller list entry) ---
+  // The complete card the overview's Controllers list renders for a connected
+  // controller: `device.showInformation` draws the header Row (StatusIcon +
+  // name + Beta pill + status meta) and, below it, the footer — the
+  // `ControllerCanvas` contour with its buttons. Two deviations from the live
+  // app, both deliberate so the image is chrome-free:
+  //   * `showSettingsIcon: false` hides the small header gear (settings live on
+  //     a separate page, not in this card).
+  //   * `showAdditionalInfo: false` drops the device's own state chrome (e.g.
+  //     the Zwift Click unlock warning) so the card is state-agnostic.
+  // The footer's buttons DO carry the MyWhoosh keymap (via
+  // `core.actionHandler.supportedApp?.keymap`), so each button that maps to an
+  // in-game action renders its supported-action badge — exactly like the
+  // connected-Controllers list. Buttons with no action (e.g. pure steering on
+  // the Sterzo / phone) render as bare buttons.
+  //
+  // `ZwiftClickV2.toString()` anonymizes its name to "Controller" while the
+  // marketing `screenshotMode` is on; we flip it off *synchronously* around just
+  // the `showInformation` build so the header shows the real product name — and
+  // restore it immediately, before any async (the app's connection-init scan
+  // reads `screenshotMode` on a later microtask, by which point it is true
+  // again, so no BLE scan fires). Only ClickV2 needs this, but doing it
+  // uniformly is harmless for the other devices.
+  //
+  // Rendered inside `BikeControlApp` so the card has the real theme and an
+  // `i18n` context, standalone in a keyed RepaintBoundary (captured tight) at a
+  // fixed list-card width.
+  Future<void> shootCard(WidgetTester tester, String scene, BaseDevice cardDevice) async {
+    const k = ValueKey('shot');
+    final savedScreenshotMode = screenshotMode;
+    try {
+      await shootOne(
+        tester,
+        scene,
+        () => BikeControlApp(
+          customChild: SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: 340,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Builder(
+                    builder: (context) {
+                      // Footer mirrors overview.dart's footerBuilder: the
+                      // active app's keymap drives the per-button action badges.
+                      final keymap = core.actionHandler.supportedApp?.keymap;
+                      final size = 56 / Theme.of(context).scaling;
+                      Widget btnFor(ControllerButton btn) => AnimatedButtonWidget(
+                            key: ValueKey(btn.name),
+                            button: btn,
+                            pressGeneration: 0,
+                            keymap: keymap,
+                            device: cardDevice,
+                            size: size,
+                            onUpdate: () {},
+                          );
+                      final footer = ControllerCanvas(
+                        layout: cardDevice.controllerLayout!,
+                        availableButtons: cardDevice.availableButtons,
+                        buttonBuilder: btnFor,
+                        buttonSize: size,
+                      );
+                      // Flip screenshotMode off only for this synchronous build
+                      // so the header shows the real product name, then restore
+                      // it before control returns to the framework.
+                      final saved = screenshotMode;
+                      screenshotMode = false;
+                      final card = cardDevice.showInformation(
+                        context,
+                        showFull: false,
+                        showSettingsIcon: false,
+                        showAdditionalInfo: false,
+                        footer: footer,
+                      );
+                      screenshotMode = saved;
+                      return RepaintBoundary(key: k, child: card);
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        capture: () => find.byKey(k),
+      );
+    } finally {
+      screenshotMode = savedScreenshotMode;
+    }
+  }
+
+  testGoldens('controller-zwift-click', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-click', zwiftClick);
+  });
+
+  testGoldens('controller-zwift-click-v2', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-click-v2', device);
+  });
+
+  testGoldens('controller-zwift-ride', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-ride', zwiftRide);
+  });
+
+  testGoldens('controller-zwift-play', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-play', zwiftPlay);
+  });
+
+  testGoldens('controller-cycplus-bc2', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-cycplus-bc2', cycplusBc2);
+  });
+
+  testGoldens('controller-thinkrider-vs200', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-thinkrider-vs200', thinkriderVs200);
+  });
+
+  testGoldens('controller-elite-sterzo', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-elite-sterzo', eliteSterzo);
+  });
+
+  testGoldens('controller-phone-steering', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-phone-steering', gyroSteering);
   });
 }

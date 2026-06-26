@@ -491,7 +491,11 @@ abstract class BaseDevice {
   /// identically-named entries can be told apart. Returns null by default.
   Widget? nameBadge(BuildContext context) => null;
 
-  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
+  Widget showInformation(BuildContext context,
+      {required bool showFull,
+      Widget? footer,
+      bool showSettingsIcon = true,
+      bool showAdditionalInfo = true}) {
     final meta = showMetaInformation(context, showFull: showFull);
     final badge = nameBadge(context);
     // Hero the entire header Row so the icon, title and meta fly together
@@ -530,7 +534,7 @@ abstract class BaseDevice {
                         if (badge != null) badge,
                         if (isBeta) BetaPill(),
                         Expanded(child: SizedBox()),
-                        if (!showFull)
+                        if (!showFull && showSettingsIcon)
                           Icon(
                             LucideIcons.settings,
                             size: 16,
@@ -554,7 +558,7 @@ abstract class BaseDevice {
           ),
         ),
         if (footer != null) footer,
-        ...showAdditionalInformation(context),
+        if (showAdditionalInfo) ...showAdditionalInformation(context),
       ],
     );
   }

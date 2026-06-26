@@ -24,10 +24,19 @@ class HidDevice extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
+  Widget showInformation(BuildContext context,
+      {required bool showFull,
+      Widget? footer,
+      bool showSettingsIcon = true,
+      bool showAdditionalInfo = true}) {
     return Row(
       children: [
-        Expanded(child: super.showInformation(context, showFull: true, footer: footer)),
+        Expanded(
+            child: super.showInformation(context,
+                showFull: true,
+                footer: footer,
+                showSettingsIcon: showSettingsIcon,
+                showAdditionalInfo: showAdditionalInfo)),
         PopupMenuButton(
           itemBuilder: (c) => [
             PopupMenuItem(
