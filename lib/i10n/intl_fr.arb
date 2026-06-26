@@ -1005,8 +1005,8 @@
   "vsIntroFeedbackBody": "Vos retours nous tiennent à cœur et nous sommes toujours ravis de vous aider à régler votre configuration aux petits oignons.",
   "vsIntroSupportedTrainersCta": "Voir les Smart Trainers compatibles",
   "vsIntroGotIt": "J'ai compris",
-  "frontShiftEnableLabel": "Changement frontal style SRAM",
-  "frontShiftEnableDesc": "Simule le changement de plateau avant sur un groupe 2×",
+  "frontShiftEnableLabel": "Dérailleur avant virtuel",
+  "frontShiftEnableDesc": "Ajoute un second plateau (transmission 2×). Appuyez sur les deux manettes en même temps pour changer de plateau, comme sur SRAM AXS.",
   "frontShiftSmallRingLabel": "Petit plateau (dents)",
   "frontShiftLargeRingLabel": "Grand plateau (dents)"
 }

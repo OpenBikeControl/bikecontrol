@@ -1004,8 +1004,8 @@
   "vsIntroFeedbackBody": "Uwielbiamy Twoją opinię i zawsze chętnie pomożemy idealnie skonfigurować Twój sprzęt.",
   "vsIntroSupportedTrainersCta": "Zobacz obsługiwane trenażery",
   "vsIntroGotIt": "Rozumiem",
-  "frontShiftEnableLabel": "Przedni przerzutnik w stylu SRAM",
-  "frontShiftEnableDesc": "Symuluje zmianę tarczy przedniej w napędzie 2×",
+  "frontShiftEnableLabel": "Wirtualna przerzutka przednia",
+  "frontShiftEnableDesc": "Dodaje drugą tarczę (napęd 2×). Aby zmienić tarczę, naciśnij obie manetki jednocześnie – jak w SRAM AXS.",
   "frontShiftSmallRingLabel": "Mała tarcza (zęby)",
   "frontShiftLargeRingLabel": "Duża tarcza (zęby)"
 }

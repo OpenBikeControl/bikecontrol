@@ -1004,8 +1004,8 @@
   "vsIntroFeedbackBody": "Nos encantan tus comentarios y siempre estaremos encantados de ayudarte a dejar tu configuración perfecta.",
   "vsIntroSupportedTrainersCta": "Ver Smart Trainers compatibles",
   "vsIntroGotIt": "Entendido",
-  "frontShiftEnableLabel": "Cambio frontal estilo SRAM",
-  "frontShiftEnableDesc": "Simula el cambio de plato delantero en una transmisión 2×",
+  "frontShiftEnableLabel": "Desviador delantero virtual",
+  "frontShiftEnableDesc": "Añade un segundo plato (transmisión 2×). Pulsa ambos mandos a la vez para cambiar de plato, como en SRAM AXS.",
   "frontShiftSmallRingLabel": "Plato pequeño (dientes)",
   "frontShiftLargeRingLabel": "Plato grande (dientes)"
 }

@@ -1171,8 +1171,8 @@
   "vsIntroFeedbackBody": "We love your feedback and are always happy to help get your setup dialed in just right.",
   "vsIntroSupportedTrainersCta": "See supported trainers",
   "vsIntroGotIt": "Got it",
-  "frontShiftEnableLabel": "SRAM-style front shift",
-  "frontShiftEnableDesc": "Simulates 2× drivetrain front chainring switching",
+  "frontShiftEnableLabel": "Virtual front derailleur",
+  "frontShiftEnableDesc": "Adds a second chainring (2× drivetrain). Press both shifters together to change ring, like SRAM AXS.",
   "frontShiftSmallRingLabel": "Small chainring (teeth)",
   "frontShiftLargeRingLabel": "Large chainring (teeth)"
 }
