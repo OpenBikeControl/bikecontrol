@@ -1171,6 +1171,13 @@
   "vsIntroFeedbackBody": "We love your feedback and are always happy to help get your setup dialed in just right.",
   "vsIntroSupportedTrainersCta": "See supported trainers",
   "vsIntroGotIt": "Got it",
+  "useControllerWithApp": "Use {controller} with {app}",
+  "@useControllerWithApp": {
+    "placeholders": {
+      "controller": {"type": "String"},
+      "app": {"type": "String"}
+    }
+  },
   "frontShiftEnableLabel": "Virtual front derailleur",
   "frontShiftEnableDesc": "Adds a second chainring (2× drivetrain). Press both shifters together to change ring, like SRAM AXS.",
   "frontShiftSmallRingLabel": "Small chainring (teeth)",

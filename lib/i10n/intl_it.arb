@@ -1004,6 +1004,7 @@
   "vsIntroFeedbackBody": "Adoriamo i tuoi feedback e siamo sempre felici di aiutarti a configurare tutto al meglio.",
   "vsIntroSupportedTrainersCta": "Vedi gli Smart Trainer supportati",
   "vsIntroGotIt": "Ho capito",
+  "useControllerWithApp": "Usa {controller} con {app}",
   "frontShiftEnableLabel": "Deragliatore anteriore virtuale",
   "frontShiftEnableDesc": "Aggiunge una seconda corona (trasmissione 2×). Premi entrambe le leve insieme per cambiare corona, come su SRAM AXS.",
   "frontShiftSmallRingLabel": "Corona piccola (denti)",

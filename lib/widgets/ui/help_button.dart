@@ -6,6 +6,7 @@ import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
@@ -69,11 +70,23 @@ class _HelpButtonState extends State<HelpButton> {
         builder: (context) {
           return Button(
             onPressed: () {
+              final controllers = core.connection.controllerDevices;
+              final article = helpArticleFor(
+                context,
+                controller: controllers.isEmpty ? null : controllers.first,
+                app: core.settings.getTrainerApp(),
+              );
               showDropdown(
                 context: context,
                 builder: (c) => DropdownMenu(
                   children: [
                     MenuLabel(child: Text(context.i18n.instructions)),
+                    if (article != null)
+                      MenuButton(
+                        leading: Icon(Icons.menu_book_outlined),
+                        child: Text(article.label),
+                        onPressed: (c) => launchUrlString(article.url),
+                      ),
                     MenuButton(
                       leading: Icon(Icons.ondemand_video),
                       child: const Text('Instruction Videos'),

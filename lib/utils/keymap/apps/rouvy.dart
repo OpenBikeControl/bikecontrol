@@ -16,6 +16,9 @@ class Rouvy extends SupportedApp {
   @override
   String? get logoAsset => 'assets/rouvy.png';
 
+  @override
+  String get helpSlug => 'rouvy';
+
   /// Maps Zwift Click V2 button actions to Rouvy-specific actions.
   /// See: https://support.rouvy.com/hc/de/articles/32452137189393-Virtuelles-Schalten
   @override

@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/device_script_drawer.dart';
@@ -10,6 +11,7 @@ import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/trainer_label.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ControllerSettingsPage extends StatefulWidget {
   final BaseDevice device;
@@ -26,6 +28,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     final device = widget.device;
     final trainerApp = core.settings.getTrainerApp();
     final keymap = core.actionHandler.supportedApp?.keymap;
+    final helpArticle = helpArticleFor(context, controller: device, app: trainerApp);
 
     return Scaffold(
       headers: [
@@ -61,6 +64,17 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
               children: [
                 // Device card
                 _buildDeviceCard(device),
+
+                // How-to-connect guide for this controller + the selected app
+                if (helpArticle != null) ...[
+                  const Gap(12),
+                  _buildActionButton(
+                    icon: LucideIcons.bookOpen,
+                    label: helpArticle.label,
+                    onTap: () => launchUrlString(helpArticle.url),
+                    trailing: Icon(LucideIcons.externalLink, size: 16),
+                  ),
+                ],
                 const Gap(24),
 
                 // Button mapping
