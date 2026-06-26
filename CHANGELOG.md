@@ -1,8 +1,9 @@
 ### 6.2.0 (unreleased)
 **Features**:
 - Virtual front derailleur: adds a second chainring (2× drivetrain) for more realism. The new assignable "Front Shift (Chainring)" action — or pressing both shifters together, SRAM-AXS style — toggles between your small and large rings, changing resistance by the exact chainring ratio while staying on the same rear cog. While it's active your current gear reads as head-unit-style position notation (e.g. 2×14) in the app, the gear overlay, and the iOS Live Activity. Set your chainring sizes per trainer in the gear settings.
+- SRAM style shifting: when you click shift up & down at the same time, the front chainring switches
 - iOS / iPadOS: Floating gear overlay (Picture-in-Picture): your current gear can now show in a floating window over your trainer app during a ride.
-- Screen recording: a new assignable "Record Screen" action starts and stops a screen recording from a controller button.
+- Screen recording: a new assignable "Record Screen" action starts a screen recording from a controller button.
 
 ### 6.1.0 (19-06-2026)
 **Features**:
