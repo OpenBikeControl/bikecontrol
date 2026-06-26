@@ -17,6 +17,8 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/overview.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/front_shift_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
@@ -32,6 +34,7 @@ import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
@@ -949,5 +952,143 @@ Future<void> main() async {
   testGoldens('trainingpeaks-connection-methods', (WidgetTester tester) async {
     setActiveApp(TrainingPeaks());
     await shootConnectionMethods(tester, 'trainingpeaks-connection-methods');
+  });
+
+  // --- Overview / main screen (website setup-guide step 1) ---------------------
+  // A clean capture of the app's OVERVIEW page (Controllers card + Trainer
+  // Connection) showing ONLY a single connected controller with its REAL product
+  // name (not the anonymized "Controller" the App-Store `Device` shot uses). No
+  // device frame, no marketing title banner — just the app's own UI inside the
+  // frameless `noFrame` ScreenshotApp, localized one shot per locale.
+  //
+  // Two tricks make this work:
+  //   * We render the full `Navigation()` (the overview Scaffold + its AppBar)
+  //     while `screenshotMode == true`, so `Navigation.initState` →
+  //     `core.logic.startEnabledConnectionMethod()` early-returns (no BLE/mDNS
+  //     emulators start) and the page is laid out without any real connection.
+  //   * To get the REAL device name we flip `screenshotMode` off *synchronously*
+  //     for just the final `pump()` that produces the captured frame, then
+  //     restore it. e.g. `ZwiftClickV2.toString()` is read during that build and
+  //     returns "Zwift Click V2"; every async callback that re-reads the flag
+  //     (timers, the connection-init scan) runs on a later microtask, by which
+  //     point it is `true` again, so nothing scans. Harmless for the controllers
+  //     whose names are never anonymized.
+  //
+  // `core.connection.devices` is reduced to exactly the given controller + the
+  // smart-trainer proxy (so the Trainer Connection card shows a connected
+  // trainer). The active trainer app is MyWhoosh (the harness default).
+  //
+  // The frameless `noFrame` size entry's logical width (~367 px) is just narrow
+  // enough that the AppBar wraps the "BikeControl" title to two lines. The
+  // overview here is rendered slightly wider — `overviewNoFrameSize`, ~500
+  // logical px — so the title fits on one line while staying well under the
+  // overview's 800-logical-px two-column breakpoint (so it remains a phone-style
+  // single-column portrait main screen).
+  //
+  // Captured via the Navigation Scaffold's existing `overviewScreenshotKey`
+  // RepaintBoundary → tight, no surrounding chrome.
+  final overviewNf = sizes.firstWhere((s) => s.type == DeviceType.noFrame);
+  // Widen just the overview shots so "BikeControl" no longer wraps. 1500 device
+  // px / pixelRatio 3 = 500 logical px — comfortably below the 800-logical-px
+  // two-column breakpoint, so it stays single-column portrait.
+  final overviewNoFrameSize = Size(1500, overviewNf.size.height);
+
+  Future<void> shootOverview(
+    WidgetTester tester,
+    String scene,
+    BaseDevice overviewDevice,
+  ) async {
+    const overviewLocales = ['en', 'de', 'es', 'fr', 'it'];
+
+    // Only the given controller + the smart-trainer proxy.
+    final savedDevices = core.connection.devices.toList();
+    core.connection.devices
+      ..clear()
+      ..addAll([overviewDevice, proxy]);
+    core.connection.hasDevices.value = true;
+    // core.settings.reset() (in main) clears this, so re-assert the Base version
+    // is active — otherwise the overview shows the "trial available" IAP banner.
+    IAPManager.instance.isPurchased.value = true;
+
+    final savedScreenshotMode = screenshotMode;
+    try {
+      for (final loc in overviewLocales) {
+        await AppLocalizations.load(Locale(loc));
+        screenshotLocale = Locale(loc);
+        await tester.pumpWidget(
+          ScreenshotApp(
+            locale: Locale(loc),
+            device: ScreenshotDevice(
+              // Android, never the entry's Windows platform (advapi32.dll can't
+              // load on a macOS test host).
+              platform: TargetPlatform.android,
+              resolution: overviewNoFrameSize,
+              pixelRatio: 3,
+              goldenSubFolder: 'iphoneScreenshots/',
+              frameBuilder:
+                  ({
+                    required ScreenshotDevice device,
+                    required ScreenshotFrameColors? frameColors,
+                    required Widget child,
+                  }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+            ),
+            // Full overview Scaffold (header + Controllers card + Trainer
+            // Connection). screenshotMode is still true here, so initState does
+            // not start any connection method.
+            home: BikeControlApp(customChild: Navigation()),
+          ),
+        );
+        await tester.pump();
+        await tester.loadAssets();
+        // Flip screenshotMode off only for the synchronous build/pump that
+        // produces the captured frame, so the Controllers card header shows the
+        // real product name, then restore it before any async work continues.
+        // initState already ran (with the flag true → no connection method
+        // started); mark the mounted OverviewPage element dirty so only its
+        // build() re-runs with the flag off, picking up the real device name.
+        screenshotMode = false;
+        tester.element(find.byType(OverviewPage)).markNeedsBuild();
+        await tester.pump();
+        try {
+          await expectLater(
+            find.byKey(overviewScreenshotKey),
+            matchesGoldenFile('../screenshots/$loc/$scene.png'),
+          );
+        } finally {
+          screenshotMode = savedScreenshotMode;
+          await tester.pump();
+        }
+      }
+    } finally {
+      screenshotMode = savedScreenshotMode;
+      core.connection.devices
+        ..clear()
+        ..addAll(savedDevices);
+      core.connection.hasDevices.value = core.connection.devices.isNotEmpty;
+    }
+  }
+
+  testGoldens('overview-zwift-click', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-click', zwiftClick);
+  });
+
+  testGoldens('overview-zwift-click-v2', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-click-v2', device);
+  });
+
+  testGoldens('overview-zwift-ride', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-ride', zwiftRide);
+  });
+
+  testGoldens('overview-zwift-play', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-play', zwiftPlay);
+  });
+
+  testGoldens('overview-cycplus-bc2', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-cycplus-bc2', cycplusBc2);
+  });
+
+  testGoldens('overview-thinkrider-vs200', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-thinkrider-vs200', thinkriderVs200);
   });
 }
