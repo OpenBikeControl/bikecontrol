@@ -316,6 +316,56 @@ Future<void> main() async {
     );
   }
 
+  // Localized widget snapshot: like [shootOne], but renders the (frameless,
+  // noFrame) widget once per locale and writes ../screenshots/<loc>/<scene>.png.
+  // Used for the website setup guides, which show the matching-language widget
+  // screenshots. The website uses the en/de/es/fr/it intersection of the app's
+  // and the site's supported locales; Czech falls back to en on the website.
+  Future<void> shootLocalized(
+    WidgetTester tester,
+    String scene,
+    Widget Function() home, {
+    Finder Function()? capture,
+    Future<void> Function(WidgetTester tester)? afterPump,
+    TargetPlatform platform = TargetPlatform.android,
+  }) async {
+    const widgetLocales = ['en', 'de', 'es', 'fr', 'it'];
+    final nf = sizes.firstWhere((s) => s.type == DeviceType.noFrame);
+    for (final loc in widgetLocales) {
+      await AppLocalizations.load(Locale(loc));
+      screenshotLocale = Locale(loc);
+      await tester.pumpWidget(
+        ScreenshotApp(
+          locale: Locale(loc),
+          device: ScreenshotDevice(
+            // Default Android, never the entry's Windows platform: shadcn's theme
+            // queries the Windows accent colour via advapi32.dll, which can't load
+            // on a macOS test host.
+            platform: platform,
+            resolution: nf.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+          ),
+          home: home(),
+        ),
+      );
+      await tester.pump();
+      if (afterPump != null) await afterPump(tester);
+      await tester.loadAssets();
+      await tester.pump();
+      await expectLater(
+        capture?.call() ?? find.byType(ma.Scaffold),
+        matchesGoldenFile('../screenshots/$loc/$scene.png'),
+      );
+    }
+  }
+
   testGoldens('Device', (WidgetTester tester) async {
     await shoot(tester, 'device', () => BikeControlApp());
   });
@@ -468,7 +518,7 @@ Future<void> main() async {
     core.settings.setTrainerApp(MyWhoosh());
     core.settings.setKeyMap(MyWhoosh());
     const k = ValueKey('shot');
-    await shootOne(
+    await shootLocalized(
       tester,
       'mywhoosh-trainer-select',
       () => BikeControlApp(
@@ -499,7 +549,7 @@ Future<void> main() async {
     core.obpMdnsEmulator.isStarted.value = false;
     core.obpMdnsEmulator.connectedApp.value = null;
     const k = ValueKey('shot');
-    await shootOne(
+    await shootLocalized(
       tester,
       'mywhoosh-network-connection',
       () => BikeControlApp(
