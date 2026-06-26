@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/main.dart';
 import 'package:bike_control/services/screen_recording/backends/android_screen_recorder.dart';
 import 'package:bike_control/services/screen_recording/backends/native_channel_screen_recorder.dart';
 import 'package:bike_control/services/screen_recording/backends/unsupported_screen_recorder.dart';
@@ -56,6 +58,12 @@ class ScreenRecordingService {
 
   /// Toggle recording. Never throws — failures map to `ok: false`.
   Future<RecordingResult> toggle() async {
+    final state = _state.value;
+    if (state == ScreenRecordingState.starting || state == ScreenRecordingState.stopping) {
+      // A start/stop is already in flight (e.g. awaiting the permission sheet);
+      // ignore re-entrant presses so we don't double-start or stop-during-start.
+      return const RecordingResult(ok: false, startedRecording: false);
+    }
     if (isRecording) {
       return _stop();
     }
@@ -78,7 +86,7 @@ class ScreenRecordingService {
       return RecordingResult(ok: started, startedRecording: true);
     } catch (e, s) {
       _state.value = ScreenRecordingState.error;
-      debugPrintStack(label: 'screen recording: $e', stackTrace: s);
+      unawaited(recordError(e, s, context: 'screen recording'));
       return RecordingResult(ok: false, startedRecording: false, errorMessage: e.toString());
     }
   }
@@ -91,7 +99,7 @@ class ScreenRecordingService {
       return RecordingResult(ok: true, startedRecording: false, savedPath: path);
     } catch (e, s) {
       _state.value = ScreenRecordingState.error;
-      debugPrintStack(label: 'screen recording: $e', stackTrace: s);
+      unawaited(recordError(e, s, context: 'screen recording'));
       return RecordingResult(ok: false, startedRecording: false, errorMessage: e.toString());
     }
   }

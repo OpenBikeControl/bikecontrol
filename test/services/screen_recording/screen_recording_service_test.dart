@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,9 +16,14 @@ class FakeScreenRecorderBackend implements ScreenRecorderBackend {
   Future<bool> isAvailable() async => available;
   @override
   Future<bool> ensurePermission() async => permission;
+  /// When set, start() awaits this before returning, so a test can hold the
+  /// service in the `starting` state.
+  Completer<void>? startGate;
+
   @override
   Future<bool> start() async {
     startCalls++;
+    if (startGate != null) await startGate!.future;
     return startResult;
   }
 
@@ -93,6 +100,25 @@ void main() {
     final result = await throwingService.toggle();
     expect(result.ok, isFalse);
     expect(throwingService.state.value, ScreenRecordingState.error);
+  });
+
+  test('ignores a re-entrant toggle while a start is in flight', () async {
+    backend.startGate = Completer<void>();
+
+    final first = service.toggle(); // enters 'starting', then blocks in start()
+    // Let it advance through isAvailable/ensurePermission into the gated start().
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+    expect(service.state.value, ScreenRecordingState.starting);
+
+    final second = await service.toggle(); // must be ignored, not a 2nd start
+    expect(second.ok, isFalse);
+    expect(backend.startCalls, 1, reason: 'the in-flight guard prevents a second start');
+
+    backend.startGate!.complete();
+    await first;
+    expect(service.state.value, ScreenRecordingState.recording);
+    expect(backend.startCalls, 1);
   });
 }
 

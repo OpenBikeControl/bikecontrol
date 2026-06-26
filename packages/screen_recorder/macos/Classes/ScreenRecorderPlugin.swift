@@ -31,7 +31,13 @@ public class ScreenRecorderPlugin: NSObject, FlutterPlugin {
             DispatchQueue.main.async { result(true) }
           } catch {
             NSLog("screen_recorder start error: \(error)")
-            DispatchQueue.main.async { result(false) }
+            // Reset so a failed start doesn't leave `recorder` non-nil, which
+            // would trip the `guard recorder == nil` on every later start
+            // (recording stays dead until app relaunch, since only stop() nils it).
+            DispatchQueue.main.async {
+              self.recorder = nil
+              result(false)
+            }
           }
         }
       } else { result(false) }

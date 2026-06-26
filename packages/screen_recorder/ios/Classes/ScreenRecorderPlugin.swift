@@ -110,6 +110,12 @@ public class ScreenRecorderPlugin: NSObject, FlutterPlugin {
           button.sendActions(for: .touchUpInside)
         }
       }
+      // The picker is only a host for the trigger; once the system sheet is up
+      // it's no longer needed. Remove it so a new 1×1 view doesn't accumulate on
+      // the key window on every recording start.
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        picker.removeFromSuperview()
+      }
     }
   }
 }
