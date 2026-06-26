@@ -6,6 +6,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/proxy_device_details/front_shift_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/core.dart' show core;
@@ -15,7 +16,9 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -266,6 +269,51 @@ Future<void> main() async {
     }
   }
 
+  // Blog screenshot: a single clean frameless (noFrame) English shot written to
+  // ../screenshots/en/<scene>-noFrame-1100x2390.png — used for the website blog,
+  // not the localized App Store matrix that [shoot] produces.
+  Future<void> shootOne(
+    WidgetTester tester,
+    String scene,
+    Widget Function() home, {
+    Finder Function()? capture,
+    Future<void> Function(WidgetTester tester)? afterPump,
+    TargetPlatform platform = TargetPlatform.android,
+  }) async {
+    final nf = sizes.firstWhere((s) => s.type == DeviceType.noFrame);
+    await AppLocalizations.load(const Locale('en'));
+    screenshotLocale = const Locale('en');
+    await tester.pumpWidget(
+      ScreenshotApp(
+        locale: const Locale('en'),
+        device: ScreenshotDevice(
+          // Default Android, never the entry's Windows platform: shadcn's theme
+          // queries the Windows accent colour via advapi32.dll, which can't load
+          // on a macOS test host.
+          platform: platform,
+          resolution: nf.size,
+          pixelRatio: 3,
+          goldenSubFolder: 'iphoneScreenshots/',
+          frameBuilder:
+              ({
+                required ScreenshotDevice device,
+                required ScreenshotFrameColors? frameColors,
+                required Widget child,
+              }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+        ),
+        home: home(),
+      ),
+    );
+    await tester.pump();
+    if (afterPump != null) await afterPump(tester);
+    await tester.loadAssets();
+    await tester.pump();
+    await expectLater(
+      capture?.call() ?? find.byType(ma.Scaffold),
+      matchesGoldenFile('../screenshots/en/$scene.png'),
+    );
+  }
+
   testGoldens('Device', (WidgetTester tester) async {
     await shoot(tester, 'device', () => BikeControlApp());
   });
@@ -331,6 +379,76 @@ Future<void> main() async {
           definition: fbd,
         ),
       ),
+    );
+  });
+
+  // --- 6.2 Virtual front derailleur (blog widget snapshots) ---
+  // Each widget is rendered standalone inside a keyed RepaintBoundary so the
+  // golden captures ONLY that widget (no page chrome).
+
+  // The second-window / desktop gear overlay (TrainerOverlayView), as shown on
+  // Windows & macOS. Large ring → the primary readout uses the 2×N position
+  // notation (here 2×14). Mirrors desktop_overlay_window: bare overlay on white.
+  testGoldens('Front Derailleur Gear', (WidgetTester tester) async {
+    const k = ValueKey('shot');
+    final state = ValueNotifier<TrainerOverlayState>(
+      const TrainerOverlayState(
+        gear: 14,
+        maxGear: 24,
+        gearRatio: 3.53,
+        mode: TrainerMode.simMode,
+        powerW: 250,
+        cadenceRpm: 90,
+        ergTargetW: null,
+        fields: {OverlayField.power, OverlayField.cadence},
+        frontShiftEnabled: true,
+        frontRingLarge: true,
+      ),
+    );
+    await shootOne(
+      tester,
+      'frontderailleur-gear',
+      () => BikeControlApp(
+        customChild: Center(
+          child: RepaintBoundary(
+            key: k,
+            child: ColoredBox(
+              color: const Color(0xFFFFFFFF),
+              child: SizedBox(
+                width: 240,
+                child: TrainerOverlayView(state: state, onModeToggle: null),
+              ),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+      platform: TargetPlatform.macOS,
+    );
+  });
+
+  // The front-derailleur setting card, enabled so the chainring steppers show.
+  testGoldens('Front Derailleur Setting', (WidgetTester tester) async {
+    await core.shiftingConfigs.upsert(
+      core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(
+            frontShiftEnabled: true,
+            smallChainringTeeth: 34,
+            largeChainringTeeth: 50,
+          ),
+    );
+    const k = ValueKey('shot');
+    await shootOne(
+      tester,
+      'frontderailleur-setting',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(key: k, child: FrontShiftCard(device: proxy)),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
     );
   });
 }
