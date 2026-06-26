@@ -1,4 +1,4 @@
-### 6.2.0 (unreleased)
+### 6.2.0 (26-06-2026)
 **Features**:
 - Virtual front derailleur: adds a second chainring (2× drivetrain) for more realism. The new assignable "Front Shift (Chainring)" action — or pressing both shifters together, SRAM-AXS style — toggles between your small and large rings, changing resistance by the exact chainring ratio while staying on the same rear cog. While it's active your current gear reads as head-unit-style position notation (e.g. 2×14) in the app, the gear overlay, and the iOS Live Activity. Set your chainring sizes per trainer in the gear settings.
 - SRAM style shifting: when you click shift up & down at the same time, the front chainring switches
