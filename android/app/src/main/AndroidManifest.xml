@@ -28,8 +28,10 @@
 
     <!-- Required for trainer overlay display -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <!-- Strip flutter_screen_recording library permissions not needed by this app -->
+    <!-- Strip flutter_screen_recording library permissions not needed by this app:
+         capture is video-only (no microphone), and we have no boot receiver. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
     <!-- Android 14+: foreground service type declaration for overlay window service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
