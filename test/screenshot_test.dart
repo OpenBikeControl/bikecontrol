@@ -10,6 +10,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -32,8 +33,13 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
+import 'package:bike_control/widgets/apps/local_tile.dart';
+import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
@@ -756,27 +762,128 @@ Future<void> main() async {
   // --- Rouvy & TrainingPeaks setup-guide widget snapshots (website setup guide) ---
   // Tight single-widget captures mirroring the MyWhoosh setup-guide scenes above:
   // the trainer-app picker (showing the active app's real name + logo) and the
-  // connection methods the guide walks through. Rouvy and TrainingPeaks both offer
-  // a Network (OpenBikeControl over mDNS) and a Bluetooth (OpenBikeControl over BLE)
-  // method, so the connection-methods scene stacks `OpenBikeControlMdnsTile` and
-  // `OpenBikeControlBluetoothTile` in a Column. The active app is set the same way
-  // as the MyWhoosh scenes (`core.settings.setTrainerApp/​setKeyMap`) so the tile
-  // descriptions read "Lets <app> connect…" with the active app's name.
+  // connection methods the guide walks through. The connection-methods scene
+  // reproduces `trainer.dart`'s `recommendedTiles` conditional expression VERBATIM
+  // (see [recommendedConnectionTiles]) so the snapshot shows exactly the tiles the
+  // live app renders for whichever app is active — driven by `core.logic.show*`.
+  // These flags are derived from the selected app's declared `connections`:
+  //   * Rouvy supports (rouvyMdns, zwiftBle) → ZwiftMdnsTile + ZwiftTile.
+  //   * TrainingPeaks supports (obpBle, obpDirCon) → OpenBikeControlMdnsTile +
+  //     OpenBikeControlBluetoothTile.
+  // The BLE-backed flags (showZwiftBleEmulator / showObpBluetoothEmulator) ALSO
+  // require `getLastTarget() != Target.thisDevice`, so [setActiveApp] persists
+  // `Target.otherDevice` (the "run the app on another device" setup-guide path).
 
-  // Helper: set the active app (drives TrainerAppSelect's closed display and the
-  // connection tiles' {appName} interpolation) and force the off / not-yet-connected
-  // emulator state so the captured cards are identical regardless of any emulator
-  // state a prior scene left behind (the shown description and height depend on
-  // isStarted/connectedApp for both the mDNS and BLE tiles).
+  // Helper: set the active app exactly as selecting it in the app would, so the
+  // `core.logic.show*` flags become what the live app uses, then force every
+  // emulator into its off / not-yet-connected state so the captured cards are
+  // identical regardless of any emulator state a prior scene left behind (the
+  // shown description and height depend on isStarted/isConnected/connectedApp).
   void setActiveApp(SupportedApp app) {
     core.settings.setTrainerApp(app);
     core.settings.setKeyMap(app);
+    // Selecting "another device" as the target is what enables the Bluetooth
+    // connection methods (showZwiftBleEmulator / showObpBluetoothEmulator both
+    // gate on getLastTarget() != Target.thisDevice). Without a non-null,
+    // non-thisDevice target the BLE tiles — and the whole tile block — are hidden.
+    core.settings.setLastTarget(Target.otherDevice);
+    // OBC (TrainingPeaks) tiles.
     core.settings.setObpMdnsEnabled(false);
     core.settings.setObpBleEnabled(false);
     core.obpMdnsEmulator.isStarted.value = false;
     core.obpMdnsEmulator.connectedApp.value = null;
+    core.obpMdnsEmulator.isConnected.value = false;
     core.obpBluetoothEmulator.isStarted.value = false;
     core.obpBluetoothEmulator.connectedApp.value = null;
+    core.obpBluetoothEmulator.isConnected.value = false;
+    // Zwift-protocol (Rouvy) tiles.
+    core.settings.setZwiftMdnsEmulatorEnabled(false);
+    core.settings.setZwiftBleEmulatorEnabled(false);
+    core.rouvyMdnsEmulator.isStarted.value = false;
+    core.rouvyMdnsEmulator.isConnected.value = false;
+    core.zwiftMdnsEmulator.isStarted.value = false;
+    core.zwiftMdnsEmulator.isConnected.value = false;
+    core.zwiftEmulator.isStarted.value = false;
+    core.zwiftEmulator.isConnected.value = false;
+  }
+
+  // The connection-method tiles the live app renders for the active app. This is
+  // `trainer.dart`'s `recommendedTiles` expression reproduced VERBATIM (same
+  // `if (core.logic.showX) XTile(small: false)` set, same order) so the snapshot
+  // matches the live app for whatever app `setActiveApp` selected. The onUpdate
+  // callbacks mirror trainer.dart's (signal a log notification); they never fire
+  // in the static snapshot.
+  List<Widget> recommendedConnectionTiles() {
+    // Verbatim from trainer.dart: the leading `false &&` is intentional (the
+    // "show Local as an Other method" path is currently disabled there).
+    // ignore: dead_code
+    final showLocalAsOther = false && core.logic.showLocalControl && !core.settings.getLocalEnabled();
+    final showWhooshLinkAsOther =
+        (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
+    return [
+      if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(small: false),
+      if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(small: false),
+      if (core.logic.showZwiftMsdnEmulator)
+        ZwiftMdnsTile(
+          small: false,
+          onUpdate: () {
+            core.connection.signalNotification(
+              LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+            );
+          },
+        ),
+      if (core.logic.showZwiftBleEmulator)
+        ZwiftTile(
+          small: false,
+          onUpdate: () {
+            core.connection.signalNotification(
+              LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+            );
+          },
+        ),
+      if (core.logic.showDi2Ble) Di2BleTile(small: false),
+      if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: false),
+      if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
+    ];
+  }
+
+  // Render the recommended connection-method tiles for the active app the same
+  // way the trainer page lays them out (each tile in an IntrinsicHeight, stacked
+  // in a Column with 12px gaps), inside a keyed RepaintBoundary so the golden
+  // captures only the tile stack at a fixed setup-guide width.
+  Future<void> shootConnectionMethods(WidgetTester tester, String scene) async {
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      scene,
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Center(
+            child: SizedBox(
+              width: 340,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: RepaintBoundary(
+                  key: k,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final tile in recommendedConnectionTiles())
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: IntrinsicHeight(child: tile),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
   }
 
   // The trainer-app picker with Rouvy selected (showRealName forces the real
@@ -802,36 +909,13 @@ Future<void> main() async {
     );
   });
 
-  // The connection methods for Rouvy: Network (mDNS) and Bluetooth (BLE) stacked,
-  // both in their off / not-yet-connected state. Descriptions read
-  // "Lets Rouvy connect…".
+  // The connection methods the live app renders for Rouvy. Rouvy supports
+  // (rouvyMdns, zwiftBle), so this captures ZwiftMdnsTile (Network, over the
+  // Rouvy mDNS emulator) + ZwiftTile (Bluetooth) — NOT the OBC tiles — both in
+  // their off / not-yet-connected state.
   testGoldens('rouvy-connection-methods', (WidgetTester tester) async {
     setActiveApp(Rouvy());
-    const k = ValueKey('shot');
-    await shootLocalized(
-      tester,
-      'rouvy-connection-methods',
-      () => BikeControlApp(
-        customChild: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(
-              key: k,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 12,
-                children: const [
-                  OpenBikeControlMdnsTile(small: false),
-                  OpenBikeControlBluetoothTile(small: false),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      capture: () => find.byKey(k),
-    );
+    await shootConnectionMethods(tester, 'rouvy-connection-methods');
   });
 
   // The trainer-app picker with TrainingPeaks selected. Note: TrainingPeaks's
@@ -858,34 +942,12 @@ Future<void> main() async {
     );
   });
 
-  // The connection methods for TrainingPeaks: Network (mDNS) and Bluetooth (BLE)
-  // stacked, both off. Descriptions read "Lets TrainingPeaks Virtual connect…".
+  // The connection methods the live app renders for TrainingPeaks. TrainingPeaks
+  // supports (obpBle, obpDirCon), so this captures OpenBikeControlMdnsTile
+  // (Network) + OpenBikeControlBluetoothTile (Bluetooth), both off. Descriptions
+  // read "Lets TrainingPeaks Virtual connect…".
   testGoldens('trainingpeaks-connection-methods', (WidgetTester tester) async {
     setActiveApp(TrainingPeaks());
-    const k = ValueKey('shot');
-    await shootLocalized(
-      tester,
-      'trainingpeaks-connection-methods',
-      () => BikeControlApp(
-        customChild: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(
-              key: k,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 12,
-                children: const [
-                  OpenBikeControlMdnsTile(small: false),
-                  OpenBikeControlBluetoothTile(small: false),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      capture: () => find.byKey(k),
-    );
+    await shootConnectionMethods(tester, 'trainingpeaks-connection-methods');
   });
 }
