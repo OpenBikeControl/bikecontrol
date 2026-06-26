@@ -28,6 +28,8 @@ class TrainerOverlayState {
   final int? cadenceRpm;
   final int? ergTargetW;
   final Set<OverlayField> fields;
+  final bool frontShiftEnabled;
+  final bool frontRingLarge;
 
   const TrainerOverlayState({
     required this.gear,
@@ -38,6 +40,8 @@ class TrainerOverlayState {
     required this.cadenceRpm,
     required this.ergTargetW,
     required this.fields,
+    this.frontShiftEnabled = false,
+    this.frontRingLarge = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -49,6 +53,8 @@ class TrainerOverlayState {
         'cadenceRpm': cadenceRpm,
         'ergTargetW': ergTargetW,
         'fields': fields.map((f) => f.name).toList(),
+        'frontShiftEnabled': frontShiftEnabled,
+        'frontRingLarge': frontRingLarge,
       };
 
   /// Permissive parse — silently fills missing/wrong-typed fields with sane
@@ -77,6 +83,8 @@ class TrainerOverlayState {
       cadenceRpm: (json['cadenceRpm'] as num?)?.toInt(),
       ergTargetW: (json['ergTargetW'] as num?)?.toInt(),
       fields: fields,
+      frontShiftEnabled: (json['frontShiftEnabled'] as bool?) ?? false,
+      frontRingLarge: (json['frontRingLarge'] as bool?) ?? false,
     );
   }
 
@@ -91,13 +99,15 @@ class TrainerOverlayState {
         other.powerW == powerW &&
         other.cadenceRpm == cadenceRpm &&
         other.ergTargetW == ergTargetW &&
+        other.frontShiftEnabled == frontShiftEnabled &&
+        other.frontRingLarge == frontRingLarge &&
         _setEquals(other.fields, fields);
   }
 
   @override
   int get hashCode => Object.hash(
         gear, maxGear, gearRatio, mode, powerW, cadenceRpm, ergTargetW,
-        Object.hashAllUnordered(fields),
+        Object.hashAllUnordered(fields), frontShiftEnabled, frontRingLarge,
       );
 
   static bool _setEquals(Set<OverlayField> a, Set<OverlayField> b) {
@@ -125,6 +135,8 @@ Map<String, dynamic> overlayStateToActivityMap(TrainerOverlayState s) {
     'showGearRatio': s.fields.contains(OverlayField.gearRatio),
     'showControls': s.fields.contains(OverlayField.controls),
     'gearRatio': s.gearRatio,
+    'frontShiftEnabled': s.frontShiftEnabled,
+    'frontRingLarge': s.frontRingLarge,
   };
   if (s.powerW != null) m['powerW'] = s.powerW;
   if (s.cadenceRpm != null) m['cadenceRpm'] = s.cadenceRpm;

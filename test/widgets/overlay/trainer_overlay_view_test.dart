@@ -13,14 +13,17 @@ void main() {
     int? cadenceRpm = 86,
     Set<OverlayField> fields = const {OverlayField.power, OverlayField.cadence},
     TrainerMode mode = TrainerMode.simMode,
+    bool frontShiftEnabled = false,
+    bool frontRingLarge = false,
   }) {
     return ValueNotifier(TrainerOverlayState(
       gear: gear, maxGear: maxGear, gearRatio: 2.43, mode: mode,
       powerW: powerW, cadenceRpm: cadenceRpm, ergTargetW: null, fields: fields,
+      frontShiftEnabled: frontShiftEnabled, frontRingLarge: frontRingLarge,
     ));
   }
 
-  testWidgets('renders gear N / M and mode pill', (tester) async {
+  testWidgets('renders gear/total and mode pill', (tester) async {
     await tester.pumpWidget(
       ShadcnApp(
         home: Scaffold(
@@ -28,8 +31,23 @@ void main() {
         ),
       ),
     );
-    expect(find.text('14 / 24'), findsOneWidget);
+    expect(find.text('14/24'), findsOneWidget);
     expect(find.text('SIM'), findsOneWidget);
+  });
+
+  testWidgets('renders 2×N position notation when front shift is on', (tester) async {
+    await tester.pumpWidget(
+      ShadcnApp(
+        home: Scaffold(
+          child: TrainerOverlayView(
+            state: mkState(frontShiftEnabled: true, frontRingLarge: true),
+            onModeToggle: null,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('2×14'), findsOneWidget);
+    expect(find.text('14/24'), findsNothing);
   });
 
   testWidgets('hides power when not selected', (tester) async {

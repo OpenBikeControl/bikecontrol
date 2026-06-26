@@ -176,8 +176,8 @@ class _GearHeroCardState extends State<GearHeroCard> {
         if (widget.definition.frontShiftEnabled)
           Text(
             widget.definition.frontRing.value == FrontRing.large
-                ? '${widget.definition.largeChainringTeeth}T'
-                : '${widget.definition.smallChainringTeeth}T',
+                ? '2× · ${widget.definition.largeChainringTeeth}T'
+                : '1× · ${widget.definition.smallChainringTeeth}T',
             style: TextStyle(fontSize: 13, color: cs.mutedForeground),
           ),
       ],

@@ -1,4 +1,5 @@
 import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/utils/gear_readout.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -72,7 +73,14 @@ class TrainerOverlayView extends StatelessWidget {
   /// edge. Drag handle is always trailing.
   Widget _primaryRow(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
     final isErg = s.mode == TrainerMode.ergMode;
-    final primary = isErg ? '${s.ergTargetW ?? '--'} W' : '${s.gear} / ${s.maxGear}';
+    final primary = isErg
+        ? '${s.ergTargetW ?? '--'} W'
+        : formatGearReadout(
+            currentGear: s.gear,
+            maxGear: s.maxGear,
+            frontShiftEnabled: s.frontShiftEnabled,
+            largeRing: s.frontRingLarge,
+          );
     final showControls = s.fields.contains(OverlayField.controls);
 
     final primaryText = FittedBox(

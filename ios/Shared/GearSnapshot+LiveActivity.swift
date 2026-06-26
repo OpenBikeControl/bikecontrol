@@ -23,7 +23,9 @@ extension GearSnapshot {
             showCadence: defaults.bool(forKey: k("showCadence")),
             showErgTarget: defaults.bool(forKey: k("showErgTarget")),
             showGearRatio: defaults.bool(forKey: k("showGearRatio")),
-            showControls: defaults.bool(forKey: k("showControls"))
+            showControls: defaults.bool(forKey: k("showControls")),
+            frontShiftEnabled: defaults.bool(forKey: k("frontShiftEnabled")),
+            frontRingLarge: defaults.bool(forKey: k("frontRingLarge"))
         )
     }
 }

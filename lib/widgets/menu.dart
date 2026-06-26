@@ -6,6 +6,7 @@ import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/title.dart';
@@ -155,7 +156,9 @@ String _describeProxyDevice(ProxyDevice device) {
   if (device.firmwareVersion != null) parts.add('fw=${device.firmwareVersion}');
   if (device.manufacturerName != null) parts.add('mfg=${device.manufacturerName}');
   if (def != null) {
-    parts.add('gear=${def.currentGear.value}/${def.maxGear}');
+    parts.add(
+      'gear=${formatGearReadout(currentGear: def.currentGear.value, maxGear: def.maxGear, frontShiftEnabled: def.frontShiftEnabled, largeRing: def.frontRing.value == FrontRing.large)}',
+    );
     parts.add('trainerMode=${def.trainerMode.value.name}');
   }
 

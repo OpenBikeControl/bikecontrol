@@ -8,6 +8,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
@@ -520,7 +521,7 @@ class ProxyDevice extends BluetoothDevice {
                 _addTextMetric(
                   parts,
                   context,
-                  'Gear ${fitnessDef.currentGear.value}/${fitnessDef.maxGear}',
+                  'Gear ${formatGearReadout(currentGear: fitnessDef.currentGear.value, maxGear: fitnessDef.maxGear, frontShiftEnabled: fitnessDef.frontShiftEnabled, largeRing: fitnessDef.frontRing.value == FrontRing.large)}',
                   LucideIcons.settings2,
                 );
               }

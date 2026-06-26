@@ -16,21 +16,32 @@ struct GearSnapshot {
     let showErgTarget: Bool
     let showGearRatio: Bool
     let showControls: Bool
+    let frontShiftEnabled: Bool
+    let frontRingLarge: Bool
 
     var isErg: Bool { mode == "erg" }
 
-    /// Big primary value: target watts in ERG, gear N/M in SIM.
+    /// Head-unit-style `front×rear` position notation used when the virtual
+    /// front derailleur is on (small ring = 1, large ring = 2, e.g. `2×14`).
+    private var positionGear: String { "\(frontRingLarge ? 2 : 1)×\(gear)" }
+
+    /// Big primary value: target watts in ERG, gear in SIM.
     var primaryText: String {
         if isErg { return ergTargetW.map { "\($0) W" } ?? "-- W" }
-        return "\(gear) / \(maxGear)"
+        if frontShiftEnabled { return positionGear }
+        return "\(gear)/\(maxGear)"
     }
 
     var compactTrailing: String {
-        isErg ? (ergTargetW.map { "\($0)W" } ?? "--W") : "\(gear)/\(maxGear)"
+        if isErg { return ergTargetW.map { "\($0)W" } ?? "--W" }
+        if frontShiftEnabled { return positionGear }
+        return "\(gear)/\(maxGear)"
     }
 
     var minimalText: String {
-        isErg ? (ergTargetW.map { "\($0)" } ?? "--") : "\(gear)"
+        if isErg { return ergTargetW.map { "\($0)" } ?? "--" }
+        if frontShiftEnabled { return positionGear }
+        return "\(gear)"
     }
 
     /// Cheap change-detection key so the PiP pump can skip identical frames.
@@ -40,6 +51,7 @@ struct GearSnapshot {
         h.combine(powerW); h.combine(cadenceRpm); h.combine(ergTargetW)
         h.combine(gearRatio); h.combine(showPower); h.combine(showCadence)
         h.combine(showErgTarget); h.combine(showGearRatio); h.combine(showControls)
+        h.combine(frontShiftEnabled); h.combine(frontRingLarge)
         return h.finalize()
     }
 }
@@ -62,7 +74,9 @@ extension GearSnapshot {
             showCadence: m["showCadence"] as? Bool ?? false,
             showErgTarget: m["showErgTarget"] as? Bool ?? false,
             showGearRatio: m["showGearRatio"] as? Bool ?? false,
-            showControls: m["showControls"] as? Bool ?? false
+            showControls: m["showControls"] as? Bool ?? false,
+            frontShiftEnabled: m["frontShiftEnabled"] as? Bool ?? false,
+            frontRingLarge: m["frontRingLarge"] as? Bool ?? false
         )
     }
 }
