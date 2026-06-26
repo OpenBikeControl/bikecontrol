@@ -114,7 +114,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   _vsModeCard(),
                   _gradeSmoothingCard(context),
                   _cadenceFilterCard(context),
-                  FrontShiftCard(device: widget.device),
+                  FrontShiftCard(device: widget.device, definition: def),
                 ],
                 _gearCountCard(context),
                 _heroCurve(context),

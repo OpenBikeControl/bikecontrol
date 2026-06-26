@@ -569,7 +569,7 @@ Future<void> main() async {
         customChild: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(key: k, child: FrontShiftCard(device: proxy)),
+            child: RepaintBoundary(key: k, child: FrontShiftCard(device: proxy, definition: fbd)),
           ),
         ),
       ),

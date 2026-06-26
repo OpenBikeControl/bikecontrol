@@ -6,6 +6,7 @@ import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
@@ -228,7 +229,13 @@ abstract class BaseActions {
         isKeyDown &&
         (keyPair.inGameAction == InGameAction.shiftUp || keyPair.inGameAction == InGameAction.shiftDown)) {
       if (noteShiftAndCheckCoincidence(keyPair.inGameAction!)) {
-        unawaited(performInGameAction(InGameAction.frontShift));
+        unawaited(() async {
+          try {
+            await performInGameAction(InGameAction.frontShift);
+          } catch (e, s) {
+            recordError(e, s, context: 'frontShiftCombo');
+          }
+        }());
       }
     }
 
