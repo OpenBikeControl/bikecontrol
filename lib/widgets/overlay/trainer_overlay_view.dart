@@ -52,7 +52,7 @@ class TrainerOverlayView extends StatelessWidget {
                   border: Border.all(color: cs.border),
                 )
               : null,
-          padding: const EdgeInsets.fromLTRB(10, 6, 6, 8),
+          padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,25 +115,35 @@ class TrainerOverlayView extends StatelessWidget {
       height: showControls ? 48 : 36,
       child: Row(
         children: [
-          if (!showControls)
-            const Padding(
-              padding: EdgeInsets.only(right: 6),
-              child: Image(
-                image: AssetImage('icon.png'),
-                width: 18,
-                height: 18,
-              ),
-            ),
+          // Equal-width leading/trailing slots keep the primary value centred
+          // whether or not the app icon / drag handle is present.
+          SizedBox(
+            width: 24,
+            child: showControls
+                ? null
+                : const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Image(
+                      image: AssetImage('icon.png'),
+                      width: 18,
+                      height: 18,
+                    ),
+                  ),
+          ),
           Expanded(child: Center(child: primaryBlock)),
-          if (onDragStart != null)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onPanStart: (_) => onDragStart!(),
-              child: Padding(
-                padding: const EdgeInsets.all(2),
-                child: Icon(Icons.drag_indicator, size: 14, color: cs.mutedForeground),
-              ),
-            ),
+          SizedBox(
+            width: 24,
+            child: onDragStart != null
+                ? Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onPanStart: (_) => onDragStart!(),
+                      child: Icon(Icons.drag_indicator, size: 14, color: cs.mutedForeground),
+                    ),
+                  )
+                : null,
+          ),
         ],
       ),
     );
@@ -207,7 +217,7 @@ class TrainerOverlayView extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 2.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
