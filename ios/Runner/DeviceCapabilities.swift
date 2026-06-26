@@ -3,16 +3,16 @@ import UIKit
 
 enum DeviceCapabilities {
     /// No public API exposes "has Dynamic Island". Heuristic: Dynamic Island
-    /// iPhones report a larger portrait top safe-area inset (~59pt) than notch
-    /// devices (≤48pt). iPads have no Dynamic Island.
+    /// iPhones report a larger safe-area inset (~59pt) on the cutout edge than
+    /// notch devices (≤48pt). iPads have no Dynamic Island.
     ///
-    /// Misdetection is benign: the only false positive is a DI iPhone evaluated
-    /// in landscape (small top inset) being treated as non-DI, which merely adds
-    /// a (redundant) PiP alongside the Dynamic Island. A non-DI phone can never
-    /// be mistaken for DI (its inset never reaches the threshold).
+    /// We use the MAX of all four insets, not just `top`: in landscape the
+    /// cutout moves to a side edge and the top inset collapses to ~0, so a
+    /// top-only check would misread a Dynamic-Island iPhone as non-DI and
+    /// auto-start a redundant PiP. The max inset stays orientation-independent.
     static var hasDynamicIsland: Bool {
         guard UIDevice.current.userInterfaceIdiom == .phone else { return false }
-        return keyWindowTopInset() >= 51
+        return keyWindowMaxInset() >= 51
     }
 
     /// Whether PiP is technically possible at all: iOS 16+ (ImageRenderer) and
@@ -38,11 +38,12 @@ enum DeviceCapabilities {
         UIDevice.current.userInterfaceIdiom == .pad
     }
 
-    private static func keyWindowTopInset() -> CGFloat {
+    private static func keyWindowMaxInset() -> CGFloat {
         for scene in UIApplication.shared.connectedScenes {
             guard let ws = scene as? UIWindowScene else { continue }
             if let w = ws.windows.first(where: { $0.isKeyWindow }) ?? ws.windows.first {
-                return w.safeAreaInsets.top
+                let i = w.safeAreaInsets
+                return max(max(i.top, i.bottom), max(i.left, i.right))
             }
         }
         return 0

@@ -134,11 +134,13 @@ class TrainerOverlayView extends StatelessWidget {
           SizedBox(
             width: 24,
             child: onDragStart != null
-                ? Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onPanStart: (_) => onDragStart!(),
+                // GestureDetector fills the whole slot (opaque) so the entire
+                // 24px trailing area is draggable, not just the 14px icon.
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onPanStart: (_) => onDragStart!(),
+                    child: Align(
+                      alignment: Alignment.centerRight,
                       child: Icon(Icons.drag_indicator, size: 14, color: cs.mutedForeground),
                     ),
                   )

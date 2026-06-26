@@ -88,9 +88,16 @@ class IosOverlayController implements TrainerOverlayController {
       // explicit false opts out. The Live Activity keeps running either way.
       final pref = core.settings.getOverlayUsePip();
       final usePip = pref == null ? await _pip.isSupported() : (pref && await _pip.isCapable());
-      if (usePip) {
+      // hide() may have run during the awaits above (Live Activity 'stop',
+      // trainer disconnect, …) and set _showing=false; only arm PiP if we're
+      // still showing, and tear it back down if a hide lands during start().
+      if (usePip && _showing.value) {
         await _pip.start(_toMap(s));
         _pipActive = true;
+        if (!_showing.value) {
+          _pipActive = false;
+          await _pip.stop();
+        }
       }
     } catch (e, st) {
       recordError(e, st, context: 'overlay.ios.pip.start');
