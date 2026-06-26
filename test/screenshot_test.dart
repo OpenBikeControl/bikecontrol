@@ -24,11 +24,15 @@ import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
@@ -747,5 +751,141 @@ Future<void> main() async {
 
   testGoldens('controller-phone-steering', (WidgetTester tester) async {
     await shootCard(tester, 'controller-phone-steering', gyroSteering);
+  });
+
+  // --- Rouvy & TrainingPeaks setup-guide widget snapshots (website setup guide) ---
+  // Tight single-widget captures mirroring the MyWhoosh setup-guide scenes above:
+  // the trainer-app picker (showing the active app's real name + logo) and the
+  // connection methods the guide walks through. Rouvy and TrainingPeaks both offer
+  // a Network (OpenBikeControl over mDNS) and a Bluetooth (OpenBikeControl over BLE)
+  // method, so the connection-methods scene stacks `OpenBikeControlMdnsTile` and
+  // `OpenBikeControlBluetoothTile` in a Column. The active app is set the same way
+  // as the MyWhoosh scenes (`core.settings.setTrainerApp/​setKeyMap`) so the tile
+  // descriptions read "Lets <app> connect…" with the active app's name.
+
+  // Helper: set the active app (drives TrainerAppSelect's closed display and the
+  // connection tiles' {appName} interpolation) and force the off / not-yet-connected
+  // emulator state so the captured cards are identical regardless of any emulator
+  // state a prior scene left behind (the shown description and height depend on
+  // isStarted/connectedApp for both the mDNS and BLE tiles).
+  void setActiveApp(SupportedApp app) {
+    core.settings.setTrainerApp(app);
+    core.settings.setKeyMap(app);
+    core.settings.setObpMdnsEnabled(false);
+    core.settings.setObpBleEnabled(false);
+    core.obpMdnsEmulator.isStarted.value = false;
+    core.obpMdnsEmulator.connectedApp.value = null;
+    core.obpBluetoothEmulator.isStarted.value = false;
+    core.obpBluetoothEmulator.connectedApp.value = null;
+  }
+
+  // The trainer-app picker with Rouvy selected (showRealName forces the real
+  // "Rouvy" name + logo instead of the generic "Trainer app" placeholder).
+  testGoldens('rouvy-trainer-select', (WidgetTester tester) async {
+    setActiveApp(Rouvy());
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'rouvy-trainer-select',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // The connection methods for Rouvy: Network (mDNS) and Bluetooth (BLE) stacked,
+  // both in their off / not-yet-connected state. Descriptions read
+  // "Lets Rouvy connect…".
+  testGoldens('rouvy-connection-methods', (WidgetTester tester) async {
+    setActiveApp(Rouvy());
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'rouvy-connection-methods',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 12,
+                children: const [
+                  OpenBikeControlMdnsTile(small: false),
+                  OpenBikeControlBluetoothTile(small: false),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // The trainer-app picker with TrainingPeaks selected. Note: TrainingPeaks's
+  // app name is "TrainingPeaks Virtual", so the closed Select (and the
+  // connection-method descriptions below) show "TrainingPeaks Virtual".
+  testGoldens('trainingpeaks-trainer-select', (WidgetTester tester) async {
+    setActiveApp(TrainingPeaks());
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'trainingpeaks-trainer-select',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // The connection methods for TrainingPeaks: Network (mDNS) and Bluetooth (BLE)
+  // stacked, both off. Descriptions read "Lets TrainingPeaks Virtual connect…".
+  testGoldens('trainingpeaks-connection-methods', (WidgetTester tester) async {
+    setActiveApp(TrainingPeaks());
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'trainingpeaks-connection-methods',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 12,
+                children: const [
+                  OpenBikeControlMdnsTile(small: false),
+                  OpenBikeControlBluetoothTile(small: false),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
   });
 }
