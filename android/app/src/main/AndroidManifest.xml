@@ -66,8 +66,16 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST -->
+                <!-- Custom scheme: bikecontrol://... -->
                 <data android:scheme="bikecontrol" />
+            </intent-filter>
+            <!-- App Links (verified): https://bikecontrol.app/app/... opens the app
+                 directly, verified against /.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="bikecontrol.app" android:pathPrefix="/app" />
             </intent-filter>
         </activity>
 
