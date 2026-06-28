@@ -21,6 +21,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/blog_posts_widget.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
+import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/iap_status_widget.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/review_banner.dart';
@@ -1014,10 +1015,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         context.i18n.openConnectionSettings,
         (context) => _openTrainerConnectionSettings(),
       ),
-      ErrorType.proRequired => (
-        AppLocalizations.of(context).goPro,
-        (context) {}, // handled elsewhere
-      ),
+      ErrorType.proRequired => (AppLocalizations.of(context).goPro, (context) => showGoProDialog(context)),
       ErrorType.headwindNotConnected => (
         'Connect Headwind fan',
         (context) {}, // no dedicated page
