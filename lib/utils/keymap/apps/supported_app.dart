@@ -61,6 +61,11 @@ abstract class SupportedApp {
   /// Optional asset path for the trainer app logo (only for officially supported apps).
   String? get logoAsset => null;
 
+  /// Official website for this trainer app, surfaced as an external-link button
+  /// next to the app in the trainer-app chooser. Null for apps without a site
+  /// of their own (e.g. the generic custom app).
+  String? get officialUrl => null;
+
   /// Slug for the bikecontrol.app `use-<controller>-with-<app>` how-to article.
   /// Apps without a dedicated page fall back to the generic guide.
   String get helpSlug => 'other-training-app';

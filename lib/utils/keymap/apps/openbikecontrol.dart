@@ -4,6 +4,9 @@ import '../keymap.dart';
 
 class OpenBikeControl extends SupportedApp {
   @override
+  String? get officialUrl => 'https://openbikecontrol.org';
+
+  @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.obpMdns, ConnectionSupport.supported),
     (AppConnectionMethod.obpBle, ConnectionSupport.supported),

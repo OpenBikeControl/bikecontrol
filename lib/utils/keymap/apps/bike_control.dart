@@ -9,6 +9,9 @@ class BikeControl extends SupportedApp {
   @override
   String? get logoAsset => 'icon.png';
 
+  @override
+  String? get officialUrl => 'https://bikecontrol.app';
+
   BikeControl()
     : super(
         name: 'BikeControl',

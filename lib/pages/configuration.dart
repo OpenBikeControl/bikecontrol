@@ -232,6 +232,14 @@ class TrainerAppSelect extends StatelessWidget {
                           : Text(app.name),
                     ),
                     if (supportsObp) OpenBikeControlLogo(),
+                    if (app.officialUrl != null)
+                      IconButton.ghost(
+                        icon: Icon(LucideIcons.externalLink, size: 16),
+                        onPressed: () => launchUrlString(
+                          app.officialUrl!,
+                          mode: LaunchMode.externalApplication,
+                        ),
+                      ),
                   ],
                 ),
               );
@@ -245,7 +253,24 @@ class TrainerAppSelect extends StatelessWidget {
             ...groupedByOfficial.get(false)?.map((app) {
               return SelectItemButton(
                 value: app,
-                child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    Expanded(
+                      child: app == core.settings.getTrainerApp()
+                          ? Text(app.name).semiBold
+                          : Text(app.name),
+                    ),
+                    if (app.officialUrl != null)
+                      IconButton.ghost(
+                        icon: Icon(LucideIcons.externalLink, size: 16),
+                        onPressed: () => launchUrlString(
+                          app.officialUrl!,
+                          mode: LaunchMode.externalApplication,
+                        ),
+                      ),
+                  ],
+                ),
               );
             }),
           ],

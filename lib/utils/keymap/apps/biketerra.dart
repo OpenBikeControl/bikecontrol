@@ -7,6 +7,9 @@ import '../keymap.dart';
 
 class Biketerra extends SupportedApp {
   @override
+  String? get officialUrl => 'https://biketerra.com';
+
+  @override
   String get helpSlug => 'biketerra';
 
   @override

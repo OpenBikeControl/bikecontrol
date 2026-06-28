@@ -19,6 +19,9 @@ class TrainingPeaks extends SupportedApp {
   String? get logoAsset => 'assets/trainingpeaks.png';
 
   @override
+  String? get officialUrl => 'https://www.trainingpeaks.com/virtual/';
+
+  @override
   String get helpSlug => 'trainingpeaks';
 
   @override

@@ -15,6 +15,9 @@ class Strappo extends SupportedApp {
   @override
   String? get logoAsset => 'assets/strappo.png';
 
+  @override
+  String? get officialUrl => 'https://getstrappo.com';
+
   Strappo()
     : super(
         name: 'Strappo',
