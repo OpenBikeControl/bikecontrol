@@ -651,6 +651,20 @@ class Settings {
     await prefs.setBool('overlay_enabled', enabled);
   }
 
+  /// iOS only: whether to use the floating Picture-in-Picture overlay.
+  /// `null` = automatic (device default — on for iPad and non-Dynamic-Island
+  /// iPhones, off for Dynamic-Island iPhones, which use the Live Activity).
+  /// `true`/`false` = explicit user override.
+  bool? getOverlayUsePip() => prefs.getBool('overlay_use_pip');
+
+  Future<void> setOverlayUsePip(bool? value) async {
+    if (value == null) {
+      await prefs.remove('overlay_use_pip');
+    } else {
+      await prefs.setBool('overlay_use_pip', value);
+    }
+  }
+
   /// Get overlay display fields (set of OverlayField enum values).
   /// Defaults to {power, cadence}.
   Set<OverlayField> getOverlayFields() {

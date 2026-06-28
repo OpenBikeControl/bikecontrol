@@ -1,21 +1,51 @@
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
+import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/thinkrider/thinkrider_vs200.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_simulator.dart';
+import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/overview.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/proxy_device_details/front_shift_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
+import 'package:bike_control/widgets/apps/local_tile.dart';
+import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
+import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
+import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
+import 'package:bike_control/widgets/apps/zwift_tile.dart';
+import 'package:bike_control/widgets/controller/controller_canvas.dart';
+import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
+import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -128,6 +158,54 @@ Future<void> main() async {
   proxy.emulator.debugSetTransporter(NetworkTransporter(definition: fbd));
 
   core.connection.addDevices([device, proxy]);
+
+  // Connected instances of every controller we shoot a full connection-card
+  // golden for. Each is given a real advertised name (so the card header shows
+  // the actual product name) and the connected meta (battery/rssi/firmware) the
+  // overview list would display. `device` above is the Zwift Click v2 instance.
+  BleDevice scan(String name) => BleDevice(name: name, deviceId: '00:11:22:33:44:55');
+  // BLE controllers carry battery / rssi / firmware meta (defined on
+  // BluetoothDevice); set it so the card header shows the connected status line.
+  T connectedBle<T extends BluetoothDevice>(T d) {
+    d
+      ..firmwareVersion = '1.2.0'
+      ..isConnected = true
+      ..rssi = -51
+      ..batteryLevel = 81;
+    return d;
+  }
+
+  final zwiftClick = connectedBle(ZwiftClick(scan('Zwift Click')));
+  final zwiftRide = connectedBle(ZwiftRide(scan('Zwift Ride')));
+  final zwiftPlay = connectedBle(
+    ZwiftPlay(scan('Zwift Play'), deviceType: ZwiftDeviceType.playLeft),
+  );
+  final cycplusBc2 = connectedBle(CycplusBc2(scan('CYCPLUS BC2')));
+  final thinkriderVs200 = connectedBle(ThinkRiderVs200(scan('THINK VS200')));
+  final eliteSterzo = connectedBle(EliteSterzo(scan('STERZO')));
+  // GyroscopeSteering extends BaseDevice directly (no BLE), so it has no
+  // battery/rssi/firmware — just mark it connected.
+  final gyroSteering = GyroscopeSteering()..isConnected = true;
+
+  // All controllers must live in core.connection.devices so the MyWhoosh
+  // action handler (initialized below) seeds each button's default in-game
+  // action into the keymap — that's what renders the action badges.
+  core.connection.addDevices([
+    zwiftClick,
+    zwiftRide,
+    zwiftPlay,
+    cycplusBc2,
+    thinkriderVs200,
+    eliteSterzo,
+    gyroSteering,
+  ]);
+
+  // core.actionHandler is `late` (assigned in the app's main(), which the test
+  // harness never runs). Provide a StubActions and init it with MyWhoosh so
+  // core.actionHandler.supportedApp?.keymap is the populated MyWhoosh keymap the
+  // connected-Controllers footer passes to AnimatedButtonWidget.
+  core.actionHandler = StubActions();
+  core.actionHandler.init(MyWhoosh());
 
   final firstButton = ZwiftButtons.b.copyWith(sourceDeviceId: device.uniqueId);
   final keyEntry = keymap.keymap.getOrCreateKeyPair(firstButton, trigger: ButtonTrigger.longPress);
@@ -266,6 +344,101 @@ Future<void> main() async {
     }
   }
 
+  // Blog screenshot: a single clean frameless (noFrame) English shot written to
+  // ../screenshots/en/<scene>-noFrame-1100x2390.png — used for the website blog,
+  // not the localized App Store matrix that [shoot] produces.
+  Future<void> shootOne(
+    WidgetTester tester,
+    String scene,
+    Widget Function() home, {
+    Finder Function()? capture,
+    Future<void> Function(WidgetTester tester)? afterPump,
+    TargetPlatform platform = TargetPlatform.android,
+  }) async {
+    final nf = sizes.firstWhere((s) => s.type == DeviceType.noFrame);
+    await AppLocalizations.load(const Locale('en'));
+    screenshotLocale = const Locale('en');
+    await tester.pumpWidget(
+      ScreenshotApp(
+        locale: const Locale('en'),
+        device: ScreenshotDevice(
+          // Default Android, never the entry's Windows platform: shadcn's theme
+          // queries the Windows accent colour via advapi32.dll, which can't load
+          // on a macOS test host.
+          platform: platform,
+          resolution: nf.size,
+          pixelRatio: 3,
+          goldenSubFolder: 'iphoneScreenshots/',
+          frameBuilder:
+              ({
+                required ScreenshotDevice device,
+                required ScreenshotFrameColors? frameColors,
+                required Widget child,
+              }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+        ),
+        home: home(),
+      ),
+    );
+    await tester.pump();
+    if (afterPump != null) await afterPump(tester);
+    await tester.loadAssets();
+    await tester.pump();
+    await expectLater(
+      capture?.call() ?? find.byType(ma.Scaffold),
+      matchesGoldenFile('../screenshots/en/$scene.png'),
+    );
+  }
+
+  // Localized widget snapshot: like [shootOne], but renders the (frameless,
+  // noFrame) widget once per locale and writes ../screenshots/<loc>/<scene>.png.
+  // Used for the website setup guides, which show the matching-language widget
+  // screenshots. The website uses the en/de/es/fr/it intersection of the app's
+  // and the site's supported locales; Czech falls back to en on the website.
+  Future<void> shootLocalized(
+    WidgetTester tester,
+    String scene,
+    Widget Function() home, {
+    Finder Function()? capture,
+    Future<void> Function(WidgetTester tester)? afterPump,
+    TargetPlatform platform = TargetPlatform.android,
+  }) async {
+    const widgetLocales = ['en', 'de', 'es', 'fr', 'it'];
+    final nf = sizes.firstWhere((s) => s.type == DeviceType.noFrame);
+    for (final loc in widgetLocales) {
+      await AppLocalizations.load(Locale(loc));
+      screenshotLocale = Locale(loc);
+      await tester.pumpWidget(
+        ScreenshotApp(
+          locale: Locale(loc),
+          device: ScreenshotDevice(
+            // Default Android, never the entry's Windows platform: shadcn's theme
+            // queries the Windows accent colour via advapi32.dll, which can't load
+            // on a macOS test host.
+            platform: platform,
+            resolution: nf.size,
+            pixelRatio: 3,
+            goldenSubFolder: 'iphoneScreenshots/',
+            frameBuilder:
+                ({
+                  required ScreenshotDevice device,
+                  required ScreenshotFrameColors? frameColors,
+                  required Widget child,
+                }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+          ),
+          home: home(),
+        ),
+      );
+      await tester.pump();
+      if (afterPump != null) await afterPump(tester);
+      await tester.loadAssets();
+      await tester.pump();
+      await expectLater(
+        capture?.call() ?? find.byType(ma.Scaffold),
+        matchesGoldenFile('../screenshots/$loc/$scene.png'),
+      );
+    }
+  }
+
   testGoldens('Device', (WidgetTester tester) async {
     await shoot(tester, 'device', () => BikeControlApp());
   });
@@ -332,5 +505,590 @@ Future<void> main() async {
         ),
       ),
     );
+  });
+
+  // --- 6.2 Virtual front derailleur (blog widget snapshots) ---
+  // Each widget is rendered standalone inside a keyed RepaintBoundary so the
+  // golden captures ONLY that widget (no page chrome).
+
+  // The second-window / desktop gear overlay (TrainerOverlayView), as shown on
+  // Windows & macOS. Large ring → the primary readout uses the 2×N position
+  // notation (here 2×14). Mirrors desktop_overlay_window: bare overlay on white.
+  testGoldens('Front Derailleur Gear', (WidgetTester tester) async {
+    const k = ValueKey('shot');
+    final state = ValueNotifier<TrainerOverlayState>(
+      const TrainerOverlayState(
+        gear: 14,
+        maxGear: 24,
+        gearRatio: 3.53,
+        mode: TrainerMode.simMode,
+        powerW: 250,
+        cadenceRpm: 90,
+        ergTargetW: null,
+        fields: {OverlayField.power, OverlayField.cadence},
+        frontShiftEnabled: true,
+        frontRingLarge: true,
+      ),
+    );
+    await shootOne(
+      tester,
+      'frontderailleur-gear',
+      () => BikeControlApp(
+        customChild: Center(
+          child: RepaintBoundary(
+            key: k,
+            child: ColoredBox(
+              color: const Color(0xFFFFFFFF),
+              child: SizedBox(
+                width: 240,
+                child: TrainerOverlayView(state: state, onModeToggle: null),
+              ),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+      platform: TargetPlatform.macOS,
+    );
+  });
+
+  // The front-derailleur setting card, enabled so the chainring steppers show.
+  testGoldens('Front Derailleur Setting', (WidgetTester tester) async {
+    await core.shiftingConfigs.upsert(
+      core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(
+            frontShiftEnabled: true,
+            smallChainringTeeth: 34,
+            largeChainringTeeth: 50,
+          ),
+    );
+    const k = ValueKey('shot');
+    await shootOne(
+      tester,
+      'frontderailleur-setting',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(key: k, child: FrontShiftCard(device: proxy, definition: fbd)),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // --- MyWhoosh setup-guide widget snapshots (website setup guide) ---
+  // Tight single-widget captures of the two BikeControl controls the MyWhoosh
+  // setup guide walks through: the trainer-app picker (showing MyWhoosh) and the
+  // "Connect directly over Network" connection method. Rendered standalone inside
+  // a keyed RepaintBoundary so the golden captures ONLY the widget.
+
+  // The trainer-app picker with MyWhoosh selected. screenshotMode stays on (it
+  // suppresses the real BLE bootstrap) and TrainerAppSelect.showRealName forces
+  // the closed Select to show the real "MyWhoosh" name + logo instead of the
+  // generic "Trainer app" placeholder the marketing screenshots use.
+  testGoldens('mywhoosh-trainer-select', (WidgetTester tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    core.settings.setKeyMap(MyWhoosh());
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'mywhoosh-trainer-select',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // The Network connection method (OpenBikeControl over mDNS), as shown for
+  // MyWhoosh, in its disabled/off state. The tile passes no requirements, so no
+  // real BLE is touched even though screenshotMode hides the "Recommended" badge.
+  testGoldens('mywhoosh-network-connection', (WidgetTester tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    core.settings.setKeyMap(MyWhoosh());
+    core.settings.setObpMdnsEnabled(false);
+    // Force the off / not-yet-connected state so the captured card is identical
+    // regardless of any emulator state a prior scene left behind (the shown
+    // description and height depend on isStarted/connectedApp).
+    core.obpMdnsEmulator.isStarted.value = false;
+    core.obpMdnsEmulator.connectedApp.value = null;
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'mywhoosh-network-connection',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: OpenBikeControlMdnsTile(small: false),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // --- Full connection card (connected-controller list entry) ---
+  // The complete card the overview's Controllers list renders for a connected
+  // controller: `device.showInformation` draws the header Row (StatusIcon +
+  // name + Beta pill + status meta) and, below it, the footer — the
+  // `ControllerCanvas` contour with its buttons. Two deviations from the live
+  // app, both deliberate so the image is chrome-free:
+  //   * `showSettingsIcon: false` hides the small header gear (settings live on
+  //     a separate page, not in this card).
+  //   * `showAdditionalInfo: false` drops the device's own state chrome (e.g.
+  //     the Zwift Click unlock warning) so the card is state-agnostic.
+  // The footer's buttons DO carry the MyWhoosh keymap (via
+  // `core.actionHandler.supportedApp?.keymap`), so each button that maps to an
+  // in-game action renders its supported-action badge — exactly like the
+  // connected-Controllers list. Buttons with no action (e.g. pure steering on
+  // the Sterzo / phone) render as bare buttons.
+  //
+  // `ZwiftClickV2.toString()` anonymizes its name to "Controller" while the
+  // marketing `screenshotMode` is on; we flip it off *synchronously* around just
+  // the `showInformation` build so the header shows the real product name — and
+  // restore it immediately, before any async (the app's connection-init scan
+  // reads `screenshotMode` on a later microtask, by which point it is true
+  // again, so no BLE scan fires). Only ClickV2 needs this, but doing it
+  // uniformly is harmless for the other devices.
+  //
+  // Rendered inside `BikeControlApp` so the card has the real theme and an
+  // `i18n` context, standalone in a keyed RepaintBoundary (captured tight) at a
+  // fixed list-card width.
+  Future<void> shootCard(WidgetTester tester, String scene, BaseDevice cardDevice) async {
+    const k = ValueKey('shot');
+    final savedScreenshotMode = screenshotMode;
+    try {
+      await shootOne(
+        tester,
+        scene,
+        () => BikeControlApp(
+          customChild: SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: 340,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Builder(
+                    builder: (context) {
+                      // Footer mirrors overview.dart's footerBuilder: the
+                      // active app's keymap drives the per-button action badges.
+                      final keymap = core.actionHandler.supportedApp?.keymap;
+                      final size = 56 / Theme.of(context).scaling;
+                      Widget btnFor(ControllerButton btn) => AnimatedButtonWidget(
+                            key: ValueKey(btn.name),
+                            button: btn,
+                            pressGeneration: 0,
+                            keymap: keymap,
+                            device: cardDevice,
+                            size: size,
+                            onUpdate: () {},
+                          );
+                      final footer = ControllerCanvas(
+                        layout: cardDevice.controllerLayout!,
+                        availableButtons: cardDevice.availableButtons,
+                        buttonBuilder: btnFor,
+                        buttonSize: size,
+                      );
+                      // Flip screenshotMode off only for this synchronous build
+                      // so the header shows the real product name, then restore
+                      // it before control returns to the framework.
+                      final saved = screenshotMode;
+                      screenshotMode = false;
+                      final card = cardDevice.showInformation(
+                        context,
+                        showFull: false,
+                        showSettingsIcon: false,
+                        showAdditionalInfo: false,
+                        footer: footer,
+                      );
+                      screenshotMode = saved;
+                      return RepaintBoundary(key: k, child: card);
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        capture: () => find.byKey(k),
+      );
+    } finally {
+      screenshotMode = savedScreenshotMode;
+    }
+  }
+
+  testGoldens('controller-zwift-click', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-click', zwiftClick);
+  });
+
+  testGoldens('controller-zwift-click-v2', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-click-v2', device);
+  });
+
+  testGoldens('controller-zwift-ride', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-ride', zwiftRide);
+  });
+
+  testGoldens('controller-zwift-play', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-zwift-play', zwiftPlay);
+  });
+
+  testGoldens('controller-cycplus-bc2', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-cycplus-bc2', cycplusBc2);
+  });
+
+  testGoldens('controller-thinkrider-vs200', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-thinkrider-vs200', thinkriderVs200);
+  });
+
+  testGoldens('controller-elite-sterzo', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-elite-sterzo', eliteSterzo);
+  });
+
+  testGoldens('controller-phone-steering', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-phone-steering', gyroSteering);
+  });
+
+  // --- Rouvy & TrainingPeaks setup-guide widget snapshots (website setup guide) ---
+  // Tight single-widget captures mirroring the MyWhoosh setup-guide scenes above:
+  // the trainer-app picker (showing the active app's real name + logo) and the
+  // connection methods the guide walks through. The connection-methods scene
+  // reproduces `trainer.dart`'s `recommendedTiles` conditional expression VERBATIM
+  // (see [recommendedConnectionTiles]) so the snapshot shows exactly the tiles the
+  // live app renders for whichever app is active — driven by `core.logic.show*`.
+  // These flags are derived from the selected app's declared `connections`:
+  //   * Rouvy supports (rouvyMdns, zwiftBle) → ZwiftMdnsTile + ZwiftTile.
+  //   * TrainingPeaks supports (obpBle, obpDirCon) → OpenBikeControlMdnsTile +
+  //     OpenBikeControlBluetoothTile.
+  // The BLE-backed flags (showZwiftBleEmulator / showObpBluetoothEmulator) ALSO
+  // require `getLastTarget() != Target.thisDevice`, so [setActiveApp] persists
+  // `Target.otherDevice` (the "run the app on another device" setup-guide path).
+
+  // Helper: set the active app exactly as selecting it in the app would, so the
+  // `core.logic.show*` flags become what the live app uses, then force every
+  // emulator into its off / not-yet-connected state so the captured cards are
+  // identical regardless of any emulator state a prior scene left behind (the
+  // shown description and height depend on isStarted/isConnected/connectedApp).
+  void setActiveApp(SupportedApp app) {
+    core.settings.setTrainerApp(app);
+    core.settings.setKeyMap(app);
+    // Selecting "another device" as the target is what enables the Bluetooth
+    // connection methods (showZwiftBleEmulator / showObpBluetoothEmulator both
+    // gate on getLastTarget() != Target.thisDevice). Without a non-null,
+    // non-thisDevice target the BLE tiles — and the whole tile block — are hidden.
+    core.settings.setLastTarget(Target.otherDevice);
+    // OBC (TrainingPeaks) tiles.
+    core.settings.setObpMdnsEnabled(false);
+    core.settings.setObpBleEnabled(false);
+    core.obpMdnsEmulator.isStarted.value = false;
+    core.obpMdnsEmulator.connectedApp.value = null;
+    core.obpMdnsEmulator.isConnected.value = false;
+    core.obpBluetoothEmulator.isStarted.value = false;
+    core.obpBluetoothEmulator.connectedApp.value = null;
+    core.obpBluetoothEmulator.isConnected.value = false;
+    // Zwift-protocol (Rouvy) tiles.
+    core.settings.setZwiftMdnsEmulatorEnabled(false);
+    core.settings.setZwiftBleEmulatorEnabled(false);
+    core.rouvyMdnsEmulator.isStarted.value = false;
+    core.rouvyMdnsEmulator.isConnected.value = false;
+    core.zwiftMdnsEmulator.isStarted.value = false;
+    core.zwiftMdnsEmulator.isConnected.value = false;
+    core.zwiftEmulator.isStarted.value = false;
+    core.zwiftEmulator.isConnected.value = false;
+  }
+
+  // The connection-method tiles the live app renders for the active app. This is
+  // `trainer.dart`'s `recommendedTiles` expression reproduced VERBATIM (same
+  // `if (core.logic.showX) XTile(small: false)` set, same order) so the snapshot
+  // matches the live app for whatever app `setActiveApp` selected. The onUpdate
+  // callbacks mirror trainer.dart's (signal a log notification); they never fire
+  // in the static snapshot.
+  List<Widget> recommendedConnectionTiles() {
+    // Verbatim from trainer.dart: the leading `false &&` is intentional (the
+    // "show Local as an Other method" path is currently disabled there).
+    // ignore: dead_code
+    final showLocalAsOther = false && core.logic.showLocalControl && !core.settings.getLocalEnabled();
+    final showWhooshLinkAsOther =
+        (core.logic.showObpBluetoothEmulator || core.logic.showObpMdnsEmulator) && core.logic.showMyWhooshLink;
+    return [
+      if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(small: false),
+      if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(small: false),
+      if (core.logic.showZwiftMsdnEmulator)
+        ZwiftMdnsTile(
+          small: false,
+          onUpdate: () {
+            core.connection.signalNotification(
+              LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+            );
+          },
+        ),
+      if (core.logic.showZwiftBleEmulator)
+        ZwiftTile(
+          small: false,
+          onUpdate: () {
+            core.connection.signalNotification(
+              LogNotification('Zwift Emulator status changed to ${core.zwiftEmulator.isConnected.value}'),
+            );
+          },
+        ),
+      if (core.logic.showDi2Ble) Di2BleTile(small: false),
+      if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: false),
+      if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
+    ];
+  }
+
+  // Render the recommended connection-method tiles for the active app the same
+  // way the trainer page lays them out (each tile in an IntrinsicHeight, stacked
+  // in a Column with 12px gaps), inside a keyed RepaintBoundary so the golden
+  // captures only the tile stack at a fixed setup-guide width.
+  Future<void> shootConnectionMethods(WidgetTester tester, String scene) async {
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      scene,
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Center(
+            child: SizedBox(
+              width: 340,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: RepaintBoundary(
+                  key: k,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final tile in recommendedConnectionTiles())
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: IntrinsicHeight(child: tile),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  }
+
+  // The trainer-app picker with Rouvy selected (showRealName forces the real
+  // "Rouvy" name + logo instead of the generic "Trainer app" placeholder).
+  testGoldens('rouvy-trainer-select', (WidgetTester tester) async {
+    setActiveApp(Rouvy());
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'rouvy-trainer-select',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // The connection methods the live app renders for Rouvy. Rouvy supports
+  // (rouvyMdns, zwiftBle), so this captures ZwiftMdnsTile (Network, over the
+  // Rouvy mDNS emulator) + ZwiftTile (Bluetooth) — NOT the OBC tiles — both in
+  // their off / not-yet-connected state.
+  testGoldens('rouvy-connection-methods', (WidgetTester tester) async {
+    setActiveApp(Rouvy());
+    await shootConnectionMethods(tester, 'rouvy-connection-methods');
+  });
+
+  // The trainer-app picker with TrainingPeaks selected. Note: TrainingPeaks's
+  // app name is "TrainingPeaks Virtual", so the closed Select (and the
+  // connection-method descriptions below) show "TrainingPeaks Virtual".
+  testGoldens('trainingpeaks-trainer-select', (WidgetTester tester) async {
+    setActiveApp(TrainingPeaks());
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      'trainingpeaks-trainer-select',
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: RepaintBoundary(
+              key: k,
+              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+    );
+  });
+
+  // The connection methods the live app renders for TrainingPeaks. TrainingPeaks
+  // supports (obpBle, obpDirCon), so this captures OpenBikeControlMdnsTile
+  // (Network) + OpenBikeControlBluetoothTile (Bluetooth), both off. Descriptions
+  // read "Lets TrainingPeaks Virtual connect…".
+  testGoldens('trainingpeaks-connection-methods', (WidgetTester tester) async {
+    setActiveApp(TrainingPeaks());
+    await shootConnectionMethods(tester, 'trainingpeaks-connection-methods');
+  });
+
+  // --- Overview / main screen (website setup-guide step 1) ---------------------
+  // A clean capture of the app's OVERVIEW page (Controllers card + Trainer
+  // Connection) showing ONLY a single connected controller with its REAL product
+  // name (not the anonymized "Controller" the App-Store `Device` shot uses). No
+  // device frame, no marketing title banner — just the app's own UI inside the
+  // frameless `noFrame` ScreenshotApp, localized one shot per locale.
+  //
+  // Two tricks make this work:
+  //   * We render the full `Navigation()` (the overview Scaffold + its AppBar)
+  //     while `screenshotMode == true`, so `Navigation.initState` →
+  //     `core.logic.startEnabledConnectionMethod()` early-returns (no BLE/mDNS
+  //     emulators start) and the page is laid out without any real connection.
+  //   * To get the REAL device name we flip `screenshotMode` off *synchronously*
+  //     for just the final `pump()` that produces the captured frame, then
+  //     restore it. e.g. `ZwiftClickV2.toString()` is read during that build and
+  //     returns "Zwift Click V2"; every async callback that re-reads the flag
+  //     (timers, the connection-init scan) runs on a later microtask, by which
+  //     point it is `true` again, so nothing scans. Harmless for the controllers
+  //     whose names are never anonymized.
+  //
+  // `core.connection.devices` is reduced to exactly the given controller + the
+  // smart-trainer proxy (so the Trainer Connection card shows a connected
+  // trainer). The active trainer app is MyWhoosh (the harness default).
+  //
+  // The frameless `noFrame` size entry's logical width (~367 px) is just narrow
+  // enough that the AppBar wraps the "BikeControl" title to two lines. The
+  // overview here is rendered slightly wider — `overviewNoFrameSize`, ~500
+  // logical px — so the title fits on one line while staying well under the
+  // overview's 800-logical-px two-column breakpoint (so it remains a phone-style
+  // single-column portrait main screen).
+  //
+  // Captured via the Navigation Scaffold's existing `overviewScreenshotKey`
+  // RepaintBoundary → tight, no surrounding chrome.
+  final overviewNf = sizes.firstWhere((s) => s.type == DeviceType.noFrame);
+  // Widen just the overview shots so "BikeControl" no longer wraps. 1500 device
+  // px / pixelRatio 3 = 500 logical px — comfortably below the 800-logical-px
+  // two-column breakpoint, so it stays single-column portrait.
+  final overviewNoFrameSize = Size(1500, overviewNf.size.height);
+
+  Future<void> shootOverview(
+    WidgetTester tester,
+    String scene,
+    BaseDevice overviewDevice,
+  ) async {
+    const overviewLocales = ['en', 'de', 'es', 'fr', 'it'];
+
+    // Only the given controller + the smart-trainer proxy.
+    final savedDevices = core.connection.devices.toList();
+    core.connection.devices
+      ..clear()
+      ..addAll([overviewDevice, proxy]);
+    core.connection.hasDevices.value = true;
+    // core.settings.reset() (in main) clears this, so re-assert the Base version
+    // is active — otherwise the overview shows the "trial available" IAP banner.
+    IAPManager.instance.isPurchased.value = true;
+
+    final savedScreenshotMode = screenshotMode;
+    try {
+      for (final loc in overviewLocales) {
+        await AppLocalizations.load(Locale(loc));
+        screenshotLocale = Locale(loc);
+        await tester.pumpWidget(
+          ScreenshotApp(
+            locale: Locale(loc),
+            device: ScreenshotDevice(
+              // Android, never the entry's Windows platform (advapi32.dll can't
+              // load on a macOS test host).
+              platform: TargetPlatform.android,
+              resolution: overviewNoFrameSize,
+              pixelRatio: 3,
+              goldenSubFolder: 'iphoneScreenshots/',
+              frameBuilder:
+                  ({
+                    required ScreenshotDevice device,
+                    required ScreenshotFrameColors? frameColors,
+                    required Widget child,
+                  }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+            ),
+            // Full overview Scaffold (header + Controllers card + Trainer
+            // Connection). screenshotMode is still true here, so initState does
+            // not start any connection method.
+            home: BikeControlApp(customChild: Navigation()),
+          ),
+        );
+        await tester.pump();
+        await tester.loadAssets();
+        // Flip screenshotMode off only for the synchronous build/pump that
+        // produces the captured frame, so the Controllers card header shows the
+        // real product name, then restore it before any async work continues.
+        // initState already ran (with the flag true → no connection method
+        // started); mark the mounted OverviewPage element dirty so only its
+        // build() re-runs with the flag off, picking up the real device name.
+        screenshotMode = false;
+        tester.element(find.byType(OverviewPage)).markNeedsBuild();
+        await tester.pump();
+        try {
+          await expectLater(
+            find.byKey(overviewScreenshotKey),
+            matchesGoldenFile('../screenshots/$loc/$scene.png'),
+          );
+        } finally {
+          screenshotMode = savedScreenshotMode;
+          await tester.pump();
+        }
+      }
+    } finally {
+      screenshotMode = savedScreenshotMode;
+      core.connection.devices
+        ..clear()
+        ..addAll(savedDevices);
+      core.connection.hasDevices.value = core.connection.devices.isNotEmpty;
+    }
+  }
+
+  testGoldens('overview-zwift-click', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-click', zwiftClick);
+  });
+
+  testGoldens('overview-zwift-click-v2', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-click-v2', device);
+  });
+
+  testGoldens('overview-zwift-ride', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-ride', zwiftRide);
+  });
+
+  testGoldens('overview-zwift-play', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-zwift-play', zwiftPlay);
+  });
+
+  testGoldens('overview-cycplus-bc2', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-cycplus-bc2', cycplusBc2);
+  });
+
+  testGoldens('overview-thinkrider-vs200', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-thinkrider-vs200', thinkriderVs200);
   });
 }

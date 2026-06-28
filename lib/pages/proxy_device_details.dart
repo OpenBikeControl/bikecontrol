@@ -16,6 +16,7 @@ import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_not
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
+import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -217,19 +218,26 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
   Future<void> _submitFeedback(String key, String label) async {
     final device = widget.device;
-    final base = buildProxyServicesFreetext(device);
-    final composed = (base == null || base.isEmpty) ? key : '$key\n\n$base';
     await core.settings.setFeedbackSubmitted(device.trainerKey, true);
     if (!mounted) return;
     setState(() {});
-    final snapshot = TelemetrySnapshot.fromDevice(device: device, freetextOverride: composed);
     final screenshot = await captureOverviewScreenshot(context: context);
     if (!mounted) return;
+    // Build telemetry in the background so the chat opens immediately. The full
+    // debugText (gathered here) already carries this trainer's services &
+    // characteristics, the diagnostics block and the log buffer, so we attach it
+    // instead of just the services snippet. The page awaits this future lazily
+    // for the diagnostic preview and at send time.
+    final snapshotFuture = () async {
+      final debug = await debugText();
+      return TelemetrySnapshot.fromDevice(device: device, freetextOverride: '$key\n$debug');
+    }();
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SupportChatPage(
-          telemetryBuilder: () async => snapshot,
-          diagnosticPreview: JsonEncoder.withIndent('  ').convert(snapshot.toJson()),
+          telemetryBuilder: () => snapshotFuture,
+          diagnosticPreviewFuture:
+              snapshotFuture.then((s) => JsonEncoder.withIndent('  ').convert(s.toJson())),
           initialText: '$label\n',
           initialAttachment: screenshot,
         ),

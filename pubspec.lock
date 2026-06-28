@@ -427,6 +427,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_foreground_task:
+    dependency: transitive
+    description:
+      name: flutter_foreground_task
+      sha256: fc5c01a5e1b8f7bb51d0c737714f0c50440dbdf1aeddc5f8cbba313aa6fd4856
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.2.2"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -520,6 +528,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  flutter_screen_recording:
+    dependency: "direct main"
+    description:
+      name: flutter_screen_recording
+      sha256: "0fb52011aa11ac4dc3e89bea3aaee4a709321af374b3b318e74fa8ed8338412e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.25"
+  flutter_screen_recording_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_screen_recording_platform_interface
+      sha256: "9e07f78a2529bc5b6c77d045b392ed4062445543613fcad431c4cc1da57558d7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
+  flutter_screen_recording_web:
+    dependency: transitive
+    description:
+      name: flutter_screen_recording_web
+      sha256: bb19b3875e0d8ddfe009ed42086339f8016df05e685c37ff06cb56e165f2f7fa
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.8"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -623,6 +655,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.0"
+  gal:
+    dependency: "direct main"
+    description:
+      name: gal
+      sha256: "969598f986789127fd407a750413249e1352116d4c2be66e81837ffeeaafdfee"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
   gamepads:
     dependency: "direct main"
     description:
@@ -675,10 +715,10 @@ packages:
     dependency: transitive
     description:
       name: gamepads_web
-      sha256: bf198f958727cd2d96f19be8b8d49057c9eb6b3095728d794181362b740d69ac
+      sha256: "860eb4f11fdb6dfcf18f793a491282747007909075d161373df7f067dfddb9a4"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.1+1"
   gamepads_windows:
     dependency: transitive
     description:
@@ -968,18 +1008,10 @@ packages:
     dependency: transitive
     description:
       name: js
-      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
+      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.7"
-  js_interop:
-    dependency: transitive
-    description:
-      name: js_interop
-      sha256: "7ec859c296958ccea34dc770504bd3ff4ae52fdd9e7eeb2bacc7081ad476a1f5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.1"
+    version: "0.7.2"
   json_annotation:
     dependency: transitive
     description:
@@ -1553,6 +1585,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.28.0"
+  screen_recorder:
+    dependency: "direct main"
+    description:
+      path: "packages/screen_recorder"
+      relative: true
+    source: path
+    version: "0.0.1"
   screen_retriever:
     dependency: transitive
     description:
@@ -1883,10 +1922,10 @@ packages:
     description:
       path: "."
       ref: changes
-      resolved-ref: "3beb8b6d18ac857fba578416857455d55aa788f9"
+      resolved-ref: d8961d78cb733526915eeb8a0530218a88d5649b
       url: "https://github.com/jonasbark/universal_ble.git"
     source: git
-    version: "2.0.4"
+    version: "2.1.0"
   url_launcher:
     dependency: "direct main"
     description:

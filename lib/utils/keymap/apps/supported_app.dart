@@ -60,6 +60,10 @@ abstract class SupportedApp {
   /// Optional asset path for the trainer app logo (only for officially supported apps).
   String? get logoAsset => null;
 
+  /// Slug for the bikecontrol.app `use-<controller>-with-<app>` how-to article.
+  /// Apps without a dedicated page fall back to the generic guide.
+  String get helpSlug => 'other-training-app';
+
   /// Maps Zwift Click V2 actions to this app's corresponding actions.
   /// E.g. for Rouvy: {InGameAction.usePowerUp: InGameAction.pause, InGameAction.select: InGameAction.kudos}
   Map<InGameAction, InGameAction> get inGameActionsMapping => const {};

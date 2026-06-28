@@ -77,5 +77,64 @@ Future<void> main() async {
       expect(result, isA<Success>());
       expect(def.trainerMode.value, isNot(TrainerMode.ergMode));
     });
+
+    group('frontShift', () {
+      setUp(() {
+        // Enable front-shift on the definition, put it in sim mode.
+        def.setChainringTeeth(34, 50);
+        def.setFrontShiftEnabled(true);
+        def.setTargetGear(12); // sim mode (non-ERG)
+      });
+
+      test('sim mode: first call shifts to large ring and returns Success', () {
+        expect(def.frontRing.value, FrontRing.small); // precondition
+        final result = device.handleTrainerAction(
+          ZwiftButtons.shiftDownLeft,
+          InGameAction.frontShift,
+        );
+        expect(result, isA<Success>());
+        expect(def.frontRing.value, FrontRing.large);
+      });
+
+      test('sim mode: second call shifts back to small ring and returns Success', () {
+        // First toggle → large
+        device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.frontShift);
+        expect(def.frontRing.value, FrontRing.large);
+
+        // Second toggle → small
+        final result = device.handleTrainerAction(
+          ZwiftButtons.shiftDownLeft,
+          InGameAction.frontShift,
+        );
+        expect(result, isA<Success>());
+        expect(def.frontRing.value, FrontRing.small);
+      });
+
+      test('erg mode: returns Ignored and does not change ring', () {
+        def.setManualErgPower(150); // switch to ERG
+        expect(def.trainerMode.value, TrainerMode.ergMode);
+        final ringBefore = def.frontRing.value;
+
+        final result = device.handleTrainerAction(
+          ZwiftButtons.shiftDownLeft,
+          InGameAction.frontShift,
+        );
+        expect(result, isA<Ignored>());
+        expect(def.frontRing.value, ringBefore); // unchanged
+      });
+
+      test('returns Ignored when front-shift is disabled', () {
+        def.setFrontShiftEnabled(false);
+        final ringBefore = def.frontRing.value;
+
+        final result = device.handleTrainerAction(
+          ZwiftButtons.shiftDownLeft,
+          InGameAction.frontShift,
+        );
+        expect(result, isA<Ignored>());
+        expect((result as Ignored).message, AppLocalizations.current.trainerFrontShiftNotEnabled);
+        expect(def.frontRing.value, ringBefore);
+      });
+    });
   });
 }

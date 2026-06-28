@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/overlay/ios_pip_controller.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
@@ -23,6 +24,8 @@ class IosOverlayController implements TrainerOverlayController {
   final ValueNotifier<bool> _showing = ValueNotifier(false);
   final LiveActivities _la = LiveActivities();
   String? _activityId;
+  final IosPipController _pip = IosPipController();
+  bool _pipActive = false;
 
   FitnessBikeDefinition? _def;
   LiveDefinitionLookup? _liveDef;
@@ -79,6 +82,26 @@ class IosOverlayController implements TrainerOverlayController {
     }
 
     _showing.value = true;
+    try {
+      // null pref = automatic device default (iPad / non-Dynamic-Island iPhones);
+      // an explicit true opts in everywhere PiP is capable (e.g. DI iPhones), an
+      // explicit false opts out. The Live Activity keeps running either way.
+      final pref = core.settings.getOverlayUsePip();
+      final usePip = pref == null ? await _pip.isSupported() : (pref && await _pip.isCapable());
+      // hide() may have run during the awaits above (Live Activity 'stop',
+      // trainer disconnect, …) and set _showing=false; only arm PiP if we're
+      // still showing, and tear it back down if a hide lands during start().
+      if (usePip && _showing.value) {
+        await _pip.start(_toMap(s));
+        _pipActive = true;
+        if (!_showing.value) {
+          _pipActive = false;
+          await _pip.stop();
+        }
+      }
+    } catch (e, st) {
+      recordError(e, st, context: 'overlay.ios.pip.start');
+    }
     return const OverlayShowResult.ok();
   }
 
@@ -101,6 +124,14 @@ class IosOverlayController implements TrainerOverlayController {
       _activityId = null;
     }
     _showing.value = false;
+    if (_pipActive) {
+      try {
+        await _pip.stop();
+      } catch (e, s) {
+        recordError(e, s, context: 'overlay.ios.pip.stop');
+      }
+      _pipActive = false;
+    }
   }
 
   @override
@@ -150,30 +181,12 @@ class IosOverlayController implements TrainerOverlayController {
       cadenceRpm: def.cadenceRpm.value,
       ergTargetW: def.ergTargetPower.value,
       fields: _fields,
+      frontShiftEnabled: def.frontShiftEnabled,
+      frontRingLarge: def.frontRing.value == FrontRing.large,
     );
   }
 
-  // live_activities routes the map through NSUserDefaults in the App Group,
-  // which crashes on null values (NSInvalidArgumentException). Optional Swift
-  // fields (Int?) decode missing keys as nil via Codable, so omitting nulls
-  // yields the same ContentState.
-  Map<String, dynamic> _toMap(TrainerOverlayState s) {
-    final m = <String, dynamic>{
-      'gear': s.gear,
-      'maxGear': s.maxGear,
-      'mode': s.mode == TrainerMode.ergMode ? 'erg' : 'sim',
-      'showPower': s.fields.contains(OverlayField.power),
-      'showCadence': s.fields.contains(OverlayField.cadence),
-      'showErgTarget': s.fields.contains(OverlayField.ergTarget),
-      'showGearRatio': s.fields.contains(OverlayField.gearRatio),
-      'showControls': s.fields.contains(OverlayField.controls),
-      'gearRatio': s.gearRatio,
-    };
-    if (s.powerW != null) m['powerW'] = s.powerW;
-    if (s.cadenceRpm != null) m['cadenceRpm'] = s.cadenceRpm;
-    if (s.ergTargetW != null) m['ergTargetW'] = s.ergTargetW;
-    return m;
-  }
+  Map<String, dynamic> _toMap(TrainerOverlayState s) => overlayStateToActivityMap(s);
 
   Future<void> _push({bool force = false}) async {
     final id = _activityId;
@@ -187,6 +200,9 @@ class IosOverlayController implements TrainerOverlayController {
     _lastPushAt = DateTime.now();
     try {
       await _la.updateActivity(id, _toMap(s));
+      if (_pipActive) {
+        await _pip.update(_toMap(s));
+      }
     } catch (error, stack) {
       recordError(error, stack, context: 'overlay.ios.updateActivity');
     }

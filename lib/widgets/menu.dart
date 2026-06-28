@@ -6,6 +6,7 @@ import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/title.dart';
@@ -23,6 +24,8 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth/devices/zwift/zwift_clickv2.dart';
 import '../utils/iap/iap_manager.dart';
+import 'package:bike_control/services/debug_diagnostics.dart';
+import 'package:bike_control/main.dart' show recordError;
 
 List<Widget> buildMenuButtons(BuildContext context) {
   final iap = IAPManager.instance;
@@ -95,10 +98,18 @@ List<Widget> buildMenuButtons(BuildContext context) {
   ];
 }
 
-Future<String> debugText() async {
+Future<String> debugText({bool includeDiscovery = true}) async {
   final userId = IAPManager.instance.isUsingRevenueCat ? (await Purchases.appUserID) : null;
   final proxies = core.connection.proxyDevices;
   final proxyBlock = proxies.isEmpty ? '-' : proxies.map(_describeProxyDevice).join('\n  ');
+  String diagnostics;
+  try {
+    final diag = await DebugDiagnostics.gather(includeDiscovery: includeDiscovery);
+    diagnostics = diag.toText();
+  } catch (e, s) {
+    recordError(e, s, context: 'debugText.diagnostics');
+    diagnostics = 'Diagnostics: (unavailable)';
+  }
   return '''
 
 ---
@@ -111,6 +122,7 @@ Connected Trainers: ${core.logic.connectedTrainerConnections.map((e) => e.title)
 Smart Trainers:
   $proxyBlock
 Status: ${IAPManager.instance.getStatusMessage()}${userId != null ? ' (User ID: $userId)' : ''}
+$diagnostics
 Logs:
 ${core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}
 ''';
@@ -144,7 +156,9 @@ String _describeProxyDevice(ProxyDevice device) {
   if (device.firmwareVersion != null) parts.add('fw=${device.firmwareVersion}');
   if (device.manufacturerName != null) parts.add('mfg=${device.manufacturerName}');
   if (def != null) {
-    parts.add('gear=${def.currentGear.value}/${def.maxGear}');
+    parts.add(
+      'gear=${formatGearReadout(currentGear: def.currentGear.value, maxGear: def.maxGear, frontShiftEnabled: def.frontShiftEnabled, largeRing: def.frontRing.value == FrontRing.large)}',
+    );
     parts.add('trainerMode=${def.trainerMode.value.name}');
   }
 

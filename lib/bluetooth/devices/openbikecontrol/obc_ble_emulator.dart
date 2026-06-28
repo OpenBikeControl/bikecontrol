@@ -3,10 +3,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/ble.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/app_info_reassembler.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart' show AlertNotification, LogNotification;
+import 'package:bike_control/bluetooth/peripheral_advertising_recovery.dart';
 import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -22,12 +24,16 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 import 'package:universal_ble/universal_ble.dart';
 
-class OpenBikeControlBluetoothEmulator extends TrainerConnection {
+class OpenBikeControlBluetoothEmulator extends TrainerConnection with PeripheralAdvertisingRecovery {
   final _server = PeripheralServer();
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
   String? _currentDeviceId;
+  final _appInfoReassembler = AppInfoReassembler();
+
+  @override
+  PeripheralServer get advertisingServer => _server;
 
   OpenBikeControlBluetoothEmulator()
     : super(
@@ -50,14 +56,17 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
         isConnected.value = false;
         connectedApp.value = null;
         _currentDeviceId = null;
+        // Drop any half-received app-info so it can't poison the next central.
+        _appInfoReassembler.reset();
       }
     });
 
-    _server.onAdvertisingStateChanged((state, error) {
+    _server.onAdvertisingStateChanged((state, error) async {
       if (kDebugMode) {
         print('OpenBikeControl advertising state: ${state.name}${error != null ? ' — $error' : ''}');
       }
       if (state == PeripheralAdvertisingState.error) {
+        if (await recoverIfAlreadyAdvertising(error)) return;
         core.connection.signalNotification(
           AlertNotification(
             LogLevel.LOGLEVEL_WARNING,
@@ -92,7 +101,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
           return PeripheralReadRequestResult(value: Uint8List.fromList([100]));
         });
 
-        Uint8List? firstAppInfoMessage;
+        // Some apps (e.g. TrainingPeaks on macOS) split the app-info write
+        // across several BLE packets; the reassembler accumulates fragments
+        // until the flattened buffer parses. It's a field so disconnect can
+        // reset it (see onConnectionChanged) and so it outlives this closure.
         _server.setWriteHandler(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID, (
           deviceId,
           characteristicId,
@@ -103,30 +115,25 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
           if (kDebugMode) {
             print('Write request for characteristic: $characteristicId: ${bytesToReadableHex(value)}');
           }
-          try {
-            // use this fallback if first message is incomplete (e.g. TrainingPeaks on macOS)
-            AppInfo appInfo = OpenBikeProtocolParser.parseAppInfo(
-              Uint8List.fromList([...?firstAppInfoMessage, ...value]),
-            );
-            firstAppInfoMessage = null;
-            isConnected.value = true;
-            _currentDeviceId = deviceId;
-            connectedApp.value = appInfo;
-            supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
-            final trainerApp = core.settings.getTrainerApp();
-            if (trainerApp != null) {
-              unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
-            }
+          final appInfo = _appInfoReassembler.offer(value);
+          if (appInfo == null) {
             core.connection.signalNotification(
-              AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+              LogNotification('Error parsing App Info ${bytesToHex(value)}: ${_appInfoReassembler.lastError}'),
             );
-            core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
-          } catch (e) {
-            core.connection.signalNotification(LogNotification('Error parsing App Info ${bytesToHex(value)}: $e'));
-            if (firstAppInfoMessage == null) {
-              firstAppInfoMessage = value;
-            }
+            return PeripheralWriteRequestResult();
           }
+          isConnected.value = true;
+          _currentDeviceId = deviceId;
+          connectedApp.value = appInfo;
+          supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
+          final trainerApp = core.settings.getTrainerApp();
+          if (trainerApp != null) {
+            unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
+          }
+          core.connection.signalNotification(
+            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+          );
+          core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
           return PeripheralWriteRequestResult();
         });
       }
@@ -181,11 +188,17 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection {
     }
 
     print('Starting advertising with OpenBikeControl service...');
-    await _server.startAdvertising(
-      services: [OpenBikeControlConstants.SERVICE_UUID],
-      localName: 'BikeControl',
-    );
+    // Drop any stale/foreign advertisement (e.g. left over from a previous
+    // session or another peripheral role) before claiming the shared manager.
+    // stopAdvertising is idempotent on Darwin, so this is safe when idle.
+    await restartAdvertising();
   }
+
+  @override
+  Future<void> startServiceAdvertising() => _server.startAdvertising(
+    services: [OpenBikeControlConstants.SERVICE_UUID],
+    localName: 'BikeControl',
+  );
 
   Future<void> stopServer() async {
     if (kDebugMode) {

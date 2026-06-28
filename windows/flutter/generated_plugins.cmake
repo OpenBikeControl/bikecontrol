@@ -8,12 +8,14 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_screen_capture
   flutter_secure_storage_windows
   flutter_volume_controller
+  gal
   gamepads_windows
   keypress_simulator_windows
   media_key_detector_windows
   multi_window_native
   nsd_windows
   permission_handler_windows
+  screen_recorder
   screen_retriever_windows
   share_plus
   universal_ble

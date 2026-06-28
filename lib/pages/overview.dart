@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -10,6 +11,7 @@ import 'package:bike_control/pages/proxy.dart';
 import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/services/blog_service.dart';
+import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -31,6 +33,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionM
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:gal/gal.dart';
 import 'package:prop/prop.dart' show LogLevel, Logger, RetrofitMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -228,7 +231,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   void _onActionResult(ActionResult result, ControllerButton button) {
-    final entry = _ActivityEntry(button: button, time: DateTime.now(), result: result);
+    // A saved screen recording gets a "reveal" action on its activity entry:
+    // open the containing folder on desktop, or the gallery on mobile.
+    final savedPath = result is Success ? result.filePath : null;
+    final hasRecording = savedPath != null && savedPath.isNotEmpty && !kIsWeb;
+    final isDesktop = !kIsWeb && (Platform.isMacOS || Platform.isWindows);
+    final entry = _ActivityEntry(
+      button: button,
+      time: DateTime.now(),
+      result: result,
+      buttonTitle: hasRecording
+          ? (isDesktop ? AppLocalizations.of(context).openFolder : AppLocalizations.of(context).openGallery)
+          : null,
+      onTap: hasRecording ? () => _openRecordingLocation(savedPath) : null,
+    );
     _insertActivityEntry(entry);
 
     if (entry.isError) {
@@ -260,6 +276,22 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       });
     } else {
       setState(() {});
+    }
+  }
+
+  /// Reveals a saved recording: the containing folder in Finder / Explorer on
+  /// desktop, or the system gallery on mobile (where it was saved via `gal`).
+  Future<void> _openRecordingLocation(String filePath) async {
+    try {
+      if (Platform.isMacOS) {
+        await Process.run('open', [File(filePath).parent.path]);
+      } else if (Platform.isWindows) {
+        await Process.run('explorer', [File(filePath).parent.path]);
+      } else {
+        await Gal.open();
+      }
+    } catch (e, s) {
+      recordError(e, s, context: 'open recording location');
     }
   }
 
@@ -349,6 +381,20 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   children: [
                     Expanded(
                       child: _buildSectionHeader(icon: Icons.gamepad, title: AppLocalizations.of(context).controllers),
+                    ),
+                    ValueListenableBuilder<ScreenRecordingState>(
+                      valueListenable: core.screenRecording.state,
+                      builder: (context, state, _) {
+                        if (state != ScreenRecordingState.recording) return const SizedBox.shrink();
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.fiber_manual_record, color: Colors.red, size: 12),
+                            const SizedBox(width: 4),
+                            Text(context.i18n.screenRecordingStarted).xSmall.muted,
+                          ],
+                        );
+                      },
                     ),
                     if (core.settings.getIgnoredDevices().isNotEmpty)
                       Button.text(

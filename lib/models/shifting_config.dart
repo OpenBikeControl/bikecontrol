@@ -13,6 +13,10 @@ class ShiftingConfig {
   static const int maxGearMax = 30;
   static const int maxGearDefault = 24;
   static const int _gearRatiosMaxLength = 30;
+  static const int chainringTeethMin = 20;
+  static const int chainringTeethMax = 60;
+  static const int smallChainringDefault = 34;
+  static const int largeChainringDefault = 50;
 
   final String name;
   final String trainerKey;
@@ -24,6 +28,9 @@ class ShiftingConfig {
   final bool cadenceFilterEnabled;
   final int maxGear;
   final List<double>? gearRatios;
+  final bool frontShiftEnabled;
+  final int smallChainringTeeth;
+  final int largeChainringTeeth;
 
   const ShiftingConfig({
     required this.name,
@@ -36,6 +43,9 @@ class ShiftingConfig {
     this.cadenceFilterEnabled = false,
     this.maxGear = maxGearDefault,
     this.gearRatios,
+    this.frontShiftEnabled = false,
+    this.smallChainringTeeth = smallChainringDefault,
+    this.largeChainringTeeth = largeChainringDefault,
   });
 
   factory ShiftingConfig.defaults({
@@ -83,6 +93,13 @@ class ShiftingConfig {
               parsedRatios.length <= _gearRatiosMaxLength)
           ? parsedRatios
           : null,
+      frontShiftEnabled: (json['frontShiftEnabled'] as bool?) ?? false,
+      smallChainringTeeth:
+          ((json['smallChainringTeeth'] as num?)?.toInt() ?? smallChainringDefault)
+              .clamp(chainringTeethMin, chainringTeethMax),
+      largeChainringTeeth:
+          ((json['largeChainringTeeth'] as num?)?.toInt() ?? largeChainringDefault)
+              .clamp(chainringTeethMin, chainringTeethMax),
     );
   }
 
@@ -97,6 +114,9 @@ class ShiftingConfig {
         'cadenceFilterEnabled': cadenceFilterEnabled,
         'maxGear': maxGear,
         if (gearRatios != null) 'gearRatios': gearRatios,
+        'frontShiftEnabled': frontShiftEnabled,
+        'smallChainringTeeth': smallChainringTeeth,
+        'largeChainringTeeth': largeChainringTeeth,
       };
 
   ShiftingConfig copyWith({
@@ -111,6 +131,9 @@ class ShiftingConfig {
     int? maxGear,
     List<double>? gearRatios,
     bool clearGearRatios = false,
+    bool? frontShiftEnabled,
+    int? smallChainringTeeth,
+    int? largeChainringTeeth,
   }) {
     final resolvedMaxGear = maxGear ?? this.maxGear;
     final resolvedRatios = clearGearRatios ? null : (gearRatios ?? this.gearRatios);
@@ -130,6 +153,9 @@ class ShiftingConfig {
       cadenceFilterEnabled: cadenceFilterEnabled ?? this.cadenceFilterEnabled,
       maxGear: resolvedMaxGear,
       gearRatios: ratiosMatchMaxGear ? resolvedRatios : null,
+      frontShiftEnabled: frontShiftEnabled ?? this.frontShiftEnabled,
+      smallChainringTeeth: smallChainringTeeth ?? this.smallChainringTeeth,
+      largeChainringTeeth: largeChainringTeeth ?? this.largeChainringTeeth,
     );
   }
 
@@ -146,7 +172,10 @@ class ShiftingConfig {
           gradeSmoothing == other.gradeSmoothing &&
           cadenceFilterEnabled == other.cadenceFilterEnabled &&
           maxGear == other.maxGear &&
-          listEquals(gearRatios, other.gearRatios));
+          listEquals(gearRatios, other.gearRatios) &&
+          frontShiftEnabled == other.frontShiftEnabled &&
+          smallChainringTeeth == other.smallChainringTeeth &&
+          largeChainringTeeth == other.largeChainringTeeth);
 
   @override
   int get hashCode => Object.hash(
@@ -160,5 +189,8 @@ class ShiftingConfig {
         cadenceFilterEnabled,
         maxGear,
         gearRatios == null ? null : Object.hashAll(gearRatios!),
+        frontShiftEnabled,
+        smallChainringTeeth,
+        largeChainringTeeth,
       );
 }

@@ -8,8 +8,10 @@ import UIKit
   /// a MethodCallHandler on this channel; native code below forwards Darwin
   /// notifications posted by the extension's `AppIntent`s.
   private static let overlayActionsChannel = "bike_control/overlay_actions_ios"
+  private static let pipChannelName = "bike_control/pip_ios"
 
   private var actionChannel: FlutterMethodChannel?
+  private var pipChannel: FlutterMethodChannel?
 
   override func application(
     _ application: UIApplication,
@@ -38,6 +40,48 @@ import UIKit
         name: AppDelegate.overlayActionsChannel,
         binaryMessenger: registrar.messenger()
       )
+    }
+
+    if pipChannel == nil,
+       let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "BikeControlPip") {
+      let channel = FlutterMethodChannel(
+        name: AppDelegate.pipChannelName,
+        binaryMessenger: registrar.messenger()
+      )
+      channel.setMethodCallHandler { call, result in
+        switch call.method {
+        case "isSupported":
+          if #available(iOS 16.0, *) {
+            result(DeviceCapabilities.pipEligible)
+          } else {
+            result(false)
+          }
+        case "isCapable":
+          if #available(iOS 16.0, *) {
+            result(DeviceCapabilities.isPipCapable)
+          } else {
+            result(false)
+          }
+        case "start":
+          if #available(iOS 16.0, *) {
+            PipGearController.shared.start(initial: call.arguments as? [String: Any] ?? [:])
+          }
+          result(nil)
+        case "update":
+          if #available(iOS 16.0, *) {
+            PipGearController.shared.update(call.arguments as? [String: Any] ?? [:])
+          }
+          result(nil)
+        case "stop":
+          if #available(iOS 16.0, *) {
+            PipGearController.shared.stop()
+          }
+          result(nil)
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+      pipChannel = channel
     }
   }
 

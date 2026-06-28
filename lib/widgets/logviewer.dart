@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/diagnostics_section.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -22,6 +24,18 @@ class LogViewer extends StatefulWidget {
 class _LogviewerState extends State<LogViewer> {
   late StreamSubscription<BaseNotification> _actionSubscription;
   final ScrollController _scrollController = ScrollController();
+  DebugDiagnostics? _diagnostics;
+  bool _scanning = false;
+
+  Future<void> _loadDiagnostics() async {
+    setState(() => _scanning = true);
+    final diag = await DebugDiagnostics.gather(includeDiscovery: true);
+    if (!mounted) return;
+    setState(() {
+      _diagnostics = diag;
+      _scanning = false;
+    });
+  }
 
   @override
   void initState() {
@@ -40,6 +54,7 @@ class _LogviewerState extends State<LogViewer> {
         }
       }
     });
+    _loadDiagnostics();
   }
 
   @override
@@ -76,6 +91,11 @@ class _LogviewerState extends State<LogViewer> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
+            DiagnosticsSection(
+              diagnostics: _diagnostics,
+              scanning: _scanning,
+              onRefresh: _loadDiagnostics,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -86,7 +106,10 @@ class _LogviewerState extends State<LogViewer> {
                     final logText = core.connection.lastLogEntries
                         .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
                         .join('\n');
-                    Clipboard.setData(ClipboardData(text: logText));
+                    final diagnosticsText = _diagnostics?.toText();
+                    final shareText =
+                        diagnosticsText == null ? logText : '$diagnosticsText\n\nLogs:\n$logText';
+                    Clipboard.setData(ClipboardData(text: shareText));
 
                     buildToast(title: context.i18n.logsHaveBeenCopiedToClipboard);
                   },

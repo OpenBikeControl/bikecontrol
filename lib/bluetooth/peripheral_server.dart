@@ -71,11 +71,18 @@ class PeripheralServer {
   Future<void> startAdvertising({
     required List<String> services,
     String? localName,
+    // Put service UUIDs in the Android scan response instead of the primary
+    // advertisement. Needed when a 128-bit UUID + name would overflow the
+    // 31-byte primary packet (e.g. the Rouvy Zwift emulator advertisement).
+    bool servicesInScanResponse = false,
   }) => UniversalBlePeripheral.startAdvertising(
     services: services,
     localName: localName,
     platformConfig: PeripheralPlatformConfig(
-      android: PeripheralAndroidOptions(addManufacturerDataInScanResponse: true),
+      android: PeripheralAndroidOptions(
+        addManufacturerDataInScanResponse: true,
+        addServicesInScanResponse: servicesInScanResponse,
+      ),
     ),
   );
 

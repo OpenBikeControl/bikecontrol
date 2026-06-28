@@ -17,6 +17,12 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		9DEFD285994D09CFCE400F36 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CE7ADD07A99710C0FB974A8 /* Pods_Runner.framework */; };
+		F02276C12FEC277800C2B6F1 /* GearSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */; };
+		F02276C22FEC277800C2B6F1 /* GearReadoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276C02FEC277800C2B6F1 /* GearReadoutView.swift */; };
+		F02276C52FEC278C00C2B6F1 /* DeviceCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */; };
+		F02276C62FEC278C00C2B6F1 /* PipGearController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276C42FEC278C00C2B6F1 /* PipGearController.swift */; };
+		F02276F12FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276F02FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift */; };
+		F02277062FEC2B6500C2B6F1 /* GearSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */; };
 		F068794F2FAF1F5700395E5C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F068794E2FAF1F5700395E5C /* WidgetKit.framework */; };
 		F06879512FAF1F5700395E5C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F06879502FAF1F5700395E5C /* SwiftUI.framework */; };
 		F06879602FAF1F5900395E5C /* TrainerActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F068794D2FAF1F5700395E5C /* TrainerActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -88,6 +94,11 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DFFDC4B9C4D6EF6A3BDE2E73 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		EFDECED99A47773C293F8819 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GearSnapshot.swift; path = Shared/GearSnapshot.swift; sourceTree = "<group>"; };
+		F02276C02FEC277800C2B6F1 /* GearReadoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GearReadoutView.swift; path = Shared/GearReadoutView.swift; sourceTree = "<group>"; };
+		F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeviceCapabilities.swift; path = Runner/DeviceCapabilities.swift; sourceTree = "<group>"; };
+		F02276C42FEC278C00C2B6F1 /* PipGearController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PipGearController.swift; path = Runner/PipGearController.swift; sourceTree = "<group>"; };
+		F02276F02FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GearSnapshot+LiveActivity.swift"; path = "Shared/GearSnapshot+LiveActivity.swift"; sourceTree = "<group>"; };
 		F068794D2FAF1F5700395E5C /* TrainerActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TrainerActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F068794E2FAF1F5700395E5C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		F06879502FAF1F5700395E5C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -197,6 +208,11 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				F02276F02FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift */,
+				F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */,
+				F02276C42FEC278C00C2B6F1 /* PipGearController.swift */,
+				F02276C02FEC277800C2B6F1 /* GearReadoutView.swift */,
+				F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */,
 				F068796C2FAF203C00395E5C /* TrainerActivityExtension.entitlements */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
@@ -504,6 +520,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F02276C52FEC278C00C2B6F1 /* DeviceCapabilities.swift in Sources */,
+				F02276C62FEC278C00C2B6F1 /* PipGearController.swift in Sources */,
+				F02276C12FEC277800C2B6F1 /* GearSnapshot.swift in Sources */,
+				F02276C22FEC277800C2B6F1 /* GearReadoutView.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
@@ -513,6 +533,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F02277062FEC2B6500C2B6F1 /* GearSnapshot.swift in Sources */,
+				F02276F12FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -804,11 +826,9 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = UZRHKPVWN9;
+				DEVELOPMENT_TEAM = UZRHKPVWN9;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -819,7 +839,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.jonasbark.swiftcontrol.darwin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "BikeControl Dev";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -872,11 +891,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = TrainerActivityExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = UZRHKPVWN9;
+				DEVELOPMENT_TEAM = UZRHKPVWN9;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -897,7 +914,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.jonasbark.swiftcontrol.darwin.TrainerActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "LiveActivity Debug";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";

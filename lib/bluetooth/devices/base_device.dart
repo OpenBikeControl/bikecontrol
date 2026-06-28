@@ -123,6 +123,7 @@ abstract class BaseDevice {
           _activeLongPressButtons.clear();
         }
         _previouslyPressedButtons = buttonsClicked.toSet();
+        if (await _maybeHandleFrontShiftCombo(buttonsClicked)) return;
         await performClick(buttonsClicked, trigger: ButtonTrigger.singleClick);
         return;
       }
@@ -484,8 +485,19 @@ abstract class BaseDevice {
     return [];
   }
 
-  Widget showInformation(BuildContext context, {required bool showFull, Widget? footer}) {
+  /// An optional small badge rendered immediately to the left of the Beta pill
+  /// in the device header. Smart trainers use it to show a transport icon when
+  /// the same trainer is discovered over both WiFi and Bluetooth, so the two
+  /// identically-named entries can be told apart. Returns null by default.
+  Widget? nameBadge(BuildContext context) => null;
+
+  Widget showInformation(BuildContext context,
+      {required bool showFull,
+      Widget? footer,
+      bool showSettingsIcon = true,
+      bool showAdditionalInfo = true}) {
     final meta = showMetaInformation(context, showFull: showFull);
+    final badge = nameBadge(context);
     // Hero the entire header Row so the icon, title and meta fly together
     // when navigating between the overview's compact card and the
     // ControllerSettingsPage's expanded card — the same Row shape is rendered
@@ -519,9 +531,10 @@ abstract class BaseDevice {
                           toString(),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
                         ),
+                        if (badge != null) badge,
                         if (isBeta) BetaPill(),
                         Expanded(child: SizedBox()),
-                        if (!showFull)
+                        if (!showFull && showSettingsIcon)
                           Icon(
                             LucideIcons.settings,
                             size: 16,
@@ -545,7 +558,7 @@ abstract class BaseDevice {
           ),
         ),
         if (footer != null) footer,
-        ...showAdditionalInformation(context),
+        if (showAdditionalInfo) ...showAdditionalInformation(context),
       ],
     );
   }
@@ -572,6 +585,24 @@ abstract class BaseDevice {
       core.settings.setKeyMap(core.actionHandler.supportedApp!);
     }
     return button;
+  }
+
+  /// If [buttons] resolve to exactly {shiftUp, shiftDown} and the front-shift
+  /// combo is enabled, emit a single frontShift and suppress the rear shifts.
+  Future<bool> _maybeHandleFrontShiftCombo(List<ControllerButton> buttons) async {
+    if (!core.actionHandler.frontShiftComboEnabled) return false;
+    if (buttons.length < 2) return false;
+    final actions = buttons
+        .map((b) => core.actionHandler.supportedApp?.keymap
+            .getKeyPair(b, trigger: ButtonTrigger.singleClick)
+            ?.inGameAction)
+        .toSet();
+    if (actions.contains(InGameAction.shiftUp) && actions.contains(InGameAction.shiftDown)) {
+      final result = await core.actionHandler.performInGameAction(InGameAction.frontShift);
+      actionStreamInternal.add(ActionNotification(result));
+      return true;
+    }
+    return false;
   }
 
   void _showCommandLimitAlert() {

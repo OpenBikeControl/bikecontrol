@@ -69,12 +69,16 @@ enum InGameAction {
   trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
   trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true),
   workoutPauseResume('Workout: Pause/Resume', icon: LucideIcons.pause, isOutsideTrainerApp: true),
+  frontShift('Front Shift (Chainring)', icon: LucideIcons.arrowLeftRight, isOutsideTrainerApp: true),
 
   // Wahoo ELEMNT — D-Fly channel buttons emitted via the Di2Definition.
   dFlyChannel1('D-Fly Channel 1', icon: LucideIcons.circleDot),
   dFlyChannel2('D-Fly Channel 2', icon: LucideIcons.circleDot),
   dFlyChannel3('D-Fly Channel 3', icon: LucideIcons.circleDot),
-  dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot);
+  dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot),
+
+  // device / system
+  screenRecording('Record Screen', icon: LucideIcons.video, isOutsideTrainerApp: true);
 
   final String englishTitle;
   final bool isLongPress;
@@ -142,10 +146,12 @@ enum InGameAction {
       InGameAction.trainerIntensityUp => l.actionTrainerIntensityUp,
       InGameAction.trainerIntensityDown => l.actionTrainerIntensityDown,
       InGameAction.workoutPauseResume => l.actionWorkoutPauseResume,
+      InGameAction.frontShift => l.actionFrontShift,
       InGameAction.dFlyChannel1 => l.actionDFlyChannel1,
       InGameAction.dFlyChannel2 => l.actionDFlyChannel2,
       InGameAction.dFlyChannel3 => l.actionDFlyChannel3,
       InGameAction.dFlyChannel4 => l.actionDFlyChannel4,
+      InGameAction.screenRecording => l.actionScreenRecording,
     };
   }
 
@@ -160,6 +166,7 @@ const trainerActions = [
   InGameAction.trainerIntensityUp,
   InGameAction.trainerIntensityDown,
   InGameAction.workoutPauseResume,
+  InGameAction.frontShift,
 ];
 
 const trainerOnlyActions = [

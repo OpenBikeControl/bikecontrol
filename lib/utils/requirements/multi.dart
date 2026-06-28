@@ -57,7 +57,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
     final currentState = await UniversalBle.getBluetoothAvailabilityState();
     if (!kIsWeb && Platform.isIOS) {
       // on iOS we cannot programmatically enable Bluetooth, just open settings
-      await openAppSettings();
+      await UniversalBle.requestPermissions();
     } else if (currentState == AvailabilityState.poweredOff) {
       if (Platform.isMacOS) {
         buildToast(title: name);

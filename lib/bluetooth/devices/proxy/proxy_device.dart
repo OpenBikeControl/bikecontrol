@@ -8,6 +8,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
@@ -317,6 +318,8 @@ class ProxyDevice extends BluetoothDevice {
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setVirtualShiftingMode(cfg.mode);
+    def.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
+    def.setFrontShiftEnabled(cfg.frontShiftEnabled);
     if (cfg.gearRatios != null) {
       def.setGearRatios(cfg.gearRatios!);
     }
@@ -454,6 +457,23 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   @override
+  Widget? nameBadge(BuildContext context) {
+    // The same physical trainer can be discovered over both WiFi (DirCon) and
+    // Bluetooth, producing two entries with an identical name. When that
+    // happens, show a transport icon so the duplicates can be told apart at a
+    // glance — WiFi on the DirCon entry, Bluetooth on the BLE one.
+    final hasDuplicateName = core.connection.proxyDevices.any(
+      (d) => d.uniqueId != uniqueId && d.name == name,
+    );
+    if (!hasDuplicateName) return null;
+    return Icon(
+      isWifiUpstream ? LucideIcons.wifi : LucideIcons.bluetooth,
+      size: 14,
+      color: Theme.of(context).colorScheme.mutedForeground,
+    );
+  }
+
+  @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     if (isConnected) {
       final units = unitSystemOf(context);
@@ -501,7 +521,7 @@ class ProxyDevice extends BluetoothDevice {
                 _addTextMetric(
                   parts,
                   context,
-                  'Gear ${fitnessDef.currentGear.value}/${fitnessDef.maxGear}',
+                  'Gear ${formatGearReadout(currentGear: fitnessDef.currentGear.value, maxGear: fitnessDef.maxGear, frontShiftEnabled: fitnessDef.frontShiftEnabled, largeRing: fitnessDef.frontRing.value == FrontRing.large)}',
                   LucideIcons.settings2,
                 );
               }
@@ -639,6 +659,23 @@ class ProxyDevice extends BluetoothDevice {
       case InGameAction.trainerIntensityDown:
         def.adjustIntensity(-0.05);
         return Success(l10n.trainerIntensityDecreased, button: button);
+      case InGameAction.frontShift:
+        if (def.trainerMode.value == TrainerMode.ergMode) {
+          return Ignored(l10n.trainerFrontShiftUnavailable, button: button);
+        }
+        if (!def.frontShiftEnabled) {
+          return Ignored(l10n.trainerFrontShiftNotEnabled, button: button);
+        }
+        final didToggle = def.toggleFrontChainring();
+        if (!didToggle) {
+          return Ignored(l10n.trainerFrontShiftUnavailable, button: button);
+        }
+        return Success(
+          def.frontRing.value == FrontRing.large
+              ? l10n.trainerFrontShiftedLarge
+              : l10n.trainerFrontShiftedSmall,
+          button: button,
+        );
       default:
         return NotHandled('', button: button);
     }

@@ -1,4 +1,5 @@
 import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/utils/gear_readout.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -51,7 +52,7 @@ class TrainerOverlayView extends StatelessWidget {
                   border: Border.all(color: cs.border),
                 )
               : null,
-          padding: const EdgeInsets.fromLTRB(10, 6, 6, 8),
+          padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -72,7 +73,14 @@ class TrainerOverlayView extends StatelessWidget {
   /// edge. Drag handle is always trailing.
   Widget _primaryRow(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
     final isErg = s.mode == TrainerMode.ergMode;
-    final primary = isErg ? '${s.ergTargetW ?? '--'} W' : '${s.gear} / ${s.maxGear}';
+    final primary = isErg
+        ? '${s.ergTargetW ?? '--'} W'
+        : formatGearReadout(
+            currentGear: s.gear,
+            maxGear: s.maxGear,
+            frontShiftEnabled: s.frontShiftEnabled,
+            largeRing: s.frontRingLarge,
+          );
     final showControls = s.fields.contains(OverlayField.controls);
 
     final primaryText = FittedBox(
@@ -107,25 +115,37 @@ class TrainerOverlayView extends StatelessWidget {
       height: showControls ? 48 : 36,
       child: Row(
         children: [
-          if (!showControls)
-            const Padding(
-              padding: EdgeInsets.only(right: 6),
-              child: Image(
-                image: AssetImage('icon.png'),
-                width: 18,
-                height: 18,
-              ),
-            ),
+          // Equal-width leading/trailing slots keep the primary value centred
+          // whether or not the app icon / drag handle is present.
+          SizedBox(
+            width: 24,
+            child: showControls
+                ? null
+                : const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Image(
+                      image: AssetImage('icon.png'),
+                      width: 18,
+                      height: 18,
+                    ),
+                  ),
+          ),
           Expanded(child: Center(child: primaryBlock)),
-          if (onDragStart != null)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onPanStart: (_) => onDragStart!(),
-              child: Padding(
-                padding: const EdgeInsets.all(2),
-                child: Icon(Icons.drag_indicator, size: 14, color: cs.mutedForeground),
-              ),
-            ),
+          SizedBox(
+            width: 24,
+            child: onDragStart != null
+                // GestureDetector fills the whole slot (opaque) so the entire
+                // 24px trailing area is draggable, not just the 14px icon.
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onPanStart: (_) => onDragStart!(),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Icon(Icons.drag_indicator, size: 14, color: cs.mutedForeground),
+                    ),
+                  )
+                : null,
+          ),
         ],
       ),
     );
@@ -199,7 +219,7 @@ class TrainerOverlayView extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 2.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,

@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/shifting_config.dart';
+import 'package:bike_control/pages/proxy_device_details/front_shift_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/utils/core.dart';
@@ -113,6 +114,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   _vsModeCard(),
                   _gradeSmoothingCard(context),
                   _cadenceFilterCard(context),
+                  FrontShiftCard(device: widget.device, definition: def),
                 ],
                 _gearCountCard(context),
                 _heroCurve(context),

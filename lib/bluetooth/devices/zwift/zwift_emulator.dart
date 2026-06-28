@@ -8,6 +8,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/bluetooth/peripheral_advertising_recovery.dart';
 import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -25,7 +26,7 @@ import 'package:prop/prop.dart' hide RideButtonMask;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-class ZwiftEmulator extends TrainerConnection {
+class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery {
   bool get isLoading => _isLoading;
 
   final _server = PeripheralServer();
@@ -33,6 +34,9 @@ class ZwiftEmulator extends TrainerConnection {
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
   String? _currentDeviceId;
+
+  @override
+  PeripheralServer get advertisingServer => _server;
 
   ZwiftEmulator()
     : super(
@@ -49,6 +53,7 @@ class ZwiftEmulator extends TrainerConnection {
           InGameAction.select,
           InGameAction.back,
           InGameAction.rideOnBomb,
+          InGameAction.frontShift,
         ],
       );
 
@@ -82,11 +87,12 @@ class ZwiftEmulator extends TrainerConnection {
       }
     });
 
-    _server.onAdvertisingStateChanged((state, error) {
+    _server.onAdvertisingStateChanged((state, error) async {
       if (kDebugMode) {
         print('Zwift advertising state: ${state.name}${error != null ? ' — $error' : ''}');
       }
       if (state == PeripheralAdvertisingState.error) {
+        if (await recoverIfAlreadyAdvertising(error)) return;
         core.connection.signalNotification(
           AlertNotification(
             LogLevel.LOGLEVEL_WARNING,
@@ -250,15 +256,25 @@ class ZwiftEmulator extends TrainerConnection {
 
     print('Starting advertising with Zwift service...');
 
-    await _server.startAdvertising(
+    await restartAdvertising();
+    _isLoading = false;
+    onUpdate();
+  }
+
+  @override
+  Future<void> startServiceAdvertising() {
+    final isRouvy = core.settings.getTrainerApp() is Rouvy;
+    return _server.startAdvertising(
       services: [
         ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT,
         if (isRouvy) OpenBikeControlConstants.SERVICE_UUID,
       ],
       localName: isRouvy ? 'BikeControl' : 'KICKR BIKE PRO 1337',
+      // The Rouvy variant adds a 128-bit UUID which, with the name, overflows
+      // the 31-byte primary advertisement (Android "Data too large"); move the
+      // service UUIDs to the scan response there. Only Rouvy needs it.
+      servicesInScanResponse: isRouvy,
     );
-    _isLoading = false;
-    onUpdate();
   }
 
   Future<void> stopAdvertising() async {
@@ -297,6 +313,10 @@ class ZwiftEmulator extends TrainerConnection {
     // Resolve mapped app-specific actions (e.g. Rouvy's kudos) back to Zwift Click V2 actions
     final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
     var action = mapping?.entries.firstOrNullWhere((e) => e.value == keyPair.inGameAction) ?? keyPair.inGameAction;
+
+    if (action == InGameAction.frontShift) {
+      return _sendFrontShift(keyPair);
+    }
 
     final button = switch (action) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
@@ -350,6 +370,35 @@ class ZwiftEmulator extends TrainerConnection {
       'Sent action: ${keyPair.inGameAction!.name}',
       button: keyPair.buttons.firstOrNull,
     );
+  }
+
+  /// Forward a front-chainring shift to the connected app as the standard
+  /// Zwift Ride "both shifters" gesture — the same behavior for every app
+  /// (apps with native SRAM, e.g. Zwift, perform the front shift; others get
+  /// a normal controller gesture).
+  Future<ActionResult> _sendFrontShift(KeyPair keyPair) async {
+    // Both shift buttons pressed together. NOTE: the exact bit pair Zwift's
+    // SRAM detection expects is UNVERIFIED against a live Zwift session —
+    // confirm on-device and adjust if needed.
+    final combined =
+        RideButtonMask.SHFT_UP_R_BTN.mask | RideButtonMask.SHFT_UP_L_BTN.mask;
+    Logger.info('ZwiftEmulator: front-shift combo (SHFT_UP_R|SHFT_UP_L) — verify bitmask vs Zwift SRAM');
+    final status = RideKeyPadStatus()
+      ..buttonMap = (~combined) & 0xFFFFFFFF
+      ..analogPaddles.clear();
+    await _server.notify(
+      characteristicId: ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      value: Uint8List.fromList(
+          [Opcode.CONTROLLER_NOTIFICATION.value, ...status.writeToBuffer()]),
+      deviceId: _currentDeviceId,
+    );
+    await _server.notify(
+      characteristicId: ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      value: Uint8List.fromList(
+          [Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]),
+      deviceId: _currentDeviceId,
+    );
+    return Success('Sent front-shift combo', button: keyPair.buttons.firstOrNull);
   }
 
   void cleanup() {

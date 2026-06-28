@@ -53,7 +53,11 @@ class _ZwiftTileState extends State<ZwiftTile> {
                         core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, e.toString()));
                       });
                     }
-                    setState(() {});
+                    // onChange awaits stopAllBleConnections above; the tile can
+                    // be disposed mid-await (rapid toggling while advertising
+                    // keeps failing), so guard setState — calling it unmounted
+                    // throws "Null check operator used on a null value".
+                    if (mounted) setState(() {});
                   },
                   title: context.i18n.connectUsingBluetooth,
                   description: !isStarted

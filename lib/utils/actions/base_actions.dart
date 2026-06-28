@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -5,6 +6,7 @@ import 'package:accessibility/accessibility.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/desktop.dart';
@@ -29,7 +31,10 @@ sealed class ActionResult {
 }
 
 class Success extends ActionResult {
-  const Success(super.message, {required super.button});
+  /// Saved file path for results that produced a file (e.g. a screen
+  /// recording). Lets the UI offer an "open folder" action.
+  final String? filePath;
+  const Success(super.message, {required super.button, this.filePath});
 }
 
 class NotHandled extends ActionResult {
@@ -121,6 +126,76 @@ abstract class BaseActions {
     return Offset.zero;
   }
 
+  /// True when the active trainer (the connected proxy device) has the
+  /// both-shifters front-shift combo enabled in its [ShiftingConfig].
+  bool get frontShiftComboEnabled {
+    final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
+    if (proxy == null) return false;
+    return core.shiftingConfigs.activeFor(proxy.trainerKey).frontShiftEnabled;
+  }
+
+  // --- Both-shifters combo (coincidence-window detector) ---------------------
+  // Two-device controllers (e.g. Zwift Play) deliver their two rear shifts as
+  // separate performAction calls; pressing both shifters together is the SRAM
+  // gesture for a front (chainring) shift. We detect the opposite shift landing
+  // within a short window and additively emit a frontShift alongside the
+  // (mutually cancelling) rear shifts.
+
+  @visibleForTesting
+  DateTime Function() nowFn = DateTime.now;
+  static const Duration _frontShiftWindow = Duration(milliseconds: 120);
+  DateTime? _lastShiftUpAt;
+  DateTime? _lastShiftDownAt;
+
+  /// Record a rear shift; return true if the OPPOSITE shift occurred within the
+  /// front-shift window (→ treat as a both-shifters combo). Resets on a hit.
+  @visibleForTesting
+  bool noteShiftAndCheckCoincidence(InGameAction action) {
+    final now = nowFn();
+    if (action == InGameAction.shiftUp) {
+      _lastShiftUpAt = now;
+      final down = _lastShiftDownAt;
+      if (down != null && now.difference(down) <= _frontShiftWindow) {
+        _lastShiftUpAt = null;
+        _lastShiftDownAt = null;
+        return true;
+      }
+    } else if (action == InGameAction.shiftDown) {
+      _lastShiftDownAt = now;
+      final up = _lastShiftUpAt;
+      if (up != null && now.difference(up) <= _frontShiftWindow) {
+        _lastShiftUpAt = null;
+        _lastShiftDownAt = null;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Dispatch [action] as if a mapped button fired it, with no physical button.
+  /// Used by the both-shifters combo (this file's coincidence detector and the
+  /// same-frame detector in base_device.dart) to emit a frontShift.
+  Future<ActionResult> performInGameAction(InGameAction action) async {
+    final synthButton = ControllerButton('frontShiftCombo', action: action);
+    final keyPair = KeyPair(
+      buttons: [synthButton],
+      physicalKey: null,
+      logicalKey: null,
+      inGameAction: action,
+    );
+    // Direct path: a connected proxy trainer handles it (frontShift toggle).
+    if (trainerActions.contains(action)) {
+      final proxy = core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
+      if (proxy != null) {
+        await IAPManager.instance.incrementCommandCount();
+        final result = proxy.handleTrainerAction(synthButton, action);
+        if (result is Ignored || result is Success) return result;
+      }
+    }
+    // Otherwise forward to the connected app (e.g. Zwift native SRAM combo).
+    return _handleDirectConnect(keyPair, synthButton, isKeyDown: true, isKeyUp: true);
+  }
+
   Future<ActionResult> performAction(
     ControllerButton button, {
     required bool isKeyDown,
@@ -142,6 +217,26 @@ abstract class BaseActions {
         type: ErrorType.noActionAssigned,
         button: keyPair?.buttons.firstOrNull ?? button,
       );
+    }
+
+    // Both-shifters combo (coincidence window): two-device controllers (Play)
+    // deliver each rear shift as its own performAction call. When the opposite
+    // shift lands within the window, additively fire a frontShift — this does
+    // NOT suppress the normal shift; the two opposite rear shifts cancel while
+    // the front toggles. The same-frame case (Ride/Click) is handled at the
+    // device layer (Task 8), so those never reach this detector.
+    if (frontShiftComboEnabled &&
+        isKeyDown &&
+        (keyPair.inGameAction == InGameAction.shiftUp || keyPair.inGameAction == InGameAction.shiftDown)) {
+      if (noteShiftAndCheckCoincidence(keyPair.inGameAction!)) {
+        unawaited(() async {
+          try {
+            await performInGameAction(InGameAction.frontShift);
+          } catch (e, s) {
+            recordError(e, s, context: 'frontShiftCombo');
+          }
+        }());
+      }
     }
 
     final guard = proGuard(button: button, trigger: trigger, keyPair: keyPair);
@@ -196,6 +291,35 @@ abstract class BaseActions {
       }
       return Ignored(
         AppLocalizations.current.noActiveWorkout,
+        button: keyPair.buttons.firstOrNull ?? button,
+      );
+    }
+
+    // Handle screen recording — device-level toggle, works with no trainer.
+    if (keyPair.inGameAction == InGameAction.screenRecording) {
+      if (!isKeyDown) {
+        return Ignored('', button: keyPair.buttons.firstOrNull ?? button);
+      }
+      final svc = core.screenRecording;
+      if (!await svc.isAvailable) {
+        return Ignored(
+          AppLocalizations.current.screenRecordingNotSupported,
+          button: keyPair.buttons.firstOrNull ?? button,
+        );
+      }
+      final result = await svc.toggle();
+      if (result.ok) {
+        await IAPManager.instance.incrementCommandCount();
+        final stopped = !result.startedRecording;
+        return Success(
+          stopped ? AppLocalizations.current.screenRecordingStopped : AppLocalizations.current.screenRecordingStarted,
+          button: keyPair.buttons.firstOrNull ?? button,
+          // Carries the saved path so the activity log can offer "open folder".
+          filePath: stopped ? result.savedPath : null,
+        );
+      }
+      return Error(
+        AppLocalizations.current.screenRecordingFailed,
         button: keyPair.buttons.firstOrNull ?? button,
       );
     }

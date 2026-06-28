@@ -1,5 +1,9 @@
 PODS:
   - Flutter (1.0.0)
+  - flutter_foreground_task (0.0.1):
+    - Flutter
+  - flutter_screen_recording (0.0.1):
+    - Flutter
   - flutter_volume_controller (0.0.1):
     - Flutter
   - gamepads_ios (0.1.1):
@@ -12,22 +16,31 @@ PODS:
     - Flutter
   - restart_app (0.0.1):
     - Flutter
+  - screen_recorder (0.0.1):
+    - Flutter
   - sign_in_with_apple (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - flutter_foreground_task (from `.symlinks/plugins/flutter_foreground_task/ios`)
+  - flutter_screen_recording (from `.symlinks/plugins/flutter_screen_recording/ios`)
   - flutter_volume_controller (from `.symlinks/plugins/flutter_volume_controller/ios`)
   - gamepads_ios (from `.symlinks/plugins/gamepads_ios/ios`)
   - media_key_detector_ios (from `.symlinks/plugins/media_key_detector_ios/ios`)
   - nsd_ios (from `.symlinks/plugins/nsd_ios/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - restart_app (from `.symlinks/plugins/restart_app/ios`)
+  - screen_recorder (from `.symlinks/plugins/screen_recorder/ios`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  flutter_foreground_task:
+    :path: ".symlinks/plugins/flutter_foreground_task/ios"
+  flutter_screen_recording:
+    :path: ".symlinks/plugins/flutter_screen_recording/ios"
   flutter_volume_controller:
     :path: ".symlinks/plugins/flutter_volume_controller/ios"
   gamepads_ios:
@@ -40,17 +53,22 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   restart_app:
     :path: ".symlinks/plugins/restart_app/ios"
+  screen_recorder:
+    :path: ".symlinks/plugins/screen_recorder/ios"
   sign_in_with_apple:
     :path: ".symlinks/plugins/sign_in_with_apple/ios"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_foreground_task: a159d2c2173b33699ddb3e6c2a067045d7cebb89
+  flutter_screen_recording: d27b9073d122b618a07ef0e407470d051b265b26
   flutter_volume_controller: c2be490cb0487e8b88d0d9fc2b7e1c139a4ebccb
   gamepads_ios: c75c6d31377d275b0effb9174c619e2705678c09
   media_key_detector_ios: eb43ab957d4ef9084d079216b6dbac96c91d42eb
   nsd_ios: 596ad79109ddd3e52d665f650f36428049e3653e
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   restart_app: 9cda5378aacc5000e3f66ee76a9201534e7d3ecf
+  screen_recorder: 192d2308d545ace5676318ff0c1f2ee53231dbc1
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
 
 PODFILE CHECKSUM: 7ebd5c9b932b3af79d5c67e3af873118b74e970f

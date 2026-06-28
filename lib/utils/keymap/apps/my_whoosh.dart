@@ -17,6 +17,9 @@ class MyWhoosh extends SupportedApp {
   String? get logoAsset => 'assets/mywhoosh.png';
 
   @override
+  String get helpSlug => 'mywhoosh';
+
+  @override
   int get virtualGearAmount => 30;
 
   @override

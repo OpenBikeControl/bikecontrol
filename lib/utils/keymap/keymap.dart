@@ -636,6 +636,7 @@ class KeyPair {
       command != null && command!.trim().isNotEmpty ||
       screenshotPath != null && screenshotPath!.trim().isNotEmpty ||
       isSpecialKey ||
+      inGameAction == InGameAction.screenRecording ||
       (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions) ||
       (androidIntentAction != null &&
           androidIntentAction!.trim().isNotEmpty &&

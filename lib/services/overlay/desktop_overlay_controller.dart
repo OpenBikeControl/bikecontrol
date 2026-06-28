@@ -316,6 +316,8 @@ class DesktopOverlayController implements TrainerOverlayController {
       cadenceRpm: def.cadenceRpm.value,
       ergTargetW: def.ergTargetPower.value,
       fields: _fields,
+      frontShiftEnabled: def.frontShiftEnabled,
+      frontRingLarge: def.frontRing.value == FrontRing.large,
     );
     if (!force && s == _lastPushed) return;
     _lastPushed = s;

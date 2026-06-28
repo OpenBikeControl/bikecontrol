@@ -6,6 +6,7 @@ import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
@@ -69,11 +70,23 @@ class _HelpButtonState extends State<HelpButton> {
         builder: (context) {
           return Button(
             onPressed: () {
+              final controllers = core.connection.controllerDevices;
+              final article = helpArticleFor(
+                context,
+                controller: controllers.isEmpty ? null : controllers.first,
+                app: core.settings.getTrainerApp(),
+              );
               showDropdown(
                 context: context,
                 builder: (c) => DropdownMenu(
                   children: [
                     MenuLabel(child: Text(context.i18n.instructions)),
+                    if (article != null)
+                      MenuButton(
+                        leading: Icon(Icons.menu_book_outlined),
+                        child: Text(article.label),
+                        onPressed: (c) => launchUrlString(article.url),
+                      ),
                     MenuButton(
                       leading: Icon(Icons.ondemand_video),
                       child: const Text('Instruction Videos'),
@@ -130,25 +143,17 @@ class _HelpButtonState extends State<HelpButton> {
                           : Text(context.i18n.chatWithSupport),
                       onPressed: (c) async {
                         final screenshot = await captureOverviewScreenshot(context: context);
-                        final captured = await debugText();
-                        String? capturedFreetext = captured;
+                        // Gather diagnostics in the background so the chat opens
+                        // immediately; the page awaits this future lazily for the
+                        // preview and at send time (it resolves once and is reused).
+                        final debugFuture = debugText();
                         await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => SupportChatPage(
-                              diagnosticPreview: captured,
+                              diagnosticPreviewFuture: debugFuture,
                               initialAttachment: screenshot,
-                              telemetryBuilder: () async {
-                                if (capturedFreetext != null) {
-                                  final snapshot = TelemetrySnapshot.general(
-                                    freetext: capturedFreetext,
-                                  );
-                                  capturedFreetext = null;
-                                  return snapshot;
-                                }
-                                return TelemetrySnapshot.general(
-                                  freetext: await debugText(),
-                                );
-                              },
+                              telemetryBuilder: () async =>
+                                  TelemetrySnapshot.general(freetext: await debugFuture),
                             ),
                           ),
                         );
