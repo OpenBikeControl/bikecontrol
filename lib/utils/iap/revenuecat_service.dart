@@ -130,6 +130,20 @@ class RevenueCatService {
       await Purchases.configure(configuration);
       _isConfigured = true;
 
+      // Apple Ads attribution, the iOS/macOS counterpart of the Play install
+      // referrer that setAttributes() forwards on Android. RevenueCat reads
+      // the AdServices token itself and attaches campaign / ad group /
+      // keyword to the subscriber, which is what turns a cost-per-install into
+      // trial-to-paid and revenue per keyword. Off by default in the SDK. A
+      // failure here must not cost us the rest of the init.
+      if (Platform.isIOS || Platform.isMacOS) {
+        try {
+          await Purchases.enableAdServicesAttributionTokenCollection();
+        } catch (e, s) {
+          recordError(e, s, context: 'RevenueCat AdServices attribution');
+        }
+      }
+
       debugPrint('RevenueCat initialized successfully');
       core.connection.signalNotification(LogNotification('RevenueCat initialized'));
 
