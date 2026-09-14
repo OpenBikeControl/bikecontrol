@@ -203,6 +203,26 @@ NetworkCheck multicastLockCheck(NetworkProbeContext ctx) {
   if (ctx.platform != 'android') {
     return const NetworkCheck(id: NetworkCheckId.multicastLock, verdict: NetworkVerdict.skipped);
   }
+  // The WifiManager multicast lock is only acquired by MulticastMdnsSocket
+  // (the platformDefault backend); the OS responder (NsdManager) manages its
+  // own multicast and never touches it, so the lock legitimately doesn't
+  // apply there.
+  if (ctx.backend == ObpMdnsBackend.osResponder) {
+    return const NetworkCheck(
+      id: NetworkCheckId.multicastLock,
+      verdict: NetworkVerdict.skipped,
+      detail: {'reason': 'os responder manages its own multicast'},
+    );
+  }
+  // OBC isn't advertising — methodListeningCheck already reports that, so a
+  // second warn here would be redundant.
+  if (!ctx.emulatorStarted) {
+    return const NetworkCheck(
+      id: NetworkCheckId.multicastLock,
+      verdict: NetworkVerdict.skipped,
+      detail: {'reason': 'OBC is not advertising'},
+    );
+  }
   final snapshot = ctx.snapshot;
   if (snapshot == null) {
     return NetworkCheck(
