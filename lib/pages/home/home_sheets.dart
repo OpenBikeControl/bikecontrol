@@ -20,12 +20,18 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// help sheets and the per-app setup guides — rather than growing a second,
 /// parallel help system that would drift out of sync with the first.
 
+/// Scrolls rather than overflows: the sheet bounds its content to the screen,
+/// and the trainer picker (pitch stage + scan card + Close) is taller than an
+/// iPhone mini — without the scroll view the Close button ended up painted
+/// past the sheet's clip, visible but untappable.
 Widget _frame(BuildContext context, Widget child) {
   return Center(
     heightFactor: 1,
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 520),
-      child: Padding(padding: const EdgeInsets.all(20), child: child),
+      child: SingleChildScrollView(
+        child: Padding(padding: const EdgeInsets.all(20), child: child),
+      ),
     ),
   );
 }
