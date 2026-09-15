@@ -44,8 +44,11 @@ Widget _alternative(BuildContext context, IconData icon, String title, String bo
   );
 }
 
+/// [app] is optional: the home screen's trainer picker is reachable before a
+/// trainer app was ever chosen (skipped onboarding), and the list itself does
+/// not depend on one. Only the app-naming copy is dropped when it is null.
 Widget onboardingTrainerBody(BuildContext context,
-    {required SupportedApp app,
+    {required SupportedApp? app,
     required List<ProxyDevice> trainers,
     required void Function(ProxyDevice) onPick,
     VoidCallback? onRescan,
@@ -54,8 +57,9 @@ Widget onboardingTrainerBody(BuildContext context,
 
   // MyWhoosh on Android can't see a network virtual bike, so a bridge on this
   // same device would never be found — explain it and name the two setups
-  // that do work instead of silently hiding the step.
-  if (bridged.isEmpty && virtualShiftingBlocked) {
+  // that do work instead of silently hiding the step. The block is only
+  // meaningful for a chosen app — its copy names it.
+  if (bridged.isEmpty && virtualShiftingBlocked && app != null) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
       Text(context.i18n.onboardingVsBlockedTitle).h4,
       Gap(6),
@@ -124,8 +128,10 @@ Widget onboardingTrainerBody(BuildContext context,
           SecondaryBadge(child: Text(context.i18n.onboardingDeviceConnected)),
         ]),
       ),
-      Gap(12),
-      Text(context.i18n.onboardingTrainerNextStepNote(app.name)).xSmall.muted,
+      if (app != null) ...[
+        Gap(12),
+        Text(context.i18n.onboardingTrainerNextStepNote(app.name)).xSmall.muted,
+      ],
     ]));
   }
 
