@@ -4,15 +4,21 @@
 Three clips, all mono 16-bit 44.1 kHz WAV (WAV so the Windows backend can hand
 them straight to winmm's PlaySound):
 
-  shift_up.wav     servo whir gliding UP in pitch, then the chain-drop click
-  shift_down.wav   the same whir gliding DOWN, then the click
+  shift_up.wav     harder gear: motor spools UP (160 → 380 Hz), bright gear
+                   whine, ends in one crisp tick — chain dropping onto a
+                   smaller cog
+  shift_down.wav   easier gear: motor spools DOWN (380 → 160 Hz), darker
+                   whine, ends in a heavier double clunk — chain climbing a
+                   bigger cog
   shift_limit.wav  paddle click only, twice — the motor never runs because
                    there is no next gear
 
-Modelled on what an electronic derailleur actually sounds like: ~90 ms of a
-small geared DC motor (low buzzy fundamental plus a thin gear-mesh whine, very
-little energy above 4 kHz) ending in a soft mechanical click. No pure tones —
-those read as a phone notification, not as a bike.
+Modelled on a small geared DC motor: a buzzy commutation fundamental with a
+few harmonics, plus a *resonant* gear-mesh whine (band-passed noise, not just
+low-passed hiss) with a light 18 Hz amplitude wobble, then a mechanical click
+as the chain lands. Up and down differ on three axes at once — glide
+direction, whine colour, click character — so they're distinguishable over a
+fan without concentrating. No pure tones: those read as a phone notification.
 
 Synthetic on purpose: no CC0 recordings of electronic derailleurs exist on the
 usual libraries, and shipping a recording of a branded groupset would raise
@@ -20,8 +26,7 @@ rights questions for a public app. Tweak the numbers below and re-run.
 
 Level: PEAK sets the normalised peak (-14 dBFS). These play over a phone
 speaker while the rider is pedalling next to a fan, so they must be audible
-but never startling; a "confirm" cue should sit well under the trainer app's
-own audio.
+but never startling.
 """
 import math
 import random
@@ -47,7 +52,7 @@ def _write(name: str, samples: list[float]) -> None:
 
 
 def _lowpass(samples: list[float], cutoff_hz: float) -> list[float]:
-    """One-pole low-pass — enough to take the fizz off noise bursts."""
+    """One-pole low-pass — takes the fizz off noise bursts."""
     rc = 1.0 / (2 * math.pi * cutoff_hz)
     alpha = (1.0 / RATE) / (rc + 1.0 / RATE)
     out, y = [], 0.0
@@ -57,8 +62,24 @@ def _lowpass(samples: list[float], cutoff_hz: float) -> list[float]:
     return out
 
 
+def _bandpass(samples: list[float], f0: float, q: float) -> list[float]:
+    """RBJ biquad band-pass: a resonant peak, which is what a gearbox whine
+    is — energy concentrated around the mesh frequency, not broadband."""
+    w0 = 2 * math.pi * f0 / RATE
+    alpha = math.sin(w0) / (2 * q)
+    b0, b1, b2 = alpha, 0.0, -alpha
+    a0, a1, a2 = 1 + alpha, -2 * math.cos(w0), 1 - alpha
+    b0, b1, b2, a1, a2 = b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0
+    out, x1, x2, y1, y2 = [], 0.0, 0.0, 0.0, 0.0
+    for x in samples:
+        y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+        out.append(y)
+        x2, x1, y2, y1 = x1, x, y1, y
+    return out
+
+
 def _env(t: float, attack: float, hold: float, release: float) -> float:
-    """Linear attack, flat hold, exponential-ish release. 0 outside."""
+    """Linear attack, flat hold, exponential release. 0 outside."""
     if t < 0:
         return 0.0
     if t < attack:
@@ -69,37 +90,44 @@ def _env(t: float, attack: float, hold: float, release: float) -> float:
     return math.exp(-r / release) if r < release * 5 else 0.0
 
 
-def _motor(dur: float, f_start: float, f_end: float, rng: random.Random) -> list[float]:
-    """Geared DC motor: buzzy low fundamental (harmonics rolled off) plus a
-    faint, noisy gear-mesh whine. Pitch glides f_start → f_end over the whir
-    (motors spool up/down) — that glide is what tells up from down."""
+def _motor(dur: float, f_start: float, f_end: float, whine_hz: float, rng: random.Random) -> list[float]:
+    """Geared DC motor. The commutation fundamental glides exponentially
+    f_start → f_end (motors spool, they don't step); the whine is band-passed
+    noise around [whine_hz], amplitude-modulated by the gear mesh and by a
+    slow wobble so it doesn't sit perfectly still."""
     n = int(dur * RATE)
     phase = 0.0
     out = []
-    whine = _lowpass([(rng.random() - 0.5) for _ in range(n)], 4500)
+    whine = _bandpass([(rng.random() - 0.5) for _ in range(n)], whine_hz, q=5.0)
+    ratio = f_end / f_start
     for i in range(n):
         t = i / RATE
-        f = f_start + (f_end - f_start) * (t / dur)
+        f = f_start * ratio ** (t / dur)
         phase += 2 * math.pi * f / RATE
-        # first 6 harmonics, 1/n^1.3 — brighter than a sine, duller than a saw
-        buzz = sum(math.sin(phase * h) / (h**1.3) for h in range(1, 7))
-        # gear mesh: the whine amplitude-modulated at ~14x the fundamental
-        mesh = whine[i] * (0.6 + 0.4 * math.sin(phase * 14))
-        env = _env(t, attack=0.006, hold=dur - 0.03, release=0.008)
-        out.append(env * (0.5 * buzz + 5.0 * mesh))
+        # commutation buzz: first 5 harmonics, 1/n^1.2
+        buzz = sum(math.sin(phase * h) / (h**1.2) for h in range(1, 6))
+        mesh = whine[i] * (0.55 + 0.45 * math.sin(phase * 11)) * (0.85 + 0.15 * math.sin(2 * math.pi * 18 * t))
+        env = _env(t, attack=0.008, hold=dur - 0.03, release=0.010)
+        out.append(env * (0.45 * buzz + 9.0 * mesh))
     return out
 
 
-def _click(rng: random.Random, strength: float = 1.0, cutoff: float = 2500) -> list[float]:
-    """Chain landing on the cog / paddle detent: a 4 ms noise burst with a
-    tiny low thump underneath, low-passed so it's a 'tick', not a 'tss'."""
-    n = int(0.018 * RATE)
+def _click(
+    rng: random.Random,
+    strength: float = 1.0,
+    cutoff: float = 2500,
+    thump_hz: float = 180,
+    thump: float = 0.35,
+) -> list[float]:
+    """Chain landing on a cog / paddle detent: a short noise burst with a low
+    thump underneath. Higher cutoff = 'tick', lower + more thump = 'clunk'."""
+    n = int(0.020 * RATE)
     burst = _lowpass([(rng.random() - 0.5) * math.exp(-t / RATE * 900) for t in range(n)], cutoff)
     out = []
     for i in range(n):
         t = i / RATE
-        thump = math.sin(2 * math.pi * 180 * t) * math.exp(-t * 250)
-        out.append(strength * (2.2 * burst[i] + 0.35 * thump))
+        th = math.sin(2 * math.pi * thump_hz * t) * math.exp(-t * 220)
+        out.append(strength * (2.2 * burst[i] + thump * th))
     return out
 
 
@@ -113,16 +141,31 @@ def _mix(parts: list[tuple[float, list[float]]], total: float) -> list[float]:
     return out
 
 
-def _shift(f_start: float, f_end: float, seed: int) -> list[float]:
+WHIR = 0.11  # motor run time
+
+
+def _up(seed: int) -> list[float]:
     rng = random.Random(seed)
-    whir = 0.085
     return _mix(
         [
-            (0.0, _motor(whir, f_start, f_end, rng)),
-            # the chain drops onto the cog just as the motor stops
-            (whir - 0.004, _click(rng, strength=0.55)),
+            (0.0, _motor(WHIR, 160, 380, whine_hz=2600, rng=rng)),
+            # one crisp tick as the chain drops onto the smaller cog
+            (WHIR - 0.005, _click(rng, strength=0.6, cutoff=5000, thump=0.15)),
         ],
-        total=0.13,
+        total=0.16,
+    )
+
+
+def _down(seed: int) -> list[float]:
+    rng = random.Random(seed)
+    return _mix(
+        [
+            (0.0, _motor(WHIR, 380, 160, whine_hz=1500, rng=rng)),
+            # heavier double clunk: the chain climbing onto the bigger cog
+            (WHIR - 0.008, _click(rng, strength=0.75, cutoff=1300, thump_hz=120, thump=0.9)),
+            (WHIR + 0.022, _click(rng, strength=0.5, cutoff=1100, thump_hz=110, thump=0.7)),
+        ],
+        total=0.18,
     )
 
 
@@ -140,6 +183,6 @@ def _limit(seed: int) -> list[float]:
 
 
 if __name__ == "__main__":
-    _write("shift_up.wav", _shift(230, 300, seed=1))
-    _write("shift_down.wav", _shift(300, 230, seed=2))
+    _write("shift_up.wav", _up(seed=1))
+    _write("shift_down.wav", _down(seed=2))
     _write("shift_limit.wav", _limit(seed=3))
