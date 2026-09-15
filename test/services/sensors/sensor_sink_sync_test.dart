@@ -22,7 +22,7 @@ void main() {
       definition: SensorDefinition(),
       attach: (_) async => calls.add('attach'),
       detach: (_) async => calls.add('detach'),
-      startStandalone: (_) async => calls.add('start'),
+      startStandalone: (_, __) async => calls.add('start'),
       stopStandalone: () async => calls.add('stop'),
     );
     sync = SensorSinkSync(hub: hub, isBridgeRunning: isBridgeRunning, sink: sink);

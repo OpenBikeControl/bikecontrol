@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:prop/emulators/dircon_emulator.dart';
 
 import 'sensor_hub.dart';
 import 'sensor_quantity.dart';
@@ -69,12 +70,21 @@ class SensorSinkSync {
     // nothing. See this class's own doc comment for why "nothing selected"
     // must resolve to `none` rather than `bridge`.
     final hasSource = SensorQuantity.values.any((q) => hub.selectionFor(q) != null);
+    final mode = !hasSource
+        ? SensorSinkMode.none
+        : isBridgeRunning.value
+        ? SensorSinkMode.bridge
+        : SensorSinkMode.standalone;
     return sink.onSinkStateChanged(
-      mode: !hasSource
-          ? SensorSinkMode.none
-          : isBridgeRunning.value
-          ? SensorSinkMode.bridge
-          : SensorSinkMode.standalone,
+      mode: mode,
+      // Bluetooth, all three quantities: identical to today's behaviour.
+      // Real transport/quantity gating lands in a later task.
+      standalone: mode == SensorSinkMode.standalone
+          ? const StandaloneRequest(
+              transport: RetrofitMode.bluetooth,
+              exposed: {SensorQuantity.heartRate, SensorQuantity.cadence, SensorQuantity.power},
+            )
+          : null,
     );
   }
 

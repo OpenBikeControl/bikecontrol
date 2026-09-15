@@ -638,7 +638,7 @@ class Connection {
       // with.
       final standaloneSensorLifecycle = StandaloneSensorLifecycle(
         attachDefinition: standaloneSensorEmulator.attachDefinition,
-        startServer: () => standaloneSensorEmulator.startServer(mode: RetrofitMode.bluetooth),
+        startServer: (mode) => standaloneSensorEmulator.startServer(mode: mode),
         stopServer: standaloneSensorEmulator.stop,
         detachDefinition: standaloneSensorEmulator.detachDefinition,
       );
@@ -650,7 +650,7 @@ class Connection {
         // updates the composite's bookkeeping.
         attach: ftmsEmulator.attachDefinition,
         detach: ftmsEmulator.detachDefinition,
-        startStandalone: standaloneSensorLifecycle.start,
+        startStandalone: (def, transport) => standaloneSensorLifecycle.start(def, transport),
         stopStandalone: () => standaloneSensorLifecycle.stop(sensorDefinition),
       );
 
