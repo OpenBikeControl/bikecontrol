@@ -20,9 +20,13 @@ import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/remembered_device.dart';
+import 'package:bike_control/services/sensors/health_kit_channel.dart';
+import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_bridge_binding.dart';
+import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/services/sensors/sensor_sink_controller.dart';
 import 'package:bike_control/services/sensors/sensor_sink_sync.dart';
+import 'package:bike_control/services/sensors/sensor_source.dart';
 import 'package:bike_control/services/sensors/standalone_sensor_lifecycle.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -43,6 +47,15 @@ import 'messages/notification.dart';
 
 class Connection {
   final devices = <BaseDevice>[];
+
+  /// Apple Health as a heart-rate source. Non-null only on iOS with Health
+  /// data available (see the SensorHub wiring in [initialize]); tests inject
+  /// one over a fake channel. Its existence IS the "is HealthKit supported"
+  /// signal the signals grid reads — there is deliberately no second flag.
+  HealthKitSensorSource? healthKitSource;
+
+  bool get isHealthKitConnected =>
+      core.sensors.sources.any((s) => s.id == HealthKitSensorSource.sourceId);
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<ProxyDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
@@ -304,31 +317,98 @@ class Connection {
   /// keeping around once this one is gone.
   ///
   /// Gated on [BleSensorDevice] for the same reason as
-  /// [_registerSensorSource] — see its doc comment.
+  /// [_registerSensorSource] — see its doc comment. Delegates the actual
+  /// teardown to [_unregisterSource], shared with [disconnectHealthKit].
+  Future<void> _unregisterSensorSource(BaseDevice device, {required bool forget}) async {
+    if (device is! BleSensorDevice) return;
+    await _unregisterSource(device.source, forget: forget, context: 'Connection._unregisterSensorSource');
+  }
+
+  /// Shared by the BLE path above and [disconnectHealthKit]: drop the hub
+  /// registration, optionally clear every selection pointing at this id, and
+  /// stop the source so its retained reading is cleared rather than served
+  /// stale past its TTL.
   ///
   /// `SensorHub.unregister` deliberately leaves the rider's selection
   /// pointing at this id (see its own doc comment) — it cannot tell a
   /// transient drop from the rider being done with the device, so it always
   /// assumes the former. Only [forget] means the latter: [Connection] is the
-  /// one place that actually knows the rider forgot this device (as opposed
-  /// to it merely dropping out of BLE range to be rediscovered a moment
-  /// later), so clearing the selection for good is done here, explicitly,
-  /// and only then — a transient drop must leave it alone so `register`'s
-  /// rebind loop still matches when the sensor reappears.
-  Future<void> _unregisterSensorSource(BaseDevice device, {required bool forget}) async {
-    if (device is! BleSensorDevice) return;
+  /// one place that actually knows the rider forgot this source (as opposed
+  /// to it merely dropping out — BLE range, or a transient HealthKit hiccup —
+  /// to be rediscovered a moment later), so clearing the selection for good
+  /// is done here, explicitly, and only then — a transient drop must leave it
+  /// alone so `register`'s rebind loop still matches when the source
+  /// reappears.
+  Future<void> _unregisterSource(SensorSource source, {required bool forget, required String context}) async {
     try {
-      core.sensors.unregister(device.source.id);
+      core.sensors.unregister(source.id);
       if (forget) {
-        for (final quantity in device.source.provides) {
-          if (core.sensors.selectionFor(quantity) == device.source.id) {
+        for (final quantity in source.provides) {
+          if (core.sensors.selectionFor(quantity) == source.id) {
             core.sensors.select(quantity, null);
           }
         }
       }
-      await device.source.stop();
+      await source.stop();
     } catch (e, s) {
-      recordError(e, s, context: 'Connection._unregisterSensorSource ${device.source.id}');
+      recordError(e, s, context: '$context ${source.id}');
+    }
+  }
+
+  /// The HealthKit analogue of a strap connect: ask for Health permission
+  /// (a no-op sheet-wise once granted), then register so `SensorHub` calls
+  /// `start()` and the native session/query begins. `unknown` proceeds —
+  /// HealthKit hides read denials, so refusing on anything but an explicit
+  /// share denial would refuse riders who actually said yes.
+  Future<void> connectHealthKit() async {
+    final source = healthKitSource;
+    if (source == null) return;
+    final verdict = await source.authorize();
+    if (verdict == HealthKitAuthorization.denied) throw HealthKitDeniedException();
+    try {
+      core.sensors.register(source);
+      unawaited(source.start());
+    } catch (e, s) {
+      recordError(e, s, context: 'Connection.connectHealthKit');
+      rethrow;
+    }
+  }
+
+  /// Mirrors [_unregisterSensorSource]'s `forget` semantics exactly —
+  /// `true` only when the rider is done with Apple Health, never for a
+  /// transient failure.
+  Future<void> disconnectHealthKit({required bool forget}) async {
+    final source = healthKitSource;
+    if (source == null || !isHealthKitConnected) return;
+    await _unregisterSource(source, forget: forget, context: 'Connection.disconnectHealthKit');
+  }
+
+  /// Cold launch with Apple Health persisted as the heart-rate source:
+  /// re-register without a tap. iOS remembers the authorization, so this
+  /// shows no sheet. A denial here (the rider revoked access in Settings
+  /// meanwhile) is swallowed on purpose: the tile then shows the persisted
+  /// pick as "Connecting…" and a tap re-prompts.
+  Future<void> restoreHealthKitSelection() async {
+    if (healthKitSource == null) return;
+    if (core.sensors.selectionFor(SensorQuantity.heartRate) != HealthKitSensorSource.sourceId) return;
+    try {
+      await connectHealthKit();
+    } on HealthKitDeniedException catch (e, s) {
+      recordError(e, s, context: 'Connection.restoreHealthKitSelection');
+    }
+  }
+
+  /// Builds the source only where it can work. `isAvailable` is a cheap
+  /// synchronous check on the native side; keeping it async here keeps
+  /// `initialize` free of a platform round-trip on the critical path.
+  Future<void> _probeHealthKit() async {
+    try {
+      final channel = MethodChannelHealthKit();
+      if (!await channel.isAvailable()) return;
+      healthKitSource = HealthKitSensorSource(channel: channel);
+      await restoreHealthKitSelection();
+    } catch (e, s) {
+      recordError(e, s, context: 'Connection._probeHealthKit');
     }
   }
 
@@ -545,6 +625,9 @@ class Connection {
       // reselecting anything.
       core.sensors.isProEnabled = () => IAPManager.instance.isProEnabledForCurrentDevice;
       core.sensors.loadSelections(core.settings);
+      if (Platform.isIOS) {
+        unawaited(_probeHealthKit());
+      }
       Timer.periodic(const Duration(seconds: 1), (_) => core.sensors.tick());
 
       // Keeps the sink synced to both the bridge's isStarted AND whether the
