@@ -66,6 +66,21 @@ class Connection {
   /// runs; tests assign their own directly.
   BroadcastController? broadcast;
 
+  /// Whether a trainer app is actually subscribed to the standalone sensor
+  /// peripheral (the "BikeControl" advertisement the no-trainer path stands
+  /// up). Mirrors the standalone emulator's own `isConnected` — assigned in
+  /// [initialize], so the field itself is stable and can be listened to
+  /// before then; the placeholder it starts as simply never flips.
+  ValueListenable<bool> get standaloneClientConnected => _standaloneClientConnected;
+  ValueListenable<bool> _standaloneClientConnected = ValueNotifier(false);
+
+  /// The connected app's name for the Sensors card ("MyWhoosh connected"),
+  /// or null while nothing is subscribed. The standalone peripheral does not
+  /// learn who paired it, so the rider's chosen trainer app stands in — the
+  /// one app they told BikeControl they would be riding in.
+  String? get standaloneClientName =>
+      _standaloneClientConnected.value ? core.settings.getTrainerApp()?.name : null;
+
   /// Whether the shared trainer bridge (the FTMS composite) is currently
   /// advertising. `SensorSinkSync` reads the listenable form
   /// (`ftmsEmulator.isStarted`) directly; this plain getter is for callers
@@ -751,6 +766,7 @@ class Connection {
       // heart rate/cadence/power source in Zwift's own pairing screen should
       // see it identified as what it is.
       standaloneSensorEmulator.advertisementNameOverride = () => 'BikeControl';
+      _standaloneClientConnected = standaloneSensorEmulator.isConnected;
       // Attach-before-start / stop-before-detach: DirconEmulator.startServer
       // advertises whatever is already on its composite, so calling it
       // before the definition is attached leaves nothing to serve. See

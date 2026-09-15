@@ -27,6 +27,7 @@ class ChainCard extends StatefulWidget {
     this.instructionsLabel,
     this.body,
     this.onTap,
+    this.footer,
   });
 
   final ChainLink link;
@@ -60,6 +61,12 @@ class ChainCard extends StatefulWidget {
   /// looks like. Buttons inside the card still win the tap they sit under.
   final VoidCallback? onTap;
 
+  /// A strip along the card's bottom edge, below everything else and behind
+  /// its own divider — the "No smart trainer? Use sensors only" offer on an
+  /// empty trainer slot. Rendered inside the card's clip, so a full-width
+  /// wash on it still takes the card's rounded corners.
+  final Widget? footer;
+
   @override
   State<ChainCard> createState() => _ChainCardState();
 }
@@ -73,6 +80,52 @@ const double _rowInset = 14;
 
 /// The tick circle, so a test can assert the steps share a left edge.
 const Key stepTickKey = ValueKey('chain-step-tick');
+
+/// The footer strip's wrapper, when a card has one — see [ChainCard.footer].
+const Key chainCardFooterKey = ValueKey('chain-card-footer');
+
+/// A one-line offer along a card's bottom edge: a muted question on the left,
+/// the action in brand colour on the right, the whole strip tappable.
+///
+/// Same bones as the trial card's "Already bought it? Restore purchases" row,
+/// which is the strip a rider has already learnt to read this way.
+class ChainCardFooterRow extends StatelessWidget {
+  const ChainCardFooterRow({super.key, required this.question, required this.action, required this.onPressed});
+
+  final String question;
+  final String action;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: double.infinity,
+      child: Button.ghost(
+        style: ButtonStyle.ghost()
+            .withPadding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10))
+            .withBorderRadius(borderRadius: BorderRadius.zero)
+            .withBackgroundColor(color: theme.colorScheme.muted.withAlpha(110), hoverColor: bkCardHover(context)),
+        onPressed: onPressed,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                question,
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: theme.colorScheme.mutedForeground),
+              ),
+            ),
+            const Gap(8),
+            Text(
+              action,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 const double _leadingSize = 17;
 const double _leadingGap = 10;
@@ -150,6 +203,14 @@ class _ChainCardState extends State<ChainCard> {
           alignment: Alignment.topCenter,
           child: link.pendingSteps.isEmpty ? const SizedBox(width: double.infinity) : _checklist(context),
         ),
+        if (widget.footer case final footer?)
+          Container(
+            key: chainCardFooterKey,
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
+            ),
+            child: footer,
+          ),
       ],
     );
   }
