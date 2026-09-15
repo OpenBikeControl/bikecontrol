@@ -66,7 +66,7 @@ final class HealthKitHeartRate: NSObject, FlutterStreamHandler {
     }
     let workoutType = HKObjectType.workoutType()
     store.requestAuthorization(toShare: [workoutType], read: [heartRateType]) { [weak self] _, error in
-      guard let self else { return }
+      guard let self else { return result("unknown") }
       if let error {
         return result(FlutterError(code: "authorize", message: error.localizedDescription, details: nil))
       }
@@ -163,13 +163,13 @@ final class HealthKitHeartRate: NSObject, FlutterStreamHandler {
       let now = Date()
       session.startActivity(with: now)
       builder.beginCollection(withStart: now) { [weak self] ok, error in
-        guard let error, !ok else { return }
+        guard !ok else { return }
         // beginCollection's completion runs off-main; hop before touching
         // sessionBox, and re-check identity — a stop()+start() in between
         // may already have replaced this session with a newer one.
         DispatchQueue.main.async { [weak self] in
           guard let self, session === (self.sessionBox as AnyObject?) else { return }
-          self.fallBackToPassive(from: session, builder: builder, reason: error.localizedDescription)
+          self.fallBackToPassive(from: session, builder: builder, reason: error?.localizedDescription ?? "beginCollection failed")
         }
       }
       return true
@@ -225,9 +225,12 @@ extension HealthKitHeartRate: HKLiveWorkoutBuilderDelegate {
   func workoutBuilder(_ workoutBuilder: HKLiveWorkoutBuilder, didCollectDataOf collectedTypes: Set<HKSampleType>) {
     guard collectedTypes.contains(heartRateType),
           let statistics = workoutBuilder.statistics(for: heartRateType),
-          let latest = statistics.mostRecentQuantity(),
-          let interval = statistics.mostRecentQuantityDateInterval() else { return }
-    emitSample(latest, at: interval.start, mode: "session")
+          let latest = statistics.mostRecentQuantity() else { return }
+    // Live session samples are not batched, so receipt time is a faithful
+    // fallback here (the spec's sample-time rule exists for batched passive
+    // delivery) — a missing interval must not drop the sample.
+    let at = statistics.mostRecentQuantityDateInterval()?.start ?? Date()
+    emitSample(latest, at: at, mode: "session")
   }
 
   func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {}

@@ -147,4 +147,4 @@ within the `prop` submodule, then bump the pointer here.
 
 ## App Privacy
 
-- iOS 7.0+: **Health & Fitness → Health** is read (heart rate) for app functionality only; not linked to identity, not used for tracking. Declared because of the Apple Health heart-rate source (HealthKit entitlement).
+- BikeControl 7.0+ on iOS: **Health & Fitness → Health** is read (heart rate) for app functionality only; not linked to identity, not used for tracking. Declared because of the Apple Health heart-rate source (HealthKit entitlement).
