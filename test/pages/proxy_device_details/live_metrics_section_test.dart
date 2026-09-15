@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_heart_rate_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_power_device.dart';
@@ -1055,23 +1057,46 @@ void main() {
       (tester) async {
         await pump(tester);
 
-        int? selectionChangedAt;
+        // Gated so `authorize()` does not resolve synchronously — without
+        // this, `final a = authorize(); core.sensors.select(...); await a;`
+        // (the exact ordering bug this test exists to catch) would pass
+        // just as easily as the correct `await authorize(); core.sensors
+        // .select(...);`, since a same-microtask fake can't tell "called"
+        // from "awaited to completion" apart.
+        final gate = Completer<void>();
+        channel.authorizeGate = gate;
+
+        var selectionChangedCalls = 0;
+        int? authorizeCallsAtFirstSelectionChange;
         final previousOnSelectionChanged = core.sensors.onSelectionChanged;
         core.sensors.onSelectionChanged = () {
-          selectionChangedAt = channel.authorizeCalls;
+          selectionChangedCalls++;
+          authorizeCallsAtFirstSelectionChange ??= channel.authorizeCalls;
           previousOnSelectionChanged?.call();
         };
         addTearDown(() => core.sensors.onSelectionChanged = previousOnSelectionChanged);
 
         await tester.tap(segmentIn('heartRate', 'healthkit'));
+        await tester.pump();
+
+        // While the native call is still in flight: `authorize()` has been
+        // invoked, but the hub must not have been touched at all yet — the
+        // selection change, and therefore the transport restart it drives,
+        // has to wait for authorization to genuinely finish.
+        expect(channel.authorizeCalls, 1);
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
+        expect(selectionChangedCalls, 0);
+
+        gate.complete();
         await tester.pumpAndSettle();
 
-        // Authorization had already happened by the time the hub's
-        // selection changed — the exact ordering the device-confirmed bug
-        // needed (a selection change restarts the BLE/DIRCON transport,
-        // which starves the permission sheet if it races it).
-        expect(selectionChangedAt, 1);
-        // And it is not called again on the connect path that follows —
+        // Now that authorization has completed, the selection has gone
+        // through — with authorization already having happened by the time
+        // it did.
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
+        expect(selectionChangedCalls, greaterThanOrEqualTo(1));
+        expect(authorizeCallsAtFirstSelectionChange, 1);
+        // Not called again on the connect path that follows —
         // `Connection.connectHealthKit` deliberately never authorizes.
         expect(channel.authorizeCalls, 1);
       },

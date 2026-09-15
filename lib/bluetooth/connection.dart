@@ -34,6 +34,7 @@ import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -414,6 +415,13 @@ class Connection {
   /// selection here is already persisted from a previous session and does
   /// not change again: keeping both call sites symmetrical means the two
   /// methods never drift out of sync with each other.
+  ///
+  /// Also swallows a native `PlatformException(code: 'authorize')` here —
+  /// this UI-less launch path is exactly where healthd can fail to present
+  /// the sheet at all for reasons that have nothing to do with the rider
+  /// (e.g. the app launched into the background), an expected environmental
+  /// outcome logged like the denied case rather than sent to `recordError`.
+  /// Any OTHER exception still propagates to `_probeHealthKit`'s own catch.
   Future<void> restoreHealthKitSelection() async {
     if (healthKitSource == null) return;
     if (core.sensors.selectionFor(SensorQuantity.heartRate) != HealthKitSensorSource.sourceId) return;
@@ -422,6 +430,9 @@ class Connection {
       await connectHealthKit();
     } on HealthKitDeniedException {
       _appendLogEntry('HealthKit: persisted Apple Health selection not restored — permission denied');
+    } on PlatformException catch (e) {
+      if (e.code != 'authorize') rethrow;
+      _appendLogEntry('HealthKit: authorization at launch failed — ${e.message}');
     }
   }
 

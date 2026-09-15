@@ -6,6 +6,7 @@ import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
@@ -199,5 +200,23 @@ void main() {
       await core.connection.restoreHealthKitSelection();
       expect(channel.startCalls, 0);
     });
+
+    test(
+      'a native authorize failure at launch (e.g. app launched in background, no sheet possible) '
+      'is a benign environmental outcome — logged, not recordError-ed, registers nothing',
+      () async {
+        channel.authorizeError = PlatformException(code: 'authorize', message: 'Authorization session timed out');
+        core.sensors.select(SensorQuantity.heartRate, 'healthkit');
+
+        await core.connection.restoreHealthKitSelection();
+
+        expect(core.connection.isHealthKitConnected, isFalse);
+        expect(channel.startCalls, 0);
+        expect(
+          core.connection.lastLogEntries.map((e) => e.entry),
+          contains('HealthKit: authorization at launch failed — Authorization session timed out'),
+        );
+      },
+    );
   });
 }

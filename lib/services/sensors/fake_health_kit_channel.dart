@@ -12,6 +12,22 @@ class FakeHealthKitChannel implements HealthKitChannel {
   int startCalls = 0;
   int stopCalls = 0;
 
+  /// When set, [authorize] awaits this before returning [authorization] —
+  /// lets a test observe state strictly BETWEEN the call starting and the
+  /// native verdict actually arriving, distinguishing "authorize was called"
+  /// from "authorize completed". Without this, [authorize] resolves
+  /// synchronously (no real `await` boundary), which would let a broken
+  /// "start the future, select, then await it" ordering pass a test that
+  /// only checks call order rather than genuine completion order.
+  Completer<void>? authorizeGate;
+
+  /// When set, the next [authorize] call increments [authorizeCalls] and
+  /// then throws this instead of returning — scripts a native authorize
+  /// failure, e.g. `PlatformException(code: 'authorize', ...)` when the app
+  /// cannot show a sheet at launch. Left as-is after throwing, mirroring
+  /// [startError].
+  Object? authorizeError;
+
   /// When set, the next [start] call increments [startCalls] and then
   /// throws this instead of returning — scripts the native-start-failure
   /// path (`HealthKitSensorSource.start` must swallow it and stay
@@ -27,6 +43,10 @@ class FakeHealthKitChannel implements HealthKitChannel {
   @override
   Future<HealthKitAuthorization> authorize() async {
     authorizeCalls++;
+    final gate = authorizeGate;
+    if (gate != null) await gate.future;
+    final error = authorizeError;
+    if (error != null) throw error;
     return authorization;
   }
 
