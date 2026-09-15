@@ -71,12 +71,16 @@ final class HealthKitHeartRate: NSObject, FlutterStreamHandler {
       // This completion runs on a HealthKit background queue, never main —
       // but `FlutterResult` must be invoked on the platform (main) thread,
       // same as every other Flutter channel callback. Compute the verdict
-      // here, off-main, then hop before ever calling `result`. Device-
-      // confirmed bug: calling `result` straight from this queue raced the
-      // permission sheet's own presentation and made the FIRST tap on Apple
-      // Health always fail with "Authorization session timed out" (no sheet
-      // shown); a second tap then worked because the selection was already
-      // persisted and nothing else was racing it that time.
+      // here, off-main, then hop before ever calling `result`. This is
+      // platform-thread hygiene independent of the app's own bug: this
+      // completion only fires AFTER healthd has already dismissed the sheet
+      // (or timed the session out), so calling `result` off-main cannot by
+      // itself race the sheet's presentation. The actual first-tap-always-
+      // times-out bug was on the Dart side — `LiveMetricsSection._select`
+      // used to commit the hub selection (which restarts the BLE/DIRCON
+      // bridge transport) BEFORE this method even ran, starving the sheet
+      // before it ever had a chance to show; fixed there by authorizing
+      // ahead of the selection change, not here.
       guard let self else {
         return DispatchQueue.main.async { result("unknown") }
       }
@@ -96,7 +100,7 @@ final class HealthKitHeartRate: NSObject, FlutterStreamHandler {
       DispatchQueue.main.async {
         let appState = UIApplication.shared.applicationState.rawValue
         NSLog(
-          "HealthKit authorize: took %.1fs, applicationState=%d, error=%@",
+          "HealthKit authorize: took %.1fs, applicationState=%ld, error=%@",
           elapsed, appState, error?.localizedDescription ?? "none"
         )
         result(verdict)
