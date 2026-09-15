@@ -12,6 +12,13 @@ class FakeHealthKitChannel implements HealthKitChannel {
   int startCalls = 0;
   int stopCalls = 0;
 
+  /// When set, the next [start] call increments [startCalls] and then
+  /// throws this instead of returning — scripts the native-start-failure
+  /// path (`HealthKitSensorSource.start` must swallow it and stay
+  /// retryable). Left as-is after throwing, so callers explicitly clear it
+  /// to script a subsequent successful start.
+  Object? startError;
+
   final _events = StreamController<HealthKitEvent>.broadcast();
 
   @override
@@ -24,7 +31,11 @@ class FakeHealthKitChannel implements HealthKitChannel {
   }
 
   @override
-  Future<void> start() async => startCalls++;
+  Future<void> start() async {
+    startCalls++;
+    final error = startError;
+    if (error != null) throw error;
+  }
 
   @override
   Future<void> stop() async => stopCalls++;

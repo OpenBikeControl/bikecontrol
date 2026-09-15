@@ -1,18 +1,35 @@
+import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/services/sensors/fake_health_kit_channel.dart';
 import 'package:bike_control/services/sensors/health_kit_channel.dart';
 import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_hub.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/utils/shared.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late FakeHealthKitChannel channel;
   late HealthKitSensorSource source;
   final t0 = DateTime.utc(2026, 9, 15, 9);
 
   setUp(() {
+    // recordError() -> installLoggerErrorListener() only assigns
+    // Logger.onRecordError the first time it runs in this isolate; trip
+    // that guard here (before overriding the listener below) so the
+    // no-op below isn't clobbered by the production listener on the
+    // first recordError() call, keeping `flutter test` output pristine —
+    // both the stream-error path and the start-failure path deliberately
+    // call recordError.
+    installLoggerErrorListener();
+    Logger.onRecordError = (_, _, _) {};
     channel = FakeHealthKitChannel();
     source = HealthKitSensorSource(channel: channel);
+  });
+
+  tearDown(() {
+    Logger.onRecordError = null;
   });
 
   test('identity: fixed id, product display name, heart rate only, HealthKit TTL', () {
@@ -99,5 +116,20 @@ void main() {
   test('authorize passes the channel verdict through', () async {
     channel.authorization = HealthKitAuthorization.denied;
     expect(await source.authorize(), HealthKitAuthorization.denied);
+  });
+
+  test('start never throws: a native start failure is recorded and stays retryable', () async {
+    channel.startError = StateError('native start failed');
+
+    await source.start();
+
+    expect(channel.startCalls, 1);
+
+    // The failed start must not leave a subscription behind — a later
+    // start() (e.g. the rider retrying a failed connect) should try the
+    // native side again, not silently no-op like the idempotent-start path.
+    channel.startError = null;
+    await source.start();
+    expect(channel.startCalls, 2);
   });
 }

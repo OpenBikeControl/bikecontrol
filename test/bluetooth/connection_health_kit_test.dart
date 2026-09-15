@@ -67,8 +67,11 @@ void main() {
     // Logger.onRecordError the first time it runs in this isolate; trip
     // that guard here (before overriding the listener below) so the no-op
     // below isn't clobbered by the production listener on the first
-    // recordError() call, keeping `flutter test` output pristine — the
-    // denied-on-restore path deliberately calls recordError.
+    // recordError() call, keeping `flutter test` output pristine. The
+    // denied-on-restore path is a user choice, not a crash — it logs via
+    // `_appendLogEntry` instead — but other paths here (e.g. an unexpected
+    // register/start failure in connectHealthKit) still go through
+    // recordError.
     installLoggerErrorListener();
     Logger.onRecordError = (_, _, _) {};
     channel = FakeHealthKitChannel();
@@ -135,6 +138,20 @@ void main() {
     await core.connection.restoreHealthKitSelection();
     expect(core.connection.isHealthKitConnected, isTrue);
     expect(channel.startCalls, 1);
+  });
+
+  test('restore: denial is a user choice, not a crash — logged, not recordError-ed', () async {
+    channel.authorization = HealthKitAuthorization.denied;
+    core.sensors.select(SensorQuantity.heartRate, 'healthkit');
+
+    await core.connection.restoreHealthKitSelection();
+
+    expect(core.connection.isHealthKitConnected, isFalse);
+    expect(channel.startCalls, 0);
+    expect(
+      core.connection.lastLogEntries.map((e) => e.entry),
+      contains('HealthKit: persisted Apple Health selection not restored — permission denied'),
+    );
   });
 
   test('restore: nothing selected → nothing happens', () async {

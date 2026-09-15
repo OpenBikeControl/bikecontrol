@@ -53,14 +53,26 @@ class HealthKitSensorSource extends SensorSource {
   @override
   Future<void> start() async {
     if (_subscription != null) return;
-    _subscription = _channel.events.listen(
+    final subscription = _channel.events.listen(
       _onEvent,
       // Recorded, never fatal: the hub's drop-out path produces the visible
       // state if samples stop, exactly as for a strap that stops notifying.
       onError: (Object e, StackTrace s) => recordError(e, s, context: 'HealthKitSensorSource.events'),
       cancelOnError: false,
     );
-    await _channel.start();
+    _subscription = subscription;
+    try {
+      await _channel.start();
+    } catch (e, s) {
+      // Never throws out of start(): a rejected native start (permission
+      // revoked mid-session, HealthKit unavailable, …) must leave the
+      // source retryable rather than wedge it — tear the subscription back
+      // down so a later start() tries the native side again instead of
+      // silently no-op'ing on the `_subscription != null` guard above.
+      await subscription.cancel();
+      _subscription = null;
+      recordError(e, s, context: 'HealthKitSensorSource.start');
+    }
   }
 
   @override

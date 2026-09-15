@@ -393,8 +393,8 @@ class Connection {
     if (core.sensors.selectionFor(SensorQuantity.heartRate) != HealthKitSensorSource.sourceId) return;
     try {
       await connectHealthKit();
-    } on HealthKitDeniedException catch (e, s) {
-      recordError(e, s, context: 'Connection.restoreHealthKitSelection');
+    } on HealthKitDeniedException {
+      _appendLogEntry('HealthKit: persisted Apple Health selection not restored — permission denied');
     }
   }
 
@@ -625,7 +625,7 @@ class Connection {
       // reselecting anything.
       core.sensors.isProEnabled = () => IAPManager.instance.isProEnabledForCurrentDevice;
       core.sensors.loadSelections(core.settings);
-      if (Platform.isIOS) {
+      if (!kIsWeb && Platform.isIOS) {
         unawaited(_probeHealthKit());
       }
       Timer.periodic(const Duration(seconds: 1), (_) => core.sensors.tick());
