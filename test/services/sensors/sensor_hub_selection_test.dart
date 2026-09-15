@@ -189,4 +189,23 @@ void main() {
 
     expect(hub.resolved(SensorQuantity.heartRate).value, 160);
   });
+
+  // `onSelectionChanged` is a single slot owned by the sink/broadcast chain,
+  // so a UI that merely needs to know "the selection moved" (the Sensors
+  // page's switch-enabled state) listens to this counter instead of
+  // competing for the hook.
+  test('selectionVersion bumps on every select, including the fall-back-to-null paths', () {
+    final hub = SensorHub();
+    hub.register(_hrSource('a'));
+    final before = hub.selectionVersion.value;
+
+    hub.select(SensorQuantity.heartRate, 'a');
+    expect(hub.selectionVersion.value, before + 1);
+
+    hub.select(SensorQuantity.heartRate, 'not-registered');
+    expect(hub.selectionVersion.value, before + 2);
+
+    hub.select(SensorQuantity.heartRate, null);
+    expect(hub.selectionVersion.value, before + 3);
+  });
 }

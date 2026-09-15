@@ -1853,6 +1853,7 @@
   "sensorsEmptyTitle": "Looking for sensors…",
   "sensorsEmptyBody": "Wake a heart-rate strap, cadence sensor or power meter nearby — it shows up here by itself.",
   "sensorsOffHint": "Sources connect when you switch Broadcast on — nothing runs until then.",
+  "sensorsSignalsHeader": "Signals",
   "sensorsOpen": "Open",
   "chainAppTitle": "Trainer app",
   "chainStepBluetoothReady": "Bluetooth is on",

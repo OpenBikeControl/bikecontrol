@@ -35,6 +35,14 @@ class SensorHub {
   /// does.
   VoidCallback? onSelectionChanged;
 
+  /// Bumped every time [select] settles — the same moments
+  /// [onSelectionChanged] fires. That hook is a single wiring slot the
+  /// sink/broadcast chain owns; a widget that only needs to know "the
+  /// selection moved" (the Sensors page, whose Broadcast switch is enabled
+  /// iff anything is selected) listens here instead of competing for it.
+  ValueListenable<int> get selectionVersion => _selectionVersion;
+  final _selectionVersion = ValueNotifier<int>(0);
+
   /// Consulted on every [_publish] — i.e. at serve time, each time a
   /// quantity's value is about to become visible to whatever reads
   /// [resolved], not once when the rider picks a source. A one-shot check at
@@ -170,6 +178,7 @@ class SensorHub {
       // Every exit path above is "the selection settled," including the two
       // fall-back-to-null ones — a listener deciding whether to stand up a
       // standalone sink cares about all of them equally.
+      _selectionVersion.value++;
       onSelectionChanged?.call();
     }
   }
@@ -216,6 +225,9 @@ class SensorHub {
       notifier.dispose();
     }
     _droppedOut.clear();
+    // `_selectionVersion` is deliberately left alive: `dispose` clears the
+    // per-quantity notifier maps so a later `select` still works against
+    // fresh ones, and a disposed counter would be the one thing to throw.
   }
 
   /// Restores persisted selections. This runs before any scan has happened,
