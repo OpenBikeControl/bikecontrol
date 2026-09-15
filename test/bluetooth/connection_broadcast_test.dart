@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/services/sensors/ble_sensor_source.dart';
 import 'package:bike_control/services/sensors/fake_health_kit_channel.dart';
+import 'package:bike_control/services/sensors/health_kit_channel.dart';
 import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -111,6 +112,16 @@ void main() {
       expect(core.connection.isHealthKitConnected, isTrue);
     });
 
+    test('a denied healthkit authorization throws and never touches the hub', () async {
+      channel.authorization = HealthKitAuthorization.denied;
+
+      await expectLater(
+        core.connection.connectSourceById(HealthKitSensorSource.sourceId),
+        throwsA(isA<HealthKitDeniedException>()),
+      );
+      expect(core.connection.isHealthKitConnected, isFalse);
+    });
+
     test('routes a strap id to consent-then-connectDevice, mirroring the signals grid', () async {
       final ble = FakeUniversalBlePlatform();
       UniversalBle.setInstance(ble);
@@ -132,6 +143,39 @@ void main() {
       // gamepad-search timer pending past this test's end otherwise (see
       // live_metrics_section_test.dart's identical `stop()` call and its own
       // comment on why it has to happen here, not in tearDown).
+      await core.connection.stop();
+    });
+
+    // A strap the rider just selected may not be in `devices` yet at all
+    // (not yet discovered by the scanner) — this must still leave consent
+    // set so the auto-connect queue picks it up on discovery, and must NOT
+    // record an error: an undiscovered strap is expected, not exceptional.
+    test('a not-yet-discovered strap sets consent and logs, without erroring', () async {
+      await core.connection.connectSourceById('not-discovered-yet');
+
+      expect(core.settings.getSensorAutoConnect('not-discovered-yet'), isTrue);
+      expect(recordedContexts, isEmpty);
+      expect(core.connection.lastLogEntries.map((e) => e.entry), contains(contains('not-discovered-yet')));
+    });
+
+    // Finding 1 (mirror image): the controller's rollback only ever learns
+    // about ids `connectSource` returned successfully for — a failed id has
+    // to clear its own consent, or a strap that just failed to connect would
+    // still auto-connect on the next scan with the switch off.
+    test('a BLE connect failure clears the consent it just set, then rethrows', () async {
+      final ble = FakeUniversalBlePlatform();
+      UniversalBle.setInstance(ble);
+      final peripheral = strapPeripheral(deviceId: 'broadcast-strap-fails');
+      peripheral.connectError = Exception('GATT 133');
+      ble.addPeripheral(peripheral);
+      final device = BleHeartRateDevice(peripheral.scanResult);
+      core.connection.devices.add(device);
+
+      await expectLater(core.connection.connectSourceById(device.source.id), throwsA(isA<Exception>()));
+
+      expect(core.settings.getSensorAutoConnect(device.device.deviceId), isFalse);
+      expect(recordedContexts, contains('Connection.connectSourceById ${device.source.id}'));
+
       await core.connection.stop();
     });
   });
@@ -167,18 +211,20 @@ void main() {
 
       await core.connection.stop();
     });
-  });
 
-  test('connectSourceById with an unknown id is a recorded no-op', () async {
-    await core.connection.connectSourceById('does-not-exist');
+    // Finding 1: a strap that dropped mid-broadcast is already removed from
+    // `devices` by the drop listener (`disconnect(..., dropped: true)` uses
+    // `keepInList: false`) before the rider ever turns Broadcast off. Consent
+    // must still clear — leaving it `true` would auto-connect the strap back
+    // in on rediscovery with the switch off (Decision 4) — and a device
+    // that's already gone is expected, not an error.
+    test('a strap already gone from `devices` (dropped mid-broadcast) still clears consent, no error', () async {
+      await core.settings.setSensorAutoConnect('dropped-strap', true);
 
-    expect(recordedContexts, contains('Connection.connectSourceById'));
-    expect(core.connection.isHealthKitConnected, isFalse);
-  });
+      await core.connection.disconnectSourceById('dropped-strap');
 
-  test('disconnectSourceById with an unknown id is a recorded no-op', () async {
-    await core.connection.disconnectSourceById('does-not-exist');
-
-    expect(recordedContexts, contains('Connection.disconnectSourceById'));
+      expect(core.settings.getSensorAutoConnect('dropped-strap'), isFalse);
+      expect(recordedContexts, isEmpty);
+    });
   });
 }

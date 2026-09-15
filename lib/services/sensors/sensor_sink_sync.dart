@@ -7,9 +7,10 @@ import 'sensor_hub.dart';
 import 'sensor_quantity.dart';
 import 'sensor_sink_controller.dart';
 
-/// Keeps a [SensorSinkController] in sync with two things: whether the
-/// bridge is running, and whether the rider has selected a source for ANY
-/// quantity — heart rate, cadence or power.
+/// Keeps a [SensorSinkController] in sync with three things: whether the
+/// bridge is running, whether the rider has selected a source for ANY
+/// quantity — heart rate, cadence or power — and whether the Broadcast
+/// switch ([BroadcastController.isOn]) is on.
 ///
 /// The second half matters on its own, in two ways. Without it, BikeControl
 /// would start advertising itself as a heart rate monitor the moment it

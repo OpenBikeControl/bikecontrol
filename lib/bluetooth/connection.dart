@@ -468,17 +468,23 @@ class Connection {
   /// resolved to an actual connect. HealthKit routes through
   /// [authorizeHealthKit] + [connectHealthKit] (same ordering requirement as
   /// every other HealthKit call site — see [authorizeHealthKit]'s doc
-  /// comment); everything else is looked up among the [BleSensorDevice]s
-  /// already in [devices] and connected the same way the signals grid does
-  /// (`LiveMetricsSection._connectDevice`): consent persisted BEFORE
-  /// `connectDevice`, never after.
+  /// comment); every other id is a BLE sensor device id — `BleSensorSource
+  /// .id` IS the BLE `deviceId` it was built from (see e.g.
+  /// `BleHeartRateDevice`'s constructor) — so there is no third, "unknown
+  /// kind of id" case to handle here.
   ///
-  /// An id that resolves to neither is a stale selection, not a failure this
-  /// call caused — logged and left alone rather than thrown, so it can never
-  /// trip [BroadcastController.turnOn]'s per-id rollback and take perfectly
-  /// good OTHER sources down with it. A genuine connect failure below,
-  /// though, DOES rethrow after recording — that throw is exactly what the
-  /// rollback relies on to know this id never connected.
+  /// Consent is persisted UNCONDITIONALLY, before the device is even looked
+  /// up in [devices]: a strap the rider just selected may not have been
+  /// discovered by the scanner yet, and setting consent now is what lets the
+  /// auto-connect queue pick it up the moment it is (`shouldAutoConnect`
+  /// reads this flag) — not finding it in [devices] here is "not yet in
+  /// range," not a failure, so it logs and returns rather than throwing.
+  ///
+  /// A genuine [connectDevice] failure, though, DOES rethrow after clearing
+  /// consent back off and recording — [BroadcastController.turnOn]'s
+  /// per-id rollback only ever learns about ids `connectSource` returned
+  /// successfully for, so an id that fails here has to clear its own
+  /// consent; nothing downstream will do it.
   Future<void> connectSourceById(String id) async {
     if (id == HealthKitSensorSource.sourceId) {
       try {
@@ -490,33 +496,40 @@ class Connection {
       }
       return;
     }
+    await core.settings.setSensorAutoConnect(id, true);
     final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
     if (device == null) {
-      await recordError(
-        StateError('connectSourceById: no BleSensorDevice found for source id "$id"'),
-        StackTrace.current,
-        context: 'Connection.connectSourceById',
-      );
+      _appendLogEntry('Broadcast: source "$id" not yet discovered — will auto-connect once found');
       return;
     }
     try {
-      await core.settings.setSensorAutoConnect(device.device.deviceId, true);
       await connectDevice(device);
     } catch (e, s) {
-      await recordError(e, s, context: 'Connection.connectSourceById ${device.source.id}');
+      await core.settings.setSensorAutoConnect(id, false);
+      await recordError(e, s, context: 'Connection.connectSourceById $id');
       rethrow;
     }
   }
 
-  /// The disconnect-side counterpart of [connectSourceById] — same routing,
-  /// same "stale id is a no-op, a real failure rethrows" contract. HealthKit
-  /// goes through [disconnectHealthKit] with `forget: false` (this is
-  /// Broadcast turning off, not the rider forgetting the source — mirrors
-  /// [disconnectHealthKit]'s own `forget` semantics doc comment); a BLE
-  /// device clears its auto-connect consent BEFORE disconnecting, then
-  /// disconnects with `keepInList: true` so it stays selectable the moment
-  /// the rider flips Broadcast back on (same as `LiveMetricsSection
-  /// ._disconnect`'s own reasoning).
+  /// The disconnect-side counterpart of [connectSourceById] — same id
+  /// routing. HealthKit goes through [disconnectHealthKit] with `forget:
+  /// false` (this is Broadcast turning off, not the rider forgetting the
+  /// source — mirrors [disconnectHealthKit]'s own `forget` semantics doc
+  /// comment).
+  ///
+  /// For a BLE id, consent is cleared FIRST — before the device is even
+  /// looked up — and keyed on [id] directly (`BleSensorSource.id` IS the
+  /// BLE `deviceId`, see [connectSourceById]'s doc comment). A strap that
+  /// dropped mid-broadcast is already gone from [devices] by the time this
+  /// runs (the drop listener's `disconnect(..., dropped: true)` uses
+  /// `keepInList: false`): looking the device up FIRST and bailing when it's
+  /// missing would leave consent stuck at `true`, and that strap would
+  /// auto-connect on rediscovery with the switch off — a Decision 4
+  /// violation. A missing device here is therefore expected, not
+  /// exceptional: logged, not [recordError]'d. When the device IS still
+  /// present, it disconnects with `keepInList: true` so it stays selectable
+  /// the moment the rider flips Broadcast back on (same as
+  /// `LiveMetricsSection._disconnect`'s own reasoning).
   Future<void> disconnectSourceById(String id) async {
     if (id == HealthKitSensorSource.sourceId) {
       try {
@@ -527,20 +540,16 @@ class Connection {
       }
       return;
     }
+    await core.settings.setSensorAutoConnect(id, false);
     final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
     if (device == null) {
-      await recordError(
-        StateError('disconnectSourceById: no BleSensorDevice found for source id "$id"'),
-        StackTrace.current,
-        context: 'Connection.disconnectSourceById',
-      );
+      _appendLogEntry('Broadcast: source "$id" already disconnected — consent cleared');
       return;
     }
     try {
-      await core.settings.setSensorAutoConnect(device.device.deviceId, false);
       await disconnect(device, forget: false, persistForget: false, keepInList: true);
     } catch (e, s) {
-      await recordError(e, s, context: 'Connection.disconnectSourceById ${device.source.id}');
+      await recordError(e, s, context: 'Connection.disconnectSourceById $id');
       rethrow;
     }
   }
