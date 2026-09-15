@@ -144,3 +144,7 @@ within the `prop` submodule, then bump the pointer here.
 > Note: keywords and promotional text are not exposed on the public store
 > pages, so a `download` cannot refresh those two fields — they are maintained
 > by hand in `prop/store_metadata/`.
+
+## App Privacy
+
+- BikeControl 7.0+ on iOS: **Health & Fitness → Health** is read (heart rate) for app functionality only; not linked to identity, not used for tracking. Declared because of the Apple Health heart-rate source (HealthKit entitlement).

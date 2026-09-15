@@ -12,6 +12,7 @@ import UIKit
 
   private var actionChannel: FlutterMethodChannel?
   private var pipChannel: FlutterMethodChannel?
+  private var healthKit: HealthKitHeartRate?
 
   override func application(
     _ application: UIApplication,
@@ -82,6 +83,12 @@ import UIKit
         }
       }
       pipChannel = channel
+    }
+
+    if healthKit == nil {
+      let shim = HealthKitHeartRate()
+      shim.register(with: engineBridge.pluginRegistry)
+      healthKit = shim
     }
   }
 

@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_heart_rate_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_power_device.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show navigatorKey;
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:bike_control/services/sensors/ble_sensor_source.dart';
+import 'package:bike_control/services/sensors/fake_health_kit_channel.dart';
 import 'package:bike_control/services/sensors/fake_sensor_source.dart';
+import 'package:bike_control/services/sensors/health_kit_channel.dart';
+import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -84,6 +90,11 @@ void main() {
   Future<void> pump(WidgetTester tester, {ProxyDevice? device, bool hideWhenDeviceHasNoMetrics = false}) async {
     await tester.pumpWidget(
       ShadcnApp(
+        // Wired to the app's real navigatorKey — `buildToast` reads
+        // navigatorKey.currentContext, and the Apple Health denied-toast
+        // group below needs it to render (see
+        // proxy_device_details_feedback_test.dart's identical setup).
+        navigatorKey: navigatorKey,
         localizationsDelegates: [
           ...ShadcnLocalizations.localizationsDelegates,
           AppLocalizations.delegate,
@@ -908,6 +919,40 @@ void main() {
       },
     );
 
+    // Finding 1, fix round 1: the back-to-Trainer walk used to gate on
+    // `previous.isConnected` — true only for a REGISTERED source — so a
+    // selection still pointing at a nearby, never-registered strap (its own
+    // `connectDevice` still in flight, or failed outright) skipped the
+    // disconnect call entirely and left that strap's per-device
+    // auto-connect consent flag set to `true` forever, ready to
+    // auto-reconnect an unused strap on the next scan.
+    testWidgets(
+      'a nearby strap selected but never registered still has its consent flag revoked on Trainer',
+      (tester) async {
+        final device = BleHeartRateDevice(BleDevice(deviceId: 'never-registered-hr', name: 'TICKR 9999'));
+        core.connection.devices.add(device);
+        addTearDown(() => core.sensors.select(SensorQuantity.heartRate, null));
+
+        // Mirrors the state a failed/in-flight `connectDevice` leaves
+        // behind: selection and consent both set, but the source was never
+        // registered in the hub (so `_candidatesFor` lists it with
+        // `isConnected: false`) — set up directly rather than through a tap,
+        // since driving an actual connect failure isn't worth the fixture
+        // cost here.
+        core.sensors.select(SensorQuantity.heartRate, device.source.id);
+        await core.settings.setSensorAutoConnect(device.device.deviceId, true);
+        expect(core.settings.getSensorAutoConnect(device.device.deviceId), isTrue);
+
+        await pump(tester);
+        await tester.ensureVisible(segmentIn('heartRate', 'trainer'));
+        await tester.tap(segmentIn('heartRate', 'trainer'));
+        await tester.pumpAndSettle();
+
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
+        expect(core.settings.getSensorAutoConnect(device.device.deviceId), isFalse);
+      },
+    );
+
     testWidgets('Trainer already selected: selecting it again attempts no disconnect and writes no flag', (
       tester,
     ) async {
@@ -929,6 +974,188 @@ void main() {
       // No disconnect was ever attempted against the nearby, unrelated
       // device — its consent flag is untouched.
       expect(core.settings.getSensorAutoConnect(nearby.device.deviceId), isFalse);
+    });
+  });
+
+  group('Apple Health (HealthKit) candidate', () {
+    late FakeHealthKitChannel channel;
+
+    setUp(() {
+      channel = FakeHealthKitChannel();
+      core.connection.healthKitSource = HealthKitSensorSource(channel: channel);
+      IAPManager.instance.setProForTesting(enabled: true);
+    });
+
+    tearDown(() async {
+      await core.connection.disconnectHealthKit(forget: true);
+      core.connection.healthKitSource = null;
+    });
+
+    testWidgets('absent when Connection has no HealthKit source (every non-iOS platform)', (tester) async {
+      core.connection.healthKitSource = null;
+      await pump(tester);
+      expect(controlIn('heartRate'), findsNothing);
+    });
+
+    testWidgets('present, grey, not connected — under Trainer — as soon as the source exists', (tester) async {
+      await pump(tester);
+
+      expect(controlIn('heartRate'), findsOneWidget);
+      expect(segmentIn('heartRate', 'trainer'), findsOneWidget);
+      expect(segmentIn('heartRate', 'healthkit'), findsOneWidget);
+      expect(find.text('Apple Health'), findsOneWidget);
+      expect(find.text(AppLocalizations.current.sensorSourceHealthKitSubtitle), findsOneWidget);
+      // Only heart rate: cadence/power get no control from it.
+      expect(controlIn('cadence'), findsNothing);
+      expect(controlIn('power'), findsNothing);
+    });
+
+    testWidgets('tapping it authorizes, registers, starts, and selects it', (tester) async {
+      await pump(tester);
+      await tester.tap(segmentIn('heartRate', 'healthkit'));
+      await tester.pumpAndSettle();
+
+      expect(channel.authorizeCalls, 1);
+      expect(channel.startCalls, 1);
+      expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
+      expect(core.connection.isHealthKitConnected, isTrue);
+    });
+
+    testWidgets('denied: toast, selection never committed, nothing started', (tester) async {
+      channel.authorization = HealthKitAuthorization.denied;
+      final previousOnSelectionChanged = core.sensors.onSelectionChanged;
+      var selectionChangedCalls = 0;
+      core.sensors.onSelectionChanged = () {
+        selectionChangedCalls++;
+        previousOnSelectionChanged?.call();
+      };
+      addTearDown(() => core.sensors.onSelectionChanged = previousOnSelectionChanged);
+
+      await pump(tester);
+      await tester.tap(segmentIn('heartRate', 'healthkit'));
+      await tester.pump();
+
+      expect(find.text(AppLocalizations.current.sensorHealthKitDenied), findsOneWidget);
+      // Not `pumpAndSettle()`: the toast's own auto-dismiss timer (5 s at
+      // `LogLevel.LOGLEVEL_WARNING`) fires on a real `Timer`, which
+      // `flutter_test`'s fake clock only advances on an explicit `pump`
+      // duration — leaving it pending past test end fails the framework's
+      // own "no pending timers" invariant. Pump past the full 5 s so it
+      // actually fires and the toast tears itself down.
+      await tester.pump(const Duration(seconds: 6));
+      // Authorization now runs BEFORE `core.sensors.select` — a denial means
+      // the selection is never touched at all (not "set then reverted"), so
+      // `onSelectionChanged` never fires either.
+      expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
+      expect(selectionChangedCalls, 0);
+      expect(channel.startCalls, 0);
+    });
+
+    testWidgets(
+      'authorization is requested BEFORE the selection changes '
+      '(the sheet must not race the transport restart)',
+      (tester) async {
+        await pump(tester);
+
+        // Gated so `authorize()` does not resolve synchronously — without
+        // this, `final a = authorize(); core.sensors.select(...); await a;`
+        // (the exact ordering bug this test exists to catch) would pass
+        // just as easily as the correct `await authorize(); core.sensors
+        // .select(...);`, since a same-microtask fake can't tell "called"
+        // from "awaited to completion" apart.
+        final gate = Completer<void>();
+        channel.authorizeGate = gate;
+
+        var selectionChangedCalls = 0;
+        int? authorizeCallsAtFirstSelectionChange;
+        final previousOnSelectionChanged = core.sensors.onSelectionChanged;
+        core.sensors.onSelectionChanged = () {
+          selectionChangedCalls++;
+          authorizeCallsAtFirstSelectionChange ??= channel.authorizeCalls;
+          previousOnSelectionChanged?.call();
+        };
+        addTearDown(() => core.sensors.onSelectionChanged = previousOnSelectionChanged);
+
+        await tester.tap(segmentIn('heartRate', 'healthkit'));
+        await tester.pump();
+
+        // While the native call is still in flight: `authorize()` has been
+        // invoked, but the hub must not have been touched at all yet — the
+        // selection change, and therefore the transport restart it drives,
+        // has to wait for authorization to genuinely finish.
+        expect(channel.authorizeCalls, 1);
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
+        expect(selectionChangedCalls, 0);
+
+        gate.complete();
+        await tester.pumpAndSettle();
+
+        // Now that authorization has completed, the selection has gone
+        // through — with authorization already having happened by the time
+        // it did.
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
+        expect(selectionChangedCalls, greaterThanOrEqualTo(1));
+        expect(authorizeCallsAtFirstSelectionChange, 1);
+        // Not called again on the connect path that follows —
+        // `Connection.connectHealthKit` deliberately never authorizes.
+        expect(channel.authorizeCalls, 1);
+      },
+    );
+
+    testWidgets('connected + session mode: green dot and the live value', (tester) async {
+      await pump(tester);
+      await tester.tap(segmentIn('heartRate', 'healthkit'));
+      await tester.pumpAndSettle();
+      channel.emitSample(147, at: DateTime.now());
+      await tester.pumpAndSettle();
+
+      expect(find.text(AppLocalizations.current.sensorSourceConnectedSubtitle), findsOneWidget);
+      expect(find.text('147'), findsOneWidget);
+    });
+
+    testWidgets('connected + passive mode: explains that a Fitness workout is needed', (tester) async {
+      await pump(tester);
+      await tester.tap(segmentIn('heartRate', 'healthkit'));
+      await tester.pumpAndSettle();
+      channel.emitMode(HealthKitMode.passive);
+      await tester.pumpAndSettle();
+
+      expect(find.text(AppLocalizations.current.sensorSourceHealthKitPassiveSubtitle), findsOneWidget);
+    });
+
+    testWidgets('selecting Trainer again stops the session and unregisters', (tester) async {
+      await pump(tester);
+      await tester.tap(segmentIn('heartRate', 'healthkit'));
+      await tester.pumpAndSettle();
+      await tester.tap(segmentIn('heartRate', 'trainer'));
+      // `tester.runAsync`, not another `pump`/`pumpAndSettle`: a
+      // `StreamSubscription.cancel()` with no `onCancel` handler (our fake
+      // `_events` broadcast controller has none) completes via a Future
+      // that resolves outside `FakeAsync`'s controlled queue regardless of
+      // which zone built the controller — so `HealthKitSensorSource.stop`'s
+      // `await subscription.cancel()`, reached here via this tap, never
+      // settles no matter how many fake frames get pumped afterward
+      // (confirmed empirically: it stays pending past `pumpAndSettle`'s
+      // whole 10-minute fake-clock budget). Stepping into the real zone
+      // briefly lets that pending completion actually fire; the follow-up
+      // `pumpAndSettle` then finishes the now-unblocked rebuild.
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pumpAndSettle();
+
+      expect(channel.stopCalls, 1);
+      expect(core.connection.isHealthKitConnected, isFalse);
+      expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
+      // Still selectable afterwards.
+      expect(segmentIn('heartRate', 'healthkit'), findsOneWidget);
+    });
+
+    testWidgets('a BLE strap and Apple Health are listed together, each selectable', (tester) async {
+      final device = BleHeartRateDevice(BleDevice(deviceId: 'strap-1', name: 'TICKR 1234'));
+      core.connection.devices.add(device);
+      await pump(tester);
+
+      expect(segmentIn('heartRate', 'healthkit'), findsOneWidget);
+      expect(segmentIn('heartRate', device.source.id), findsOneWidget);
     });
   });
 }
