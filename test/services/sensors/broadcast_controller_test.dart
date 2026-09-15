@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/services/sensors/broadcast_controller.dart';
 import 'package:bike_control/services/sensors/fake_sensor_source.dart';
@@ -17,6 +19,7 @@ void main() {
   late List<String> log;
   late BroadcastController controller;
   Object? connectError;
+  bool standaloneRunning = true;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -25,10 +28,12 @@ void main() {
     bridge = ValueNotifier(false);
     log = [];
     connectError = null;
+    standaloneRunning = true;
     controller = BroadcastController(
       hub: hub,
       settings: settings,
       isBridgeRunning: bridge,
+      isStandaloneRunning: () => standaloneRunning,
       connectSource: (id) async {
         log.add('connect:$id');
         if (connectError != null) throw connectError!;
@@ -52,7 +57,7 @@ void main() {
     hub.select(SensorQuantity.cadence, 'meter');
     hub.select(SensorQuantity.power, 'meter');
     var changed = 0;
-    controller.onChanged = () => changed++;
+    controller.onChanged = () async => changed++;
     await controller.turnOn();
     expect(log, ['connect:strap', 'connect:meter']);
     expect(controller.isOn.value, isTrue);
@@ -71,7 +76,7 @@ void main() {
     hub.select(SensorQuantity.heartRate, 'strap');
     await controller.turnOn();
     log.clear();
-    controller.onChanged = () => log.add('changed');
+    controller.onChanged = () async => log.add('changed');
     await controller.turnOff();
     expect(log, ['changed', 'disconnect:strap']);
     expect(controller.isOn.value, isFalse);
@@ -95,6 +100,7 @@ void main() {
       hub: hub,
       settings: settings,
       isBridgeRunning: bridge,
+      isStandaloneRunning: () => true,
       connectSource: (id) async {
         log.add('connect:$id');
         if (++calls == 2) throw StateError('meter refused');
@@ -132,6 +138,7 @@ void main() {
         hub: hub,
         settings: settings,
         isBridgeRunning: bridge,
+        isStandaloneRunning: () => true,
         connectSource: (_) async {},
         disconnectSource: (_) async {},
       ).transport.value,
@@ -198,5 +205,52 @@ void main() {
     expect(recordedError, isA<StateError>());
     expect(log, ['connect:meter']); // attempted; never added to `_connectedIds` since it threw
     expect(controller.isOn.value, isTrue); // the switch never lies — 'strap' is still up
+  });
+
+  // Whole-branch review, Important: the sink swallows a standalone start
+  // failure into recordError, so before this `turnOn` reported success —
+  // switch ON, "Live as BikeControl" — with nothing advertised. The switch
+  // must not lie: verify the sink actually came up after `onChanged` ran.
+  group('standalone start verification', () {
+    test('turnOn awaits onChanged before checking the sink', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      final gate = Completer<void>();
+      var checked = false;
+      standaloneRunning = false;
+      controller.onChanged = () async {
+        await gate.future;
+        standaloneRunning = true;
+        checked = true;
+      };
+      final pending = controller.turnOn();
+      await Future<void>.delayed(Duration.zero);
+      expect(checked, isFalse);
+      gate.complete();
+      await pending;
+      expect(controller.isOn.value, isTrue);
+    });
+
+    test('sink not running after onChanged: switch off, sources disconnected, StateError', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      hub.select(SensorQuantity.cadence, 'meter');
+      standaloneRunning = false;
+      var changes = 0;
+      controller.onChanged = () async => changes++;
+      await expectLater(controller.turnOn(), throwsStateError);
+      expect(controller.isOn.value, isFalse);
+      expect(controller.wantsStandalone, isFalse);
+      expect(log, ['connect:strap', 'connect:meter', 'disconnect:strap', 'disconnect:meter']);
+      // on (sync attempted) + off (sink told to stop again)
+      expect(changes, 2);
+    });
+
+    test('a running bridge is served regardless of the standalone sink', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      standaloneRunning = false;
+      bridge.value = true;
+      await Future<void>.delayed(Duration.zero);
+      await controller.turnOn();
+      expect(controller.isOn.value, isTrue);
+    });
   });
 }

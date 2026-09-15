@@ -6,6 +6,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
+import 'package:bike_control/pages/sensors/sensor_transport_requirements.dart';
 import 'package:bike_control/services/sensors/broadcast_controller.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -27,7 +28,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// status vocabulary (tile + Ampel + status line) so the card reads like the
 /// chain card that opened it.
 class SensorsPage extends StatefulWidget {
-  const SensorsPage({super.key});
+  const SensorsPage({super.key, this.ensureTransportReady});
+
+  /// Pre-flights the transport's platform grant before the switch turns on;
+  /// defaults to [ensureSensorTransportReady]. Injectable because the real
+  /// check is platform-gated and prompts through the OS.
+  final Future<bool> Function(BuildContext context, RetrofitMode transport)? ensureTransportReady;
 
   @override
   State<SensorsPage> createState() => _SensorsPageState();
@@ -118,6 +124,21 @@ class _SensorsPageState extends State<SensorsPage> {
         return;
       }
     }
+    if (on) {
+      // The transport's own grant (Android BLUETOOTH_ADVERTISE, Apple Local
+      // Network) — prompted here, ahead of `turnOn`, so a denial reads as
+      // the sheet the rider just declined rather than a failed start after
+      // every source was already connected.
+      final ready = await (widget.ensureTransportReady ?? ensureSensorTransportReady)(
+        context,
+        broadcast.transport.value,
+      );
+      if (!mounted) return;
+      if (!ready) {
+        _rebuild();
+        return;
+      }
+    }
     setState(() => _inFlight = on);
     try {
       if (on) {
@@ -128,7 +149,9 @@ class _SensorsPageState extends State<SensorsPage> {
     } catch (e, s) {
       if (on) {
         // Recorded (with the original stack) inside `BroadcastController
-        // .turnOn`, which also rolled back; this site only tells the rider.
+        // .turnOn`, which also rolled back, or its verification that the
+        // standalone sink actually came up (the sink records its own
+        // failure); this site only tells the rider.
         if (!mounted) return;
         buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.of(context).sensorConnectFailed);
       } else {

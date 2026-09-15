@@ -1192,6 +1192,7 @@ void main() {
           connectSource: (_) async {},
           disconnectSource: (_) async {},
           isBridgeRunning: ValueNotifier(false),
+          isStandaloneRunning: () => true,
         );
         addTearDown(() => core.connection.broadcast = null);
 
@@ -1225,6 +1226,7 @@ void main() {
           connectSource: (_) async {},
           disconnectSource: (_) async {},
           isBridgeRunning: ValueNotifier(false),
+          isStandaloneRunning: () => true,
         );
         addTearDown(() => core.connection.broadcast = null);
         // Switch it on first — `turnOn` requires at least one existing
@@ -1274,6 +1276,7 @@ void main() {
           connectSource: (_) async {},
           disconnectSource: (_) async {},
           isBridgeRunning: ValueNotifier(false),
+          isStandaloneRunning: () => true,
         );
         addTearDown(() => core.connection.broadcast = null);
         final ble = FakeUniversalBlePlatform();

@@ -42,6 +42,7 @@ void main() {
       hub: hub,
       settings: settings,
       isBridgeRunning: isBridgeRunning,
+      isStandaloneRunning: () => true,
       connectSource: (_) async {},
       disconnectSource: (_) async {},
     );

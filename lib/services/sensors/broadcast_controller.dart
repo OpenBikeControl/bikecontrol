@@ -23,6 +23,7 @@ class BroadcastController {
     required this.connectSource,
     required this.disconnectSource,
     required this.isBridgeRunning,
+    required this.isStandaloneRunning,
   }) : _settings = settings,
        _transport = ValueNotifier(settings.getSensorsTransport());
 
@@ -32,13 +33,23 @@ class BroadcastController {
   final Future<void> Function(String sourceId) disconnectSource;
   final ValueListenable<bool> isBridgeRunning;
 
+  /// Whether the standalone sink is actually up (`SensorSinkController
+  /// .standaloneRunning`). The sink swallows a start failure into
+  /// `recordError`, so `onChanged` returning is not proof of anything —
+  /// [turnOn] asks this afterwards and rolls back if nothing is serving.
+  final bool Function() isStandaloneRunning;
+
   final _isOn = ValueNotifier<bool>(false);
   final ValueNotifier<RetrofitMode> _transport;
   bool _resumeAfterBridge = false;
   bool _started = false;
   VoidCallback? _previousSelectionHook;
   VoidCallback? _chainedSelectionHook;
-  VoidCallback? onChanged;
+
+  /// Re-syncs the sink to this controller's state. Awaited by [turnOn] so
+  /// the standalone start it triggers has finished (or failed) before the
+  /// switch reports success — see [isStandaloneRunning].
+  Future<void> Function()? onChanged;
 
   /// Source ids this controller has actually asked to connect — this
   /// controller's own notion of "connected" (consent it granted via
@@ -117,13 +128,20 @@ class BroadcastController {
       rethrow;
     }
     _isOn.value = true;
-    onChanged?.call();
+    await onChanged?.call();
+    // With the bridge running the sources ride on the trainer's own
+    // advertisement; otherwise the standalone sink has to have come up, or
+    // the switch would read "Live" with nothing advertised.
+    if (!isBridgeRunning.value && !isStandaloneRunning()) {
+      await turnOff();
+      throw StateError('standalone sink did not start');
+    }
   }
 
   Future<void> turnOff() async {
     if (!_isOn.value) return;
     _isOn.value = false;
-    onChanged?.call(); // sink stops first, then the sources
+    await onChanged?.call(); // sink stops first, then the sources
     for (final id in _connectedIds.toList()) {
       await disconnectSource(id);
       _connectedIds.remove(id);
@@ -134,7 +152,7 @@ class BroadcastController {
     if (mode == RetrofitMode.proxy) throw ArgumentError('proxy is not a sensor transport');
     _transport.value = mode;
     await _settings.setSensorsTransport(mode);
-    onChanged?.call();
+    await onChanged?.call();
   }
 
   Future<void> _onSelectionChanged() async {
@@ -158,7 +176,7 @@ class BroadcastController {
         _connectedIds.add(id);
       }
     }
-    onChanged?.call();
+    await onChanged?.call();
   }
 
   void _onBridgeChanged() {
@@ -166,7 +184,11 @@ class BroadcastController {
       _resumeAfterBridge = _isOn.value;
       if (_isOn.value) {
         _isOn.value = false;
-        onChanged?.call();
+        unawaited(
+          onChanged?.call().catchError(
+            (Object e, StackTrace s) => recordError(e, s, context: 'BroadcastController.bridgeStarted'),
+          ),
+        );
       }
     } else if (_resumeAfterBridge) {
       _resumeAfterBridge = false;

@@ -838,6 +838,9 @@ class Connection {
         hub: core.sensors,
         settings: core.settings,
         isBridgeRunning: ftmsEmulator.isStarted,
+        // `_apply` swallows a failed standalone start into recordError, so
+        // the switch has to ask the sink itself whether anything came up.
+        isStandaloneRunning: () => sensorSink.standaloneRunning,
         connectSource: connectSourceById,
         disconnectSource: disconnectSourceById,
       );
@@ -859,7 +862,7 @@ class Connection {
       // hub's own selection-change hook (below) covers a source being picked
       // or dropped, but not the switch flipping with the same selection
       // still in place.
-      broadcast!.onChanged = () => unawaited(sinkSync.sync());
+      broadcast!.onChanged = sinkSync.sync;
       // Order matters: `sinkSync.start()` is what first assigns
       // `hub.onSelectionChanged`; `broadcast.start()` CHAINS onto whatever is
       // already installed there (see BroadcastController.start's own doc

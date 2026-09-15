@@ -49,6 +49,14 @@ void main() {
   final disconnected = <String>[];
   Object? connectError;
 
+  /// What the (fake) sink reports after `onChanged` ran — the controller
+  /// verifies this before the switch is allowed to read Live.
+  bool standaloneRunning = true;
+
+  /// Stand-in for the transport's platform grant (Android BLUETOOTH_ADVERTISE
+  /// / Apple Local Network); null runs the real, platform-gated check.
+  Future<bool> Function(BuildContext context, RetrofitMode transport)? ensureTransportReady;
+
   /// When set, every `connectSource` parks on it — a stand-in for the seconds
   /// a real BLE / HealthKit connect takes, so a test can tap again mid-flight.
   Completer<void>? connectGate;
@@ -78,6 +86,8 @@ void main() {
     disconnected.clear();
     connectError = null;
     connectGate = null;
+    standaloneRunning = true;
+    ensureTransportReady = null;
     // recordError() -> installLoggerErrorListener() only assigns
     // Logger.onRecordError the first time it runs in this isolate; trip
     // that guard here so the no-op below isn't clobbered by the production
@@ -88,6 +98,7 @@ void main() {
       hub: core.sensors,
       settings: core.settings,
       isBridgeRunning: ValueNotifier(false),
+      isStandaloneRunning: () => standaloneRunning,
       connectSource: (id) async {
         connected.add(id);
         if (connectGate case final gate?) await gate.future;
@@ -123,7 +134,7 @@ void main() {
           AppLocalizations.delegate,
         ],
         supportedLocales: const [Locale('en')],
-        home: const SensorsPage(),
+        home: SensorsPage(ensureTransportReady: ensureTransportReady),
       ),
     );
     await tester.pump();
@@ -250,6 +261,60 @@ void main() {
       // Drain the toast's own auto-dismiss timer (5 s for a warning) so it is
       // not left pending when the tree is torn down.
       await tester.pump(const Duration(seconds: 6));
+    });
+
+    // Whole-branch review, Important: a standalone start that fails inside
+    // the sink used to leave the switch ON and silent. The controller now
+    // rolls back and throws, and this page reports it like any connect
+    // failure.
+    testWidgets('a sink that never comes up keeps the switch off and shows the connect-failed toast', (tester) async {
+      selectStrap();
+      standaloneRunning = false;
+      await pump(tester);
+
+      await tester.tap(switchFinder);
+      await tester.pump();
+      await tester.pump();
+
+      expect(connected, ['strap']);
+      expect(disconnected, ['strap']);
+      expect(core.connection.broadcast!.isOn.value, isFalse);
+      expect(switchWidget(tester).value, isFalse);
+      expect(find.text(AppLocalizations.current.sensorConnectFailed), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('a transport grant the rider declines leaves the switch off without reaching turnOn', (tester) async {
+      selectStrap();
+      final asked = <RetrofitMode>[];
+      ensureTransportReady = (_, transport) async {
+        asked.add(transport);
+        return false;
+      };
+      await pump(tester);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(asked, [RetrofitMode.bluetooth]);
+      expect(connected, isEmpty);
+      expect(core.connection.broadcast!.isOn.value, isFalse);
+      expect(switchWidget(tester).value, isFalse);
+      expect(switchWidget(tester).enabled, isTrue);
+      // The requirement flow showed its own sheet; no second explanation.
+      expect(find.text(AppLocalizations.current.sensorConnectFailed), findsNothing);
+    });
+
+    testWidgets('a granted transport requirement proceeds to turnOn', (tester) async {
+      selectStrap();
+      ensureTransportReady = (_, _) async => true;
+      await pump(tester);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(connected, ['strap']);
+      expect(core.connection.broadcast!.isOn.value, isTrue);
     });
 
     testWidgets('the client name rides on the status line while a trainer app is subscribed', (tester) async {

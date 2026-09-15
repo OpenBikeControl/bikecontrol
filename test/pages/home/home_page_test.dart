@@ -219,6 +219,7 @@ void _sensorsOnlyTests() {
         connectSource: (_) async {},
         disconnectSource: (_) async {},
         isBridgeRunning: ValueNotifier(false),
+        isStandaloneRunning: () => true,
       );
       await _pumpHome(tester);
 
@@ -250,6 +251,7 @@ void _sensorsOnlyTests() {
         connectSource: (_) async {},
         disconnectSource: (_) async {},
         isBridgeRunning: ValueNotifier(false),
+        isStandaloneRunning: () => true,
       );
       core.connection.broadcast = broadcast;
       await broadcast.turnOn();
@@ -284,6 +286,7 @@ void _sensorsOnlyTests() {
         connectSource: (_) async {},
         disconnectSource: (_) async {},
         isBridgeRunning: ValueNotifier(false),
+        isStandaloneRunning: () => true,
       );
       core.connection.broadcast = broadcast;
       await broadcast.turnOn();
