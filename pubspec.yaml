@@ -1,7 +1,7 @@
 name: bike_control
 description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 6.6.0+152
+version: 7.0.0+153
 
 environment:
   sdk: ^3.9.0
