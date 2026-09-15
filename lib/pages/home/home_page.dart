@@ -554,6 +554,8 @@ class _HomePageState extends State<HomePage> {
     final card = switch (link.key) {
       ChainLinkKey.controller => _controllerCard(link, device, inputs),
       ChainLinkKey.trainer => _trainerCard(link, inputs),
+      // Placeholder: Task 7 replaces this with the real Sensors card.
+      ChainLinkKey.sensors => _trainerCard(link, inputs),
       ChainLinkKey.app => _appCard(link, inputs),
     };
 
@@ -1012,6 +1014,10 @@ class _HomePageState extends State<HomePage> {
         } else {
           await openAppGuideSheet(context);
         }
+      case ChainLinkKey.sensors:
+        // No checklist and no card of its own yet — Task 7 adds the real
+        // Sensors card and whatever instructions flow it needs.
+        break;
     }
     _update();
   }

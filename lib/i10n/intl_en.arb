@@ -1818,6 +1818,7 @@
   },
   "chainControllerTitle": "Controller",
   "chainTrainerTitle": "Smart Trainer",
+  "sensorsChainEyebrow": "Sensors",
   "chainAppTitle": "Trainer app",
   "chainStepBluetoothReady": "Bluetooth is on",
   "chainStepBluetoothReadyPending": "Turn on Bluetooth",

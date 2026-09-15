@@ -32,7 +32,10 @@ enum LinkStatus {
 /// Which link of the chain a card represents. The chain follows the signal
 /// path: your buttons, then the gears BikeControl computes from them, then the
 /// app that receives them.
-enum ChainLinkKey { controller, trainer, app }
+///
+/// [sensors] takes the trainer's slot in sensors-only mode, where there is no
+/// smart trainer to bridge — only sensor readings to broadcast.
+enum ChainLinkKey { controller, trainer, sensors, app }
 
 /// A checklist step. Identified by id, not by wording — the labels live in the
 /// widget layer so they can be translated, and so tests never assert on text.

@@ -2,6 +2,7 @@ import 'package:bike_control/pages/home/chain_builder.dart';
 import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/dircon_emulator.dart';
 
 const _readyApp = AppInput(
   name: 'MyWhoosh',
@@ -59,6 +60,20 @@ TrainerInput trainer({
     metrics: metrics,
     overlayOffered: overlayOffered,
     overlayEnabled: overlayEnabled,
+  );
+}
+
+SensorsInput sensors({
+  List<String> sourceNames = const ['Heart Rate Monitor'],
+  bool broadcasting = true,
+  RetrofitMode transport = RetrofitMode.bluetooth,
+  String? clientName,
+}) {
+  return SensorsInput(
+    sourceNames: sourceNames,
+    broadcasting: broadcasting,
+    transport: transport,
+    clientName: clientName,
   );
 }
 
@@ -645,6 +660,55 @@ void main() {
         chain.byKey(ChainLinkKey.trainer).steps.map((s) => s.id),
         [SetupStepId.trainerPaired, SetupStepId.trainerAppBridged],
       );
+    });
+  });
+
+  group('sensors link', () {
+    test('sensors-only mode replaces the trainer link with a sensors link', () {
+      final chain = buildChain(ChainInputs(controllers: [controller()], sensors: sensors(), app: _readyApp));
+      expect(chain.map((l) => l.key), [ChainLinkKey.controller, ChainLinkKey.sensors, ChainLinkKey.app]);
+      expect(chain.any((l) => l.key == ChainLinkKey.trainer), isFalse);
+    });
+
+    test('is optional with no checklist', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(), app: _readyApp));
+      final link = chain.byKey(ChainLinkKey.sensors);
+      expect(link.optional, isTrue);
+      expect(link.steps, isEmpty);
+      expect(link.isBlocking, isFalse);
+    });
+
+    test('is ready while broadcasting', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(broadcasting: true), app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.sensors).status, LinkStatus.ready);
+    });
+
+    test('is off while not broadcasting', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(broadcasting: false), app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.sensors).status, LinkStatus.off);
+    });
+
+    test('titles itself after the first source', () {
+      final chain = buildChain(
+        ChainInputs(sensors: sensors(sourceNames: const ['Power Meter', 'Cadence Sensor']), app: _readyApp),
+      );
+      expect(chain.byKey(ChainLinkKey.sensors).title, 'Power Meter');
+    });
+
+    test('titles itself blank with no sources', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(sourceNames: const []), app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.sensors).title, '');
+    });
+
+    // A trainer showing up is how a rider leaves sensors-only mode. The home
+    // page is what actually drops the sensors input when that happens, but
+    // the builder has to be safe even if it is ever called with both set.
+    test('a trainer input present alongside sensors makes the trainer link win', () {
+      final chain = buildChain(
+        ChainInputs(controllers: [controller()], trainer: trainer(), sensors: sensors(), app: _readyApp),
+      );
+      expect(chain.map((l) => l.key), [ChainLinkKey.controller, ChainLinkKey.trainer, ChainLinkKey.app]);
+      expect(chain.any((l) => l.key == ChainLinkKey.sensors), isFalse);
     });
   });
 
