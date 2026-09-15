@@ -1,5 +1,6 @@
 import Flutter
 import HealthKit
+import UIKit
 
 /// Heart rate from Apple Health for the sensor hub. Two paths:
 ///  - iOS 26+: our own HKWorkoutSession, which is what makes AirPods Pro 3
@@ -65,17 +66,40 @@ final class HealthKitHeartRate: NSObject, FlutterStreamHandler {
       return result(FlutterError(code: "unavailable", message: "HealthKit not available", details: nil))
     }
     let workoutType = HKObjectType.workoutType()
+    let startedAt = Date()
     store.requestAuthorization(toShare: [workoutType], read: [heartRateType]) { [weak self] _, error in
-      guard let self else { return result("unknown") }
-      if let error {
-        return result(FlutterError(code: "authorize", message: error.localizedDescription, details: nil))
+      // This completion runs on a HealthKit background queue, never main —
+      // but `FlutterResult` must be invoked on the platform (main) thread,
+      // same as every other Flutter channel callback. Compute the verdict
+      // here, off-main, then hop before ever calling `result`. Device-
+      // confirmed bug: calling `result` straight from this queue raced the
+      // permission sheet's own presentation and made the FIRST tap on Apple
+      // Health always fail with "Authorization session timed out" (no sheet
+      // shown); a second tap then worked because the selection was already
+      // persisted and nothing else was racing it that time.
+      guard let self else {
+        return DispatchQueue.main.async { result("unknown") }
       }
-      // Read denials are invisible by design; the share half is the only
-      // observable verdict.
-      switch self.store.authorizationStatus(for: workoutType) {
-      case .sharingDenied: result("denied")
-      case .sharingAuthorized: result("granted")
-      default: result("unknown")
+      let verdict: Any
+      if let error {
+        verdict = FlutterError(code: "authorize", message: error.localizedDescription, details: nil)
+      } else {
+        // Read denials are invisible by design; the share half is the only
+        // observable verdict.
+        switch self.store.authorizationStatus(for: workoutType) {
+        case .sharingDenied: verdict = "denied"
+        case .sharingAuthorized: verdict = "granted"
+        default: verdict = "unknown"
+        }
+      }
+      let elapsed = Date().timeIntervalSince(startedAt)
+      DispatchQueue.main.async {
+        let appState = UIApplication.shared.applicationState.rawValue
+        NSLog(
+          "HealthKit authorize: took %.1fs, applicationState=%d, error=%@",
+          elapsed, appState, error?.localizedDescription ?? "none"
+        )
+        result(verdict)
       }
     }
   }
