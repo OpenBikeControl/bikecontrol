@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -132,8 +133,10 @@ class MetricSourceOption {
 /// selection.
 ///
 /// Per direct author feedback, the list sits to the RIGHT of the value
-/// column when the tile is wide enough for both, and stacks below it
-/// otherwise — see [_sideBySideBreakpoint].
+/// column when the tile is wide enough for both. Otherwise the tile shows
+/// only the current pick under the value, in a compact picker that opens the
+/// same list in a popover — see [_sideBySideBreakpoint] and
+/// [_MetricSourcePicker].
 class MetricCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -156,8 +159,8 @@ class MetricCard extends StatelessWidget {
   });
 
   /// Below this content width (i.e. inside this tile's own padding, not the
-  /// tile's outer width) the source list stacks under the value instead of
-  /// beside it.
+  /// tile's outer width) the source list collapses into [_MetricSourcePicker]
+  /// under the value instead of sitting beside it.
   ///
   /// Measured, not guessed, against this app's own 2×2 signals grid
   /// (`LiveMetricsSection`, and `ProxyDeviceDetailsPage`'s 16px page padding
@@ -170,9 +173,8 @@ class MetricCard extends StatelessWidget {
   /// squarely between those two clusters.
   static const double _sideBySideBreakpoint = 240;
 
-  /// Gutter on both sides of the divider — `Gap` before it, matching
-  /// `Container.padding` after it (side-by-side), or the equivalent
-  /// vertical spacing above/below it (stacked). Per direct author feedback
+  /// Gutter on both sides of the side-by-side divider — `Gap` before it,
+  /// matching `Container.padding` after it. Per direct author feedback
   /// ("even more divider padding"): 16, not a new number — `--s-4` on this
   /// project's design-system spacing scale (4 / 8 / 12 / 16 / 20), a
   /// deliberate step up from the previous 8 (`--s-2`) rather than the
@@ -319,26 +321,25 @@ class MetricCard extends StatelessWidget {
                       ],
                     );
                   }
+                  // Narrow: half of a phone-width grid leaves ~150px of
+                  // content, where an inline list only had room for
+                  // truncated names and clipped subtitles. Show just the
+                  // current pick, and open the full list on demand.
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    // Already `_dividerGutter` (8) above AND below the
-                    // divider — this uniform `Column` spacing applies
-                    // between every consecutive pair of children equally,
-                    // so it already gave the stacked divider the same
-                    // gutter the side-by-side one gets above. Confirmed by
-                    // measurement while diagnosing this fix (both gaps
-                    // 8px), so nothing to change here.
-                    spacing: _dividerGutter,
+                    spacing: 8,
                     children: [
                       labelRow,
                       valueRow,
-                      // Stacked: a horizontal `Divider` has no such problem
-                      // — its cross axis (width) is bounded by the card's
-                      // own fixed width, never by the (possibly unbounded)
-                      // incoming height, so the real shadcn widget is safe
-                      // to use directly here.
-                      const Divider(key: Key('metric-card-source-divider')),
-                      list,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: 2,
+                        children: [
+                          _sourceListHeader(context, cs),
+                          _MetricSourcePicker(options: options),
+                        ],
+                      ),
                     ],
                   );
                 },
@@ -562,6 +563,133 @@ class _MetricSourceRowState extends State<_MetricSourceRow> {
           ),
         );
       },
+    );
+  }
+}
+
+/// The narrow-tile stand-in for [MetricCard._sourceList]: a compact button
+/// showing just the current pick (its dot and name) that opens every option
+/// — the same [_MetricSourceRow]s, subtitles included — in a popover
+/// anchored to the tile.
+///
+/// The popover closes as soon as a row is picked (or long-pressed to
+/// disconnect), and the work runs HERE rather than inside that row: the
+/// popover's rows are gone the moment it closes, so only this button, which
+/// stays mounted, can carry the busy spinner and the connect-failed toast
+/// until the work finishes.
+class _MetricSourcePicker extends StatefulWidget {
+  const _MetricSourcePicker({required this.options});
+
+  final List<MetricSourceOption> options;
+
+  @override
+  State<_MetricSourcePicker> createState() => _MetricSourcePickerState();
+}
+
+class _MetricSourcePickerState extends State<_MetricSourcePicker> {
+  /// Wide enough for a name plus a two-line subtitle, narrow enough to fit
+  /// beside the screen edge on the smallest phones.
+  static const double _popoverWidth = 260;
+
+  bool _busy = false;
+
+  Future<void> _runBusy(Future<void> Function() work) async {
+    if (mounted) setState(() => _busy = true);
+    try {
+      await work();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _select(MetricSourceOption option) => _runBusy(() async {
+    try {
+      await option.onSelect();
+    } catch (e, s) {
+      unawaited(recordError(e, s, context: 'MetricSourcePicker'));
+      buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.current.sensorConnectFailed);
+    }
+  });
+
+  void _open() {
+    final cs = Theme.of(context).colorScheme;
+    showDropdown(
+      context: context,
+      alignment: AlignmentDirectional.topStart,
+      anchorAlignment: AlignmentDirectional.bottomStart,
+      builder: (popoverContext) => MenuPopup(
+        children: [
+          SizedBox(
+            width: _popoverWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 2,
+              children: [
+                for (final option in widget.options)
+                  _MetricSourceRow(
+                    dotColor: option.state.dotColor(cs),
+                    option: MetricSourceOption(
+                      id: option.id,
+                      label: option.label,
+                      subtitle: option.subtitle,
+                      state: option.state,
+                      selected: option.selected,
+                      onSelect: () async {
+                        unawaited(closeOverlay(popoverContext));
+                        unawaited(_select(option));
+                      },
+                      onDisconnect: option.onDisconnect == null
+                          ? null
+                          : () async {
+                              unawaited(closeOverlay(popoverContext));
+                              unawaited(_runBusy(option.onDisconnect!));
+                            },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final current = widget.options.firstWhere((o) => o.selected, orElse: () => widget.options.first);
+    return Button.outline(
+      key: const Key('metric-card-source-picker'),
+      style: ButtonStyle.outline().withPadding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+      onPressed: _busy ? null : _open,
+      child: SizedBox(
+        width: double.infinity,
+        child: Row(
+          children: [
+            Container(
+              key: const Key('metric-card-source-picker-dot'),
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: current.state.dotColor(cs)),
+            ),
+            const Gap(8),
+            Expanded(
+              child: Text(
+                current.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: cs.mutedForeground),
+              ),
+            ),
+            const Gap(6),
+            if (_busy)
+              const SmallProgressIndicator()
+            else
+              Icon(LucideIcons.chevronsUpDown, size: 14, color: cs.mutedForeground),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,15 +1,18 @@
+import 'dart:async';
+
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
+import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The tile itself — presentational only, and deliberately dumb: it renders
-/// whatever [MetricSourceOption]s it is given as an inline vertical list,
-/// never a toggle, a dropdown, or a picker sheet. `live_metrics_section_test
-/// .dart` covers deciding WHICH options exist and what their state (and
-/// subtitle) resolves to (including the connect/disconnect ordering); this
-/// file covers HOW [MetricCard] renders a given list, including the
-/// side-by-side/stacked layout switch.
+/// whatever [MetricSourceOption]s it is given, inline as a vertical list on a
+/// wide tile, or behind a compact picker (a popover anchored to the tile) on
+/// a narrow one. `live_metrics_section_test.dart` covers deciding WHICH
+/// options exist and what their state (and subtitle) resolves to (including
+/// the connect/disconnect ordering); this file covers HOW [MetricCard]
+/// renders a given list, including the inline/picker layout switch.
 Future<void> main() async {
   await AppLocalizations.load(const Locale('en'));
 
@@ -22,9 +25,10 @@ Future<void> main() async {
   /// [width] defaults to a realistic PHONE width (360, matching this
   /// section's own signals-grid usage) — each card lands well under
   /// `MetricCard._sideBySideBreakpoint`'s 240px content-width threshold, so
-  /// the source list (when present) stacks below the value. Passing a wider
-  /// [width] (see the "layout: side-by-side vs stacked" group) pushes each
-  /// card's content width above that threshold instead.
+  /// the sources (when present) collapse into the compact picker. Passing a
+  /// wider [width] pushes each card's content width above that threshold,
+  /// where the list renders inline beside the value instead — every test
+  /// that exercises the inline rows directly uses 900.
   Future<void> pump(WidgetTester tester, MetricCard card, {MetricCard? second, double width = 360}) async {
     // A `SizedBox(width: ...)` alone can't narrow anything here: `Scaffold`
     // gives its child TIGHT constraints matching the (default 800×600) test
@@ -89,6 +93,7 @@ Future<void> main() async {
       expect(find.text('142'), findsOneWidget);
       expect(find.text('bpm'), findsOneWidget);
       expect(find.byKey(const Key('metric-card-source-control')), findsNothing);
+      expect(find.byKey(const Key('metric-card-source-picker')), findsNothing);
       // No source list, no divider either — a divider with nothing to
       // separate would be a stray line on the tile's pristine, no-sensors
       // rendering.
@@ -109,6 +114,7 @@ Future<void> main() async {
       );
 
       expect(find.byKey(const Key('metric-card-source-control')), findsNothing);
+      expect(find.byKey(const Key('metric-card-source-picker')), findsNothing);
     });
 
     testWidgets('a single-entry list (nothing to choose between) also renders no control', (tester) async {
@@ -128,6 +134,7 @@ Future<void> main() async {
       );
 
       expect(find.byKey(const Key('metric-card-source-control')), findsNothing);
+      expect(find.byKey(const Key('metric-card-source-picker')), findsNothing);
       expect(find.byKey(const Key('metric-card-source-option-trainer')), findsNothing);
     });
 
@@ -170,6 +177,7 @@ Future<void> main() async {
             option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.notConnected),
           ],
         ),
+        width: 900,
       );
 
       expect(find.byKey(const Key('metric-card-source-header')), findsOneWidget);
@@ -233,6 +241,7 @@ Future<void> main() async {
             ),
           ],
         ),
+        width: 900,
       );
 
       // All three are on screen simultaneously — no sheet, no dropdown, no
@@ -245,8 +254,7 @@ Future<void> main() async {
       expect(find.text('Connected — streaming its own reading.'), findsOneWidget);
       expect(find.text('Not connected yet — tap to connect and use it here.'), findsOneWidget);
 
-      // Trainer is the first row in source order (stacked at this width —
-      // see the layout group below for the side-by-side case).
+      // Trainer is the first row in source order.
       expect(
         tester.getTopLeft(find.byKey(const Key('metric-card-source-option-trainer'))).dy,
         lessThan(tester.getTopLeft(find.byKey(const Key('metric-card-source-option-hr-1'))).dy),
@@ -280,6 +288,7 @@ Future<void> main() async {
             ),
           ],
         ),
+        width: 900,
       );
 
       await tester.tap(find.byKey(const Key('metric-card-source-option-hr-1')));
@@ -305,6 +314,7 @@ Future<void> main() async {
             option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.connected, selected: true),
           ],
         ),
+        width: 900,
       );
 
       expect(
@@ -350,6 +360,7 @@ Future<void> main() async {
             option(id: 'e', label: 'E', state: MetricSourceState.notConnected),
           ],
         ),
+        width: 900,
       );
 
       final cs = Theme.of(tester.element(find.byType(MetricCard).first)).colorScheme;
@@ -383,6 +394,7 @@ Future<void> main() async {
           option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.lost, selected: true),
         ],
       ),
+      width: 900,
     );
 
     final cs = Theme.of(tester.element(find.byType(MetricCard).first)).colorScheme;
@@ -394,36 +406,6 @@ Future<void> main() async {
     // out-shout the number above it.
     expect(unselected.style?.fontSize, lessThan(16));
     expect(selected.style?.fontSize, lessThan(16));
-  });
-
-  testWidgets('a long source name truncates instead of overflowing a half-width tile', (tester) async {
-    await pump(
-      tester,
-      MetricCard(
-        icon: baseCard.icon,
-        iconColor: baseCard.iconColor,
-        label: baseCard.label,
-        value: baseCard.value,
-        unit: baseCard.unit,
-        sources: [
-          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer, selected: true),
-          option(
-            id: 'long',
-            label: 'A Very Long Sensor Display Name That Would Never Fit',
-            state: MetricSourceState.notConnected,
-          ),
-        ],
-      ),
-    );
-    await tester.pump();
-
-    // No RenderFlex/layout overflow exception was thrown during the pump
-    // above at this constrained (half-tile) width.
-    expect(tester.takeException(), isNull);
-
-    final text = tester.widget<Text>(find.text('A Very Long Sensor Display Name That Would Never Fit'));
-    expect(text.maxLines, 1);
-    expect(text.overflow, TextOverflow.ellipsis);
   });
 
   testWidgets('long-press on a row invokes onDisconnect when set', (tester) async {
@@ -447,6 +429,7 @@ Future<void> main() async {
           ),
         ],
       ),
+      width: 900,
     );
 
     await tester.longPress(find.byKey(const Key('metric-card-source-option-hr-1')));
@@ -469,6 +452,7 @@ Future<void> main() async {
           option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.notConnected),
         ],
       ),
+      width: 900,
     );
 
     // Must not throw for lack of a handler.
@@ -478,31 +462,191 @@ Future<void> main() async {
     expect(tester.takeException(), isNull);
   });
 
-  group('layout: side-by-side vs stacked', () {
+  group('narrow tile: a compact picker replaces the inline list', () {
+    // Half of a phone-width grid leaves ~150px of content — an inline list
+    // there only had room for truncated names and clipped subtitles, so the
+    // tile shows just the current pick and opens the full list on demand.
+    Finder picker() => find.byKey(const Key('metric-card-source-picker'));
+
+    MetricCard card(List<MetricSourceOption> sources) => MetricCard(
+      key: const Key('under-test'),
+      icon: baseCard.icon,
+      iconColor: baseCard.iconColor,
+      label: baseCard.label,
+      value: baseCard.value,
+      unit: baseCard.unit,
+      sources: sources,
+    );
+
+    testWidgets('shows only the current pick, below the value — no inline rows, no divider', (tester) async {
+      await pump(
+        tester,
+        card([
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer),
+          option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.connected, selected: true),
+        ]),
+      );
+
+      expect(picker(), findsOneWidget);
+      expect(find.descendant(of: picker(), matching: find.text('HR6 0050789')), findsOneWidget);
+      expect(find.byKey(const Key('metric-card-source-option-trainer')), findsNothing);
+      expect(find.byKey(const Key('metric-card-source-option-hr-1')), findsNothing);
+      expect(find.text('subtitle for hr-1'), findsNothing);
+      expect(find.byKey(const Key('metric-card-source-divider')), findsNothing);
+      expect(tester.getTopLeft(picker()).dy, greaterThan(tester.getBottomLeft(find.text('142')).dy));
+
+      // The SOURCE header still says what the picker is for.
+      final headerFinder = find.byKey(const Key('metric-card-source-header'));
+      expect(headerFinder, findsOneWidget);
+      expect(tester.getTopLeft(headerFinder).dy, lessThan(tester.getTopLeft(picker()).dy));
+    });
+
+    testWidgets("the picker's dot carries the current pick's state", (tester) async {
+      await pump(
+        tester,
+        card([
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer),
+          option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.lost, selected: true),
+        ]),
+      );
+
+      final dot = tester.widget<Container>(find.byKey(const Key('metric-card-source-picker-dot')));
+      expect((dot.decoration as BoxDecoration?)?.color, const Color(0xFFEF4444));
+    });
+
+    testWidgets('tapping the picker opens every option with its subtitle', (tester) async {
+      await pump(
+        tester,
+        card([
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer, selected: true),
+          option(
+            id: 'hr-1',
+            label: 'HR6 0050789',
+            subtitle: 'Not connected yet — tap to connect and use it here.',
+            state: MetricSourceState.notConnected,
+          ),
+        ]),
+      );
+
+      await tester.tap(picker());
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('metric-card-source-option-trainer')), findsOneWidget);
+      expect(find.byKey(const Key('metric-card-source-option-hr-1')), findsOneWidget);
+      expect(find.text('Not connected yet — tap to connect and use it here.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets("picking a row closes the popover and runs only that row's onSelect", (tester) async {
+      var trainerTapped = false;
+      var sensorTapped = false;
+      await pump(
+        tester,
+        card([
+          option(
+            id: 'trainer',
+            label: 'Trainer',
+            state: MetricSourceState.trainer,
+            selected: true,
+            onSelect: () async => trainerTapped = true,
+          ),
+          option(
+            id: 'hr-1',
+            label: 'HR6 0050789',
+            state: MetricSourceState.notConnected,
+            onSelect: () async => sensorTapped = true,
+          ),
+        ]),
+      );
+
+      await tester.tap(picker());
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('metric-card-source-option-hr-1')));
+      await tester.pumpAndSettle();
+
+      expect(sensorTapped, isTrue);
+      expect(trainerTapped, isFalse);
+      expect(find.byKey(const Key('metric-card-source-option-hr-1')), findsNothing);
+    });
+
+    testWidgets('the picker shows a spinner until the picked source finishes connecting', (tester) async {
+      final connect = Completer<void>();
+      await pump(
+        tester,
+        card([
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer, selected: true),
+          option(
+            id: 'hr-1',
+            label: 'HR6 0050789',
+            state: MetricSourceState.notConnected,
+            onSelect: () => connect.future,
+          ),
+        ]),
+      );
+
+      await tester.tap(picker());
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('metric-card-source-option-hr-1')));
+      // Not `pumpAndSettle`: the spinner animates for as long as the connect
+      // is in flight, so it would never settle.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.descendant(of: picker(), matching: find.byType(SmallProgressIndicator)), findsOneWidget);
+
+      connect.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.descendant(of: picker(), matching: find.byType(SmallProgressIndicator)), findsNothing);
+    });
+
+    testWidgets('long-pressing the selected row in the popover disconnects it', (tester) async {
+      var disconnected = false;
+      await pump(
+        tester,
+        card([
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer),
+          option(
+            id: 'hr-1',
+            label: 'HR6 0050789',
+            state: MetricSourceState.connected,
+            selected: true,
+            onDisconnect: () async => disconnected = true,
+          ),
+        ]),
+      );
+
+      await tester.tap(picker());
+      await tester.pumpAndSettle();
+      await tester.longPress(find.byKey(const Key('metric-card-source-option-hr-1')));
+      await tester.pumpAndSettle();
+
+      expect(disconnected, isTrue);
+    });
+
+    testWidgets('a long selected name ellipsizes instead of overflowing the half-width tile', (tester) async {
+      const longName = 'A Very Long Sensor Display Name That Would Never Fit';
+      await pump(
+        tester,
+        card([
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer),
+          option(id: 'long', label: longName, state: MetricSourceState.connected, selected: true),
+        ]),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      final text = tester.widget<Text>(find.descendant(of: picker(), matching: find.text(longName)));
+      expect(text.maxLines, 1);
+      expect(text.overflow, TextOverflow.ellipsis);
+    });
+  });
+
+  group('layout: side-by-side vs picker', () {
     final sources = [
       option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer, selected: true),
       option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.notConnected),
     ];
-
-    testWidgets('narrow (phone-width) card: the list stacks BELOW the value', (tester) async {
-      await pump(
-        tester,
-        MetricCard(
-          icon: baseCard.icon,
-          iconColor: baseCard.iconColor,
-          label: baseCard.label,
-          value: baseCard.value,
-          unit: baseCard.unit,
-          sources: sources,
-        ),
-        // Default 360px harness — each card lands at ~180px raw / ~152px
-        // content, well under the 240px side-by-side breakpoint.
-      );
-
-      final valueTop = tester.getTopLeft(find.text('142'));
-      final listTop = tester.getTopLeft(find.byKey(const Key('metric-card-source-option-trainer')));
-      expect(listTop.dy, greaterThan(valueTop.dy));
-    });
 
     testWidgets('wide (desktop-grid-width) card: the list sits to the RIGHT of the value', (tester) async {
       await pump(
@@ -522,6 +666,7 @@ Future<void> main() async {
         width: 900,
       );
 
+      expect(find.byKey(const Key('metric-card-source-picker')), findsNothing);
       final valueTop = tester.getTopLeft(find.text('142'));
       final listTop = tester.getTopLeft(find.byKey(const Key('metric-card-source-option-trainer')));
       expect(listTop.dx, greaterThan(valueTop.dx));
@@ -530,98 +675,58 @@ Future<void> main() async {
       expect((listTop.dy - valueTop.dy).abs(), lessThan(30));
     });
 
-    group('a divider separates value from source list (direct author feedback: "add a ... divider")', () {
-      testWidgets('narrow (stacked): a HORIZONTAL divider sits between value and list', (tester) async {
-        await pump(
-          tester,
-          MetricCard(
-            key: const Key('under-test'),
-            icon: baseCard.icon,
-            iconColor: baseCard.iconColor,
-            label: baseCard.label,
-            value: baseCard.value,
-            unit: baseCard.unit,
-            sources: sources,
-          ),
-        );
+    testWidgets('wide (side-by-side): a VERTICAL divider sits between value and list', (tester) async {
+      await pump(
+        tester,
+        MetricCard(
+          key: const Key('under-test'),
+          icon: baseCard.icon,
+          iconColor: baseCard.iconColor,
+          label: baseCard.label,
+          value: baseCard.value,
+          unit: baseCard.unit,
+          sources: sources,
+        ),
+        width: 900,
+      );
 
-        final dividerFinder = find.descendant(
-          of: find.byKey(const Key('under-test')),
-          matching: find.byKey(const Key('metric-card-source-divider')),
-        );
-        expect(dividerFinder, findsOneWidget);
-        // Stacked layout: a real shadcn `Divider` (horizontal line) is safe
-        // to use directly here — its cross axis (width) is naturally bounded
-        // by the card's own fixed width, unlike `VerticalDivider`, whose
-        // cross axis (height) is NOT bounded here (see the wide test below).
-        expect(tester.widget(dividerFinder), isA<Divider>());
+      final dividerFinder = find.descendant(
+        of: find.byKey(const Key('under-test')),
+        matching: find.byKey(const Key('metric-card-source-divider')),
+      );
+      expect(dividerFinder, findsOneWidget);
+      // No RenderFlex/layout overflow, and — the actual trap — no
+      // "BoxConstraints forces an infinite height" from a bare
+      // `VerticalDivider`: this Row always sits inside a scroll view in
+      // real usage (`LiveMetricsSection`'s own doc comment), so its
+      // incoming height is genuinely unbounded, not just generously
+      // large. Proven by reproducing the crash with a literal
+      // `VerticalDivider()` here before writing the real fix.
+      expect(tester.takeException(), isNull);
 
-        // Between, not above or below both: sits after the value and before
-        // the list.
-        final valueBottom = tester.getBottomLeft(find.text('142')).dy;
-        final dividerTop = tester.getTopLeft(dividerFinder).dy;
-        final listTop = tester.getTopLeft(find.byKey(const Key('metric-card-source-option-trainer'))).dy;
-        expect(dividerTop, greaterThanOrEqualTo(valueBottom));
-        expect(listTop, greaterThanOrEqualTo(tester.getBottomLeft(dividerFinder).dy));
+      // Between the value and the list horizontally, not stacked below
+      // either.
+      final valueRight = tester.getTopRight(find.text('142')).dx;
+      final dividerLeft = tester.getTopLeft(dividerFinder).dx;
+      final listLeft = tester.getTopLeft(find.byKey(const Key('metric-card-source-option-trainer'))).dx;
+      expect(dividerLeft, greaterThanOrEqualTo(valueRight));
+      expect(listLeft, greaterThanOrEqualTo(dividerLeft));
 
-        // Subtle — a hairline, not a bar: much shorter than it is wide.
-        final size = tester.getSize(dividerFinder);
-        expect(size.height, lessThan(4));
-      });
-
-      testWidgets('wide (side-by-side): a VERTICAL divider sits between value and list', (tester) async {
-        await pump(
-          tester,
-          MetricCard(
-            key: const Key('under-test'),
-            icon: baseCard.icon,
-            iconColor: baseCard.iconColor,
-            label: baseCard.label,
-            value: baseCard.value,
-            unit: baseCard.unit,
-            sources: sources,
-          ),
-          width: 900,
-        );
-
-        final dividerFinder = find.descendant(
-          of: find.byKey(const Key('under-test')),
-          matching: find.byKey(const Key('metric-card-source-divider')),
-        );
-        expect(dividerFinder, findsOneWidget);
-        // No RenderFlex/layout overflow, and — the actual trap — no
-        // "BoxConstraints forces an infinite height" from a bare
-        // `VerticalDivider`: this Row always sits inside a scroll view in
-        // real usage (`LiveMetricsSection`'s own doc comment), so its
-        // incoming height is genuinely unbounded, not just generously
-        // large. Proven by reproducing the crash with a literal
-        // `VerticalDivider()` here before writing the real fix.
-        expect(tester.takeException(), isNull);
-
-        // Between the value and the list horizontally, not stacked below
-        // either.
-        final valueRight = tester.getTopRight(find.text('142')).dx;
-        final dividerLeft = tester.getTopLeft(dividerFinder).dx;
-        final listLeft = tester.getTopLeft(find.byKey(const Key('metric-card-source-option-trainer'))).dx;
-        expect(dividerLeft, greaterThanOrEqualTo(valueRight));
-        expect(listLeft, greaterThanOrEqualTo(dividerLeft));
-
-        // Subtle — a hairline rule on the leading edge, not a bar: a real
-        // `VerticalDivider` can't be used here at all (see this widget's own
-        // build-method comment), so the vertical case is a bordered
-        // container wrapping the list rather than a thin standalone line —
-        // assert the border itself, not a narrow bounding box.
-        final container = tester.widget<Container>(dividerFinder);
-        final decoration = container.decoration as BoxDecoration?;
-        final leftBorder = (decoration?.border as Border?)?.left;
-        expect(leftBorder, isNotNull);
-        expect(leftBorder!.width, lessThan(2));
-        expect(leftBorder.color, isNot(Colors.transparent));
-        // Taller than the value's own single line — it spans the full
-        // side-by-side content height, not just a token-sized swatch.
-        final size = tester.getSize(dividerFinder);
-        expect(size.height, greaterThan(tester.getSize(find.text('142')).height));
-      });
+      // Subtle — a hairline rule on the leading edge, not a bar: a real
+      // `VerticalDivider` can't be used here at all (see this widget's own
+      // build-method comment), so the vertical case is a bordered
+      // container wrapping the list rather than a thin standalone line —
+      // assert the border itself, not a narrow bounding box.
+      final container = tester.widget<Container>(dividerFinder);
+      final decoration = container.decoration as BoxDecoration?;
+      final leftBorder = (decoration?.border as Border?)?.left;
+      expect(leftBorder, isNotNull);
+      expect(leftBorder!.width, lessThan(2));
+      expect(leftBorder.color, isNot(Colors.transparent));
+      // Taller than the value's own single line — it spans the full
+      // side-by-side content height, not just a token-sized swatch.
+      final size = tester.getSize(dividerFinder);
+      expect(size.height, greaterThan(tester.getSize(find.text('142')).height));
     });
   });
 
@@ -769,50 +874,6 @@ Future<void> main() async {
       expect(dividerLeft - columnRight, 16);
       expect(listLeft - dividerLeft, ruleWidth + 16);
     });
-
-    testWidgets('stacked: symmetric vertical gutter separates the value from the divider, '
-        'and the divider from the list', (tester) async {
-      await pump(
-        tester,
-        MetricCard(
-          key: const Key('under-test'),
-          icon: baseCard.icon,
-          iconColor: baseCard.iconColor,
-          label: baseCard.label,
-          value: baseCard.value,
-          unit: baseCard.unit,
-          sources: [
-            option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer, selected: true),
-            option(id: 'hr-1', label: 'HR6 0050789', state: MetricSourceState.notConnected),
-          ],
-        ),
-        // Default 360px harness — stacked layout.
-      );
-
-      final valueBottom = tester.getBottomLeft(find.text('142')).dy;
-      final dividerFinder = find.descendant(
-        of: find.byKey(const Key('under-test')),
-        matching: find.byKey(const Key('metric-card-source-divider')),
-      );
-      final dividerTop = tester.getTopLeft(dividerFinder).dy;
-      final dividerBottom = tester.getBottomLeft(dividerFinder).dy;
-      // The list's own container top (its "SOURCE" header is the first
-      // thing inside it) — NOT the first option row, which sits further
-      // down past the header's own height/padding and would conflate "gap
-      // after the divider" with "header height" (measured and ruled out
-      // while diagnosing this fix).
-      final listTop = tester
-          .getTopLeft(
-            find.descendant(
-              of: find.byKey(const Key('under-test')),
-              matching: find.byKey(const Key('metric-card-source-control')),
-            ),
-          )
-          .dy;
-
-      expect(dividerTop - valueBottom, 16);
-      expect(listTop - dividerBottom, 16);
-    });
   });
 
   group('source list width cap (direct author feedback: '
@@ -839,14 +900,12 @@ Future<void> main() async {
           ],
         ),
         // 900px harness, well over the 240px side-by-side breakpoint — see
-        // the "layout: side-by-side vs stacked" group above for why.
+        // the "layout: side-by-side vs picker" group above for why.
         width: 900,
       );
       await tester.pump();
 
-      // Degrades gracefully under the cap rather than overflowing — same
-      // ellipsis-on-one-line behaviour the "long source name truncates"
-      // test already asserts for the stacked layout.
+      // Degrades gracefully under the cap rather than overflowing.
       expect(tester.takeException(), isNull);
 
       const cardPadding = 14.0;
