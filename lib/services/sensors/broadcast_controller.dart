@@ -106,7 +106,11 @@ class BroadcastController {
     final newlyConnected = <String>[]; // only what THIS call connected — rollback scope
     try {
       for (final id in ids) {
-        if (_connectedIds.contains(id)) continue; // e.g. resumed after a bridge episode — still registered
+        // Skip only what this controller connected AND is still registered:
+        // the grid can disconnect a strap behind its back (an explicit
+        // disconnect, back-to-Trainer during a bridge stint), and consent
+        // alone would then skip a source nothing is serving.
+        if (_connectedIds.contains(id) && hub.sources.any((s) => s.id == id)) continue;
         await connectSource(id);
         _connectedIds.add(id);
         newlyConnected.add(id);
@@ -143,7 +147,13 @@ class BroadcastController {
     _isOn.value = false;
     await onChanged?.call(); // sink stops first, then the sources
     for (final id in _connectedIds.toList()) {
-      await disconnectSource(id);
+      // Per-id, like the rollback above: one source refusing to disconnect
+      // must not leave the others connected with the switch off.
+      try {
+        await disconnectSource(id);
+      } catch (e, s) {
+        await recordError(e, s, context: 'BroadcastController.turnOff');
+      }
       _connectedIds.remove(id);
     }
   }

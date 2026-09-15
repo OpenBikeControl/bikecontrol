@@ -253,4 +253,70 @@ void main() {
       expect(controller.isOn.value, isTrue);
     });
   });
+
+  // Whole-branch review, Important: `_connectedIds` only ever learns about
+  // this controller's own disconnects, but the grid can disconnect a strap
+  // behind its back (an explicit disconnect, back-to-Trainer during a bridge
+  // stint) — a stale id then made the next turnOn skip the connect.
+  group('_connectedIds drift', () {
+    test('a consented id no longer registered with the hub is connected again on turnOn', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      await controller.turnOn();
+      expect(log, ['connect:strap']);
+      // Bridge stint: switch goes off, `_connectedIds` keeps 'strap'...
+      bridge.value = true;
+      await Future<void>.delayed(Duration.zero);
+      // ...meanwhile the grid disconnects it: the source leaves the hub, but
+      // the selection (persisted consent) stays.
+      hub.unregister('strap');
+      log.clear();
+      bridge.value = false; // resume
+      await Future<void>.delayed(Duration.zero);
+      expect(log, ['connect:strap']);
+    });
+
+    test('a consented id still registered is not reconnected', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      await controller.turnOn();
+      log.clear();
+      bridge.value = true;
+      await Future<void>.delayed(Duration.zero);
+      bridge.value = false;
+      await Future<void>.delayed(Duration.zero);
+      expect(log, isEmpty);
+    });
+  });
+
+  test('turnOff: one disconnect throwing is recorded, the rest still disconnect, nothing stays tracked', () async {
+    hub.select(SensorQuantity.heartRate, 'strap');
+    hub.select(SensorQuantity.cadence, 'meter');
+    await controller.turnOn();
+    installLoggerErrorListener();
+    final contexts = <String>[];
+    Logger.onRecordError = (message, _, _) => contexts.add(message);
+    addTearDown(() => Logger.onRecordError = null);
+    log.clear();
+    controller = BroadcastController(
+      hub: hub,
+      settings: settings,
+      isBridgeRunning: bridge,
+      isStandaloneRunning: () => true,
+      connectSource: (id) async => log.add('connect:$id'),
+      disconnectSource: (id) async {
+        log.add('disconnect:$id');
+        if (id == 'strap') throw StateError('strap refused');
+      },
+    )..start();
+    await controller.turnOn();
+    log.clear();
+
+    await controller.turnOff();
+
+    expect(controller.isOn.value, isFalse);
+    expect(log, ['disconnect:strap', 'disconnect:meter']);
+    expect(contexts, ['BroadcastController.turnOff']);
+    // Nothing left tracked: a fresh turnOn connects both again.
+    await controller.turnOn();
+    expect(log.sublist(2), ['connect:strap', 'connect:meter']);
+  });
 }
