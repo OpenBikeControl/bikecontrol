@@ -55,9 +55,12 @@ class JustAudioShiftSounds implements ShiftSoundPlayer {
         avAudioSessionCategory: AVAudioSessionCategory.playback,
         avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
         avAudioSessionMode: AVAudioSessionMode.defaultMode,
+        // usage.media → STREAM_MUSIC: follows the media volume like the
+        // trainer app's own audio. (assistanceSonification lands on
+        // STREAM_SYSTEM, which the ringer's silent/vibrate mode mutes.)
         androidAudioAttributes: AndroidAudioAttributes(
           contentType: AndroidAudioContentType.sonification,
-          usage: AndroidAudioUsage.assistanceSonification,
+          usage: AndroidAudioUsage.media,
         ),
         androidAudioFocusGainType: AndroidAudioFocusGainType.gainTransientMayDuck,
         androidWillPauseWhenDucked: false,
