@@ -107,6 +107,11 @@ class _SensorsPageState extends State<SensorsPage> {
         context,
         featureName: AppLocalizations.current.sensorsBroadcastTitle,
       );
+      // The Go-Pro dialog can sit open for as long as the rider likes, and
+      // the page may be gone by the time it resolves (a trainer connecting
+      // flips the chain away, any route change) — nothing below may touch
+      // this state then.
+      if (!mounted) return;
       if (!granted) {
         // Nothing changed — snap the switch back to the controller's state.
         _rebuild();

@@ -286,6 +286,47 @@ void main() {
     });
   });
 
+  testWidgets('the page being disposed while the Pro dialog is open is harmless, even when Pro is then granted', (
+    tester,
+  ) async {
+    IAPManager.instance.setProForTesting(enabled: false);
+    selectStrap();
+    // `home` swaps between the page and nothing; the dialog lives on the
+    // root navigator's overlay, so it survives the page's disposal.
+    final showPage = ValueNotifier(true);
+    await tester.pumpWidget(
+      ShadcnApp(
+        navigatorKey: navigatorKey,
+        localizationsDelegates: [...ShadcnLocalizations.localizationsDelegates, AppLocalizations.delegate],
+        supportedLocales: const [Locale('en')],
+        home: ValueListenableBuilder<bool>(
+          valueListenable: showPage,
+          builder: (_, show, _) => show ? const SensorsPage() : const SizedBox.shrink(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(switchFinder);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text(AppLocalizations.current.thisFeatureIsOnlyAvailableWithPro), findsOneWidget);
+
+    showPage.value = false;
+    await tester.pump();
+    expect(switchFinder, findsNothing);
+
+    // Pro arrives while the dialog is still up, so closing it resolves the
+    // gate as GRANTED — the path that used to setState() on a dead page.
+    IAPManager.instance.setProForTesting(enabled: true);
+    await tester.tap(find.text(AppLocalizations.current.cancel));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(connected, isEmpty);
+    expect(core.connection.broadcast!.isOn.value, isFalse);
+  });
+
   group('transport', () {
     testWidgets('defaults to Bluetooth with its hint; Network persists and swaps the hint', (tester) async {
       await pump(tester);
