@@ -205,6 +205,15 @@ final class HealthKitHeartRate: NSObject, FlutterStreamHandler {
     emitError(code: "session", reason)
     sessionBox = nil
     builderBox = nil
+    // The session may still be .running here (e.g. a beginCollection
+    // failure arrives after startActivity already succeeded) — end() it or
+    // it's orphaned running and blocks a later startSession() from ever
+    // succeeding again. Harmless if it already ended on its own.
+    session.end()
+    // discardWorkout() is documented (HKWorkoutBuilder.h) as finishing the
+    // build and discarding the result itself — it doesn't require a
+    // preceding endCollection(withEnd:), unlike the happy-path stop in
+    // endSession().
     builder.discardWorkout()
     startPassive()
     emit(["mode": "passive"])
