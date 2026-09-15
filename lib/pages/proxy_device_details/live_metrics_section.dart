@@ -6,13 +6,18 @@ import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
+import 'package:bike_control/services/sensors/health_kit_channel.dart';
+import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/services/sensors/sensor_source.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/units.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The 2×2 live-metrics "signals grid" — POWER / HEART / CADENCE / SPEED —
@@ -59,6 +64,13 @@ class LiveMetricsSection extends StatefulWidget {
 class _LiveMetricsSectionState extends State<LiveMetricsSection> {
   late StreamSubscription<BaseDevice> _connectionSub;
 
+  /// The exact `HealthKitSensorSource` instance [_onHealthKitModeChanged] is
+  /// subscribed to — kept so [dispose] removes the listener from the SAME
+  /// instance even if `core.connection.healthKitSource` gets swapped or
+  /// cleared meanwhile (tests reassign it directly; production never does,
+  /// but nothing here assumes that).
+  HealthKitSensorSource? _healthKitModeListenerSource;
+
   @override
   void initState() {
     super.initState();
@@ -73,11 +85,22 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
     _connectionSub = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
     });
+    // `connectHealthKit`/HealthKit sample delivery do not emit on
+    // `connectionStream` (that stream is BLE-device events only), so a mode
+    // flip — session <-> passive, most importantly, which flips the passive
+    // subtitle text on an already-selected row — needs its own listener.
+    _healthKitModeListenerSource = core.connection.healthKitSource;
+    _healthKitModeListenerSource?.mode.addListener(_onHealthKitModeChanged);
+  }
+
+  void _onHealthKitModeChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _connectionSub.cancel();
+    _healthKitModeListenerSource?.mode.removeListener(_onHealthKitModeChanged);
     super.dispose();
   }
 
@@ -275,13 +298,11 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
         MetricSourceOption(
           id: candidate.source.id,
           label: candidate.source.displayName,
-          subtitle: _candidateSubtitle(l10n, state, isSelected: isSelected),
+          subtitle: _subtitleFor(l10n, candidate, state, isSelected: isSelected),
           state: state,
           selected: isSelected,
           onSelect: () => _select(quantity, candidate),
-          onDisconnect: isSelected && candidate.isConnected
-              ? () => _disconnect(_connectedDeviceFor(candidate.source.id))
-              : null,
+          onDisconnect: isSelected && candidate.isConnected ? () => candidate.disconnect(forget: true) : null,
         ),
       );
     }
@@ -328,6 +349,31 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
     };
   }
 
+  /// [_candidateSubtitle], with one HealthKit-specific override: a
+  /// selected, passive Apple Health source is only ever going to see
+  /// another app's workout, and the rider needs to be told to start one.
+  ///
+  /// Deliberately keyed on [isSelected] alone, NOT `state ==
+  /// MetricSourceState.connected`: a passive source that has not (yet)
+  /// delivered a sample sits in `waitingForFirstReading` — droppedOut is
+  /// `true` from the moment it registers, since `SensorHub._publish` only
+  /// recalculates freshness off `readingFor`, and a `HealthKitModeEvent`
+  /// carries no reading. "Waiting for first reading…" would be actively
+  /// misleading there (it implies one is imminent); "explain passive mode"
+  /// is the right message in every one of `connected` /
+  /// `waitingForFirstReading` / `lost`, so long as this IS the rider's
+  /// current pick.
+  String _subtitleFor(AppLocalizations l10n, _SourceCandidate candidate, MetricSourceState state, {required bool isSelected}) {
+    final source = candidate.source;
+    if (isSelected && source is HealthKitSensorSource && source.mode.value == HealthKitMode.passive) {
+      return l10n.sensorSourceHealthKitPassiveSubtitle;
+    }
+    if (state == MetricSourceState.notConnected && source is HealthKitSensorSource) {
+      return l10n.sensorSourceHealthKitSubtitle;
+    }
+    return _candidateSubtitle(l10n, state, isSelected: isSelected);
+  }
+
   /// Every selectable, non-trainer source for [quantity]: already-registered
   /// ones (connected — see [_SourceCandidate]'s doc comment) from the hub,
   /// plus nearby [BleSensorDevice]s that provide it and are not registered
@@ -340,10 +386,43 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
     final nearby = core.connection.devices.whereType<BleSensorDevice>().where(
       (d) => d.source.provides.contains(quantity) && !registeredIds.contains(d.source.id),
     );
+    final healthKit = core.connection.healthKitSource;
     return [
-      for (final source in registered) _SourceCandidate(source),
-      for (final device in nearby) _SourceCandidate(device.source, device: device),
+      for (final source in registered)
+        _SourceCandidate(
+          source,
+          isConnected: true,
+          disconnect: source is HealthKitSensorSource
+              ? core.connection.disconnectHealthKit
+              : ({required bool forget}) => _disconnect(_connectedDeviceFor(source.id), forget: forget),
+        ),
+      for (final device in nearby)
+        _SourceCandidate(
+          device.source,
+          isConnected: false,
+          connect: () => _connectDevice(device),
+          disconnect: ({required bool forget}) => _disconnect(device, forget: forget),
+        ),
+      // Apple Health: always a candidate where the source exists at all
+      // (iOS with Health data), whether or not the rider has ever tapped it
+      // — that tap is what asks for permission. Listed only once, so skip it
+      // here while it is registered (it came through `registered` above).
+      if (healthKit != null && quantity == SensorQuantity.heartRate && !registeredIds.contains(healthKit.id))
+        _SourceCandidate(
+          healthKit,
+          isConnected: false,
+          connect: core.connection.connectHealthKit,
+          disconnect: core.connection.disconnectHealthKit,
+        ),
     ];
+  }
+
+  /// The BLE connect half, lifted out of `_select` unchanged: the consent
+  /// flag MUST be persisted before `connectDevice` — `shouldAutoConnect`
+  /// reads it and `connect()` early-returns otherwise. Do not reorder.
+  Future<void> _connectDevice(BleSensorDevice device) async {
+    await core.settings.setSensorAutoConnect(device.device.deviceId, true);
+    await core.connection.connectDevice(device);
   }
 
   /// A candidate's own dot state, independent of whether it happens to be
@@ -409,16 +488,34 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
       // pick of an actual sensor never disconnects anything here, so this
       // stays null for that path and the block at the bottom is skipped.
       final previousSourceId = candidate == null ? core.sensors.selectionFor(quantity) : null;
+      // Also captured before `core.sensors.select` — see the back-to-Trainer
+      // lookup below, which needs candidates keyed to the OLD registration
+      // state (e.g. a HealthKit source `_candidatesFor` would otherwise skip
+      // once it is no longer this quantity's selection).
+      final previousCandidates = _candidatesFor(quantity);
 
       core.sensors.select(quantity, sourceId);
       // Persists every quantity's CURRENT selection, not just this one — see
       // `SensorHub.persistSelections`.
       await core.sensors.persistSelections(core.settings);
 
-      final device = candidate?.device;
-      if (device != null) {
-        await core.settings.setSensorAutoConnect(device.device.deviceId, true);
-        await core.connection.connectDevice(device);
+      final connect = candidate?.connect;
+      if (connect != null) {
+        try {
+          await connect();
+        } on HealthKitDeniedException {
+          // Expected outcome, not a failure: explain, and put the selection
+          // back where it was so the row does not show a pick that cannot
+          // deliver anything.
+          core.sensors.select(quantity, null);
+          await core.sensors.persistSelections(core.settings);
+          // `context` is only safe to read once more `mounted` is confirmed
+          // — two awaits have run since `_select` started.
+          if (!mounted) return;
+          buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.of(context).sensorHealthKitDenied);
+          setState(() {});
+          return;
+        }
       }
 
       // Direct author feedback: "when using 'Trainer' again, it should
@@ -453,7 +550,8 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
           // selection-clearing walk (`Connection._unregisterSensorSource`)
           // would find nothing left to do — the reason it was chosen no
           // longer applies on this path.
-          await _disconnect(_connectedDeviceFor(previousSourceId), forget: false);
+          final previous = previousCandidates.where((c) => c.source.id == previousSourceId).firstOrNull;
+          if (previous != null && previous.isConnected) await previous.disconnect(forget: false);
         }
       }
 
@@ -520,20 +618,19 @@ String _quantityTitle(AppLocalizations l10n, SensorQuantity quantity) => switch 
   SensorQuantity.speed => l10n.sensorQuantitySpeed,
 };
 
-/// One selectable, non-trainer entry — ported unchanged from the deleted
-/// `SensorSourcePicker._SourceCandidate`. [device] is non-null only while NOT
-/// yet connected: a [source] already reachable through `SensorHub.sourcesFor`
-/// is, by construction, currently connected (see `SensorHub.register`'s doc
-/// comment), so there is nothing left for a tap to connect. A nearby sensor
-/// that has never connected has no hub entry yet; [device] is what a tap on
-/// it connects.
+/// One selectable, non-trainer entry. [isConnected] means "registered in the
+/// hub" (see `SensorHub.register`'s doc comment). [connect] is non-null only
+/// while NOT connected — what a tap on it does; [disconnect] is what the
+/// row's disconnect action and the back-to-Trainer walk call. Both are
+/// closures rather than a `BleSensorDevice` so a HealthKit candidate and a
+/// BLE one go through the same code below.
 class _SourceCandidate {
-  const _SourceCandidate(this.source, {this.device});
+  const _SourceCandidate(this.source, {required this.isConnected, this.connect, required this.disconnect});
 
   final SensorSource source;
-  final BleSensorDevice? device;
-
-  bool get isConnected => device == null;
+  final bool isConnected;
+  final Future<void> Function()? connect;
+  final Future<void> Function({required bool forget}) disconnect;
 }
 
 class _LiveMetrics {
