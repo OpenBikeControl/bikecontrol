@@ -41,6 +41,7 @@ class BroadcastController {
 
   final _isOn = ValueNotifier<bool>(false);
   final ValueNotifier<RetrofitMode> _transport;
+  bool _engaging = false;
   bool _resumeAfterBridge = false;
   bool _started = false;
   VoidCallback? _previousSelectionHook;
@@ -62,6 +63,16 @@ class BroadcastController {
   final Set<String> _connectedIds = {};
 
   ValueListenable<bool> get isOn => _isOn;
+
+  /// True from the start of [turnOn] until it returns or throws. [turnOn]
+  /// connects every source BEFORE flipping [isOn] (the `wantsStandalone`
+  /// ordering `SensorSinkSync` relies on), and the BLE sensor devices'
+  /// `shouldAutoConnect` gate on "will this be served" — which, in
+  /// sensors-only mode, is [isOn] OR this window. Without it the real
+  /// connect path (`Connection.connectSourceById` → `connect()`) early-
+  /// returned on `!shouldAutoConnect`, the id was still tracked, and the
+  /// switch read Live over a strap that never connected.
+  bool get isEngaging => _engaging;
   ValueListenable<RetrofitMode> get transport => _transport;
   Set<String> get selectedSourceIds => {for (final q in SensorQuantity.values) if (hub.selectionFor(q) case final id?) id};
   Set<SensorQuantity> get selectedQuantities => {for (final q in SensorQuantity.values) if (hub.selectionFor(q) != null) q};
@@ -103,6 +114,15 @@ class BroadcastController {
   Future<void> turnOn() async {
     final ids = selectedSourceIds.toList();
     if (ids.isEmpty || _isOn.value) return;
+    _engaging = true;
+    try {
+      await _engage(ids);
+    } finally {
+      _engaging = false;
+    }
+  }
+
+  Future<void> _engage(List<String> ids) async {
     final newlyConnected = <String>[]; // only what THIS call connected — rollback scope
     try {
       for (final id in ids) {

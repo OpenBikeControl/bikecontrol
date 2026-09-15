@@ -31,9 +31,14 @@ mixin BleSensorDevice on BluetoothDevice {
   /// advertised. Trainer mode is unchanged: the bridge relies on the
   /// launch-time reconnect. Spec, Global Constraint: "Nothing connects a
   /// source unless it would be served."
-  bool get sensorAutoConnectAllowed =>
-      core.settings.getSensorAutoConnect(device.deviceId) &&
-      (!core.settings.getSensorsOnlyMode() ||
-          core.connection.isBridgeRunning ||
-          (core.connection.broadcast?.isOn.value ?? false));
+  ///
+  /// "Broadcast on" includes a `turnOn` still underway
+  /// (`BroadcastController.isEngaging`): the switch connects its sources
+  /// before it flips `isOn`, and that connect comes through here.
+  bool get sensorAutoConnectAllowed {
+    if (!core.settings.getSensorAutoConnect(device.deviceId)) return false;
+    if (!core.settings.getSensorsOnlyMode() || core.connection.isBridgeRunning) return true;
+    final broadcast = core.connection.broadcast;
+    return broadcast != null && (broadcast.isOn.value || broadcast.isEngaging);
+  }
 }

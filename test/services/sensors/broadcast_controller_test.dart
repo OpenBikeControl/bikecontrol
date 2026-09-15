@@ -319,4 +319,68 @@ void main() {
     await controller.turnOn();
     expect(log.sublist(2), ['connect:strap', 'connect:meter']);
   });
+
+  // Re-review, Critical: the BLE devices' `shouldAutoConnect` needs to know
+  // a turnOn is underway BEFORE `isOn` flips (which happens after the
+  // connects, and must — `wantsStandalone` ordering). `isEngaging` is that
+  // window.
+  group('isEngaging', () {
+    test('true inside connectSource during turnOn, false once it returned', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      hub.select(SensorQuantity.cadence, 'meter');
+      final seen = <bool>[];
+      controller = BroadcastController(
+        hub: hub,
+        settings: settings,
+        isBridgeRunning: bridge,
+        isStandaloneRunning: () => true,
+        connectSource: (id) async => seen.add(controller.isEngaging),
+        disconnectSource: (_) async {},
+      )..start();
+      expect(controller.isEngaging, isFalse);
+      await controller.turnOn();
+      expect(seen, [true, true]);
+      expect(controller.isEngaging, isFalse);
+    });
+
+    test('false again after a turnOn that threw', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      installLoggerErrorListener();
+      Logger.onRecordError = (_, _, _) {};
+      addTearDown(() => Logger.onRecordError = null);
+      connectError = StateError('strap refused');
+      await expectLater(controller.turnOn(), throwsStateError);
+      expect(controller.isEngaging, isFalse);
+    });
+
+    test('false again after the sink verification failed', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      standaloneRunning = false;
+      await expectLater(controller.turnOn(), throwsStateError);
+      expect(controller.isEngaging, isFalse);
+    });
+
+    test('resume after a bridge stint engages while reconnecting a strap that left the hub', () async {
+      hub.select(SensorQuantity.heartRate, 'strap');
+      final seen = <bool>[];
+      controller = BroadcastController(
+        hub: hub,
+        settings: settings,
+        isBridgeRunning: bridge,
+        isStandaloneRunning: () => true,
+        connectSource: (id) async => seen.add(controller.isEngaging),
+        disconnectSource: (_) async {},
+      )..start();
+      await controller.turnOn();
+      bridge.value = true;
+      await Future<void>.delayed(Duration.zero);
+      hub.unregister('strap'); // grid disconnected it behind the switch's back
+      seen.clear();
+      bridge.value = false;
+      await Future<void>.delayed(Duration.zero);
+      expect(seen, [true]);
+      expect(controller.isOn.value, isTrue);
+      expect(controller.isEngaging, isFalse);
+    });
+  });
 }

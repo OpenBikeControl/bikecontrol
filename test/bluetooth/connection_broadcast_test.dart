@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/services/sensors/ble_sensor_source.dart';
+import 'package:bike_control/services/sensors/broadcast_controller.dart';
 import 'package:bike_control/services/sensors/fake_health_kit_channel.dart';
 import 'package:bike_control/services/sensors/health_kit_channel.dart';
 import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
@@ -14,7 +15,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
-import 'package:flutter/foundation.dart' show Uint8List;
+import 'package:flutter/foundation.dart' show Uint8List, ValueNotifier;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
@@ -260,6 +261,68 @@ void main() {
       expect(serial, matches(RegExp(r'^\d{9,}$')));
       expect(txt(core.connection.standaloneMdnsTxt(), 'serial-number'), serial);
       expect(serial, mdnsSerialNumber('bikecontrol-sensors'));
+    });
+  });
+
+  // Re-review, Critical: `turnOn` connects each source BEFORE flipping
+  // `isOn` (the ordering `wantsStandalone` → `SensorSinkSync` relies on),
+  // and `BleSensorDevice.sensorAutoConnectAllowed` read `broadcast.isOn` —
+  // so in sensors-only mode the real `connectSourceById` → `connect()` path
+  // early-returned on `!shouldAutoConnect`, `_connectedIds` still took the
+  // id, and the switch read Live over a strap that never connected. Every
+  // other turnOn test stubs `connectSource`; this one runs the real path.
+  group('turnOn through the real connectSourceById in sensors-only mode', () {
+    late FakeUniversalBlePlatform ble;
+    late BleHeartRateDevice device;
+    late ValueNotifier<bool> bridge;
+    late BroadcastController controller;
+
+    setUp(() async {
+      await core.settings.setSensorsOnlyMode(true);
+      ble = FakeUniversalBlePlatform();
+      UniversalBle.setInstance(ble);
+      final peripheral = strapPeripheral(deviceId: 'sensors-only-strap');
+      ble.addPeripheral(peripheral);
+      device = BleHeartRateDevice(peripheral.scanResult);
+      core.connection.devices.add(device);
+      expect(device.shouldAutoConnect, isFalse);
+      bridge = ValueNotifier(false);
+      controller = BroadcastController(
+        hub: core.sensors,
+        settings: core.settings,
+        isBridgeRunning: bridge,
+        isStandaloneRunning: () => true,
+        connectSource: core.connection.connectSourceById,
+        disconnectSource: core.connection.disconnectSourceById,
+      )..start();
+      core.connection.broadcast = controller;
+      core.sensors.select(SensorQuantity.heartRate, device.source.id);
+    });
+
+    tearDown(() async {
+      controller.dispose();
+      core.connection.broadcast = null;
+      await core.settings.setSensorsOnlyMode(false);
+      await core.connection.stop();
+    });
+
+    test('the strap actually connects, not just gets consent', () async {
+      await controller.turnOn();
+
+      expect(controller.isOn.value, isTrue);
+      expect(device.isConnected, isTrue);
+      expect(core.sensors.sources.map((s) => s.id), contains(device.source.id));
+      expect(recordedContexts, isEmpty);
+    });
+
+    test('and disconnects again on turnOff', () async {
+      await controller.turnOn();
+      expect(device.isConnected, isTrue);
+
+      await controller.turnOff();
+
+      expect(device.isConnected, isFalse);
+      expect(device.shouldAutoConnect, isFalse);
     });
   });
 }
