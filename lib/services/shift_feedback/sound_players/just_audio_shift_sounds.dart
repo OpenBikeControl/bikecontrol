@@ -17,14 +17,29 @@ import 'package:just_audio/just_audio.dart';
 /// keeps just_audio from requesting Android audio focus on every click, which
 /// would duck the other app for the duration of each cue.
 class JustAudioShiftSounds implements ShiftSoundPlayer {
+  /// [createPlayer] / [configureSession] exist so tests can substitute a
+  /// recording player and skip the platform audio session.
+  JustAudioShiftSounds({AudioPlayer Function()? createPlayer, Future<void> Function()? configureSession})
+    : _createPlayer = createPlayer ?? _defaultCreatePlayer,
+      _configureSession = configureSession ?? _defaultConfigureSession;
+
+  final AudioPlayer Function() _createPlayer;
+  final Future<void> Function() _configureSession;
   final Map<ShiftCue, AudioPlayer> _players = {};
+
+  /// Multiplier on the device media volume: the generated clips are
+  /// full-scale and far too loud next to the trainer app's own audio.
+  static const double shiftSoundVolume = 0.3;
+
+  static AudioPlayer _defaultCreatePlayer() => AudioPlayer(handleAudioSessionActivation: false);
 
   @override
   Future<void> preload() async {
     await _configureSession();
     for (final cue in ShiftCue.values) {
-      final player = AudioPlayer(handleAudioSessionActivation: false);
+      final player = _createPlayer();
       await player.setAsset(shiftSoundAsset(cue));
+      await player.setVolume(shiftSoundVolume);
       _players[cue] = player;
     }
   }
@@ -47,7 +62,7 @@ class JustAudioShiftSounds implements ShiftSoundPlayer {
     }
   }
 
-  Future<void> _configureSession() async {
+  static Future<void> _defaultConfigureSession() async {
     if (kIsWeb) return;
     final session = await AudioSession.instance;
     await session.configure(
