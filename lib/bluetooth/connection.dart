@@ -438,6 +438,17 @@ class Connection {
     await _unregisterSource(source, forget: forget, context: 'Connection.disconnectHealthKit');
   }
 
+  /// TXT record for the standalone sensor advertisement — the same identity
+  /// keys the bridge's `_wahoo-fitness-tnp._tcp` record carries for the
+  /// selected app (`mac-address`, `serial-number`, plus the app's own; see
+  /// [ProxyDevice.trainerMdnsTxtFor]). Seeded from a fixed string rather
+  /// than a trainer id: this peripheral IS BikeControl, there is no trainer,
+  /// and a stable serial is what lets a client recognise it across rides.
+  Map<String, Uint8List> standaloneMdnsTxt() => ProxyDevice.trainerMdnsTxtFor(
+    core.settings.getTrainerApp(),
+    serialNumber: mdnsSerialNumber('bikecontrol-sensors'),
+  );
+
   /// Cold launch with Apple Health persisted as the heart-rate source:
   /// re-register without a tap. iOS remembers the authorization, so this
   /// shows no sheet. A denial here (the rider revoked access in Settings
@@ -777,9 +788,17 @@ class Connection {
       // before the definition is attached leaves nothing to serve. See
       // StandaloneSensorLifecycle's doc comment for exactly what that fails
       // with.
+      // Same identity/transport quirks the bridge applies per selected app
+      // (`ProxyDevice.handleServices`): without the TXT record MyWhoosh
+      // throws on the missing `serial-number` and Tacx drops the peripheral
+      // for lack of a `mac-address`; the bare/`0x` 16-bit service form and
+      // the IPv4-only listener follow the app the same way.
+      standaloneSensorEmulator.bareShortServiceUuids = () =>
+          ProxyDevice.bareShortServiceUuidsFor(core.settings.getTrainerApp());
+      standaloneSensorEmulator.forceIPv4 = () => ProxyDevice.needsIPv4For(core.settings.getTrainerApp());
       final standaloneSensorLifecycle = StandaloneSensorLifecycle(
         attachDefinition: standaloneSensorEmulator.attachDefinition,
-        startServer: (mode) => standaloneSensorEmulator.startServer(mode: mode),
+        startServer: (mode) => standaloneSensorEmulator.startServer(mode: mode, mdnsTxt: standaloneMdnsTxt()),
         stopServer: standaloneSensorEmulator.stop,
         detachDefinition: standaloneSensorEmulator.detachDefinition,
       );

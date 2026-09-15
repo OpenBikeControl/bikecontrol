@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_heart_rate_device.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -10,10 +11,15 @@ import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/tacx.dart';
+import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
+import 'package:prop/prop.dart' show mdnsSerialNumber;
 import 'package:prop/utils/shared.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -225,6 +231,35 @@ void main() {
 
       expect(core.settings.getSensorAutoConnect('dropped-strap'), isFalse);
       expect(recordedContexts, isEmpty);
+    });
+  });
+
+  // Whole-branch review, Critical: the standalone "BikeControl" DIRCON
+  // advertisement went out with NO TXT record at all, while the bridge's
+  // carries `mac-address` / `serial-number` (+ whatever the selected app
+  // needs) — MyWhoosh throws on a missing `serial-number`, Tacx bails on a
+  // scan result without `mac-address`. The standalone record must carry the
+  // same identity keys the bridge does for the same app.
+  group('standaloneMdnsTxt', () {
+    String txt(Map<String, Uint8List> map, String key) => String.fromCharCodes(map[key]!);
+
+    test('carries the bridge advertisement\'s identity keys for the selected trainer app', () {
+      for (final app in [MyWhoosh(), Tacx(), Rouvy()]) {
+        core.settings.setTrainerApp(app);
+        final standalone = core.connection.standaloneMdnsTxt();
+        final bridge = ProxyDevice.trainerMdnsTxtFor(app, serialNumber: '1');
+        expect(standalone.keys, unorderedEquals(bridge.keys), reason: '${app.runtimeType}');
+        expect(standalone.keys, containsAll(['mac-address', 'serial-number']));
+        expect(txt(standalone, 'mac-address'), txt(bridge, 'mac-address'));
+      }
+    });
+
+    test('serial is all digits, stable across calls, and seeded independently of any trainer', () {
+      core.settings.setTrainerApp(MyWhoosh());
+      final serial = txt(core.connection.standaloneMdnsTxt(), 'serial-number');
+      expect(serial, matches(RegExp(r'^\d{9,}$')));
+      expect(txt(core.connection.standaloneMdnsTxt(), 'serial-number'), serial);
+      expect(serial, mdnsSerialNumber('bikecontrol-sensors'));
     });
   });
 }

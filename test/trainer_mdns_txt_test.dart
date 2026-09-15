@@ -25,6 +25,12 @@ void main() {
     expect(ProxyDevice.bareShortServiceUuidsFor(null), isFalse);
   });
 
+  test('the IPv4-only listener follows Rouvy, and only Rouvy', () {
+    expect(ProxyDevice.needsIPv4For(Rouvy()), isTrue);
+    expect(ProxyDevice.needsIPv4For(Tacx()), isFalse);
+    expect(ProxyDevice.needsIPv4For(null), isFalse);
+  });
+
   test('Tacx adds the Garmin product-id, other apps leave the record alone', () {
     final forTacx = ProxyDevice.trainerMdnsTxtFor(Tacx(), serialNumber: '1');
     expect(txt(forTacx, 'product-id'), Tacx.mdnsProductId);
