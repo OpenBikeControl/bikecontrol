@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/sensors/ble_heart_rate_device.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -47,6 +49,10 @@ void main() {
   final disconnected = <String>[];
   Object? connectError;
 
+  /// When set, every `connectSource` parks on it — a stand-in for the seconds
+  /// a real BLE / HealthKit connect takes, so a test can tap again mid-flight.
+  Completer<void>? connectGate;
+
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     await Supabase.initialize(
@@ -71,6 +77,7 @@ void main() {
     connected.clear();
     disconnected.clear();
     connectError = null;
+    connectGate = null;
     // recordError() -> installLoggerErrorListener() only assigns
     // Logger.onRecordError the first time it runs in this isolate; trip
     // that guard here so the no-op below isn't clobbered by the production
@@ -82,8 +89,9 @@ void main() {
       settings: core.settings,
       isBridgeRunning: ValueNotifier(false),
       connectSource: (id) async {
-        if (connectError case final error?) throw error;
         connected.add(id);
+        if (connectGate case final gate?) await gate.future;
+        if (connectError case final error?) throw error;
       },
       disconnectSource: (id) async => disconnected.add(id),
     )..start();
@@ -200,6 +208,33 @@ void main() {
       expect(find.byKey(const Key('sensors-off-hint')), findsOneWidget);
     });
 
+    testWidgets('a second tap while the first turn-on is still connecting is ignored', (tester) async {
+      selectStrap();
+      final gate = connectGate = Completer<void>();
+      await pump(tester);
+
+      await tester.tap(switchFinder);
+      await tester.pump();
+      // In flight: the switch is held, the status says so, nothing is on yet.
+      expect(switchWidget(tester).enabled, isFalse);
+      expect(find.text(AppLocalizations.current.sensorConnecting), findsOneWidget);
+      expect(core.connection.broadcast!.isOn.value, isFalse);
+
+      await tester.tap(switchFinder, warnIfMissed: false);
+      await tester.pump();
+      expect(connected, ['strap']);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(connected, ['strap']);
+      expect(core.connection.broadcast!.isOn.value, isTrue);
+      expect(switchWidget(tester).enabled, isTrue);
+      expect(switchWidget(tester).value, isTrue);
+      expect(find.text(AppLocalizations.current.sensorConnecting), findsNothing);
+      expect(find.text(AppLocalizations.current.sensorsBroadcastLive), findsOneWidget);
+    });
+
     testWidgets('a connect failure keeps the switch off and shows the connect-failed toast', (tester) async {
       selectStrap();
       connectError = StateError('strap refused');
@@ -292,6 +327,9 @@ void main() {
     testWidgets('hidden once a strap is merely nearby', (tester) async {
       final ble = FakeUniversalBlePlatform();
       UniversalBle.setInstance(ble);
+      // The fork exposes no getter for the previous platform, so "restore"
+      // means a fresh, empty fake — the peripheral below must not leak.
+      addTearDown(() => UniversalBle.setInstance(FakeUniversalBlePlatform()));
       final peripheral = strapPeripheral(deviceId: 'hr-nearby-1');
       ble.addPeripheral(peripheral);
       core.connection.devices.add(BleHeartRateDevice(peripheral.scanResult));

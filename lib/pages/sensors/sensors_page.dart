@@ -12,6 +12,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -35,10 +36,21 @@ class SensorsPage extends StatefulWidget {
 class _SensorsPageState extends State<SensorsPage> {
   late final StreamSubscription<BaseDevice> _connectionSub;
 
-  /// The exact controller this state subscribed to, so [dispose] unhooks
-  /// from the SAME instance even if `core.connection.broadcast` is swapped
-  /// meanwhile (tests reassign it per case; production never does).
+  /// The exact controller and client listenable this state subscribed to,
+  /// so [dispose] unhooks from the SAME instances even if
+  /// `core.connection.broadcast` / `standaloneClientConnected` are swapped
+  /// meanwhile (tests reassign them per case; production never does).
   BroadcastController? _broadcast;
+  late final ValueListenable<bool> _clientConnected;
+
+  /// The direction of a `turnOn` (`true`) / `turnOff` (`false`) in flight,
+  /// null when idle. The switch flips `isOn` only after every source has
+  /// connected (seconds, over BLE / HealthKit), and shadcn's `Switch` fires
+  /// `onChanged(!value)` on every tap — so without this a second tap
+  /// re-enters `turnOn`, double-connects, and shows two toasts.
+  bool? _inFlight;
+
+  bool get _pending => _inFlight != null;
 
   @override
   void initState() {
@@ -46,7 +58,8 @@ class _SensorsPageState extends State<SensorsPage> {
     _broadcast = core.connection.broadcast;
     _broadcast?.isOn.addListener(_rebuild);
     _broadcast?.transport.addListener(_rebuild);
-    core.connection.standaloneClientConnected.addListener(_rebuild);
+    _clientConnected = core.connection.standaloneClientConnected;
+    _clientConnected.addListener(_rebuild);
     // The switch is enabled iff anything is selected — the grid below is
     // where that changes, and it rebuilds only itself.
     core.sensors.selectionVersion.addListener(_rebuild);
@@ -63,7 +76,7 @@ class _SensorsPageState extends State<SensorsPage> {
   void dispose() {
     _connectionSub.cancel();
     core.sensors.selectionVersion.removeListener(_rebuild);
-    core.connection.standaloneClientConnected.removeListener(_rebuild);
+    _clientConnected.removeListener(_rebuild);
     _broadcast?.transport.removeListener(_rebuild);
     _broadcast?.isOn.removeListener(_rebuild);
     super.dispose();
@@ -88,16 +101,8 @@ class _SensorsPageState extends State<SensorsPage> {
   /// itself; this site only explains it to the rider.
   Future<void> _setBroadcast(bool on) async {
     final broadcast = _broadcast;
-    if (broadcast == null) return;
-    if (!on) {
-      try {
-        await broadcast.turnOff();
-      } catch (e, s) {
-        await recordError(e, s, context: 'SensorsPage.turnOff');
-      }
-      return;
-    }
-    if (!IAPManager.instance.isProEnabledForCurrentDevice) {
+    if (broadcast == null || _pending) return;
+    if (on && !IAPManager.instance.isProEnabledForCurrentDevice) {
       final granted = await IAPManager.instance.ensureProForFeature(
         context,
         featureName: AppLocalizations.current.sensorsBroadcastTitle,
@@ -108,17 +113,36 @@ class _SensorsPageState extends State<SensorsPage> {
         return;
       }
     }
+    setState(() => _inFlight = on);
     try {
-      await broadcast.turnOn();
+      if (on) {
+        await broadcast.turnOn();
+      } else {
+        await broadcast.turnOff();
+      }
     } catch (e, s) {
-      // Already recorded (with the original stack) inside `turnOn`; recorded
-      // again here so this catch is never a silent one, and the rider gets
-      // told.
-      await recordError(e, s, context: 'SensorsPage.turnOn');
-      if (!mounted) return;
-      buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.of(context).sensorConnectFailed);
+      if (on) {
+        // Recorded (with the original stack) inside `BroadcastController
+        // .turnOn`, which also rolled back; this site only tells the rider.
+        if (!mounted) return;
+        buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.of(context).sensorConnectFailed);
+      } else {
+        await recordError(e, s, context: 'SensorsPage.turnOff');
+      }
+    } finally {
+      _inFlight = null;
       _rebuild();
     }
+  }
+
+  void _setTransport(RetrofitMode mode) {
+    final broadcast = _broadcast;
+    if (broadcast == null) return;
+    unawaited(
+      broadcast
+          .setTransport(mode)
+          .catchError((Object e, StackTrace s) => recordError(e, s, context: 'SensorsPage.setTransport')),
+    );
   }
 
   @override
@@ -157,10 +181,12 @@ class _SensorsPageState extends State<SensorsPage> {
                 _BroadcastCard(
                   isOn: isOn,
                   hasSelection: hasSelection,
+                  pending: _pending,
+                  connecting: _inFlight == true,
                   clientName: core.connection.standaloneClientName,
                   transport: _broadcast?.transport.value ?? RetrofitMode.bluetooth,
                   onChanged: _setBroadcast,
-                  onTransport: (mode) => _broadcast?.setTransport(mode),
+                  onTransport: _setTransport,
                 ),
                 const Gap(18),
                 _SectionHeader(l10n.sensorsSignalsHeader),
@@ -194,6 +220,8 @@ class _BroadcastCard extends StatelessWidget {
   const _BroadcastCard({
     required this.isOn,
     required this.hasSelection,
+    required this.pending,
+    required this.connecting,
     required this.clientName,
     required this.transport,
     required this.onChanged,
@@ -202,6 +230,12 @@ class _BroadcastCard extends StatelessWidget {
 
   final bool isOn;
   final bool hasSelection;
+
+  /// A turn-on/off is in flight: the switch is held. [connecting] is the
+  /// turn-on half of that, when the status line says so — a tap has visible
+  /// feedback before the sources answer.
+  final bool pending;
+  final bool connecting;
   final String? clientName;
   final RetrofitMode transport;
   final ValueChanged<bool> onChanged;
@@ -211,8 +245,13 @@ class _BroadcastCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.i18n;
-    final status = isOn ? LinkStatus.ready : LinkStatus.off;
+    final status = connecting
+        ? LinkStatus.attention
+        : isOn
+        ? LinkStatus.ready
+        : LinkStatus.off;
     final client = clientName;
+    final canToggle = hasSelection && !pending;
 
     return Card(
       padding: const EdgeInsets.fromLTRB(13, 13, 13, 13),
@@ -224,7 +263,7 @@ class _BroadcastCard extends StatelessWidget {
             children: [
               TileWithAmpel(
                 status: status,
-                pulse: isOn,
+                pulse: isOn && !pending,
                 child: Icon(LucideIcons.radio, size: 22, color: theme.colorScheme.foreground),
               ),
               const Gap(12),
@@ -250,7 +289,9 @@ class _BroadcastCard extends StatelessWidget {
                     ),
                     StatusLine(
                       status: status,
-                      label: !hasSelection
+                      label: connecting
+                          ? l10n.sensorConnecting
+                          : !hasSelection
                           ? l10n.sensorsBroadcastPickSource
                           : isOn
                           ? l10n.sensorsBroadcastLive
@@ -264,8 +305,8 @@ class _BroadcastCard extends StatelessWidget {
               Switch(
                 key: const Key('sensors-broadcast-switch'),
                 value: isOn,
-                enabled: hasSelection,
-                onChanged: hasSelection ? onChanged : null,
+                enabled: canToggle,
+                onChanged: canToggle ? onChanged : null,
               ),
             ],
           ),
@@ -311,7 +352,11 @@ class _TransportControl extends StatelessWidget {
           selectedStyle: ButtonStyle.ghost()
               .withPadding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7))
               .withBorderRadius(borderRadius: BorderRadius.circular(8))
-              .withBackgroundColor(color: theme.colorScheme.card, hoverColor: theme.colorScheme.card),
+              .withBackgroundColor(
+                color: theme.colorScheme.card,
+                hoverColor: theme.colorScheme.card,
+                focusColor: theme.colorScheme.card,
+              ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
