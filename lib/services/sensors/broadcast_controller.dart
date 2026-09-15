@@ -35,16 +35,19 @@ class BroadcastController {
   final _isOn = ValueNotifier<bool>(false);
   final ValueNotifier<RetrofitMode> _transport;
   bool _resumeAfterBridge = false;
+  bool _started = false;
   VoidCallback? _previousSelectionHook;
+  VoidCallback? _chainedSelectionHook;
   VoidCallback? onChanged;
 
-  /// Source ids this controller has actually asked to connect — the
-  /// framework's own notion of "connected", independent of `hub.sources`
-  /// (which only means "registered with the hub for readings" and, in
-  /// practice, is populated well before — or without ever going through —
-  /// [connectSource]). Survives a bridge episode untouched so resume can
-  /// skip redundant reconnects; cleared per-id only on an explicit
-  /// [disconnectSource] call (rollback, [turnOff], or a deselection).
+  /// Source ids this controller has actually asked to connect — this
+  /// controller's own notion of "connected" (consent it granted via
+  /// [connectSource]), independent of `hub.sources` (which only means
+  /// "registered with the hub for readings" and, in practice, is populated
+  /// well before — or entirely without ever going through — [connectSource]).
+  /// Survives a bridge episode untouched so resume can skip redundant
+  /// reconnects; cleared per-id only on an explicit [disconnectSource] call
+  /// (rollback, [turnOff], or a deselection).
   final Set<String> _connectedIds = {};
 
   ValueListenable<bool> get isOn => _isOn;
@@ -53,19 +56,37 @@ class BroadcastController {
   Set<SensorQuantity> get selectedQuantities => {for (final q in SensorQuantity.values) if (hub.selectionFor(q) != null) q};
   bool get wantsStandalone => _isOn.value && selectedSourceIds.isNotEmpty && !isBridgeRunning.value;
 
+  /// Registers for bridge-state and selection-change updates. Idempotent —
+  /// mirrors `SensorSinkSync.start`, since a second call would otherwise
+  /// double-add the bridge listener and clobber [_previousSelectionHook]
+  /// with the wrapper this controller installed on the first call.
   void start() {
+    if (_started) return;
+    _started = true;
     isBridgeRunning.addListener(_onBridgeChanged);
     // Chain, don't replace: SensorSinkSync already owns hub.onSelectionChanged.
     _previousSelectionHook = hub.onSelectionChanged;
-    hub.onSelectionChanged = () {
+    _chainedSelectionHook = () {
       _previousSelectionHook?.call();
-      unawaited(_onSelectionChanged());
+      unawaited(
+        _onSelectionChanged().catchError(
+          (Object e, StackTrace s) => recordError(e, s, context: 'BroadcastController.selection'),
+        ),
+      );
     };
+    hub.onSelectionChanged = _chainedSelectionHook;
   }
 
   void dispose() {
+    if (!_started) return;
+    _started = false;
     isBridgeRunning.removeListener(_onBridgeChanged);
-    hub.onSelectionChanged = _previousSelectionHook;
+    // Only restore the previous hook if nothing has replaced this
+    // controller's wrapper since — otherwise a later owner's hook would be
+    // clobbered by our now-stale reference to whatever preceded us.
+    if (identical(hub.onSelectionChanged, _chainedSelectionHook)) {
+      hub.onSelectionChanged = _previousSelectionHook;
+    }
   }
 
   Future<void> turnOn() async {
@@ -81,10 +102,18 @@ class BroadcastController {
       }
     } catch (e, s) {
       await recordError(e, s, context: 'BroadcastController.turnOn');
+      // Each rollback disconnect gets its own try/catch: a source that
+      // refuses to disconnect must not mask the original connect failure or
+      // stop the rest of the rollback — the switch never lies about what's
+      // actually connected.
       for (final id in newlyConnected) {
-        await disconnectSource(id);
+        try {
+          await disconnectSource(id);
+        } catch (rollbackError, rollbackStack) {
+          await recordError(rollbackError, rollbackStack, context: 'BroadcastController.rollback');
+        }
         _connectedIds.remove(id);
-      } // the switch never lies
+      }
       rethrow;
     }
     _isOn.value = true;

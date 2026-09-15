@@ -151,8 +151,8 @@ void main() {
     bridge.value = false;
     await Future<void>.delayed(Duration.zero);
     expect(controller.isOn.value, isTrue);
-    // Sources stayed registered through the bridge — resume guards on
-    // `hub.sources`, so there is nothing to reconnect.
+    // 'strap' is still tracked in `_connectedIds` from before the bridge —
+    // nothing to reconnect.
     expect(log, isEmpty);
   });
 
@@ -162,5 +162,41 @@ void main() {
     bridge.value = false;
     await Future<void>.delayed(Duration.zero);
     expect(controller.isOn.value, isFalse);
+  });
+
+  test('start() is idempotent: a second call does not double-wire the bridge listener, resume still fires once', () async {
+    hub.select(SensorQuantity.heartRate, 'strap');
+    await controller.turnOn();
+    controller.start(); // second call — must be a no-op, not a second listener/hook
+    log.clear();
+    bridge.value = true;
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.isOn.value, isFalse);
+    bridge.value = false;
+    await Future<void>.delayed(Duration.zero);
+    // A double-wired listener would fire _onBridgeChanged twice per edge,
+    // which clobbers `_resumeAfterBridge` back to false before resume ever
+    // runs (see the fix report) — so `isOn` would wrongly stay false here.
+    expect(controller.isOn.value, isTrue);
+    expect(log, isEmpty); // 'strap' still tracked in `_connectedIds` — nothing to reconnect
+  });
+
+  test('a connectSource failure on a live selection change is recorded, not unhandled, and the switch stays on with the previous sources', () async {
+    hub.select(SensorQuantity.heartRate, 'strap');
+    await controller.turnOn();
+    // Same pristine-output stub as the rollback test above.
+    installLoggerErrorListener();
+    Object? recordedError;
+    Logger.onRecordError = (_, error, _) => recordedError = error;
+    addTearDown(() => Logger.onRecordError = null);
+    log.clear();
+    connectError = StateError('meter refused');
+    hub.select(SensorQuantity.cadence, 'meter'); // fires the chained hook fire-and-forget
+    await Future<void>.delayed(Duration.zero);
+    // No unhandled-error failure reaches the test zone: the chained hook's
+    // `.catchError` funnels it through recordError instead.
+    expect(recordedError, isA<StateError>());
+    expect(log, ['connect:meter']); // attempted; never added to `_connectedIds` since it threw
+    expect(controller.isOn.value, isTrue); // the switch never lies — 'strap' is still up
   });
 }
