@@ -439,6 +439,16 @@ class Connection {
   Future<void> restoreHealthKitSelection() async {
     if (healthKitSource == null) return;
     if (core.sensors.selectionFor(SensorQuantity.heartRate) != HealthKitSensorSource.sourceId) return;
+    // Sensors-only mode has no bridge to restore for — in that mode Apple
+    // Health only ever connects via the Broadcast switch (`turnOn` →
+    // `connectSourceById`), so a launch-time restore here would connect a
+    // source nothing is serving yet (spec Decision 4, "relaunch starts
+    // nothing"). Trainer mode is unaffected: the bridge genuinely relies on
+    // this restore running at launch.
+    if (core.settings.getSensorsOnlyMode()) {
+      _appendLogEntry('HealthKit: sensors-only mode — Apple Health connects when Broadcast is switched on');
+      return;
+    }
     try {
       await authorizeHealthKit();
       await connectHealthKit();

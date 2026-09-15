@@ -174,6 +174,25 @@ void main() {
       expect(core.connection.isHealthKitConnected, isTrue);
     });
 
+    test(
+      'sensors-only mode: skips the restore entirely — Broadcast is what connects Apple Health there',
+      () async {
+        await core.settings.setSensorsOnlyMode(true);
+        addTearDown(() => core.settings.setSensorsOnlyMode(false));
+        core.sensors.select(SensorQuantity.heartRate, 'healthkit');
+
+        await core.connection.restoreHealthKitSelection();
+
+        expect(channel.authorizeCalls, 0);
+        expect(channel.startCalls, 0);
+        expect(core.connection.isHealthKitConnected, isFalse);
+        expect(
+          core.connection.lastLogEntries.map((e) => e.entry),
+          contains('HealthKit: sensors-only mode — Apple Health connects when Broadcast is switched on'),
+        );
+      },
+    );
+
     test('denial is a user choice, not a crash — logged, not recordError-ed, registers nothing', () async {
       channel.authorization = HealthKitAuthorization.denied;
       core.sensors.select(SensorQuantity.heartRate, 'healthkit');
