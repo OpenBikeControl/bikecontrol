@@ -52,15 +52,17 @@ void main() {
     expect(await channel.authorize(), HealthKitAuthorization.unknown);
   });
 
-  test('events: mode-only map, full sample, malformed sample dropped', () async {
+  test('events: mode-only map, full sample, malformed sample and non-map payload dropped', () async {
     messenger.setMockStreamHandler(
       event,
       MockStreamHandler.inline(
         onListen: (args, sink) {
           sink.success({'mode': 'passive'});
+          sink.success('not-a-map'); // dropped: not a Map at all
           sink.success({'bpm': 133, 'at': 1789200000000, 'mode': 'session'});
           sink.success({'bpm': 0, 'at': 1789200001000, 'mode': 'session'}); // dropped
           sink.success({'bpm': 'x', 'at': 1789200002000, 'mode': 'session'}); // dropped
+          sink.success(42); // dropped: not a Map at all
           sink.success({'bpm': 140, 'at': 1789200003000, 'mode': 'session'});
           sink.endOfStream();
         },
