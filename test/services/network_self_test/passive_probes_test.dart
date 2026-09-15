@@ -373,13 +373,41 @@ void main() {
       expect(check.verdict, NetworkVerdict.skipped);
     });
 
+    test('skipped: OS responder backend manages its own multicast', () {
+      final check = multicastLockCheck(
+        ctx(
+          platform: 'android',
+          backend: ObpMdnsBackend.osResponder,
+          snapshot: _diag(holdsMulticastLock: false),
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.skipped);
+      expect(check.detail['reason'], 'os responder manages its own multicast');
+    });
+
+    test('skipped: OBC is not advertising', () {
+      final check = multicastLockCheck(
+        ctx(
+          platform: 'android',
+          backend: ObpMdnsBackend.platformDefault,
+          emulatorStarted: false,
+          snapshot: _diag(holdsMulticastLock: false),
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.skipped);
+    });
+
     test('pass: multicast lock is held', () {
-      final check = multicastLockCheck(ctx(platform: 'android', snapshot: _diag(holdsMulticastLock: true)));
+      final check = multicastLockCheck(
+        ctx(platform: 'android', backend: ObpMdnsBackend.platformDefault, snapshot: _diag(holdsMulticastLock: true)),
+      );
       expect(check.verdict, NetworkVerdict.pass);
     });
 
     test('warn: multicast lock is not held', () {
-      final check = multicastLockCheck(ctx(platform: 'android', snapshot: _diag(holdsMulticastLock: false)));
+      final check = multicastLockCheck(
+        ctx(platform: 'android', backend: ObpMdnsBackend.platformDefault, snapshot: _diag(holdsMulticastLock: false)),
+      );
       expect(check.verdict, NetworkVerdict.warn);
       expect(check.fixes, isEmpty);
     });

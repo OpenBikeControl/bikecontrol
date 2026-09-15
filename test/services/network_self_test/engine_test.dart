@@ -322,6 +322,22 @@ void main() {
       expect(ids, [...commonOrder, NetworkCheckId.resolveOwnHostname, NetworkCheckId.tcpSelfConnect, NetworkCheckId.guidedWatch]);
     });
 
+    test('android: resolveOwnHostname skipped (platform resolver has no mDNS), tcpSelfConnect/guidedWatch still run', () {
+      final androidIds = NetworkSelfTestEngine.defaultProbes('android').map((s) => s.id).toList();
+      expect(androidIds, [...commonOrder, NetworkCheckId.tcpSelfConnect, NetworkCheckId.guidedWatch]);
+
+      // Android-only carve-out, not an iOS-style blanket skip: macOS/Windows
+      // still run resolveOwnHostname...
+      expect(NetworkSelfTestEngine.defaultProbes('macos').map((s) => s.id), contains(NetworkCheckId.resolveOwnHostname));
+      expect(NetworkSelfTestEngine.defaultProbes('windows').map((s) => s.id), contains(NetworkCheckId.resolveOwnHostname));
+
+      // ...and iOS still excludes all three active/watch checks.
+      final iosIds = NetworkSelfTestEngine.defaultProbes('ios').map((s) => s.id).toList();
+      expect(iosIds, isNot(contains(NetworkCheckId.resolveOwnHostname)));
+      expect(iosIds, isNot(contains(NetworkCheckId.tcpSelfConnect)));
+      expect(iosIds, isNot(contains(NetworkCheckId.guidedWatch)));
+    });
+
     test('ios: resolve/tcp/watch excluded entirely, no Windows shell checks', () {
       final ids = NetworkSelfTestEngine.defaultProbes('ios').map((s) => s.id).toList();
       expect(ids, commonOrder);
