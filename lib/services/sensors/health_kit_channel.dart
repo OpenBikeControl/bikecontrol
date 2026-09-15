@@ -1,3 +1,6 @@
+import 'package:bike_control/main.dart';
+import 'package:flutter/services.dart';
+
 /// The rider's answer to iOS's Health permission sheet, as far as HealthKit
 /// lets an app know it. Apple hides READ denials completely; `denied` is
 /// reported only when the workout SHARE half was refused, which is the
@@ -56,4 +59,65 @@ abstract class HealthKitChannel {
   /// native side's post-start failures (session ended by the OS, query
   /// error); they are reported, not fatal.
   Stream<HealthKitEvent> get events;
+}
+
+/// The real thing: talks to `ios/Runner/HealthKitHeartRate.swift`. Channel
+/// names and payload shapes are the contract pinned by
+/// `health_kit_channel_test.dart`; change both sides together.
+class MethodChannelHealthKit implements HealthKitChannel {
+  static const _method = MethodChannel('bike_control/health_kit');
+  static const _event = EventChannel('bike_control/health_kit/heart_rate');
+
+  @override
+  Future<bool> isAvailable() async => await _method.invokeMethod<bool>('isAvailable') ?? false;
+
+  @override
+  Future<HealthKitAuthorization> authorize() async {
+    final verdict = await _method.invokeMethod<String>('authorize');
+    return switch (verdict) {
+      'granted' => HealthKitAuthorization.granted,
+      'denied' => HealthKitAuthorization.denied,
+      _ => HealthKitAuthorization.unknown,
+    };
+  }
+
+  @override
+  Future<void> start() => _method.invokeMethod<void>('start');
+
+  @override
+  Future<void> stop() => _method.invokeMethod<void>('stop');
+
+  @override
+  Stream<HealthKitEvent> get events => _event
+      .receiveBroadcastStream()
+      .map(_decode)
+      .where((e) => e != null)
+      .cast<HealthKitEvent>();
+
+  /// A malformed sample is dropped, not guessed at: a wrong heart rate is
+  /// worse than none (same rule as `BleSensorSource`). Dropped frames are
+  /// still recorded so a native-side regression shows up in crash reports.
+  static HealthKitEvent? _decode(dynamic raw) {
+    if (raw is! Map) {
+      recordError(FormatException('HealthKit event is not a map: $raw'), null, context: 'MethodChannelHealthKit');
+      return null;
+    }
+    final mode = switch (raw['mode']) {
+      'session' => HealthKitMode.session,
+      'passive' => HealthKitMode.passive,
+      _ => null,
+    };
+    if (mode == null) {
+      recordError(FormatException('HealthKit event without mode: $raw'), null, context: 'MethodChannelHealthKit');
+      return null;
+    }
+    if (!raw.containsKey('bpm')) return HealthKitModeEvent(mode);
+    final bpm = raw['bpm'];
+    final at = raw['at'];
+    if (bpm is! int || bpm <= 0 || at is! int) {
+      recordError(FormatException('HealthKit sample malformed: $raw'), null, context: 'MethodChannelHealthKit');
+      return null;
+    }
+    return HealthKitSample(bpm: bpm, at: DateTime.fromMillisecondsSinceEpoch(at, isUtc: true), mode: mode);
+  }
 }
