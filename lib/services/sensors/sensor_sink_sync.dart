@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:prop/emulators/dircon_emulator.dart';
 
+import 'broadcast_controller.dart';
 import 'sensor_hub.dart';
 import 'sensor_quantity.dart';
 import 'sensor_sink_controller.dart';
@@ -36,15 +36,26 @@ import 'sensor_sink_controller.dart';
 /// `onSelectionChanged` re-syncs on every selection change, not only on
 /// bridge transitions, so picking (or re-picking) a source tries again.
 ///
+/// Bridge beats the Broadcast switch, not the other way round: a selection
+/// with the bridge running attaches to the shared composite regardless of
+/// whether [BroadcastController.isOn] is on — the switch only governs the
+/// no-trainer, standalone path. And a standalone stint is never started
+/// merely because a source is selected any more: [broadcast] must actually
+/// be on ([BroadcastController.wantsStandalone]) or nothing is served at
+/// all, which is what keeps a cold launch (Broadcast off by default, see
+/// that class's own doc comment) from standing up an unwanted "BikeControl"
+/// advertisement the instant a persisted selection loads.
+///
 /// Pulled out of `connection.dart` for the same reason [SensorSinkController]
 /// and the binding it feeds are: that file cannot be constructed in a unit
 /// test, and this rule is worth one.
 class SensorSinkSync {
-  SensorSinkSync({required this.hub, required this.isBridgeRunning, required this.sink});
+  SensorSinkSync({required this.hub, required this.isBridgeRunning, required this.sink, required this.broadcast});
 
   final SensorHub hub;
   final ValueListenable<bool> isBridgeRunning;
   final SensorSinkController sink;
+  final BroadcastController broadcast;
 
   bool _started = false;
 
@@ -70,22 +81,22 @@ class SensorSinkSync {
     // nothing. See this class's own doc comment for why "nothing selected"
     // must resolve to `none` rather than `bridge`.
     final hasSource = SensorQuantity.values.any((q) => hub.selectionFor(q) != null);
-    final mode = !hasSource
-        ? SensorSinkMode.none
-        : isBridgeRunning.value
-        ? SensorSinkMode.bridge
-        : SensorSinkMode.standalone;
-    return sink.onSinkStateChanged(
-      mode: mode,
-      // Bluetooth, all three quantities: identical to today's behaviour.
-      // Real transport/quantity gating lands in a later task.
-      standalone: mode == SensorSinkMode.standalone
-          ? const StandaloneRequest(
-              transport: RetrofitMode.bluetooth,
-              exposed: {SensorQuantity.heartRate, SensorQuantity.cadence, SensorQuantity.power},
-            )
-          : null,
-    );
+    // Bridge wins outright — checked first and independent of the Broadcast
+    // switch, see this class's own doc comment for why.
+    if (hasSource && isBridgeRunning.value) {
+      return sink.onSinkStateChanged(mode: SensorSinkMode.bridge);
+    }
+    // Otherwise standalone only while the rider has explicitly asked for it:
+    // [BroadcastController.wantsStandalone] already folds in "is on" AND "has
+    // a selection" AND "bridge isn't running", so nothing further to check
+    // here beyond handing over its transport and the quantities it selected.
+    if (broadcast.wantsStandalone) {
+      return sink.onSinkStateChanged(
+        mode: SensorSinkMode.standalone,
+        standalone: StandaloneRequest(transport: broadcast.transport.value, exposed: broadcast.selectedQuantities),
+      );
+    }
+    return sink.onSinkStateChanged(mode: SensorSinkMode.none);
   }
 
   void dispose() {

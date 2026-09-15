@@ -79,6 +79,13 @@ class SensorSinkController {
   bool get attachedToComposite => _attached;
   bool get standaloneRunning => _standalone;
 
+  /// The mode/standalone request from the last transition actually applied.
+  /// Distinct from [attachedToComposite]/[standaloneRunning] (which alone
+  /// can't tell `none` from "not yet synced") — lets a test assert exactly
+  /// what a caller (e.g. `SensorSinkSync`) computed and handed over.
+  SensorSinkMode? get lastMode => _lastMode;
+  StandaloneRequest? get lastRequest => _lastStandalone;
+
   Future<void> onSinkStateChanged({required SensorSinkMode mode, StandaloneRequest? standalone}) {
     assert(
       mode != SensorSinkMode.standalone || standalone != null,

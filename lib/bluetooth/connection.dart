@@ -20,6 +20,7 @@ import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/remembered_device.dart';
+import 'package:bike_control/services/sensors/broadcast_controller.dart';
 import 'package:bike_control/services/sensors/health_kit_channel.dart';
 import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_bridge_binding.dart';
@@ -57,6 +58,19 @@ class Connection {
 
   bool get isHealthKitConnected =>
       core.sensors.sources.any((s) => s.id == HealthKitSensorSource.sourceId);
+
+  /// The Broadcast switch for the no-trainer path. Constructed in
+  /// [initialize] (this file cannot be built in a unit test — see
+  /// `SensorSinkSync`'s own doc comment for why that class was pulled out
+  /// instead), so it is null only in the brief window before `initialize`
+  /// runs; tests assign their own directly.
+  BroadcastController? broadcast;
+
+  /// Whether the shared trainer bridge (the FTMS composite) is currently
+  /// advertising. `SensorSinkSync` reads the listenable form
+  /// (`ftmsEmulator.isStarted`) directly; this plain getter is for callers
+  /// that just need the current value (Task 5's Broadcast UI gating).
+  bool get isBridgeRunning => ftmsEmulator.isStarted.value;
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<ProxyDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
@@ -450,6 +464,87 @@ class Connection {
     }
   }
 
+  /// [BroadcastController]'s `connectSource` hook: a source id from the hub
+  /// resolved to an actual connect. HealthKit routes through
+  /// [authorizeHealthKit] + [connectHealthKit] (same ordering requirement as
+  /// every other HealthKit call site — see [authorizeHealthKit]'s doc
+  /// comment); everything else is looked up among the [BleSensorDevice]s
+  /// already in [devices] and connected the same way the signals grid does
+  /// (`LiveMetricsSection._connectDevice`): consent persisted BEFORE
+  /// `connectDevice`, never after.
+  ///
+  /// An id that resolves to neither is a stale selection, not a failure this
+  /// call caused — logged and left alone rather than thrown, so it can never
+  /// trip [BroadcastController.turnOn]'s per-id rollback and take perfectly
+  /// good OTHER sources down with it. A genuine connect failure below,
+  /// though, DOES rethrow after recording — that throw is exactly what the
+  /// rollback relies on to know this id never connected.
+  Future<void> connectSourceById(String id) async {
+    if (id == HealthKitSensorSource.sourceId) {
+      try {
+        await authorizeHealthKit();
+        await connectHealthKit();
+      } catch (e, s) {
+        await recordError(e, s, context: 'Connection.connectSourceById healthkit');
+        rethrow;
+      }
+      return;
+    }
+    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
+    if (device == null) {
+      await recordError(
+        StateError('connectSourceById: no BleSensorDevice found for source id "$id"'),
+        StackTrace.current,
+        context: 'Connection.connectSourceById',
+      );
+      return;
+    }
+    try {
+      await core.settings.setSensorAutoConnect(device.device.deviceId, true);
+      await connectDevice(device);
+    } catch (e, s) {
+      await recordError(e, s, context: 'Connection.connectSourceById ${device.source.id}');
+      rethrow;
+    }
+  }
+
+  /// The disconnect-side counterpart of [connectSourceById] — same routing,
+  /// same "stale id is a no-op, a real failure rethrows" contract. HealthKit
+  /// goes through [disconnectHealthKit] with `forget: false` (this is
+  /// Broadcast turning off, not the rider forgetting the source — mirrors
+  /// [disconnectHealthKit]'s own `forget` semantics doc comment); a BLE
+  /// device clears its auto-connect consent BEFORE disconnecting, then
+  /// disconnects with `keepInList: true` so it stays selectable the moment
+  /// the rider flips Broadcast back on (same as `LiveMetricsSection
+  /// ._disconnect`'s own reasoning).
+  Future<void> disconnectSourceById(String id) async {
+    if (id == HealthKitSensorSource.sourceId) {
+      try {
+        await disconnectHealthKit(forget: false);
+      } catch (e, s) {
+        await recordError(e, s, context: 'Connection.disconnectSourceById healthkit');
+        rethrow;
+      }
+      return;
+    }
+    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
+    if (device == null) {
+      await recordError(
+        StateError('disconnectSourceById: no BleSensorDevice found for source id "$id"'),
+        StackTrace.current,
+        context: 'Connection.disconnectSourceById',
+      );
+      return;
+    }
+    try {
+      await core.settings.setSensorAutoConnect(device.device.deviceId, false);
+      await disconnect(device, forget: false, persistForget: false, keepInList: true);
+    } catch (e, s) {
+      await recordError(e, s, context: 'Connection.disconnectSourceById ${device.source.id}');
+      rethrow;
+    }
+  }
+
   /// Records a device we just connected to. Accessories are skipped — they are
   /// not links in the setup chain and would only clutter the remembered list.
   Future<void> _rememberConnectedDevice(BaseDevice device) async {
@@ -631,6 +726,12 @@ class Connection {
       // itself while it still can (`isTrial`); the standalone path must too.
       standaloneSensorEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
       standaloneSensorEmulator.shouldAdvertise = () => IAPManager.instance.isProEnabledForCurrentDevice;
+      // Never the trainer-app name (e.g. "Zwift Hub"): unlike ftmsEmulator,
+      // which impersonates whatever trainer app the rider picked, this
+      // standalone peripheral is BikeControl itself — a rider pairing a
+      // heart rate/cadence/power source in Zwift's own pairing screen should
+      // see it identified as what it is.
+      standaloneSensorEmulator.advertisementNameOverride = () => 'BikeControl';
       // Attach-before-start / stop-before-detach: DirconEmulator.startServer
       // advertises whatever is already on its composite, so calling it
       // before the definition is attached leaves nothing to serve. See
@@ -668,17 +769,47 @@ class Connection {
       }
       Timer.periodic(const Duration(seconds: 1), (_) => core.sensors.tick());
 
-      // Keeps the sink synced to both the bridge's isStarted AND whether the
-      // rider has picked a heart rate source at all — a cold launch with
-      // nothing selected must not stand up an empty "BikeControl" HRM
-      // advertisement (see SensorSinkSync's doc comment). Also the retry path
-      // for a standalone start that failed at launch: any later selection
-      // change re-syncs, not just a bridge transition.
-      SensorSinkSync(
+      // The Broadcast switch itself: owns connecting/disconnecting sources
+      // and deciding whether a standalone stint is even wanted
+      // (`wantsStandalone`). Constructed before `sinkSync` below since the
+      // sink needs a live reference to read `wantsStandalone`/`transport`
+      // from — but STARTED after it; see the ordering note on `sinkSync
+      // .start()` vs `broadcast.start()` below.
+      broadcast = BroadcastController(
+        hub: core.sensors,
+        settings: core.settings,
+        isBridgeRunning: ftmsEmulator.isStarted,
+        connectSource: connectSourceById,
+        disconnectSource: disconnectSourceById,
+      );
+
+      // Keeps the sink synced to the bridge's isStarted, whether the rider
+      // has picked a source at all, AND now the Broadcast switch — a cold
+      // launch with nothing selected (or Broadcast left off) must not stand
+      // up an empty "BikeControl" advertisement (see SensorSinkSync's own
+      // doc comment). Also the retry path for a standalone start that failed
+      // at launch: any later selection change re-syncs, not just a bridge
+      // transition.
+      final sinkSync = SensorSinkSync(
         hub: core.sensors,
         isBridgeRunning: ftmsEmulator.isStarted,
         sink: sensorSink,
-      ).start();
+        broadcast: broadcast!,
+      );
+      // Re-sync whenever the switch itself changes (on/off/transport) — the
+      // hub's own selection-change hook (below) covers a source being picked
+      // or dropped, but not the switch flipping with the same selection
+      // still in place.
+      broadcast!.onChanged = () => unawaited(sinkSync.sync());
+      // Order matters: `sinkSync.start()` is what first assigns
+      // `hub.onSelectionChanged`; `broadcast.start()` CHAINS onto whatever is
+      // already installed there (see BroadcastController.start's own doc
+      // comment) rather than replacing it. Starting broadcast first would
+      // instead have `sinkSync.start()` clobber broadcast's hook outright —
+      // a selection change would then connect/disconnect sources but never
+      // re-sync the sink.
+      sinkSync.start();
+      broadcast!.start();
 
       SensorBridgeBinding(
         hub: core.sensors,
@@ -695,9 +826,9 @@ class Connection {
         // bridge's own GATT table. sensorDefinition advertises CSC/Cycling
         // Power unconditionally, the same as heart rate always has;
         // SensorSinkController is what keeps them off the bridge, by calling
-        // sensorDefinition.retractCadenceAndPowerForBridge() before every
-        // bridge attach (see that method's doc comment for the defect this
-        // guards against).
+        // sensorDefinition.exposeServices(heartRate: true, cadence: false,
+        // power: false) before every bridge attach (see that method's doc
+        // comment for the defect this guards against).
         onCadence: (rpm) {
           ftmsEmulator.fitnessBike?.setExternalCadence(rpm);
           if (!ftmsEmulator.isStarted.value) sensorDefinition.setCadence(rpm);
