@@ -85,27 +85,56 @@ void main() {
     Logger.onRecordError = null;
   });
 
-  test('connect: authorizes, registers in the hub, starts the native side', () async {
-    await core.connection.connectHealthKit();
+  group('authorizeHealthKit', () {
+    test('denied: throws, and never touches the hub', () async {
+      channel.authorization = HealthKitAuthorization.denied;
 
-    expect(channel.authorizeCalls, 1);
-    expect(channel.startCalls, 1);
-    expect(core.connection.isHealthKitConnected, isTrue);
-    expect(core.sensors.sourcesFor(SensorQuantity.heartRate).map((s) => s.id), contains('healthkit'));
+      await expectLater(core.connection.authorizeHealthKit(), throwsA(isA<HealthKitDeniedException>()));
+      expect(channel.authorizeCalls, 1);
+      expect(channel.startCalls, 0);
+      expect(core.connection.isHealthKitConnected, isFalse);
+    });
+
+    test('unknown: proceeds (read denials are invisible anyway)', () async {
+      channel.authorization = HealthKitAuthorization.unknown;
+
+      await core.connection.authorizeHealthKit();
+
+      expect(channel.authorizeCalls, 1);
+    });
+
+    test('granted: proceeds', () async {
+      await core.connection.authorizeHealthKit();
+
+      expect(channel.authorizeCalls, 1);
+    });
+
+    test('no source (non-iOS) is a no-op', () async {
+      core.connection.healthKitSource = null;
+
+      await core.connection.authorizeHealthKit();
+
+      expect(channel.authorizeCalls, 0);
+    });
   });
 
-  test('connect when denied: throws, registers nothing, starts nothing', () async {
-    channel.authorization = HealthKitAuthorization.denied;
+  group('connectHealthKit', () {
+    test('registers in the hub and starts the native side, without authorizing', () async {
+      await core.connection.connectHealthKit();
 
-    await expectLater(core.connection.connectHealthKit(), throwsA(isA<HealthKitDeniedException>()));
-    expect(channel.startCalls, 0);
-    expect(core.connection.isHealthKitConnected, isFalse);
-  });
+      expect(channel.authorizeCalls, 0);
+      expect(channel.startCalls, 1);
+      expect(core.connection.isHealthKitConnected, isTrue);
+      expect(core.sensors.sourcesFor(SensorQuantity.heartRate).map((s) => s.id), contains('healthkit'));
+    });
 
-  test('connect when the verdict is unknown proceeds (read denials are invisible anyway)', () async {
-    channel.authorization = HealthKitAuthorization.unknown;
-    await core.connection.connectHealthKit();
-    expect(core.connection.isHealthKitConnected, isTrue);
+    test('with no source (non-iOS) is a no-op', () async {
+      core.connection.healthKitSource = null;
+
+      await core.connection.connectHealthKit();
+
+      expect(channel.startCalls, 0);
+    });
   });
 
   test('disconnect(forget: false): unregisters and stops, selection survives', () async {
@@ -133,37 +162,42 @@ void main() {
     expect(channel.stopCalls, 0);
   });
 
-  test('restore: a persisted healthkit selection connects silently on launch', () async {
-    core.sensors.select(SensorQuantity.heartRate, 'healthkit');
-    await core.connection.restoreHealthKitSelection();
-    expect(core.connection.isHealthKitConnected, isTrue);
-    expect(channel.startCalls, 1);
-  });
+  group('restoreHealthKitSelection', () {
+    test('a persisted healthkit selection authorizes then connects silently on launch', () async {
+      core.sensors.select(SensorQuantity.heartRate, 'healthkit');
 
-  test('restore: denial is a user choice, not a crash — logged, not recordError-ed', () async {
-    channel.authorization = HealthKitAuthorization.denied;
-    core.sensors.select(SensorQuantity.heartRate, 'healthkit');
+      await core.connection.restoreHealthKitSelection();
 
-    await core.connection.restoreHealthKitSelection();
+      expect(channel.authorizeCalls, 1);
+      expect(channel.startCalls, 1);
+      expect(core.connection.isHealthKitConnected, isTrue);
+    });
 
-    expect(core.connection.isHealthKitConnected, isFalse);
-    expect(channel.startCalls, 0);
-    expect(
-      core.connection.lastLogEntries.map((e) => e.entry),
-      contains('HealthKit: persisted Apple Health selection not restored — permission denied'),
-    );
-  });
+    test('denial is a user choice, not a crash — logged, not recordError-ed, registers nothing', () async {
+      channel.authorization = HealthKitAuthorization.denied;
+      core.sensors.select(SensorQuantity.heartRate, 'healthkit');
 
-  test('restore: nothing selected → nothing happens', () async {
-    await core.connection.restoreHealthKitSelection();
-    expect(channel.authorizeCalls, 0);
-    expect(channel.startCalls, 0);
-  });
+      await core.connection.restoreHealthKitSelection();
 
-  test('restore with no source (non-iOS) is a no-op', () async {
-    core.connection.healthKitSource = null;
-    core.sensors.select(SensorQuantity.heartRate, 'healthkit');
-    await core.connection.restoreHealthKitSelection();
-    expect(channel.startCalls, 0);
+      expect(core.connection.isHealthKitConnected, isFalse);
+      expect(channel.startCalls, 0);
+      expect(
+        core.connection.lastLogEntries.map((e) => e.entry),
+        contains('HealthKit: persisted Apple Health selection not restored — permission denied'),
+      );
+    });
+
+    test('nothing selected → nothing happens', () async {
+      await core.connection.restoreHealthKitSelection();
+      expect(channel.authorizeCalls, 0);
+      expect(channel.startCalls, 0);
+    });
+
+    test('with no source (non-iOS) is a no-op', () async {
+      core.connection.healthKitSource = null;
+      core.sensors.select(SensorQuantity.heartRate, 'healthkit');
+      await core.connection.restoreHealthKitSelection();
+      expect(channel.startCalls, 0);
+    });
   });
 }

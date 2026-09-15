@@ -355,16 +355,36 @@ class Connection {
     }
   }
 
-  /// The HealthKit analogue of a strap connect: ask for Health permission
-  /// (a no-op sheet-wise once granted), then register so `SensorHub` calls
-  /// `start()` and the native session/query begins. `unknown` proceeds —
-  /// HealthKit hides read denials, so refusing on anything but an explicit
-  /// share denial would refuse riders who actually said yes.
-  Future<void> connectHealthKit() async {
+  /// Ask for Health permission — split out of what used to be
+  /// `connectHealthKit` so a caller can authorize BEFORE the hub selection
+  /// changes. `SensorHub.select` fires `onSelectionChanged` synchronously
+  /// (see `SensorSinkSync`), which restarts the BLE/DIRCON bridge transport
+  /// (`DirconEmulator._restartTransportAfterChildChange`) — if that restart
+  /// races healthd presenting the permission sheet in this process, the
+  /// authorization session itself times out and the sheet never appears
+  /// (device-confirmed: first tap on Apple Health always failed this way).
+  /// `LiveMetricsSection._select` now calls this before touching
+  /// `core.sensors.select` at all, for exactly this reason.
+  ///
+  /// No-op when [healthKitSource] is null (every non-iOS platform). `unknown`
+  /// proceeds — HealthKit hides read denials, so refusing on anything but an
+  /// explicit share denial would refuse riders who actually said yes.
+  Future<void> authorizeHealthKit() async {
     final source = healthKitSource;
     if (source == null) return;
     final verdict = await source.authorize();
     if (verdict == HealthKitAuthorization.denied) throw HealthKitDeniedException();
+  }
+
+  /// The HealthKit analogue of a strap connect: register so `SensorHub`
+  /// calls `start()` and the native session/query begins. Deliberately does
+  /// NOT authorize — that must already have happened via
+  /// [authorizeHealthKit] before the caller ever changed the hub selection
+  /// (see that method's doc comment for why the ordering matters); this is
+  /// purely the register-and-start half.
+  Future<void> connectHealthKit() async {
+    final source = healthKitSource;
+    if (source == null) return;
     try {
       core.sensors.register(source);
       unawaited(source.start());
@@ -388,10 +408,17 @@ class Connection {
   /// shows no sheet. A denial here (the rider revoked access in Settings
   /// meanwhile) is swallowed on purpose: the tile then shows the persisted
   /// pick as "Connecting…" and a tap re-prompts.
+  ///
+  /// Calls [authorizeHealthKit] then [connectHealthKit] explicitly, in that
+  /// order — same ordering requirement as the tap path, even though the
+  /// selection here is already persisted from a previous session and does
+  /// not change again: keeping both call sites symmetrical means the two
+  /// methods never drift out of sync with each other.
   Future<void> restoreHealthKitSelection() async {
     if (healthKitSource == null) return;
     if (core.sensors.selectionFor(SensorQuantity.heartRate) != HealthKitSensorSource.sourceId) return;
     try {
+      await authorizeHealthKit();
       await connectHealthKit();
     } on HealthKitDeniedException {
       _appendLogEntry('HealthKit: persisted Apple Health selection not restored — permission denied');

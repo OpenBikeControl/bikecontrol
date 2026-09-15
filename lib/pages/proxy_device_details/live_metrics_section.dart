@@ -392,6 +392,12 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
         _SourceCandidate(
           source,
           isConnected: true,
+          // Even an already-registered HealthKit source still routes through
+          // `authorizeHealthKit` on (re)select — cheap once granted (no
+          // sheet), and keeps this entry's ordering identical to the
+          // not-yet-registered one below rather than special-casing which of
+          // the two HealthKit ever skips authorization.
+          authorize: source is HealthKitSensorSource ? core.connection.authorizeHealthKit : null,
           disconnect: source is HealthKitSensorSource
               ? _disconnectHealthKit
               : ({required bool forget}) => _disconnect(_connectedDeviceFor(source.id), forget: forget),
@@ -411,6 +417,7 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
         _SourceCandidate(
           healthKit,
           isConnected: false,
+          authorize: core.connection.authorizeHealthKit,
           connect: core.connection.connectHealthKit,
           disconnect: _disconnectHealthKit,
         ),
@@ -482,6 +489,18 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
   /// called — `shouldAutoConnect` reads it and `connect()` early-returns
   /// otherwise (`BleHeartRateDevice.shouldAutoConnect`'s doc comment). Do not
   /// reorder.
+  ///
+  /// ALSO CRITICAL, and new: [_SourceCandidate.authorize] runs AFTER the Pro
+  /// gate but BEFORE `core.sensors.select` below — device-confirmed bug fix.
+  /// `core.sensors.select` fires `SensorHub.onSelectionChanged` synchronously,
+  /// which restarts the BLE/DIRCON bridge transport
+  /// (`DirconEmulator._restartTransportAfterChildChange`); if that restart is
+  /// still in flight when healthd tries to present the Health permission
+  /// sheet in this process, the authorization session itself times out and
+  /// the sheet never appears — reproduced as "first tap always fails, second
+  /// tap always works" (the second tap's selection was already persisted, so
+  /// nothing restarts). Authorizing before the selection changes means the
+  /// sheet is shown, and answered, before the transport ever moves.
   Future<void> _select(SensorQuantity quantity, _SourceCandidate? candidate) async {
     try {
       final sourceId = candidate?.source.id;
@@ -495,6 +514,22 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
           // snaps back to the hub's actual selection instead of lingering on
           // the tapped-but-rejected value.
           if (mounted) setState(() {});
+          return;
+        }
+      }
+
+      final authorize = candidate?.authorize;
+      if (authorize != null) {
+        try {
+          await authorize();
+        } on HealthKitDeniedException {
+          // Nothing in the hub has changed yet at this point — the
+          // selection is still whatever it was before this tap — so there
+          // is nothing to revert, unlike the old denial path that used to
+          // live around `connect()` below. Just explain and bail.
+          if (!mounted) return;
+          buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.of(context).sensorHealthKitDenied);
+          setState(() {});
           return;
         }
       }
@@ -515,24 +550,15 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
       // `SensorHub.persistSelections`.
       await core.sensors.persistSelections(core.settings);
 
+      // Authorization (if any) already succeeded above — see [authorize]'s
+      // own block — so `connect()` can no longer throw
+      // `HealthKitDeniedException`: the register+start half
+      // (`Connection.connectHealthKit`) deliberately never authorizes. No
+      // `on HealthKitDeniedException` catch here any more; any other failure
+      // falls through to this method's own outer `catch`, which records and
+      // rethrows.
       final connect = candidate?.connect;
-      if (connect != null) {
-        try {
-          await connect();
-        } on HealthKitDeniedException {
-          // Expected outcome, not a failure: explain, and fall back to
-          // Trainer so the row does not show a pick that cannot deliver
-          // anything.
-          core.sensors.select(quantity, null);
-          await core.sensors.persistSelections(core.settings);
-          // `context` is only safe to read once more `mounted` is confirmed
-          // — two awaits have run since `_select` started.
-          if (!mounted) return;
-          buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.of(context).sensorHealthKitDenied);
-          setState(() {});
-          return;
-        }
-      }
+      if (connect != null) await connect();
 
       // Direct author feedback: "when using 'Trainer' again, it should
       // disconnect the other sensor" — a sensor held connected but unused
@@ -651,10 +677,23 @@ String _quantityTitle(AppLocalizations l10n, SensorQuantity quantity) => switch 
 /// closures rather than a `BleSensorDevice` so a HealthKit candidate and a
 /// BLE one go through the same code below.
 class _SourceCandidate {
-  const _SourceCandidate(this.source, {required this.isConnected, this.connect, required this.disconnect});
+  const _SourceCandidate(
+    this.source, {
+    required this.isConnected,
+    this.authorize,
+    this.connect,
+    required this.disconnect,
+  });
 
   final SensorSource source;
   final bool isConnected;
+
+  /// Non-null only for the HealthKit candidate. `_select` awaits this BEFORE
+  /// `core.sensors.select(...)` — see that method's own doc comment on why
+  /// the ordering matters. `null` for every BLE candidate: a BLE connect has
+  /// its own consent gate (`_connectDevice`'s auto-connect flag) and no
+  /// permission sheet that can race anything.
+  final Future<void> Function()? authorize;
   final Future<void> Function()? connect;
   final Future<void> Function({required bool forget}) disconnect;
 }

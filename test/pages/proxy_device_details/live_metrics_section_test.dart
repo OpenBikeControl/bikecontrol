@@ -1019,8 +1019,16 @@ void main() {
       expect(core.connection.isHealthKitConnected, isTrue);
     });
 
-    testWidgets('denied: toast, back to Trainer, nothing started', (tester) async {
+    testWidgets('denied: toast, selection never committed, nothing started', (tester) async {
       channel.authorization = HealthKitAuthorization.denied;
+      final previousOnSelectionChanged = core.sensors.onSelectionChanged;
+      var selectionChangedCalls = 0;
+      core.sensors.onSelectionChanged = () {
+        selectionChangedCalls++;
+        previousOnSelectionChanged?.call();
+      };
+      addTearDown(() => core.sensors.onSelectionChanged = previousOnSelectionChanged);
+
       await pump(tester);
       await tester.tap(segmentIn('heartRate', 'healthkit'));
       await tester.pump();
@@ -1033,9 +1041,41 @@ void main() {
       // own "no pending timers" invariant. Pump past the full 5 s so it
       // actually fires and the toast tears itself down.
       await tester.pump(const Duration(seconds: 6));
+      // Authorization now runs BEFORE `core.sensors.select` — a denial means
+      // the selection is never touched at all (not "set then reverted"), so
+      // `onSelectionChanged` never fires either.
       expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
+      expect(selectionChangedCalls, 0);
       expect(channel.startCalls, 0);
     });
+
+    testWidgets(
+      'authorization is requested BEFORE the selection changes '
+      '(the sheet must not race the transport restart)',
+      (tester) async {
+        await pump(tester);
+
+        int? selectionChangedAt;
+        final previousOnSelectionChanged = core.sensors.onSelectionChanged;
+        core.sensors.onSelectionChanged = () {
+          selectionChangedAt = channel.authorizeCalls;
+          previousOnSelectionChanged?.call();
+        };
+        addTearDown(() => core.sensors.onSelectionChanged = previousOnSelectionChanged);
+
+        await tester.tap(segmentIn('heartRate', 'healthkit'));
+        await tester.pumpAndSettle();
+
+        // Authorization had already happened by the time the hub's
+        // selection changed — the exact ordering the device-confirmed bug
+        // needed (a selection change restarts the BLE/DIRCON transport,
+        // which starves the permission sheet if it races it).
+        expect(selectionChangedAt, 1);
+        // And it is not called again on the connect path that follows —
+        // `Connection.connectHealthKit` deliberately never authorizes.
+        expect(channel.authorizeCalls, 1);
+      },
+    );
 
     testWidgets('connected + session mode: green dot and the live value', (tester) async {
       await pump(tester);
