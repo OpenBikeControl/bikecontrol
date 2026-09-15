@@ -13,6 +13,14 @@ class ShiftingConfigPicker extends StatefulWidget {
 }
 
 class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
+  /// Below this width the New / Manage buttons stack beside the dropdown
+  /// instead of sharing its row. Tuned for the row inside the settings
+  /// section on 360–390 dp phones (~330–360 dp of usable width once the page
+  /// and card paddings are off): side by side, the two labelled buttons left
+  /// the dropdown — the part the rider actually reads — a few characters
+  /// wide.
+  static const double _stackButtonsBelowWidth = 400;
+
   @override
   void initState() {
     super.initState();
@@ -159,48 +167,83 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < _stackButtonsBelowWidth) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: _select(context)),
+              const Gap(8),
+              // IntrinsicWidth sizes the column to its wider button so both
+              // stretch to the same width instead of each hugging its label.
+              IntrinsicWidth(
+                child: Column(
+                  // min: the Row hands its children whatever height the page
+                  // allows, and an expanding column would drag the dropdown
+                  // down to the middle of that instead of the button stack.
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 8,
+                  children: [_newButton(context), _manageButton(context)],
+                ),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: _select(context)),
+            const Gap(8),
+            _newButton(context),
+            const Gap(8),
+            _manageButton(context),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _select(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final configs = core.shiftingConfigs.configsFor(widget.trainerKey);
     final active = core.shiftingConfigs.activeFor(widget.trainerKey);
     final selected = configs.any((c) => c.name == active.name) ? active : null;
-
-    return Row(
-      children: [
-        Expanded(
-          child: Select<ShiftingConfig>(
-            value: selected,
-            popup: SelectPopup(
-              items: SelectItemList(
-                children: [
-                  for (final cfg in configs)
-                    SelectItemButton(
-                      value: cfg,
-                      child: Text(cfg.name),
-                    ),
-                ],
+    return Select<ShiftingConfig>(
+      value: selected,
+      popup: SelectPopup(
+        items: SelectItemList(
+          children: [
+            for (final cfg in configs)
+              SelectItemButton(
+                value: cfg,
+                child: Text(cfg.name),
               ),
-            ).call,
-            itemBuilder: (c, cfg) => Text(cfg.name),
-            placeholder: Text(l10n.defaultName),
-            onChanged: (cfg) async {
-              if (cfg == null) return;
-              await core.shiftingConfigs.setActive(trainerKey: widget.trainerKey, name: cfg.name);
-            },
-          ),
+          ],
         ),
-        const Gap(8),
-        Button.outline(
-          onPressed: _createNew,
-          leading: const Icon(LucideIcons.plus, size: 16),
-          child: Text(l10n.newAction),
-        ),
-        const Gap(8),
-        Button.outline(
-          onPressed: _manage,
-          leading: const Icon(LucideIcons.settings, size: 16),
-          child: Text(l10n.manageAction),
-        ),
-      ],
+      ).call,
+      itemBuilder: (c, cfg) => Text(cfg.name),
+      placeholder: Text(l10n.defaultName),
+      onChanged: (cfg) async {
+        if (cfg == null) return;
+        await core.shiftingConfigs.setActive(trainerKey: widget.trainerKey, name: cfg.name);
+      },
+    );
+  }
+
+  Widget _newButton(BuildContext context) {
+    return Button.outline(
+      onPressed: _createNew,
+      leading: const Icon(LucideIcons.plus, size: 16),
+      child: Text(AppLocalizations.of(context).newAction),
+    );
+  }
+
+  Widget _manageButton(BuildContext context) {
+    return Button.outline(
+      onPressed: _manage,
+      leading: const Icon(LucideIcons.settings, size: 16),
+      child: Text(AppLocalizations.of(context).manageAction),
     );
   }
 }
