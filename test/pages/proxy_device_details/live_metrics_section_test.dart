@@ -917,6 +917,40 @@ void main() {
       },
     );
 
+    // Finding 1, fix round 1: the back-to-Trainer walk used to gate on
+    // `previous.isConnected` — true only for a REGISTERED source — so a
+    // selection still pointing at a nearby, never-registered strap (its own
+    // `connectDevice` still in flight, or failed outright) skipped the
+    // disconnect call entirely and left that strap's per-device
+    // auto-connect consent flag set to `true` forever, ready to
+    // auto-reconnect an unused strap on the next scan.
+    testWidgets(
+      'a nearby strap selected but never registered still has its consent flag revoked on Trainer',
+      (tester) async {
+        final device = BleHeartRateDevice(BleDevice(deviceId: 'never-registered-hr', name: 'TICKR 9999'));
+        core.connection.devices.add(device);
+        addTearDown(() => core.sensors.select(SensorQuantity.heartRate, null));
+
+        // Mirrors the state a failed/in-flight `connectDevice` leaves
+        // behind: selection and consent both set, but the source was never
+        // registered in the hub (so `_candidatesFor` lists it with
+        // `isConnected: false`) — set up directly rather than through a tap,
+        // since driving an actual connect failure isn't worth the fixture
+        // cost here.
+        core.sensors.select(SensorQuantity.heartRate, device.source.id);
+        await core.settings.setSensorAutoConnect(device.device.deviceId, true);
+        expect(core.settings.getSensorAutoConnect(device.device.deviceId), isTrue);
+
+        await pump(tester);
+        await tester.ensureVisible(segmentIn('heartRate', 'trainer'));
+        await tester.tap(segmentIn('heartRate', 'trainer'));
+        await tester.pumpAndSettle();
+
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
+        expect(core.settings.getSensorAutoConnect(device.device.deviceId), isFalse);
+      },
+    );
+
     testWidgets('Trainer already selected: selecting it again attempts no disconnect and writes no flag', (
       tester,
     ) async {
@@ -1029,13 +1063,13 @@ void main() {
       await tester.tap(segmentIn('heartRate', 'healthkit'));
       await tester.pumpAndSettle();
       await tester.tap(segmentIn('heartRate', 'trainer'));
-      // `tester.runAsync`, not another `pump`/`pumpAndSettle`: the fake
-      // `_events` broadcast controller (built in `setUp`, i.e. in the REAL
-      // zone `package:test` runs setUp/tearDown in) captures that real zone
-      // for its own internal bookkeeping, so `HealthKitSensorSource.stop`'s
-      // `await subscription.cancel()` — reached here via this tap, entirely
-      // inside the fake-async zone `testWidgets` wraps its body in — never
-      // settles no matter how many fake frames are pumped afterward
+      // `tester.runAsync`, not another `pump`/`pumpAndSettle`: a
+      // `StreamSubscription.cancel()` with no `onCancel` handler (our fake
+      // `_events` broadcast controller has none) completes via a Future
+      // that resolves outside `FakeAsync`'s controlled queue regardless of
+      // which zone built the controller — so `HealthKitSensorSource.stop`'s
+      // `await subscription.cancel()`, reached here via this tap, never
+      // settles no matter how many fake frames get pumped afterward
       // (confirmed empirically: it stays pending past `pumpAndSettle`'s
       // whole 10-minute fake-clock budget). Stepping into the real zone
       // briefly lets that pending completion actually fire; the follow-up

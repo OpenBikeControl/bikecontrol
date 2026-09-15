@@ -393,7 +393,7 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
           source,
           isConnected: true,
           disconnect: source is HealthKitSensorSource
-              ? core.connection.disconnectHealthKit
+              ? _disconnectHealthKit
               : ({required bool forget}) => _disconnect(_connectedDeviceFor(source.id), forget: forget),
         ),
       for (final device in nearby)
@@ -412,7 +412,7 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
           healthKit,
           isConnected: false,
           connect: core.connection.connectHealthKit,
-          disconnect: core.connection.disconnectHealthKit,
+          disconnect: _disconnectHealthKit,
         ),
     ];
   }
@@ -423,6 +423,22 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
   Future<void> _connectDevice(BleSensorDevice device) async {
     await core.settings.setSensorAutoConnect(device.device.deviceId, true);
     await core.connection.connectDevice(device);
+  }
+
+  /// `core.connection.disconnectHealthKit` alone never reaches this
+  /// section's own rebuild: unlike a BLE disconnect (`_disconnect`, which
+  /// `setState`s explicitly, mirrored here) or a reading/mode change (which
+  /// `_onHealthKitModeChanged` `setState`s off), the bare tear-off used to
+  /// sit directly on `_SourceCandidate.disconnect` with nothing driving a
+  /// repaint of its own — the ONLY reason the row ever visibly updated was
+  /// `HealthKitSensorSource.stop()` flipping `mode` from non-null to null,
+  /// which is a no-op (no listener fires) when `mode` was already null,
+  /// e.g. the rider disconnects before any mode or sample event ever
+  /// arrived. Explicit `setState` here closes that gap regardless of
+  /// `mode`'s value.
+  Future<void> _disconnectHealthKit({required bool forget}) async {
+    await core.connection.disconnectHealthKit(forget: forget);
+    if (mounted) setState(() {});
   }
 
   /// A candidate's own dot state, independent of whether it happens to be
@@ -504,9 +520,9 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
         try {
           await connect();
         } on HealthKitDeniedException {
-          // Expected outcome, not a failure: explain, and put the selection
-          // back where it was so the row does not show a pick that cannot
-          // deliver anything.
+          // Expected outcome, not a failure: explain, and fall back to
+          // Trainer so the row does not show a pick that cannot deliver
+          // anything.
           core.sensors.select(quantity, null);
           await core.sensors.persistSelections(core.settings);
           // `context` is only safe to read once more `mounted` is confirmed
@@ -537,10 +553,20 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
         final stillInUse = SensorQuantity.values.any((q) => core.sensors.selectionFor(q) == previousSourceId);
         if (!stillInUse) {
           // Reuses the exact same disconnect path the list's explicit
-          // disconnect action uses, so the two cannot drift. `_disconnect`
-          // no-ops (does nothing, throws nothing) when the id doesn't
-          // resolve to a currently-connected `BleSensorDevice` — e.g. a
-          // persisted selection whose sensor never actually connected.
+          // disconnect action uses, so the two cannot drift. For a BLE
+          // candidate, `_disconnect` no-ops (does nothing, throws nothing)
+          // when the id doesn't resolve to any `BleSensorDevice` still in
+          // `core.connection.devices` — e.g. a persisted selection whose
+          // sensor never actually connected, or one that has since dropped
+          // out of range entirely. `disconnectHealthKit` similarly no-ops
+          // when not connected. Deliberately unconditional on
+          // `previous.isConnected`: a NEARBY strap that was selected but
+          // never finished connecting (its own `connect` failed, or is
+          // still in flight) is `isConnected == false` here, but it still
+          // has its per-device auto-connect consent flag set from the tap
+          // that picked it — `_disconnect` is what clears that flag, so
+          // skipping it for an unregistered candidate would leave a
+          // forgotten strap set to auto-connect on the next scan.
           //
           // `forget: false` here — unlike the explicit disconnect action
           // below (see `_disconnect`'s own doc comment): `core.sensors
@@ -551,7 +577,7 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
           // would find nothing left to do — the reason it was chosen no
           // longer applies on this path.
           final previous = previousCandidates.where((c) => c.source.id == previousSourceId).firstOrNull;
-          if (previous != null && previous.isConnected) await previous.disconnect(forget: false);
+          if (previous != null) await previous.disconnect(forget: false);
         }
       }
 
