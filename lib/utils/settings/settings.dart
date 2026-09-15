@@ -492,6 +492,24 @@ class Settings {
     await prefs.setBool('vibration_enabled', enabled);
   }
 
+  /// Phone-side shift feedback (haptics / sounds). Distinct from
+  /// [getVibrationEnabled], which buzzes the Zwift controller hardware.
+  bool getShiftHapticsEnabled() {
+    return prefs.getBool('shift_haptics_enabled') ?? false;
+  }
+
+  Future<void> setShiftHapticsEnabled(bool enabled) async {
+    await prefs.setBool('shift_haptics_enabled', enabled);
+  }
+
+  bool getShiftSoundEnabled() {
+    return prefs.getBool('shift_sound_enabled') ?? false;
+  }
+
+  Future<void> setShiftSoundEnabled(bool enabled) async {
+    await prefs.setBool('shift_sound_enabled', enabled);
+  }
+
   bool getMyWhooshLinkEnabled() {
     return prefs.getBool('mywhoosh_link_enabled') ?? false;
   }

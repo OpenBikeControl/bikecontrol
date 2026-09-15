@@ -2038,5 +2038,9 @@
   "ltwooWrongPinAlert": "Le dérailleur L-TWOO a refusé le PIN. Vérifiez le PIN de l'appareil dans les préférences de ce contrôleur.",
   "ltwooPinLabel": "PIN de l'appareil",
   "ltwooAnchorGearTitle": "Maintenir le dérailleur en place",
-  "ltwooAnchorGearDescription": "Après chaque changement de vitesse, BikeControl ramène le dérailleur en position pour que la chaîne reste sur un seul pignon. Le dérailleur bouge brièvement à chaque pression."
+  "ltwooAnchorGearDescription": "Après chaque changement de vitesse, BikeControl ramène le dérailleur en position pour que la chaîne reste sur un seul pignon. Le dérailleur bouge brièvement à chaque pression.",
+  "shiftFeedbackSound": "Jouer un son lors du changement de vitesse",
+  "shiftFeedbackSoundSubtitle": "Sons distincts pour monter, descendre et atteindre la dernière vitesse",
+  "shiftFeedbackHaptics": "Faire vibrer cet appareil lors du changement de vitesse",
+  "shiftFeedbackHapticsSubtitle": "Une courte vibration sur ce téléphone ou cette tablette, deux fois s'il n'y a pas de vitesse suivante. La vibration du contrôleur se règle par contrôleur."
 }

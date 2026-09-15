@@ -17,6 +17,9 @@ import 'package:bike_control/utils/demo_mode.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/feedback_prompt_service.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
+import 'package:bike_control/services/shift_feedback/shift_feedback_service.dart';
+import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
+import 'package:bike_control/services/shift_feedback/sound_players/shift_sound_player_factory.dart';
 import 'package:bike_control/services/sensors/sensor_hub.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
@@ -88,6 +91,15 @@ class Core {
   late final sensors = SensorHub();
 
   late final mediaKeyHandler = MediaKeyHandler();
+
+  /// Phone-side shift feedback (haptics / sound). Not final: tests swap in a
+  /// recording fake to assert the call sites without a platform.
+  late ShiftFeedbackService shiftFeedback = ShiftFeedbackService(
+    settings: settings,
+    haptics: const PlatformShiftHaptics(),
+    createSoundPlayer: createShiftSoundPlayer,
+    onError: (context, e, s) => recordError(e, s, context: context),
+  );
   late final logic = CoreLogic();
   late final permissions = Permissions();
 
@@ -348,8 +360,7 @@ class CoreLogic {
   /// The "Simulate touch / mouse" card is shown when the touch mode is
   /// supported and either Local is available or remote control is enabled.
   bool get showLocalTouchCard =>
-      core.actionHandler.supportedModes.contains(SupportedMode.touch) &&
-      (showLocalControl || isRemoteControlEnabled);
+      core.actionHandler.supportedModes.contains(SupportedMode.touch) && (showLocalControl || isRemoteControlEnabled);
 
   /// Whether any method that rides on the LAN is switched on.
   ///

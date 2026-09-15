@@ -908,6 +908,7 @@ class ProxyDevice extends BluetoothDevice {
   /// game-set target down.
   ActionResult _stepErg(FitnessBikeDefinition def, AppLocalizations l10n, ControllerButton button, {required bool up}) {
     final next = def.stepManualErgPower(up: up);
+    _reportShift(up: up, didChange: next != null);
     if (next != null) {
       return Success(l10n.trainerErgTarget(next), button: button);
     }
@@ -915,6 +916,14 @@ class ProxyDevice extends BluetoothDevice {
     return current == null
         ? Ignored(l10n.trainerErgTargetGameControlled, button: button)
         : Ignored(l10n.trainerErgTarget(current), button: button);
+  }
+
+  /// Phone feedback for a shifter press handled here. This is the only place
+  /// that knows whether the drivetrain actually moved — the result type
+  /// doesn't (a successful VS shift is `Ignored`), so the outcome is reported
+  /// explicitly rather than derived by the caller.
+  void _reportShift({required bool up, required bool didChange}) {
+    unawaited(didChange ? core.shiftFeedback.shifted(up: up) : core.shiftFeedback.atLimit());
   }
 
   ActionResult handleTrainerAction(ControllerButton button, InGameAction action) {
@@ -930,6 +939,7 @@ class ProxyDevice extends BluetoothDevice {
           return _stepErg(def, l10n, button, up: true);
         } else {
           final didChange = def.shiftUp();
+          _reportShift(up: true, didChange: didChange);
           return didChange
               ? Ignored(l10n.trainerShiftedUp(def.currentGear.value), button: button)
               : Ignored(l10n.trainerAlreadyHighestGear, button: button);
@@ -939,6 +949,7 @@ class ProxyDevice extends BluetoothDevice {
           return _stepErg(def, l10n, button, up: false);
         } else {
           final didChange = def.shiftDown();
+          _reportShift(up: false, didChange: didChange);
           return didChange
               ? Ignored(l10n.trainerShiftedDown(def.currentGear.value), button: button)
               : Ignored(l10n.trainerAlreadyLowestGear, button: button);

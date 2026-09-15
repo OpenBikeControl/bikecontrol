@@ -2038,5 +2038,9 @@
   "ltwooWrongPinAlert": "El cambio L-TWOO rechazó el PIN. Comprueba el PIN del dispositivo en las preferencias de este controlador.",
   "ltwooPinLabel": "PIN del dispositivo",
   "ltwooAnchorGearTitle": "Mantener el cambio en su sitio",
-  "ltwooAnchorGearDescription": "Tras cada cambio, BikeControl devuelve el cambio a su posición para que la cadena se mantenga en un solo piñón. El cambio se moverá brevemente con cada pulsación."
+  "ltwooAnchorGearDescription": "Tras cada cambio, BikeControl devuelve el cambio a su posición para que la cadena se mantenga en un solo piñón. El cambio se moverá brevemente con cada pulsación.",
+  "shiftFeedbackSound": "Reproducir un sonido al cambiar de marcha",
+  "shiftFeedbackSoundSubtitle": "Señales distintas para subir, bajar y llegar a la última marcha",
+  "shiftFeedbackHaptics": "Vibrar este dispositivo al cambiar de marcha",
+  "shiftFeedbackHapticsSubtitle": "Una vibración corta en este teléfono o tablet, dos veces si no hay una marcha siguiente. La vibración del mando se configura por mando."
 }
