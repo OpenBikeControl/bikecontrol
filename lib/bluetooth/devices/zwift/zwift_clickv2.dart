@@ -22,7 +22,10 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-final DirconEmulator ftmsEmulator = DirconEmulator();
+// Prefer the standard Wahoo DirCon port so clients that hard-dial it (ignoring
+// the mDNS SRV port, e.g. TrainerRoad) reach the Virtual-Shifting bridge.
+// Reasoning in `prop` ([kWahooDirconStandardPort]).
+final DirconEmulator ftmsEmulator = DirconEmulator(preferredPort: kWahooDirconStandardPort);
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickDefinition? _clickDef;
